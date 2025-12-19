@@ -2198,10 +2198,7 @@ const ROUTES = {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/assignee',
         getRoute: (params: WorkspaceCompanyCardsAssignCardParams, backTo?: string) =>
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(
-                `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/assignee`,
-                backTo,
-            ),
+            getUrlWithBackToParam(`workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/assignee`, backTo),
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/card-selection',
@@ -2222,10 +2219,7 @@ const ROUTES = {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/confirmation',
         getRoute: (params: WorkspaceCompanyCardsAssignCardParams, backTo?: string) =>
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(
-                `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/confirmation`,
-                backTo,
-            ),
+            getUrlWithBackToParam(`workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/confirmation`, backTo),
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/invite-new-member',

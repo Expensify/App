@@ -26,7 +26,7 @@ import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompany
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -110,6 +110,8 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 break;
             case CONST.COMPANY_CARD.STEP.CARD_NAME:
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_NAME.getRoute(routeParams));
+                break;
+            default:
                 break;
         }
     };

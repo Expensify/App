@@ -19,21 +19,15 @@ import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 
 function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE>}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const policyID = route.params.policyID;
-    const feed = route.params.feed;
-    const cardID = route.params.cardID;
-
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
-    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '');
 
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const [errorText, setErrorText] = useState('');

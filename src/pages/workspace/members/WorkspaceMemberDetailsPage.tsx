@@ -8,8 +8,6 @@ import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -423,7 +421,11 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                         maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)
                                                     }
                                                     description={memberCard?.lastFourPAN ?? lastFourNumbersFromCardName(memberCard?.cardName)}
-                                                    badgeText={memberCard.bank === CONST.EXPENSIFY_CARD.BANK ? convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit) : ''}
+                                                    badgeText={
+                                                        memberCard.bank === CONST.EXPENSIFY_CARD.BANK && memberCard.nameValuePairs?.unapprovedExpenseLimit !== undefined
+                                                            ? convertToDisplayString(memberCard.nameValuePairs.unapprovedExpenseLimit)
+                                                            : ''
+                                                    }
                                                     icon={getCardFeedIcon(memberCard.bank as CompanyCardFeed, illustrations, companyCardFeedIcons)}
                                                     plaidUrl={plaidUrl}
                                                     displayInDefaultIconColor

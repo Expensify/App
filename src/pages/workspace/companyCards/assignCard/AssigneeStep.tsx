@@ -2,7 +2,6 @@ import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -29,8 +28,7 @@ import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type SCREENS from '@src/SCREENS';
 import type {AssignCardData} from '@src/types/onyx/AssignCard';
 
 type AssigneeStepProps = {
@@ -92,7 +90,9 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
                 data.cardNumber = assignCard.data.cardNumber;
                 data.startDate = !isEditing ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING) : (assignCard?.data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
-                data.dateOption = !isEditing ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM : (assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+                data.dateOption = !isEditing
+                    ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM
+                    : (assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
                 setAssignCardStepAndData({
                     data,
                     isEditing: false,
@@ -124,7 +124,9 @@ function AssigneeStep({route}: AssigneeStepProps) {
             data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
             data.cardNumber = assignCard.data.cardNumber;
             data.startDate = !isEditing ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING) : (assignCard?.data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
-            data.dateOption = !isEditing ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM : (assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+            data.dateOption = !isEditing
+                ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM
+                : (assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
             setAssignCardStepAndData({
                 data,
                 isEditing: false,
