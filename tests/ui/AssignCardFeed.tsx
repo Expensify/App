@@ -12,14 +12,19 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AssignCardFeedPage from '@pages/workspace/companyCards/assignCard/AssignCardFeedPage';
+import AssignCardFeedAssigneePage from '@pages/workspace/companyCards/assignCard/AssigneeStep';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+const FEED_DOMAIN_ID = 1234;
+const FEED = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}.${FEED_DOMAIN_ID}` as CompanyCardFeedWithDomainID;
+const CARD_ID = '1234';
 
 // Set up a global fetch mock for API requests in tests.
 TestHelper.setupGlobalFetchMock();
@@ -71,15 +76,18 @@ jest.mock('@components/FormAlertWithSubmitButton', () => 'FormAlertWithSubmitBut
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 // Renders the AssignCardFeedPage inside a navigation container with necessary providers.
-const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD, initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]) => {
+const renderPage = (
+    initialRouteName: typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE,
+    initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE],
+) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
-                            name={SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD}
-                            component={AssignCardFeedPage}
+                            name={SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE}
+                            component={AssignCardFeedAssigneePage}
                             initialParams={initialParams}
                         />
                     </Stack.Navigator>
@@ -89,7 +97,7 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASS
     );
 };
 
-describe('AssignCardFeedPage', () => {
+describe('AssignCardFeed', () => {
     beforeAll(() => {
         // Initialize Onyx with required keys before running any test.
         Onyx.init({
@@ -129,7 +137,7 @@ describe('AssignCardFeedPage', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
-                data: {
+                cardToAssign: {
                     bankName: 'vcf',
                     email: 'testaccount+1@gmail.com',
                     cardName: "Test 1's card",
@@ -145,9 +153,10 @@ describe('AssignCardFeedPage', () => {
         });
 
         // Render the page with the specified policyID and backTo param
-        const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD, {
+        const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE, {
             policyID: policy.id,
-            feed: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            feed: FEED,
+            cardID: CARD_ID,
             backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy?.id, 1234),
         });
 
@@ -196,7 +205,7 @@ describe('AssignCardFeedPage', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
-                data: {
+                cardToAssign: {
                     bankName: 'vcf',
                     email: 'testaccount+1@gmail.com',
                     cardName: "Test 1's card",
@@ -211,9 +220,10 @@ describe('AssignCardFeedPage', () => {
             });
         });
         // Render the page with the specified policyID and backTo param
-        const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD, {
+        const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE, {
             policyID: policy.id,
-            feed: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            feed: FEED,
+            cardID: CARD_ID,
             backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy?.id, 1234),
         });
 
@@ -222,7 +232,7 @@ describe('AssignCardFeedPage', () => {
         // Mock the action of changing the assignee of the card
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
-                data: {
+                cardToAssign: {
                     email: 'testaccount+2@gmail.com',
                 },
             });

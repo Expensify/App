@@ -48,8 +48,8 @@ type AddNewCompanyCardFlowData = {
     data?: Partial<AddNewCardFeedData>;
 };
 
-function setAssignCardStepAndData({data, isEditing, currentStep}: Partial<AssignCard>) {
-    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {data, isEditing, currentStep});
+function setAssignCardStepAndData({cardToAssign, isEditing, currentStep}: Partial<AssignCard>) {
+    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {cardToAssign, isEditing, currentStep});
 }
 
 function setTransactionStartDate(startDate: string) {
@@ -359,11 +359,6 @@ function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspace
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${policyExpenseChat?.reportID}`,
                 value: {[optimisticCardAssignedReportAction.reportActionID]: {pendingAction: null}},
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.ASSIGN_CARD,
-                value: {isAssigning: false, isAssignmentFinished: true},
-            },
         ],
         failureData: [
             {
@@ -378,15 +373,17 @@ function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspace
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.ASSIGN_CARD,
-                value: {isAssigning: false, isAssignmentFinished: true},
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}`,
                 value: {
                     [encryptedCardNumber]: failedCardAssignment,
                 },
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.ASSIGN_CARD,
+                value: {isAssigning: false, isAssignmentFinished: true},
             },
         ],
     };

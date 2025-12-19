@@ -173,7 +173,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      * Get members for the current workspace
      */
     const getWorkspaceMembers = useCallback(() => {
-        openWorkspaceMembersPage(route.params.policyID, Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList)));
+        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
+        openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
     }, [route.params.policyID, policy?.employeeList]);
 
     useEffect(() => {

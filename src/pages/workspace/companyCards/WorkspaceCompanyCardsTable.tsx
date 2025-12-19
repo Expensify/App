@@ -11,7 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyFeeds, getPlaidInstitutionIconUrl, getPlaidInstitutionId, isMaskedCardNumberEqual} from '@libs/CardUtils';
+import {getCompanyFeeds, getPlaidInstitutionId, isMaskedCardNumberEqual} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
@@ -34,16 +34,27 @@ type WorkspaceCompanyCardsTableProps = {
     domainOrWorkspaceAccountID: number;
 
     /** On assign card callback */
-    onAssignCard: (cardID?: string) => void;
+    onAssignCard: (cardID: string) => void;
 
     /** Whether to disable assign card button */
     isAssigningCardDisabled?: boolean;
 
     /** Whether to show GB disclaimer */
     shouldShowGBDisclaimer?: boolean;
+
+    /** Card feed icon */
+    CardFeedIcon?: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer, domainOrWorkspaceAccountID}: WorkspaceCompanyCardsTableProps) {
+function WorkspaceCompanyCardsTable({
+    selectedFeed,
+    policyID,
+    domainOrWorkspaceAccountID,
+    onAssignCard,
+    isAssigningCardDisabled,
+    shouldShowGBDisclaimer,
+    CardFeedIcon,
+}: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
@@ -68,7 +79,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
-    const shouldShowNarrowLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
@@ -85,8 +96,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
             key: 'customCardName',
             label: translate('workspace.companyCards.cardName'),
             styling: {
-                containerStyles: [styles.justifyContentEnd],
-                labelStyles: [styles.pr3],
+                containerStyles: [styles.justifyContentEnd, styles.pr3],
             },
         },
     ];
@@ -116,12 +126,11 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
             item={item}
             policyID={policyID}
             domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
-            selectedFeed={selectedFeed}
-            plaidIconUrl={getPlaidInstitutionIconUrl(selectedFeed)}
+            CardFeedIcon={CardFeedIcon}
             isPlaidCardFeed={isPlaidCardFeed}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
-            shouldUseNarrowTableRowLayout={shouldShowNarrowLayout}
+            shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             columnCount={columns.length}
         />
     );
@@ -211,12 +220,12 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
     };
 
     const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
-    const isNarrowLayoutRef = useRef(shouldShowNarrowLayout);
+    const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
 
     // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
     // When switching back to wide layout, we want to restore the previous sorting.
     useEffect(() => {
-        if (shouldShowNarrowLayout) {
+        if (shouldUseNarrowTableLayout) {
             if (isNarrowLayoutRef.current) {
                 return;
             }
@@ -234,7 +243,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
 
         isNarrowLayoutRef.current = false;
         tableRef.current?.updateSorting(activeSortingInWideLayout);
-    }, [activeSortingInWideLayout, shouldShowNarrowLayout]);
+    }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
     // Show empty state when there are no cards
     if (!data.length && !isLoadingCardsTableData) {
@@ -243,12 +252,9 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
                 <WorkspaceCompanyCardsTableHeaderButtons
                     policyID={policyID}
                     selectedFeed={selectedFeed}
+                    CardFeedIcon={CardFeedIcon}
                 />
-                <WorkspaceCompanyCardsFeedAddedEmptyPage
-                    shouldShowGBDisclaimer={shouldShowGBDisclaimer}
-                    handleAssignCard={() => onAssignCard()}
-                    isAssigningCardDisabled={isAssigningCardDisabled}
-                />
+                <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />
             </View>
         );
     }
@@ -266,15 +272,16 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
             filters={filterConfig}
             ListEmptyComponent={!isOffline && isLoadingCardsTableData ? <TableRowSkeleton fixedNumItems={5} /> : undefined}
         >
-            <View style={shouldShowNarrowLayout && styles.mb5}>
+            <View style={shouldUseNarrowTableLayout && styles.mb5}>
                 <WorkspaceCompanyCardsTableHeaderButtons
                     policyID={policyID}
                     selectedFeed={selectedFeed}
                     shouldDisplayTableComponents
+                    CardFeedIcon={CardFeedIcon}
                 />
             </View>
 
-            {!shouldShowNarrowLayout && <Table.Header />}
+            {!shouldUseNarrowTableLayout && <Table.Header />}
 
             <Table.Body />
         </Table>

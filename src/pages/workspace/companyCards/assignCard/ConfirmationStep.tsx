@@ -26,14 +26,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
+import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
 
 function ConfirmationStep({route}: ConfirmationStepProps) {
     const policyID = route.params.policyID;
-    const feed = route.params.feed as CompanyCardFeedWithDomainID;
+    const feed = route.params.feed;
     const cardID = route.params.cardID;
     const backTo = route.params?.backTo;
     const {translate} = useLocalize();
@@ -44,7 +44,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const policy = usePolicy(policyID);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const bankName = assignCard?.data?.bankName ?? getCompanyCardFeed(feed);
+    const bankName = assignCard?.cardToAssign?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
     const companyCardFeedData = cardFeeds?.[feed];
@@ -52,11 +52,11 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCardFeedData);
 
-    const data = assignCard?.data;
+    const cardToAssign = assignCard?.cardToAssign;
 
-    const cardholder = getPersonalDetailByEmail(data?.email ?? '');
+    const cardholder = getPersonalDetailByEmail(cardToAssign?.email ?? '');
     const cardholderName = Str.removeSMSDomain(cardholder?.displayName ?? '');
-    const cardholderEmail = data?.email ?? '';
+    const cardholderEmail = cardToAssign?.email ?? '';
     const cardholderAccountID = cardholder?.accountID;
 
     useEffect(() => {
@@ -89,10 +89,11 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     },
                 });
             }
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed, cardID}));
+
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, feed));
             return;
         }
-        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, {...data, cardholder, bankName});
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, {...cardToAssign, cardholder, bankName});
     };
 
     const editStep = (step: string) => {
@@ -111,7 +112,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_NAME.getRoute(routeParams));
                 break;
             default:
-                break;
+                throw new Error(`Invalid step: ${step}`);
         }
     };
 
@@ -137,7 +138,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={data?.encryptedCardNumber ?? maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
+                    title={cardToAssign?.encryptedCardNumber ?? maskCardNumber(cardToAssign?.cardNumber ?? '', cardToAssign?.bankName)}
                     interactive={false}
                 />
                 <MenuItem
@@ -152,13 +153,17 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                    title={data?.dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? translate('workspace.companyCards.fromTheBeginning') : data?.startDate}
+                    title={
+                        cardToAssign?.dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING
+                            ? translate('workspace.companyCards.fromTheBeginning')
+                            : cardToAssign?.startDate
+                    }
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE)}
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.cardName')}
-                    title={data?.cardName}
+                    title={cardToAssign?.cardName}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
                 />

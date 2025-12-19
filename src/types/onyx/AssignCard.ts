@@ -59,7 +59,7 @@ type AssignCard = {
     currentStep: AssignCardStep;
 
     /** Data required to be sent to assign a card */
-    data: Partial<AssignCardData>;
+    cardToAssign: Partial<AssignCardData>;
 
     /** Whether the user is editing step */
     isEditing: boolean;

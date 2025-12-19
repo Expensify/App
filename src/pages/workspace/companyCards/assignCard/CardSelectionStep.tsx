@@ -31,13 +31,12 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION>;
 
 function CardSelectionStep({route}: CardSelectionStepProps) {
     const policyID = route.params.policyID;
-    const feed = route.params.feed as CompanyCardFeedWithDomainID;
+    const feed = route.params.feed;
     const cardID = route.params.cardID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -52,10 +51,10 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
     const isEditing = assignCard?.isEditing;
-    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '');
+    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(assignCard?.cardToAssign?.email ?? '')?.displayName ?? '');
     const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
 
-    const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
+    const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
     const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
@@ -107,7 +106,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                 ?.at(0) ?? '';
 
         setAssignCardStepAndData({
-            data: {encryptedCardNumber: cardSelected, cardNumber},
+            cardToAssign: {encryptedCardNumber: cardSelected, cardNumber},
             isEditing: false,
         });
 

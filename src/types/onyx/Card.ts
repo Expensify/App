@@ -224,10 +224,7 @@ type ExpensifyCardDetails = {
 type AssignableCardsList = Record<string, string>;
 
 /** Record of Company or Expensify cards, indexed by cardID */
-type CardList = Record<string, Card> & {
-    /** List of assignable cards */
-    cardList?: AssignableCardsList;
-};
+type CardList = Record<string, Card>;
 
 /** Issue new card flow steps */
 type IssueNewCardStep = ValueOf<typeof CONST.EXPENSIFY_CARD.STEP>;
@@ -287,7 +284,7 @@ type IssueNewCard = {
 };
 
 /** List of Expensify cards */
-type WorkspaceCardsList = Record<string, Card> & {
+type WorkspaceCardsList = CardList & {
     /** List of cards to assign */
     cardList?: Record<string, string>;
 };

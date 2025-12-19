@@ -195,8 +195,8 @@ function formatCardExpiration(expirationDateString: string) {
  * @param cardList - collection of assigned cards
  * @returns collection of assigned cards grouped by domain
  */
-function getDomainCards(cardList: OnyxEntry<CardList>): Record<string, Card[]> {
-    const assignedCards = getAssignedCardFromCardList(cardList ?? {});
+function getDomainCards(cardsList: OnyxEntry<CardList>): Record<string, Card[]> {
+    const {cardList: assignableCards, ...assignedCards} = cardsList ?? {};
 
     // Check for domainName to filter out personal credit cards.
     const activeCards = Object.values(assignedCards).filter((card) => !!card?.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.some((element) => element === card.state));
@@ -637,9 +637,16 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
-function filterInactiveCards(cards: CardList | undefined): CardList {
+function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
+    const {cardList, ...assignedCards} = cardsList ?? {};
+
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
-    return filterObject(cards ?? {}, (key, card) => !closedStates.has(card.state));
+    const filteredAssignedCards = filterObject(assignedCards, (_key, card) => !closedStates.has(card.state));
+
+    return {
+        ...(cardList ? {cardList} : {}),
+        ...filteredAssignedCards,
+    } as WorkspaceCardsList;
 }
 
 function getAllCardsForWorkspace(
@@ -648,7 +655,7 @@ function getAllCardsForWorkspace(
     cardFeeds?: CombinedCardFeeds,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
 ): CardList {
-    const cards = {};
+    const cards: CardList = {};
     const companyCardsDomainFeeds = Object.entries(cardFeeds ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
     const expensifyCardsDomainIDs = Object.keys(expensifyCardSettings ?? {})
         .map((key) => key.split('_').at(-1))
@@ -658,27 +665,16 @@ function getAllCardsForWorkspace(
         const isCompanyDomainCards = companyCardsDomainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
         if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
-            const {cardList, ...rest} = values;
-            const filteredCards = filterInactiveCards(rest);
+            const {cardList: assignableCards, ...assignedCards} = values ?? {};
+            const filteredCards = filterInactiveCards(assignedCards);
             Object.assign(cards, filteredCards);
         }
     }
     return cards;
 }
 
-/**
- * Get assigned cards from card list by extracting the list of assignable cards from the card list
- *
- * @param cardList the card list
- * @returns the assigned cards
- */
-function getAssignedCardFromCardList(cardList: CardList) {
-    const {cardList: assignableCards, ...assignedCards} = cardList;
-    return assignedCards;
-}
-
-function isSmartLimitEnabled(cardList: CardList) {
-    const assignedCards = getAssignedCardFromCardList(cardList);
+function isSmartLimitEnabled(cardsList: CardList) {
+    const {cardList, ...assignedCards} = cardsList ?? {};
 
     return Object.values(assignedCards).some((card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
 }
@@ -789,7 +785,7 @@ function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: Priv
 }
 
 function hasPendingExpensifyCardAction(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails) {
-    const assignedCards = getAssignedCardFromCardList(cards ?? {});
+    const {cardList, ...assignedCards} = cards ?? {};
     return Object.values(assignedCards).some((card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
 }
 const isCurrencySupportedForECards = (currency?: string) => {
@@ -958,7 +954,6 @@ export {
     COMPANY_CARD_BANK_ICON_NAMES,
     isMaskedCardNumberEqual,
     splitMaskedCardNumber,
-    getAssignedCardFromCardList,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};

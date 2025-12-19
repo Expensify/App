@@ -4,7 +4,7 @@ import type Account from './Account';
 import type AccountData from './AccountData';
 import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
-import type {AssignCard} from './AssignCard';
+import type {AssignCard, AssignCardData} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
@@ -174,6 +174,7 @@ export type {
     GpsDraftDetails,
     IntroSelected,
     IssueNewCard,
+    AssignCardData,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
     CardContinuousReconciliation,

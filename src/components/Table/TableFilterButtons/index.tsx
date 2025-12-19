@@ -124,7 +124,7 @@ function FilterItemRenderer({item}: FilterItemRendererProps) {
             innerStyles={[styles.gap2, shouldShowResponsiveLayout && styles.mw100]}
             wrapperStyle={shouldShowResponsiveLayout && styles.w100}
             labelStyle={styles.fontSizeLabel}
-            carretWrapperStyle={styles.gap2}
+            caretWrapperStyle={styles.gap2}
             medium
         />
     );

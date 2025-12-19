@@ -7,10 +7,8 @@ import {
     getCompanyCardFeed,
     getCompanyFeeds,
     getDomainOrWorkspaceAccountID,
-    getFilteredCardList,
     getPlaidCountry,
     getPlaidInstitutionId,
-    hasOnlyOneCardToAssign,
     isCustomFeed,
     isSelectedFeedExpired,
 } from '@libs/CardUtils';
@@ -24,9 +22,8 @@ import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
-import type {CombinedCardFeed} from './useCardFeeds';
 import useCardFeeds from './useCardFeeds';
-import useCardsList from './useCardsList';
+import type {CombinedCardFeed} from './useCardFeeds';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -46,15 +43,6 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
 
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
-    const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
-
-    const [cardsList] = useCardsList(selectedFeed);
-
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-
-    const filteredCardList = getFilteredCardList(cardsList, selectedFeed ? cardFeeds?.[selectedFeed]?.accountList : undefined, workspaceCardFeeds);
 
     const companyCards = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed && companyCards[selectedFeed];
@@ -66,7 +54,9 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
 
     const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
 
-    const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
+    const cardList = allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`];
+
+    const filteredFeedCards = filterInactiveCards(cardList);
     const hasFeedError = selectedFeed ? !!cardFeeds?.[selectedFeed]?.errors : false;
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
@@ -75,7 +65,9 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
 
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
 
-    const assignCard = (cardID: string) => {
+    const getInitialAssignCardStep = useInitialAssignCardStep({policyID, selectedFeed});
+
+    const assignCard = (cardID?: string) => {
         if (isAssigningCardDisabled) {
             return;
         }
@@ -85,7 +77,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
             return;
         }
 
-        if (!selectedFeed) {
+        if (!selectedFeed || !cardID) {
             return;
         }
 
@@ -98,74 +90,28 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
             return;
         }
 
-        const data: Partial<AssignCardData> = {
-            bankName: feed,
-        };
-
-        if (cardID) {
-            data.encryptedCardNumber = cardID;
-        }
-
-        let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
-        const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
-        const isFeedExpired = isSelectedFeedExpired(selectedFeedData);
-        const plaidAccessToken = selectedFeedData?.plaidAccessToken;
-
-        // Refetch plaid card list
-        if (!isFeedExpired && plaidAccessToken) {
-            const country = selectedFeedData?.country ?? '';
-            importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', undefined, undefined, plaidAccessToken);
-        }
-
-        if (!cardID && employeeList.length === 1) {
-            const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
-            data.email = userEmail;
-            const personalDetails = getPersonalDetailByEmail(userEmail);
-            const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;
-            data.cardName = `${memberName}'s card`;
-            currentStep = CONST.COMPANY_CARD.STEP.CARD;
-
-            if (hasOnlyOneCardToAssign(filteredCardList)) {
-                currentStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
-                data.cardNumber = Object.keys(filteredCardList).at(0);
-                data.encryptedCardNumber = Object.values(filteredCardList).at(0);
-            }
-        }
-
-        if (isFeedExpired) {
-            const institutionId = !!getPlaidInstitutionId(selectedFeed);
-            if (institutionId) {
-                const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
-                setAddNewCompanyCardStepAndData({
-                    data: {
-                        selectedCountry: country,
-                    },
-                });
-            }
-            currentStep = institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION;
-        }
-
         clearAddNewCardFlow();
         clearAssignCardStepAndData();
-        setAssignCardStepAndData({data});
+
+        const initialAssignCardStep = getInitialAssignCardStep(cardID);
+
+        if (!initialAssignCardStep) {
+            return;
+        }
+
+        const {initialStep, cardToAssign} = initialAssignCardStep;
+
+        setAssignCardStepAndData({currentStep: initialStep, cardToAssign});
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            const routeParams = {policyID, feed: selectedFeed, cardID};
-
-            switch (currentStep) {
+            switch (initialStep) {
                 case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
                 case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed: selectedFeed, cardID}));
-                    break;
-                case CONST.COMPANY_CARD.STEP.CARD:
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
-                    break;
-                case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute(routeParams));
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, selectedFeed));
                     break;
                 case CONST.COMPANY_CARD.STEP.ASSIGNEE:
                 default:
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(routeParams));
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed: selectedFeed, cardID}));
                     break;
             }
         });
@@ -175,6 +121,88 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
         assignCard,
         isAssigningCardDisabled,
     };
+}
+
+type UseInitialAssignCardStepProps = {
+    policyID: string | undefined;
+    selectedFeed: CompanyCardFeedWithDomainID | undefined;
+};
+
+function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCardStepProps) {
+    const {isOffline} = useNetwork();
+
+    const policy = usePolicy(policyID);
+
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
+
+    const [cardFeeds] = useCardFeeds(policyID);
+    const companyCards = getCompanyFeeds(cardFeeds);
+    const feedData = selectedFeed && companyCards[selectedFeed];
+    const bankName = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
+    const isFeedExpired = isSelectedFeedExpired(feedData);
+    const plaidAccessToken = feedData?.plaidAccessToken;
+
+    const getInitialAssignCardStep = (cardID: string | undefined): {initialStep: AssignCardStep; cardToAssign: Partial<AssignCardData>} | undefined => {
+        if (!selectedFeed) {
+            return;
+        }
+
+        const cardToAssign: Partial<AssignCardData> = {
+            bankName,
+            cardNumber: cardID,
+            encryptedCardNumber: cardID,
+        };
+
+        // Refetch plaid card list
+        if (!isFeedExpired && plaidAccessToken) {
+            const country = feedData?.country ?? '';
+            importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', undefined, undefined, plaidAccessToken);
+        }
+
+        if (isFeedExpired || !cardID) {
+            const institutionId = !!getPlaidInstitutionId(selectedFeed);
+            if (institutionId) {
+                const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
+                setAddNewCompanyCardStepAndData({
+                    data: {
+                        selectedCountry: country,
+                    },
+                });
+
+                return {
+                    initialStep: CONST.COMPANY_CARD.STEP.PLAID_CONNECTION,
+                    cardToAssign,
+                };
+            }
+
+            return {
+                initialStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
+                cardToAssign,
+            };
+        }
+
+        const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
+        if (employeeList.length === 1) {
+            const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
+            cardToAssign.email = userEmail;
+            const personalDetails = getPersonalDetailByEmail(userEmail);
+            const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;
+            cardToAssign.cardName = `${memberName}'s card`;
+
+            return {
+                initialStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+                cardToAssign,
+            };
+        }
+
+        return {
+            initialStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+            cardToAssign,
+        };
+    };
+
+    return getInitialAssignCardStep;
 }
 
 export default useAssignCard;

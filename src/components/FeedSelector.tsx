@@ -3,11 +3,8 @@ import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import type IconAsset from '@src/types/utils/IconAsset';
 import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
-import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
 
@@ -16,7 +13,7 @@ type Props = {
     onFeedSelect: () => void;
 
     /** Icon for the card */
-    cardIcon: IconAsset;
+    CardFeedIcon: React.ReactNode;
 
     /** Feed name */
     feedName?: string;
@@ -26,15 +23,13 @@ type Props = {
 
     /** Whether the RBR indicator should be shown */
     shouldShowRBR?: boolean;
-
-    /** Image url for plaid bank account */
-    plaidUrl?: string | null;
 };
 
-function FeedSelector({onFeedSelect, cardIcon, feedName, supportingText, shouldShowRBR = false, plaidUrl = null}: Props) {
+function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, shouldShowRBR = false}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const Expensicons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+
     return (
         <PressableWithFeedback
             onPress={onFeedSelect}
@@ -42,16 +37,8 @@ function FeedSelector({onFeedSelect, cardIcon, feedName, supportingText, shouldS
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
             accessibilityLabel={feedName ?? ''}
         >
-            {plaidUrl ? (
-                <PlaidCardFeedIcon plaidUrl={plaidUrl} />
-            ) : (
-                <Icon
-                    src={cardIcon}
-                    height={variables.cardIconHeight}
-                    width={variables.cardIconWidth}
-                    additionalStyles={styles.cardIcon}
-                />
-            )}
+            {CardFeedIcon}
+
             <View style={styles.flex1}>
                 <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
                     <CaretWrapper style={styles.flex1}>
@@ -64,7 +51,7 @@ function FeedSelector({onFeedSelect, cardIcon, feedName, supportingText, shouldS
                     </CaretWrapper>
                     {shouldShowRBR && (
                         <Icon
-                            src={Expensicons.DotIndicator}
+                            src={expensifyIcons.DotIndicator}
                             fill={theme.danger}
                         />
                     )}
