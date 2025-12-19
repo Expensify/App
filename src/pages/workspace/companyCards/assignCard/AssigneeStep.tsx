@@ -98,13 +98,13 @@ function AssigneeStep({route}: AssigneeStepProps) {
                     isEditing: false,
                 });
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams, backTo));
-            } else {
-                setAssignCardStepAndData({
-                    data,
-                    isEditing: false,
-                });
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
+                return;
             }
+            setAssignCardStepAndData({
+                data,
+                isEditing: false,
+            });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
             return;
         }
 
@@ -130,13 +130,13 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 isEditing: false,
             });
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams, backTo));
-        } else {
-            setAssignCardStepAndData({
-                data,
-                isEditing: false,
-            });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
+            return;
         }
+        setAssignCardStepAndData({
+            data,
+            isEditing: false,
+        });
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
     };
 
     const handleBackButtonPress = () => {
