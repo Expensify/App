@@ -149,61 +149,53 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         </Text>
     );
 
-    const showSwitchSingleToMultiLevelTagWarningModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('workspace.tags.switchSingleToMultiLevelTagWarning.title'),
-            prompt: switchSingleToMultiLevelTagPrompt,
-            confirmText: translate('workspace.tags.switchSingleToMultiLevelTagWarning.title'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-        }).then((result) => {
-            if (result.action === ModalActions.CONFIRM) {
-                cleanPolicyTags(policyID);
-                Navigation.navigate(
-                    isQuickSettingsFlow
-                        ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                        : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                );
-            } else {
-                setImportedSpreadsheetIsImportingMultiLevelTags(false);
-            }
-        });
-    }, [showConfirmModal, translate, switchSingleToMultiLevelTagPrompt, policyID, isQuickSettingsFlow, backTo]);
-
-    const showOverrideMultiTagModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('workspace.tags.overrideMultiTagWarning.title'),
-            prompt: overrideMultiTagPrompt,
-            confirmText: translate('workspace.tags.overrideMultiTagWarning.title'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-        }).then((result) => {
-            if (result.action === ModalActions.CONFIRM) {
-                Navigation.navigate(
-                    isQuickSettingsFlow
-                        ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
-                        : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
-                );
-            } else {
-                setImportedSpreadsheetIsImportingMultiLevelTags(false);
-            }
-        });
-    }, [showConfirmModal, translate, overrideMultiTagPrompt, policyID, isQuickSettingsFlow, backTo]);
-
     const startMultiLevelTagImportFlow = useCallback(() => {
         setImportedSpreadsheetIsImportingMultiLevelTags(true);
         if (hasVisibleTags) {
             if (isMultiLevelTags) {
-                showOverrideMultiTagModal();
+                showConfirmModal({
+                    title: translate('workspace.tags.overrideMultiTagWarning.title'),
+                    prompt: overrideMultiTagPrompt,
+                    confirmText: translate('workspace.tags.overrideMultiTagWarning.title'),
+                    cancelText: translate('common.cancel'),
+                    danger: true,
+                }).then((result) => {
+                    if (result.action === ModalActions.CONFIRM) {
+                        Navigation.navigate(
+                            isQuickSettingsFlow
+                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                        );
+                    } else {
+                        setImportedSpreadsheetIsImportingMultiLevelTags(false);
+                    }
+                });
             } else {
-                showSwitchSingleToMultiLevelTagWarningModal();
+                showConfirmModal({
+                    title: translate('workspace.tags.switchSingleToMultiLevelTagWarning.title'),
+                    prompt: switchSingleToMultiLevelTagPrompt,
+                    confirmText: translate('workspace.tags.switchSingleToMultiLevelTagWarning.title'),
+                    cancelText: translate('common.cancel'),
+                    danger: true,
+                }).then((result) => {
+                    if (result.action === ModalActions.CONFIRM) {
+                        cleanPolicyTags(policyID);
+                        Navigation.navigate(
+                            isQuickSettingsFlow
+                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                        );
+                    } else {
+                        setImportedSpreadsheetIsImportingMultiLevelTags(false);
+                    }
+                });
             }
         } else {
             Navigation.navigate(
                 isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
             );
         }
-    }, [hasVisibleTags, policyID, isQuickSettingsFlow, backTo, isMultiLevelTags, showOverrideMultiTagModal, showSwitchSingleToMultiLevelTagWarningModal]);
+    }, [hasVisibleTags, policyID, isQuickSettingsFlow, backTo, isMultiLevelTags]);
 
     useFocusEffect(
         useCallback(() => {
@@ -246,7 +238,24 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         onPress={() => {
                             setImportedSpreadsheetIsImportingMultiLevelTags(false);
                             if (hasVisibleTags) {
-                                showSwitchSingleToMultiLevelTagWarningModal();
+                                showConfirmModal({
+                                    title: translate('workspace.tags.switchSingleToMultiLevelTagWarning.title'),
+                                    prompt: switchSingleToMultiLevelTagPrompt,
+                                    confirmText: translate('workspace.tags.switchSingleToMultiLevelTagWarning.title'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                }).then((result) => {
+                                    if (result.action === ModalActions.CONFIRM) {
+                                        cleanPolicyTags(policyID);
+                                        Navigation.navigate(
+                                            isQuickSettingsFlow
+                                                ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                                                : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                                        );
+                                    } else {
+                                        setImportedSpreadsheetIsImportingMultiLevelTags(false);
+                                    }
+                                });
                             } else {
                                 Navigation.navigate(
                                     isQuickSettingsFlow

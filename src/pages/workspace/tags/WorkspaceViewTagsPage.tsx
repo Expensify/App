@@ -117,54 +117,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         [policyData, orderWeight],
     );
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const showCannotDeleteOrDisableLastTagModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
-            prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    }, [showConfirmModal, translate]);
-
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const showCannotMakeAllTagsOptionalModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
-            prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    }, [showConfirmModal, translate]);
-
-    const showRequiresMultiLevelTagsModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('workspace.tags.cannotMakeTagListRequired.title'),
-            prompt: translate('workspace.tags.cannotMakeTagListRequired.description'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    }, [showConfirmModal, translate]);
-
-    const showDeleteTagsModal = useCallback(() => {
-        showConfirmModal({
-            title: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
-            prompt: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation'),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            deletePolicyTags(policyData, selectedTags);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            InteractionManager.runAfterInteractions(() => {
-                setSelectedTags([]);
-            });
-        });
-    }, [showConfirmModal, translate, selectedTags, policyData]);
-
     const tagList = useMemo<TagListItem[]>(
         () =>
             Object.values(currentPolicyTag?.tags ?? {}).map((tag) => ({
@@ -186,7 +138,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         accessibilityLabel={translate('workspace.tags.enableTag')}
                         onToggle={(newValue: boolean) => {
                             if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])) {
-                                showCannotDeleteOrDisableLastTagModal();
+                                showConfirmModal({
+                                    title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                                    prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                                    confirmText: translate('common.buttonConfirm'),
+                                    shouldShowCancelButton: false,
+                                });
                                 return;
                             }
                             updateWorkspaceTagEnabled(newValue, tag.name);
@@ -195,7 +152,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     />
                 ),
             })),
-        [currentPolicyTag, hasDependentTags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, showCannotDeleteOrDisableLastTagModal],
+        [currentPolicyTag, hasDependentTags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled],
     );
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
@@ -283,7 +240,24 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 icon: expensifyIcons.Trashcan,
                 text: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => showDeleteTagsModal(),
+                onSelected: () => {
+                    showConfirmModal({
+                        title: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
+                        prompt: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation'),
+                        confirmText: translate('common.delete'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    }).then((result) => {
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+                        deletePolicyTags(policyData, selectedTags);
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
+                        InteractionManager.runAfterInteractions(() => {
+                            setSelectedTags([]);
+                        });
+                    });
+                },
             });
         }
 
@@ -315,7 +289,12 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, selectedTagsObject)) {
-                        showCannotDeleteOrDisableLastTagModal();
+                        showConfirmModal({
+                            title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                            prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
                         return;
                     }
                     setSelectedTags([]);
@@ -399,11 +378,21 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             isActive={!!currentPolicyTag?.required}
                             onToggle={(on) => {
                                 if (!isMultiLevelTags) {
-                                    showRequiresMultiLevelTagsModal();
+                                    showConfirmModal({
+                                        title: translate('workspace.tags.cannotMakeTagListRequired.title'),
+                                        prompt: translate('workspace.tags.cannotMakeTagListRequired.description'),
+                                        confirmText: translate('common.buttonConfirm'),
+                                        shouldShowCancelButton: false,
+                                    });
                                     return;
                                 }
                                 if (isMakingLastRequiredTagListOptional(policy, policyTags, [currentPolicyTag])) {
-                                    showCannotMakeAllTagsOptionalModal();
+                                    showConfirmModal({
+                                        title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
+                                        prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
+                                        confirmText: translate('common.buttonConfirm'),
+                                        shouldShowCancelButton: false,
+                                    });
                                     return;
                                 }
                                 setPolicyTagsRequired(policyData, on, orderWeight);

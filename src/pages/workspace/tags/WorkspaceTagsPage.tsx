@@ -212,26 +212,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         [policyData],
     );
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const showCannotDeleteOrDisableLastTagModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
-            prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    }, [showConfirmModal, translate]);
-
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const showCannotMakeLastTagOptionalModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
-            prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    }, [showConfirmModal, translate]);
-
     const tagList = useMemo<TagListItem[]>(() => {
         if (isMultiLevelTags) {
             return policyTagLists.map((policyTagList) => {
@@ -260,7 +240,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             accessibilityLabel={translate('workspace.tags.requiresTag')}
                             onToggle={(newValue: boolean) => {
                                 if (isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList])) {
-                                    showCannotMakeLastTagOptionalModal();
+                                    showConfirmModal({
+                                        title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
+                                        prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
+                                        confirmText: translate('common.buttonConfirm'),
+                                        shouldShowCancelButton: false,
+                                    });
                                     return;
                                 }
 
@@ -289,7 +274,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     accessibilityLabel={translate('workspace.tags.enableTag')}
                     onToggle={(newValue: boolean) => {
                         if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
-                            showCannotDeleteOrDisableLastTagModal();
+                            showConfirmModal({
+                                title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                                prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                                confirmText: translate('common.buttonConfirm'),
+                                shouldShowCancelButton: false,
+                            });
                             return;
                         }
                         updateWorkspaceTagEnabled(newValue, tag.name);
@@ -298,18 +288,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             ),
         }));
-    }, [
-        isMultiLevelTags,
-        policyTagLists,
-        hasDependentTags,
-        translate,
-        policy,
-        policyTags,
-        updateWorkspaceRequiresTag,
-        updateWorkspaceTagEnabled,
-        showCannotDeleteOrDisableLastTagModal,
-        showCannotMakeLastTagOptionalModal,
-    ]);
+    }, [isMultiLevelTags, policyTagLists, hasDependentTags, translate, policy, policyTags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
         const results = tokenizedSearch([tag], searchInput, (option) => [option.text ?? '', option.value ?? '']);
@@ -407,37 +386,18 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         });
     }, [policyData, selectedTags, isMobileSelectionModeEnabled, policyTagLists, setSelectedTags]);
 
-    const showDeleteTagsModal = useCallback(() => {
-        showConfirmModal({
-            title: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
-            prompt: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation'),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            deleteTags();
-        });
-    }, [showConfirmModal, translate, selectedTags.length, deleteTags]);
-
     const isLoading = !isOffline && policyTags === undefined;
     const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
-    const showOfflineModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('common.youAppearToBeOffline'),
-            prompt: translate('common.thisFeatureRequiresInternet'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-            shouldHandleNavigationBack: true,
-        });
-    }, [showConfirmModal, translate]);
-
     const navigateToImportSpreadsheet = useCallback(() => {
         if (isOffline) {
-            showOfflineModal();
+            showConfirmModal({
+                title: translate('common.youAppearToBeOffline'),
+                prompt: translate('common.thisFeatureRequiresInternet'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+                shouldHandleNavigationBack: true,
+            });
             return;
         }
         Navigation.navigate(
@@ -445,7 +405,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
                 : ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID),
         );
-    }, [backTo, isOffline, isQuickSettingsFlow, policyID, showOfflineModal]);
+    }, [backTo, isOffline, isQuickSettingsFlow, policyID]);
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const secondaryActions = useMemo(() => {
@@ -472,7 +432,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 text: translate('spreadsheet.downloadCSV'),
                 onSelected: () => {
                     if (isOffline) {
-                        showOfflineModal();
+                        showConfirmModal({
+                            title: translate('common.youAppearToBeOffline'),
+                            prompt: translate('common.thisFeatureRequiresInternet'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                            shouldHandleNavigationBack: true,
+                        });
                         return;
                     }
                     close(() => {
@@ -501,19 +467,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         return menuItems;
-    }, [
-        translate,
-        navigateToTagsSettings,
-        hasAccountingConnections,
-        hasVisibleTags,
-        navigateToImportSpreadsheet,
-        isOffline,
-        isMultiLevelTags,
-        policyID,
-        hasDependentTags,
-        expensifyIcons,
-        showOfflineModal,
-    ]);
+    }, [translate, navigateToTagsSettings, hasAccountingConnections, hasVisibleTags, navigateToImportSpreadsheet, isOffline, isMultiLevelTags, policyID, hasDependentTags, expensifyIcons]);
 
     const getHeaderButtons = () => {
         const selectedTagsObject = selectedTags.map((key) => policyTagLists.at(0)?.tags?.[key]);
@@ -554,11 +508,27 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
-                        showCannotDeleteOrDisableLastTagModal();
+                        showConfirmModal({
+                            title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                            prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
                         return;
                     }
 
-                    showDeleteTagsModal();
+                    showConfirmModal({
+                        title: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
+                        prompt: translate(selectedTags.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation'),
+                        confirmText: translate('common.delete'),
+                        cancelText: translate('common.cancel'),
+                        danger: true,
+                    }).then((result) => {
+                        if (result.action !== ModalActions.CONFIRM) {
+                            return;
+                        }
+                        deleteTags();
+                    });
                 },
             });
         }
@@ -590,7 +560,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
-                        showCannotDeleteOrDisableLastTagModal();
+                        showConfirmModal({
+                            title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                            prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
                         return;
                     }
                     setSelectedTags([]);
@@ -636,7 +611,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.REQUIRE,
                 onSelected: () => {
                     if (isMakingLastRequiredTagListOptional(policy, policyTags, selectedTagLists)) {
-                        showCannotMakeLastTagOptionalModal();
+                        showConfirmModal({
+                            title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
+                            prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
+                            confirmText: translate('common.buttonConfirm'),
+                            shouldShowCancelButton: false,
+                        });
                         return;
                     }
                     setSelectedTags([]);

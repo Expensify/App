@@ -75,42 +75,18 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         navigation.setParams({tagName: currentPolicyTag?.name});
     }, [tagName, currentPolicyTag, navigation]);
 
-    // eslint-disable-next-line rulesdir/no-negated-variables
-    const showCannotDeleteOrDisableLastTagModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
-            prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
-            confirmText: translate('common.buttonConfirm'),
-            shouldShowCancelButton: false,
-        });
-    }, [showConfirmModal, translate]);
-
-    const showDeleteTagModal = useCallback(() => {
-        showConfirmModal({
-            title: translate('workspace.tags.deleteTag'),
-            prompt: translate('workspace.tags.deleteTagConfirmation'),
-            confirmText: translate('common.delete'),
-            cancelText: translate('common.cancel'),
-            danger: true,
-        }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM) {
-                return;
-            }
-            if (!currentPolicyTag?.name) {
-                return;
-            }
-            deletePolicyTags(policyData, [currentPolicyTag.name]);
-            Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
-        });
-    }, [showConfirmModal, translate, currentPolicyTag?.name, policyData, isQuickSettingsFlow, policyID, backTo]);
-
     if (!currentPolicyTag) {
         return <NotFoundPage />;
     }
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
         if (shouldPreventDisableOrDelete) {
-            showCannotDeleteOrDisableLastTagModal();
+            showConfirmModal({
+                title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
             return;
         }
         setWorkspaceTagEnabled(policyData, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
@@ -248,10 +224,30 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             title={translate('common.delete')}
                             onPress={() => {
                                 if (shouldPreventDisableOrDelete) {
-                                    showCannotDeleteOrDisableLastTagModal();
+                                    showConfirmModal({
+                                        title: translate('workspace.tags.cannotDeleteOrDisableAllTags.title'),
+                                        prompt: translate('workspace.tags.cannotDeleteOrDisableAllTags.description'),
+                                        confirmText: translate('common.buttonConfirm'),
+                                        shouldShowCancelButton: false,
+                                    });
                                     return;
                                 }
-                                showDeleteTagModal();
+                                showConfirmModal({
+                                    title: translate('workspace.tags.deleteTag'),
+                                    prompt: translate('workspace.tags.deleteTagConfirmation'),
+                                    confirmText: translate('common.delete'),
+                                    cancelText: translate('common.cancel'),
+                                    danger: true,
+                                }).then((result) => {
+                                    if (result.action !== ModalActions.CONFIRM) {
+                                        return;
+                                    }
+                                    if (!currentPolicyTag?.name) {
+                                        return;
+                                    }
+                                    deletePolicyTags(policyData, [currentPolicyTag.name]);
+                                    Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
+                                });
                             }}
                         />
                     )}
