@@ -194,16 +194,7 @@ function IOURequestEditReportCommon({
                     policyID: matchingOption?.policyID ?? report.policyID,
                 };
             });
-    }, [
-        outstandingReportsByPolicyID,
-        debouncedSearchValue,
-        expenseReports,
-        selectedReportID,
-        options.reports,
-        localeCompare,
-        allPolicies,
-        currentUserPersonalDetails.accountID,
-    ]);
+    }, [outstandingReportsByPolicyID, debouncedSearchValue, expenseReports, selectedReportID, options.reports, localeCompare, allPolicies, currentUserPersonalDetails.accountID]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
