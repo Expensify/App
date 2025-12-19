@@ -232,7 +232,22 @@ function WorkspaceInviteMessageComponent({
                     </View>
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>
-                            {shouldShowMemberNames && (
+                            {isInviteNewMemberStep && (() => {
+                                const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
+                                const memberDetails = getPersonalDetailByEmail(invitingMemberEmail);
+                                const memberName = Str.removeSMSDomain(memberDetails?.displayName ?? '');
+                                return (
+                                    <MenuItemWithTopDescription
+                                        title={memberName && memberName !== invitingMemberEmail ? memberName : invitingMemberEmail}
+                                        description={translate('common.member')}
+                                        shouldShowRightIcon
+                                        onPress={() => {
+                                            Navigation.goBack(backTo);
+                                        }}
+                                    />
+                                );
+                            })()}
+                            {shouldShowMemberNames && !isInviteNewMemberStep && (
                                 <MenuItemWithTopDescription
                                     title={memberNames}
                                     description={translate('common.members')}
