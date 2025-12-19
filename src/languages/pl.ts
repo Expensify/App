@@ -3599,7 +3599,7 @@ ${
         subtitle: 'Skorzystaj z Expensify Travel, aby uzyskać najlepsze oferty podróży i zarządzać wszystkimi wydatkami biznesowymi w jednym miejscu.',
         features: {
             saveMoney: 'Oszczędzaj pieniądze na swoich rezerwacjach',
-            alerts: 'Otrzymuj aktualizacje i alerty w czasie rzeczywistym',
+            alerts: 'Otrzymuj alerty w czasie rzeczywistym, jeśli Twoje plany podróży się zmienią',
         },
         bookTravel: 'Zarezerwuj podróż',
         bookDemo: 'Zarezerwuj demo',
@@ -4985,6 +4985,25 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Dieta',
                 subtitle: 'Ustaw stawki ryczałtu dziennego, aby kontrolować codzienne wydatki pracowników.',
             },
+            travel: {
+                title: 'Podróże',
+                subtitle: 'Rezerwuj, zarządzaj i rozliczaj wszystkie swoje podróże służbowe.',
+                getStarted: {
+                    title: 'Rozpocznij z Expensify Travel',
+                    subtitle: 'Potrzebujemy jeszcze kilku dodatkowych informacji o Twojej firmie, a następnie będziesz gotowy do startu.',
+                    ctaText: 'Zaczynamy',
+                },
+                reviewingRequest: {
+                    title: 'Spakuj walizki, mamy Twoją prośbę...',
+                    subtitle: 'Obecnie przeglądamy Twoją prośbę o włączenie Expensify Travel. Nie martw się, damy Ci znać, gdy będzie gotowe.',
+                    ctaText: 'Prośba wysłana',
+                },
+                bookOrManageYourTrip: {
+                    title: 'Zarezerwuj lub zarządzaj swoją podróżą',
+                    subtitle: 'Użyj Expensify Travel, aby uzyskać najlepsze oferty podróży i zarządzaj wszystkimi wydatkami służbowymi w jednym miejscu.',
+                    ctaText: 'Rezerwuj lub zarządzaj',
+                },
+            },
             expensifyCard: {
                 title: 'Karta Expensify',
                 subtitle: 'Uzyskaj wgląd i kontrolę nad wydatkami.',
@@ -6152,10 +6171,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 title: 'Zasady kategorii',
                 approver: 'Akceptujący',
                 requireDescription: 'Wymagaj opisu',
-                requireFields: 'Wymagaj pól',
-                requiredFieldsTitle: 'Wymagane pola',
-                requiredFieldsDescription: (categoryName: string) => `To będzie miało zastosowanie do wszystkich wydatków skategoryzowanych jako <strong>${categoryName}</strong>.`,
-                requireAttendees: 'Wymagaj uczestników',
                 descriptionHint: 'Podpowiedź opisu',
                 descriptionHintDescription: (categoryName: string) =>
                     `Przypominaj pracownikom o podaniu dodatkowych informacji dotyczących wydatków w kategorii „${categoryName}”. Ta podpowiedź pojawia się w polu opisu przy wydatkach.`,
@@ -6669,7 +6684,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         columns: 'Kolumny',
         resetColumns: 'Resetuj kolumny',
-        noColumnsError: 'Proszę wybrać co najmniej jedną kolumnę przed zapisaniem',
+        groupColumns: 'Kolumny grupy',
+        expenseColumns: 'Kolumny wydatków',
         statements: 'Wyciągi',
         unapprovedCash: 'Niezaakceptowana gotówka',
         unapprovedCard: 'Niezatwierdzona karta',
@@ -7203,7 +7219,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data starsza niż ${maxAge} dni`,
         missingCategory: 'Brak kategorii',
         missingComment: 'Opis jest wymagany dla wybranej kategorii',
-        missingAttendees: 'Wymaganych jest wielu uczestników dla tej kategorii',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Brakujące ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

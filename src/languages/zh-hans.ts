@@ -3548,7 +3548,7 @@ ${
         subtitle: '使用 Expensify Travel 获取最优惠的旅行方案，并在一个地方管理您所有的商务报销。',
         features: {
             saveMoney: '在预订时省钱',
-            alerts: '获取实时更新和提醒',
+            alerts: '如果您的旅行计划发生变化，获取实时提醒',
         },
         bookTravel: '预订出行',
         bookDemo: '预订演示',
@@ -4898,6 +4898,25 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '每日津贴',
                 subtitle: '设置每日津贴标准以控制员工日常支出。',
             },
+            travel: {
+                title: '旅行',
+                subtitle: '预订、管理和核对您的所有商务旅行。',
+                getStarted: {
+                    title: '开始使用 Expensify Travel',
+                    subtitle: '我们只需要您企业的更多信息，然后您就可以准备出发了。',
+                    ctaText: '开始吧',
+                },
+                reviewingRequest: {
+                    title: '收拾行李，我们已收到您的请求...',
+                    subtitle: '我们正在审查您启用 Expensify Travel 的请求。别担心，准备就绪时我们会通知您。',
+                    ctaText: '请求已发送',
+                },
+                bookOrManageYourTrip: {
+                    title: '预订或管理您的旅行',
+                    subtitle: '使用 Expensify Travel 获得最佳旅行优惠，并在一个地方管理所有商务费用。',
+                    ctaText: '预订或管理',
+                },
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: '获取支出洞察并实现有效管控。',
@@ -6037,10 +6056,6 @@ ${reportName}
                 title: '类别规则',
                 approver: '审批人',
                 requireDescription: '要求描述',
-                requireFields: '必填字段',
-                requiredFieldsTitle: '必填项',
-                requiredFieldsDescription: (categoryName: string) => `这将适用于所有被归类为 <strong>${categoryName}</strong> 的费用。`,
-                requireAttendees: '要求与会者',
                 descriptionHint: '描述提示',
                 descriptionHintDescription: (categoryName: string) => `提醒员工为“${categoryName}”支出提供更多信息。此提示将显示在报销单的描述字段中。`,
                 descriptionHintLabel: '提示',
@@ -6538,7 +6553,8 @@ ${reportName}
         },
         columns: '列',
         resetColumns: '重置列',
-        noColumnsError: '请在保存前至少选择一列',
+        groupColumns: '分组列',
+        expenseColumns: '报销列',
         statements: '对账单',
         unapprovedCash: '未批准的现金',
         unapprovedCard: '未批准的卡片',
@@ -7062,7 +7078,6 @@ ${reportName}
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `日期早于 ${maxAge} 天`,
         missingCategory: '缺少类别',
         missingComment: '所选类别需要填写描述',
-        missingAttendees: '此类别需要多个参与者',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `缺少 ${tagName ?? '标签'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

@@ -3604,7 +3604,7 @@ ${
         subtitle: 'Usa Expensify Travel per ottenere le migliori offerte di viaggio e gestire tutte le tue spese aziendali in un unico posto.',
         features: {
             saveMoney: 'Risparmia denaro sulle tue prenotazioni',
-            alerts: 'Ricevi aggiornamenti e avvisi in tempo reale',
+            alerts: 'Ricevi avvisi in tempo reale se i tuoi piani di viaggio cambiano',
         },
         bookTravel: 'Prenota viaggio',
         bookDemo: 'Prenota demo',
@@ -5001,6 +5001,25 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Indennità di diaria',
                 subtitle: 'Imposta le tariffe di diaria per controllare la spesa giornaliera dei dipendenti.',
             },
+            travel: {
+                title: 'Viaggi',
+                subtitle: 'Prenota, gestisci e riconcilia tutti i tuoi viaggi di lavoro.',
+                getStarted: {
+                    title: 'Inizia con Expensify Travel',
+                    subtitle: 'Abbiamo solo bisogno di alcune informazioni aggiuntive sulla tua azienda, poi sarai pronto per partire.',
+                    ctaText: 'Iniziamo',
+                },
+                reviewingRequest: {
+                    title: 'Fai le valigie, abbiamo la tua richiesta...',
+                    subtitle: 'Stiamo attualmente esaminando la tua richiesta per abilitare Expensify Travel. Non preoccuparti, ti faremo sapere quando sarà pronto.',
+                    ctaText: 'Richiesta inviata',
+                },
+                bookOrManageYourTrip: {
+                    title: 'Prenota o gestisci il tuo viaggio',
+                    subtitle: 'Usa Expensify Travel per ottenere le migliori offerte di viaggio e gestisci tutte le tue spese aziendali in un unico posto.',
+                    ctaText: 'Prenota o gestisci',
+                },
+            },
             expensifyCard: {
                 title: 'Carta Expensify',
                 subtitle: 'Ottieni informazioni e controllo sulle spese.',
@@ -6171,10 +6190,6 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 title: 'Regole di categoria',
                 approver: 'Approvatore',
                 requireDescription: 'Richiedi descrizione',
-                requireFields: 'Rendi obbligatori i campi',
-                requiredFieldsTitle: 'Campi obbligatori',
-                requiredFieldsDescription: (categoryName: string) => `Questo si applicherà a tutte le spese classificate come <strong>${categoryName}</strong>.`,
-                requireAttendees: 'Richiedi partecipanti',
                 descriptionHint: 'Suggerimento per la descrizione',
                 descriptionHintDescription: (categoryName: string) =>
                     `Ricorda ai dipendenti di fornire informazioni aggiuntive per la spesa in “${categoryName}”. Questo suggerimento appare nel campo descrizione sulle spese.`,
@@ -6693,7 +6708,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         },
         columns: 'Colonne',
         resetColumns: 'Reimposta colonne',
-        noColumnsError: 'Seleziona almeno una colonna prima di salvare',
+        groupColumns: 'Raggruppa colonne',
+        expenseColumns: 'Colonne di spesa',
         statements: 'Estratti conto',
         unapprovedCash: 'Contanti non approvati',
         unapprovedCard: 'Carta non approvata',
@@ -7228,7 +7244,6 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data precedente a ${maxAge} giorni`,
         missingCategory: 'Categoria mancante',
         missingComment: 'Descrizione richiesta per la categoria selezionata',
-        missingAttendees: 'Più partecipanti obbligatori per questa categoria',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Manca ${tagName ?? 'etichetta'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

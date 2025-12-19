@@ -3625,7 +3625,7 @@ ${
         subtitle: 'Utilisez Expensify Travel pour obtenir les meilleures offres de voyage et gérer toutes vos notes de frais professionnelles en un seul endroit.',
         features: {
             saveMoney: 'Économisez de l’argent sur vos réservations',
-            alerts: 'Recevez des mises à jour et des alertes en temps réel',
+            alerts: 'Recevez des alertes en temps réel si vos plans de voyage changent',
         },
         bookTravel: 'Réserver un voyage',
         bookDemo: 'Réserver une démo',
@@ -5023,6 +5023,25 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Indemnité journalière',
                 subtitle: 'Définissez des taux de per diem pour contrôler les dépenses quotidiennes des employés.',
             },
+            travel: {
+                title: 'Voyage',
+                subtitle: "Réservez, gérez et réconciliez tous vos voyages d'affaires.",
+                getStarted: {
+                    title: 'Commencer avec Expensify Travel',
+                    subtitle: 'Nous avons juste besoin de quelques informations supplémentaires sur votre entreprise, puis vous serez prêt à décoller.',
+                    ctaText: 'Allons-y',
+                },
+                reviewingRequest: {
+                    title: 'Faites vos valises, nous avons votre demande...',
+                    subtitle: "Nous examinons actuellement votre demande d'activation d'Expensify Travel. Ne vous inquiétez pas, nous vous ferons savoir quand ce sera prêt.",
+                    ctaText: 'Demande envoyée',
+                },
+                bookOrManageYourTrip: {
+                    title: 'Réservez ou gérez votre voyage',
+                    subtitle: 'Utilisez Expensify Travel pour obtenir les meilleures offres de voyage et gérez toutes vos dépenses professionnelles en un seul endroit.',
+                    ctaText: 'Réserver ou gérer',
+                },
+            },
             expensifyCard: {
                 title: 'Carte Expensify',
                 subtitle: 'Obtenez des informations et contrôlez les dépenses.',
@@ -6198,10 +6217,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 title: 'Règles de catégorie',
                 approver: 'Approbateur',
                 requireDescription: 'Description requise',
-                requireFields: 'Rendre les champs obligatoires',
-                requiredFieldsTitle: 'Champs obligatoires',
-                requiredFieldsDescription: (categoryName: string) => `Cela s’appliquera à toutes les dépenses classées dans la catégorie <strong>${categoryName}</strong>.`,
-                requireAttendees: 'Exiger des participants',
                 descriptionHint: 'Indice de description',
                 descriptionHintDescription: (categoryName: string) =>
                     `Rappelez aux employés de fournir des informations supplémentaires pour les dépenses « ${categoryName} ». Cet indice apparaît dans le champ de description des dépenses.`,
@@ -6719,7 +6734,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         },
         columns: 'Colonnes',
         resetColumns: 'Réinitialiser les colonnes',
-        noColumnsError: 'Veuillez sélectionner au moins une colonne avant d’enregistrer',
+        groupColumns: 'Regrouper les colonnes',
+        expenseColumns: 'Colonnes de dépenses',
         statements: 'Relevés',
         unapprovedCash: 'Espèces non approuvées',
         unapprovedCard: 'Carte non approuvée',
@@ -7253,7 +7269,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date de plus de ${maxAge} jours`,
         missingCategory: 'Catégorie manquante',
         missingComment: 'Description requise pour la catégorie sélectionnée',
-        missingAttendees: 'Plusieurs participants sont requis pour cette catégorie',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Manquant ${tagName ?? 'étiquette'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

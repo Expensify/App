@@ -3599,7 +3599,7 @@ ${
         subtitle: 'Use o Expensify Travel para obter as melhores ofertas de viagem e gerenciar todas as suas despesas de negócios em um só lugar.',
         features: {
             saveMoney: 'Economize nas suas reservas',
-            alerts: 'Receba atualizações e alertas em tempo real',
+            alerts: 'Receba alertas em tempo real se seus planos de viagem mudarem',
         },
         bookTravel: 'Reservar viagem',
         bookDemo: 'Agendar demonstração',
@@ -4986,6 +4986,25 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 title: 'Diária',
                 subtitle: 'Defina diárias para controlar os gastos diários dos funcionários.',
             },
+            travel: {
+                title: 'Viagem',
+                subtitle: 'Reserve, gerencie e reconcilie todas as suas viagens de negócios.',
+                getStarted: {
+                    title: 'Comece com o Expensify Travel',
+                    subtitle: 'Precisamos apenas de algumas informações adicionais sobre sua empresa, então você estará pronto para decolar.',
+                    ctaText: 'Vamos lá',
+                },
+                reviewingRequest: {
+                    title: 'Faça as malas, temos sua solicitação...',
+                    subtitle: 'Estamos atualmente revisando sua solicitação para habilitar o Expensify Travel. Não se preocupe, avisaremos quando estiver pronto.',
+                    ctaText: 'Solicitação enviada',
+                },
+                bookOrManageYourTrip: {
+                    title: 'Reserve ou gerencie sua viagem',
+                    subtitle: 'Use o Expensify Travel para obter as melhores ofertas de viagem e gerencie todas as suas despesas comerciais em um só lugar.',
+                    ctaText: 'Reservar ou gerenciar',
+                },
+            },
             expensifyCard: {
                 title: 'Cartão Expensify',
                 subtitle: 'Obtenha insights e controle sobre os gastos.',
@@ -6154,10 +6173,6 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 title: 'Regras de categoria',
                 approver: 'Aprovador',
                 requireDescription: 'Exigir descrição',
-                requireFields: 'Exigir campos',
-                requiredFieldsTitle: 'Campos obrigatórios',
-                requiredFieldsDescription: (categoryName: string) => `Isso será aplicado a todas as despesas categorizadas como <strong>${categoryName}</strong>.`,
-                requireAttendees: 'Exigir participantes',
                 descriptionHint: 'Dica de descrição',
                 descriptionHintDescription: (categoryName: string) =>
                     `Lembre os funcionários de fornecer informações adicionais para gastos em “${categoryName}”. Essa dica aparece no campo de descrição das despesas.`,
@@ -6673,7 +6688,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         },
         columns: 'Colunas',
         resetColumns: 'Redefinir colunas',
-        noColumnsError: 'Selecione pelo menos uma coluna antes de salvar',
+        groupColumns: 'Agrupar colunas',
+        expenseColumns: 'Colunas de Despesas',
         statements: 'Extratos',
         unapprovedCash: 'Dinheiro não aprovado',
         unapprovedCard: 'Cartão não aprovado',
@@ -7207,7 +7223,6 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data anterior a ${maxAge} dias`,
         missingCategory: 'Categoria ausente',
         missingComment: 'Descrição obrigatória para a categoria selecionada',
-        missingAttendees: 'Vários participantes são obrigatórios para esta categoria',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Faltando ${tagName ?? 'Tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

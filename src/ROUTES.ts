@@ -755,18 +755,21 @@ const ROUTES = {
         },
     },
     SPLIT_EXPENSE: {
-        route: 'create/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID?',
+        // TODO: Remove backTo from route once we have find another way to fix navigation issues with tabs
+        route: 'create/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID/:backTo?',
         getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
             if (!reportID || !originalTransactionID) {
                 Log.warn(`Invalid ${reportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the SPLIT_EXPENSE route`);
             }
 
+            const splitExpenseTransactionIDPart = splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : '/0';
+
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`create/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
+            return getUrlWithBackToParam(`create/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionIDPart}`, backTo);
         },
     },
     SPLIT_EXPENSE_CREATE_DATE_RANGE: {
-        route: 'create/split-expense/create-date-range/:reportID/:transactionID/:splitExpenseTransactionID?',
+        route: 'create/split-expense/create-date-range/:reportID/:transactionID?',
         getRoute: (reportID: string | undefined, transactionID: string | undefined, backTo?: string) => {
             if (!reportID || !transactionID) {
                 Log.warn(`Invalid ${reportID}(reportID) or ${transactionID}(transactionID) is used to build the SPLIT_EXPENSE_CREATE_DATE_RANGE route`);
@@ -1946,10 +1949,6 @@ const ROUTES = {
         route: 'workspaces/:policyID/category/:categoryName/require-receipts-over',
         getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
     },
-    WORKSPACE_CATEGORY_REQUIRED_FIELDS: {
-        route: 'workspaces/:policyID/category/:categoryName/required-fields',
-        getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/required-fields` as const,
-    },
     WORKSPACE_CATEGORY_APPROVER: {
         route: 'workspaces/:policyID/category/:categoryName/approver',
         getRoute: (policyID: string, categoryName: string) => `workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/approver` as const,
@@ -2369,6 +2368,15 @@ const ROUTES = {
             return `workspaces/${policyID}/distance-rates` as const;
         },
     },
+    WORKSPACE_TRAVEL: {
+        route: 'workspaces/:policyID/travel',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_TRAVEL route');
+            }
+            return `workspaces/${policyID}/travel` as const;
+        },
+    },
     WORKSPACE_CREATE_DISTANCE_RATE: {
         route: 'workspaces/:policyID/distance-rates/new',
         getRoute: (policyID: string, transactionID?: string, reportID?: string) =>
@@ -2564,7 +2572,10 @@ const ROUTES = {
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
         getRoute: (backTo?: string) => getUrlWithBackToParam('change-workspace-educational', backTo),
     },
-    TRAVEL_MY_TRIPS: 'travel',
+    TRAVEL_MY_TRIPS: {
+        route: 'travel',
+        getRoute: (policyID?: string) => `travel?${policyID ? `policyID=${policyID}` : ''}` as const,
+    },
     TRAVEL_DOT_LINK_WEB_VIEW: {
         route: 'travel-dot-link',
         getRoute: (token: string, isTestAccount?: boolean) => `travel-dot-link?token=${token}&isTestAccount=${isTestAccount}` as const,
@@ -2573,7 +2584,7 @@ const ROUTES = {
         route: 'travel/terms/:domain/accept',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept`, backTo),
+        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/terms/${domain}/accept?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_UPGRADE: {
         route: 'travel/upgrade',
@@ -2608,7 +2619,7 @@ const ROUTES = {
         route: 'travel/domain-selector',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (backTo?: string) => getUrlWithBackToParam(`travel/domain-selector`, backTo),
+        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/domain-selector?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_DOMAIN_PERMISSION_INFO: {
         route: 'travel/domain-permission/:domain/info',
@@ -2632,11 +2643,12 @@ const ROUTES = {
         route: 'travel/:domain/workspace-address',
 
         // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (domain: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address`, backTo),
+        getRoute: (domain: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(`travel/${domain}/workspace-address?${policyID ? `policyID=${policyID}` : ''}`, backTo),
     },
     TRAVEL_VERIFY_ACCOUNT: {
-        route: `travel/:domain/${VERIFY_ACCOUNT}`,
-        getRoute: (domain: string) => `travel/${domain}/${VERIFY_ACCOUNT}` as const,
+        route: `travel/${VERIFY_ACCOUNT}`,
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (domain?: string, policyID?: string, backTo?: string) => getUrlWithBackToParam(getUrlWithParams(`travel/${VERIFY_ACCOUNT}`, {domain, policyID}), backTo),
     },
     ONBOARDING_ROOT: {
         route: 'onboarding',
