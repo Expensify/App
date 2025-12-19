@@ -18,6 +18,7 @@ import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import useAncestors from '@hooks/useAncestors';
+import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
@@ -48,6 +49,7 @@ import {
     getParentReport,
     getReportRecipientAccountIDs,
     isChatRoom,
+    isConciergeChatReport,
     isGroupChat,
     isInvoiceReport,
     isReportApproved,
@@ -209,6 +211,7 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
@@ -251,6 +254,8 @@ function ReportActionCompose({
         }
         return translate('reportActionCompose.writeSomething');
     }, [includesConcierge, translate, userBlockedFromConcierge]);
+
+    const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
 
     const focus = () => {
         if (composerRef.current === null) {
@@ -322,6 +327,10 @@ function ReportActionCompose({
         (newComment: string) => {
             const newCommentTrimmed = newComment.trim();
 
+            if (isConciergeChat) {
+                kickoffWaitingIndicator();
+            }
+
             if (attachmentFileRef.current) {
                 addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
                 attachmentFileRef.current = null;
@@ -339,7 +348,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, ancestors, reportID, personalDetail.timezone, transactionThreadReportID],
+        [onSubmit, ancestors, kickoffWaitingIndicator, isConciergeChat, reportID, personalDetail.timezone, transactionThreadReportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -629,16 +638,19 @@ function ReportActionCompose({
                             styles.flexRow,
                             styles.justifyContentBetween,
                             styles.alignItemsCenter,
-                            (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
-                        ]}
-                    >
-                        {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <AgentZeroProcessingRequestIndicator reportID={reportID} />
-                        <ReportTypingIndicator reportID={reportID} />
-                        {!!exceededMaxLength && (
-                            <ExceededCommentLength
-                                maxCommentLength={exceededMaxLength}
-                                isTaskTitle={hasExceededMaxTaskTitleLength}
+                        (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
+                    ]}
+                >
+                    {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                    <AgentZeroProcessingRequestIndicator
+                        reportID={reportID}
+                        label={agentZeroDisplayLabel}
+                    />
+                    <ReportTypingIndicator reportID={reportID} />
+                    {!!exceededMaxLength && (
+                        <ExceededCommentLength
+                            maxCommentLength={exceededMaxLength}
+                            isTaskTitle={hasExceededMaxTaskTitleLength}
                             />
                         )}
                     </View>
