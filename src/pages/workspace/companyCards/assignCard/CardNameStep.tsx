@@ -29,8 +29,6 @@ function CardNameStep({policyID}: CardNameStepProps) {
     const styles = useThemeStyles();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
 
-    const data = assignCard?.data;
-
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
         setAssignCardStepAndData({
             currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
@@ -83,7 +81,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
                         label={translate('workspace.moreFeatures.companyCards.cardName')}
                         aria-label={translate('workspace.moreFeatures.companyCards.cardName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={data?.cardName}
+                        defaultValue={assignCard?.data?.cardName}
                         ref={inputCallbackRef}
                     />
                 </FormProvider>

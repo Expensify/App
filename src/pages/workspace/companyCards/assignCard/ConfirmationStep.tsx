@@ -52,10 +52,9 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const bankName = assignCard?.data?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
-    const data = assignCard?.data;
-    const cardholderDetails = getPersonalDetailByEmail(data?.email ?? '');
+    const cardholderDetails = getPersonalDetailByEmail(assignCard?.data?.email ?? '');
     const cardholderName = Str.removeSMSDomain(cardholderDetails?.displayName ?? '');
-    const cardholderEmail = data?.email ?? '';
+    const cardholderEmail = assignCard?.data?.email ?? '';
     const cardholderAccountID = cardholderDetails?.accountID;
 
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
@@ -95,7 +94,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
             setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             return;
         }
-        assignWorkspaceCompanyCard(policy, {...data, bankName});
+        assignWorkspaceCompanyCard(policy, {...assignCard?.data, bankName});
     };
 
     const editStep = (step: AssignCardStep) => {
@@ -123,7 +122,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.confirmationDescription')}</Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
-                    title={data?.encryptedCardNumber ?? maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
+                    title={assignCard?.data?.encryptedCardNumber ?? maskCardNumber(assignCard?.data?.cardNumber ?? '', assignCard?.data?.bankName)}
                     interactive={false}
                 />
                 <MenuItem
@@ -138,13 +137,17 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                    title={data?.dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? translate('workspace.companyCards.fromTheBeginning') : data?.startDate}
+                    title={
+                        assignCard?.data?.dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING
+                            ? translate('workspace.companyCards.fromTheBeginning')
+                            : assignCard?.data?.startDate
+                    }
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE)}
                 />
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.cardName')}
-                    title={data?.cardName}
+                    title={assignCard?.data?.cardName}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD_NAME)}
                 />

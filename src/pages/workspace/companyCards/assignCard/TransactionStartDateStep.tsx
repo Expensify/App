@@ -27,12 +27,11 @@ function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<Settin
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
-    const data = assignCard?.data;
-    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '');
+    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '');
 
-    const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+    const [dateOptionSelected, setDateOptionSelected] = useState(assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const [errorText, setErrorText] = useState('');
-    const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+    const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? assignCard?.data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -47,7 +46,7 @@ function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<Settin
             Navigation.goBack(backTo);
             return;
         }
-        const nextStep = data?.encryptedCardNumber ? CONST.COMPANY_CARD.STEP.ASSIGNEE : CONST.COMPANY_CARD.STEP.CARD;
+        const nextStep = assignCard?.data?.encryptedCardNumber ? CONST.COMPANY_CARD.STEP.ASSIGNEE : CONST.COMPANY_CARD.STEP.CARD;
         setAssignCardStepAndData({currentStep: nextStep});
     };
 
