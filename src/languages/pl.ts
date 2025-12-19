@@ -6791,6 +6791,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             title: 'Utwórz eksport',
             description: 'Uff, to całkiem sporo pozycji! Spakujemy je, a Concierge wkrótce wyśle Ci plik.',
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Zaznacz wszystkie pasujące elementy',
             allMatchingItemsSelected: 'Wybrano wszystkie pasujące elementy',
