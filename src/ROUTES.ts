@@ -2227,7 +2227,7 @@ const ROUTES = {
     WORKSPACE_COMPANY_CARD_DETAILS: {
         route: 'workspaces/:policyID/company-cards/:feed/:cardID',
 
-        getRoute: (policyID: string, cardID: string, feed: WorkspaceCardFeedWithDomainID, backTo?: string) =>
+        getRoute: (policyID: string, cardID: string, feed: CompanyCardFeedWithDomainID, backTo?: string) =>
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}`, backTo),
     },
