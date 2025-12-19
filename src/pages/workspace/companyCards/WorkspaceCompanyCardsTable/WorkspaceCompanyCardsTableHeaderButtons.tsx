@@ -137,7 +137,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoadingF
                             <Table.SearchBar />
                         </View>
                     )}
-                    <View style={[styles.flex1, styles.flexRow, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.gap3]}>
                         {!isLoadingFeed && (
                             <>
                                 <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />
