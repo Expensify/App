@@ -32,7 +32,7 @@ function CardNameStep({route}: CardNameStepProps) {
 
     const policyID = route.params.policyID;
 
-    const data = assignCard?.cardToAssign;
+    const cardToAssign = assignCard?.cardToAssign;
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
         setAssignCardStepAndData({
@@ -74,7 +74,7 @@ function CardNameStep({route}: CardNameStepProps) {
                 />
                 <Text style={[styles.mh5, styles.mt3, styles.mb5]}>{translate('workspace.moreFeatures.companyCards.giveItNameInstruction')}</Text>
                 <FormProvider
-                    key={data?.cardName}
+                    key={cardToAssign?.cardName}
                     formID={ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM}
                     submitButtonText={translate('common.save')}
                     onSubmit={submit}
@@ -90,7 +90,7 @@ function CardNameStep({route}: CardNameStepProps) {
                         label={translate('workspace.moreFeatures.companyCards.cardName')}
                         aria-label={translate('workspace.moreFeatures.companyCards.cardName')}
                         role={CONST.ROLE.PRESENTATION}
-                        defaultValue={data?.cardName}
+                        defaultValue={cardToAssign?.cardName}
                         ref={inputCallbackRef}
                     />
                 </FormProvider>

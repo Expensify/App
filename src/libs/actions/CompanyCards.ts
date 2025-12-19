@@ -47,8 +47,8 @@ type AddNewCompanyCardFlowData = {
     data?: Partial<AddNewCardFeedData>;
 };
 
-function setAssignCardStepAndData({cardToAssign: cardToAssign, isEditing, currentStep}: Partial<AssignCard>) {
-    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {cardToAssign: cardToAssign, isEditing, currentStep});
+function setAssignCardStepAndData({cardToAssign, isEditing, currentStep}: Partial<AssignCard>) {
+    Onyx.merge(ONYXKEYS.ASSIGN_CARD, {cardToAssign, isEditing, currentStep});
 }
 
 function setTransactionStartDate(startDate: string) {
