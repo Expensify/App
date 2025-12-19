@@ -24,6 +24,5 @@ function ExceededCommentLength({maxCommentLength = CONST.MAX_COMMENT_LENGTH, isT
         </Text>
     );
 }
-ExceededCommentLength.displayName = 'ExceededCommentLength';
 
 export default memo(ExceededCommentLength);

@@ -4,7 +4,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import type {SearchColumnType} from '@components/Search/types';
+import ScrollView from '@components/ScrollView';
 import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ListItem, TransactionGroupListExpandedProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
@@ -16,14 +16,16 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getReportIDForTransaction} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {createAndOpenSearchTransactionThread, getColumnsToShow} from '@libs/SearchUIUtils';
+import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 
 function TransactionGroupListExpanded<TItem extends ListItem>({
     transactionsQueryJSON,
@@ -49,9 +51,12 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
 }: TransactionGroupListExpandedProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {windowWidth} = useWindowDimensions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
+
     const transactionsSnapshotMetadata = useMemo(() => {
         return transactionsSnapshot?.search;
     }, [transactionsSnapshot?.search]);
@@ -77,10 +82,8 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         if (!transactionsSnapshot?.data) {
             return [];
         }
-        const columnsToShow = getColumnsToShow(accountID, transactionsSnapshot?.data, false, transactionsSnapshot?.search.type);
-
-        return (Object.keys(columnsToShow) as SearchColumnType[]).filter((col) => columnsToShow[col]);
-    }, [accountID, columns, isExpenseReportType, transactionsSnapshot?.data, transactionsSnapshot?.search.type]);
+        return getColumnsToShow(accountID, transactionsSnapshot?.data, visibleColumns, false, transactionsSnapshot?.search.type);
+    }, [accountID, columns, isExpenseReportType, transactionsSnapshot?.data, transactionsSnapshot?.search.type, visibleColumns]);
 
     const areAllOptionalColumnsHidden = useMemo(() => {
         if (isExpenseReportType) {
@@ -171,8 +174,11 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
         openReportInRHP(transaction);
     };
 
-    return (
-        <>
+    const minTableWidth = getTableMinWidth(columns ?? []);
+    const shouldScrollHorizontally = isLargeScreenWidth && minTableWidth > windowWidth;
+
+    const content = (
+        <View style={[styles.flexColumn, styles.flex1]}>
             {isLargeScreenWidth && (
                 <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl9, styles.pr11]}>
                     <SearchTableHeader
@@ -188,6 +194,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         columns={currentColumns}
                         areAllOptionalColumnsHidden={areAllOptionalColumnsHidden ?? false}
                         groupBy={groupBy}
+                        isExpenseReportView
                     />
                 </View>
             )}
@@ -267,10 +274,21 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                     />
                 </View>
             )}
-        </>
+        </View>
+    );
+
+    return shouldScrollHorizontally ? (
+        <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator
+            style={styles.flex1}
+            contentContainerStyle={{width: minTableWidth}}
+        >
+            {content}
+        </ScrollView>
+    ) : (
+        content
     );
 }
-
-TransactionGroupListExpanded.displayName = 'TransactionGroupListExpanded';
 
 export default TransactionGroupListExpanded;

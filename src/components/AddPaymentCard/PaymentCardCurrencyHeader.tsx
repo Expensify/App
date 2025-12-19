@@ -14,6 +14,4 @@ function PaymentCardCurrencyHeader({isSectionList}: {isSectionList?: boolean}) {
     );
 }
 
-PaymentCardCurrencyHeader.displayName = 'PaymentCardCurrencyHeader';
-
 export default PaymentCardCurrencyHeader;
