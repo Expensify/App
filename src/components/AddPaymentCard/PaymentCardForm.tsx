@@ -378,6 +378,4 @@ function PaymentCardForm({
     );
 }
 
-PaymentCardForm.displayName = 'PaymentCardForm';
-
 export default PaymentCardForm;

@@ -78,7 +78,7 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
             <FeatureList
                 menuItems={companyCardFeatures as FeatureListItem[]}
                 title={translate('workspace.moreFeatures.companyCards.feed.title')}
-                subtitle={translate('workspace.moreFeatures.companyCards.subtitle')}
+                subtitle={translate('workspace.moreFeatures.companyCards.feed.subtitle')}
                 ctaText={translate('workspace.companyCards.addCards')}
                 ctaAccessibilityLabel={translate('workspace.companyCards.addCards')}
                 onCtaPress={handleCtaPress}
@@ -93,7 +93,5 @@ function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: Wo
         </View>
     );
 }
-
-WorkspaceCompanyCardPageEmptyState.displayName = 'WorkspaceCompanyCardPageEmptyState';
 
 export default withPolicyAndFullscreenLoading(WorkspaceCompanyCardPageEmptyState);

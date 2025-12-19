@@ -132,7 +132,7 @@ function IOURequestStepMerchant({
             headerTitle={translate('common.merchant')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepMerchant.displayName}
+            testID="IOURequestStepMerchant"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <FormProvider
@@ -177,7 +177,5 @@ function IOURequestStepMerchant({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepMerchant.displayName = 'IOURequestStepMerchant';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepMerchant));

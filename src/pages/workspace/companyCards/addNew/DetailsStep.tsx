@@ -171,7 +171,7 @@ function DetailsStep() {
 
     return (
         <ScreenWrapper
-            testID={DetailsStep.displayName}
+            testID="DetailsStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -213,7 +213,5 @@ function DetailsStep() {
         </ScreenWrapper>
     );
 }
-
-DetailsStep.displayName = 'DetailsStep';
 
 export default DetailsStep;

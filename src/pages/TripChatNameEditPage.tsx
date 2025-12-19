@@ -68,7 +68,7 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             style={[styles.defaultModalContainer]}
-            testID={TripChatNameEditPage.displayName}
+            testID="TripChatNameEditPage"
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -97,7 +97,5 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
         </ScreenWrapper>
     );
 }
-
-TripChatNameEditPage.displayName = 'TripChatNameEditPage';
 
 export default TripChatNameEditPage;

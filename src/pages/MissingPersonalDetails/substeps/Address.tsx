@@ -217,6 +217,4 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
     );
 }
 
-AddressStep.displayName = 'AddressStep';
-
 export default AddressStep;

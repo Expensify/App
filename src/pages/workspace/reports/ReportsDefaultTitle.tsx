@@ -87,7 +87,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={ReportsDefaultTitlePage.displayName}
+                testID="ReportsDefaultTitlePage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.reports.customNameTitle')}
@@ -142,7 +142,5 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportsDefaultTitlePage.displayName = 'ReportsDefaultTitlePage';
 
 export default ReportsDefaultTitlePage;

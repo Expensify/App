@@ -82,7 +82,5 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
     );
 }
 
-Breadcrumbs.displayName = 'Breadcrumbs';
-
 export type {BreadcrumbsProps};
 export default Breadcrumbs;

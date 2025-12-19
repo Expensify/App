@@ -5,7 +5,6 @@ import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButton
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
-import HeaderPageLayout from '@components/HeaderPageLayout';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -193,7 +192,7 @@ function StatusPage() {
             style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.PROFILE.STATUS].backgroundColor)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom
-            testID={HeaderPageLayout.displayName}
+            testID="HeaderPageLayout"
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -298,7 +297,5 @@ function StatusPage() {
         </ScreenWrapper>
     );
 }
-
-StatusPage.displayName = 'StatusPage';
 
 export default StatusPage;

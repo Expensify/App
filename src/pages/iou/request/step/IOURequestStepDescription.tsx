@@ -173,7 +173,7 @@ function IOURequestStepDescription({
             headerTitle={translate('common.description')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepDescription.displayName}
+            testID="IOURequestStepDescription"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <FormProvider
@@ -223,8 +223,6 @@ function IOURequestStepDescription({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepDescription.displayName = 'IOURequestStepDescription';
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescription);

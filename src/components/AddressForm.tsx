@@ -252,6 +252,4 @@ function AddressForm({
     );
 }
 
-AddressForm.displayName = 'AddressForm';
-
 export default AddressForm;

@@ -77,7 +77,7 @@ function LegalNamePage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={LegalNamePage.displayName}
+            testID="LegalNamePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -134,7 +134,5 @@ function LegalNamePage() {
         </ScreenWrapper>
     );
 }
-
-LegalNamePage.displayName = 'LegalNamePage';
 
 export default LegalNamePage;

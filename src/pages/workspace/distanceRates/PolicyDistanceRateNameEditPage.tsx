@@ -84,7 +84,7 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={PolicyDistanceRateNameEditPage.displayName}
+                testID="PolicyDistanceRateNameEditPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -116,7 +116,5 @@ function PolicyDistanceRateNameEditPage({route}: PolicyDistanceRateNameEditPageP
         </AccessOrNotFoundWrapper>
     );
 }
-
-PolicyDistanceRateNameEditPage.displayName = 'PolicyDistanceRateNameEditPage';
 
 export default PolicyDistanceRateNameEditPage;

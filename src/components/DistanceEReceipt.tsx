@@ -113,6 +113,4 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
     );
 }
 
-DistanceEReceipt.displayName = 'DistanceEReceipt';
-
 export default DistanceEReceipt;

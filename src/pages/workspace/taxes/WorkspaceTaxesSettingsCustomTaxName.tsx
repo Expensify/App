@@ -67,7 +67,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceTaxesSettingsCustomTaxName.displayName}
+                testID="WorkspaceTaxesSettingsCustomTaxName"
                 style={styles.defaultModalContainer}
             >
                 <HeaderWithBackButton title={translate('workspace.taxes.customTaxName')} />
@@ -100,7 +100,5 @@ function WorkspaceTaxesSettingsCustomTaxName({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTaxesSettingsCustomTaxName.displayName = 'WorkspaceTaxesSettingsCustomTaxName';
 
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesSettingsCustomTaxName);

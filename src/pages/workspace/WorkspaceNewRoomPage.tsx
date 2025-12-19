@@ -244,7 +244,7 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
             keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top}
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
-            testID={WorkspaceNewRoomPage.displayName}
+            testID="WorkspaceNewRoomPage"
         >
             {workspaceOptions.length === 0 ? (
                 <EmptyWorkspaceView />
@@ -319,7 +319,5 @@ function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
         </ScreenWrapper>
     );
 }
-
-WorkspaceNewRoomPage.displayName = 'WorkspaceNewRoomPage';
 
 export default WorkspaceNewRoomPage;

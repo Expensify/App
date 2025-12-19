@@ -91,6 +91,4 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
     );
 }
 
-CategoryForm.displayName = 'CategoryForm';
-
 export default CategoryForm;
