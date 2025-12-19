@@ -38,7 +38,7 @@ function FeedSelector({onFeedSelect, cardIcon, feedName, supportingText, shouldS
     return (
         <PressableWithFeedback
             onPress={onFeedSelect}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={styles.flexShrink1}
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
             accessibilityLabel={feedName ?? ''}
         >

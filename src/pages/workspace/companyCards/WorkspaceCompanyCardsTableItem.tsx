@@ -196,7 +196,7 @@ function WorkspaceCompanyCardTableItem({
                                         />
                                         <TextWithTooltip
                                             text={alternateLoginText}
-                                            style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                            style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
                                         />
                                     </View>
                                 </>
@@ -234,7 +234,7 @@ function WorkspaceCompanyCardTableItem({
                             </View>
                         )}
 
-                        <View style={[styles.flex1, styles.alignItemsEnd]}>
+                        <View style={[shouldUseNarrowTableRowLayout ? styles.flex0 : styles.flex1, styles.alignItemsEnd]}>
                             {isAssigned && (
                                 <View style={[styles.justifyContentEnd, styles.w100, styles.flexRow, styles.ml2, styles.gap3]}>
                                     {!shouldUseNarrowTableRowLayout && (
