@@ -94,10 +94,6 @@ import SearchPageWide from './SearchPageWide';
 
 type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
 
-/**
- * Renders the main search page with advanced filters, bulk actions, and export options for transactions and reports.
- * Handles responsive layouts, selection modes, and various modals for user actions and confirmations.
- */
 function SearchPage({route}: SearchPageProps) {
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
 
