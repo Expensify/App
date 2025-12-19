@@ -644,7 +644,7 @@ function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
     const filteredAssignedCards = filterObject(assignedCards, (_key, card) => !closedStates.has(card.state));
 
     return {
-        cardList,
+        ...(cardList ? {cardList} : {}),
         ...filteredAssignedCards,
     } as WorkspaceCardsList;
 }
