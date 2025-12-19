@@ -405,11 +405,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     {memberCards.map((memberCard) => {
                                         const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                                         const plaidUrl = getPlaidInstitutionIconUrl(memberCard?.bank);
-                                        const unapprovedExpenseLimit = memberCard.nameValuePairs?.unapprovedExpenseLimit;
+                                        const nameValuePairs = memberCard.nameValuePairs;
+                                        const unapprovedExpenseLimit = nameValuePairs?.unapprovedExpenseLimit;
+                                        const cardTitle = nameValuePairs?.cardTitle;
 
                                         return (
                                             <OfflineWithFeedback
-                                                key={`${memberCard.nameValuePairs?.cardTitle}_${memberCard.cardID}`}
+                                                key={`${cardTitle ?? ''}_${memberCard.cardID}`}
                                                 errorRowStyles={styles.ph5}
                                                 errors={memberCard.errors}
                                                 pendingAction={memberCard.pendingAction}
@@ -417,12 +419,16 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                 <MenuItem
                                                     key={memberCard.cardID}
                                                     title={
-                                                        memberCard.nameValuePairs?.cardTitle ??
+                                                        cardTitle ??
                                                         customCardNames?.[memberCard.cardID] ??
                                                         maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)
                                                     }
                                                     description={memberCard?.lastFourPAN ?? lastFourNumbersFromCardName(memberCard?.cardName)}
-                                                    badgeText={memberCard.bank === CONST.EXPENSIFY_CARD.BANK && unapprovedExpenseLimit !== undefined ? convertToDisplayString(unapprovedExpenseLimit) : ''}
+                                                    badgeText={
+                                                        memberCard.bank === CONST.EXPENSIFY_CARD.BANK && unapprovedExpenseLimit !== undefined
+                                                            ? convertToDisplayString(unapprovedExpenseLimit)
+                                                            : ''
+                                                    }
                                                     icon={getCardFeedIcon(memberCard.bank as CompanyCardFeed, illustrations, companyCardFeedIcons)}
                                                     plaidUrl={plaidUrl}
                                                     displayInDefaultIconColor
