@@ -10343,6 +10343,7 @@ describe('ReportUtils', () => {
             expect(result).toBe('payer owes $100');
         });
     });
+
     describe('getAvailableReportFields', () => {
         const fieldList1 = {
             expensify_field_id_LIST: {
