@@ -3883,7 +3883,6 @@ ${
             deepDiveExpensifyCard: `<muted-text-label>As transações do Cartão Expensify serão exportadas automaticamente para uma “Conta de Responsabilidade do Cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
         },
         receiptPartners: {
-            connect: 'Conectar agora',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Conectado a ${organizationName}` : 'Automatize despesas de viagem e entrega de refeições em toda a sua organização.',
@@ -3910,8 +3909,6 @@ ${
                 invitationFailure: 'Falha ao convidar membro para Uber for Business',
                 autoInvite: 'Convidar novos membros do espaço de trabalho para o Uber for Business',
                 autoRemove: 'Desativar membros removidos do workspace no Uber for Business',
-                bannerTitle: 'Expensify + Uber for Business',
-                bannerDescription: 'Conecte o Uber for Business para automatizar despesas de viagens e entrega de refeições em toda a sua organização.',
                 emptyContent: {
                     title: 'Nenhum convite pendente',
                     subtitle: 'Uhul! Procuramos em todos os lugares e não conseguimos encontrar nenhum convite pendente.',
