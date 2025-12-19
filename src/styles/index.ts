@@ -359,7 +359,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.componentBorderRadiusSmall,
-            minHeight: 16,
+            height: 16,
         },
 
         reportStatusText: {
@@ -1467,10 +1467,6 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeSmall,
             color: theme.textSupporting,
-        },
-
-        lhUndefined: {
-            lineHeight: undefined,
         },
 
         lh14: {
@@ -4136,12 +4132,8 @@ const staticStyles = (theme: ThemeColors) =>
             height: 450,
         },
 
-        textMicroSupportingPadding: {
-            padding: variables.paddingSmall,
-        },
-
         tabSelectorButton: {
-            minHeight: variables.tabSelectorButtonHeight,
+            height: variables.tabSelectorButtonHeight,
             padding: variables.tabSelectorButtonPadding,
             flexDirection: 'row',
             alignItems: 'center',
