@@ -8,8 +8,6 @@
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import Log from '@libs/Log';
-import IntlStore from '@src/languages/IntlStore';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 import ONYX_DERIVED_VALUES from './ONYX_DERIVED_VALUES';
 import type {DerivedValueContext} from './types';
@@ -100,27 +98,6 @@ function init() {
                             Log.info(`[OnyxDerived] dependency ${collectionKey} for derived key ${key} changed, recomputing`);
                             setDependencyValue(dependencyIndex, value as Parameters<typeof compute>[0][typeof dependencyIndex]);
                             recomputeDerivedValue(dependencyOnyxKey, sourceValue, dependencyIndex);
-                        },
-                    });
-                } else if (dependencyOnyxKey === ONYXKEYS.NVP_PREFERRED_LOCALE) {
-                    // Special case for locale, we want to recompute derived values when the locale change actually loads.
-                    Onyx.connectWithoutView({
-                        key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-                        initWithStoredValues: false,
-                        callback: (value) => {
-                            if (value ?? true) {
-                                Log.info(`[OnyxDerived] translations are still loading, not recomputing derived value for ${key}`);
-                                return;
-                            }
-                            Log.info(`[OnyxDerived] translations loaded, recomputing derived value for ${key}`);
-                            const localeValue = IntlStore.getCurrentLocale();
-                            if (!localeValue) {
-                                Log.info(`[OnyxDerived] No locale found for derived key ${key}, skipping recompute`);
-                                return;
-                            }
-                            Log.info(`[OnyxDerived] dependency ${dependencyOnyxKey} for derived key ${key} changed, recomputing`);
-                            setDependencyValue(dependencyIndex, localeValue as Parameters<typeof compute>[0][typeof dependencyIndex]);
-                            recomputeDerivedValue(dependencyOnyxKey, localeValue, dependencyIndex);
                         },
                     });
                 } else {

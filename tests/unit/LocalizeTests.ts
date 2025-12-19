@@ -53,13 +53,6 @@ async function testMissingTranslationBehavior(environmentConfig: EnvironmentConf
 
 describe('localize', () => {
     beforeAll(() => {
-        Onyx.init({
-            keys: {
-                NVP_PREFERRED_LOCALE: ONYXKEYS.NVP_PREFERRED_LOCALE,
-                ARE_TRANSLATIONS_LOADING: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-                SESSION: ONYXKEYS.SESSION,
-            },
-        });
         return waitForBatchedUpdates();
     });
 

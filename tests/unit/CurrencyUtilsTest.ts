@@ -38,15 +38,15 @@ describe('CurrencyUtils', () => {
     afterEach(() => Onyx.clear());
 
     describe('getLocalizedCurrencySymbol', () => {
-        test.each(AVAILABLE_LOCALES)('Returns non empty string for all currencyCode with preferredLocale %s', (preferredLocale) =>
-            IntlStore.load(preferredLocale).then(() => {
-                for (const currencyCode of currencyCodeList) {
-                    const localizedSymbol = CurrencyUtils.getLocalizedCurrencySymbol(currencyCode);
+        test.each(AVAILABLE_LOCALES)('Returns non empty string for all currencyCode with preferredLocale %s', async (preferredLocale) => {
+            const loadResult = IntlStore.load(preferredLocale);
+            await (loadResult instanceof Promise ? loadResult : Promise.resolve());
+            for (const currencyCode of currencyCodeList) {
+                const localizedSymbol = CurrencyUtils.getLocalizedCurrencySymbol(currencyCode);
 
-                    expect(localizedSymbol).toBeTruthy();
-                }
-            }),
-        );
+                expect(localizedSymbol).toBeTruthy();
+            }
+        });
     });
 
     describe('getCurrencyDecimals', () => {
@@ -158,9 +158,11 @@ describe('CurrencyUtils', () => {
             ['EUR', 2500, '25,00\xa0€'],
             ['EUR', 250000, '2500,00\xa0€'],
             ['EUR', 250000000, '2.500.000,00\xa0€'],
-        ])('Correctly displays %s in ES locale', (currency, amount, expectedResult) =>
-            IntlStore.load(CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToDisplayString(amount, currency)).toBe(expectedResult)),
-        );
+        ])('Correctly displays %s in ES locale', async (currency, amount, expectedResult) => {
+            const loadResult = IntlStore.load(CONST.LOCALES.ES);
+            await (loadResult instanceof Promise ? loadResult : Promise.resolve());
+            expect(CurrencyUtils.convertToDisplayString(amount, currency)).toBe(expectedResult);
+        });
     });
 
     describe('convertToShortDisplayString', () => {
@@ -185,8 +187,10 @@ describe('CurrencyUtils', () => {
             ['EUR', 2500, '25\xa0€'],
             ['EUR', 250000, '2500\xa0€'],
             ['EUR', 250000000, '2.500.000\xa0€'],
-        ])('Correctly displays %s in ES locale', (currency, amount, expectedResult) =>
-            IntlStore.load(CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToShortDisplayString(amount, currency)).toBe(expectedResult)),
-        );
+        ])('Correctly displays %s in ES locale', async (currency, amount, expectedResult) => {
+            const loadResult = IntlStore.load(CONST.LOCALES.ES);
+            await (loadResult instanceof Promise ? loadResult : Promise.resolve());
+            expect(CurrencyUtils.convertToShortDisplayString(amount, currency)).toBe(expectedResult);
+        });
     });
 });
