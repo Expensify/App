@@ -102,7 +102,6 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT,
         translationKey: 'common.tax',
-        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
