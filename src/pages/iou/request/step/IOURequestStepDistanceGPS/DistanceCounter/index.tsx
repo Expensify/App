@@ -43,6 +43,4 @@ function DistanceCounter({report, transaction}: DistanceCounterProps) {
     );
 }
 
-DistanceCounter.displayName = 'DistanceCounter';
-
 export default DistanceCounter;

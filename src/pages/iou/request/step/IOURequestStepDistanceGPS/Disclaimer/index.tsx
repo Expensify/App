@@ -32,6 +32,4 @@ function Disclaimer() {
     );
 }
 
-Disclaimer.displayName = 'Disclaimer';
-
 export default Disclaimer;
