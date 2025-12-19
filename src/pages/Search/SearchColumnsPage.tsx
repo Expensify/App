@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -51,7 +50,13 @@ function SearchColumnsPage() {
 
     // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns
     // since it makes sense for them to show up in an expense management App and it fixes the layout issues.
-    const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+    const requiredColumns = new Set<SearchCustomColumnIds>([
+        CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+        CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
+    ]);
 
     const sortColumns = (columnsToSort: ColumnItem[]): ColumnItem[] => {
         const selected = columnsToSort.filter((col) => col.isSelected);
@@ -117,10 +122,6 @@ function SearchColumnsPage() {
         columns.length === defaultColumns.length &&
         columns.every((col, index) => col.columnId === defaultColumns.at(index)?.columnId && col.isSelected === defaultColumns.at(index)?.isSelected);
 
-    const missingTypeSelection = typeColumnsList.every((column) => !column.isSelected);
-    const missingGroupSelection = !!groupBy && groupColumnsList.every((column) => !column.isSelected);
-    const hasMissingSelectionError = missingTypeSelection || missingGroupSelection;
-
     const onSelectItem = (item: ListItem) => {
         const updatedColumnId = item.keyForList as SearchCustomColumnIds;
 
@@ -172,10 +173,6 @@ function SearchColumnsPage() {
     };
 
     const applyChanges = () => {
-        if (hasMissingSelectionError) {
-            return;
-        }
-
         const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {
             ...searchAdvancedFiltersForm,
             columns: selectedColumnIds,
@@ -244,13 +241,6 @@ function SearchColumnsPage() {
                 </ScrollView>
             </View>
             <View style={[styles.ph5, styles.pb5]}>
-                {hasMissingSelectionError && (
-                    <DotIndicatorMessage
-                        type="error"
-                        style={styles.mv3}
-                        messages={{error: missingGroupSelection ? translate('search.noGroupColumnsError') : translate('search.noColumnsError')}}
-                    />
-                )}
                 <Button
                     large
                     success

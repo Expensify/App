@@ -3075,7 +3075,14 @@ function getColumnsToShow(
         const columnsToShow = filteredVisibleColumns.length ? filteredVisibleColumns : defaultCustomColumns;
 
         if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
-            const result: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.AVATAR];
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]);
+            const result: SearchColumnType[] = [];
+
+            for (const col of requiredColumns) {
+                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                    result.push(col);
+                }
+            }
 
             for (const col of columnsToShow) {
                 result.push(col);
@@ -3085,7 +3092,14 @@ function getColumnsToShow(
         }
 
         if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
-            const result: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.AVATAR];
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD]);
+            const result: SearchColumnType[] = [];
+
+            for (const col of requiredColumns) {
+                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                    result.push(col);
+                }
+            }
 
             for (const col of columnsToShow) {
                 result.push(col);
@@ -3095,7 +3109,14 @@ function getColumnsToShow(
         }
 
         if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
-            const result: SearchColumnType[] = [CONST.SEARCH.TABLE_COLUMNS.AVATAR];
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]);
+            const result: SearchColumnType[] = [];
+
+            for (const col of requiredColumns) {
+                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                    result.push(col);
+                }
+            }
 
             for (const col of columnsToShow) {
                 result.push(col);
