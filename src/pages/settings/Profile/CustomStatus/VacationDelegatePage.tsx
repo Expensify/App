@@ -8,6 +8,7 @@ import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,6 +35,7 @@ function VacationDelegatePage() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const currentVacationDelegate = vacationDelegate?.delegate;
     const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
+    const {isOffline} = useNetwork();
 
     const excludeLogins = useMemo(
         () => ({
@@ -52,6 +54,11 @@ function VacationDelegatePage() {
         getValidOptionsConfig: {
             excludeLogins,
         },
+        // When offline, we want to allow inviting optimistic users
+        // because we can't check if they already exist on the server.
+        // When online, we rely on the server to know if a user exists.
+        // Vacation delegate users must exist on the server before being assigned.
+        includeUserToInvite: isOffline,
     });
 
     const headerMessage = useMemo(() => {
