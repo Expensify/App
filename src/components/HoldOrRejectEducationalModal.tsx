@@ -93,6 +93,4 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
     );
 }
 
-HoldOrRejectEducationalModal.displayName = 'HoldOrRejectEducationalModal';
-
 export default HoldOrRejectEducationalModal;

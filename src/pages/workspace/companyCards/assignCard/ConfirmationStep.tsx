@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
@@ -50,7 +51,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const [cardFeeds] = useCardFeeds(policyID);
 
     const data = assignCard?.data;
-    const cardholderName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+    const cardholderName = Str.removeSMSDomain(getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '');
 
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
 
@@ -102,7 +103,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={ConfirmationStep.displayName}
+            wrapperID="ConfirmationStep"
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={3}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
@@ -166,7 +167,5 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default ConfirmationStep;

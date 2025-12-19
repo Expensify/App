@@ -89,6 +89,4 @@ function ManageTrips() {
     );
 }
 
-ManageTrips.displayName = 'ManageTrips';
-
 export default ManageTrips;

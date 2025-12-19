@@ -97,7 +97,7 @@ function SearchFiltersReportFieldPage() {
 
         return (
             <ScreenWrapper
-                testID={SearchFiltersReportFieldPage.displayName}
+                testID="SearchFiltersReportFieldPage"
                 shouldShowOfflineIndicatorInWideScreen
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
@@ -113,7 +113,7 @@ function SearchFiltersReportFieldPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersReportFieldPage.displayName}
+            testID="SearchFiltersReportFieldPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -153,7 +153,5 @@ function SearchFiltersReportFieldPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersReportFieldPage.displayName = 'SearchFiltersReportFieldPage';
 
 export default SearchFiltersReportFieldPage;

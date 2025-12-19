@@ -41,7 +41,7 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
             <ScreenWrapper
-                testID={WorkspaceMemberDetailsRolePage.displayName}
+                testID="WorkspaceMemberDetailsRolePage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <WorkspaceMemberRoleList
@@ -54,7 +54,5 @@ function WorkspaceMemberDetailsRolePage({policy, personalDetails, route}: Worksp
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceMemberDetailsRolePage.displayName = 'WorkspaceMemberDetailsRolePage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceMemberDetailsRolePage);
