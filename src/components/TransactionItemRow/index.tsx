@@ -33,13 +33,13 @@ import {
     getMerchant,
     getOriginalAmountForDisplay,
     getOriginalCurrency,
+    getTaxName,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
     isMerchantMissing,
     isScanning,
     isUnreportedAndHasInvalidDistanceRateTransaction,
-    getTaxName,
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';

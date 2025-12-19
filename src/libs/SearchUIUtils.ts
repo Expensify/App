@@ -122,13 +122,13 @@ import {
     getOriginalAmountForDisplay,
     getTag,
     getTaxAmount,
+    getTaxName,
     getAmount as getTransactionAmount,
     getCreated as getTransactionCreatedDate,
     getMerchant as getTransactionMerchant,
     isPending,
     isScanning,
     isViolationDismissed,
-    getTaxName,
 } from './TransactionUtils';
 import ViolationsUtils from './Violations/ViolationsUtils';
 
