@@ -141,6 +141,4 @@ function UserSelectionListItem<TItem extends ListItem>({
     );
 }
 
-UserSelectionListItem.displayName = 'UserSelectionListItem';
-
 export default UserSelectionListItem;

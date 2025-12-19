@@ -73,7 +73,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                testID={WorkspaceOverviewSharePage.displayName}
+                testID="WorkspaceOverviewSharePage"
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -136,7 +136,5 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceOverviewSharePage.displayName = 'WorkspaceOverviewSharePage';
 
 export default withPolicy(WorkspaceOverviewSharePage);

@@ -116,7 +116,5 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     );
 }
 
-SubscriptionPlanCard.displayName = 'SubscriptionPlanCard';
-
 export default SubscriptionPlanCard;
 export type {PersonalPolicyTypeExcludedProps};
