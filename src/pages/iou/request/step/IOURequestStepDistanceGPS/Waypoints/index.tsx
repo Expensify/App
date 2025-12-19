@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -61,6 +62,8 @@ function Waypoints() {
 
 export default Waypoints;
 
+const GPS_TOOLTIP_HORIZONTAL_PADDING = 40;
+
 function GPSTooltip({children}: React.PropsWithChildren) {
     const [hasUserClosedTooltip, setHasUserClosedTooltip] = useState(false);
 
@@ -68,6 +71,7 @@ function GPSTooltip({children}: React.PropsWithChildren) {
     const [firstCreatedGPSExpenseDate] = useOnyx(ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT, {canBeMissing: true});
 
     const styles = useThemeStyles();
+    const {windowWidth} = useWindowDimensions();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb'] as const);
@@ -101,6 +105,7 @@ function GPSTooltip({children}: React.PropsWithChildren) {
         <EducationalTooltip
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shiftVertical={-12}
+            maxWidth={windowWidth - GPS_TOOLTIP_HORIZONTAL_PADDING}
             renderTooltipContent={renderTooltipContent}
             shouldRender={showEducationalTooltip}
         >
