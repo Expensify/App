@@ -13,8 +13,6 @@ type SnapshotMap = Record<string, SearchResults>;
  * Returns an object mapping each hash to its corresponding SearchResults.
  */
 function useMultipleSnapshots(hashes: string[]): SnapshotMap {
-    const hashesKey = useMemo(() => hashes.join(','), [hashes]);
-
     const selector = useMemo(() => {
         return (snapshots: OnyxCollection<SearchResults>): SnapshotMap => {
             if (!snapshots || hashes.length === 0) {
@@ -30,9 +28,7 @@ function useMultipleSnapshots(hashes: string[]): SnapshotMap {
             }
             return result;
         };
-        // hashesKey ensures selector only recreates when actual hash values change
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [hashesKey]);
+    }, [hashes]);
 
     const [snapshotMap = getEmptyObject<SnapshotMap>()] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {
         canBeMissing: true,
