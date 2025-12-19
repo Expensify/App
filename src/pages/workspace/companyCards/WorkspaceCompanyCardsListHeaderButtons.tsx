@@ -61,7 +61,7 @@ type WorkspaceCompanyCardsListHeaderButtonsProps = {
 };
 
 function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldShowAssignCardButton, handleAssignCard}: WorkspaceCompanyCardsListHeaderButtonsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -184,7 +184,5 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
         </View>
     );
 }
-
-WorkspaceCompanyCardsListHeaderButtons.displayName = 'WorkspaceCompanyCardsListHeaderButtons';
 
 export default WorkspaceCompanyCardsListHeaderButtons;
