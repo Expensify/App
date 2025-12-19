@@ -1475,14 +1475,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SPLIT_EXPENSE.route,
                             exact: true,
                             screens: {
-                                [CONST.IOU.SPLIT_TYPE.AMOUNT]: {
-                                    path: CONST.IOU.SPLIT_TYPE.AMOUNT,
+                                [CONST.TAB.SPLIT.AMOUNT]: {
+                                    path: CONST.TAB.SPLIT.AMOUNT,
                                 },
-                                [CONST.IOU.SPLIT_TYPE.PERCENTAGE]: {
-                                    path: CONST.IOU.SPLIT_TYPE.PERCENTAGE,
+                                [CONST.TAB.SPLIT.PERCENTAGE]: {
+                                    path: CONST.TAB.SPLIT.PERCENTAGE,
                                 },
-                                [CONST.IOU.SPLIT_TYPE.DATE]: {
-                                    path: CONST.IOU.SPLIT_TYPE.DATE,
+                                [CONST.TAB.SPLIT.DATE]: {
+                                    path: CONST.TAB.SPLIT.DATE,
                                 },
                             },
                         },
