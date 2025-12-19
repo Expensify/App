@@ -70,7 +70,7 @@ function WorkspaceCategoriesSettingsPage({policy, route}: WorkspaceCategoriesSet
         );
     }, [policyData.policy]);
 
-    const hasEnabledCategories = hasEnabledOptions(policyData.categories);
+    const hasEnabledCategories = hasEnabledOptions(policyData?.categories ?? {});
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
 
     const setNewCategory = (selectedCategory: SelectionListWithSectionsListItem, currentGroupID: string) => {

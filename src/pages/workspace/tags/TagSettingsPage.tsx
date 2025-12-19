@@ -47,7 +47,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const {translate} = useLocalize();
     const policyData = usePolicyData(policyID);
-    const {policy, tags: policyTags} = policyData;
+    const {policy, tagLists: policyTags} = policyData;
     const policyTag = useMemo(() => getTagListByOrderWeight(policyTags, orderWeight), [policyTags, orderWeight]);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);

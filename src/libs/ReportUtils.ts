@@ -2007,9 +2007,13 @@ function pushTransactionViolationsOnyxData(
     categoriesUpdate: Record<string, Partial<PolicyCategory>> = {},
     tagListsUpdate: Record<string, Partial<PolicyTagList>> = {},
 ) {
+    const {policy, tagLists, categories} = policyData;
+    if (policy === undefined) {
+        return;
+    }
     const nonInvoiceReportTransactionsAndViolations = policyData.reports.reduce<ReportTransactionsAndViolations[]>((acc, report) => {
         // Skipping invoice reports since they should not have any category or tag violations
-        if (isInvoiceReport(report)) {
+        if (report === undefined || isInvoiceReport(report)) {
             return acc;
         }
         const reportTransactionsAndViolations = policyData.transactionsAndViolations[report.reportID];
@@ -2035,53 +2039,72 @@ function pushTransactionViolationsOnyxData(
     }
 
     // Merge the existing policy with the optimistic updates
-    const optimisticPolicy = isPolicyUpdateEmpty ? policyData.policy : {...policyData.policy, ...policyUpdate};
+    const optimisticPolicy = isPolicyUpdateEmpty ? policy : {...policy, ...policyUpdate};
 
     // Merge the existing categories with the optimistic updates
     const optimisticCategories = isCategoriesUpdateEmpty
-        ? policyData.categories
+        ? (categories ?? {})
         : {
-              ...Object.fromEntries(Object.entries(policyData.categories).filter(([categoryName]) => !(categoryName in categoriesUpdate) || !!categoriesUpdate[categoryName])),
+              ...Object.fromEntries(Object.entries(categories ?? {}).filter(([categoryName]) => !(categoryName in categoriesUpdate) || !!categoriesUpdate[categoryName])),
               ...Object.entries(categoriesUpdate).reduce<PolicyCategories>((acc, [categoryName, categoryUpdate]) => {
                   if (!categoryUpdate) {
                       return acc;
                   }
+                  const category = categories?.[categoryName];
+                  if (category === undefined) {
+                      acc[categoryName] = categoryUpdate as PolicyCategory;
+                      return acc;
+                  }
+
                   acc[categoryName] = {
-                      ...(policyData.categories?.[categoryName] ?? {}),
+                      ...category,
                       ...categoryUpdate,
-                  };
+                  } as PolicyCategory;
                   return acc;
               }, {}),
           };
 
     // Merge the existing tag lists with the optimistic updates
     const optimisticTagLists = isTagListsUpdateEmpty
-        ? policyData.tags
+        ? (tagLists ?? {})
         : {
-              ...Object.fromEntries(Object.entries(policyData.tags ?? {}).filter(([tagListName]) => !(tagListName in tagListsUpdate) || !!tagListsUpdate[tagListName])),
+              ...Object.fromEntries(Object.entries(tagLists ?? {}).filter(([tagListName]) => !(tagListName in tagListsUpdate) || !!tagListsUpdate[tagListName])),
               ...Object.entries(tagListsUpdate).reduce<PolicyTagLists>((acc, [tagListName, tagListUpdate]) => {
-                  if (!tagListUpdate) {
+                  if (!tagListName || !tagListUpdate) {
                       return acc;
                   }
 
-                  const tagList = policyData.tags?.[tagListName];
-                  const tags = tagList.tags ?? {};
+                  const tagList = tagLists?.[tagListName];
+                  if (!tagList) {
+                      acc[tagListName] = tagListUpdate as PolicyTagList;
+                      return acc;
+                  }
+                  const tags = tagList?.tags;
+                  if (!tags) {
+                      acc[tagListName] = {...tagList, ...tagListUpdate} as PolicyTagList;
+                      return acc;
+                  }
                   const tagsUpdate = tagListUpdate?.tags ?? {};
-
                   acc[tagListName] = {
                       ...tagList,
                       ...tagListUpdate,
                       tags: {
                           ...((): PolicyTags => {
-                              const optimisticTags: PolicyTags = Object.fromEntries(Object.entries(tags).filter(([tagName]) => !(tagName in tagsUpdate) || !!tagsUpdate[tagName]));
+                              const optimisticTags: PolicyTags = Object.fromEntries(
+                                  Object.entries(tags ?? {}).filter(([tagName, tag]) => !tag || !(tagName in tagsUpdate) || !!tagsUpdate[tagName]),
+                              );
                               for (const [tagName, tagUpdate] of Object.entries(tagsUpdate)) {
                                   if (!tagUpdate) {
                                       continue;
                                   }
-                                  optimisticTags[tagName] = {
-                                      ...(tags[tagName] ?? {}),
-                                      ...tagUpdate,
-                                  };
+                                  const tag = tags?.[tagName];
+                                  optimisticTags[tagName] =
+                                      tag !== undefined
+                                          ? {
+                                                ...tag,
+                                                ...tagUpdate,
+                                            }
+                                          : tagUpdate;
                               }
                               return optimisticTags;
                           })(),

@@ -8,7 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -29,19 +29,20 @@ type WorkspaceCreateTagPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE>;
 
 function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
-    const policyID = route.params.policyID;
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const {policyID, backTo} = route.params;
+    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE;
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const backTo = route.params.backTo;
-    const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_CREATE;
+    const policyData = usePolicyData(policyID);
+    const {tagLists} = policyData;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
             const tagName = escapeTagName(values.tagName.trim());
-            const {tags} = getTagList(policyTags, 0);
+            const {tags} = getTagList(tagLists, 0);
 
             if (!isRequiredFulfilled(tagName)) {
                 errors.tagName = translate('workspace.tags.tagRequiredError');
@@ -56,16 +57,16 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
 
             return errors;
         },
-        [policyTags, translate],
+        [tagLists, translate],
     );
 
     const createTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            createPolicyTag(policyID, values.tagName.trim(), policyTags);
+            createPolicyTag(policyData, values.tagName.trim());
             Keyboard.dismiss();
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
         },
-        [policyID, policyTags, isQuickSettingsFlow, backTo],
+        [policyID, policyData, isQuickSettingsFlow, backTo],
     );
 
     return (
