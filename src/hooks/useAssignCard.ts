@@ -148,7 +148,6 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
         clearAssignCardStepAndData();
         setAssignCardStepAndData({data});
 
-        // Navigate directly to the appropriate screen based on the determined step
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             const routeParams = {policyID, feed: selectedFeed, cardID: cardID ?? ''};
 
