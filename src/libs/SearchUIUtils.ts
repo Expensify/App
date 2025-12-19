@@ -190,26 +190,26 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
 
 const transactionMemberGroupColumnNamesToSortingProperty: TransactionMemberGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
-    [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: 'count' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]: 'formattedFrom' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
 };
 
 const transactionCardGroupColumnNamesToSortingProperty: TransactionCardGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
-    [CONST.SEARCH.TABLE_COLUMNS.CARD]: 'formattedCardName' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.FEED]: 'formattedFeedName' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: 'count' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD]: 'formattedCardName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED]: 'formattedFeedName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
 };
 
 const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithdrawalIDGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
-    [CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT]: 'bankName' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: 'debitPosted' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: 'count' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'bankName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'debitPosted' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
 };
 
 const expenseStatusActionMapping = {
