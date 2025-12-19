@@ -355,11 +355,10 @@ function ReportFooter({
             // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
             const targetReportID = transactionThreadReportID ?? report.reportID;
 
-            // When sending from the Concierge side panel, capture the simplified HTML of the main page
-            // to provide context to the LLM about what the user is viewing
-            const simplifiedPageHTML = isInSidePanel ? captureSimplifiedPageHTML() : undefined;
+            // When sending from the Concierge side panel, capture the HTML of the main page to provide context to the LLM
+            const pageHTML = isInSidePanel ? captureSimplifiedPageHTML() : undefined;
 
-            addComment(targetReportID, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true, simplifiedPageHTML);
+            addComment(targetReportID, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true, pageHTML);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask, transactionThreadReportID, targetReportAncestors, isInSidePanel],

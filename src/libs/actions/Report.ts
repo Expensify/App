@@ -566,7 +566,7 @@ function notifyNewAction(reportID: string | undefined, accountID: number | undef
  * @param reportID - The report ID where the comment should be added
  * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  */
-function addActions(reportID: string, notifyReportID: string, ancestors: Ancestor[], timezoneParam: Timezone, text = '', file?: FileObject, simplifiedPageHTML?: string) {
+function addActions(reportID: string, notifyReportID: string, ancestors: Ancestor[], timezoneParam: Timezone, text = '', file?: FileObject, pageHTML?: string) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
@@ -640,8 +640,8 @@ function addActions(reportID: string, notifyReportID: string, ancestors: Ancesto
         parameters.isOldDotConciergeChat = true;
     }
 
-    if (simplifiedPageHTML) {
-        parameters.simplifiedPageHTML = simplifiedPageHTML;
+    if (pageHTML) {
+        parameters.pageHTML = pageHTML;
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -773,11 +773,11 @@ function addAttachmentWithComment(
 }
 
 /** Add a single comment to a report */
-function addComment(reportID: string, notifyReportID: string, ancestors: Ancestor[], text: string, timezoneParam: Timezone, shouldPlaySound?: boolean, simplifiedPageHTML?: string) {
+function addComment(reportID: string, notifyReportID: string, ancestors: Ancestor[], text: string, timezoneParam: Timezone, shouldPlaySound?: boolean, pageHTML?: string) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(reportID, notifyReportID, ancestors, timezoneParam, text, undefined, simplifiedPageHTML);
+    addActions(reportID, notifyReportID, ancestors, timezoneParam, text, undefined, pageHTML);
 }
 
 function reportActionsExist(reportID: string): boolean {
