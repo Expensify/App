@@ -6031,10 +6031,6 @@ ${reportName}
                 title: '类别规则',
                 approver: '审批人',
                 requireDescription: '要求描述',
-                requireFields: '必填字段',
-                requiredFieldsTitle: '必填项',
-                requiredFieldsDescription: (categoryName: string) => `这将适用于所有被归类为 <strong>${categoryName}</strong> 的费用。`,
-                requireAttendees: '要求与会者',
                 descriptionHint: '描述提示',
                 descriptionHintDescription: (categoryName: string) => `提醒员工为“${categoryName}”支出提供更多信息。此提示将显示在报销单的描述字段中。`,
                 descriptionHintLabel: '提示',
@@ -6532,7 +6528,8 @@ ${reportName}
         },
         columns: '列',
         resetColumns: '重置列',
-        noColumnsError: '请在保存前至少选择一列',
+        groupColumns: '分组列',
+        expenseColumns: '报销列',
         statements: '对账单',
         unapprovedCash: '未批准的现金',
         unapprovedCard: '未批准的卡片',
@@ -7056,7 +7053,6 @@ ${reportName}
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `日期早于 ${maxAge} 天`,
         missingCategory: '缺少类别',
         missingComment: '所选类别需要填写描述',
-        missingAttendees: '此类别需要多个参与者',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `缺少 ${tagName ?? '标签'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

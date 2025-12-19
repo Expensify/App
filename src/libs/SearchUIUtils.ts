@@ -193,26 +193,26 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
 
 const transactionMemberGroupColumnNamesToSortingProperty: TransactionMemberGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
-    [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: 'count' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]: 'formattedFrom' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
 };
 
 const transactionCardGroupColumnNamesToSortingProperty: TransactionCardGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
-    [CONST.SEARCH.TABLE_COLUMNS.CARD]: 'formattedCardName' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.FEED]: 'formattedFeedName' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: 'count' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD]: 'formattedCardName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED]: 'formattedFeedName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
 };
 
 const transactionWithdrawalIDGroupColumnNamesToSortingProperty: TransactionWithdrawalIDGroupSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: null,
-    [CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT]: 'bankName' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: 'debitPosted' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: 'count' as const,
-    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: 'bankName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: 'debitPosted' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: 'formattedWithdrawalID' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: 'count' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: 'total' as const,
 };
 
 const expenseStatusActionMapping = {
@@ -2501,39 +2501,53 @@ function getExpenseTypeTranslationKey(expenseType: ValueOf<typeof CONST.SEARCH.T
     }
 }
 
-function getCustomColumns(type: SearchDataTypes): SearchCustomColumnIds[] {
-    // eslint-disable-next-line default-case
-    switch (type) {
+function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
+    switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE);
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT);
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT);
         case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.INVOICE);
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.INVOICE);
         case CONST.SEARCH.DATA_TYPES.TASK:
-            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.TASK);
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TASK);
         case CONST.SEARCH.DATA_TYPES.TRIP:
-            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.TRIP);
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TRIP);
         case CONST.SEARCH.DATA_TYPES.CHAT:
-            return Object.values(CONST.SEARCH.CUSTOM_COLUMNS.CHAT);
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.CHAT);
+        case CONST.SEARCH.GROUP_BY.CARD:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD);
+        case CONST.SEARCH.GROUP_BY.FROM:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM);
+        case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+            return Object.values(CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID);
+        default:
+            return [];
     }
 }
 
-function getCustomColumnDefault(type: SearchDataTypes): SearchCustomColumnIds[] {
-    // eslint-disable-next-line default-case
-    switch (type) {
+function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
+    switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
-            return CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE;
+            return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE;
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-            return CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT;
+            return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT;
         case CONST.SEARCH.DATA_TYPES.INVOICE:
-            return CONST.SEARCH.DEFAULT_COLUMNS.INVOICE;
+            return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.INVOICE;
         case CONST.SEARCH.DATA_TYPES.TASK:
-            return CONST.SEARCH.DEFAULT_COLUMNS.TASK;
+            return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.TASK;
         case CONST.SEARCH.DATA_TYPES.TRIP:
-            return CONST.SEARCH.DEFAULT_COLUMNS.TRIP;
+            return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.TRIP;
         case CONST.SEARCH.DATA_TYPES.CHAT:
-            return CONST.SEARCH.DEFAULT_COLUMNS.CHAT;
+            return CONST.SEARCH.TYPE_DEFAULT_COLUMNS.CHAT;
+        case CONST.SEARCH.GROUP_BY.CARD:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CARD;
+        case CONST.SEARCH.GROUP_BY.FROM:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.FROM;
+        case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+            return CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID;
+        default:
+            return [];
     }
 }
 
@@ -2598,6 +2612,22 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.total';
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             return 'common.reportID';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
+            return 'common.bankAccount';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD:
+            return 'common.card';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM:
+            return 'common.from';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
+            return 'common.expenses';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
+            return 'common.total';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
+            return 'common.withdrawalID';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
+            return 'search.filters.withdrawn';
+        case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
+            return 'search.filters.feed';
         case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
             return 'search.exportedTo';
     }
@@ -2991,9 +3021,10 @@ function getColumnsToShow(
         ];
 
         // If there are no visible columns, everything should be visible
-        const filteredVisibleColumns = visibleColumns.filter((column) =>
-            Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT>),
-        );
+        const filteredVisibleColumns = visibleColumns.filter((column) => {
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>);
+        });
+
         if (!filteredVisibleColumns.length) {
             return defaultReportColumns;
         }
@@ -3003,12 +3034,12 @@ function getColumnsToShow(
         const result: SearchColumnType[] = [];
 
         for (const col of requiredColumns) {
-            if (!visibleColumns.includes(col as SearchCustomColumnIds)) {
+            if (!filteredVisibleColumns.includes(col as SearchCustomColumnIds)) {
                 result.push(col);
             }
         }
 
-        for (const col of visibleColumns) {
+        for (const col of filteredVisibleColumns) {
             result.push(col);
         }
 
@@ -3028,28 +3059,70 @@ function getColumnsToShow(
     }
 
     if (!isExpenseReportView && groupBy) {
-        switch (groupBy) {
-            case CONST.SEARCH.GROUP_BY.FROM:
-                return [CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.FROM, CONST.SEARCH.TABLE_COLUMNS.EXPENSES, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
-            case CONST.SEARCH.GROUP_BY.CARD:
-                return [
-                    CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-                    CONST.SEARCH.TABLE_COLUMNS.CARD,
-                    CONST.SEARCH.TABLE_COLUMNS.FEED,
-                    CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
-                    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
-                ];
-            case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-                return [
-                    CONST.SEARCH.TABLE_COLUMNS.AVATAR,
-                    CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT,
-                    CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN,
-                    CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
-                    CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
-                    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
-                ];
-            default:
-                return [];
+        const customColumns = {
+            [CONST.SEARCH.GROUP_BY.CARD]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD,
+            [CONST.SEARCH.GROUP_BY.FROM]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM,
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID,
+        }[groupBy];
+
+        const defaultCustomColumns = {
+            [CONST.SEARCH.GROUP_BY.CARD]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.CARD,
+            [CONST.SEARCH.GROUP_BY.FROM]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.FROM,
+            [CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID]: CONST.SEARCH.GROUP_DEFAULT_COLUMNS.WITHDRAWAL_ID,
+        }[groupBy];
+
+        const filteredVisibleColumns = visibleColumns.filter((column) => Object.values(customColumns).includes(column as ValueOf<typeof customColumns>));
+        const columnsToShow = filteredVisibleColumns.length ? filteredVisibleColumns : defaultCustomColumns;
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.FROM) {
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM]);
+            const result: SearchColumnType[] = [];
+
+            for (const col of requiredColumns) {
+                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                    result.push(col);
+                }
+            }
+
+            for (const col of columnsToShow) {
+                result.push(col);
+            }
+
+            return result;
+        }
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.CARD) {
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD]);
+            const result: SearchColumnType[] = [];
+
+            for (const col of requiredColumns) {
+                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                    result.push(col);
+                }
+            }
+
+            for (const col of columnsToShow) {
+                result.push(col);
+            }
+
+            return result;
+        }
+
+        if (groupBy === CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID) {
+            const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]);
+            const result: SearchColumnType[] = [];
+
+            for (const col of requiredColumns) {
+                if (!columnsToShow.includes(col as SearchCustomColumnIds)) {
+                    result.push(col);
+                }
+            }
+
+            for (const col of columnsToShow) {
+                result.push(col);
+            }
+
+            return result;
         }
     }
 
@@ -3097,7 +3170,7 @@ function getColumnsToShow(
           };
 
     // If the user has set custom columns for the search, we need to respect their preference and order
-    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
+    if (!arraysEqual(Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
         const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
         const result: SearchColumnType[] = [];
 

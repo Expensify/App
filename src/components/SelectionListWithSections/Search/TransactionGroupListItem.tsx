@@ -227,6 +227,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         member={groupItem as TransactionMemberGroupListItemType}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
+                        columns={columns}
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
@@ -239,6 +240,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         card={groupItem as TransactionCardGroupListItemType}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
+                        columns={columns}
                         isFocused={isFocused}
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
@@ -252,6 +254,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
+                        columns={columns}
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
@@ -288,19 +291,20 @@ function TransactionGroupListItem<TItem extends ListItem>({
         },
         [
             groupItem,
-            onSelectRow,
-            transactionPreviewData,
             onCheckboxPress,
             isDisabledOrEmpty,
-            isFocused,
+            columns,
             canSelectMultiple,
             isSelectAllChecked,
             isIndeterminate,
-            onDEWModalOpen,
-            groupBy,
-            isExpanded,
             onExpandIconPress,
+            isExpanded,
+            isFocused,
             searchType,
+            groupBy,
+            onDEWModalOpen,
+            onSelectRow,
+            transactionPreviewData,
         ],
     );
 
