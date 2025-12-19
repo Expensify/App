@@ -208,6 +208,10 @@ function isMoneyRequestAction(reportAction: OnyxInputOrEntry<ReportAction>): rep
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU);
 }
 
+function isExportedToIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION);
+}
+
 function isReportPreviewAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
 }
@@ -3596,6 +3600,7 @@ export {
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
     isConsecutiveChronosAutomaticTimerAction,
+    isExportedToIntegrationAction,
     hasNextActionMadeBySameActor,
     isCreatedAction,
     isCreatedTaskReportAction,
