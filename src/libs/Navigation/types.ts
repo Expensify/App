@@ -2199,7 +2199,9 @@ type RightModalNavigatorParamList = {
 };
 
 type TravelNavigatorParamList = {
-    [SCREENS.TRAVEL.MY_TRIPS]: undefined;
+    [SCREENS.TRAVEL.MY_TRIPS]: {
+        policyID: string;
+    };
     [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: {
         token: string;
         isTestAccount?: string;
@@ -2220,6 +2222,7 @@ type TravelNavigatorParamList = {
     };
     [SCREENS.TRAVEL.TCS]: {
         domain?: string;
+        policyID?: string;
     };
     [SCREENS.TRAVEL.DOMAIN_PERMISSION_INFO]: {
         domain: string;
@@ -2232,6 +2235,7 @@ type TravelNavigatorParamList = {
         domain: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+        policyID?: string;
     };
     [SCREENS.TRAVEL.PUBLIC_DOMAIN_ERROR]: {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
@@ -2242,11 +2246,15 @@ type TravelNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.TRAVEL.DOMAIN_SELECTOR]: {
+        policyID?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
     [SCREENS.TRAVEL.VERIFY_ACCOUNT]: {
-        domain: string;
+        domain?: string;
+        policyID?: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
     };
 };
 
@@ -2397,6 +2405,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.DISTANCE_RATES]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.TRAVEL]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.ROOT]: {
