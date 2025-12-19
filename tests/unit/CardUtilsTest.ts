@@ -1410,7 +1410,7 @@ describe('CardUtils', () => {
             expect(result.lastDigits).toBe('5678');
         });
     });
-    
+
     describe('isMaskedCardNumberEqual', () => {
         it('should return true for identical masked card numbers', () => {
             expect(isMaskedCardNumberEqual('1234XXXX5678', '1234XXXX5678')).toBe(true);
