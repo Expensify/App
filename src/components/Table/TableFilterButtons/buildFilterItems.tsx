@@ -191,7 +191,7 @@ function createSingleSelectPopover<FilterKey extends string = string>({filterKey
 
         return (
             <SingleSelectPopup
-                label={filterKey}
+                label={filterConfig.showLabel ? filterKey : undefined}
                 items={filterConfig.options.map((option) => ({
                     text: option.label,
                     value: option.value,
