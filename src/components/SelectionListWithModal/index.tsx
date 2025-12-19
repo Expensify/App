@@ -37,7 +37,7 @@ function SelectionListWithModal<TItem extends ListItem>({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const isFocused = useIsFocused();
-    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
+    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare'] as const);
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
