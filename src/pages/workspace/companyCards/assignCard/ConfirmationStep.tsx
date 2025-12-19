@@ -113,7 +113,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
         switch (step) {
             case CONST.COMPANY_CARD.STEP.ASSIGNEE:
-                Navigation.goBack();
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(routeParams));
                 break;
             case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute(routeParams));
@@ -125,7 +125,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     };
 
     const handleBackButtonPress = () => {
-        Navigation.goBack();
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed, cardID}));
     };
 
     return (
