@@ -1168,6 +1168,7 @@ const translations: TranslationDeepObject<typeof en> = {
         },
 
         moveExpenses: () => ({one: 'Mover gasto', other: 'Mover gastos'}),
+        moveExpensesError: 'No puedes mover gastos per diem a informes de otros espacios de trabajo, porque las tarifas de dietas pueden diferir entre espacios de trabajo.',
         changeApprover: {
             title: 'Cambiar aprobador',
             subtitle: 'Elige una opción para cambiar el aprobador de este informe.',

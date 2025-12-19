@@ -1508,6 +1508,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         moveExpenses: () => ({one: 'Sposta spesa', other: 'Sposta spese'}),
+        moveExpensesError: 'Non puoi spostare le spese per diaria su report in altri workspace, perché le tariffe per diaria possono differire tra workspace.',
         changeApprover: {
             title: 'Cambia approvatore',
             subtitle: "Scegli un'opzione per cambiare l'approvatore di questo report.",

@@ -1483,6 +1483,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         moveExpenses: () => ({one: '移动报销', other: '移动报销费用'}),
+        moveExpensesError: '您无法将每日津贴费用移至其他工作区的报告，因为不同工作区之间的每日津贴费率可能有所不同。',
         changeApprover: {
             title: '更改审批人',
             subtitle: '选择一个选项以更改此报表的审批人。',

@@ -1487,6 +1487,7 @@ const translations = {
             },
         },
         moveExpenses: () => ({one: 'Move expense', other: 'Move expenses'}),
+        moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         changeApprover: {
             title: 'Change approver',
             subtitle: 'Choose an option to change the approver for this report.',
