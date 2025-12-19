@@ -35,7 +35,7 @@ jobs:
         uses: actions/cache/restore@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: node_modules/.cache/eslint
-          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'normalized-package-lock.json') }}-${{ github.event.pull_request.number }}
           restore-keys: |
             ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'normalized-package-lock.json') }}-
             ${{ runner.os }}-eslint-
@@ -51,4 +51,4 @@ jobs:
         if: always()
         with:
           path: node_modules/.cache/eslint
-          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.*', 'normalized-package-lock.json') }}-${{ github.event.pull_request.number }}
