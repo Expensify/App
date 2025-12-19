@@ -241,6 +241,7 @@ function MoneyReportHeader({
         'Location',
         'CheckmarkCircle',
         'ReceiptMultiple',
+        'ReceiptPlus',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
