@@ -46,27 +46,49 @@ type TableBodyProps = ViewProps & {
 function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {processedData: filteredAndSortedData, originalDataLength, activeSearchString, listProps} = useTableContext<T>();
-    const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle} = listProps ?? {};
+    const {processedData: filteredAndSortedData, originalDataLength, activeSearchString, activeFilters, filterConfig, listProps} = useTableContext<T>();
+    const {ListEmptyComponent, contentContainerStyle: listContentContainerStyle, ...restListProps} = listProps ?? {};
 
-    // Show "no results found" when search returns empty but original data exists
-    const isEmptySearchResult = filteredAndSortedData.length === 0 && activeSearchString.trim().length > 0 && originalDataLength > 0;
+    // Check if filters are applied (not default values)
+    const hasActiveFilters = filterConfig
+        ? Object.keys(activeFilters).some((key) => {
+              const filterValue = activeFilters[key];
+              const defaultValue = filterConfig?.[key]?.default;
+              return filterValue !== defaultValue;
+          })
+        : false;
 
-    const EmptySearchComponent = (
+    const hasSearchString = activeSearchString.trim().length > 0;
+    const isEmptyResult = filteredAndSortedData.length === 0 && originalDataLength > 0 && (hasSearchString || hasActiveFilters);
+
+    // Determine the message based on what caused the empty result
+    const getEmptyMessage = () => {
+        if (hasSearchString) {
+            return translate('common.noResultsFoundMatching', activeSearchString);
+        }
+        if (hasActiveFilters) {
+            return translate('common.noResultsFound');
+        }
+        return '';
+    };
+
+    const message = getEmptyMessage();
+
+    const EmptyResultComponent = (
         <View style={[styles.ph5, styles.pt3, styles.pb5]}>
-            <Text style={[styles.textNormal, styles.colorMuted]}>{translate('common.noResultsFoundMatching', activeSearchString)}</Text>
+            <Text style={[styles.textNormal, styles.colorMuted]}>{message}</Text>
         </View>
     );
 
     return (
         // eslint-disable-next-line react/jsx-props-no-spreading
-        <View {...props}>
+        <View style={styles.flex1} {...props}>
             <FlashList<T>
                 data={filteredAndSortedData}
-                ListEmptyComponent={isEmptySearchResult ? EmptySearchComponent : ListEmptyComponent}
+                ListEmptyComponent={isEmptyResult ? EmptyResultComponent : ListEmptyComponent}
                 contentContainerStyle={[filteredAndSortedData.length === 0 && styles.flex1, listContentContainerStyle, contentContainerStyle]}
                 // eslint-disable-next-line react/jsx-props-no-spreading
-                {...listProps}
+                {...restListProps}
             />
         </View>
     );

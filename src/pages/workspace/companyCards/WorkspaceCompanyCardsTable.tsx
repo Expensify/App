@@ -11,7 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyFeeds, getPlaidInstitutionIconUrl, getPlaidInstitutionId, isCustomFeed, isMaskedCardNumberEqual} from '@libs/CardUtils';
+import {getCompanyFeeds, getPlaidInstitutionIconUrl, getPlaidInstitutionId, isMaskedCardNumberEqual} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
@@ -30,6 +30,9 @@ type WorkspaceCompanyCardsTableProps = {
     /** Current policy id */
     policyID: string;
 
+    /** Domain or workspace account ID */
+    domainOrWorkspaceAccountID: number;
+
     /** On assign card callback */
     onAssignCard: (cardID?: string) => void;
 
@@ -40,7 +43,7 @@ type WorkspaceCompanyCardsTableProps = {
     shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer}: WorkspaceCompanyCardsTableProps) {
+function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer, domainOrWorkspaceAccountID}: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
@@ -53,13 +56,15 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
     const isLoadingCardsTableData = isLoadingCardsList || isLoadingPersonalDetails;
 
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}`, {canBeMissing: true});
 
     const {cardList, ...assignedCards} = cardsList ?? {};
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
+    const companyCardFeedData = companyFeeds[selectedFeed];
 
-    const isPlaidCardFeed = !!companyFeeds?.[selectedFeed]?.accountList;
-    const cards = isPlaidCardFeed ? (companyFeeds?.[selectedFeed]?.accountList ?? []) : Object.keys(cardList ?? {});
+    const isPlaidCardFeed = !!getPlaidInstitutionId(selectedFeed);
+    const cards = isPlaidCardFeed ? (companyCardFeedData?.accountList ?? []) : Object.keys(cardList ?? {});
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
@@ -67,11 +72,32 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
 
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
+    const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
+        {
+            key: 'member',
+            label: translate('common.member'),
+        },
+        {
+            key: 'card',
+            label: translate('workspace.companyCards.card'),
+        },
+        {
+            key: 'customCardName',
+            label: translate('workspace.companyCards.cardName'),
+            styling: {
+                containerStyles: [styles.justifyContentEnd],
+                labelStyles: [styles.pr3],
+            },
+        },
+    ];
+
     const data: WorkspaceCompanyCardTableItemData[] =
         cards?.map((cardName) => {
             const assignedCardPredicate = (card: Card) => (isPlaidCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
 
             const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
+
+            const failedCompanyCardAssignment = failedCompanyCardAssignments?.[cardName];
 
             const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
 
@@ -81,30 +107,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
 
             const isAssigned = !!assignedCard;
 
-            // Calculate cardIdentifier for unassigned cards
-            let cardIdentifier: string | undefined;
-            if (!assignedCard) {
-                const isPlaid = !!getPlaidInstitutionId(selectedFeed);
-                const isCommercial = isCustomFeed(selectedFeed);
-
-                if (isPlaid) {
-                    cardIdentifier = cardName;
-                } else if (isCommercial) {
-                    const cardValue = cardList?.[cardName] ?? cardName;
-                    const digitsOnly = cardValue.replaceAll(/\D/g, '');
-                    if (digitsOnly.length >= 10) {
-                        const first6 = digitsOnly.substring(0, 6);
-                        const last4 = digitsOnly.substring(digitsOnly.length - 4);
-                        cardIdentifier = `${first6}${last4}`;
-                    } else {
-                        cardIdentifier = cardValue;
-                    }
-                } else {
-                    cardIdentifier = cardList?.[cardName] ?? cardName;
-                }
-            }
-
-            return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder, cardIdentifier};
+            return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder, failedCompanyCardAssignment};
         }) ?? [];
 
     const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceCompanyCardTableItemData>) => (
@@ -112,12 +115,14 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
             key={`${item.cardName}_${index}`}
             item={item}
             policyID={policyID}
+            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
             selectedFeed={selectedFeed}
             plaidIconUrl={getPlaidInstitutionIconUrl(selectedFeed)}
             isPlaidCardFeed={isPlaidCardFeed}
-            onAssignCard={() => onAssignCard(item.cardIdentifier)}
+            onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
             shouldUseNarrowTableRowLayout={shouldShowNarrowLayout}
+            columnCount={columns.length}
         />
     );
 
@@ -204,24 +209,6 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
             default: 'all',
         },
     };
-
-    const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
-        {
-            key: 'member',
-            label: translate('common.member'),
-        },
-        {
-            key: 'card',
-            label: translate('workspace.companyCards.card'),
-        },
-        {
-            key: 'customCardName',
-            label: translate('workspace.companyCards.cardName'),
-            styling: {
-                labelStyles: [styles.textAlignRight, styles.pr7],
-            },
-        },
-    ];
 
     const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
     const isNarrowLayoutRef = useRef(shouldShowNarrowLayout);

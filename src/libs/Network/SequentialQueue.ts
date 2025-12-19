@@ -352,21 +352,25 @@ function push(newRequest: OnyxRequest) {
         delete newRequest.checkAndFixConflictingRequest;
         handleConflictActions(conflictAction, newRequest);
     } else {
+        Log.info('[SequentialQueue] No conflict action. Adding request to Persisted Requests', false, {command: newRequest.command});
         // Add request to Persisted Requests so that it can be retried if it fails
         savePersistedRequest(newRequest);
     }
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (isOffline()) {
+        Log.info('[SequentialQueue] Unable to push request due to offline status');
         return;
     }
 
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
+        Log.info('[SequentialQueue] Queue is running. Will flush when the current request is finished.');
         isReadyPromise.then(() => flush(true));
         return;
     }
 
+    Log.info('[SequentialQueue] Queue is not running. Flushing the queue.');
     flush(true);
 }
 

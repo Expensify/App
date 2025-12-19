@@ -23,7 +23,7 @@ import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 type WorkspaceCompanyCardsAssignCardParams = {
     policyID: string;
     feed: string;
-    cardID?: string;
+    cardID: string;
 };
 
 // This is a file containing constants for all the routes we want to be able to go to
@@ -2192,10 +2192,7 @@ const ROUTES = {
 
         getRoute: (params: WorkspaceCompanyCardsAssignCardParams, backTo?: string) =>
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(
-                `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card${params.cardID ? `/${encodeURIComponent(params.cardID)}` : ''}`,
-                backTo,
-            ),
+            getUrlWithBackToParam(`workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${params.cardID}`, backTo),
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/assignee',

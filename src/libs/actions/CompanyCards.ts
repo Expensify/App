@@ -22,7 +22,7 @@ import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, Policy} from '@src/types/onyx';
+import type {Card, FailedCompanyCardAssignment, Policy} from '@src/types/onyx';
 import type {AssignCard, AssignCardData} from '@src/types/onyx/AssignCard';
 import type {
     AddNewCardFeedData,
@@ -308,13 +308,23 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, domainOrWorkspaceAccou
     API.write(WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED, parameters, {optimisticData, successData, failureData});
 }
 
-function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, data?: Partial<AssignCardData>) {
+function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspaceAccountID: number, data?: Partial<AssignCardData>) {
     if (!data || !policy?.id) {
         return;
     }
-    const {bankName = '', email = '', encryptedCardNumber = '', startDate = '', cardName = ''} = data;
+    const {bankName = '', email = '', encryptedCardNumber = '', startDate = '', cardName = '', cardholder} = data;
     const assigneeDetails = PersonalDetailsUtils.getPersonalDetailByEmail(email);
     const optimisticCardAssignedReportAction = ReportUtils.buildOptimisticCardAssignedReportAction(assigneeDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+
+    const failedCardAssignment: FailedCompanyCardAssignment = {
+        cardholder,
+        cardName,
+        cardNumber: encryptedCardNumber,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        errors: {
+            failed: 'Card assignment failed.',
+        },
+    };
 
     const parameters: AssignCompanyCardParams = {
         policyID: policy.id,
@@ -351,7 +361,7 @@ function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, data?: Partial<As
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ASSIGN_CARD,
-                value: {isAssigned: true, isAssigning: false},
+                value: {isAssigning: false, isAssignmentFinished: true},
             },
         ],
         failureData: [
@@ -368,7 +378,14 @@ function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, data?: Partial<As
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.ASSIGN_CARD,
-                value: {isAssigning: false},
+                value: {isAssigning: false, isAssignmentFinished: true},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}`,
+                value: {
+                    [encryptedCardNumber]: failedCardAssignment,
+                },
             },
         ],
     };
@@ -386,9 +403,7 @@ function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankNa
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
                 value: {
-                    [cardID]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    },
+                    [cardID]: null,
                 },
             },
             {
@@ -449,6 +464,12 @@ function unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, bankNa
     };
 
     API.write(WRITE_COMMANDS.UNASSIGN_COMPANY_CARD, parameters, onyxData);
+}
+
+function resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID: number, cardNumber: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}`, {
+        [cardNumber]: null,
+    });
 }
 
 function updateWorkspaceCompanyCard(domainOrWorkspaceAccountID: number, cardID: string, bankName: CompanyCardFeed, lastScrapeResult?: number) {
@@ -939,6 +960,7 @@ export {
     addNewCompanyCardsFeed,
     assignWorkspaceCompanyCard,
     unassignWorkspaceCompanyCard,
+    resetFailedWorkspaceCompanyCardAssignment,
     updateWorkspaceCompanyCard,
     updateCompanyCardName,
     setCompanyCardExportAccount,

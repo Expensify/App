@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import Button from '@components/Button';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import MenuItem from '@components/MenuItem';
@@ -16,7 +16,8 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyCardFeed, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -51,33 +52,35 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const bankName = assignCard?.data?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
+    const companyCardFeedData = cardFeeds?.[feed];
+
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCardFeedData);
+
     const data = assignCard?.data;
-    const cardholderDetails = getPersonalDetailByEmail(data?.email ?? '');
-    const cardholderName = Str.removeSMSDomain(cardholderDetails?.displayName ?? '');
+
+    const cardholder = getPersonalDetailByEmail(data?.email ?? '');
+    const cardholderName = Str.removeSMSDomain(cardholder?.displayName ?? '');
     const cardholderEmail = data?.email ?? '';
-    const cardholderAccountID = cardholderDetails?.accountID;
+    const cardholderAccountID = cardholder?.accountID;
 
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
 
     useEffect(() => {
-        if (!assignCard?.isAssigned) {
+        if (!assignCard?.isAssignmentFinished) {
             return;
         }
 
         if (backTo) {
             Navigation.goBack(backTo);
-            clearAssignCardStepAndData();
         } else if (!shouldUseBackToParam && route.params?.backTo) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-            clearAssignCardStepAndData();
         } else {
-            Navigation.dismissModal({
-                callback: () => {
-                    clearAssignCardStepAndData();
-                },
-            });
+            Navigation.dismissModal();
         }
-    }, [assignCard?.isAssigned, backTo, policyID, shouldUseBackToParam, route.params?.backTo]);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
+    }, [assignCard?.isAssignmentFinished, backTo, policyID, shouldUseBackToParam, route.params?.backTo, currentFullScreenRoute?.state?.routes]);
 
     const submit = () => {
         if (!policyID) {
@@ -100,7 +103,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed, cardID}));
             return;
         }
-        assignWorkspaceCompanyCard(policy, {...data, bankName});
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, {...data, cardholder, bankName});
     };
 
     const editStep = (step: string) => {
@@ -150,7 +153,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     labelStyle={styles.mb3}
                     title={cardholderName && cardholderName !== cardholderEmail ? cardholderName : cardholderEmail}
                     description={cardholderName && cardholderName !== cardholderEmail ? cardholderEmail : undefined}
-                    icon={cardholderDetails?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
+                    icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
@@ -172,7 +175,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                         shouldDisplayErrorAbove
                         errors={assignCard?.errors}
                         errorRowStyles={styles.mv2}
-                        canDismissError={false}
                     >
                         <Button
                             isDisabled={isOffline}

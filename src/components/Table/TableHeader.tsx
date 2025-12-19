@@ -51,7 +51,20 @@ function TableHeader<T, ColumnKey extends string = string>({style, ...props}: Ta
 
     return (
         <View
-            style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4, style]}
+            style={[
+                styles.appBG,
+                styles.mh5,
+                styles.p4,
+                // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid
+                styles.dFlex,
+                styles.flexRow,
+                styles.justifyContentBetween,
+                styles.gap3,
+                // Use Grid on web when available (will override flex if supported)
+                styles.dGrid,
+                {gridTemplateColumns: `repeat(${columns.length}, 1fr)`},
+                style,
+            ]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
@@ -107,7 +120,7 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
             accessible
             accessibilityLabel={column.label}
             accessibilityRole="button"
-            style={[styles.flexRow, styles.alignItemsCenter, column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
+            style={[column.styling?.labelStyles, styles.flexRow, styles.alignItemsCenter, column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
             onPress={() => toggleSorting(column.key)}
         >
             <Text
@@ -115,7 +128,6 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
                 color={theme.textSupporting}
                 style={[
                     styles.lh16,
-                    column.styling?.labelStyles,
                     isSortingByColumn ? styles.textMicroBoldSupporting : [styles.textMicroSupporting, styles.pr1, {marginRight: variables.iconSizeExtraSmall, marginBottom: 1, marginTop: 1}],
                 ]}
             >
