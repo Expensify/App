@@ -1,20 +1,20 @@
 import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
-import {getBankNameFromFeedName, getCompanyFeeds, getPlaidInstitutionId, getSelectedFeedName, isExpensifyCardFeedName} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getPlaidInstitutionId, getSelectedFeed} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList} from '@src/types/onyx';
-import type {AssignableCardsList, CompanyCardsList} from '@src/types/onyx/Card';
-import type {CompanyCardFeedBankName, CompanyCardFeedName, CompanyFeeds} from '@src/types/onyx/CardFeeds';
+import type {AssignableCardsList, WorkspaceCardsList} from '@src/types/onyx/Card';
+import type {CompanyCardFeed, CompanyCardFeedWithDomainID, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed, CombinedCardFeeds} from './useCardFeeds';
 import useCardsList from './useCardsList';
 import useOnyx from './useOnyx';
 
-type CardFeedType = 'plaid' | 'commercial' | 'expensify';
+type CardFeedType = 'plaid' | 'commercial';
 
 type UsCompanyCardsResult = Partial<{
     cardFeedType: CardFeedType;
-    bankName: CompanyCardFeedBankName;
-    feedName: CompanyCardFeedName;
+    bankName: CompanyCardFeed;
+    feedName: CompanyCardFeedWithDomainID;
     cardList: AssignableCardsList;
     assignedCards: CardList;
     cardNames: string[];
@@ -23,7 +23,7 @@ type UsCompanyCardsResult = Partial<{
     selectedFeed: CombinedCardFeed;
 }> & {
     onyxMetadata: {
-        cardListMetadata: ResultMetadata<CompanyCardsList>;
+        cardListMetadata: ResultMetadata<WorkspaceCardsList>;
         allCardFeedsMetadata: ResultMetadata<OnyxCollection<CardFeeds>>;
     };
 };
@@ -32,8 +32,8 @@ function useCompanyCards(policyID?: string): UsCompanyCardsResult {
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [allCardFeeds, allCardFeedsMetadata] = useCardFeeds(policyID);
 
-    const feedName = getSelectedFeedName(lastSelectedFeed, allCardFeeds);
-    const bankName = feedName ? getBankNameFromFeedName(feedName) : undefined;
+    const feedName = getSelectedFeed(lastSelectedFeed, allCardFeeds);
+    const bankName = feedName ? getCompanyCardFeed(feedName) : undefined;
 
     const [cardsList, cardListMetadata] = useCardsList(feedName);
 
@@ -44,12 +44,10 @@ function useCompanyCards(policyID?: string): UsCompanyCardsResult {
     let cardFeedType: CardFeedType = 'commercial';
     if (isPlaidCardFeed) {
         cardFeedType = 'plaid';
-    } else if (isExpensifyCardFeedName(feedName)) {
-        cardFeedType = 'expensify';
     }
 
     const {cardList, ...assignedCards} = cardsList ?? {};
-    const cardNames = cardFeedType === 'plaid' || cardFeedType === 'expensify' ? (selectedFeed?.accountList ?? []) : Object.keys(cardList ?? {});
+    const cardNames = cardFeedType === 'plaid' ? (selectedFeed?.accountList ?? []) : Object.keys(cardList ?? {});
 
     const onyxMetadata = {
         cardListMetadata,
