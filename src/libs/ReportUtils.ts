@@ -7601,7 +7601,7 @@ function buildOptimisticSubmittedReportAction(
     currency: string,
     expenseReportID: string,
     adminAccountID: number | undefined,
-    workflow: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>,
+    workflow: ValueOf<typeof CONST.POLICY.APPROVAL_MODE> | undefined,
 ): OptimisticSubmittedReportAction {
     const originalMessage = {
         amount,

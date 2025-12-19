@@ -237,7 +237,7 @@ type OriginalMessageSubmitted = {
     cc?: string;
 
     /** The workflow the report is submitted on */
-    workflow: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+    workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 };
 
 /** Model of `created` report action */
@@ -897,7 +897,7 @@ type OriginalMessageForwarded = {
     to?: string;
 
     /** The workflow the report is approved on */
-    workflow: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+    workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 };
 
 /**
