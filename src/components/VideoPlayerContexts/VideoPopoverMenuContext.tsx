@@ -15,7 +15,7 @@ import type {PlaybackSpeed, VideoPopoverMenuContext} from './types';
 const Context = React.createContext<VideoPopoverMenuContext | null>(null);
 
 function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Meter'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Meter']);
     const {translate} = useLocalize();
     const [source, setSource] = useState('');
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[3]);
@@ -35,8 +35,8 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         if (typeof source === 'number' || !source) {
             return;
         }
-        fileDownload(addEncryptedAuthTokenToURL(source));
-    }, [source]);
+        fileDownload(translate, addEncryptedAuthTokenToURL(source));
+    }, [source, translate]);
 
     const menuItems = useMemo(() => {
         const items: PopoverMenuItem[] = [];
@@ -82,7 +82,5 @@ function useVideoPopoverMenuContext() {
     }
     return videoPopoverMenuContext;
 }
-
-VideoPopoverMenuContextProvider.displayName = 'VideoPopoverMenuContextProvider';
 
 export {VideoPopoverMenuContextProvider, useVideoPopoverMenuContext};

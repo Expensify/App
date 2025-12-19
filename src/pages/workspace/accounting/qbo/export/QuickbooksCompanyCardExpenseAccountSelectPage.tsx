@@ -31,7 +31,7 @@ type CardListItem = ListItem & {
 function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
     const {creditCards, accountPayable, bankAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -94,7 +94,7 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksCompanyCardExpenseAccountSelectPage.displayName}
+            displayName="QuickbooksCompanyCardExpenseAccountSelectPage"
             headerTitleAlreadyTranslated={getQBONonReimbursableExportAccountType(translate, qboConfig?.nonReimbursableExpensesExportDestination)}
             headerContent={
                 qboConfig?.nonReimbursableExpensesExportDestination ? (
@@ -116,7 +116,5 @@ function QuickbooksCompanyCardExpenseAccountSelectPage({policy}: WithPolicyConne
         />
     );
 }
-
-QuickbooksCompanyCardExpenseAccountSelectPage.displayName = 'QuickbooksCompanyCardExpenseAccountSelectPage';
 
 export default withPolicyConnections(QuickbooksCompanyCardExpenseAccountSelectPage);

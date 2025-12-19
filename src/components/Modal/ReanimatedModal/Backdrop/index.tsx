@@ -56,6 +56,4 @@ function Backdrop({
     return BackdropOverlay;
 }
 
-Backdrop.displayName = 'Backdrop';
-
 export default Backdrop;

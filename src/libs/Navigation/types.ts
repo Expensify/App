@@ -318,6 +318,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.CATEGORY_REQUIRED_FIELDS]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
@@ -1328,6 +1332,16 @@ type SettingsNavigatorParamList = {
     [SCREENS.DOMAIN.VERIFIED]: {
         domainAccountID: number;
     };
+    [SCREENS.DOMAIN.ADMIN_DETAILS]: {
+        domainAccountID: number;
+        accountID: number;
+    };
+    [SCREENS.DOMAIN.ADMINS_SETTINGS]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
+        domainAccountID: number;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {
@@ -1661,6 +1675,14 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
+        backToReport?: string;
+        reportActionID?: string;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_GPS]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
         backToReport?: string;
         reportActionID?: string;
     };
@@ -2159,7 +2181,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: NavigatorScreenParams<TransactionDuplicateNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: NavigatorScreenParams<SearchReportActionsParamList>;
-    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
@@ -2173,6 +2194,12 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: NavigatorScreenParams<SearchColumnsParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
+        reportID: string;
+        reportActionID?: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
 };
 
 type TravelNavigatorParamList = {
@@ -2677,15 +2704,6 @@ type SearchReportActionsParamList = {
     };
 };
 
-type SearchReportParamList = {
-    [SCREENS.SEARCH.REPORT_RHP]: {
-        reportID: string;
-        reportActionID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-};
-
 type SearchFullscreenNavigatorParamList = {
     [SCREENS.SEARCH.ROOT]: {
         q: SearchQueryString;
@@ -2728,6 +2746,12 @@ type SplitExpenseParamList = {
         reportID: string;
         transactionID: string;
         splitExpenseTransactionID?: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE]: {
+        reportID: string;
+        transactionID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -2880,7 +2904,6 @@ export type {
     RootNavigatorParamList,
     SearchAdvancedFiltersParamList,
     SearchReportActionsParamList,
-    SearchReportParamList,
     SearchSavedSearchParamList,
     SearchFullscreenNavigatorParamList,
     SettingsNavigatorParamList,
