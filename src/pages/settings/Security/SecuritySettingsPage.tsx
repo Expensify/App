@@ -272,7 +272,7 @@ function SecuritySettingsPage() {
                     };
                 }),
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail, isActingAsDelegate, showDelegateNoAccessModal],
+        [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail],
     );
 
     const delegatorMenuItems: MenuItemProps[] = useMemo(
