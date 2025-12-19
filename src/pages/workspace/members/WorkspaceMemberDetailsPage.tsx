@@ -405,6 +405,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     {memberCards.map((memberCard) => {
                                         const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                                         const plaidUrl = getPlaidInstitutionIconUrl(memberCard?.bank);
+                                        const unapprovedExpenseLimit = memberCard.nameValuePairs?.unapprovedExpenseLimit;
 
                                         return (
                                             <OfflineWithFeedback
@@ -416,16 +417,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                 <MenuItem
                                                     key={memberCard.cardID}
                                                     title={
-                                                        (memberCard.nameValuePairs?.cardTitle as string | undefined) ??
+                                                        memberCard.nameValuePairs?.cardTitle ??
                                                         customCardNames?.[memberCard.cardID] ??
                                                         maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)
                                                     }
                                                     description={memberCard?.lastFourPAN ?? lastFourNumbersFromCardName(memberCard?.cardName)}
-                                                    badgeText={
-                                                        memberCard.bank === CONST.EXPENSIFY_CARD.BANK && typeof memberCard.nameValuePairs?.unapprovedExpenseLimit === 'number'
-                                                            ? convertToDisplayString(memberCard.nameValuePairs.unapprovedExpenseLimit)
-                                                            : ''
-                                                    }
+                                                    badgeText={memberCard.bank === CONST.EXPENSIFY_CARD.BANK && unapprovedExpenseLimit !== undefined ? convertToDisplayString(unapprovedExpenseLimit) : ''}
                                                     icon={getCardFeedIcon(memberCard.bank as CompanyCardFeed, illustrations, companyCardFeedIcons)}
                                                     plaidUrl={plaidUrl}
                                                     displayInDefaultIconColor

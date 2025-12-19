@@ -81,10 +81,9 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
     );
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <View
             style={styles.flex1}
-            {...props}
+            {...props} // eslint-disable-line react/jsx-props-no-spreading
         >
             <FlashList<T>
                 data={filteredAndSortedData}
