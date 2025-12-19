@@ -119,7 +119,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
             }
             setAssignCardStepAndData({
                 currentStep,
-                data,
+                cardToAssign: data,
                 isEditing: false,
             });
             Navigation.setNavigationActionToMicrotaskQueue(() =>

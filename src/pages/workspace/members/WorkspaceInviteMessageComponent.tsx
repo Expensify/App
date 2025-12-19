@@ -188,8 +188,8 @@ function WorkspaceInviteMessageComponent({
         clearInviteDraft(policyID);
         setAssignCardStepAndData({
             currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
-            data: {
-                ...assignCard?.data,
+            cardToAssign: {
+                ...assignCard?.cardToAssign,
                 invitingMemberEmail: undefined,
                 invitingMemberAccountID: undefined,
             },

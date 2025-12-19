@@ -255,7 +255,7 @@ function getOnyxLoadingData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                ...(isOffline ? {} : {data: []}),
+                ...(isOffline ? {} : {cardToAssign: []}),
                 search: {
                     status: queryJSON?.status,
                     type: queryJSON?.type,
@@ -468,7 +468,7 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                data: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`, null])),
+                cardToAssign: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`, null])),
             },
         });
     }
@@ -524,7 +524,7 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                data: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null])),
+                cardToAssign: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, null])),
             },
         });
     }
@@ -589,7 +589,7 @@ function exportToIntegrationOnSearch(hash: number, reportID: string, connectionN
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                data: {
+                cardToAssign: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
                 },
             },
@@ -651,7 +651,7 @@ function payMoneyRequestOnSearch(hash: number, paymentData: PaymentData[], curre
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                data: Object.fromEntries(paymentData.map((item) => [`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, null])),
+                cardToAssign: Object.fromEntries(paymentData.map((item) => [`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`, null])),
             },
         });
     }
@@ -702,7 +702,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
-                    data: {
+                    cardToAssign: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
                     },
                 },
@@ -714,7 +714,7 @@ function deleteMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
-                    data: {
+                    cardToAssign: {
                         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {pendingAction: null},

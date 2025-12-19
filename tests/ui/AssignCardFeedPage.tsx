@@ -132,7 +132,7 @@ describe('AssignCardFeedPage', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
-                data: {
+                cardToAssign: {
                     bankName: 'vcf',
                     email: 'testaccount+1@gmail.com',
                     cardName: "Test 1's card",
@@ -200,7 +200,7 @@ describe('AssignCardFeedPage', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
             await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
-                data: {
+                cardToAssign: {
                     bankName: 'vcf',
                     email: 'testaccount+1@gmail.com',
                     cardName: "Test 1's card",
@@ -227,7 +227,7 @@ describe('AssignCardFeedPage', () => {
         // Mock the action of changing the assignee of the card
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ASSIGN_CARD, {
-                data: {
+                cardToAssign: {
                     email: 'testaccount+2@gmail.com',
                 },
             });

@@ -82,23 +82,23 @@ function AssigneeStep({route}: AssigneeStepProps) {
 
         const routeParams = {policyID, feed, cardID};
 
-        if (assignee?.login === assignCard?.data?.email) {
-            if (assignCard?.data?.encryptedCardNumber) {
-                data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
-                data.cardNumber = assignCard.data.cardNumber;
-                data.startDate = !isEditing ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING) : (assignCard?.data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+        if (assignee?.login === assignCard?.cardToAssign?.email) {
+            if (assignCard?.cardToAssign?.encryptedCardNumber) {
+                data.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
+                data.cardNumber = assignCard.cardToAssign.cardNumber;
+                data.startDate = !isEditing ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING) : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
                 data.dateOption = !isEditing
                     ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM
-                    : (assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+                    : (assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
                 setAssignCardStepAndData({
-                    data,
+                    cardToAssign: data,
                     isEditing: false,
                 });
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams, backTo));
                 return;
             }
             setAssignCardStepAndData({
-                data,
+                cardToAssign: data,
                 isEditing: false,
             });
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
@@ -107,7 +107,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
 
         if (!policy?.employeeList?.[assignee?.login ?? '']) {
             setAssignCardStepAndData({
-                data: {
+                cardToAssign: {
                     invitingMemberEmail: assignee?.login ?? '',
                     invitingMemberAccountID: assignee?.accountID ?? undefined,
                 },
@@ -117,22 +117,22 @@ function AssigneeStep({route}: AssigneeStepProps) {
             return;
         }
 
-        if (assignCard?.data?.encryptedCardNumber) {
-            data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
-            data.cardNumber = assignCard.data.cardNumber;
-            data.startDate = !isEditing ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING) : (assignCard?.data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+        if (assignCard?.cardToAssign?.encryptedCardNumber) {
+            data.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
+            data.cardNumber = assignCard.cardToAssign.cardNumber;
+            data.startDate = !isEditing ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING) : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
             data.dateOption = !isEditing
                 ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM
-                : (assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+                : (assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
             setAssignCardStepAndData({
-                data,
+                cardToAssign: data,
                 isEditing: false,
             });
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams, backTo));
             return;
         }
         setAssignCardStepAndData({
-            data,
+            cardToAssign: data,
             isEditing: false,
         });
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
@@ -165,7 +165,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 alternateText: email,
                 login: email,
                 accountID: personalDetail?.accountID,
-                isSelected: assignCard?.data?.email === email,
+                isSelected: assignCard?.cardToAssign?.email === email,
                 icons: [
                     {
                         source: personalDetail?.avatar ?? icons.FallbackAvatar,
@@ -180,7 +180,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, assignCard?.data?.email, formatPhoneNumber, localeCompare, icons.FallbackAvatar]);
+    }, [isOffline, policy?.employeeList, assignCard?.cardToAssign?.email, formatPhoneNumber, localeCompare, icons.FallbackAvatar]);
 
     const assignees = useMemo(() => {
         if (!debouncedSearchTerm) {
@@ -253,7 +253,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 onSelectRow={submit}
                 ListItem={UserListItem}
                 textInputOptions={textInputOptions}
-                initiallyFocusedItemKey={assignCard?.data?.email}
+                initiallyFocusedItemKey={assignCard?.cardToAssign?.email}
                 showLoadingPlaceholder={!areOptionsInitialized}
                 isLoadingNewOptions={!!isSearchingForReports}
                 disableMaintainingScrollPosition

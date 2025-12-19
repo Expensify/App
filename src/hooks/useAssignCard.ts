@@ -99,9 +99,9 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
             return;
         }
 
-        const {initialStep, initialStepData} = initialAssignCardStep;
+        const {initialStep, cardToAssign} = initialAssignCardStep;
 
-        setAssignCardStepAndData({currentStep: initialStep, data: initialStepData});
+        setAssignCardStepAndData({currentStep: initialStep, cardToAssign});
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             const routeParams = {policyID, feed: selectedFeed, cardID: cardID ?? ''};
@@ -145,12 +145,12 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const isFeedExpired = isSelectedFeedExpired(feedData);
     const plaidAccessToken = feedData?.plaidAccessToken;
 
-    const getInitialAssignCardStep = (cardID: string | undefined) => {
+    const getInitialAssignCardStep = (cardID: string | undefined): {initialStep: AssignCardStep; cardToAssign: Partial<AssignCardData>} | undefined => {
         if (!selectedFeed) {
             return;
         }
 
-        const data: Partial<AssignCardData> = {
+        const cardToAssign: Partial<AssignCardData> = {
             bankName,
             cardNumber: cardID,
             encryptedCardNumber: cardID,
@@ -174,33 +174,33 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
 
                 return {
                     initialStep: CONST.COMPANY_CARD.STEP.PLAID_CONNECTION,
-                    initialStepData: data,
+                    cardToAssign,
                 };
             }
 
             return {
                 initialStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION,
-                initialStepData: data,
+                cardToAssign,
             };
         }
 
         const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
         if (employeeList.length === 1) {
             const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
-            data.email = userEmail;
+            cardToAssign.email = userEmail;
             const personalDetails = getPersonalDetailByEmail(userEmail);
             const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;
-            data.cardName = `${memberName}'s card`;
+            cardToAssign.cardName = `${memberName}'s card`;
 
             return {
                 initialStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
-                initialStepData: data,
+                cardToAssign,
             };
         }
 
         return {
             initialStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
-            initialStepData: data,
+            cardToAssign,
         };
     };
 

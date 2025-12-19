@@ -2967,7 +2967,7 @@ function buildNewReportOptimisticData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
             value: {
-                data: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData},
+                cardToAssign: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData},
             },
         });
     }
@@ -6000,7 +6000,7 @@ function buildOptimisticChangePolicyData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
             value: {
-                data: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy},
+                cardToAssign: {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy},
             },
         });
     }

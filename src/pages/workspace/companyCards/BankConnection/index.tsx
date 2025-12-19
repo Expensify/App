@@ -64,7 +64,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
     );
     const {isOffline} = useNetwork();
-    const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
+    const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const {isBetaEnabled} = usePermissions();
     const isPlaid = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !!plaidToken;
@@ -141,7 +141,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                     return;
                 }
                 setAssignCardStepAndData({
-                    currentStep: assignCard?.data?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                     isEditing: false,
                 });
                 return;
@@ -195,7 +195,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         feed,
         isFeedExpired,
         isOffline,
-        assignCard?.data?.dateOption,
+        assignCard?.cardToAssign?.dateOption,
         isPlaid,
         onImportPlaidAccounts,
         isFeedConnectionBroken,

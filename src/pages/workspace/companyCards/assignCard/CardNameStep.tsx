@@ -32,11 +32,11 @@ function CardNameStep({route}: CardNameStepProps) {
 
     const policyID = route.params.policyID;
 
-    const data = assignCard?.data;
+    const data = assignCard?.cardToAssign;
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_WORKSPACE_COMPANY_CARD_NAME_FORM>) => {
         setAssignCardStepAndData({
-            data: {
+            cardToAssign: {
                 cardName: values.name,
             },
             isEditing: false,

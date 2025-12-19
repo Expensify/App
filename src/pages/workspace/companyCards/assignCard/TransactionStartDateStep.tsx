@@ -22,7 +22,7 @@ function TransactionStartDateStep() {
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
-    const data = assignCard?.data;
+    const data = assignCard?.cardToAssign;
 
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const [errorText, setErrorText] = useState('');
@@ -55,7 +55,7 @@ function TransactionStartDateStep() {
         const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
 
         setAssignCardStepAndData({
-            data: {
+            cardToAssign: {
                 dateOption: dateOptionSelected,
                 startDate: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate,
             },

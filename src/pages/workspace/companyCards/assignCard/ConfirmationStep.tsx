@@ -43,13 +43,13 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const {isOffline} = useNetwork();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
-    const firstAssigneeEmail = useInitial(assignCard?.data?.email);
-    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === assignCard?.data?.email;
+    const firstAssigneeEmail = useInitial(assignCard?.cardToAssign?.email);
+    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === assignCard?.cardToAssign?.email;
     const backTo = shouldUseBackToParam ? route.params?.backTo : undefined;
     const policy = usePolicy(policyID);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const bankName = assignCard?.data?.bankName ?? getCompanyCardFeed(feed);
+    const bankName = assignCard?.cardToAssign?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
     const companyCardFeedData = cardFeeds?.[feed];
@@ -57,7 +57,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCardFeedData);
 
-    const data = assignCard?.data;
+    const data = assignCard?.cardToAssign;
 
     const cardholder = getPersonalDetailByEmail(data?.email ?? '');
     const cardholderName = Str.removeSMSDomain(cardholder?.displayName ?? '');

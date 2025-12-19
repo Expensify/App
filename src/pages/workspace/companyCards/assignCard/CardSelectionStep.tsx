@@ -52,10 +52,10 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
     const isEditing = assignCard?.isEditing;
-    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '');
+    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(assignCard?.cardToAssign?.email ?? '')?.displayName ?? '');
     const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
 
-    const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
+    const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
     const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
@@ -107,7 +107,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                 ?.at(0) ?? '';
 
         setAssignCardStepAndData({
-            data: {encryptedCardNumber: cardSelected, cardNumber},
+            cardToAssign: {encryptedCardNumber: cardSelected, cardNumber},
             isEditing: false,
         });
 
