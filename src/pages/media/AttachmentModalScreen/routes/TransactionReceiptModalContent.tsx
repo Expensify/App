@@ -246,6 +246,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             shouldShowCarousel: false,
             onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
             transaction,
+            shouldMinimizeMenuButton: false,
         }),
         [
             allowDownload,

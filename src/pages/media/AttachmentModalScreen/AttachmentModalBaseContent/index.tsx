@@ -54,6 +54,7 @@ function AttachmentModalBaseContent({
     shouldShowCarousel = true,
     shouldDisableSendButton = false,
     shouldDisplayHelpButton = false,
+    shouldMinimizeMenuButton = true,
     submitRef,
     onDownloadAttachment,
     onClose,
@@ -290,7 +291,7 @@ function AttachmentModalBaseContent({
         <GestureHandlerRootView style={styles.flex1}>
             {shouldUseNarrowLayout && <HeaderGap />}
             <HeaderWithBackButton
-                shouldMinimizeMenuButton
+                shouldMinimizeMenuButton={shouldMinimizeMenuButton}
                 title={headerTitle ?? translate('common.attachment')}
                 shouldShowBorderBottom
                 shouldShowDownloadButton={shouldShowDownloadButton}
