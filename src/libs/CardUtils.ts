@@ -638,8 +638,10 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
 }
 
 function filterInactiveCards(cards: CardList | undefined): CardList {
+    const assignedCards = getAssignedCardFromCardList(cards ?? {});
+
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
-    return filterObject(cards ?? {}, (key, card) => !closedStates.has(card.state));
+    return filterObject(assignedCards ?? {}, (_key, card) => !closedStates.has(card.state));
 }
 
 function getAllCardsForWorkspace(

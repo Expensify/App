@@ -761,8 +761,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.route,
                         },
-                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.route,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.route,

@@ -12,7 +12,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import AssignCardFeedPage from '@pages/workspace/companyCards/assignCard/AssignCardFeedPage';
+import AssignCardFeedPage from '@pages/workspace/companyCards/BrokenCardFeedConnectionPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -71,14 +71,17 @@ jest.mock('@components/FormAlertWithSubmitButton', () => 'FormAlertWithSubmitBut
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 // Renders the AssignCardFeedPage inside a navigation container with necessary providers.
-const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD, initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]) => {
+const renderPage = (
+    initialRouteName: typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE,
+    initialParams: SettingsNavigatorParamList[typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE],
+) => {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
                     <Stack.Navigator initialRouteName={initialRouteName}>
                         <Stack.Screen
-                            name={SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD}
+                            name={SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE}
                             component={AssignCardFeedPage}
                             initialParams={initialParams}
                         />
@@ -145,9 +148,10 @@ describe('AssignCardFeedPage', () => {
         });
 
         // Render the page with the specified policyID and backTo param
-        const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD, {
+        const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE, {
             policyID: policy.id,
             feed: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            cardID: '1234',
             backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy?.id, 1234),
         });
 
@@ -211,9 +215,10 @@ describe('AssignCardFeedPage', () => {
             });
         });
         // Render the page with the specified policyID and backTo param
-        const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD, {
+        const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE, {
             policyID: policy.id,
             feed: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
+            cardID: '1234',
             backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy?.id, 1234),
         });
 
