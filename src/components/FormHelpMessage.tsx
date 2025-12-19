@@ -79,6 +79,4 @@ function FormHelpMessage({message = '', children, isError = true, style, shouldS
     );
 }
 
-FormHelpMessage.displayName = 'FormHelpMessage';
-
 export default FormHelpMessage;
