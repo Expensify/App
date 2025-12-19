@@ -6192,10 +6192,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 title: 'Règles de catégorie',
                 approver: 'Approbateur',
                 requireDescription: 'Description requise',
-                requireFields: 'Rendre les champs obligatoires',
-                requiredFieldsTitle: 'Champs obligatoires',
-                requiredFieldsDescription: (categoryName: string) => `Cela s’appliquera à toutes les dépenses classées dans la catégorie <strong>${categoryName}</strong>.`,
-                requireAttendees: 'Exiger des participants',
                 descriptionHint: 'Indice de description',
                 descriptionHintDescription: (categoryName: string) =>
                     `Rappelez aux employés de fournir des informations supplémentaires pour les dépenses « ${categoryName} ». Cet indice apparaît dans le champ de description des dépenses.`,
@@ -6713,7 +6709,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         },
         columns: 'Colonnes',
         resetColumns: 'Réinitialiser les colonnes',
-        noColumnsError: 'Veuillez sélectionner au moins une colonne avant d’enregistrer',
+        groupColumns: 'Regrouper les colonnes',
+        expenseColumns: 'Colonnes de dépenses',
         statements: 'Relevés',
         unapprovedCash: 'Espèces non approuvées',
         unapprovedCard: 'Carte non approuvée',
@@ -7247,7 +7244,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date de plus de ${maxAge} jours`,
         missingCategory: 'Catégorie manquante',
         missingComment: 'Description requise pour la catégorie sélectionnée',
-        missingAttendees: 'Plusieurs participants sont requis pour cette catégorie',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Manquant ${tagName ?? 'étiquette'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
