@@ -32,7 +32,7 @@ import {
     getExchangeRate,
     getMerchant,
     getOriginalAmountForDisplay,
-    getOriginalCurrency,
+    getOriginalCurrencyForDisplay,
     getTaxName,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
@@ -493,7 +493,7 @@ function TransactionItemRow({
                 >
                     <AmountCell
                         total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
-                        currency={getOriginalCurrency(transactionItem)}
+                        currency={getOriginalCurrencyForDisplay(transactionItem)}
                     />
                 </View>
             ),

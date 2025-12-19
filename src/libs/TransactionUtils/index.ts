@@ -858,6 +858,15 @@ function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmo
 }
 
 /**
+ * Return the original currency for display/sorting purposes.
+ * Falls back to originalCurrency, then currency, then modifiedCurrency.
+ */
+function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalCurrency' | 'currency' | 'modifiedCurrency' | 'amount'>): string {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return transaction.originalCurrency || (transaction.amount === 0 ? transaction.modifiedCurrency : transaction.currency) || CONST.CURRENCY.USD;
+}
+
+/**
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
 function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction>): boolean {
@@ -2443,6 +2452,7 @@ export {
     getExchangeRate,
     shouldReuseInitialTransaction,
     getOriginalAmountForDisplay,
+    getOriginalCurrencyForDisplay,
 };
 
 export type {TransactionChanges};
