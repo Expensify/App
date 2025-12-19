@@ -5,19 +5,16 @@ import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
 import Table from '@components/Table';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
-import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {
@@ -25,19 +22,18 @@ import {
     filterInactiveCards,
     flatAllCardsList,
     getBankName,
-    getCardFeedIcon,
     getCompanyCardFeed,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
-    getPlaidInstitutionIconUrl,
+    getPlaidInstitutionId,
     isCustomFeed,
 } from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Current policy id */
@@ -48,17 +44,19 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
 
     /** Whether the feed is pending */
     shouldDisplayTableComponents?: boolean;
+
+    /** Card feed icon */
+    CardFeedIcon?: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, shouldDisplayTableComponents = false}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, shouldDisplayTableComponents = false, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const illustrations = useThemeIllustrations();
     const icons = useMemoizedLazyExpensifyIcons(['Gear']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
-    const companyCardFeedIcons = useCompanyCardFeedIcons();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
@@ -66,10 +64,10 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, should
     const feed = getCompanyCardFeed(selectedFeed);
     const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.[selectedFeed]?.customFeedName);
     const isCommercialFeed = isCustomFeed(selectedFeed);
-    const plaidUrl = getPlaidInstitutionIconUrl(selectedFeed);
+    const isPlaidCardFeed = !!getPlaidInstitutionId(selectedFeed);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = companyFeeds?.[selectedFeed];
-    const bankName = plaidUrl && formattedFeedName ? formattedFeedName : getBankName(feed);
+    const bankName = isPlaidCardFeed && formattedFeedName ? formattedFeedName : getBankName(feed);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeedData);
     const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
     const hasFeedError = !!cardFeeds?.[selectedFeed]?.errors;
@@ -107,9 +105,8 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, should
                 ]}
             >
                 <FeedSelector
-                    plaidUrl={plaidUrl}
                     onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
-                    cardIcon={getCardFeedIcon(feed, illustrations, companyCardFeedIcons)}
+                    CardFeedIcon={CardFeedIcon}
                     feedName={formattedFeedName}
                     supportingText={supportingText}
                     shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed)}
@@ -135,7 +132,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, should
             {isSelectedFeedConnectionBroken && !!bankName && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon
-                        src={Expensicons.DotIndicator}
+                        src={expensifyIcons.DotIndicator}
                         fill={theme.danger}
                         additionalStyles={styles.mr1}
                     />

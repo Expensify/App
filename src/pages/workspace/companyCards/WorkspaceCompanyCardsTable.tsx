@@ -11,7 +11,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyFeeds, getPlaidInstitutionIconUrl, getPlaidInstitutionId, isMaskedCardNumberEqual} from '@libs/CardUtils';
+import {getCompanyFeeds, getPlaidInstitutionId, isMaskedCardNumberEqual} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
@@ -38,9 +38,12 @@ type WorkspaceCompanyCardsTableProps = {
 
     /** Whether to show GB disclaimer */
     shouldShowGBDisclaimer?: boolean;
+
+    /** Card feed icon */
+    CardFeedIcon?: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer}: WorkspaceCompanyCardsTableProps) {
+function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAssigningCardDisabled, shouldShowGBDisclaimer, CardFeedIcon}: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
@@ -89,8 +92,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
             key={`${item.cardName}_${index}`}
             item={item}
             policyID={policyID}
-            selectedFeed={selectedFeed}
-            plaidIconUrl={getPlaidInstitutionIconUrl(selectedFeed)}
+            CardFeedIcon={CardFeedIcon}
             isPlaidCardFeed={isPlaidCardFeed}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
@@ -233,6 +235,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
                 <WorkspaceCompanyCardsTableHeaderButtons
                     policyID={policyID}
                     selectedFeed={selectedFeed}
+                    CardFeedIcon={CardFeedIcon}
                 />
                 <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />
             </View>
@@ -257,6 +260,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
                     policyID={policyID}
                     selectedFeed={selectedFeed}
                     shouldDisplayTableComponents
+                    CardFeedIcon={CardFeedIcon}
                 />
             </View>
 

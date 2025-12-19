@@ -4,23 +4,19 @@ import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
-import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardFeedIcon, getCompanyCardFeedWithDomainID, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
+import {getCompanyCardFeedWithDomainID, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, PersonalDetails} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, PersonalDetails} from '@src/types/onyx';
 
 type WorkspaceCompanyCardTableItemData = {
     /** Card number */
@@ -49,11 +45,8 @@ type WorkspaceCompanyCardTableItemProps = {
     /** Policy ID */
     policyID: string;
 
-    /** Selected feed */
-    selectedFeed: CompanyCardFeedWithDomainID;
-
-    /** Plaid URL */
-    plaidIconUrl?: string;
+    /** Card feed icon element */
+    CardFeedIcon?: React.ReactNode;
 
     /** Whether to disable assign card button */
     isAssigningCardDisabled?: boolean;
@@ -71,8 +64,7 @@ type WorkspaceCompanyCardTableItemProps = {
 function WorkspaceCompanyCardTableItem({
     item: {cardName, customCardName, assignedCard, isAssigned, cardholder, isCardDeleted},
     policyID,
-    selectedFeed,
-    plaidIconUrl,
+    CardFeedIcon,
     isPlaidCardFeed,
     shouldUseNarrowTableRowLayout,
     isAssigningCardDisabled,
@@ -81,14 +73,7 @@ function WorkspaceCompanyCardTableItem({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const illustrations = useThemeIllustrations();
-    const companyCardFeedIcons = useCompanyCardFeedIcons();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
-
-    let cardFeedIcon = null;
-    if (!plaidIconUrl) {
-        cardFeedIcon = getCardFeedIcon(selectedFeed as CompanyCardFeed, illustrations, companyCardFeedIcons);
-    }
 
     const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
 
@@ -157,17 +142,7 @@ function WorkspaceCompanyCardTableItem({
                                 </>
                             ) : (
                                 <>
-                                    {!!plaidIconUrl && <PlaidCardFeedIcon plaidUrl={plaidIconUrl} />}
-
-                                    {!plaidIconUrl && !!cardFeedIcon && (
-                                        <Icon
-                                            src={cardFeedIcon}
-                                            height={variables.cardIconHeight}
-                                            width={variables.cardIconWidth}
-                                            additionalStyles={styles.cardIcon}
-                                        />
-                                    )}
-
+                                    {CardFeedIcon}
                                     <Text
                                         numberOfLines={1}
                                         style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
