@@ -166,11 +166,16 @@ function MoneyRequestView({
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: true});
 
-    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+    const parentReportActionSelector = useCallback(
+        (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => (transactionThreadReport?.parentReportActionID ? reportActions?.[transactionThreadReport.parentReportActionID] : undefined),
+        [transactionThreadReport?.parentReportActionID],
+    );
+    const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
         canBeMissing: true,
+        selector: parentReportActionSelector,
     });
-    const parentReportAction = transactionThreadReport?.parentReportActionID ? parentReportActions?.[transactionThreadReport.parentReportActionID] : undefined;
+
     const isFromMergeTransaction = !!mergeTransactionID;
     const linkedTransactionID = useMemo(() => {
         if (!parentReportAction) {
