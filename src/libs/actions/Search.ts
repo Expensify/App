@@ -1224,6 +1224,7 @@ export {
     queueExportSearchWithTemplate,
     updateAdvancedFilters,
     clearAdvancedFilters,
+    clearAllFilters,
     setSearchContext,
     deleteSavedSearch,
     payMoneyRequestOnSearch,
