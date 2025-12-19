@@ -22,19 +22,24 @@ type CountrySelectionListProps = {
     /** Function to call on step confirmation */
     onCountrySelected: (country: string) => void;
 
+    /** Function to call when the user confirms their selection */
+    onConfirm: () => void;
+
     /** Whether the user is editing an existing account */
     isEditing?: boolean;
+
+    /** Custom content to display in the footer */
+    footerContent?: React.ReactNode;
 };
 
-function CountrySelectionList({isEditing, selectedCountry, countries, onCountrySelected}: CountrySelectionListProps) {
+function CountrySelectionList({isEditing, selectedCountry, countries, onCountrySelected, onConfirm, footerContent}: CountrySelectionListProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const [searchValue, setSearchValue] = useState('');
-    const [currentCountry, setCurrentCountry] = useState(selectedCountry);
 
     const onSelectionChange = (country: Option) => {
-        setCurrentCountry(country.value);
+        onCountrySelected(country.value);
     };
 
     const countriesList = countries.map((countryISO) => {
@@ -43,7 +48,7 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
             value: countryISO,
             keyForList: countryISO,
             text: countryName,
-            isSelected: currentCountry === countryISO,
+            isSelected: selectedCountry === countryISO,
             searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
         };
     });
@@ -60,8 +65,8 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
     const confirmButtonOptions = {
         showButton: true,
         text: isEditing ? translate('common.confirm') : translate('common.next'),
-        isDisabled: isOffline || !currentCountry,
-        onConfirm: () => onCountrySelected(currentCountry),
+        isDisabled: isOffline,
+        onConfirm,
     };
 
     return (
@@ -75,7 +80,8 @@ function CountrySelectionList({isEditing, selectedCountry, countries, onCountryS
                 onSelectRow={onSelectionChange}
                 textInputOptions={textInputOptions}
                 confirmButtonOptions={confirmButtonOptions}
-                initiallyFocusedItemKey={currentCountry}
+                initiallyFocusedItemKey={selectedCountry}
+                footerContent={footerContent}
                 disableMaintainingScrollPosition
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
