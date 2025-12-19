@@ -4,6 +4,7 @@ import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
+import type {SearchColumnType} from '@components/Search/types';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -47,6 +48,9 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
 
     /** Whether the down arrow is expanded */
     isExpanded?: boolean;
+
+    /** The visible columns for the header */
+    columns?: SearchColumnType[];
 };
 
 function WithdrawalIDListItemHeader<TItem extends ListItem>({
@@ -58,6 +62,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     isSelectAllChecked,
     onDownArrowClick,
     isExpanded,
+    columns,
 }: WithdrawalIDListItemHeaderProps<TItem>) {
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
@@ -87,6 +92,61 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                   const walletLink = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
                   return translate('settlement.failedError', {link: walletLink});
               })();
+
+    const columnComponents = {
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT)}
+            >
+                <TextWithTooltip
+                    text={accountLabel}
+                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN)}
+            >
+                <TextWithTooltip
+                    text={formattedWithdrawalDate}
+                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID)}
+            >
+                <TextWithTooltip
+                    text={withdrawalIDItem.entryID?.toString() ?? ''}
+                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.EXPENSES}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
+            >
+                <ExpensesCell count={withdrawalIDItem.count} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.TOTAL}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}
+            >
+                <TotalCell
+                    total={withdrawalIDItem.total}
+                    currency={withdrawalIDItem.currency}
+                />
+            </View>
+        ),
+    };
 
     return (
         <View>
@@ -138,33 +198,8 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                     additionalStyles={iconStyles}
                                 />
                             </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT)}>
-                                <TextWithTooltip
-                                    text={accountLabel}
-                                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
-                                />
-                            </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN)}>
-                                <TextWithTooltip
-                                    text={formattedWithdrawalDate}
-                                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
-                                />
-                            </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID)}>
-                                <TextWithTooltip
-                                    text={withdrawalIDItem.entryID?.toString() ?? ''}
-                                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
-                                />
-                            </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
-                                <ExpensesCell count={withdrawalIDItem.count} />
-                            </View>
-                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}>
-                                <TotalCell
-                                    total={withdrawalIDItem.total}
-                                    currency={withdrawalIDItem.currency}
-                                />
-                            </View>
+
+                            {columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
                         </>
                     )}
                 </View>

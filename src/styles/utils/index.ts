@@ -1765,6 +1765,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(isDateColumnWide ? variables.w92 : variables.w52)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN:
                 columnWidth = {...getWidthStyle(variables.w96)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
@@ -1775,12 +1776,14 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
                 columnWidth = {...getWidthStyle(isTaxAmountColumnWide ? variables.w130 : variables.w96), ...styles.alignItemsEnd};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.EXPENSES:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES:
                 columnWidth = {...getWidthStyle(variables.w130)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL:
             case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
                 columnWidth = {...getWidthStyle(isAmountColumnWide ? variables.w130 : variables.w96), ...(!shouldRemoveTotalColumnFlex && styles.flex1), ...styles.alignItemsEnd};
                 break;
@@ -1800,6 +1803,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
                 columnWidth = {...getWidthStyle(variables.w72), ...styles.alignItemsCenter};
                 break;
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_FEED:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_BANK_ACCOUNT:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM:
             case CONST.SEARCH.TABLE_COLUMNS.FEED:
             case CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:
