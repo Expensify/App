@@ -333,10 +333,12 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
 
     // Bank payment is processing when:
     // 1. In BILLING state (ACH batch submitted), OR
-    // 2. In APPROVED + REIMBURSED state (immediately after paying via bank, before batch is sent)
-    const isInBillingState = report.stateNum === CONST.REPORT.STATE_NUM.BILLING;
+    // 2. In APPROVED + REIMBURSED state (immediately after paying via bank, before batch is sent), OR
+    // 3. In AUTOREIMBURSED state (automatically reimbursed)
+    const isInBillingState = report.stateNum === CONST.REPORT.STATE_NUM.BILLING && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const isApprovedAndReimbursed = report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const isBankProcessing = isPaidViaBankAccount && (isInBillingState || isApprovedAndReimbursed);
+    const isAutoReimbursed = report.stateNum === CONST.REPORT.STATE_NUM.AUTOREIMBURSED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const isBankProcessing = isPaidViaBankAccount && (isInBillingState || isApprovedAndReimbursed || isAutoReimbursed);
     const isPaymentProcessing = (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) || isBankProcessing;
 
     const hasDailyNachaCutoffPassed = payActions.some((action) => {
