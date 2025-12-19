@@ -16,12 +16,13 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import {addSubrate, removeSubrate, updateSubrate} from '@userActions/IOU';
+import {getPerDiemCustomUnit, getPolicyByCustomUnitID} from '@libs/PolicyUtils';
+import {addSubrate, getIOURequestPolicyID, removeSubrate, updateSubrate} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -68,7 +69,12 @@ function IOURequestStepSubrate({
     report,
 }: IOURequestStepSubrateProps) {
     const styles = useThemeStyles();
-    const policy = usePolicy(report?.policyID);
+    const iouPolicyID = getIOURequestPolicyID(transaction, report);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const customUnitPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
+    const policyID = iouPolicyID === CONST.POLICY.ID_FAKE ? customUnitPolicy?.id : iouPolicyID;
+
+    const policy = usePolicy(policyID);
     const customUnit = getPerDiemCustomUnit(policy);
     const [isDeleteStopModalOpen, setIsDeleteStopModalOpen] = useState(false);
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
