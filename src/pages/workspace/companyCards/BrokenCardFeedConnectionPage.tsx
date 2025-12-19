@@ -10,14 +10,14 @@ import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import PlaidConnectionStep from './addNew/PlaidConnectionStep';
 import BankConnection from './BankConnection';
 
-type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION> & WithPolicyAndFullscreenLoadingProps;
+type BrokenCardFeedConnectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION> &
+    WithPolicyAndFullscreenLoadingProps;
 
-function BrokenCardFeedConnectionPage({route, policy}: AssignCardFeedPageProps) {
-    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeedWithDomainID;
+function BrokenCardFeedConnectionPage({route, policy}: BrokenCardFeedConnectionPageProps) {
+    const feed = route.params?.feed;
     const policyID = policy?.id;
 
     const {translate} = useLocalize();
