@@ -844,6 +844,29 @@ function getOriginalAmount(transaction: Transaction): number {
 }
 
 /**
+ * Return the original amount for display/sorting purposes.
+ * For expense reports, returns the negated value of (originalAmount || amount || modifiedAmount).
+ * For non-expense reports, returns getOriginalAmount() or Math.abs(amount) or Math.abs(modifiedAmount).
+ */
+function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmount' | 'amount' | 'modifiedAmount'>, isExpenseReport: boolean): number {
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    if (isExpenseReport) {
+        return -((transaction.originalAmount || transaction.amount || transaction.modifiedAmount) ?? 0);
+    }
+    return getOriginalAmount(transaction as Transaction) || Math.abs(transaction.amount ?? 0) || Math.abs(transaction.modifiedAmount ?? 0);
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+}
+
+/**
+ * Return the original currency for display/sorting purposes.
+ * Falls back to originalCurrency, then currency, then modifiedCurrency.
+ */
+function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalCurrency' | 'currency' | 'modifiedCurrency' | 'amount'>): string {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return transaction.originalCurrency || (transaction.amount === 0 ? transaction.modifiedCurrency : transaction.currency) || CONST.CURRENCY.USD;
+}
+
+/**
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
 function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction>): boolean {
@@ -2428,6 +2451,8 @@ export {
     getReportOwnerAsAttendee,
     getExchangeRate,
     shouldReuseInitialTransaction,
+    getOriginalAmountForDisplay,
+    getOriginalCurrencyForDisplay,
 };
 
 export type {TransactionChanges};
