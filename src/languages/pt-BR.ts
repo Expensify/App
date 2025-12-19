@@ -6667,8 +6667,6 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         },
         columns: 'Colunas',
         resetColumns: 'Redefinir colunas',
-        noColumnsError: 'Selecione pelo menos uma coluna antes de salvar',
-        noGroupColumnsError: 'Selecione ao menos uma coluna de grupo antes de salvar',
         groupColumns: 'Agrupar colunas',
         expenseColumns: 'Colunas de Despesas',
         statements: 'Extratos',

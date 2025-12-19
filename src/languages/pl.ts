@@ -6663,8 +6663,6 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         },
         columns: 'Kolumny',
         resetColumns: 'Resetuj kolumny',
-        noColumnsError: 'Proszę wybrać co najmniej jedną kolumnę przed zapisaniem',
-        noGroupColumnsError: 'Wybierz co najmniej jedną kolumnę grupy przed zapisaniem',
         groupColumns: 'Kolumny grupy',
         expenseColumns: 'Kolumny wydatków',
         statements: 'Wyciągi',

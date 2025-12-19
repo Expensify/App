@@ -6704,8 +6704,6 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         },
         columns: 'Spalten',
         resetColumns: 'Spalten zurücksetzen',
-        noColumnsError: 'Bitte wählen Sie vor dem Speichern mindestens eine Spalte aus',
-        noGroupColumnsError: 'Bitte wählen Sie vor dem Speichern mindestens eine Gruppenspalte aus',
         groupColumns: 'Gruppenspalten',
         expenseColumns: 'Spalten für Ausgaben',
         statements: 'Abrechnungen',

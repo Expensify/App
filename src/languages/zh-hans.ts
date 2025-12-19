@@ -6532,8 +6532,6 @@ ${reportName}
         },
         columns: '列',
         resetColumns: '重置列',
-        noColumnsError: '请在保存前至少选择一列',
-        noGroupColumnsError: '在保存之前，请至少选择一列分组列',
         groupColumns: '分组列',
         expenseColumns: '报销列',
         statements: '对账单',

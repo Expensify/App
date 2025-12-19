@@ -6674,8 +6674,6 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         },
         columns: 'Kolommen',
         resetColumns: 'Kolommen resetten',
-        noColumnsError: 'Selecteer minstens één kolom voordat je opslaat',
-        noGroupColumnsError: 'Selecteer minstens één groepskolom voordat u opslaat',
         groupColumns: 'Kolommen groeperen',
         expenseColumns: 'Uitgavekolommen',
         statements: 'Afschriften',

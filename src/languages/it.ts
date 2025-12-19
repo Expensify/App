@@ -6687,8 +6687,6 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         },
         columns: 'Colonne',
         resetColumns: 'Reimposta colonne',
-        noColumnsError: 'Seleziona almeno una colonna prima di salvare',
-        noGroupColumnsError: 'Seleziona almeno una colonna di gruppo prima di salvare',
         groupColumns: 'Raggruppa colonne',
         expenseColumns: 'Colonne di spesa',
         statements: 'Estratti conto',

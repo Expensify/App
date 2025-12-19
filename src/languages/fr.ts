@@ -6713,8 +6713,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         },
         columns: 'Colonnes',
         resetColumns: 'Réinitialiser les colonnes',
-        noColumnsError: 'Veuillez sélectionner au moins une colonne avant d’enregistrer',
-        noGroupColumnsError: 'Veuillez sélectionner au moins une colonne de groupe avant d’enregistrer',
         groupColumns: 'Regrouper les colonnes',
         expenseColumns: 'Colonnes de dépenses',
         statements: 'Relevés',

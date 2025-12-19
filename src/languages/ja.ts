@@ -6632,8 +6632,6 @@ ${reportName}
         },
         columns: '列',
         resetColumns: '列をリセット',
-        noColumnsError: '保存する前に、少なくとも 1 つの列を選択してください',
-        noGroupColumnsError: '保存する前に、少なくとも 1 つのグループ列を選択してください',
         groupColumns: 'グループ列',
         expenseColumns: '経費列',
         statements: 'ステートメント',
