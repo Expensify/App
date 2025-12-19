@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useInitial from '@hooks/useInitial';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -36,12 +37,14 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const policyID = route.params.policyID;
     const feed = route.params.feed as CompanyCardFeedWithDomainID;
     const cardID = route.params.cardID;
-    const backTo = route.params?.backTo;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
+    const firstAssigneeEmail = useInitial(assignCard?.data?.email);
+    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === assignCard?.data?.email;
+    const backTo = shouldUseBackToParam ? route.params?.backTo : undefined;
     const policy = usePolicy(policyID);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
@@ -64,6 +67,9 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         if (backTo) {
             Navigation.goBack(backTo);
             clearAssignCardStepAndData();
+        } else if (!shouldUseBackToParam && route.params?.backTo) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+            clearAssignCardStepAndData();
         } else {
             Navigation.dismissModal({
                 callback: () => {
@@ -71,7 +77,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 },
             });
         }
-    }, [assignCard?.isAssigned, backTo, policyID]);
+    }, [assignCard?.isAssigned, backTo, policyID, shouldUseBackToParam, route.params?.backTo]);
 
     const submit = () => {
         if (!policyID) {
