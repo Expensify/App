@@ -52,6 +52,7 @@ export default {
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
     breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
+    labelPaddingVertical: Math.abs((getValueUsingPixelRatio(13, 19) - 16) / 2),
     fontSizeXXSmall: 7,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
@@ -133,6 +134,7 @@ export default {
     inputHeightSmall: 28,
     inputIconMarginTopSmall: getValueUsingPixelRatio(8, 11),
     inputIconMarginTopLarge: getValueUsingPixelRatio(16, 21),
+    paddingSmall: getValueUsingPixelRatio(7, 8),
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 24),
@@ -277,6 +279,10 @@ export default {
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
 
+    desktopAppRetiredIllustrationW: 264,
+    desktopAppRetiredIllustrationH: 230,
+    desktopAppRetiredViewContainerWidth: 310,
+
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
     bankButtonMargin: 23,
@@ -386,6 +392,11 @@ export default {
 
     // Report search header max width
     reportSearchHeaderMaxWidth: 700,
+
+    // Split expense tabs
+    splitExpenseAmountMobileWidth: 82,
+    splitExpensePercentageWidth: 42,
+    splitExpensePercentageMobileWidth: 62,
 
     // Multifactor Authentication illustrations size
     openPadlockWidth: 140,

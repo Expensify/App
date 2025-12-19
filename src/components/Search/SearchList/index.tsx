@@ -397,7 +397,7 @@ function SearchList({
         ],
     );
 
-    const tableHeaderVisible = (canSelectMultiple || !!SearchTableHeader) && (!groupBy || type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
+    const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
 

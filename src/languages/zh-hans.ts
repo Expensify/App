@@ -19,22 +19,6 @@ import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    AddedOrDeletedPolicyReportFieldParams,
-    AddedPolicyApprovalRuleParams,
-    AddEmployeeParams,
-    AddOrDeletePolicyCustomUnitRateParams,
-    AirlineParams,
-    ApprovalWorkflowErrorParams,
-    AssignedCardParams,
-    BeginningOfArchivedRoomParams,
-    BeginningOfChatHistoryInvoiceRoomParams,
-    BeginningOfChatHistoryParams,
-    BeginningOfChatHistoryPolicyExpenseChatParams,
-    BeginningOfChatHistoryUserRoomParams,
-    BillingBannerCardOnDisputeParams,
-    BillingBannerDisputePendingParams,
-    BillingBannerOwnerAmountOwedOverdueParams,
-    BusinessBankAccountParams,
     CanceledRequestParams,
     CardInfoParams,
     ChangeFieldParams,
@@ -121,15 +105,10 @@ import type {
     OptionalParam,
     OurEmailProviderParams,
     OwnerOwesAmountParams,
-    PaidElsewhereParams,
-    PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
     PayAndDowngradeDescriptionParams,
-    PayerOwesAmountParams,
     PayerOwesParams,
-    PayerPaidAmountParams,
     PayerPaidParams,
-    PayerSettledParams,
     PaySomeoneParams,
     PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
@@ -174,6 +153,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     SpreadCategoriesParams,
@@ -595,7 +575,7 @@ const translations: TranslationDeepObject<typeof en> = {
         filterLogs: '筛选日志',
         network: '网络',
         reportID: '报告 ID',
-        longID: '长 ID',
+        longReportID: '长报表 ID',
         withdrawalID: '提款 ID',
         bankAccounts: '银行账户',
         chooseFile: '选择文件',
@@ -687,6 +667,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: '需要操作',
         duplicate: '复制',
         duplicated: '已重复',
+        exchangeRate: '汇率',
         reimbursableTotal: '可报销总额',
         nonReimbursableTotal: '不可报销总额',
         originalAmount: '原始金额',
@@ -985,17 +966,17 @@ const translations: TranslationDeepObject<typeof en> = {
         reactedWith: '做出反应：',
     },
     reportActionsView: {
-        beginningOfArchivedRoom: ({reportName, reportDetailsLink}: BeginningOfArchivedRoomParams) =>
+        beginningOfArchivedRoom: (reportName: string, reportDetailsLink: string) =>
             `你错过了<strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong>中的聚会，这里已经没什么可看的了。`,
         beginningOfChatHistoryDomainRoom: (domainRoom: string) => `此聊天室面向 <strong>${domainRoom}</strong> 域上的所有 Expensify 成员。用它与同事聊天、分享技巧并提出问题。`,
         beginningOfChatHistoryAdminRoom: (workspaceName: string) => `这是与 <strong>${workspaceName}</strong> 管理员的聊天。可用于讨论工作区设置等内容。`,
         beginningOfChatHistoryAnnounceRoom: (workspaceName: string) => `此聊天包含 <strong>${workspaceName}</strong> 中的所有人。请用于发布最重要的公告。`,
-        beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
+        beginningOfChatHistoryUserRoom: (reportName: string, reportDetailsLink: string) =>
             `此聊天室用于讨论任何与 <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> 相关的内容。`,
-        beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
+        beginningOfChatHistoryInvoiceRoom: (invoicePayer: string, invoiceReceiver: string) =>
             `此聊天用于 <strong>${invoicePayer}</strong> 与 <strong>${invoiceReceiver}</strong> 之间的发票。使用 "+" 按钮发送发票。`,
-        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `此聊天是与${users}的聊天。`,
-        beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
+        beginningOfChatHistory: (users: string) => `此聊天是与${users}的聊天。`,
+        beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `这是 <strong>${submitterDisplayName}</strong> 向 <strong>${workspaceName}</strong> 提交报销的地方。只需使用“+”按钮即可。`,
         beginningOfChatHistorySelfDM: '这是你的个人空间。可用于记录笔记、任务、草稿和提醒。',
         beginningOfChatHistorySystemDM: '欢迎！我们来为你完成设置。',
@@ -1172,6 +1153,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: '金额',
+        percent: '百分比',
         taxAmount: '税额',
         taxRate: '税率',
         approve: ({
@@ -1186,6 +1168,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: '拆分',
         splitExpense: '拆分报销',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `来自 ${merchant} 的 ${amount}`,
+        splitByPercentage: '按百分比拆分',
         addSplit: '添加拆分',
         makeSplitsEven: '平均分配',
         editSplits: '编辑拆分',
@@ -1310,16 +1293,16 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `支付 ${formattedAmount}`,
         settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `以企业身份支付 ${formattedAmount}` : `使用公司账户付款`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `将 ${formattedAmount} 标记为已支付` : `标记为已支付`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `使用个人账户 ${last4Digits} 支付了 ${amount}` : `使用个人账户付款`),
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已使用商务账户尾号为 ${last4Digits} 支付 ${amount}` : `使用公司账户支付`),
+        settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `使用个人账户 ${last4Digits} 支付了 ${amount}` : `使用个人账户付款`),
+        settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `已使用商务账户尾号为 ${last4Digits} 支付 ${amount}` : `使用公司账户支付`),
         payWithPolicy: ({
             formattedAmount,
             policyName,
         }: SettleExpensifyCardParams & {
             policyName: string;
         }) => (formattedAmount ? `通过 ${policyName} 支付 ${formattedAmount}` : `通过 ${policyName} 支付`),
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `已使用银行账户 ${last4Digits} 支付 ${amount}` : `使用银行账户 ${last4Digits} 支付`),
-        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
+        businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `已使用银行账户 ${last4Digits} 支付 ${amount}` : `使用银行账户 ${last4Digits} 支付`),
+        automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `已使用银行账户尾号为 ${last4Digits}，通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>支付了 ${amount ? `${amount} ` : ''}`,
         invoicePersonalBank: (lastFour: string) => `个人账户 • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `商务账户 · 尾号 ${lastFour}`,
@@ -1334,16 +1317,16 @@ const translations: TranslationDeepObject<typeof en> = {
         splitAmount: ({amount}: SplitAmountParams) => `拆分 ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `拆分 ${formattedAmount}${comment ? `为 ${comment}` : ''}`,
         yourSplit: ({amount}: UserSplitParams) => `您分摊的金额 ${amount}`,
-        payerOwesAmount: ({payer, amount, comment}: PayerOwesAmountParams) => `${payer} 欠 ${amount}${comment ? `为 ${comment}` : ''}`,
+        payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} 欠 ${amount}${comment ? `为 ${comment}` : ''}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} 欠款：`,
-        payerPaidAmount: ({payer, amount}: PayerPaidAmountParams) => `${payer ? `${payer} ` : ''}已支付 ${amount}`,
+        payerPaidAmount: (amount: number | string, payer?: string) => `${payer ? `${payer} ` : ''}已支付 ${amount}`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} 支付了：`,
-        payerSpentAmount: ({payer, amount}: PayerPaidAmountParams) => `${payer} 花费了 ${amount}`,
+        payerSpentAmount: (amount: number | string, payer?: string) => `${payer} 花费了 ${amount}`,
         payerSpent: ({payer}: PayerPaidParams) => `${payer} 支出：`,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} 已批准：`,
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} 已批准 ${amount}`,
-        payerSettled: ({amount}: PayerSettledParams) => `已支付 ${amount}`,
-        payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `已支付 ${amount}。添加一个银行账户以接收你的付款。`,
+        payerSettled: (amount: number | string) => `已支付 ${amount}`,
+        payerSettledWithMissingBankAccount: (amount: number | string) => `已支付 ${amount}。添加一个银行账户以接收你的付款。`,
         automaticallyApproved: `已通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
         approvedAmount: (amount: number | string) => `已批准 ${amount}`,
         approvedMessage: `已批准`,
@@ -1355,10 +1338,9 @@ const translations: TranslationDeepObject<typeof en> = {
         adminCanceledRequest: '已取消付款',
         canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify Wallet`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) => `${submitterDisplayName} 添加了一个银行账户。${amount} 付款已完成。`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}标记为已支付`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}使用钱包支付`,
-        automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
-            `${payer ? `${payer} ` : ''}通过 Expensify 按照<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>付款`,
+        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}标记为已支付`,
+        paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}使用钱包支付`,
+        automaticallyPaidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}通过 Expensify 按照<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>付款`,
         noReimbursableExpenses: '此报表包含无效金额',
         pendingConversionMessage: '总金额将在你重新联网后更新',
         changedTheExpense: '已更改报销单',
@@ -1407,6 +1389,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: '数量必须大于零',
             invalidSubrateLength: '必须至少有一个子费率',
             invalidRate: '此汇率对该工作区无效。请选择此工作区中的可用汇率。',
+            endDateBeforeStartDate: '结束日期不能早于开始日期',
+            endDateSameAsStartDate: '结束日期不能与开始日期相同',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒！关闭此错误会完全删除你上传的收据。确定要继续吗？',
@@ -1533,6 +1517,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         moveExpenses: () => ({one: '移动报销', other: '移动报销费用'}),
+        moveExpensesError: '您无法将每日津贴费用移至其他工作区的报告，因为不同工作区之间的每日津贴费率可能有所不同。',
         changeApprover: {
             title: '更改审批人',
             subtitle: '选择一个选项以更改此报表的审批人。',
@@ -1549,6 +1534,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: '选择一个工作区',
+        date: '日期',
+        splitDates: '拆分日期',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} 至 ${endDate}（${count} 天）`,
+        splitByDate: '按日期拆分',
     },
     transactionMerge: {
         listPage: {
@@ -2299,8 +2288,7 @@ ${amount}，商户：${merchant} - ${date}`,
             },
         },
         approverInMultipleWorkflows: '此成员已属于另一审批工作流。在此所做的任何更新也会同步反映到那里。',
-        approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
-            `<strong>${name1}</strong> 已经把报销提交给 <strong>${name2}</strong> 审批。请另选一位审批人以避免形成循环审批流程。`,
+        approverCircularReference: (name1: string, name2: string) => `<strong>${name1}</strong> 已经把报销提交给 <strong>${name2}</strong> 审批。请另选一位审批人以避免形成循环审批流程。`,
         emptyContent: {
             title: '没有可显示的成员',
             expensesFromSubtitle: '所有工作区成员已属于现有的审批流程。',
@@ -3727,13 +3715,13 @@ ${
             ticketRefunded: ({airlineCode, origin, destination, startDate}: FlightParams) =>
                 `您于 ${startDate} 搭乘的航班 ${airlineCode}（${origin} → ${destination}）的机票已被退款或改签。`,
             flightCancelled: ({airlineCode, origin, destination, startDate}: FlightParams) => `您在 ${startDate}} 搭乘的航班 ${airlineCode}（${origin} → ${destination}）已被航空公司取消。`,
-            flightScheduleChangePending: ({airlineCode}: AirlineParams) => `航空公司已对航班 ${airlineCode} 提出行程变更，我们正在等待确认。`,
-            flightScheduleChangeClosed: ({airlineCode, startDate}: AirlineParams) => `行程变更已确认：航班 ${airlineCode} 现在将于 ${startDate} 起飞。`,
+            flightScheduleChangePending: (airlineCode: string) => `航空公司已对航班 ${airlineCode} 提出行程变更，我们正在等待确认。`,
+            flightScheduleChangeClosed: (airlineCode: string, startDate?: string) => `行程变更已确认：航班 ${airlineCode} 现在将于 ${startDate} 起飞。`,
             flightUpdated: ({airlineCode, origin, destination, startDate}: FlightParams) => `您在${startDate}的航班 ${airlineCode}（${origin} → ${destination}）已更新。`,
-            flightCabinChanged: ({airlineCode, cabinClass}: AirlineParams) => `您在航班 ${airlineCode} 上的舱位等级已更新为 ${cabinClass}。`,
-            flightSeatConfirmed: ({airlineCode}: AirlineParams) => `您在航班 ${airlineCode} 上的座位分配已确认。`,
-            flightSeatChanged: ({airlineCode}: AirlineParams) => `您在航班 ${airlineCode} 上的座位分配已被更改。`,
-            flightSeatCancelled: ({airlineCode}: AirlineParams) => `您在航班 ${airlineCode} 上的座位分配已被移除。`,
+            flightCabinChanged: (airlineCode: string, cabinClass?: string) => `您在航班 ${airlineCode} 上的舱位等级已更新为 ${cabinClass}。`,
+            flightSeatConfirmed: (airlineCode: string) => `您在航班 ${airlineCode} 上的座位分配已确认。`,
+            flightSeatChanged: (airlineCode: string) => `您在航班 ${airlineCode} 上的座位分配已被更改。`,
+            flightSeatCancelled: (airlineCode: string) => `您在航班 ${airlineCode} 上的座位分配已被移除。`,
             paymentDeclined: '您的机票预订付款失败。请重试。',
             bookingCancelledByTraveler: ({type, id = ''}: TravelTypeParams) => `您已取消您的${type}预订 ${id}。`,
             bookingCancelledByVendor: ({type, id = ''}: TravelTypeParams) => `供应商已取消您的${type}预订 ${id}。`,
@@ -4809,7 +4797,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             card: '卡片',
             cardName: '卡片名称',
             brokenConnectionError: '<rbr>银行卡信息连接已中断。请<a href="#">登录您的银行账户</a>以便我们重新建立连接。</rbr>',
-            assignedCard: ({assignee, link}: AssignedCardParams) => `已将${assignee}分配到${link}！导入的交易将显示在此聊天中。`,
+            assignedCard: (assignee: string, link: string) => `已将${assignee}分配到${link}！导入的交易将显示在此聊天中。`,
             companyCard: '公司卡',
             chooseCardFeed: '选择卡片流水来源',
             ukRegulation:
@@ -6219,8 +6207,8 @@ ${reportName}
         billcom: 'BILLCOM',
     },
     workspaceActions: {
-        addApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) => `已将 ${approverName}（${approverEmail}）添加为字段 ${field}“${name}”的审批人`,
-        deleteApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) => `已将 ${approverName}（${approverEmail}）从 ${field}“${name}”的审批人中移除`,
+        addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) => `已将 ${approverName}（${approverEmail}）添加为字段 ${field}“${name}”的审批人`,
+        deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) => `已将 ${approverName}（${approverEmail}）从 ${field}“${name}”的审批人中移除`,
         updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
             return `将${field}“${name}”的审批人更改为${formatApprover(newApproverName, newApproverEmail)}（之前为${formatApprover(oldApproverName, oldApproverEmail)}）`;
@@ -6292,7 +6280,7 @@ ${reportName}
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
             `将 ${customUnitName} 的 ${updatedField} 更改为“${newValue}”（之前为“${oldValue}”）`,
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `在距离费率上启用 ${newValue ? '已启用' : '已禁用'} 税务跟踪`,
-        addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `添加了新的“${customUnitName}”费率“${rateName}”`,
+        addCustomUnitRate: (customUnitName: string, rateName: string) => `添加了新的“${customUnitName}”费率“${rateName}”`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
             `将${customUnitName}的${updatedField}“${customUnitRateName}”的费率更改为“${newValue}”（之前为“${oldValue}”）`,
         updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
@@ -6313,8 +6301,8 @@ ${reportName}
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
             return `${newValue ? '已启用' : '已禁用'} ${customUnitName} 费率 "${customUnitRateName}"`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `已移除“${customUnitName}”费率“${rateName}”`,
-        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `已添加 ${fieldType} 报告字段 “${fieldName}”`,
+        deleteCustomUnitRate: (customUnitName: string, rateName: string) => `已移除“${customUnitName}”费率“${rateName}”`,
+        addedReportField: (fieldType: string, fieldName?: string) => `已添加 ${fieldType} 报告字段 “${fieldName}”`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) => `将报表字段“${fieldName}”的默认值设置为“${defaultValue}”`,
         addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `已将选项“${optionName}”添加到报表字段“${fieldName}”中`,
         removedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `已从报表字段“${fieldName}”中移除选项“${optionName}”`,
@@ -6326,7 +6314,7 @@ ${reportName}
             }
             return `${allEnabled ? '已启用' : '已禁用'} 报告字段“${fieldName}”的选项“${optionName}”，使所有选项都为 ${allEnabled ? '已启用' : '已禁用'}`;
         },
-        deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `已移除 ${fieldType} 报告字段“${fieldName}”`,
+        deleteReportField: (fieldType: string, fieldName?: string) => `已移除 ${fieldType} 报告字段“${fieldName}”`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `已将“Prevent self-approval”更新为“${newValue === 'true' ? '已启用' : '已禁用'}”（先前为“${oldValue === 'true' ? '已启用' : '已禁用'}”）`,
         updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `将需要收据的报销金额上限更改为 ${newValue}（之前为 ${oldValue}）`,
@@ -6702,6 +6690,7 @@ ${reportName}
             title: '创建导出',
             description: '哇，项目真不少！我们会把它们打包好，Concierge 很快就会给你发送一个文件。',
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选择所有匹配的项目',
@@ -6884,7 +6873,7 @@ ${reportName}
                 takeControl: `取得控制权`,
                 integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
                     `与 ${label}${errorMessage ? ` ("${errorMessage}")` : ''} 同步时出现问题。请在<a href="${workspaceAccountingLink}">工作区设置</a>中解决该问题。`,
-                addEmployee: ({email, role}: AddEmployeeParams) => `已将 ${email} 添加为 ${role === 'member' ? 'a' : '一个'} ${role}`,
+                addEmployee: (email: string, role: string) => `已将 ${email} 添加为 ${role === 'member' ? 'a' : '一个'} ${role}`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `已将 ${email} 的角色更新为 ${newRole}（之前为 ${currentRole}）`,
                 updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
                     if (!newValue) {
@@ -6899,7 +6888,7 @@ ${reportName}
                     return !previousValue ? `已将 “${newValue}” 添加到 ${email} 的自定义字段 2` : `将 ${email} 的自定义字段 2 更改为“${newValue}”（之前为“${previousValue}”）`;
                 },
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} 离开了工作区`,
-                removeMember: ({email, role}: AddEmployeeParams) => `已移除 ${role} ${email}`,
+                removeMember: (email: string, role: string) => `已移除 ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `已移除与 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 的连接`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `已连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: '已离开聊天',
@@ -7307,7 +7296,7 @@ ${reportName}
             },
             policyOwnerAmountOwedOverdue: {
                 title: '无法处理您的付款',
-                subtitle: ({date, purchaseAmountOwed}: BillingBannerOwnerAmountOwedOverdueParams) =>
+                subtitle: (date?: string, purchaseAmountOwed?: string) =>
                     date && purchaseAmountOwed ? `您在${date}的${purchaseAmountOwed}消费无法处理。请添加一张支付卡以结清所欠金额。` : '请添加一张支付卡以清除所欠金额。',
             },
             policyOwnerUnderInvoicing: {
@@ -7320,8 +7309,7 @@ ${reportName}
             },
             billingDisputePending: {
                 title: '无法扣款您的银行卡',
-                subtitle: ({amountOwed, cardEnding}: BillingBannerDisputePendingParams) =>
-                    `您对以 ${cardEnding} 结尾的银行卡上的 ${amountOwed} 费用提出了争议。在与您的银行解决该争议之前，您的账户将被锁定。`,
+                subtitle: (amountOwed: number, cardEnding: string) => `您对以 ${cardEnding} 结尾的银行卡上的 ${amountOwed} 费用提出了争议。在与您的银行解决该争议之前，您的账户将被锁定。`,
             },
             cardAuthenticationRequired: {
                 title: '您的付款卡尚未完成身份验证。',
@@ -7347,8 +7335,7 @@ ${reportName}
                 title: '无法扣款您的银行卡',
                 subtitle: '在重试之前，请直接致电您的银行，授权对 Expensify 的扣款并解除任何冻结。否则，请尝试添加一张不同的支付卡。',
             },
-            cardOnDispute: ({amountOwed, cardEnding}: BillingBannerCardOnDisputeParams) =>
-                `您对以 ${cardEnding} 结尾的银行卡上的 ${amountOwed} 费用提出了争议。在与您的银行解决该争议之前，您的账户将被锁定。`,
+            cardOnDispute: (amountOwed: string, cardEnding: string) => `您对以 ${cardEnding} 结尾的银行卡上的 ${amountOwed} 费用提出了争议。在与您的银行解决该争议之前，您的账户将被锁定。`,
             preTrial: {
                 title: '开始免费试用',
                 subtitle: '下一步，请<a href="#">完成您的设置清单</a>，这样您的团队就可以开始报销。',
@@ -7813,6 +7800,7 @@ ${reportName}
         enhancedSecurity: {title: '增强的安全性', subtitle: '要求您域内的成员使用单点登录登录、限制工作区创建等。', enable: '启用'},
         admins: {title: '管理员', findAdmin: '查找管理员', primaryContact: '主要联系人', addPrimaryContact: '添加主要联系人', settings: '设置'},
     },
+    desktopAppRetiredPage: {title: '桌面应用程序已停用', body: '新的 Expensify Mac 桌面应用已停用。今后，请使用网页版应用访问您的账户。', goToWeb: '前往网页'},
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
