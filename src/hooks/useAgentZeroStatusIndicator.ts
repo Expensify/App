@@ -196,13 +196,13 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
     }, []);
 
     const kickoffWaitingIndicator = useCallback(() => {
-        if (!isConciergeChat) {
+        if (!isConciergeChat || serverLabel) {
             return;
         }
 
         setOptimisticLabel(WAITING_LABEL);
         setWaitingSessionVersion(serverLabelVersion);
-    }, [isConciergeChat, serverLabelVersion]);
+    }, [isConciergeChat, serverLabel, serverLabelVersion]);
 
     useEffect(() => {
         const hasServerUpdatedSinceKickoff = waitingSessionVersion !== null && serverLabelVersion !== waitingSessionVersion;
