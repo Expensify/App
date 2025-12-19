@@ -959,13 +959,6 @@ function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ON
 }
 
 /**
- * Clears all values for the advanced filters search form.
- */
-function clearAllFilters() {
-    Onyx.set(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, null);
-}
-
-/**
  * Sets whether the search query should be displayed in the search input field
  */
 function setSearchContext(shouldShowSearchQuery: boolean) {
@@ -1224,7 +1217,6 @@ export {
     queueExportSearchWithTemplate,
     updateAdvancedFilters,
     clearAdvancedFilters,
-    clearAllFilters,
     setSearchContext,
     deleteSavedSearch,
     payMoneyRequestOnSearch,
