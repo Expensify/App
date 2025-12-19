@@ -234,11 +234,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
                     policyID={policyID}
                     selectedFeed={selectedFeed}
                 />
-                <WorkspaceCompanyCardsFeedAddedEmptyPage
-                    shouldShowGBDisclaimer={shouldShowGBDisclaimer}
-                    handleAssignCard={() => onAssignCard()}
-                    isAssigningCardDisabled={isAssigningCardDisabled}
-                />
+                <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />
             </View>
         );
     }
