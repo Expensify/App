@@ -23,6 +23,8 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
+import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {clearInviteDraft} from '@userActions/Policy/Member';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -82,6 +84,7 @@ function WorkspaceInviteMessageComponent({
         canBeMissing: true,
     });
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, {canBeMissing: true});
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
@@ -241,7 +244,16 @@ function WorkspaceInviteMessageComponent({
                                   description={translate('common.member')}
                                   shouldShowRightIcon
                                   onPress={() => {
-                                      Navigation.goBack();
+                                      clearInviteDraft(policyID);
+                                      setAssignCardStepAndData({
+                                          currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                                          data: {
+                                              ...assignCard?.data,
+                                              invitingMemberEmail: undefined,
+                                              invitingMemberAccountID: undefined,
+                                          },
+                                          isEditing: false,
+                                      });
                                   }}
                               />
                           )}
