@@ -32,7 +32,7 @@ function useCompanyCards(policyID?: string): UsCompanyCardsResult {
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [allCardFeeds, allCardFeedsMetadata] = useCardFeeds(policyID);
 
-    const feedName = getSelectedFeed(lastSelectedFeed, allCardFeeds);
+    const feedName = lastSelectedFeed;
     const bankName = feedName ? getCompanyCardFeed(feedName) : undefined;
 
     const [cardsList, cardListMetadata] = useCardsList(feedName);

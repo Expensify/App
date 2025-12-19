@@ -70,10 +70,6 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const isFeedPending = !!selectedFeed?.pending;
     const isFeedAdded = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed;
 
-    const isPlaidCardFeed = cardFeedType === 'plaid';
-    const isLoadingPlaidCardFeed = isPlaidCardFeed && selectedFeed?.accountList === undefined;
-    const isLoadingCommercialCardFeed = !isPlaidCardFeed && (isLoadingOnyxValue(cardListMetadata) || cardList === undefined);
-
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
 
@@ -89,13 +85,14 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         />
     );
 
-    // const isLoading = !isOffline && (!cardFeeds || (isFeedAdded && isLoadingOnyxValue(cardsListMetadata)));
-
     const isLoadingFeed = !feedName || policy?.id === undefined;
 
+    const isPlaidCardFeed = cardFeedType === 'plaid';
+    const isLoadingPlaidCardFeed = isPlaidCardFeed && selectedFeed?.accountList === undefined;
+    const isLoadingCommercialCardFeed = !isPlaidCardFeed && (isLoadingOnyxValue(cardListMetadata) || cardList === undefined);
     const isLoadingCards = isLoadingOnyxValue(allCardFeedsMetadata) && (isLoadingPlaidCardFeed || isLoadingCommercialCardFeed);
     const isLoadingPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
-    const isLoadingCardsTableData = (!isOffline && isLoadingCards) || isLoadingPersonalDetails;
+    const isLoadingCardsTableData = isLoadingFeed || (!isOffline && isLoadingCards) || isLoadingPersonalDetails;
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
