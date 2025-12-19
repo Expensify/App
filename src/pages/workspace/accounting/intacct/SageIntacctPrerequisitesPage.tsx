@@ -42,7 +42,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
                 iconRight: icons.NewWindow,
                 shouldShowRightIcon: true,
                 onPress: () => {
-                    fileDownload(CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME, '', true);
+                    fileDownload(translate, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT, CONST.EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME, '', true);
                 },
                 onSecondaryInteraction: (event: GestureResponderEvent | MouseEvent) =>
                     showContextMenu({
@@ -79,7 +79,7 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={SageIntacctPrerequisitesPage.displayName}
+            testID="SageIntacctPrerequisitesPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -114,7 +114,5 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
         </ScreenWrapper>
     );
 }
-
-SageIntacctPrerequisitesPage.displayName = 'SageIntacctPrerequisitesPage';
 
 export default SageIntacctPrerequisitesPage;

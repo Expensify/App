@@ -58,7 +58,7 @@ function CategoryFlagAmountsOverPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryFlagAmountsOverPage.displayName}
+                testID="CategoryFlagAmountsOverPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -103,7 +103,5 @@ function CategoryFlagAmountsOverPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryFlagAmountsOverPage.displayName = 'CategoryFlagAmountsOverPage';
 
 export default CategoryFlagAmountsOverPage;

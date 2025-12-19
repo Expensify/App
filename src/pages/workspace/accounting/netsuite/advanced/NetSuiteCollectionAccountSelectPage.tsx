@@ -72,7 +72,7 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteCollectionAccountSelectPage.displayName}
+            displayName="NetSuiteCollectionAccountSelectPage"
             headerContent={headerContent}
             sections={netsuiteCollectionAccountOptions.length ? [{data: netsuiteCollectionAccountOptions}] : []}
             listItem={RadioListItem}
@@ -90,7 +90,5 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
         />
     );
 }
-
-NetSuiteCollectionAccountSelectPage.displayName = 'NetSuiteCollectionAccountSelectPage';
 
 export default withPolicyConnections(NetSuiteCollectionAccountSelectPage);

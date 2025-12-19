@@ -90,7 +90,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
 
     return (
         <InteractiveStepWrapper
-            wrapperID={LimitTypeStep.displayName}
+            wrapperID="LimitTypeStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
@@ -122,7 +122,5 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
         </InteractiveStepWrapper>
     );
 }
-
-LimitTypeStep.displayName = 'LimitTypeStep';
 
 export default LimitTypeStep;

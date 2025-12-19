@@ -25,7 +25,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
-import {clearAllFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -214,7 +213,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             hideSearchRouterList?.();
             setIsAutocompleteListVisible(false);
             if (updatedQuery !== originalInputQuery) {
-                clearAllFilters();
                 setTextInputValue('');
                 setAutocompleteQueryValue('');
             }
@@ -485,7 +483,5 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         </View>
     );
 }
-
-SearchPageHeaderInput.displayName = 'SearchPageHeaderInput';
 
 export default SearchPageHeaderInput;

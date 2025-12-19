@@ -16,6 +16,7 @@ import ErrorMessageRow from './ErrorMessageRow';
 import HeaderWithBackButton from './HeaderWithBackButton';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import ScreenWrapper from './ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
 import type RadioListItem from './SelectionListWithSections/RadioListItem';
 import type TableListItem from './SelectionListWithSections/TableListItem';
@@ -143,7 +144,7 @@ function SelectionScreen<T = string>({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
     return (
@@ -202,5 +203,4 @@ function SelectionScreen<T = string>({
 
 export type {SelectorType};
 
-SelectionScreen.displayName = 'SelectionScreen';
 export default SelectionScreen;
