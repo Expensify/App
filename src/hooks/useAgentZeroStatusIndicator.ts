@@ -7,7 +7,7 @@ type AgentZeroStatusState = {
     kickoffWaitingIndicator: () => void;
 };
 
-const WAITING_LABEL = 'Concierge is waiting...';
+const WAITING_LABEL = 'Concierge is waiting for you to finish...';
 const INITIAL_FILLER_DELAY_MS = 4000;
 const MAX_FILLER_DELAY_MS = 8000;
 const BACKOFF_MULTIPLIER = 1.8;
