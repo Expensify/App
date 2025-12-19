@@ -138,7 +138,7 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
                 <Icon
                     additionalStyles={styles.ml1}
                     width={variables.iconSizeExtraSmall}
-                    height={12}
+                    height={variables.iconSizeExtraSmall}
                     src={sortIcon}
                     fill={theme.icon}
                 />

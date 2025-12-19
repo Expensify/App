@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
-import type {AssignCardData} from '@src/types/onyx/AssignCard';
+import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useCardFeeds from './useCardFeeds';
 import type {CombinedCardFeed} from './useCardFeeds';
@@ -41,7 +41,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = selectedFeed ? companyFeeds?.[selectedFeed] : ({} as CombinedCardFeed);
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const companyCards = getCompanyFeeds(cardFeeds);
@@ -77,7 +77,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
             return;
         }
 
-        if (!selectedFeed) {
+        if (!selectedFeed || !cardID) {
             return;
         }
 
@@ -104,16 +104,14 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
         setAssignCardStepAndData({currentStep: initialStep, cardToAssign});
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            const routeParams = {policyID, feed: selectedFeed, cardID: cardID ?? ''};
-
             switch (initialStep) {
                 case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
                 case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(policyID, selectedFeed));
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, selectedFeed));
                     break;
                 case CONST.COMPANY_CARD.STEP.ASSIGNEE:
                 default:
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(routeParams));
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed: selectedFeed, cardID}));
                     break;
             }
         });

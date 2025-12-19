@@ -73,7 +73,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const submit = (assignee: ListItem) => {
         const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
         const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
-        const data: Partial<AssignCardData> = {
+        const cardToAssign: Partial<AssignCardData> = {
             email: assignee?.login ?? '',
             cardName: getDefaultCardName(memberName),
         };
@@ -84,21 +84,23 @@ function AssigneeStep({route}: AssigneeStepProps) {
 
         if (assignee?.login === assignCard?.cardToAssign?.email) {
             if (assignCard?.cardToAssign?.encryptedCardNumber) {
-                data.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
-                data.cardNumber = assignCard.cardToAssign.cardNumber;
-                data.startDate = !isEditing ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING) : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
-                data.dateOption = !isEditing
+                cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
+                cardToAssign.cardNumber = assignCard.cardToAssign.cardNumber;
+                cardToAssign.startDate = !isEditing
+                    ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)
+                    : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+                cardToAssign.dateOption = !isEditing
                     ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM
                     : (assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
                 setAssignCardStepAndData({
-                    cardToAssign: data,
+                    cardToAssign,
                     isEditing: false,
                 });
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams, backTo));
                 return;
             }
             setAssignCardStepAndData({
-                cardToAssign: data,
+                cardToAssign,
                 isEditing: false,
             });
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
@@ -118,21 +120,23 @@ function AssigneeStep({route}: AssigneeStepProps) {
         }
 
         if (assignCard?.cardToAssign?.encryptedCardNumber) {
-            data.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
-            data.cardNumber = assignCard.cardToAssign.cardNumber;
-            data.startDate = !isEditing ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING) : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
-            data.dateOption = !isEditing
+            cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
+            cardToAssign.cardNumber = assignCard.cardToAssign.cardNumber;
+            cardToAssign.startDate = !isEditing
+                ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)
+                : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+            cardToAssign.dateOption = !isEditing
                 ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM
                 : (assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
             setAssignCardStepAndData({
-                cardToAssign: data,
+                cardToAssign,
                 isEditing: false,
             });
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams, backTo));
             return;
         }
         setAssignCardStepAndData({
-            cardToAssign: data,
+            cardToAssign,
             isEditing: false,
         });
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
