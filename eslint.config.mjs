@@ -332,6 +332,10 @@ const config = defineConfig([
                     message: "Please don't declare enums, use union types instead.",
                 },
                 {
+                    selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
+                    message: "forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs",
+                },
+                {
                     selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
                     message:
                         'Usage of getUrlWithBackToParam function is prohibited. This is legacy code and no new occurrences should be added. Please look into the `How to remove backTo from URL` section in contributingGuides/NAVIGATION.md. and use alternative routing methods instead.',
