@@ -18,7 +18,6 @@ const GENERIC_FILLER_MESSAGES = [
     'Concierge is analyzing semantic content...',
     'Concierge is considering responses...',
     'Concierge is verifying details...',
-    'Concierge is deciding whether to escalate...',
     'Concierge is organizing your information...',
     'Concierge is identifying key insights...',
     'Concierge is synthesizing relevant data...',
@@ -28,7 +27,6 @@ const GENERIC_FILLER_MESSAGES = [
     'Concierge is reviewing edge cases...',
     'Concierge is aligning on the best answer...',
     'Concierge is ensuring clarity and accuracy...',
-    'Concierge is finalizing its recommendations...',
 ];
 
 // Grouped filler pools keyed by a semantic category. These map to server-provided labels
