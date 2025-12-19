@@ -51,6 +51,4 @@ function JustSignedInModal({is2FARequired}: JustSignedInModalProps) {
     );
 }
 
-JustSignedInModal.displayName = 'JustSignedInModal';
-
 export default JustSignedInModal;

@@ -615,7 +615,5 @@ function ReportActionItemMessageEdit({
     );
 }
 
-ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
-
 export default ReportActionItemMessageEdit;
 export type {ReportActionItemMessageEditProps};

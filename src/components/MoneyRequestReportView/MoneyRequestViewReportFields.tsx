@@ -123,6 +123,5 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
         })
     );
 }
-MoneyRequestViewReportFields.displayName = 'MoneyRequestViewReportFields';
 
 export default MoneyRequestViewReportFields;

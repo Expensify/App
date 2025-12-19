@@ -430,11 +430,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                     setIsDownloadFailureModalVisible(true);
                                 },
                                 hasDependentTags,
+                                translate,
                             );
                         } else {
-                            downloadTagsCSV(policyID, () => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
+                            downloadTagsCSV(
+                                policyID,
+                                () => {
+                                    setIsDownloadFailureModalVisible(true);
+                                },
+                                translate,
+                            );
                         }
                     });
                 },
@@ -597,7 +602,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedTags.length}
-                testID={`${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`}
+                testID="WorkspaceTagsPage-header-dropdown-menu-button"
             />
         );
     };
@@ -664,7 +669,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding
                     style={[styles.defaultModalContainer]}
-                    testID={WorkspaceTagsPage.displayName}
+                    testID="WorkspaceTagsPage"
                     shouldShowOfflineIndicatorInWideScreen
                     offlineIndicatorStyle={styles.mtAuto}
                 >
@@ -806,7 +811,5 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         </>
     );
 }
-
-WorkspaceTagsPage.displayName = 'WorkspaceTagsPage';
 
 export default WorkspaceTagsPage;

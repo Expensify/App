@@ -15,6 +15,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
@@ -588,8 +589,6 @@ function MoneyRequestParticipantsSelector({
         </>
     );
 }
-
-MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
 export default memo(
     MoneyRequestParticipantsSelector,

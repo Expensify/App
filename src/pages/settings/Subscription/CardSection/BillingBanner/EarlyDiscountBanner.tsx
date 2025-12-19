@@ -138,6 +138,4 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     );
 }
 
-EarlyDiscountBanner.displayName = 'EarlyDiscountBanner';
-
 export default EarlyDiscountBanner;
