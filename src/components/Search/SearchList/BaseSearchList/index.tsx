@@ -102,10 +102,7 @@ function BaseSearchList({
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    const extraData = useMemo(
-        () => [focusedIndex, isFocused, columns, newTransactions, selectedTransactions],
-        [focusedIndex, isFocused, columns, newTransactions, selectedTransactions],
-    );
+    const extraData = useMemo(() => [focusedIndex, isFocused, columns, newTransactions, selectedTransactions], [focusedIndex, isFocused, columns, newTransactions, selectedTransactions]);
 
     return (
         <AnimatedFlashListComponent
