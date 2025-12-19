@@ -80,7 +80,6 @@ import {
     getWorkspaceNameUpdatedMessage,
     hasEmptyReportsForPolicy,
     hasReceiptError,
-    isAdminOwnerApproverOrReportOwner,
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReport,
     isArchivedReport,
@@ -10695,73 +10694,6 @@ describe('ReportUtils', () => {
             expect(canEdit).toBe(false);
         });
 
-        it('should recognize workflow approver in isAdminOwnerApproverOrReportOwner for report fields', async () => {
-            // Given an expense report where current user is the workflow approver but managerID is stale
-            const expenseReport: Report = {
-                reportID: '12352',
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: submitterAccountID,
-                managerID: ownerAccountID, // managerID is stale (doesn't match current workflow approver)
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
-            await waitForBatchedUpdates();
-
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-
-            // When checking if the workflow approver is admin/owner/approver
-            const isApproverRecognized = isAdminOwnerApproverOrReportOwner(expenseReport, testPolicy);
-
-            // Then the workflow approver should be recognized (even though managerID is stale)
-            expect(isApproverRecognized).toBe(true);
-        });
-
-        it('should NOT recognize non-workflow user in isAdminOwnerApproverOrReportOwner', async () => {
-            // Given an expense report where current user is NOT the workflow approver
-            const randomUserAccountID = 9999;
-            await Onyx.merge(ONYXKEYS.SESSION, {email: 'randomuser@test.com', accountID: randomUserAccountID});
-            await waitForBatchedUpdates();
-
-            const expenseReport: Report = {
-                reportID: '12353',
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: submitterAccountID,
-                managerID: ownerAccountID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
-            await waitForBatchedUpdates();
-
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-
-            // When checking if a random user is admin/owner/approver
-            const isApproverRecognized = isAdminOwnerApproverOrReportOwner(expenseReport, testPolicy);
-
-            // Then the random user should NOT be recognized
-            expect(isApproverRecognized).toBe(false);
-        });
     });
 
     describe('getReportPreviewMessage', () => {
