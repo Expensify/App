@@ -626,19 +626,19 @@ describe('OptionsListUtils', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}10`, reportNameValuePairs);
         await waitForBatchedUpdates();
 
-        OPTIONS = createOptionList(PERSONAL_DETAILS, undefined, REPORTS);
-        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, undefined, REPORTS_WITH_CONCIERGE);
-        OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, undefined, REPORTS_WITH_CHRONOS);
-        OPTIONS_WITH_RECEIPTS = createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, undefined, REPORTS_WITH_RECEIPTS);
-        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(PERSONAL_DETAILS, undefined, REPORTS_WITH_WORKSPACE_ROOMS);
-        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST, undefined);
+        OPTIONS = createOptionList(PERSONAL_DETAILS, undefined, jest.fn(), REPORTS);
+        OPTIONS_WITH_CONCIERGE = createOptionList(PERSONAL_DETAILS_WITH_CONCIERGE, undefined, jest.fn(), REPORTS_WITH_CONCIERGE);
+        OPTIONS_WITH_CHRONOS = createOptionList(PERSONAL_DETAILS_WITH_CHRONOS, undefined, jest.fn(), REPORTS_WITH_CHRONOS);
+        OPTIONS_WITH_RECEIPTS = createOptionList(PERSONAL_DETAILS_WITH_RECEIPTS, undefined, jest.fn(), REPORTS_WITH_RECEIPTS);
+        OPTIONS_WITH_WORKSPACE_ROOM = createOptionList(PERSONAL_DETAILS, undefined, jest.fn(), REPORTS_WITH_WORKSPACE_ROOMS);
+        OPTIONS_WITH_MANAGER_MCTEST = createOptionList(PERSONAL_DETAILS_WITH_MANAGER_MCTEST, undefined, jest.fn());
     });
 
     describe('getSearchOptions()', () => {
         it('should return all options when no search value is provided', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const results = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined});
+            const results = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined, translate: jest.fn()});
 
             // Then all personal details (including those that have reports) should be returned
             expect(results.personalDetails.length).toBe(10);
@@ -663,6 +663,7 @@ describe('OptionsListUtils', () => {
                 includeRecentReports: true,
                 includeCurrentUser: true,
                 policyTags: {},
+                translate: jest.fn(),
             });
 
             // Then the current user should be included in personalDetails
@@ -690,6 +691,7 @@ describe('OptionsListUtils', () => {
                 includeUserToInvite: false,
                 includeRecentReports: true,
                 policyTags: undefined,
+                translate: jest.fn(),
             });
 
             // Then the current user should not be included in personalDetails
@@ -713,6 +715,7 @@ describe('OptionsListUtils', () => {
                 {},
                 nvpDismissedProductTraining,
                 undefined,
+                jest.fn(),
             );
             // When we call orderOptions()
             results = orderOptions(results);
@@ -749,6 +752,7 @@ describe('OptionsListUtils', () => {
                 {},
                 nvpDismissedProductTraining,
                 undefined,
+                jest.fn(),
             );
             // When we call orderOptions()
             results = orderOptions(results);
@@ -776,7 +780,7 @@ describe('OptionsListUtils', () => {
         it('should return empty options when no reports or personal details are provided', () => {
             // Given empty arrays of reports and personalDetails
             // When we call getValidOptions()
-            const results = getValidOptions({reports: [], personalDetails: []}, {}, nvpDismissedProductTraining, undefined);
+            const results = getValidOptions({reports: [], personalDetails: []}, {}, nvpDismissedProductTraining, undefined, jest.fn());
 
             // Then the result should be empty
             expect(results.personalDetails).toEqual([]);
@@ -790,7 +794,13 @@ describe('OptionsListUtils', () => {
         it('should include Concierge by default in results', () => {
             // Given a set of reports and personalDetails that includes Concierge
             // When we call getValidOptions()
-            const results = getValidOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const results = getValidOptions(
+                {reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails},
+                {},
+                nvpDismissedProductTraining,
+                undefined,
+                jest.fn(),
+            );
 
             // Then the result should include all personalDetails except the currently logged in user
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
@@ -809,6 +819,7 @@ describe('OptionsListUtils', () => {
                 {},
                 nvpDismissedProductTraining,
                 undefined,
+                jest.fn(),
                 {
                     excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
                 },
@@ -823,9 +834,16 @@ describe('OptionsListUtils', () => {
         it('should exclude Chronos when excludedLogins is specified', () => {
             // Given a set of reports and personalDetails that includes Chronos and a config object that excludes Chronos
             // When we call getValidOptions()
-            const results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
-                excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
-            });
+            const results = getValidOptions(
+                {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
+                {},
+                nvpDismissedProductTraining,
+                undefined,
+                jest.fn(),
+                {
+                    excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
+                },
+            );
 
             // Then the result should include all personalDetails except the currently logged in user and Chronos
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
@@ -844,6 +862,7 @@ describe('OptionsListUtils', () => {
                 {},
                 nvpDismissedProductTraining,
                 undefined,
+                jest.fn(),
                 {
                     excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
                 },
@@ -868,6 +887,7 @@ describe('OptionsListUtils', () => {
                     },
                 },
                 undefined,
+                jest.fn(),
                 {
                     includeP2P: true,
                     canShowManagerMcTest: true,
@@ -889,6 +909,7 @@ describe('OptionsListUtils', () => {
                 {},
                 nvpDismissedProductTraining,
                 undefined,
+                jest.fn(),
                 {
                     includeP2P: true,
                     canShowManagerMcTest: false,
@@ -919,6 +940,7 @@ describe('OptionsListUtils', () => {
                         {},
                         nvpDismissedProductTraining,
                         undefined,
+                        jest.fn(),
                         {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
                     );
 
@@ -964,7 +986,7 @@ describe('OptionsListUtils', () => {
                 notificationPreference: 'hidden',
             };
             // When we call getValidOptions with includeMultipleParticipantReports set to true
-            const results = getValidOptions({reports: [adminRoom], personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
+            const results = getValidOptions({reports: [adminRoom], personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 includeMultipleParticipantReports: true,
             });
             const adminRoomOption = results.recentReports.find((report) => report.reportID === '1455140530846319');
@@ -1009,7 +1031,7 @@ describe('OptionsListUtils', () => {
                 notificationPreference: 'hidden',
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
-            const results = getValidOptions({reports: [workspaceChat], personalDetails: []}, {}, nvpDismissedProductTraining, undefined, {
+            const results = getValidOptions({reports: [workspaceChat], personalDetails: []}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 includeMultipleParticipantReports: true,
                 showRBR: true,
             });
@@ -1052,7 +1074,7 @@ describe('OptionsListUtils', () => {
                 notificationPreference: 'hidden',
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
-            const results = getValidOptions({reports: [workspaceChat], personalDetails: []}, {}, nvpDismissedProductTraining, undefined, {
+            const results = getValidOptions({reports: [workspaceChat], personalDetails: []}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 includeMultipleParticipantReports: true,
                 showRBR: false,
             });
@@ -1099,7 +1121,7 @@ describe('OptionsListUtils', () => {
                 isBold: false,
             };
 
-            const results = getValidOptions({reports: [inputOption], personalDetails: []}, {}, nvpDismissedProductTraining, undefined, {
+            const results = getValidOptions({reports: [inputOption], personalDetails: []}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 includeRecentReports: true,
                 shouldUnreadBeBold: true,
                 includeMultipleParticipantReports: true,
@@ -1114,7 +1136,7 @@ describe('OptionsListUtils', () => {
         it('should include all reports by default', () => {
             // Given a set of reports and personalDetails that includes workspace rooms
             // When we call getValidOptions()
-            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, {}, nvpDismissedProductTraining, undefined, {
+            const results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 includeRecentReports: true,
                 includeMultipleParticipantReports: true,
                 includeP2P: true,
@@ -1131,7 +1153,7 @@ describe('OptionsListUtils', () => {
         it('should exclude users with recent reports from personalDetails', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions with no search value
-            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
             const reportLogins = new Set(results.recentReports.map((reportOption) => reportOption.login));
             const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.has(personalDetailOption.login));
 
@@ -1144,7 +1166,7 @@ describe('OptionsListUtils', () => {
         it('should exclude selected options', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions with excludeLogins param
-            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
+            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 excludeLogins: {'peterparker@expensify.com': true},
             });
 
@@ -1156,7 +1178,13 @@ describe('OptionsListUtils', () => {
         it('should include Concierge in the results by default', () => {
             // Given a set of report and personalDetails that include Concierge
             // When we call getValidOptions()
-            const results = getValidOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const results = getValidOptions(
+                {reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails},
+                {},
+                nvpDismissedProductTraining,
+                undefined,
+                jest.fn(),
+            );
 
             // Then the result should include all personalDetails except the currently logged in user
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
@@ -1175,6 +1203,7 @@ describe('OptionsListUtils', () => {
                 {},
                 nvpDismissedProductTraining,
                 undefined,
+                jest.fn(),
                 {
                     excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
                 },
@@ -1190,9 +1219,16 @@ describe('OptionsListUtils', () => {
         it('should exclude Chronos from the results when it is specified in excludedLogins', () => {
             // given a set of reports and personalDetails that includes Chronos
             // When we call getValidOptions() with excludeLogins param
-            const results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
-                excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
-            });
+            const results = getValidOptions(
+                {reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails},
+                {},
+                nvpDismissedProductTraining,
+                undefined,
+                jest.fn(),
+                {
+                    excludeLogins: {[CONST.EMAIL.CHRONOS]: true},
+                },
+            );
 
             // Then the result should include all personalDetails except the currently logged in user and Chronos
             expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
@@ -1212,6 +1248,7 @@ describe('OptionsListUtils', () => {
                 {},
                 nvpDismissedProductTraining,
                 undefined,
+                jest.fn(),
                 {
                     excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
                 },
@@ -1228,7 +1265,7 @@ describe('OptionsListUtils', () => {
             // Given a set of reports and personalDetails with multiple reports
             // When we call getValidOptions with maxRecentReportElements set to 2
             const maxRecentReports = 2;
-            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
+            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 maxRecentReportElements: maxRecentReports,
             });
 
@@ -1239,8 +1276,8 @@ describe('OptionsListUtils', () => {
         it('should show all reports when maxRecentReportElements is not specified', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions without maxRecentReportElements
-            const resultsWithoutLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
-            const resultsWithLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
+            const resultsWithoutLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
+            const resultsWithLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 maxRecentReportElements: 2,
             });
 
@@ -1251,8 +1288,8 @@ describe('OptionsListUtils', () => {
         it('should not affect personalDetails count when maxRecentReportElements is specified', () => {
             // Given a set of reports and personalDetails
             // When we call getValidOptions with and without maxRecentReportElements
-            const resultsWithoutLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
-            const resultsWithLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
+            const resultsWithoutLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
+            const resultsWithLimit = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 maxRecentReportElements: 2,
             });
 
@@ -1265,7 +1302,7 @@ describe('OptionsListUtils', () => {
             // When we call getValidOptions with both maxElements and maxRecentReportElements
             const maxRecentReports = 3;
             const maxTotalElements = 10;
-            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
+            const results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 maxElements: maxTotalElements,
                 maxRecentReportElements: maxRecentReports,
             });
@@ -1290,7 +1327,7 @@ describe('OptionsListUtils', () => {
             }, []);
 
             // When we call getValidOptions for share destination with an empty search value
-            const results = getValidOptions({reports: filteredReports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
+            const results = getValidOptions({reports: filteredReports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 betas: [],
                 includeMultipleParticipantReports: true,
                 showChatPreviewLine: true,
@@ -1322,7 +1359,7 @@ describe('OptionsListUtils', () => {
             }, []);
 
             // When we call getValidOptions for share destination with an empty search value
-            const results = getValidOptions({reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
+            const results = getValidOptions({reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 betas: [],
                 includeMultipleParticipantReports: true,
                 showChatPreviewLine: true,
@@ -1346,7 +1383,7 @@ describe('OptionsListUtils', () => {
         it('should sort personal details alphabetically', () => {
             // Given a set of personalDetails
             // When we call getMemberInviteOptions
-            const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, []);
+            const results = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, jest.fn(), []);
 
             // Then personal details should be sorted alphabetically
             expect(results.personalDetails.at(0)?.text).toBe('Black Panther');
@@ -1530,9 +1567,9 @@ describe('OptionsListUtils', () => {
         it('should return all options when search is empty', () => {
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined, translate: jest.fn()});
             // When we pass the returned options to filterAndOrderOptions with an empty search value
-            const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, '', jest.fn(), COUNTRY_CODE, undefined);
 
             // Then all options should be returned
             expect(filteredOptions.recentReports.length + filteredOptions.personalDetails.length).toBe(14);
@@ -1542,9 +1579,9 @@ describe('OptionsListUtils', () => {
             const searchText = 'man';
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined, translate: jest.fn()});
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined, {sortByReportTypeInSearch: true});
+            const filteredOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE, {sortByReportTypeInSearch: true});
 
             // Then we expect all options to be part of the recentReports list and reports should be first:
             expect(filteredOptions.personalDetails.length).toBe(0);
@@ -1561,9 +1598,9 @@ describe('OptionsListUtils', () => {
             const searchText = 'mistersinister@marauders.com';
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined, translate: jest.fn()});
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE);
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1575,9 +1612,9 @@ describe('OptionsListUtils', () => {
             const searchText = 'Archived';
             // Given a set of options
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined, translate: jest.fn()});
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE);
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1589,11 +1626,18 @@ describe('OptionsListUtils', () => {
             // cspell:disable-next-line
             const searchText = 'barryallen';
             // Given a set of options created from PERSONAL_DETAILS_WITH_PERIODS
-            const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, {}, REPORTS);
+            const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, {}, jest.fn(), REPORTS);
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS_WITH_PERIODS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined});
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_PERIODS,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                policyTags: undefined,
+                translate: jest.fn(),
+            });
             // When we pass the returned options to filterAndOrderOptions with a search value and sortByReportTypeInSearch param
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined, {sortByReportTypeInSearch: true});
+            const filteredOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE, {sortByReportTypeInSearch: true});
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1605,9 +1649,16 @@ describe('OptionsListUtils', () => {
             const searchText = 'avengers';
             // Given a set of options with workspace rooms
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS_WITH_WORKSPACE_ROOM, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined});
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_WORKSPACE_ROOM,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                policyTags: undefined,
+                translate: jest.fn(),
+            });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE);
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1618,9 +1669,9 @@ describe('OptionsListUtils', () => {
         it('should put exact match by login on the top of the list', () => {
             const searchText = 'reedrichards@expensify.com';
             // Given a set of options with all betas
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined, translate: jest.fn()});
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE);
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1631,11 +1682,18 @@ describe('OptionsListUtils', () => {
         it('should prioritize options with matching display name over chat rooms', () => {
             const searchText = 'spider';
             // Given a set of options with chat rooms
-            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, {}, REPORTS_WITH_CHAT_ROOM);
+            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, {}, jest.fn(), REPORTS_WITH_CHAT_ROOM);
             // When we call getSearchOptions with all betas
-            const options = getSearchOptions({options: OPTIONS_WITH_CHAT_ROOMS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined});
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_CHAT_ROOMS,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                policyTags: undefined,
+                translate: jest.fn(),
+            });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined);
+            const filterOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE);
 
             // Then only two reports should be returned
             expect(filterOptions.recentReports.length).toBe(2);
@@ -1647,9 +1705,9 @@ describe('OptionsListUtils', () => {
             renderLocaleContextProvider();
             const searchText = 'fantastic';
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined, translate: jest.fn()});
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE);
 
             // Then only three reports should be returned
             expect(filteredOptions.recentReports.length).toBe(3);
@@ -1662,9 +1720,9 @@ describe('OptionsListUtils', () => {
         it('should return the user to invite when the search value is a valid, non-existent email', () => {
             const searchText = 'test@email.com';
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined, translate: jest.fn()});
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE);
 
             // Then the user to invite should be returned
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
@@ -1673,11 +1731,11 @@ describe('OptionsListUtils', () => {
         it('should not return any results if the search value is on an excluded logins list', () => {
             const searchText = 'admin@expensify.com';
             // Given a set of options with excluded logins list
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             });
             // When we call filterAndOrderOptions with a search value and excluded logins list
-            const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
+            const filterOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
 
             // Then no personal details should be returned
             expect(filterOptions.recentReports.length).toBe(0);
@@ -1686,9 +1744,9 @@ describe('OptionsListUtils', () => {
         it('should return the user to invite when the search value is a valid, non-existent email and the user is not excluded', () => {
             const searchText = 'test@email.com';
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined, translate: jest.fn()});
             // When we call filterAndOrderOptions with a search value and excludeLogins
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
+            const filteredOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
 
             // Then the user to invite should be returned
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
@@ -1697,16 +1755,16 @@ describe('OptionsListUtils', () => {
         it('should return limited amount of recent reports if the limit is set', () => {
             const searchText = '';
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined, translate: jest.fn()});
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 2
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined, {maxRecentReportsToShow: 2});
+            const filteredOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE, {maxRecentReportsToShow: 2});
 
             // Then only two reports should be returned
             expect(filteredOptions.recentReports.length).toBe(2);
 
             // Note: in the past maxRecentReportsToShow: 0 would return all recent reports, this has changed, and is expected to return none now
             // When we call filterAndOrderOptions with a search value and maxRecentReportsToShow set to 0
-            const limitToZeroOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined, {maxRecentReportsToShow: 0});
+            const limitToZeroOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE, {maxRecentReportsToShow: 0});
 
             // Then no reports should be returned
             expect(limitToZeroOptions.recentReports.length).toBe(0);
@@ -1715,9 +1773,9 @@ describe('OptionsListUtils', () => {
         it('should not return any user to invite if email exists on the personal details list', () => {
             const searchText = 'natasharomanoff@expensify.com';
             // Given a set of options with all betas
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined, translate: jest.fn()});
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, searchText, jest.fn(), COUNTRY_CODE);
 
             // Then there should be one matching result
             expect(filteredOptions.personalDetails.length).toBe(1);
@@ -1727,9 +1785,9 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options if search value does not match any personal details (getMemberInviteOptions)', () => {
             // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, []);
+            const options = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, jest.fn(), []);
             // When we call filterAndOrderOptions with a search value that does not match any personal details
-            const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, 'magneto', jest.fn(), COUNTRY_CODE);
 
             // Then no personal details should be returned
             expect(filteredOptions.personalDetails.length).toBe(0);
@@ -1737,9 +1795,9 @@ describe('OptionsListUtils', () => {
 
         it('should return one personal detail if search value matches an email (getMemberInviteOptions)', () => {
             // Given a set of options
-            const options = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, []);
+            const options = getMemberInviteOptions(OPTIONS.personalDetails, nvpDismissedProductTraining, jest.fn(), []);
             // When we call filterAndOrderOptions with a search value that matches an email
-            const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', jest.fn(), COUNTRY_CODE);
 
             // Then one personal detail should be returned
             expect(filteredOptions.personalDetails.length).toBe(1);
@@ -1757,7 +1815,7 @@ describe('OptionsListUtils', () => {
                 return filtered;
             }, []);
             // When we call getValidOptions for share destination with the filteredReports
-            const options = getValidOptions({reports: filteredReports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
+            const options = getValidOptions({reports: filteredReports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 betas: [],
                 includeMultipleParticipantReports: true,
                 showChatPreviewLine: true,
@@ -1772,7 +1830,7 @@ describe('OptionsListUtils', () => {
                 includeUserToInvite: false,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
-            const filteredOptions = filterAndOrderOptions(options, 'mutants', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, 'mutants', jest.fn(), COUNTRY_CODE);
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1790,7 +1848,7 @@ describe('OptionsListUtils', () => {
             }, []);
 
             // When we call getValidOptions for share destination with the filteredReports
-            const options = getValidOptions({reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
+            const options = getValidOptions({reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 betas: [],
                 includeMultipleParticipantReports: true,
                 showChatPreviewLine: true,
@@ -1805,7 +1863,7 @@ describe('OptionsListUtils', () => {
                 includeUserToInvite: false,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value that matches the group chat name
-            const filteredOptions = filterAndOrderOptions(options, 'Avengers Room', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, 'Avengers Room', jest.fn(), COUNTRY_CODE);
 
             // Then one recent report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1823,7 +1881,7 @@ describe('OptionsListUtils', () => {
             }, []);
 
             // When we call getValidOptions for share destination with the filteredReports
-            const options = getValidOptions({reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, {
+            const options = getValidOptions({reports: filteredReportsWithWorkspaceRooms, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
                 betas: [],
                 includeMultipleParticipantReports: true,
                 showChatPreviewLine: true,
@@ -1838,7 +1896,7 @@ describe('OptionsListUtils', () => {
                 includeUserToInvite: false,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
-            const filteredOptions = filterAndOrderOptions(options, 'Mutants Lair', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, 'Mutants Lair', jest.fn(), COUNTRY_CODE);
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1846,9 +1904,9 @@ describe('OptionsListUtils', () => {
 
         it('should show the option from personal details when searching for personal detail with no existing report', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
             // When we call filterAndOrderOptions with a search value that matches a personal detail with no existing report
-            const filteredOptions = filterAndOrderOptions(options, 'hulk', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, 'hulk', jest.fn(), COUNTRY_CODE);
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1860,9 +1918,9 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options or user to invite if there are no search results and the string does not match a potential email or phone', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
-            const filteredOptions = filterAndOrderOptions(options, 'marc@expensify', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, 'marc@expensify', jest.fn(), COUNTRY_CODE);
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1873,9 +1931,9 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options but should return an user to invite if no matching options exist and the search value is a potential email', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
-            const filteredOptions = filterAndOrderOptions(options, 'marc@expensify.com', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, 'marc@expensify.com', jest.fn(), COUNTRY_CODE);
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1886,9 +1944,9 @@ describe('OptionsListUtils', () => {
 
         it('should return user to invite when search term has a period with options for it that do not contain the period', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(options, 'peter.parker@expensify.com', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, 'peter.parker@expensify.com', jest.fn(), COUNTRY_CODE);
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1898,9 +1956,9 @@ describe('OptionsListUtils', () => {
 
         it('should return user which has displayName with accent mark when search value without accent mark', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
             // When we call filterAndOrderOptions with a search value without accent mark
-            const filteredOptions = filterAndOrderOptions(options, 'Timothee', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, 'Timothee', jest.fn(), COUNTRY_CODE);
 
             // Then one personalDetails with accent mark should be returned
             expect(filteredOptions.personalDetails.length).toBe(1);
@@ -1908,9 +1966,9 @@ describe('OptionsListUtils', () => {
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(options, '5005550006', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, '5005550006', jest.fn(), COUNTRY_CODE);
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1923,9 +1981,9 @@ describe('OptionsListUtils', () => {
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with country code added', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(options, '+15005550006', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, '+15005550006', jest.fn(), COUNTRY_CODE);
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1938,9 +1996,9 @@ describe('OptionsListUtils', () => {
 
         it('should not return options but should return an user to invite if no matching options exist and the search value is a potential phone number with special characters added', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(options, '+1 (800)324-3233', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, '+1 (800)324-3233', jest.fn(), COUNTRY_CODE);
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1953,9 +2011,9 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options or user to invite if contact number contains alphabet characters', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
-            const filteredOptions = filterAndOrderOptions(options, '998243aaaa', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, '998243aaaa', jest.fn(), COUNTRY_CODE);
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -1966,9 +2024,9 @@ describe('OptionsListUtils', () => {
 
         it('should not return any options if search value does not match any personal details', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
             // When we call filterAndOrderOptions with a search value that does not match any personal details
-            const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, 'magneto', jest.fn(), COUNTRY_CODE);
 
             // Then no personal details should be returned
             expect(filteredOptions.personalDetails.length).toBe(0);
@@ -1976,9 +2034,9 @@ describe('OptionsListUtils', () => {
 
         it('should return one recent report and no personal details if a search value provides an email', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
             // When we call filterAndOrderOptions with a search value that matches an email
-            const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', COUNTRY_CODE, undefined, {sortByReportTypeInSearch: true});
+            const filteredOptions = filterAndOrderOptions(options, 'peterparker@expensify.com', jest.fn(), COUNTRY_CODE, {sortByReportTypeInSearch: true});
 
             // Then one recent report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -1990,9 +2048,9 @@ describe('OptionsListUtils', () => {
 
         it('should return all matching reports and personal details', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined);
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn());
             // When we call filterAndOrderOptions with a search value that matches both reports and personal details and maxRecentReportsToShow param
-            const filteredOptions = filterAndOrderOptions(options, '.com', COUNTRY_CODE, undefined, {maxRecentReportsToShow: 5});
+            const filteredOptions = filterAndOrderOptions(options, '.com', jest.fn(), COUNTRY_CODE, {maxRecentReportsToShow: 5});
 
             // Then there should be 4 matching personal details
             expect(filteredOptions.personalDetails.length).toBe(5);
@@ -2007,9 +2065,9 @@ describe('OptionsListUtils', () => {
 
         it('should return matching option when searching (getSearchOptions)', () => {
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined, translate: jest.fn()});
             // When we call filterAndOrderOptions with a search value that matches a personal detail
-            const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, 'spider', jest.fn(), COUNTRY_CODE, undefined);
 
             // Then one personal detail should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -2019,9 +2077,9 @@ describe('OptionsListUtils', () => {
 
         it('should return latest lastVisibleActionCreated item on top when search value matches multiple items (getSearchOptions)', () => {
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined, translate: jest.fn()});
             // When we call filterAndOrderOptions with a search value that matches multiple items
-            const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, 'fantastic', jest.fn(), COUNTRY_CODE, undefined);
 
             // Then only three reports should be returned
             expect(filteredOptions.recentReports.length).toBe(3);
@@ -2034,11 +2092,11 @@ describe('OptionsListUtils', () => {
                 .then(() => Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS_WITH_PERIODS))
                 .then(() => {
                     // Given a set of options with periods
-                    const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, undefined, REPORTS) as OptionList;
+                    const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, undefined, jest.fn(), REPORTS) as OptionList;
                     // When we call getSearchOptions
-                    const results = getSearchOptions({options: OPTIONS_WITH_PERIODS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined});
+                    const results = getSearchOptions({options: OPTIONS_WITH_PERIODS, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined, translate: jest.fn()});
                     // When we pass the returned options to filterAndOrderOptions with a search value
-                    const filteredResults = filterAndOrderOptions(results, 'barry.allen@expensify.com', COUNTRY_CODE, undefined, {sortByReportTypeInSearch: true});
+                    const filteredResults = filterAndOrderOptions(results, 'barry.allen@expensify.com', jest.fn(), COUNTRY_CODE, {sortByReportTypeInSearch: true});
 
                     // Then only one report should be returned
                     expect(filteredResults.recentReports.length).toBe(1);
@@ -2054,9 +2112,9 @@ describe('OptionsListUtils', () => {
             OPTIONS.personalDetails = OPTIONS.personalDetails.flatMap((obj) => [obj, {...obj}]);
 
             // Given a set of options
-            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined});
+            const options = getSearchOptions({options: OPTIONS, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined, translate: jest.fn()});
             // When we call filterAndOrderOptions with a an empty search value
-            const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, '', jest.fn(), COUNTRY_CODE, undefined);
             const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
 
             // Then there should be 2 unique login entries
@@ -2067,12 +2125,19 @@ describe('OptionsListUtils', () => {
 
         it('should order self dm always on top if the search matches with the self dm login', () => {
             const searchTerm = 'tonystark@expensify.com';
-            const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, undefined, REPORTS_WITH_SELF_DM);
+            const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, undefined, jest.fn(), REPORTS_WITH_SELF_DM);
 
             // Given a set of options with self dm and all betas
-            const options = getSearchOptions({options: OPTIONS_WITH_SELF_DM, draftComments: {}, nvpDismissedProductTraining, betas: [CONST.BETAS.ALL], policyTags: undefined});
+            const options = getSearchOptions({
+                options: OPTIONS_WITH_SELF_DM,
+                draftComments: {},
+                nvpDismissedProductTraining,
+                betas: [CONST.BETAS.ALL],
+                policyTags: undefined,
+                translate: jest.fn(),
+            });
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchTerm, COUNTRY_CODE, undefined);
+            const filteredOptions = filterAndOrderOptions(options, searchTerm, jest.fn(), COUNTRY_CODE);
 
             // Then the self dm should be on top.
             expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
@@ -2119,7 +2184,7 @@ describe('OptionsListUtils', () => {
             renderLocaleContextProvider();
             // Given a set of reports and personal details
             // When we call createOptionList and extract the reports
-            const reports = createOptionList(PERSONAL_DETAILS, undefined, REPORTS).reports;
+            const reports = createOptionList(PERSONAL_DETAILS, undefined, jest.fn(), REPORTS).reports;
 
             // Then the returned reports should match the expected values
             expect(reports.at(10)?.subtitle).toBe(`Submits to Mister Fantastic`);
@@ -2130,7 +2195,7 @@ describe('OptionsListUtils', () => {
                     .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
                     .then(() => {
                         // When we call createOptionList again
-                        const newReports = createOptionList(PERSONAL_DETAILS, undefined, REPORTS).reports;
+                        const newReports = createOptionList(PERSONAL_DETAILS, undefined, jest.fn(), REPORTS).reports;
                         // Then the returned reports should change to Spanish
                         // cspell:disable-next-line
                         expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
@@ -2210,7 +2275,7 @@ describe('OptionsListUtils', () => {
                 },
             });
             // When we call createOptionList
-            const reports = createOptionList(PERSONAL_DETAILS, undefined, REPORTS).reports;
+            const reports = createOptionList(PERSONAL_DETAILS, undefined, jest.fn(), REPORTS).reports;
             const archivedReport = reports.find((report) => report.reportID === '10');
 
             // Then the returned report should contain default archived reason
@@ -2607,7 +2672,7 @@ describe('OptionsListUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
 
-            const result = createOption([1, 2], PERSONAL_DETAILS, report, CONST.POLICY.DEFAULT_TAG_LIST, {showChatPreviewLine: true});
+            const result = createOption([1, 2], PERSONAL_DETAILS, report, jest.fn(), CONST.POLICY.DEFAULT_TAG_LIST, {showChatPreviewLine: true});
 
             expect(result.alternateText).toBe('Iron Man owes ₫34');
         });
@@ -2664,7 +2729,7 @@ describe('OptionsListUtils', () => {
                     [iouAction.reportActionID]: iouAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined});
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined, translate: jest.fn()});
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, false, null, true, reportPreviewAction);
                 const expected = formatReportLastMessageText(Parser.htmlToText(reportPreviewMessage));
                 expect(lastMessage).toBe(expected);
@@ -2691,7 +2756,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [movedTransactionAction.reportActionID]: movedTransactionAction,
             });
-            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined});
+            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined, translate: jest.fn()});
             expect(lastMessage).toBe(Parser.htmlToText(getMovedTransactionMessage(movedTransactionAction)));
         });
         describe('SUBMITTED action', () => {
@@ -2709,7 +2774,7 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [submittedAction.reportActionID]: submittedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined});
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined, translate: jest.fn()});
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallySubmitted')));
             });
         });
@@ -2728,7 +2793,7 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [approvedAction.reportActionID]: approvedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined});
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined, translate: jest.fn()});
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyApproved')));
             });
         });
@@ -2747,7 +2812,7 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [forwardedAction.reportActionID]: forwardedAction,
                 });
-                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined});
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined, translate: jest.fn()});
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'iou.automaticallyForwarded')));
             });
         });
@@ -2763,7 +2828,7 @@ describe('OptionsListUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                     [corporateForceUpgradeAction.reportActionID]: corporateForceUpgradeAction,
                 });
-                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined});
+                const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined, translate: jest.fn()});
                 expect(lastMessage).toBe(Parser.htmlToText(translate(CONST.LOCALES.EN, 'workspaceActions.forcedCorporateUpgrade')));
             });
         });
@@ -2778,7 +2843,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [takeControlAction.reportActionID]: takeControlAction,
             });
-            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined});
+            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined, translate: jest.fn()});
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(takeControlAction)));
         });
         it('REROUTE action', async () => {
@@ -2792,7 +2857,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [rerouteAction.reportActionID]: rerouteAction,
             });
-            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined});
+            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined, translate: jest.fn()});
             expect(lastMessage).toBe(Parser.htmlToText(getChangedApproverActionMessage(rerouteAction)));
         });
         it('MOVED action', async () => {
@@ -2806,7 +2871,7 @@ describe('OptionsListUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
                 [movedAction.reportActionID]: movedAction,
             });
-            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined});
+            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined, translate: jest.fn()});
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
         });
         it('should return last visible message text when last action is hidden (e.g. whisper)', async () => {
@@ -2828,6 +2893,8 @@ describe('OptionsListUtils', () => {
                 report,
                 lastActorDetails: null,
                 isReportArchived: false,
+                translate: jest.fn(),
+                policyTags: {},
             });
             expect(result).toBe(expectedVisibleText);
         });

@@ -1,4 +1,5 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
@@ -194,6 +195,7 @@ type GetOptionsConfig = {
 
 type GetUserToInviteConfig = {
     searchValue: string | undefined;
+    translate: LocalizedTranslate;
     loginsToExclude?: Record<string, boolean>;
     reportActions?: ReportActions;
     firstName?: string;

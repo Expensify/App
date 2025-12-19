@@ -30,16 +30,16 @@ type UseContactImportResult = {
 function useContactImport(): UseContactImportResult {
     const [contactPermissionState, setContactPermissionState] = useState<PermissionStatus>(RESULTS.UNAVAILABLE);
     const [contacts, setContacts] = useState<Array<SearchOption<PersonalDetails>>>([]);
-    const {localeCompare} = useLocalize();
+    const {localeCompare, translate} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList, localeCompare, countryCode);
+            const usersFromContact = getContacts(contactList, localeCompare, countryCode, translate);
             setContacts(usersFromContact);
         });
-    }, [localeCompare, countryCode]);
+    }, [localeCompare, translate, countryCode]);
 
     useContactPermissions({
         importAndSaveContacts,

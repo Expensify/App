@@ -193,7 +193,7 @@ function IOURequestStepDistanceManual({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, reportAttributesDerived);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, translate, reportAttributesDerived);
                 });
                 if (shouldSkipConfirmation) {
                     setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
@@ -303,23 +303,24 @@ function IOURequestStepDistanceManual({
             transaction,
             reportID,
             policy,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+            currentUserPersonalDetails.accountID,
             shouldSkipConfirmation,
             personalDetails,
             policyTags,
-            reportAttributesDerived,
             translate,
-            currentUserEmailParam,
-            currentUserAccountIDParam,
+            reportAttributesDerived,
             lastSelectedDistanceRates,
             backToReport,
-            isASAPSubmitBetaEnabled,
+            transactionViolations,
+            quickAction,
+            policyRecentlyUsedCurrencies,
             customUnitRateID,
             navigateToConfirmationPage,
             defaultExpensePolicy,
             personalPolicy?.autoReporting,
-            transactionViolations,
-            currentUserPersonalDetails.accountID,
-            quickAction,
         ],
     );
 

@@ -199,6 +199,7 @@ function SearchAutocompleteList({
             return defaultListOptions;
         }
         return getSearchOptions({
+            translate,
             options,
             draftComments,
             nvpDismissedProductTraining,
@@ -215,7 +216,7 @@ function SearchAutocompleteList({
             policyTags,
             shouldUnreadBeBold: true,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, policyTags]);
+    }, [areOptionsInitialized, translate, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, policyTags]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -410,6 +411,7 @@ function SearchAutocompleteList({
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
                 const participants = getSearchOptions({
+                    translate,
                     options,
                     draftComments,
                     nvpDismissedProductTraining,
@@ -435,6 +437,7 @@ function SearchAutocompleteList({
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
                 const filteredReports = getSearchOptions({
+                    translate,
                     options,
                     draftComments,
                     nvpDismissedProductTraining,
@@ -607,6 +610,7 @@ function SearchAutocompleteList({
         currencyAutocompleteList,
         recentCurrencyAutocompleteList,
         taxAutocompleteList,
+        translate,
         options,
         draftComments,
         nvpDismissedProductTraining,

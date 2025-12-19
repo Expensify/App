@@ -66,6 +66,7 @@ function ShareTab({ref}: ShareTabProps) {
             return defaultListOptions;
         }
         return getSearchOptions({
+            translate,
             options,
             draftComments,
             nvpDismissedProductTraining,
@@ -78,7 +79,7 @@ function ShareTab({ref}: ShareTabProps) {
             countryCode,
             policyTags,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, policyTags]);
+    }, [areOptionsInitialized, translate, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, policyTags]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {

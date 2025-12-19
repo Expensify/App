@@ -156,7 +156,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     return undefined;
                 }
                 const reportPolicyTags = report.policyID ? policyTags?.[report.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
-                const option = createOptionFromReport(report, personalDetails, reportPolicyTags, undefined, {showPersonalDetails: true});
+                const option = createOptionFromReport(report, personalDetails, reportPolicyTags, translate, undefined, {showPersonalDetails: true});
                 reportForContextualSearch = option;
             }
 

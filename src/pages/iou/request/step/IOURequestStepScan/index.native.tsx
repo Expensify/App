@@ -420,7 +420,7 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, reportAttributesDerived);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, translate, reportAttributesDerived);
                 });
 
                 if (shouldSkipConfirmation) {
@@ -540,12 +540,14 @@ function IOURequestStepScan({
             shouldSkipConfirmation,
             personalDetails,
             policyTags,
+            translate,
             reportAttributesDerived,
             createTransaction,
             reportID,
             transactionTaxCode,
             transactionTaxAmount,
             quickAction,
+            policyRecentlyUsedCurrencies,
             policy,
             personalPolicy?.autoReporting,
             selfDMReportID,

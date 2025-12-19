@@ -63,8 +63,8 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
     const displayReport = useMemo(
-        () => getReportDisplayOption(report, unknownUserDetails, policyTags, reportAttributesDerived),
-        [report, unknownUserDetails, policyTags, reportAttributesDerived],
+        () => getReportDisplayOption(report, unknownUserDetails, policyTags, translate, reportAttributesDerived),
+        [report, unknownUserDetails, policyTags, translate, reportAttributesDerived],
     );
     const ancestors = useAncestors(report);
 

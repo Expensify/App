@@ -63,27 +63,27 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             const reportObj = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
             const reportPolicyTags = reportObj?.policyID ? policyTags?.[reportObj.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
             const report = getSelectedOptionData(
-                createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportPolicyTags, reportAttributesDerived),
+                createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportPolicyTags, translate, reportAttributesDerived),
             );
             const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-            const alternateText = getAlternateText(report, {}, reportPolicyTags, isReportArchived, {});
+            const alternateText = getAlternateText(report, {}, reportPolicyTags, translate, isReportArchived, {});
             return {...report, alternateText};
         });
-    }, [archivedReportsIdSet, personalDetails, reportAttributesDerived, reports, selectedReportIDs, policyTags]);
+    }, [selectedReportIDs, reports, policyTags, personalDetails, reportAttributesDerived, archivedReportsIdSet, translate]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return getSearchOptions({options, draftComments, nvpDismissedProductTraining, betas: undefined, policyTags, isUsedInChatFinder: false, countryCode});
-    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, policyTags, countryCode]);
+        return getSearchOptions({options, draftComments, nvpDismissedProductTraining, betas: undefined, policyTags, isUsedInChatFinder: false, countryCode, translate});
+    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, policyTags, countryCode, translate]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, undefined, {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, translate, countryCode, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         });
-    }, [defaultOptions, cleanSearchTerm, selectedOptions, countryCode]);
+    }, [defaultOptions, cleanSearchTerm, translate, countryCode, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -97,6 +97,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             chatOptions.recentReports,
             chatOptions.personalDetails,
             undefined,
+            translate,
             personalDetails,
             false,
             undefined,
