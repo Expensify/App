@@ -2223,7 +2223,6 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION: {
         route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/confirmation',
-
         getRoute: (params: WorkspaceCompanyCardsAssignCardParams, backTo?: string) =>
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             getUrlWithBackToParam(
