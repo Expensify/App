@@ -60,15 +60,17 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             return;
         }
 
-        const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
-        if (backTo ?? lastRoute?.name === SCREENS.WORKSPACE.COMPANY_CARDS) {
+        if (backTo) {
             Navigation.goBack(backTo);
+            clearAssignCardStepAndData();
         } else {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+            Navigation.dismissModal({
+                callback: () => {
+                    clearAssignCardStepAndData();
+                },
+            });
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard?.isAssigned, backTo, policyID, currentFullScreenRoute?.state?.routes]);
+    }, [assignCard?.isAssigned, backTo, policyID]);
 
     const submit = () => {
         if (!policyID) {
@@ -87,18 +89,33 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     },
                 });
             }
-            setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
+            // For expired feeds, navigate to the old ASSIGN_CARD route which handles these special cases
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed, cardID}));
             return;
         }
         assignWorkspaceCompanyCard(policy, {...data, bankName});
     };
 
-    const editStep = (step: AssignCardStep) => {
-        setAssignCardStepAndData({currentStep: step, isEditing: true});
+    const editStep = (step: string) => {
+        setAssignCardStepAndData({isEditing: true});
+
+        const routeParams = {policyID, feed, cardID};
+
+        switch (step) {
+            case CONST.COMPANY_CARD.STEP.ASSIGNEE:
+                Navigation.goBack();
+                break;
+            case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute(routeParams));
+                break;
+            case CONST.COMPANY_CARD.STEP.CARD_NAME:
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_NAME.getRoute(routeParams));
+                break;
+        }
     };
 
     const handleBackButtonPress = () => {
-        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
+        Navigation.goBack();
     };
 
     return (
