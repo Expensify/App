@@ -40,6 +40,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
     const handleBackButtonPress = () => {
         clearInviteDraft(policyID);
         setAssignCardStepAndData({
+            currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
             data: {
                 ...assignCard?.data,
                 invitingMemberEmail: undefined,
@@ -47,7 +48,6 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             },
             isEditing: false,
         });
-        Navigation.goBack();
     };
 
     const goToNextStep = useCallback(() => {
@@ -57,20 +57,15 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             invitingMemberEmail: '',
         };
 
-        const routeParams = {policyID, feed, cardID};
-
         if (assignCard?.data?.encryptedCardNumber) {
             data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
             data.cardNumber = assignCard.data.cardNumber;
             data.startDate = assignCard?.data?.startDate ?? new Date().toISOString().split('T')[0];
             data.dateOption = assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
             setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 data,
                 isEditing: false,
-            });
-            Navigation.goBack();
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams));
             });
         } else if (hasOnlyOneCardToAssign(filteredCardList)) {
             data.cardNumber = Object.keys(filteredCardList).at(0);
@@ -78,21 +73,18 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             data.startDate = assignCard?.data?.startDate ?? new Date().toISOString().split('T')[0];
             data.dateOption = assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
             setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 data,
                 isEditing: false,
-            });
-            Navigation.goBack();
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams));
             });
         } else {
             setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.CARD,
                 data,
                 isEditing: false,
             });
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
         }
-    }, [isEditing, assignCard?.data, filteredCardList, policyID, feed, cardID]);
+    }, [isEditing, assignCard?.data, filteredCardList]);
 
     // If the currently inviting member is already a member of the policy then we should just call goToNextStep
     // See https://github.com/Expensify/App/issues/74256 for more details

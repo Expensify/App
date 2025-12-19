@@ -241,7 +241,7 @@ function WorkspaceInviteMessageComponent({
                                   description={translate('common.member')}
                                   shouldShowRightIcon
                                   onPress={() => {
-                                      Navigation.goBack(backTo);
+                                      Navigation.goBack();
                                   }}
                               />
                           )}
