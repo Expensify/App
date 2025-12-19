@@ -3880,7 +3880,6 @@ ${
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card の取引は、<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">当社のインテグレーション</a>によって作成される「Expensify Card 負債勘定」に自動的にエクスポートされます。</muted-text-label>`,
         },
         receiptPartners: {
-            connect: '今すぐ接続',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `${organizationName} に接続しました` : '組織全体の出張およびフードデリバリー経費を自動化します。',
@@ -3907,8 +3906,6 @@ ${
                 invitationFailure: 'Uber for Business へのメンバー招待に失敗しました',
                 autoInvite: 'Uber for Business に新しいワークスペースメンバーを招待',
                 autoRemove: 'Uber for Business から削除されたワークスペースメンバーを無効化する',
-                bannerTitle: 'Expensify + Uber for Business',
-                bannerDescription: 'Uber for Business を接続して、組織全体の出張および食事配達の経費を自動化しましょう。',
                 emptyContent: {
                     title: '未処理の招待はありません',
                     subtitle: 'やった！あちこち探しましたが、未処理の招待は見つかりませんでした。',

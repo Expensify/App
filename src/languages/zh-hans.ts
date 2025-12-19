@@ -3828,7 +3828,6 @@ ${
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card 交易将通过<a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">我们的集成</a>自动导出到使用其创建的“Expensify Card Liability Account”。</muted-text-label>`,
         },
         receiptPartners: {
-            connect: '立即连接',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) => (organizationName ? `已连接到 ${organizationName}` : '在整个组织内自动处理出行和餐饮配送报销。'),
                 sendInvites: '发送邀请',
@@ -3854,8 +3853,6 @@ ${
                 invitationFailure: '无法邀请成员加入 Uber for Business',
                 autoInvite: '邀请新的工作区成员加入 Uber for Business',
                 autoRemove: '在 Uber for Business 中停用已移除的工作区成员',
-                bannerTitle: 'Expensify + Uber 企业版',
-                bannerDescription: '连接 Uber for Business，在整个组织内自动化处理差旅和餐饮配送报销费用。',
                 emptyContent: {
                     title: '没有未处理的邀请',
                     subtitle: '万岁！我们到处都找过了，也没发现任何未处理的邀请。',

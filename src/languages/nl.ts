@@ -3888,7 +3888,6 @@ ${
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card-transacties worden automatisch geëxporteerd naar een “Expensify Card Liability Account” dat is aangemaakt met <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
         },
         receiptPartners: {
-            connect: 'Nu verbinden',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Verbonden met ${organizationName}` : 'Automatiseer reis- en maaltijdbezorgingskosten in uw hele organisatie.',
@@ -3915,8 +3914,6 @@ ${
                 invitationFailure: 'Uitnodigen van lid voor Uber for Business mislukt',
                 autoInvite: 'Nieuwe werkruimteleden uitnodigen voor Uber for Business',
                 autoRemove: 'Deactiveer verwijderde werkruimteleden in Uber for Business',
-                bannerTitle: 'Expensify + Uber for Business',
-                bannerDescription: 'Verbind Uber for Business om reis- en maaltijdbezorgingskosten in je hele organisatie te automatiseren.',
                 emptyContent: {
                     title: 'Geen openstaande uitnodigingen',
                     subtitle: 'Hoera! We hebben hoog en laag gezocht en konden geen openstaande uitnodigingen vinden.',
