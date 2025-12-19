@@ -66,6 +66,11 @@ const restrictedImportPaths = [
         message: "Please use 'ViewStyle', 'TextStyle', 'ImageStyle' from 'react-native' instead.",
     },
     {
+        name: 'react',
+        importNames: ['forwardRef'],
+        message: "forwardRef is deprecated. Please use alternative patterns instead.",
+    },
+    {
         name: '@styles/index',
         importNames: ['default', 'defaultStyles'],
         message: 'Do not import styles directly. Please use the `useThemeStyles` hook instead.',
