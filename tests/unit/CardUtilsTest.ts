@@ -27,6 +27,8 @@ import {
     getFilteredCardList,
     getMonthFromExpirationDateString,
     getOriginalCompanyFeeds,
+    getPlaidInstitutionIconUrl,
+    getPlaidInstitutionId,
     getSelectedFeed,
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
@@ -1338,6 +1340,40 @@ describe('CardUtils', () => {
             const domainID = 11111111;
             const combinedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
             expect(combinedKey).toBe(`${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`);
+        });
+    });
+
+    describe('getPlaidInstitutionId', () => {
+        it('should return institution ID from plaid feed name without domain ID', () => {
+            const feedName = 'plaid.ins_123456';
+            const institutionId = getPlaidInstitutionId(feedName);
+            expect(institutionId).toBe('ins_123456');
+        });
+
+        it('should return institution ID from plaid feed name with domain ID', () => {
+            const feedName = 'plaid.ins_129663#12345';
+            const institutionId = getPlaidInstitutionId(feedName);
+            expect(institutionId).toBe('ins_129663');
+        });
+
+        it('should return empty string for non-plaid feed', () => {
+            const feedName = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const institutionId = getPlaidInstitutionId(feedName);
+            expect(institutionId).toBe('');
+        });
+    });
+
+    describe('getPlaidInstitutionIconUrl', () => {
+        it('should return correct icon URL for plaid feed without domain ID', () => {
+            const feedName = 'plaid.ins_123456';
+            const iconUrl = getPlaidInstitutionIconUrl(feedName);
+            expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_123456.png`);
+        });
+
+        it('should return correct icon URL for plaid feed with domain ID', () => {
+            const feedName = 'plaid.ins_129663#12345';
+            const iconUrl = getPlaidInstitutionIconUrl(feedName);
+            expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_129663.png`);
         });
     });
 });

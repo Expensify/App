@@ -1940,6 +1940,28 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite).toBe(null);
         });
 
+        it('should not return userToInvite for plain text name when shouldAcceptName is false', () => {
+            // Given a set of options
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, {includeUserToInvite: true});
+
+            // When we call filterAndOrderOptions with a plain text name (not email or phone) without shouldAcceptName
+            const filteredOptions = filterAndOrderOptions(options, 'Jeff Amazon', COUNTRY_CODE, {shouldAcceptName: false});
+
+            // Then userToInvite should be null since plain names are not accepted by default
+            expect(filteredOptions?.userToInvite).toBe(null);
+        });
+
+        it('should return userToInvite for plain text name when shouldAcceptName is true', () => {
+            // Given a set of options
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, {includeUserToInvite: true});
+
+            // When we call filterAndOrderOptions with a plain text name (not email or phone) with shouldAcceptName
+            const filteredOptions = filterAndOrderOptions(options, 'Jeff', COUNTRY_CODE, {shouldAcceptName: true});
+
+            // Then userToInvite should be returned for the plain name
+            expect(filteredOptions?.userToInvite?.text).toBe('jeff');
+        });
+
         it('should not return any options if search value does not match any personal details', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining);
