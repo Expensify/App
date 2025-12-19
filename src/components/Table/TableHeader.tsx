@@ -126,11 +126,7 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
             <Text
                 numberOfLines={1}
                 color={theme.textSupporting}
-                style={[
-                    styles.lh16,
-                    isSortingByColumn ? styles.textMicroBoldSupporting : [styles.textMicroSupporting, styles.pr1, {marginRight: variables.iconSizeExtraSmall, marginBottom: 1, marginTop: 1}],
-                    column.styling?.labelStyles,
-                ]}
+                style={[styles.lh16, isSortingByColumn ? styles.textMicroBoldSupporting : [styles.textMicroSupporting, styles.pr1, styles.tableHeaderIconSpacing]]}
             >
                 {column.label}
             </Text>
