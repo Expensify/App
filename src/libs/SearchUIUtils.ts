@@ -1,6 +1,7 @@
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
@@ -118,6 +119,7 @@ import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
     getCategory,
     getDescription,
+    getExchangeRate,
     getTag,
     getTaxAmount,
     getAmount as getTransactionAmount,
@@ -309,7 +311,7 @@ type SearchTypeMenuItem = {
     key: SearchKey;
     translationPath: TranslationPaths;
     type: SearchDataTypes;
-    icon?: IconAsset;
+    icon?: IconAsset | Extract<ExpensifyIconName, 'Receipt' | 'ChatBubbles' | 'MoneyBag' | 'CreditCard' | 'MoneyHourglass' | 'CreditCardHourglass' | 'Bank'>;
     searchQuery: string;
     searchQueryJSON: SearchQueryJSON | undefined;
     hash: number;
@@ -372,7 +374,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
             translationPath: 'common.expenses',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Receipt,
+            icon: 'Receipt',
             searchQuery: buildCannedSearchQuery(),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
@@ -404,7 +406,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.CHATS,
             translationPath: 'common.chats',
             type: CONST.SEARCH.DATA_TYPES.CHAT,
-            icon: Expensicons.ChatBubbles,
+            icon: 'ChatBubbles',
             searchQuery: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT}),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
@@ -460,7 +462,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.PAY,
             translationPath: 'search.bulkActions.pay',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
-            icon: Expensicons.MoneyBag,
+            icon: 'MoneyBag',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                 action: CONST.SEARCH.ACTION_FILTERS.PAY,
@@ -502,7 +504,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.STATEMENTS,
             translationPath: 'search.statements',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.CreditCard,
+            icon: 'CreditCard',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
@@ -523,7 +525,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH,
             translationPath: 'search.unapprovedCash',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.MoneyHourglass,
+            icon: 'MoneyHourglass',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 status: [CONST.SEARCH.STATUS.EXPENSE.DRAFTS, CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
@@ -544,7 +546,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD,
             translationPath: 'search.unapprovedCard',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.CreditCardHourglass,
+            icon: 'CreditCardHourglass',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 feed: defaultFeedID ? [defaultFeedID] : [''],
@@ -565,7 +567,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.RECONCILIATION,
             translationPath: 'search.reconciliation',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Bank,
+            icon: 'Bank',
             searchQuery: buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 withdrawalType: CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT,
@@ -1088,16 +1090,10 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Tra
     const formattedAmount = convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAID) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerPaidAmount', {
-            payer: payerName,
-            amount: formattedAmount,
-        });
+        return translateLocal('iou.payerPaidAmount', formattedAmount, payerName);
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.payerOwesAmount', {
-        payer: payerName,
-        amount: formattedAmount,
-    });
+    return translateLocal('iou.payerOwesAmount', formattedAmount, payerName);
 }
 
 function getTransactionViolations(
@@ -2181,6 +2177,14 @@ function getSortedTransactionData(
         });
     }
 
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO) {
+        return data.sort((a, b) => {
+            const aValue = `${!!a.exported}`;
+            const bValue = `${!!b.exported}`;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
     const sortingProperty = transactionColumnNamesToSortingProperty[sortBy];
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME) {
@@ -2218,6 +2222,14 @@ function getSortedTransactionData(
             const aValue = getReportStatusTranslation({stateNum: aReport?.stateNum, statusNum: aReport?.statusNum, translate});
             const bValue = getReportStatusTranslation({stateNum: bReport?.stateNum, statusNum: bReport?.statusNum, translate});
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE) {
+        return data.sort((a, b) => {
+            const aExchangeRate = getExchangeRate(a);
+            const bExchangeRate = getExchangeRate(b);
+            return compareValues(aExchangeRate, bExchangeRate, sortOrder, sortBy, localeCompare, true);
         });
     }
 
@@ -2337,6 +2349,14 @@ function getSortedReportData(
             const aValue = a.reportID;
             const bValue = b.reportID;
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
+        });
+    }
+
+    if (sortBy === CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO) {
+        return data.sort((a, b) => {
+            const aValue = `${!!a.exported}`;
+            const bValue = `${!!b.exported}`;
+            return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }
 
@@ -2546,6 +2566,8 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
             return 'common.title';
         case CONST.SEARCH.TABLE_COLUMNS.STATUS:
             return 'common.status';
+        case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
+            return 'common.exchangeRate';
         case CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME:
             return 'workspace.common.workspace';
         case CONST.SEARCH.TABLE_COLUMNS.CARD:
@@ -2559,9 +2581,15 @@ function getSearchColumnTranslationKey(columnId: SearchCustomColumnIds): Transla
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
             return 'iou.taxRate';
         case CONST.SEARCH.TABLE_COLUMNS.REPORT_ID:
-            return 'common.longID';
+            return 'common.longReportID';
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT:
+            return 'iou.amount';
+        case CONST.SEARCH.TABLE_COLUMNS.TOTAL:
+            return 'common.total';
         case CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID:
             return 'common.reportID';
+        case CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO:
+            return 'search.exportedTo';
     }
 }
 
@@ -2930,6 +2958,7 @@ function getActionOptions(translate: LocaleContextProps['translate']) {
 /**
  * Determines what columns to show based on available data
  * @param isExpenseReportView: true when we are inside an expense report view, false if we're in the Reports page.
+ * @returns An ordered array of visible column IDs
  */
 function getColumnsToShow(
     currentAccountID: number | undefined,
@@ -2938,102 +2967,79 @@ function getColumnsToShow(
     isExpenseReportView = false,
     type?: SearchDataTypes,
     groupBy?: SearchGroupBy,
-): ColumnVisibility {
+): SearchColumnType[] {
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
-        const reportColumns: ColumnVisibility = {
-            [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-        };
+        const defaultReportColumns: SearchColumnType[] = [
+            CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.STATUS,
+            CONST.SEARCH.TABLE_COLUMNS.TITLE,
+            CONST.SEARCH.TABLE_COLUMNS.FROM,
+            CONST.SEARCH.TABLE_COLUMNS.TO,
+            CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        ];
 
         // If there are no visible columns, everything should be visible
         const filteredVisibleColumns = visibleColumns.filter((column) =>
             Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT>),
         );
         if (!filteredVisibleColumns.length) {
-            return reportColumns;
+            return defaultReportColumns;
         }
 
-        // If the user has set custom columns, toggle the visible columns on, with all other
-        // columns hidden by default
-        const columns: ColumnVisibility = {};
-        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
-        const columnsToShow = visibleColumns.length ? visibleColumns : CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT;
+        // If the user has set custom columns, use their order then add required columns
+        const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+        const result: SearchColumnType[] = [];
 
-        for (const columnId of Object.keys(reportColumns) as SearchColumnType[]) {
-            columns[columnId] = requiredColumns.has(columnId);
+        for (const col of requiredColumns) {
+            if (!visibleColumns.includes(col as SearchCustomColumnIds)) {
+                result.push(col);
+            }
         }
 
-        for (const column of columnsToShow) {
-            columns[column as keyof ColumnVisibility] = true;
+        for (const col of visibleColumns) {
+            result.push(col);
         }
 
-        return columns;
+        return result;
     }
 
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return {
-            [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.IN]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-            [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.MERCHANT]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.CATEGORY]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TAG]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.TYPE]: false,
-            [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: false,
-        };
+        return [
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.TITLE,
+            CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+            CONST.SEARCH.TABLE_COLUMNS.FROM,
+            CONST.SEARCH.TABLE_COLUMNS.IN,
+            CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE,
+            CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        ];
     }
 
     if (!isExpenseReportView && groupBy) {
         switch (groupBy) {
             case CONST.SEARCH.GROUP_BY.FROM:
-                return {
-                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-                };
+                return [CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.FROM, CONST.SEARCH.TABLE_COLUMNS.EXPENSES, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
             case CONST.SEARCH.GROUP_BY.CARD:
-                return {
-                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.CARD]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.FEED]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-                };
+                return [
+                    CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    CONST.SEARCH.TABLE_COLUMNS.CARD,
+                    CONST.SEARCH.TABLE_COLUMNS.FEED,
+                    CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
+                    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+                ];
             case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-                return {
-                    [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.EXPENSES]: true,
-                    [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-                };
+                return [
+                    CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT,
+                    CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN,
+                    CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+                    CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
+                    CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+                ];
             default:
-                return {};
+                return [];
         }
     }
 
@@ -3069,14 +3075,35 @@ function getColumnsToShow(
               [CONST.SEARCH.TABLE_COLUMNS.BILLABLE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE]: false,
               [CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT]: false,
-              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
               [CONST.SEARCH.TABLE_COLUMNS.TITLE]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: false,
               [CONST.SEARCH.TABLE_COLUMNS.STATUS]: false,
+              [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: true,
               [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
           };
+
+    // If the user has set custom columns for the search, we need to respect their preference and order
+    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), visibleColumns) && visibleColumns.length > 0) {
+        const requiredColumns = new Set<SearchColumnType>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
+        const result: SearchColumnType[] = [];
+
+        // Add required columns that aren't in visibleColumns at the start
+        for (const col of requiredColumns) {
+            if (!visibleColumns.includes(col as SearchCustomColumnIds)) {
+                result.push(col);
+            }
+        }
+
+        for (const col of visibleColumns) {
+            result.push(col);
+        }
+
+        return result;
+    }
 
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
 
@@ -3125,21 +3152,6 @@ function getColumnsToShow(
         }
     };
 
-    // If the user has set custom columns for the search, we need to respect their preference, and only show
-    // them what they want to see
-    const filteredVisibleColumns = visibleColumns.filter((column) =>
-        Object.values(CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE).includes(column as ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE>),
-    );
-    if (!arraysEqual(Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE), filteredVisibleColumns) && filteredVisibleColumns.length > 0) {
-        const requiredColumns = new Set<keyof ColumnVisibility>([CONST.SEARCH.TABLE_COLUMNS.AVATAR, CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TYPE]);
-
-        for (const column of Object.keys(columns) as SearchCustomColumnIds[]) {
-            columns[column] = visibleColumns.includes(column) || requiredColumns.has(column);
-        }
-
-        return columns;
-    }
-
     if (Array.isArray(data)) {
         for (const item of data) {
             updateColumns(item);
@@ -3153,7 +3165,7 @@ function getColumnsToShow(
         }
     }
 
-    return columns;
+    return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
 }
 
 /**

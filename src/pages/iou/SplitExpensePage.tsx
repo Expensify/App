@@ -45,7 +45,6 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import type {TransactionDetails} from '@libs/ReportUtils';
 import {getReportOrDraftReport, getTransactionDetails, isReportApproved, isSettled as isSettledReportUtils} from '@libs/ReportUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -62,7 +61,6 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'MoneyCircle', 'Percent', 'Plus', 'CalendarSolid'] as const);
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -100,12 +98,12 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const isSplitAvailable = report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, currentPolicy);
 
-    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    const transactionDetails = getTransactionDetails(transaction, undefined, currentPolicy);
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction?.comment?.splitExpenses]);
     const splitExpenses = useMemo(() => draftTransaction?.comment?.splitExpenses ?? [], [draftTransaction?.comment?.splitExpenses]);
 
-    const currencySymbol = currencyList?.[transactionDetails.currency ?? '']?.symbol ?? transactionDetails.currency ?? CONST.CURRENCY.USD;
+    const currencySymbol = currencyList?.[transactionDetails?.currency ?? '']?.symbol ?? transactionDetails?.currency ?? CONST.CURRENCY.USD;
 
     const isPerDiem = isPerDiemRequest(transaction);
     const isCard = isManagedCardTransaction(transaction);
@@ -120,6 +118,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
 
     const {isBetaEnabled} = usePermissions();
 
@@ -335,38 +334,38 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 <MenuItem
                     onPress={onAddSplitExpense}
                     title={translate('iou.addSplit')}
-                    icon={expensifyIcons.Plus}
+                    icon={icons.Plus}
                     style={[styles.ph4]}
                 />
                 {isInitialSplit && (
                     <MenuItem
                         onPress={onMakeSplitsEven}
                         title={translate('iou.makeSplitsEven')}
-                        icon={expensifyIcons.ArrowsLeftRight}
+                        icon={icons.ArrowsLeftRight}
                         style={[styles.ph4]}
                     />
                 )}
             </View>
         );
     }, [
-        onAddSplitExpense,
-        onMakeSplitsEven,
-        translate,
-        isInitialSplit,
-        shouldUseNarrowLayout,
         styles.w100,
-        styles.ph4,
         styles.flexColumn,
         styles.mt1,
         styles.mb3,
-        expensifyIcons.ArrowsLeftRight,
-        expensifyIcons.Plus,
+        styles.ph4,
+        shouldUseNarrowLayout,
+        onAddSplitExpense,
+        translate,
+        icons.Plus,
+        icons.ArrowsLeftRight,
+        isInitialSplit,
+        onMakeSplitsEven,
     ]);
 
     const footerContent = useMemo(() => {
         const shouldShowWarningMessage = sumOfSplitExpenses < transactionDetailsAmount;
         const warningMessage = shouldShowWarningMessage
-            ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails.currency)})
+            ? translate('iou.totalAmountLessThanOriginal', {amount: convertToDisplayString(transactionDetailsAmount - sumOfSplitExpenses, transactionDetails?.currency)})
             : '';
         return (
             <View style={[styles.ph5, styles.pb5]}>
@@ -389,7 +388,19 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             </View>
         );
-    }, [sumOfSplitExpenses, transactionDetailsAmount, translate, transactionDetails.currency, errorMessage, styles.ph1, styles.mb2, styles.w100, styles.ph5, styles.pb5, onSaveSplitExpense]);
+    }, [
+        sumOfSplitExpenses,
+        transactionDetailsAmount,
+        translate,
+        transactionDetails?.currency,
+        errorMessage,
+        styles.ph1,
+        styles.mb2,
+        styles.w100,
+        styles.ph5,
+        styles.pb5,
+        onSaveSplitExpense,
+    ]);
 
     const splitDatesTitle = useMemo(() => {
         const startDate = draftTransaction?.comment?.splitsStartDate;

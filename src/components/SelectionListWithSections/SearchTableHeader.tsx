@@ -115,6 +115,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canBeMissing: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
+        translationKey: 'common.exchangeRate',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
         translationKey: 'common.originalAmount',
     },
@@ -132,7 +136,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
-        translationKey: 'common.longID',
+        translationKey: 'common.longReportID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
@@ -143,6 +147,11 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
         translationKey: 'common.status',
         canBeMissing: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
+        translationKey: 'search.exportedTo',
+        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -182,6 +191,11 @@ const taskHeaders: SearchColumnConfig[] = [
         columnName: CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE,
         translationKey: 'common.assignee',
         canBeMissing: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
+        translationKey: 'search.exportedTo',
+        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -252,7 +266,12 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
-        translationKey: 'common.longID',
+        translationKey: 'common.longReportID',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
+        translationKey: 'search.exportedTo',
+        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -422,17 +441,47 @@ function SearchTableHeader({
 
     const columnConfig = useMemo(() => getSearchColumns(type, icons, groupBy, isExpenseReportView), [type, groupBy, icons, isExpenseReportView]);
 
+    const orderedColumnConfig = useMemo(() => {
+        if (!columnConfig) {
+            return null;
+        }
+
+        const configMap = new Map(columnConfig.map((config) => [config.columnName, config]));
+
+        // Users can customize column order via the Search Columns page.
+        // We respect their preferred order by placing user-selected columns first,
+        // then appending any remaining columns (which will be filtered out by shouldShowColumn).
+        const orderedConfig: SearchColumnConfig[] = [];
+        const addedColumns = new Set<SearchColumnType>();
+
+        for (const col of columns) {
+            const config = configMap.get(col);
+            if (config) {
+                orderedConfig.push(config);
+                addedColumns.add(col);
+            }
+        }
+
+        for (const config of columnConfig) {
+            if (!addedColumns.has(config.columnName)) {
+                orderedConfig.push(config);
+            }
+        }
+
+        return orderedConfig;
+    }, [columnConfig, columns]);
+
     if (displayNarrowVersion) {
         return;
     }
 
-    if (!columnConfig) {
+    if (!orderedColumnConfig) {
         return;
     }
 
     return (
         <SortableTableHeader
-            columns={columnConfig}
+            columns={orderedColumnConfig}
             areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
             shouldShowColumn={shouldShowColumn}
             dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
