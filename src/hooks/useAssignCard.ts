@@ -1,4 +1,4 @@
-import {useContext} from 'react';
+import {useContext, useRef} from 'react';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import {importPlaidAccounts} from '@libs/actions/Plaid';
 import {
@@ -142,6 +142,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const bankName = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
     const isFeedExpired = isSelectedFeedExpired(feedData);
     const plaidAccessToken = feedData?.plaidAccessToken;
+    const hasImportedPlaidAccounts = useRef(false);
 
     const getInitialAssignCardStep = (cardID: string | undefined): {initialStep: AssignCardStep; cardToAssign: Partial<AssignCardData>} | undefined => {
         if (!selectedFeed) {
@@ -155,9 +156,10 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
         };
 
         // Refetch plaid card list
-        if (!isFeedExpired && plaidAccessToken) {
+        if (!isFeedExpired && plaidAccessToken && !hasImportedPlaidAccounts.current) {
             const country = feedData?.country ?? '';
             importPlaidAccounts('', selectedFeed, '', country, getDomainNameForPolicy(policyID), '', undefined, undefined, plaidAccessToken);
+            hasImportedPlaidAccounts.current = true;
         }
 
         if (isFeedExpired || !cardID) {
