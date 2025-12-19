@@ -27,6 +27,7 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CombinedCardFeed} from './useCardFeeds';
 import useCardFeeds from './useCardFeeds';
 import useCardsList from './useCardsList';
+import usePolicy from './usePolicy';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -43,7 +44,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = selectedFeed ? companyFeeds?.[selectedFeed] : ({} as CombinedCardFeed);
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [workspaceCardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
