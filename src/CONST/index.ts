@@ -6810,6 +6810,7 @@ const CONST = {
                 COMPLETED: 'completed',
             },
         },
+        GROUP_COLUMN_PREFIX: 'group',
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
