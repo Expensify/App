@@ -109,10 +109,8 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             wrapperID="InviteNewMemberStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            headerTitle={translate('workspace.card.issueCard')}
+            headerTitle={translate('workspace.companyCards.assignCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={0}
-            stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <WorkspaceInviteMessageComponent
