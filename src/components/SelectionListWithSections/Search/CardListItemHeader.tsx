@@ -14,7 +14,7 @@ import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
-import ExpensesCell from './ExpensesCell';
+import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
 type CardListItemHeaderProps<TItem extends ListItem> = {
@@ -126,7 +126,7 @@ function CardListItemHeader<TItem extends ListItem>({
                                 />
                             </View>
                             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
-                                <ExpensesCell count={cardItem.count} />
+                                <TextCell text={String(cardItem.count)} />
                             </View>
                             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}>
                                 <TotalCell

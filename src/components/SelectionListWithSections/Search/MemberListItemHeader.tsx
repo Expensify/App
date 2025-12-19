@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
-import ExpensesCell from './ExpensesCell';
+import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
 type MemberListItemHeaderProps<TItem extends ListItem> = {
@@ -123,7 +123,7 @@ function MemberListItemHeader<TItem extends ListItem>({
                                 </View>
                             </View>
                             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
-                                <ExpensesCell count={memberItem.count} />
+                                <TextCell text={String(memberItem.count)} />
                             </View>
                             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}>
                                 <TotalCell

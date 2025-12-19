@@ -20,7 +20,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
-import ExpensesCell from './ExpensesCell';
+import TextCell from './TextCell';
 import TotalCell from './TotalCell';
 
 type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
@@ -157,7 +157,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                 />
                             </View>
                             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
-                                <ExpensesCell count={withdrawalIDItem.count} />
+                                <TextCell text={String(withdrawalIDItem.count)} />
                             </View>
                             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}>
                                 <TotalCell
