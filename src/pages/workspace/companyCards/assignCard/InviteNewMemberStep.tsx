@@ -58,6 +58,8 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             invitingMemberEmail: '',
         };
 
+        const routeParams = {policyID, feed, cardID};
+
         if (assignCard?.data?.encryptedCardNumber) {
             data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
             data.cardNumber = assignCard.data.cardNumber;
@@ -68,6 +70,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
                 data,
                 isEditing: false,
             });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams));
         } else if (hasOnlyOneCardToAssign(filteredCardList)) {
             data.cardNumber = Object.keys(filteredCardList).at(0);
             data.encryptedCardNumber = Object.values(filteredCardList).at(0);
@@ -78,14 +81,16 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
                 data,
                 isEditing: false,
             });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams));
         } else {
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CARD,
                 data,
                 isEditing: false,
             });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
         }
-    }, [isEditing, assignCard?.data, filteredCardList]);
+    }, [isEditing, assignCard?.data, filteredCardList, policyID, feed, cardID]);
 
     // If the currently inviting member is already a member of the policy then we should just call goToNextStep
     // See https://github.com/Expensify/App/issues/74256 for more details
