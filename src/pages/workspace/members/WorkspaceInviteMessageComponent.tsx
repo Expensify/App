@@ -185,6 +185,19 @@ function WorkspaceInviteMessageComponent({
     const invitingMemberDetails = getPersonalDetailByEmail(invitingMemberEmail);
     const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
 
+    const handleMemberPress = () => {
+        clearInviteDraft(policyID);
+        setAssignCardStepAndData({
+            currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+            data: {
+                ...assignCard?.data,
+                invitingMemberEmail: undefined,
+                invitingMemberAccountID: undefined,
+            },
+            isEditing: false,
+        });
+    };
+
     useEffect(() => {
         return () => {
             clearWorkspaceInviteRoleDraft(policyID);
@@ -243,18 +256,7 @@ function WorkspaceInviteMessageComponent({
                                   title={invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : invitingMemberEmail}
                                   description={translate('common.member')}
                                   shouldShowRightIcon
-                                  onPress={() => {
-                                      clearInviteDraft(policyID);
-                                      setAssignCardStepAndData({
-                                          currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                                          data: {
-                                              ...assignCard?.data,
-                                              invitingMemberEmail: undefined,
-                                              invitingMemberAccountID: undefined,
-                                          },
-                                          isEditing: false,
-                                      });
-                                  }}
+                                  onPress={handleMemberPress}
                               />
                           )}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (
