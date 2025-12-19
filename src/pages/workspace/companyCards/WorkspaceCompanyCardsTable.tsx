@@ -67,6 +67,25 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
 
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
+    const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
+        {
+            key: 'member',
+            label: translate('common.member'),
+        },
+        {
+            key: 'card',
+            label: translate('workspace.companyCards.card'),
+        },
+        {
+            key: 'customCardName',
+            label: translate('workspace.companyCards.cardName'),
+            styling: {
+                containerStyles: [styles.justifyContentEnd],
+                labelStyles: [styles.textAlignRight, styles.pr7],
+            },
+        },
+    ];
+
     const data: WorkspaceCompanyCardTableItemData[] =
         cards?.map((cardName) => {
             const assignedCardPredicate = (card: Card) => (isPlaidCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
@@ -95,6 +114,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
             shouldUseNarrowTableRowLayout={shouldShowNarrowLayout}
+            columnCount={columns.length}
         />
     );
 
@@ -181,24 +201,6 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
             default: 'all',
         },
     };
-
-    const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
-        {
-            key: 'member',
-            label: translate('common.member'),
-        },
-        {
-            key: 'card',
-            label: translate('workspace.companyCards.card'),
-        },
-        {
-            key: 'customCardName',
-            label: translate('workspace.companyCards.cardName'),
-            styling: {
-                labelStyles: [styles.textAlignRight, styles.pr7],
-            },
-        },
-    ];
 
     const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
     const isNarrowLayoutRef = useRef(shouldShowNarrowLayout);

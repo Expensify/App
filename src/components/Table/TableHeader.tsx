@@ -51,7 +51,20 @@ function TableHeader<T, ColumnKey extends string = string>({style, ...props}: Ta
 
     return (
         <View
-            style={[styles.flexRow, styles.appBG, styles.justifyContentBetween, styles.mh5, styles.gap5, styles.p4, style]}
+            style={[
+                styles.appBG,
+                styles.mh5,
+                styles.p4,
+                // Flexbox fallback for browsers / native devices wider than 1024px which don't support grid
+                styles.dFlex,
+                styles.flexRow,
+                styles.justifyContentBetween,
+                styles.gap3,
+                // Use Grid on web when available (will override flex if supported)
+                styles.dGrid,
+                {gridTemplateColumns: `repeat(${columns.length}, 1fr)`},
+                style,
+            ]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
         >
