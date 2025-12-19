@@ -5049,6 +5049,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 pendingBankLink: 'ここをクリックしてください',
                 giveItNameInstruction: 'ほかのカードと区別できる名前を付けてください。',
                 updating: '更新中...',
+                neverUpdated: 'しない',
                 noAccountsFound: 'アカウントが見つかりません',
                 defaultCard: 'デフォルトのカード',
                 downgradeTitle: `ワークスペースをダウングレードできません`,
