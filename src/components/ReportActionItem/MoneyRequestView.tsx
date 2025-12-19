@@ -109,7 +109,7 @@ type MoneyRequestViewProps = {
     /** The report currently being looked at */
     report?: OnyxEntry<OnyxTypes.Report>;
 
-    parentReportProp?: OnyxEntry<OnyxTypes.Report>;
+    parentReportID?: string;
 
     /** Policy that the report belongs to */
     expensePolicy: OnyxEntry<OnyxTypes.Policy>;
@@ -144,7 +144,7 @@ const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => 
 function MoneyRequestView({
     allReports,
     report: transactionThreadReport,
-    parentReportProp,
+    parentReportID,
     expensePolicy,
     shouldShowAnimatedBackground,
     readonly = false,
@@ -164,8 +164,8 @@ function MoneyRequestView({
 
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
 
-    const parentReportID = transactionThreadReport?.parentReportID;
-    const parentReport = parentReportProp ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: true});
+
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
         canEvict: false,
         canBeMissing: true,

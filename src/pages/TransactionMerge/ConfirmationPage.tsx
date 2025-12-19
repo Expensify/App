@@ -105,7 +105,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                     <MoneyRequestView
                         allReports={allReports}
                         expensePolicy={policy}
-                        parentReportProp={targetTransactionReport}
+                        parentReportID={targetTransactionReport?.reportID}
                         shouldShowAnimatedBackground={false}
                         readonly
                         updatedTransaction={mergedTransactionData as unknown as OnyxEntry<Transaction>}
