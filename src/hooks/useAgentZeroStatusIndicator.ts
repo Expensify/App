@@ -11,7 +11,7 @@ const WAITING_LABEL = 'Concierge is waiting...';
 const INITIAL_FILLER_DELAY_MS = 1200;
 const MAX_FILLER_DELAY_MS = 12000;
 const BACKOFF_MULTIPLIER = 1.8;
-const JITTER_RATIO = 0.25; // +/-25% jitter keeps timers from feeling scripted
+const JITTER_RATIO = 0.25; // +/-25% jitter to keep timers from feeling scripted
 
 const GENERIC_FILLER_MESSAGES = [
     'Concierge is gathering context...',
@@ -31,21 +31,90 @@ const GENERIC_FILLER_MESSAGES = [
     'Concierge is finalizing its recommendations...',
 ];
 
-const TOOL_AWARE_FILLER_MESSAGES = [
-    'Concierge is gathering context...',
-    'Concierge is analyzing semantic content...',
-    'Concierge is considering responses...',
-    'Concierge is verifying details...',
-];
+// Grouped filler pools keyed by a semantic category. These map to server-provided labels
+const FILLER_MESSAGE_POOLS: Record<string, string[]> = {
+    data: [
+        'Concierge is retrieving data...',
+        'Concierge is validating information...',
+        'Concierge is compiling results...',
+        'Concierge is checking consistency...',
+    ],
+    expenseAction: [
+        'Concierge is preparing the expense...',
+        'Concierge is verifying details...',
+        'Concierge is saving changes...',
+        'Concierge is confirming completion...',
+    ],
+    expenseUpdate: [
+        'Concierge is updating the expense...',
+        'Concierge is checking policy rules...',
+        'Concierge is applying the change...',
+        'Concierge is confirming the update...',
+    ],
+    preferenceUpdate: [
+        'Concierge is updating your preferences...',
+        'Concierge is confirming changes...',
+        'Concierge is saving settings...',
+        'Concierge is validating selections...',
+    ],
+    comment: [
+        'Concierge is composing...',
+        'Concierge is reviewing text...',
+        'Concierge is posting...',
+        'Concierge is finalizing...',
+    ],
+    escalation: [
+        'Concierge is checking who can help...',
+        'Concierge is handing off to a teammate...',
+        'Concierge is confirming the escalation...',
+    ],
 
-function getFillerMessages(baseLabel: string): string[] {
-    const normalized = baseLabel.toLowerCase();
+    generic: GENERIC_FILLER_MESSAGES,
+};
 
-    if (normalized.includes('search') || normalized.includes('lookup') || normalized.includes('looking up')) {
-        return TOOL_AWARE_FILLER_MESSAGES;
+// Grouped backend labels by the pool we want to use
+const STATUS_LABEL_GROUPS: Record<string, string[]> = {
+    data: [
+        'Concierge is looking up categories...',
+        'Concierge is looking up tags...',
+        'Concierge is looking up tax codes...',
+        'Concierge is searching documentation...',
+    ],
+    expenseAction: [
+        'Concierge is creating an expense...',
+        'Concierge is creating a distance expense...',
+        'Concierge is deleting an expense...',
+    ],
+    expenseUpdate: [
+        'Concierge is updating category...',
+        'Concierge is updating description...',
+        'Concierge is updating merchant...',
+        'Concierge is updating amount and currency...',
+        'Concierge is updating tag...',
+        'Concierge is updating billable...',
+        'Concierge is updating reimbursable...',
+        'Concierge is updating date...',
+        'Concierge is updating attendees...',
+        'Concierge is updating tax amount...',
+        'Concierge is updating tax rate...',
+    ],
+    preferenceUpdate: [
+        'Concierge is updating company size...',
+        'Concierge is updating integration preference...',
+        'Concierge is updating card interest...',
+        'Concierge is updating travel interest...',
+    ],
+    comment: ['Concierge is posting a comment...'],
+    escalation: ['Concierge is escalating to a human...'],
+};
+
+function getFillerMessagesForLabel(statusLabel: string): string[] {
+    for (const [poolName, labels] of Object.entries(STATUS_LABEL_GROUPS)) {
+        if (labels.includes(statusLabel)) {
+            return FILLER_MESSAGE_POOLS[poolName] ?? FILLER_MESSAGE_POOLS.generic;
+        }
     }
-
-    return GENERIC_FILLER_MESSAGES;
+    return FILLER_MESSAGE_POOLS.generic;
 }
 
 /**
@@ -99,7 +168,7 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
             return;
         }
 
-        const fillerMessages = getFillerMessages(baseLabel);
+        const fillerMessages = getFillerMessagesForLabel(baseLabel);
         fillerIndexRef.current = Math.floor(Math.random() * fillerMessages.length);
         nextDelayRef.current = INITIAL_FILLER_DELAY_MS;
         setDisplayLabel(baseLabel);
@@ -116,7 +185,7 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
                     return;
                 }
 
-                const messages = getFillerMessages(baseLabelRef.current);
+                const messages = getFillerMessagesForLabel(baseLabelRef.current);
                 const nextIndex = fillerIndexRef.current % messages.length;
                 setDisplayLabel(messages[nextIndex]);
                 fillerIndexRef.current = (fillerIndexRef.current + 1) % messages.length;
