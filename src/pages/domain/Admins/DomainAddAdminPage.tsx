@@ -16,6 +16,8 @@ import {searchInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SearchOptionData} from '@libs/OptionsListUtils';
+import {getHeaderMessage} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
@@ -35,6 +37,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [domainEmail] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
@@ -61,6 +64,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     });
 
     const sections: Sections[] = [];
+    let filteredOptions: SearchOptionData[] = [];
     if (areOptionsInitialized) {
         if (currentlySelectedUser) {
             sections.push({
@@ -69,14 +73,12 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             });
         }
 
-        const filteredPersonalDetails = availableOptions.personalDetails
-            .filter((option) => option.accountID !== currentlySelectedUser?.accountID)
-            .filter((option) => option.accountID && !adminIDs?.includes(option.accountID));
+        filteredOptions = availableOptions.personalDetails.filter(({accountID}) => accountID && accountID !== currentlySelectedUser?.accountID && !adminIDs?.includes(accountID));
 
-        if (filteredPersonalDetails.length > 0) {
+        if (filteredOptions.length > 0) {
             sections.push({
                 title: translate('common.contacts'),
-                data: filteredPersonalDetails,
+                data: filteredOptions,
             });
         }
     }
@@ -105,6 +107,14 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         searchInServer(searchTerm);
     }, [searchTerm]);
 
+    const searchValue = searchTerm.trim().toLowerCase();
+    let headerMessage;
+    if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
+        headerMessage = translate('messages.errorMessageInvalidEmail');
+    } else {
+        headerMessage = getHeaderMessage(filteredOptions.length > 0 || !!currentlySelectedUser, !!currentlySelectedUser, searchValue, countryCode, false);
+    }
+
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
             <ScreenWrapper
@@ -120,6 +130,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                 />
                 <SelectionList
                     sections={sections}
+                    headerMessage={headerMessage}
                     ListItem={InviteMemberListItem}
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
