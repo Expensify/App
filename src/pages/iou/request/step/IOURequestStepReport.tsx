@@ -234,6 +234,4 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     );
 }
 
-IOURequestStepReport.displayName = 'IOURequestStepReport';
-
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepReport));
