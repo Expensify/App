@@ -6956,6 +6956,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Sind Sie sicher, dass Sie einen weiteren Bericht in ${workspaceName} erstellen möchten? Sie können auf Ihre leeren Berichte zugreifen in`,
             emptyReportConfirmationPromptLink: 'Berichte',
+            autoUpdateRateHint: 'Der Ausgabenbetrag wird automatisch auf den Workspace-Satz aktualisiert.',
             emptyReportConfirmationDontShowAgain: 'Nicht mehr anzeigen',
             genericWorkspaceName: 'dieser Workspace',
         },

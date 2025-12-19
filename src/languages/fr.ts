@@ -6967,6 +6967,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 `Êtes-vous sûr de vouloir créer un autre rapport dans ${workspaceName} ? Vous pouvez accéder à vos rapports vides dans`,
             emptyReportConfirmationPromptLink: 'Rapports',
             genericWorkspaceName: 'cet espace de travail',
+            autoUpdateRateHint: 'Le taux de la dépense sera automatiquement mis à jour avec le taux de l’espace de travail.',
             emptyReportConfirmationDontShowAgain: 'Ne plus afficher ce message',
         },
         genericCreateReportFailureMessage: 'Erreur inattendue lors de la création de cette discussion. Veuillez réessayer plus tard.',

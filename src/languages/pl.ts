@@ -6915,6 +6915,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             emptyReportConfirmationPrompt: ({workspaceName}: {workspaceName: string}) =>
                 `Czy na pewno chcesz utworzyć kolejny raport w ${workspaceName}? Możesz uzyskać dostęp do swoich pustych raportów w`,
             emptyReportConfirmationPromptLink: 'Raporty',
+            autoUpdateRateHint: 'Stawka wydatku zostanie automatycznie zaktualizowana do stawki w obszarze roboczym.',
             emptyReportConfirmationDontShowAgain: 'Nie pokazuj tego ponownie',
             genericWorkspaceName: 'to miejsce pracy',
         },

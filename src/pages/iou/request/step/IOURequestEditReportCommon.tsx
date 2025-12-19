@@ -230,6 +230,7 @@ function IOURequestEditReportCommon({
             <MenuItem
                 onPress={createReport}
                 title={translate('report.newReport.createReport')}
+                hintText={translate('report.newReport.autoUpdateRateHint')}
                 description={isPerDiemRequest ? perDiemOriginalPolicy?.name : policyForMovingExpenses?.name}
                 icon={icons.Document}
             />
