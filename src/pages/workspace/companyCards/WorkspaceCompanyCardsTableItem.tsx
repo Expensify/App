@@ -259,6 +259,7 @@ function WorkspaceCompanyCardTableItem({
                             )}
                             {!isAssigned && (
                                 <Button
+                                    success
                                     text={shouldUseNarrowTableRowLayout ? translate('workspace.companyCards.assign') : translate('workspace.companyCards.assignCard')}
                                     onPress={assignCard}
                                     isDisabled={isAssigningCardDisabled}

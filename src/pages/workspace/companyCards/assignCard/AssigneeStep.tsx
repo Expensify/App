@@ -12,6 +12,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftInviteAccountID} from '@libs/actions/Card';
@@ -27,24 +28,26 @@ import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+import type {AssignCardData} from '@src/types/onyx/AssignCard';
 
 type AssigneeStepProps = {
-    /** The policy that the card will be issued under */
-    policy: OnyxEntry<OnyxTypes.Policy>;
-
     /** Route params */
-    route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD>;
+    route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE>;
 };
 
-function AssigneeStep({policy, route}: AssigneeStepProps) {
+function AssigneeStep({route}: AssigneeStepProps) {
     const policyID = route.params.policyID;
+    const feed = route.params.feed;
+    const cardID = route.params.cardID;
+    const backTo = route.params?.backTo;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const policy = usePolicy(policyID);
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -73,7 +76,6 @@ function AssigneeStep({policy, route}: AssigneeStepProps) {
     const isEditing = assignCard?.isEditing;
 
     const submit = (assignee: ListItem) => {
-        let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
         const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
         const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
         const data: Partial<AssignCardData> = {
@@ -83,56 +85,65 @@ function AssigneeStep({policy, route}: AssigneeStepProps) {
 
         Keyboard.dismiss();
 
+        const routeParams = {policyID, feed, cardID};
+
         if (assignee?.login === assignCard?.data?.email) {
             if (assignCard?.data?.encryptedCardNumber) {
-                nextStep = CONST.COMPANY_CARD.STEP.CONFIRMATION;
                 data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
                 data.cardNumber = assignCard.data.cardNumber;
-                data.startDate = data.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-                data.dateOption = data.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+                data.startDate = !isEditing ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING) : (assignCard?.data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+                data.dateOption = !isEditing ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM : (assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+                setAssignCardStepAndData({
+                    data,
+                    isEditing: false,
+                });
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams, backTo));
+                return;
             }
             setAssignCardStepAndData({
-                currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
                 data,
                 isEditing: false,
             });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
             return;
         }
 
         if (!policy?.employeeList?.[assignee?.login ?? '']) {
             setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER,
                 data: {
                     invitingMemberEmail: assignee?.login ?? '',
                     invitingMemberAccountID: assignee?.accountID ?? undefined,
                 },
             });
             setDraftInviteAccountID(assignee?.login ?? '', assignee?.accountID ?? undefined, policyID);
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER.getRoute(routeParams));
             return;
         }
 
         if (assignCard?.data?.encryptedCardNumber) {
-            nextStep = CONST.COMPANY_CARD.STEP.CONFIRMATION;
             data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
             data.cardNumber = assignCard.data.cardNumber;
-            data.startDate = data.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-            data.dateOption = data.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+            data.startDate = !isEditing ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING) : (assignCard?.data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+            data.dateOption = !isEditing ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM : (assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+            setAssignCardStepAndData({
+                data,
+                isEditing: false,
+            });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams, backTo));
+            return;
         }
-
         setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
             data,
             isEditing: false,
         });
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
     };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
             setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
-            return;
         }
         Navigation.goBack();
     };
