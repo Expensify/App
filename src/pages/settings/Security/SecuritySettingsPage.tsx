@@ -235,10 +235,6 @@ function SecuritySettingsPage() {
                     const error = getLatestError(addDelegateErrors);
 
                     const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
-                        if (isActingAsDelegate) {
-                            showDelegateNoAccessModal();
-                            return;
-                        }
                         if (isEmptyObject(pendingAction)) {
                             showPopoverMenu(e, {email, role});
                             return;
@@ -306,7 +302,7 @@ function SecuritySettingsPage() {
             text: translate('delegate.changeAccessLevel'),
             icon: icons.Pencil,
             onPress: () => {
-                if (isDelegateAccessRestricted || isActingAsDelegate) {
+                if (isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
@@ -324,7 +320,7 @@ function SecuritySettingsPage() {
             text: translate('delegate.removeCopilot'),
             icon: Expensicons.Trashcan,
             onPress: () => {
-                if (isDelegateAccessRestricted || isActingAsDelegate) {
+                if (isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
