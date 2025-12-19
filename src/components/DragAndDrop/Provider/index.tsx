@@ -55,7 +55,5 @@ function DragAndDropProvider({children, isDisabled = false, setIsDraggingOver = 
     );
 }
 
-DragAndDropProvider.displayName = 'DragAndDropProvider';
-
 export default DragAndDropProvider;
 export {DragAndDropContext};

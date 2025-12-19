@@ -150,6 +150,4 @@ function FeedbackSurvey({title, description, onSubmit, optionRowStyles, footerTe
     );
 }
 
-FeedbackSurvey.displayName = 'FeedbackSurvey';
-
 export default FeedbackSurvey;

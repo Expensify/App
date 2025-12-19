@@ -24,6 +24,4 @@ function SilentCommentUpdater({updateComment, reportID}: SilentCommentUpdaterPro
     return null;
 }
 
-SilentCommentUpdater.displayName = 'SilentCommentUpdater';
-
 export default SilentCommentUpdater;

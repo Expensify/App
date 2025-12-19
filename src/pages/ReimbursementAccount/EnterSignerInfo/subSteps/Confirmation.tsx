@@ -118,6 +118,4 @@ function Confirmation({onNext, onMove, isEditing, policyID}: ConfirmationProps) 
     );
 }
 
-Confirmation.displayName = 'Confirmation';
-
 export default Confirmation;
