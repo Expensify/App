@@ -1432,6 +1432,7 @@ function MoneyReportHeader({
         [CONST.REPORT.SECONDARY_ACTIONS.PAY]: {
             text: translate('iou.settlePayment', {formattedAmount: totalAmount}),
             icon: expensifyIcons.Cash,
+            rightIcon: expensifyIcons.ArrowRight,
             value: CONST.REPORT.SECONDARY_ACTIONS.PAY,
             backButtonText: translate('iou.settlePayment', {formattedAmount: totalAmount}),
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.PAY,

@@ -1313,7 +1313,7 @@ function changeTransactionsReport(
             (affectedReportID === selfDMReport?.reportID ? selfDMReport : undefined);
 
         if (!affectedReport) {
-            return;
+            continue;
         }
 
         const updatedTotal = updatedReportTotals[affectedReportID] ?? affectedReport.total;

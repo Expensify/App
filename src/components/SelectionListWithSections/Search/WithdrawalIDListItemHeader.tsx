@@ -1,9 +1,8 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
-import {PressableWithFeedback} from '@components/Pressable';
 import RenderHTML from '@components/RenderHTML';
 import type {ListItem, TransactionWithdrawalIDGroupListItemType} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
@@ -12,6 +11,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -19,6 +19,8 @@ import {getSettlementStatus, getSettlementStatusBadgeProps} from '@libs/SearchUI
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
+import ExpensesCell from './ExpensesCell';
 import TotalCell from './TotalCell';
 
 type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
@@ -60,30 +62,35 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow', 'DotIndicator']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+
+    const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
+    const maskedNumber = withdrawalIDItem.accountNumber ? `xx${withdrawalIDItem.accountNumber.slice(-4)}` : '';
+    const accountLabel = `${formattedBankName} ${maskedNumber}`;
 
     const {icon, iconSize, iconStyles} = getBankIcon({bankName: withdrawalIDItem.bankName, styles});
-    const formattedBankName = CONST.BANK_NAMES_USER_FRIENDLY[withdrawalIDItem.bankName] ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
     );
-    const badgeProps = useMemo(() => getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme), [withdrawalIDItem.state, translate, theme]);
-    const settlementStatus = useMemo(() => getSettlementStatus(withdrawalIDItem.state), [withdrawalIDItem.state]);
+    const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
+    const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
     const withdrawalInfoText = translate('settlement.withdrawalInfo', {date: formattedWithdrawalDate, withdrawalID: withdrawalIDItem.entryID});
-    const failedErrorHTML = useMemo(() => {
-        if (settlementStatus !== CONST.SEARCH.SETTLEMENT_STATUS.FAILED) {
-            return '';
-        }
-        const walletLink = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
-        return translate('settlement.failedError', {link: walletLink});
-    }, [settlementStatus, environmentURL, translate]);
+
+    const failedErrorHTML =
+        settlementStatus !== CONST.SEARCH.SETTLEMENT_STATUS.FAILED
+            ? ''
+            : (() => {
+                  const walletLink = `${environmentURL}/${ROUTES.SETTINGS_WALLET}`;
+                  return translate('settlement.failedError', {link: walletLink});
+              })();
 
     return (
         <View>
-            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart]}>
+            <View style={[styles.pv1Half, styles.pl3, styles.flexRow, styles.alignItemsCenter, isLargeScreenWidth ? styles.gap3 : styles.justifyContentStart]}>
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
@@ -94,57 +101,87 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                             isIndeterminate={isIndeterminate}
                         />
                     )}
-                    <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                        <Icon
-                            src={icon}
-                            width={iconSize}
-                            height={iconSize}
-                            additionalStyles={iconStyles}
-                        />
-                        <View style={[styles.gapHalf, styles.flexShrink1]}>
-                            <TextWithTooltip
-                                text={`${formattedBankName} xx${withdrawalIDItem.accountNumber.slice(-4)}`}
-                                style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                    {!isLargeScreenWidth && (
+                        <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
+                            <Icon
+                                src={icon}
+                                width={iconSize}
+                                height={iconSize}
+                                additionalStyles={iconStyles}
                             />
-                            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                                {!!badgeProps && (
-                                    <View style={[styles.reportStatusContainer, badgeProps.badgeStyles]}>
-                                        <Text style={[styles.reportStatusText, badgeProps.textStyles]}>{badgeProps.text}</Text>
-                                    </View>
-                                )}
+                            <View style={[styles.gapHalf, styles.flexShrink1]}>
                                 <TextWithTooltip
-                                    text={withdrawalInfoText}
-                                    style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                    text={`${formattedBankName} xx${withdrawalIDItem.accountNumber.slice(-4)}`}
+                                    style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
                                 />
+                                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                                    {!!badgeProps && (
+                                        <View style={[styles.reportStatusContainer, badgeProps.badgeStyles]}>
+                                            <Text style={[styles.reportStatusText, badgeProps.textStyles]}>{badgeProps.text}</Text>
+                                        </View>
+                                    )}
+                                    <TextWithTooltip
+                                        text={withdrawalInfoText}
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                    />
+                                </View>
                             </View>
                         </View>
-                    </View>
-                </View>
-                <View style={[styles.flexShrink0, styles.mr3, styles.gap1]}>
-                    <TotalCell
-                        total={withdrawalIDItem.total}
-                        currency={withdrawalIDItem.currency}
-                    />
-                    {!isLargeScreenWidth && !!onDownArrowClick && (
-                        <View>
-                            <PressableWithFeedback
-                                onPress={onDownArrowClick}
-                                style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
-                            >
-                                {({hovered}) => (
-                                    <Icon
-                                        src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
-                                        fill={theme.icon}
-                                        additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                        small
-                                    />
-                                )}
-                            </PressableWithFeedback>
-                        </View>
+                    )}
+                    {isLargeScreenWidth && (
+                        <>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AVATAR)}>
+                                <Icon
+                                    src={icon}
+                                    width={iconSize}
+                                    height={iconSize}
+                                    additionalStyles={iconStyles}
+                                />
+                            </View>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT)}>
+                                <TextWithTooltip
+                                    text={accountLabel}
+                                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                                />
+                            </View>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN)}>
+                                <TextWithTooltip
+                                    text={formattedWithdrawalDate}
+                                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                                />
+                            </View>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID)}>
+                                <TextWithTooltip
+                                    text={withdrawalIDItem.entryID?.toString() ?? ''}
+                                    style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                                />
+                            </View>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}>
+                                <ExpensesCell count={withdrawalIDItem.count} />
+                            </View>
+                            <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TOTAL, false, false, false, false, false, false, false, false, true)}>
+                                <TotalCell
+                                    total={withdrawalIDItem.total}
+                                    currency={withdrawalIDItem.currency}
+                                />
+                            </View>
+                        </>
                     )}
                 </View>
+                {!isLargeScreenWidth && (
+                    <View style={[[styles.flexShrink0, styles.mr3, styles.gap1]]}>
+                        <TotalCell
+                            total={withdrawalIDItem.total}
+                            currency={withdrawalIDItem.currency}
+                        />
+                        {!!onDownArrowClick && (
+                            <ExpandCollapseArrowButton
+                                isExpanded={isExpanded ?? false}
+                                onPress={onDownArrowClick}
+                            />
+                        )}
+                    </View>
+                )}
             </View>
             {settlementStatus === CONST.SEARCH.SETTLEMENT_STATUS.FAILED && (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.ph3, styles.pb1]}>

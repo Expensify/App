@@ -104,8 +104,12 @@ function canPay(report: Report, isReportArchived: boolean, currentUserAccountID:
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const isReimbursed = isSettled(report);
 
+    const isExported = report.isExportedToIntegration ?? false;
+    const hasExportError = report?.hasExportError ?? false;
+    const didExportFail = !isExported && hasExportError;
+
     if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && reimbursableSpend !== 0) {
-        return true;
+        return !didExportFail;
     }
 
     if (!isProcessing) {

@@ -19,6 +19,12 @@ type SearchColumnConfig = {
     canBeMissing?: boolean;
 };
 
+type SearchHeaderIcons = {
+    Profile?: IconAsset;
+    CreditCard?: IconAsset;
+    Bank?: IconAsset;
+};
+
 const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
@@ -109,6 +115,10 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canBeMissing: true,
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE,
+        translationKey: 'common.exchangeRate',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT,
         translationKey: 'common.originalAmount',
     },
@@ -126,7 +136,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
-        translationKey: 'common.longID',
+        translationKey: 'common.longReportID',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
@@ -137,6 +147,11 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         columnName: CONST.SEARCH.TABLE_COLUMNS.STATUS,
         translationKey: 'common.status',
         canBeMissing: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
+        translationKey: 'search.exportedTo',
+        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -176,6 +191,11 @@ const taskHeaders: SearchColumnConfig[] = [
         columnName: CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE,
         translationKey: 'common.assignee',
         canBeMissing: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
+        translationKey: 'search.exportedTo',
+        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -246,7 +266,12 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.REPORT_ID,
-        translationKey: 'common.longID',
+        translationKey: 'common.longReportID',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO,
+        translationKey: 'search.exportedTo',
+        isColumnSortable: false,
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
@@ -255,9 +280,94 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     },
 ];
 
-function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy?: SearchGroupBy, profileIcon?: IconAsset) {
+const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderIcons): SearchColumnConfig[] => {
+    switch (groupBy) {
+        case CONST.SEARCH.GROUP_BY.FROM:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    translationKey: undefined,
+                    icon: icons.Profile,
+                    isColumnSortable: false,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.FROM,
+                    translationKey: 'common.from',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
+                    translationKey: 'common.expenses',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+                    translationKey: 'common.total',
+                },
+            ];
+        case CONST.SEARCH.GROUP_BY.CARD:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    translationKey: undefined,
+                    icon: icons.CreditCard,
+                    isColumnSortable: false,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.CARD,
+                    translationKey: 'common.card',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.FEED,
+                    translationKey: 'search.filters.feed',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
+                    translationKey: 'common.expenses',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+                    translationKey: 'common.total',
+                },
+            ];
+        case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    translationKey: undefined,
+                    icon: icons.Bank,
+                    isColumnSortable: false,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT,
+                    translationKey: 'common.bankAccount',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN,
+                    translationKey: 'search.filters.withdrawn',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID,
+                    translationKey: 'common.withdrawalID',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.EXPENSES,
+                    translationKey: 'common.expenses',
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+                    translationKey: 'common.total',
+                },
+            ];
+        default:
+            return [];
+    }
+};
+
+function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, icons: SearchHeaderIcons, groupBy?: SearchGroupBy, isExpenseReportView?: boolean): SearchColumnConfig[] | null {
     switch (type) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
+            if (!isExpenseReportView && groupBy) {
+                return getTransactionGroupHeaders(groupBy, icons);
+            }
             return getExpenseHeaders(groupBy);
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return getExpenseHeaders(groupBy);
@@ -266,7 +376,7 @@ function getSearchColumns(type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>, groupBy
         case CONST.SEARCH.DATA_TYPES.TASK:
             return taskHeaders;
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-            return getExpenseReportHeaders(profileIcon);
+            return getExpenseReportHeaders(icons.Profile);
         case CONST.SEARCH.DATA_TYPES.CHAT:
         default:
             return null;
@@ -290,6 +400,9 @@ type SearchTableHeaderProps = {
     canSelectMultiple: boolean;
     areAllOptionalColumnsHidden: boolean;
     groupBy: SearchGroupBy | undefined;
+
+    /** True when we are inside an expense report view, false if we're in the Reports page. */
+    isExpenseReportView?: boolean;
 };
 
 function SearchTableHeader({
@@ -309,14 +422,15 @@ function SearchTableHeader({
     isTaxAmountColumnWide,
     areAllOptionalColumnsHidden,
     groupBy,
+    isExpenseReportView,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || isSmallScreenWidth;
 
-    // Only load Profile icon when it's needed for EXPENSE_REPORT type
-    const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? ['Profile'] : []);
+    // Only load Profile icon when it's needed for EXPENSE_REPORT type or grouped transactions
+    const icons = useMemoizedLazyExpensifyIcons(type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || !!groupBy ? ['Profile', 'Bank', 'CreditCard'] : []) satisfies SearchHeaderIcons;
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
@@ -325,19 +439,49 @@ function SearchTableHeader({
         [columns],
     );
 
-    const columnConfig = useMemo(() => getSearchColumns(type, groupBy, icons.Profile), [type, groupBy, icons.Profile]);
+    const columnConfig = useMemo(() => getSearchColumns(type, icons, groupBy, isExpenseReportView), [type, groupBy, icons, isExpenseReportView]);
+
+    const orderedColumnConfig = useMemo(() => {
+        if (!columnConfig) {
+            return null;
+        }
+
+        const configMap = new Map(columnConfig.map((config) => [config.columnName, config]));
+
+        // Users can customize column order via the Search Columns page.
+        // We respect their preferred order by placing user-selected columns first,
+        // then appending any remaining columns (which will be filtered out by shouldShowColumn).
+        const orderedConfig: SearchColumnConfig[] = [];
+        const addedColumns = new Set<SearchColumnType>();
+
+        for (const col of columns) {
+            const config = configMap.get(col);
+            if (config) {
+                orderedConfig.push(config);
+                addedColumns.add(col);
+            }
+        }
+
+        for (const config of columnConfig) {
+            if (!addedColumns.has(config.columnName)) {
+                orderedConfig.push(config);
+            }
+        }
+
+        return orderedConfig;
+    }, [columnConfig, columns]);
 
     if (displayNarrowVersion) {
         return;
     }
 
-    if (!columnConfig) {
+    if (!orderedColumnConfig) {
         return;
     }
 
     return (
         <SortableTableHeader
-            columns={columnConfig}
+            columns={orderedColumnConfig}
             areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
             shouldShowColumn={shouldShowColumn}
             dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
@@ -350,6 +494,8 @@ function SearchTableHeader({
             shouldShowSorting={shouldShowSorting}
             sortBy={sortBy}
             sortOrder={sortOrder}
+            // In GroupBy views, disable flex expansion for Total columns so Expenses column gets more space
+            shouldRemoveTotalColumnFlex={!!groupBy && !isExpenseReportView}
             // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl4]}
             onSortPress={(columnName, order) => {
