@@ -168,6 +168,26 @@ function WorkspaceReportFieldsPage({
 
     const toggleTitleStyle = useMemo(() => [styles.pv2, styles.pr3], [styles.pv2, styles.pr3]);
 
+    const renderReportTitle = useCallback(
+        () => (
+            <OfflineWithFeedback pendingAction={policy?.pendingAction}>
+                <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}>{translate('workspace.common.reportTitle')}</Text>
+            </OfflineWithFeedback>
+        ),
+        [policy?.pendingAction, styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1, translate],
+    );
+
+    const renderReportSubtitle = useCallback(
+        () => (
+            <OfflineWithFeedback pendingAction={policy?.pendingAction}>
+                <View style={[[styles.renderHTML, styles.mt1]]}>
+                    <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
+                </View>
+            </OfflineWithFeedback>
+        ),
+        [policy?.pendingAction, styles.renderHTML, styles.mt1, translate],
+    );
+
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
@@ -197,17 +217,12 @@ function WorkspaceReportFieldsPage({
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             isCentralPane
-                            title={translate('workspace.common.reportTitle')}
-                            renderSubtitle={() => (
-                                <View style={[[styles.renderHTML, styles.mt1]]}>
-                                    <RenderHTML html={translate('workspace.reports.customReportNamesSubtitle')} />
-                                </View>
-                            )}
+                            renderTitle={renderReportTitle}
+                            renderSubtitle={renderReportSubtitle}
                             containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
-                            titleStyles={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                         >
                             <OfflineWithFeedback
-                                pendingAction={reportTitlePendingFields.defaultValue}
+                                pendingAction={reportTitlePendingFields.defaultValue ?? policy?.pendingAction}
                                 shouldForceOpacity={reportTitlePendingFields.defaultValue === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}
                                 errors={reportTitleErrors}
                                 errorRowStyles={[styles.mh0]}
@@ -223,7 +238,7 @@ function WorkspaceReportFieldsPage({
                                 />
                             </OfflineWithFeedback>
                             <ToggleSettingOptionRow
-                                pendingAction={reportTitlePendingFields.deletable}
+                                pendingAction={reportTitlePendingFields.deletable ?? policy?.pendingAction}
                                 title={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 switchAccessibilityLabel={translate('workspace.reports.preventMembersFromChangingCustomNamesTitle')}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt3]}
