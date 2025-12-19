@@ -4897,7 +4897,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
-                    cardToAssign: {
+                    data: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: violationsOnyxData.value,
                     },
                 },
@@ -4907,7 +4907,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
                 value: {
-                    cardToAssign: {
+                    data: {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: currentTransactionViolations,
                     },
                 },
@@ -9571,7 +9571,7 @@ function deleteMoneyRequest({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                cardToAssign: {
+                data: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`]: {
                         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                         pendingFields: {
@@ -12363,7 +12363,7 @@ function replaceReceipt({transactionID, file, source, transactionPolicy, transac
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
             value: {
-                cardToAssign: {
+                data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                         receipt: receiptOptimistic,
                     },
@@ -12376,7 +12376,7 @@ function replaceReceipt({transactionID, file, source, transactionPolicy, transac
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
             value: {
-                cardToAssign: {
+                data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
                         receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
                     },
@@ -13503,7 +13503,7 @@ function getSearchOnyxUpdate({
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
                         value: {
-                            cardToAssign: {
+                            data: {
                                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
                                     [toAccountID]: {
                                         accountID: toAccountID,
@@ -15046,7 +15046,7 @@ function updateSplitTransactions({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
             value: {
-                cardToAssign: {
+                data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
                 },
             },
@@ -15057,7 +15057,7 @@ function updateSplitTransactions({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
             value: {
-                cardToAssign: {
+                data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: originalTransaction,
                 },
             },
