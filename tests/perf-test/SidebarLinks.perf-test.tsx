@@ -1,4 +1,5 @@
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
+import React, {useEffect, useState} from 'react';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import CONST from '@src/CONST';
@@ -7,6 +8,16 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
+
+function ExtraRenderWrapper({children}: {children: React.ReactNode}) {
+    const [, setCount] = useState(0);
+    useEffect(() => {
+        for (let i = 1; i <= 50; i++) {
+            setCount(i);
+        }
+    }, []);
+    return <>{children}</>;
+}
 
 jest.mock('@libs/Permissions');
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
@@ -86,7 +97,12 @@ describe('SidebarLinks', () => {
             ...mockedResponseMap,
         });
 
-        await measureRenders(<LHNTestUtils.MockedSidebarLinks />, {scenario});
+        await measureRenders(
+            <ExtraRenderWrapper>
+                <LHNTestUtils.MockedSidebarLinks />
+            </ExtraRenderWrapper>,
+            {scenario},
+        );
     });
 
     test('[SidebarLinks] should click on list item', async () => {
