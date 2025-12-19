@@ -909,7 +909,10 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
-            value: shouldUseContinuousReconciliation,
+            value: {
+                value: shouldUseContinuousReconciliation,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -922,7 +925,10 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
-            value: shouldUseContinuousReconciliation,
+            value: {
+                value: shouldUseContinuousReconciliation,
+                pendingAction: null,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -935,7 +941,10 @@ function toggleContinuousReconciliation(workspaceAccountID: number, shouldUseCon
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`,
-            value: !shouldUseContinuousReconciliation,
+            value: {
+                value: !shouldUseContinuousReconciliation,
+                pendingAction: null,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,

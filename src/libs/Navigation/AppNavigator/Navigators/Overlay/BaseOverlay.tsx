@@ -61,7 +61,5 @@ function BaseOverlay({onPress, progress, positionLeftValue = -2 * variables.side
     );
 }
 
-BaseOverlay.displayName = 'BaseOverlay';
-
 export type {BaseOverlayProps};
 export default BaseOverlay;

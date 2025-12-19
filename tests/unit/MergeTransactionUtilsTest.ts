@@ -1,5 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {
+    areTransactionsEligibleForMerge,
     buildMergedTransactionData,
     getDisplayValue,
     getMergeableDataAndConflictFields,
@@ -8,8 +9,6 @@ import {
     getMergeFieldUpdatedValues,
     getMergeFieldValue,
     getRateFromMerchant,
-    getReceiptFileName,
-    getSourceTransactionFromMergeTransaction,
     isEmptyMergeValue,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
@@ -30,56 +29,6 @@ describe('MergeTransactionUtils', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         return waitForBatchedUpdates();
-    });
-
-    describe('getSourceTransactionFromMergeTransaction', () => {
-        it('should return undefined when mergeTransaction is undefined', () => {
-            // Given a null merge transaction
-            const mergeTransaction = undefined;
-
-            // When we try to get the source transaction
-            const result = getSourceTransactionFromMergeTransaction(mergeTransaction);
-
-            // Then it should return undefined because the merge transaction is undefined
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined when sourceTransactionID is not found in eligibleTransactions', () => {
-            // Given a merge transaction with a sourceTransactionID that doesn't match any eligible transactions
-            const transaction1 = createRandomTransaction(0);
-            const transaction2 = createRandomTransaction(1);
-            const mergeTransaction = {
-                ...createRandomMergeTransaction(0),
-                sourceTransactionID: 'nonexistent',
-                eligibleTransactions: [transaction1, transaction2],
-            };
-
-            // When we try to get the source transaction
-            const result = getSourceTransactionFromMergeTransaction(mergeTransaction);
-
-            // Then it should return undefined because the source transaction ID doesn't match any eligible transaction
-            expect(result).toBeUndefined();
-        });
-
-        it('should return the correct transaction when sourceTransactionID matches an eligible transaction', () => {
-            // Given a merge transaction with a sourceTransactionID that matches one of the eligible transactions
-            const sourceTransaction = {...createRandomTransaction(0), receipt: undefined};
-            const otherTransaction = createRandomTransaction(1);
-            sourceTransaction.transactionID = 'source123';
-
-            const mergeTransaction = {
-                ...createRandomMergeTransaction(0),
-                sourceTransactionID: 'source123',
-                eligibleTransactions: [sourceTransaction, otherTransaction],
-            };
-
-            // When we try to get the source transaction
-            const result = getSourceTransactionFromMergeTransaction(mergeTransaction);
-
-            // Then it should return the matching transaction from the eligible transactions
-            expect(result).toBe(sourceTransaction);
-            expect(result?.transactionID).toBe('source123');
-        });
     });
 
     describe('shouldNavigateToReceiptReview', () => {
@@ -366,7 +315,7 @@ describe('MergeTransactionUtils', () => {
                 created: '2025-01-02T00:00:00.000Z',
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             // Only the different values are in the conflict fields
             expect(result.conflictFields).toEqual(['amount', 'created', 'description', 'reimbursable', 'reportID']);
@@ -393,7 +342,7 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -415,7 +364,7 @@ describe('MergeTransactionUtils', () => {
                 managedCard: false,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -442,7 +391,7 @@ describe('MergeTransactionUtils', () => {
                 },
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -468,7 +417,7 @@ describe('MergeTransactionUtils', () => {
                 currency: CONST.CURRENCY.AUD,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('amount');
             expect(result.mergeableData).toMatchObject({
@@ -493,7 +442,7 @@ describe('MergeTransactionUtils', () => {
                     {email: 'test2@example.com', displayName: 'Test User 2', avatarUrl: '', login: 'test2'},
                 ];
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
                 expect(result.conflictFields).not.toContain('attendees');
                 expect(result.mergeableData).toMatchObject({
@@ -518,7 +467,7 @@ describe('MergeTransactionUtils', () => {
                     {email: 'test1@example.com', displayName: 'Test User 1', avatarUrl: '', login: 'test1'},
                 ];
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
                 expect(result.conflictFields).not.toContain('attendees');
                 expect(result.mergeableData).toMatchObject({
@@ -543,7 +492,7 @@ describe('MergeTransactionUtils', () => {
                     {email: 'test3@example.com', displayName: 'Test User 3', avatarUrl: '', login: 'test3'},
                 ];
 
-                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+                const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
                 expect(result.conflictFields).toContain('attendees');
             });
@@ -561,7 +510,7 @@ describe('MergeTransactionUtils', () => {
                 reportID: sharedReportID,
             };
 
-            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, undefined, mockLocaleCompare);
+            const result = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, mockLocaleCompare);
 
             expect(result.conflictFields).not.toContain('reportID');
             expect(result.mergeableData).toMatchObject({
@@ -625,7 +574,6 @@ describe('MergeTransactionUtils', () => {
                 },
                 reimbursable: false,
                 billable: true,
-                filename: 'merged.jpg',
                 receipt: {receiptID: 1235, source: 'merged.jpg', filename: 'merged.jpg'},
                 created: '2025-01-02T00:00:00.000Z',
                 modifiedCreated: '2025-01-02T00:00:00.000Z',
@@ -751,30 +699,6 @@ describe('MergeTransactionUtils', () => {
                 targetTransaction: cardTransaction,
                 sourceTransaction: splitExpenseTransaction,
             });
-        });
-    });
-
-    describe('getReceiptFileName', () => {
-        it('should return filename from source when source is a string', () => {
-            const receipt = {
-                source: 'https://example.com/receipts/receipt123.jpg',
-                filename: 'backup-filename.jpg',
-            };
-
-            const result = getReceiptFileName(receipt);
-
-            expect(result).toBe('receipt123.jpg');
-        });
-
-        it('should return filename when source is not a string', () => {
-            const receipt = {
-                source: 12345,
-                filename: 'receipt-from-filename.jpg',
-            };
-
-            const result = getReceiptFileName(receipt);
-
-            expect(result).toBe('receipt-from-filename.jpg');
         });
     });
 
@@ -1068,6 +992,179 @@ describe('MergeTransactionUtils', () => {
 
             // Then it should return the generic error message with lowercase field name
             expect(result).toBe(translateLocal('transactionMerge.detailsPage.pleaseSelectError', {field: 'merchant'}));
+        });
+    });
+
+    describe('areTransactionsEligibleForMerge', () => {
+        it('should return false when either transaction is undefined', () => {
+            // Given one transaction is undefined
+            const transaction = createRandomTransaction(0);
+
+            // When we check if they are eligible for merge
+            const result1 = areTransactionsEligibleForMerge(undefined, transaction);
+            const result2 = areTransactionsEligibleForMerge(transaction, undefined);
+            const result3 = areTransactionsEligibleForMerge(undefined, undefined);
+
+            // Then it should return false because both transactions are required
+            expect(result1).toBe(false);
+            expect(result2).toBe(false);
+            expect(result3).toBe(false);
+        });
+
+        it('should return false when source transaction is pending delete', () => {
+            // Given transactions where source is pending delete
+            const targetTransaction = createRandomTransaction(0);
+            const sourceTransaction = {
+                ...createRandomTransaction(1),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(targetTransaction, sourceTransaction);
+
+            // Then it should return false because source transaction is pending delete
+            expect(result).toBe(false);
+        });
+
+        it('should return true if both transactions are cash', () => {
+            // Given both transactions are cash transactions
+            const transaction1 = {
+                ...createRandomTransaction(0),
+                merchant: 'Starbucks Coffee',
+                modifiedMerchant: '',
+                category: 'Food & Dining',
+                managedCard: false,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const transaction2 = {
+                ...createRandomTransaction(1),
+                merchant: 'Caribou Coffee',
+                modifiedMerchant: '',
+                category: 'Food & Dining',
+                managedCard: false,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(transaction1, transaction2);
+
+            // Then it should return true because both are cash transactions
+            expect(result).toBe(true);
+        });
+
+        it('should return true if one transaction is cash and one is card', () => {
+            // Given one cash and one card transaction
+            const cashTransaction = {
+                ...createRandomTransaction(0),
+                merchant: 'Starbucks Coffee',
+                managedCard: false,
+            };
+            const cardTransaction = {
+                ...createRandomTransaction(1),
+                merchant: 'Caribou Coffee',
+                managedCard: true,
+            };
+
+            // When we check if they are eligible for merge
+            const result1 = areTransactionsEligibleForMerge(cashTransaction, cardTransaction);
+            const result2 = areTransactionsEligibleForMerge(cardTransaction, cashTransaction);
+
+            // Then it should return true for both orders
+            expect(result1).toBe(true);
+            expect(result2).toBe(true);
+        });
+
+        it('should return false if both transactions are from a card', () => {
+            // Given both transactions are card transactions
+            const transaction1 = {
+                ...createRandomTransaction(0),
+                merchant: 'Starbucks Coffee',
+                modifiedMerchant: '',
+                category: 'Food & Dining',
+                managedCard: true,
+                comment: {},
+            };
+            const transaction2 = {
+                ...createRandomTransaction(1),
+                merchant: 'Caribou Coffee',
+                modifiedMerchant: '',
+                category: 'Food & Dining',
+                managedCard: true,
+                comment: {},
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(transaction1, transaction2);
+
+            // Then it should return false because both are card transactions
+            expect(result).toBe(false);
+        });
+
+        it('should return false if both transactions have $0 amount', () => {
+            // Given both transactions have $0 amount
+            const transaction1 = {
+                ...createRandomTransaction(0),
+                amount: 0,
+            };
+            const transaction2 = {
+                ...createRandomTransaction(1),
+                amount: 0,
+            };
+
+            // When we check if they are eligible for merge
+            const result = areTransactionsEligibleForMerge(transaction1, transaction2);
+
+            // Then it should return false because both have $0 amount
+            expect(result).toBe(false);
+        });
+
+        it('should return true if only one transaction has $0 amount', () => {
+            // Given one transaction has $0 amount and the other has a non-zero amount
+            const zeroTransaction = {
+                ...createRandomTransaction(0),
+                amount: 0,
+                managedCard: undefined,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+            const nonZeroTransaction = {
+                ...createRandomTransaction(1),
+                amount: 1000,
+                managedCard: undefined,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            };
+
+            // When we check if they are eligible for merge
+            const result1 = areTransactionsEligibleForMerge(zeroTransaction, nonZeroTransaction);
+            const result2 = areTransactionsEligibleForMerge(nonZeroTransaction, zeroTransaction);
+
+            // Then it should return true for both orders
+            expect(result1).toBe(true);
+            expect(result2).toBe(true);
+        });
+
+        it('should return false if per diem transaction is merged with card transaction', () => {
+            // Given a per diem transaction and a card transaction
+            const perDiemTransaction = {
+                ...createRandomTransaction(0),
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    },
+                },
+            };
+            const cardTransaction = {
+                ...createRandomTransaction(1),
+                managedCard: true,
+            };
+
+            // When we check if they are eligible for merge
+            const result1 = areTransactionsEligibleForMerge(perDiemTransaction, cardTransaction);
+            const result2 = areTransactionsEligibleForMerge(cardTransaction, perDiemTransaction);
+
+            // Then it should return false for both orders
+            expect(result1).toBe(false);
+            expect(result2).toBe(false);
         });
     });
 

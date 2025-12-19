@@ -7,6 +7,7 @@ import DistanceMapView from '@components/DistanceMapView';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -42,9 +43,10 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
-    const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
+    const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN, {canBeMissing: true});
 
     const numberOfWaypoints = Object.keys(waypoints ?? {}).length;
     const numberOfFilledWaypoints = Object.values(waypoints ?? {}).filter((waypoint) => waypoint?.address).length;
@@ -79,7 +81,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                     if (index === 0) {
                         MarkerComponent = Expensicons.DotIndicatorUnfilled;
                     } else if (index === lastWaypointIndex) {
-                        MarkerComponent = Expensicons.Location;
+                        MarkerComponent = expensifyIcons.Location;
                     } else {
                         MarkerComponent = Expensicons.DotIndicator;
                     }
@@ -91,7 +93,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                     };
                 })
                 .filter((waypoint): waypoint is WayPoint => !!waypoint),
-        [waypoints, lastWaypointIndex, getMarkerComponent],
+        [waypoints, lastWaypointIndex, getMarkerComponent, expensifyIcons.Location],
     );
 
     return (
@@ -129,7 +131,5 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
         </>
     );
 }
-
-DistanceRequestFooter.displayName = 'DistanceRequestFooter';
 
 export default DistanceRequestFooter;

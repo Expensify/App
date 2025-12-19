@@ -7,6 +7,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
+import useDebounce from './useDebounce';
 import useDebouncedState from './useDebouncedState';
 import useOnyx from './useOnyx';
 
@@ -163,9 +164,12 @@ function useSearchSelectorBase({
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
-    const onListEndReached = useCallback(() => {
-        setMaxResults((previous) => previous + maxResultsPerPage);
-    }, [maxResultsPerPage]);
+    const onListEndReached = useDebounce(
+        useCallback(() => {
+            setMaxResults((previous) => previous + maxResultsPerPage);
+        }, [maxResultsPerPage]),
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+    );
 
     const computedSearchTerm = useMemo(() => {
         return getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode);
@@ -264,6 +268,7 @@ function useSearchSelectorBase({
                     searchString: computedSearchTerm,
                     includeUserToInvite,
                     includeCurrentUser,
+                    shouldAcceptName: true,
                 });
             default:
                 return getEmptyOptions();
@@ -284,6 +289,7 @@ function useSearchSelectorBase({
         maxRecentReportsToShow,
         getValidOptionsConfig,
         selectedOptions,
+        includeCurrentUser,
     ]);
 
     const isOptionSelected = useMemo(() => {

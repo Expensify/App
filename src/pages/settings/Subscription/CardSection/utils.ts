@@ -7,7 +7,8 @@ import DateUtils from '@libs/DateUtils';
 import {getAmountOwed, getOverdueGracePeriodDate, getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import type {StripeCustomerID} from '@src/types/onyx';
-import type {AccountData} from '@src/types/onyx/Fund';
+import type BillingStatus from '@src/types/onyx/BillingStatus';
+import type {AccountData, FundList} from '@src/types/onyx/Fund';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -31,7 +32,9 @@ type GetBillingStatusProps = {
     retryBillingSuccessful: OnyxEntry<boolean>;
     billingDisputePending: number | undefined;
     retryBillingFailed: boolean | undefined;
+    billingStatus: OnyxEntry<BillingStatus>;
     creditCardEyesIcon?: IconAsset;
+    fundList: OnyxEntry<FundList>;
 };
 
 function getBillingStatus({
@@ -42,13 +45,15 @@ function getBillingStatus({
     retryBillingSuccessful,
     billingDisputePending,
     retryBillingFailed,
+    billingStatus,
     creditCardEyesIcon,
+    fundList,
 }: GetBillingStatusProps): BillingStatusResult | undefined {
     const cardEnding = (accountData?.cardNumber ?? '')?.slice(-4);
 
     const amountOwed = getAmountOwed();
 
-    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed);
+    const subscriptionStatus = getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus);
 
     const endDate = getOverdueGracePeriodDate();
 
@@ -67,7 +72,7 @@ function getBillingStatus({
         case PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED:
             return {
                 title: translate('subscription.billingBanner.policyOwnerAmountOwed.title'),
-                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwed.subtitle', {date: endDateFormatted ?? ''}),
+                subtitle: translate('subscription.billingBanner.policyOwnerAmountOwed.subtitle', endDateFormatted ?? ''),
                 isError: true,
                 isRetryAvailable: true,
             };
@@ -77,12 +82,8 @@ function getBillingStatus({
                 title: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.title'),
                 subtitle: translate(
                     'subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle',
-                    isBillingFailed
-                        ? {
-                              date: purchaseDateFormatted,
-                              purchaseAmountOwed: purchaseAmountWithCurrency,
-                          }
-                        : {},
+                    isBillingFailed ? purchaseDateFormatted : undefined,
+                    isBillingFailed ? purchaseAmountWithCurrency : undefined,
                 ),
                 isError: true,
                 isRetryAvailable: !isEmptyObject(accountData) ? true : undefined,
@@ -91,7 +92,7 @@ function getBillingStatus({
         case PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING:
             return {
                 title: translate('subscription.billingBanner.policyOwnerUnderInvoicing.title'),
-                subtitle: translate('subscription.billingBanner.policyOwnerUnderInvoicing.subtitle', {date: endDateFormatted ?? ''}),
+                subtitle: translate('subscription.billingBanner.policyOwnerUnderInvoicing.subtitle', endDateFormatted ?? ''),
                 isError: true,
                 isAddButtonDark: true,
             };
@@ -107,7 +108,7 @@ function getBillingStatus({
         case PAYMENT_STATUS.BILLING_DISPUTE_PENDING:
             return {
                 title: translate('subscription.billingBanner.billingDisputePending.title'),
-                subtitle: translate('subscription.billingBanner.billingDisputePending.subtitle', {amountOwed, cardEnding}),
+                subtitle: translate('subscription.billingBanner.billingDisputePending.subtitle', amountOwed, cardEnding),
                 isError: true,
                 isRetryAvailable: false,
             };
@@ -115,7 +116,7 @@ function getBillingStatus({
         case PAYMENT_STATUS.CARD_AUTHENTICATION_REQUIRED:
             return {
                 title: translate('subscription.billingBanner.cardAuthenticationRequired.title'),
-                subtitle: translate('subscription.billingBanner.cardAuthenticationRequired.subtitle', {cardEnding}),
+                subtitle: translate('subscription.billingBanner.cardAuthenticationRequired.subtitle', cardEnding),
                 isError: true,
                 isAuthenticationRequired: true,
             };
@@ -123,7 +124,7 @@ function getBillingStatus({
         case PAYMENT_STATUS.INSUFFICIENT_FUNDS:
             return {
                 title: translate('subscription.billingBanner.insufficientFunds.title'),
-                subtitle: translate('subscription.billingBanner.insufficientFunds.subtitle', {amountOwed}),
+                subtitle: translate('subscription.billingBanner.insufficientFunds.subtitle', amountOwed),
                 isError: true,
                 isRetryAvailable: true,
             };
@@ -131,7 +132,7 @@ function getBillingStatus({
         case PAYMENT_STATUS.CARD_EXPIRED:
             return {
                 title: translate('subscription.billingBanner.cardExpired.title'),
-                subtitle: translate('subscription.billingBanner.cardExpired.subtitle', {amountOwed}),
+                subtitle: translate('subscription.billingBanner.cardExpired.subtitle', amountOwed),
                 isError: true,
                 isRetryAvailable: !isCurrentCardExpired,
             };

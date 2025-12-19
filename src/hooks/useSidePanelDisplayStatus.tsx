@@ -15,13 +15,13 @@ function useSidePanelDisplayStatus() {
 
     // The Side Panel is hidden when:
     // - NVP is not set or it is false
-    // - Production environment
+    // - Production environment (will be removed in the future once it's tested on staging)
     const shouldHideSidePanel = !isSidePanelVisible || !sidePanelNVP || isProduction;
     const isSidePanelHiddenOrLargeScreen = !isSidePanelVisible || isExtraLargeScreenWidth || isProduction || !sidePanelNVP;
 
     // The help button is hidden when:
     // - Side Panel is displayed currently
-    // - Production environment
+    // - Production environment (will be removed in the future once it's tested on staging)
     const shouldHideHelpButton = !shouldHideSidePanel || isProduction;
     const shouldHideSidePanelBackdrop = shouldHideSidePanel || isExtraLargeScreenWidth || shouldUseNarrowLayout;
 

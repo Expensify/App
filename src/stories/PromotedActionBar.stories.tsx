@@ -33,7 +33,7 @@ function Template(args: PromotedActionsBarProps) {
 const promotedActions = [
     {
         key: 'join',
-        icon: getExpensifyIcon('CommentBubbles'),
+        icon: 'CommentBubbles',
         text: 'Join',
         onSelected: () => {},
     },

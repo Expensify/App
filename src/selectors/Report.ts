@@ -2,7 +2,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
-import type {ReportActions} from '@src/types/onyx';
+import type {Report, ReportActions} from '@src/types/onyx';
 import {getLastClosedReportAction} from './ReportAction';
 
 function getArchiveReason(reportActions: OnyxEntry<ReportActions>): ValueOf<typeof CONST.REPORT.ARCHIVE_REASON> | undefined {
@@ -15,4 +15,8 @@ function getArchiveReason(reportActions: OnyxEntry<ReportActions>): ValueOf<type
     return isClosedAction(lastClosedReportAction) ? getOriginalMessage(lastClosedReportAction)?.reason : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
 }
 
-export default getArchiveReason;
+function getReportPolicyID(report: OnyxEntry<Report>) {
+    return report?.policyID;
+}
+
+export {getArchiveReason, getReportPolicyID};

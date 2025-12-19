@@ -94,7 +94,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
         return (sortedAllReportActions ?? [])
             .filter(
                 (reportAction) =>
-                    reportAction.reportActionID.includes(debouncedSearchValue) || getReportActionMessageText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
+                    reportAction.reportActionID.includes(debouncedSearchValue) || getReportActionDebugText(reportAction).toLowerCase().includes(debouncedSearchValue.toLowerCase()),
             )
             .map((reportAction) => ({
                 reportActionID: reportAction.reportActionID,
@@ -133,7 +133,5 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
         </ScrollView>
     );
 }
-
-DebugReportActions.displayName = 'DebugReportActions';
 
 export default DebugReportActions;

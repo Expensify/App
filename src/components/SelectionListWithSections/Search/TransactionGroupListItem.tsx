@@ -59,7 +59,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     searchType,
     accountID,
     isOffline,
-    areAllOptionalColumnsHidden,
     newTransactionID,
     violations,
     onDEWModalOpen,
@@ -74,11 +73,11 @@ function TransactionGroupListItem<TItem extends ListItem>({
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportID}`, {canBeMissing: true});
-    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.transactionThreadReportID}`, {canBeMissing: true});
+    const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
     const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionItem?.transactionID}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
-        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.moneyRequestReportActionID}`],
-        [oneTransactionItem?.moneyRequestReportActionID],
+        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
+        [oneTransactionItem?.reportAction?.reportActionID],
     );
     const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionItem?.reportID}`, {selector: parentReportActionSelector, canBeMissing: true}, [
         oneTransactionItem,
@@ -147,9 +146,10 @@ function TransactionGroupListItem<TItem extends ListItem>({
                 searchKey: undefined,
                 offset: (transactionsSnapshot?.search?.offset ?? 0) + pageSize,
                 shouldCalculateTotals: false,
+                isLoading: !!transactionsSnapshot?.search?.isLoading,
             });
         },
-        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset],
+        [groupItem.transactionsQueryJSON, transactionsSnapshot?.search?.offset, transactionsSnapshot?.search?.isLoading],
     );
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -196,6 +196,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
         onLongPressRow?.(item, isExpenseReportType ? undefined : transactions);
     }, [isEmpty, isExpenseReportType, item, onLongPressRow, transactions]);
 
+    const onExpandedRowLongPress = useCallback(
+        (transaction: TransactionListItemType) => {
+            onLongPressRow?.(transaction as unknown as TItem);
+        },
+        [onLongPressRow],
+    );
+
     const onCheckboxPress = useCallback(
         (val: TItem) => {
             onCheckboxPressRow?.(val, isExpenseReportType ? undefined : transactions);
@@ -220,6 +227,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         member={groupItem as TransactionMemberGroupListItemType}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
+                        columns={columns}
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
@@ -232,6 +240,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         card={groupItem as TransactionCardGroupListItemType}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
+                        columns={columns}
                         isFocused={isFocused}
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
@@ -245,6 +254,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
+                        columns={columns}
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
@@ -281,19 +291,20 @@ function TransactionGroupListItem<TItem extends ListItem>({
         },
         [
             groupItem,
-            onSelectRow,
-            transactionPreviewData,
             onCheckboxPress,
             isDisabledOrEmpty,
-            isFocused,
+            columns,
             canSelectMultiple,
             isSelectAllChecked,
             isIndeterminate,
-            onDEWModalOpen,
-            groupBy,
-            isExpanded,
             onExpandIconPress,
+            isExpanded,
+            isFocused,
             searchType,
+            groupBy,
+            onDEWModalOpen,
+            onSelectRow,
+            transactionPreviewData,
         ],
     );
 
@@ -343,7 +354,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 groupBy={groupBy}
                                 accountID={accountID}
                                 isOffline={isOffline}
-                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                                 violations={violations}
                                 transactions={transactions}
                                 transactionsVisibleLimit={transactionsVisibleLimit}
@@ -355,6 +365,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 transactionsQueryJSON={groupItem.transactionsQueryJSON}
                                 searchTransactions={searchTransactions}
                                 isInSingleTransactionReport={groupItem.transactions.length === 1}
+                                onLongPress={onExpandedRowLongPress}
                             />
                         </AnimatedCollapsible>
                     </View>
@@ -363,7 +374,5 @@ function TransactionGroupListItem<TItem extends ListItem>({
         </OfflineWithFeedback>
     );
 }
-
-TransactionGroupListItem.displayName = 'TransactionGroupListItem';
 
 export default TransactionGroupListItem;

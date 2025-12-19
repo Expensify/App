@@ -109,6 +109,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         'Tag',
         'Users',
         'Workflows',
+        'LuggageWithLines',
     ] as const);
 
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -157,6 +158,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             [CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED]: policy?.areInvoicesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED]: policy?.arePerDiemRatesEnabled,
             [CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED]: isUberForBusinessEnabled && (policy?.receiptPartners?.enabled ?? false),
+            [CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]: policy?.isTravelEnabled,
         }),
         [
             policy?.areDistanceRatesEnabled,
@@ -174,6 +176,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             policy?.arePerDiemRatesEnabled,
             policy?.receiptPartners?.enabled,
             isUberForBusinessEnabled,
+            policy?.isTravelEnabled,
         ],
     ) as PolicyFeatureStates;
 
@@ -303,6 +306,16 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.DISTANCE_RATES,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED,
+            });
+        }
+
+        if (featureStates?.[CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED]) {
+            protectedMenuItems.push({
+                translationKey: 'workspace.common.travel',
+                icon: expensifyIcons.LuggageWithLines,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL.getRoute(policyID)))),
+                screenName: SCREENS.WORKSPACE.TRAVEL,
+                highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
             });
         }
 
@@ -484,7 +497,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     return (
         <ScreenWrapper
-            testID={WorkspaceInitialPage.displayName}
+            testID="WorkspaceInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={
                 shouldShowNavigationTabBar &&
@@ -553,6 +566,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                 shouldShowErrorMessages={false}
                             >
                                 <MenuItem
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     title={getReportName(currentUserPolicyExpenseChat)}
                                     description={translate('workspace.common.workspace')}
                                     onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}
@@ -569,7 +583,5 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         </ScreenWrapper>
     );
 }
-
-WorkspaceInitialPage.displayName = 'WorkspaceInitialPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceInitialPage);

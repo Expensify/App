@@ -125,6 +125,14 @@ const restrictedImportPaths = [
         name: '@src/utils/findNodeHandle',
         message: "Do not use 'findNodeHandle' as it is no longer supported on web.",
     },
+    {
+        name: './SelectionListWithSections',
+        message: 'Use `SelectionList` for flat data. Only use `SelectionListWithSection` when data is actually sectioned. See contributingGuides/SELECTION_LIST.md for details',
+    },
+    {
+        name: '@components/SelectionListWithSections',
+        message: 'Use `SelectionList` for flat data. Only use `SelectionListWithSection` when data is actually sectioned. See contributingGuides/SELECTION_LIST.md for details',
+    },
 ];
 
 const restrictedImportPatterns = [
@@ -598,7 +606,6 @@ const config = defineConfig([
         '**/vendor',
         'modules/group-ib-fp/**/*',
         'web/snippets/gib.js',
-        'desktop/**/*',
     ]),
 ]);
 

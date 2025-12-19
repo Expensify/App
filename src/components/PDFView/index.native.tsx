@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {Linking, View} from 'react-native';
 import PDF from 'react-native-pdf';
 import ActivityIndicator from '@components/ActivityIndicator';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -104,6 +104,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setShouldAttemptPDFLoad(true);
         setShouldShowLoadingIndicator(true);
     };
+
     /**
      * After the PDF is successfully loaded hide PDFPasswordForm and the loading
      * indicator.
@@ -116,6 +117,13 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         setSuccessToLoadPDF(true);
         onLoadComplete(path);
     };
+
+    /**
+     * Handle press link event on native apps.
+     */
+    const handlePressLink = useCallback((url: string) => {
+        Linking.openURL(url);
+    }, []);
 
     function renderPDFView() {
         const pdfWidth = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth;
@@ -154,6 +162,7 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
                         onLoadComplete={finishPDFLoad}
                         onPageSingleTap={onPress}
                         onScaleChanged={onScaleChanged}
+                        onPressLink={handlePressLink}
                     />
                 )}
                 {shouldRequestPassword && (
@@ -186,7 +195,5 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
         renderPDFView()
     );
 }
-
-PDFView.displayName = 'PDFView';
 
 export default PDFView;

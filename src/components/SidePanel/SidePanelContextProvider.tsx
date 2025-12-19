@@ -3,7 +3,6 @@ import React, {createContext, useCallback, useEffect, useMemo, useRef, useState}
 // Import Animated directly from 'react-native' as animations are used with navigation.
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
-import Onyx from 'react-native-onyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -12,7 +11,6 @@ import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {SidePanel} from '@src/types/onyx';
 
 type SidePanelContextProps = {
@@ -48,21 +46,21 @@ const SidePanelContext = createContext<SidePanelContextProps>({
 function SidePanelContextProvider({children}: PropsWithChildren) {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
-    const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
+    const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sidePanelWidth;
 
     const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(true);
     const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, isSidePanelHiddenOrLargeScreen, sidePanelNVP} = useSidePanelDisplayStatus();
     const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
     const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
-    const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sideBarWidth : 0));
+    const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sidePanelWidth : 0));
     const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
 
     useEffect(() => {
         setIsSidePanelTransitionEnded(false);
         Animated.parallel([
             Animated.timing(sidePanelOffset.current, {
-                toValue: shouldApplySidePanelOffset ? variables.sideBarWidth : 0,
+                toValue: shouldApplySidePanelOffset ? variables.sidePanelWidth : 0,
                 duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
@@ -102,15 +100,21 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
             shouldHideToolTip,
             sidePanelOffset,
             sidePanelTranslateX,
-            //  in the console.
-            openSidePanel: () => {
-                // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                Onyx.set(ONYXKEYS.NVP_SIDE_PANEL, {open: true, openNarrowScreen: true});
-            },
+            openSidePanel: () => SidePanelActions.openSidePanel(!isExtraLargeScreenWidth),
             closeSidePanel,
             sidePanelNVP,
         }),
-        [closeSidePanel, isSidePanelHiddenOrLargeScreen, isSidePanelTransitionEnded, shouldHideHelpButton, shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideToolTip, sidePanelNVP],
+        [
+            closeSidePanel,
+            isExtraLargeScreenWidth,
+            isSidePanelHiddenOrLargeScreen,
+            isSidePanelTransitionEnded,
+            shouldHideHelpButton,
+            shouldHideSidePanel,
+            shouldHideSidePanelBackdrop,
+            shouldHideToolTip,
+            sidePanelNVP,
+        ],
     );
 
     return <SidePanelContext.Provider value={value}>{children}</SidePanelContext.Provider>;
