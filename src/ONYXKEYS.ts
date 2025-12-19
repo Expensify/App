@@ -125,7 +125,7 @@ const ONYXKEYS = {
     /* Contains meta data for the call to the API to get the joinable policies */
     VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'validateUserAndGetAccessiblePolicies',
 
-    /** Stores information about the unshare bank account */
+    /** Stores details relating to unsharing a given bank account */
     UNSHARE_BANK_ACCOUNT: 'unshareBankAccount',
 
     /** Information about the current session (authToken, accountID, email, loading, error) */

@@ -1223,10 +1223,6 @@ function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdra
     );
 }
 
-function clearUnshareBankAccount() {
-    Onyx.set(ONYXKEYS.UNSHARE_BANK_ACCOUNT, null);
-}
-
 function clearUnshareBankAccountErrors() {
     Onyx.merge(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {errors: null});
 }
@@ -1379,7 +1375,6 @@ export {
     saveCorpayOnboardingCompanyDetails,
     unshareBankAccount,
     clearUnshareBankAccountErrors,
-    clearUnshareBankAccount,
     clearReimbursementAccountSaveCorpayOnboardingCompanyDetails,
     saveCorpayOnboardingBeneficialOwners,
     saveCorpayOnboardingDirectorInformation,

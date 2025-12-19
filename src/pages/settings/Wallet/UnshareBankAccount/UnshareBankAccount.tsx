@@ -29,29 +29,26 @@ import type SCREENS from '@src/SCREENS';
 
 type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT>;
 
+const emptyFunction = () => {};
+
 function UnshareBankAccount({route}: ShareBankAccountProps) {
     const bankAccountID = route.params?.bankAccountID;
     const styles = useThemeStyles();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [showExpensifyCardErrorModal, setShowExpensifyCardErrorModal] = useState(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-
     const [unsharedBankAccountData] = useOnyx(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {canBeMissing: true});
-    const isLoading = unsharedBankAccountData?.isLoading ?? false;
-    const shouldShowSuccess = unsharedBankAccountData?.shouldShowSuccess ?? false;
-
     const [unshareUser, setUnshareUser] = useState<{login?: string | null; text?: string | null} | undefined>(undefined);
-
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {translate} = useLocalize();
     const admins = bankAccountList?.[bankAccountID]?.accountData?.sharees;
     const totalAdmins = bankAccountList?.[bankAccountID]?.accountData?.sharees?.length;
     const isExpensifyCardSettlementAccount = bankAccountList?.[bankAccountID]?.isExpensifyCardSettlementAccount ?? false;
-
-    const shouldShowTextInput = admins && admins?.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const shouldShowTextInput = Number(totalAdmins) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
+    const isLoading = unsharedBankAccountData?.isLoading ?? false;
+    const shouldShowSuccess = unsharedBankAccountData?.shouldShowSuccess ?? false;
 
     useEffect(() => {
         if (!shouldShowSuccess) {
@@ -66,6 +63,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         if (!bankAccountID || !unshareUser?.login) {
             return;
         }
+        // Unsharing a bank account isn’t possible if the selected user’s copy of the bank account is set as an Expensify Card settlement account.
         if (isExpensifyCardSettlementAccount) {
             setUnshareUser(undefined);
             setShowExpensifyCardErrorModal(true);
@@ -79,7 +77,6 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         if (admins?.length === 0) {
             return [];
         }
-
         const adminsWithInfo =
             admins
                 ?.filter((admin) => admin !== currentUserPersonalDetails?.email)
@@ -98,18 +95,14 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                 }) ?? [];
 
         let adminsToDisplay = [...adminsWithInfo];
-
         if (debouncedSearchTerm) {
             const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
             adminsToDisplay = tokenizedSearch(adminsWithInfo, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
         }
-
         return adminsToDisplay;
     };
 
-    const hideUnshareErrorModal = () => {
-        setShowExpensifyCardErrorModal(false);
-    };
+    const hideUnshareErrorModal = () => setShowExpensifyCardErrorModal(false);
 
     const itemRightSideComponent = (item: ListItem) => {
         return (
@@ -125,17 +118,15 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         );
     };
 
-    const adminsList = getAdminsList();
+    const onButtonPress = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
 
     const getHeaderSearchMessage = () => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
-
         return getHeaderMessage(adminsList.length !== 0, false, searchValue, countryCode, false);
     };
 
     const headerMessage = getHeaderSearchMessage();
-
-    const onButtonPress = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
+    const adminsList = getAdminsList();
 
     return (
         <ScreenWrapper testID={UnshareBankAccount.displayName}>
@@ -163,7 +154,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                             canDismissError
                         />
                     }
-                    onSelectRow={() => {}}
+                    onSelectRow={emptyFunction}
                     ListItem={UserListItem}
                 />
             </>
