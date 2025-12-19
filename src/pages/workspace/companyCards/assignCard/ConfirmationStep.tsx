@@ -89,7 +89,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     },
                 });
             }
-            // For expired feeds, navigate to the old ASSIGN_CARD route which handles these special cases
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed, cardID}));
             return;
         }
