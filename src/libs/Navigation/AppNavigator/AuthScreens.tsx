@@ -252,7 +252,7 @@ function AuthScreens() {
             App.reconnectApp(initialLastUpdateIDAppliedToClient);
         }
 
-        App.setUpPoliciesAndNavigate(session, introSelected);
+        App.setUpPoliciesAndNavigate(session, introSelected, activePolicyID);
 
         App.redirectThirdPartyDesktopSignIn();
 
@@ -705,8 +705,6 @@ function AuthScreens() {
         </ComposeProviders>
     );
 }
-
-AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 

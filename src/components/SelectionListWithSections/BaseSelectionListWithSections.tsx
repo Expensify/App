@@ -24,7 +24,6 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
-import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -145,6 +144,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
+    isPercentageMode,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -355,7 +355,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
 
-            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea});
+            let viewOffset = variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea;
+            // Remove contentHeaderHeight from viewOffset calculation if isPercentageMode (for scroll offset calculation on native)
+            if (isPercentageMode) {
+                viewOffset = viewOffsetToKeepFocusedItemAtTopOfViewableArea;
+            }
+            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset});
             pendingScrollIndexRef.current = null;
         },
 
@@ -440,16 +445,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
             }
         },
-        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
+        setHasKeyBeenPressed,
         isFocused,
         onArrowUpDownCallback,
     });
-
-    useEffect(() => {
-        addKeyDownPressListener(setHasKeyBeenPressed);
-
-        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
-    }, [setHasKeyBeenPressed]);
 
     const selectedItemIndex = useMemo(
         () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex(isItemSelected) : -1),
@@ -1119,7 +1118,5 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </View>
     );
 }
-
-BaseSelectionListWithSections.displayName = 'BaseSelectionListWithSections';
 
 export default BaseSelectionListWithSections;

@@ -50,6 +50,5 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
         />
     );
 }
-WorkspaceAvatarModalContent.displayName = 'WorkspaceAvatarModalContent';
 
 export default WorkspaceAvatarModalContent;

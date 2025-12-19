@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -30,6 +31,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
+import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -38,16 +40,23 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getRateFromMerchant} from '@libs/MergeTransactionUtils';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {canSubmitPerDiemExpenseFromWorkspace, getLengthOfTag, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {
+    canSubmitPerDiemExpenseFromWorkspace,
+    getLengthOfTag,
+    getPerDiemCustomUnit,
+    getPolicyByCustomUnitID,
+    getTagLists,
+    hasDependentTags as hasDependentTagsPolicyUtils,
+    isTaxTrackingEnabled,
+} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getReportName,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,
@@ -67,6 +76,7 @@ import {
     getFormattedCreated,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
+    getTagArrayFromName,
     getTagForDisplay,
     getTaxName,
     hasMissingSmartscanFields,
@@ -90,6 +100,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {TransactionPendingFieldsKey} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
 
 type MoneyRequestViewProps = {
@@ -118,6 +129,17 @@ type MoneyRequestViewProps = {
     mergeTransactionID?: string;
 };
 
+const perDiemPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => {
+    return Object.fromEntries(
+        Object.entries(policies ?? {}).filter(([, policy]) => {
+            const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+            const hasPolicyPerDiemRates = !isEmptyObject(perDiemCustomUnit?.rates);
+
+            return policy?.arePerDiemRatesEnabled && hasPolicyPerDiemRates;
+        }),
+    );
+};
+
 function MoneyRequestView({
     allReports,
     report,
@@ -128,7 +150,7 @@ function MoneyRequestView({
     isFromReviewDuplicates = false,
     mergeTransactionID,
 }: MoneyRequestViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark', 'Suitcase']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -138,6 +160,7 @@ function MoneyRequestView({
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
 
     const parentReportID = report?.parentReportID;
@@ -158,9 +181,28 @@ function MoneyRequestView({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(updatedTransaction ?? transaction);
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
-    // If the expense is unreported the policy should be the user's default policy, otherwise it should be the policy the expense was made for
-    const policy = isExpenseUnreported ? policyForMovingExpenses : expensePolicy;
-    const policyID = isExpenseUnreported ? policyForMovingExpensesID : report?.policyID;
+
+    const [policiesWithPerDiem] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: perDiemPoliciesSelector,
+        canBeMissing: true,
+    });
+    const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
+    const perDiemOriginalPolicy = getPolicyByCustomUnitID(transaction, policiesWithPerDiem);
+
+    let policy;
+    let policyID;
+    // If the expense is unreported the policy should be the user's default policy, if the expense is a per diem request and is unreported
+    // the policy should be the one where the per diem rates are enabled, otherwise it should be the expense's report policy
+    if (isExpenseUnreported && !isPerDiemRequest) {
+        policy = policyForMovingExpenses;
+        policyID = policyForMovingExpensesID;
+    } else if (isExpenseUnreported && isPerDiemRequest) {
+        policy = perDiemOriginalPolicy;
+        policyID = perDiemOriginalPolicy?.id;
+    } else {
+        policy = expensePolicy;
+        policyID = report?.policyID;
+    }
 
     const allPolicyCategories = usePolicyCategories();
     const policyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
@@ -216,12 +258,10 @@ function MoneyRequestView({
         () => getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {},
         [allowNegativeAmount, currentUserPersonalDetails, transaction],
     );
-    const isEmptyMerchant =
-        transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transactionMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
-    const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
@@ -230,10 +270,9 @@ function MoneyRequestView({
     // Use the updated transaction amount in merge flow to have correct positive/negative sign
     const actualAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.amount : transactionAmount;
     const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
-    const shouldDisplayTransactionAmount = (isDistanceRequest && hasRoute) || !isDistanceRequest;
+    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!actualAmount) && actualAmount !== undefined;
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
-    const formattedPerAttendeeAmount =
-        shouldDisplayTransactionAmount && actualAmount !== undefined ? convertToDisplayString(actualAmount / (transactionAttendees?.length ?? 1), actualCurrency) : '';
+    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (actualAttendees?.length ?? 1), actualCurrency) : '';
 
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
@@ -254,7 +293,8 @@ function MoneyRequestView({
     const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
-    const shouldShowPaid = isSettled && transactionReimbursable;
+    const pendingAction = transaction?.pendingAction;
+    const shouldShowPaid = isSettled && transactionReimbursable && !pendingAction;
 
     // Flags for allowing or disallowing editing an expense
     // Used for non-restricted fields such as: description, category, tag, billable, etc...
@@ -273,13 +313,10 @@ function MoneyRequestView({
     const canEditDate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived);
     const canEditDistance = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived);
     const canEditDistanceRate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived);
-    const canEditReport = useMemo(
-        () =>
-            isEditable &&
-            canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID) &&
-            (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy)),
-        [isEditable, parentReportAction, isChatReportArchived, outstandingReportsByPolicyID, isPerDiemRequest, policy],
-    );
+    const canEditReport =
+        isEditable &&
+        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID) &&
+        (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy) || (isExpenseUnreported && !!perDiemOriginalPolicy));
 
     // A flag for verifying that the current report is a sub-report of a expense chat
     // if the policy of the report is either Collect or Control, then this report must be tied to expense chat
@@ -327,11 +364,12 @@ function MoneyRequestView({
     const {unit, rate} = DistanceRequestUtils.getRate({transaction: updatedTransaction ?? transaction, policy});
     const distance = getDistanceInMeters(transactionBackup ?? updatedTransaction ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
+    const hasRequiredCompanyCardViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.COMPANY_CARD_REQUIRED);
     const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY) || (isDistanceRequest && !rate);
     let rateToDisplay = isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
-    let amountTitle = formattedTransactionAmount?.toString() || '';
+    let amountTitle = formattedTransactionAmount ? formattedTransactionAmount.toString() : '';
     if (isTransactionScanning) {
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
@@ -345,10 +383,7 @@ function MoneyRequestView({
         }
         return getDescription(updatedTransaction ?? null);
     }, [updatedTransaction]);
-    const isEmptyUpdatedMerchant =
-        updatedTransaction?.modifiedMerchant === '' ||
-        updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
-        updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
+    const isEmptyUpdatedMerchant = updatedTransaction?.modifiedMerchant === '' || updatedTransaction?.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const updatedMerchantTitle = isEmptyUpdatedMerchant ? '' : (updatedTransaction?.modifiedMerchant ?? merchantTitle);
 
     const saveBillable = useCallback(
@@ -427,9 +462,15 @@ function MoneyRequestView({
     }
 
     const hasErrors = hasMissingSmartscanFields(transaction);
-    const pendingAction = transaction?.pendingAction;
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
+    const isMissingAttendeesViolation = getIsMissingAttendeesViolation(
+        policyCategories,
+        updatedTransaction?.category ?? categoryForDisplay,
+        actualAttendees,
+        currentUserPersonalDetails,
+        policy?.isAttendeeTrackingEnabled,
+    );
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
@@ -437,7 +478,7 @@ function MoneyRequestView({
             // NOTE: receipt field can return multiple violations, so we need to handle it separately
             const fieldChecks: Partial<Record<ViolationField, {isError: boolean; translationPath: TranslationPaths}>> = {
                 amount: {
-                    isError: transactionAmount === 0 && !isBetaEnabled(CONST.BETAS.ZERO_EXPENSES),
+                    isError: transactionAmount === 0,
                     translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
                 },
                 merchant: {
@@ -461,6 +502,10 @@ function MoneyRequestView({
                 return translate(translationPath);
             }
 
+            if (field === 'attendees' && isMissingAttendeesViolation) {
+                return translate('violations.missingAttendees');
+            }
+
             if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
                 return translate('violations.customUnitOutOfPolicy');
             }
@@ -474,6 +519,7 @@ function MoneyRequestView({
             return '';
         },
         [
+            transactionAmount,
             isSettled,
             isCancelled,
             isPolicyExpenseChat,
@@ -484,14 +530,13 @@ function MoneyRequestView({
             hasViolations,
             translate,
             getViolationsForField,
+            canEditAmount,
             canEditDate,
             canEditMerchant,
-            canEditAmount,
             canEdit,
             isCustomUnitOutOfPolicy,
             companyCardPageURL,
-            transactionAmount,
-            isBetaEnabled,
+            isMissingAttendeesViolation,
         ],
     );
 
@@ -616,7 +661,25 @@ function MoneyRequestView({
                 shouldShow = true;
             } else {
                 const prevTagValue = getTagForDisplay(transaction, index - 1);
-                shouldShow = !!prevTagValue;
+                if (!prevTagValue) {
+                    shouldShow = false;
+                } else {
+                    const parentTag = getTagArrayFromName(transactionTag ?? '')
+                        .slice(0, index)
+                        .join(':');
+
+                    const availableTags = Object.values(tags).filter((policyTag) => {
+                        const filterRegex = policyTag.rules?.parentTagsFilter;
+                        if (!filterRegex) {
+                            return true;
+                        }
+
+                        const regex = new RegExp(filterRegex);
+                        return regex.test(parentTag ?? '');
+                    });
+
+                    shouldShow = availableTags.some((tag) => tag.enabled);
+                }
             }
         } else {
             shouldShow = !!tagForDisplay || hasEnabledOptions(tags);
@@ -669,8 +732,9 @@ function MoneyRequestView({
         );
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportNameToDisplay = isFromMergeTransaction ? updatedTransaction?.reportName : getReportName(parentReport) || parentReport?.reportName;
+    const reportNameToDisplay = isFromMergeTransaction
+        ? updatedTransaction?.reportName
+        : computeReportName(parentReport, allReports, allPolicies, allTransactions) || parentReport?.reportName;
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport ? reportNameToDisplay : undefined;
 
@@ -916,6 +980,8 @@ function MoneyRequestView({
                             onPress={() => {
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID));
                             }}
+                            brickRoadIndicator={getErrorForField('attendees') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            errorText={getErrorForField('attendees')}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             shouldRenderAsHTML
@@ -1021,11 +1087,17 @@ function MoneyRequestView({
                         }}
                     />
                 )}
+
+                {hasRequiredCompanyCardViolation && (
+                    <DotIndicatorMessage
+                        type="error"
+                        style={[styles.mv3, styles.mh4]}
+                        messages={{error: translate('violations.companyCardRequired')}}
+                    />
+                )}
             </>
         </View>
     );
 }
-
-MoneyRequestView.displayName = 'MoneyRequestView';
 
 export default MoneyRequestView;

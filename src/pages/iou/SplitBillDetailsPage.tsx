@@ -70,7 +70,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
 
     const hasSmartScanFailed = hasReceipt(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
     const isDistanceRequest = isDistanceRequestUtil(transaction);
-    const isEditingSplitBill = session?.accountID === actorAccountID && (areRequiredFieldsEmpty(transaction) || transaction?.amount === 0) && !isDistanceRequest;
+    const isEditingSplitBill = session?.accountID === actorAccountID && areRequiredFieldsEmpty(transaction) && !isDistanceRequest;
     const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
     const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
     const [isConfirmed, setIsConfirmed] = useState(false);
@@ -93,7 +93,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, transactionViolations]);
 
     return (
-        <ScreenWrapper testID={SplitBillDetailsPage.displayName}>
+        <ScreenWrapper testID="SplitBillDetailsPage">
             <FullPageNotFoundView shouldShow={!reportID || isEmptyObject(reportAction) || isEmptyObject(transaction)}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
@@ -157,7 +157,5 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
         </ScreenWrapper>
     );
 }
-
-SplitBillDetailsPage.displayName = 'SplitBillDetailsPage';
 
 export default withReportAndReportActionOrNotFound(SplitBillDetailsPage);
