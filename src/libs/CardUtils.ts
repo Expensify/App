@@ -195,8 +195,8 @@ function formatCardExpiration(expirationDateString: string) {
  * @param cardList - collection of assigned cards
  * @returns collection of assigned cards grouped by domain
  */
-function getDomainCards(cardList: OnyxEntry<CardList>): Record<string, Card[]> {
-    const assignedCards = getAssignedCardFromCardList(cardList ?? {});
+function getDomainCards(cardsList: OnyxEntry<CardList>): Record<string, Card[]> {
+    const {cardList: assignableCards, ...assignedCards} = cardsList ?? {};
 
     // Check for domainName to filter out personal credit cards.
     const activeCards = Object.values(assignedCards).filter((card) => !!card?.domainName && CONST.EXPENSIFY_CARD.ACTIVE_STATES.some((element) => element === card.state));
@@ -637,11 +637,16 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
-function filterInactiveCards(cards: CardList | undefined): CardList {
-    const assignedCards = getAssignedCardFromCardList(cards ?? {});
+function filterInactiveCards(cardsList: CardList | undefined) {
+    const {cardList = {}, ...assignedCards} = cardsList ?? {};
 
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
-    return filterObject(assignedCards ?? {}, (_key, card) => !closedStates.has(card.state));
+    const filteredAssignedCards = filterObject(assignedCards, (_key, card) => !closedStates.has(card.state));
+
+    return {
+        cardList,
+        ...filteredAssignedCards,
+    } as CardList;
 }
 
 function getAllCardsForWorkspace(
@@ -668,19 +673,8 @@ function getAllCardsForWorkspace(
     return cards;
 }
 
-/**
- * Get assigned cards from card list by extracting the list of assignable cards from the card list
- *
- * @param cardList the card list
- * @returns the assigned cards
- */
-function getAssignedCardFromCardList(cardList: CardList) {
-    const {cardList: assignableCards, ...assignedCards} = cardList;
-    return assignedCards;
-}
-
-function isSmartLimitEnabled(cardList: CardList) {
-    const assignedCards = getAssignedCardFromCardList(cardList);
+function isSmartLimitEnabled(cardsList: CardList) {
+    const {cardList, ...assignedCards} = cardsList ?? {};
 
     return Object.values(assignedCards).some((card) => card.nameValuePairs?.limitType === CONST.EXPENSIFY_CARD.LIMIT_TYPES.SMART);
 }
@@ -791,7 +785,7 @@ function isExpensifyCardPendingAction(card?: Card, privatePersonalDetails?: Priv
 }
 
 function hasPendingExpensifyCardAction(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails) {
-    const assignedCards = getAssignedCardFromCardList(cards ?? {});
+    const {cardList, ...assignedCards} = cards ?? {};
     return Object.values(assignedCards).some((card) => isExpensifyCardPendingAction(card, privatePersonalDetails));
 }
 const isCurrencySupportedForECards = (currency?: string) => {
@@ -960,7 +954,6 @@ export {
     COMPANY_CARD_BANK_ICON_NAMES,
     isMaskedCardNumberEqual,
     splitMaskedCardNumber,
-    getAssignedCardFromCardList,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};
