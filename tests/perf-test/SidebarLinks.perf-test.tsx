@@ -1,5 +1,6 @@
 import {fireEvent, screen, waitFor} from '@testing-library/react-native';
 import React, {useEffect, useState} from 'react';
+import {flushSync} from 'react-dom';
 import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import CONST from '@src/CONST';
@@ -13,7 +14,7 @@ function ExtraRenderWrapper({children}: {children: React.ReactNode}) {
     const [, setCount] = useState(0);
     useEffect(() => {
         for (let i = 1; i <= 50; i++) {
-            setCount(i);
+            flushSync(() => setCount(i));
         }
     }, []);
     return <>{children}</>;
