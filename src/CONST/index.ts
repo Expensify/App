@@ -389,6 +389,18 @@ const CONST = {
         MAX_LENGTH: 83,
     },
 
+    EXPORT_LABELS: {
+        NETSUITE: 'NetSuite',
+        QBO: 'QuickBooks Online',
+        QBD: 'QuickBooks Desktop',
+        XERO: 'Xero',
+        INTACCT: 'Intacct',
+        SAGE_INTACCT: 'Sage Intacct',
+        CERTINIA: 'FinancialForce',
+        BILLCOM: 'Bill.com',
+        ZENEFITS: 'Zenefits',
+    },
+
     REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
     HIDDEN_MESSAGE_ATTRIBUTE: 'is-hidden-message',
 
@@ -1829,6 +1841,8 @@ const CONST = {
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
         INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
+
+        DESKTOP_APP_RETIRED: 'Desktop app retired',
         BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR: 'The deposit and withdrawal accounts are the same.',
     },
     ERROR_TYPE: {
@@ -6732,6 +6746,7 @@ const CONST = {
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
                     AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
+                    EXPORTED_TO: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 EXPENSE_REPORT: {
@@ -6749,6 +6764,7 @@ const CONST = {
                     REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
                     BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
                     AMOUNT: this.TABLE_COLUMNS.TOTAL,
+                    EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 INVOICE: {},
@@ -6866,6 +6882,7 @@ const CONST = {
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
             TAX: 'tax',
+            EXPORTED_TO: 'exportedto',
             EXCHANGE_RATE: 'exchangeRate',
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
             NON_REIMBURSABLE_TOTAL: 'nonReimbursableTotal',

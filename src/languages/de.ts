@@ -19,22 +19,6 @@ import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    AddedOrDeletedPolicyReportFieldParams,
-    AddedPolicyApprovalRuleParams,
-    AddEmployeeParams,
-    AddOrDeletePolicyCustomUnitRateParams,
-    AirlineParams,
-    ApprovalWorkflowErrorParams,
-    AssignedCardParams,
-    BeginningOfArchivedRoomParams,
-    BeginningOfChatHistoryInvoiceRoomParams,
-    BeginningOfChatHistoryParams,
-    BeginningOfChatHistoryPolicyExpenseChatParams,
-    BeginningOfChatHistoryUserRoomParams,
-    BillingBannerCardOnDisputeParams,
-    BillingBannerDisputePendingParams,
-    BillingBannerOwnerAmountOwedOverdueParams,
-    BusinessBankAccountParams,
     CanceledRequestParams,
     CardInfoParams,
     ChangeFieldParams,
@@ -121,15 +105,10 @@ import type {
     OptionalParam,
     OurEmailProviderParams,
     OwnerOwesAmountParams,
-    PaidElsewhereParams,
-    PaidWithExpensifyParams,
     ParentNavigationSummaryParams,
     PayAndDowngradeDescriptionParams,
-    PayerOwesAmountParams,
     PayerOwesParams,
-    PayerPaidAmountParams,
     PayerPaidParams,
-    PayerSettledParams,
     PaySomeoneParams,
     PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
@@ -595,7 +574,7 @@ const translations: TranslationDeepObject<typeof en> = {
         filterLogs: 'Protokolle filtern',
         network: 'Netzwerk',
         reportID: 'Berichts-ID',
-        longID: 'Lange ID',
+        longReportID: 'Lange Bericht-ID',
         withdrawalID: 'Auszahlungs-ID',
         bankAccounts: 'Bankkonten',
         chooseFile: 'Datei auswählen',
@@ -938,19 +917,19 @@ const translations: TranslationDeepObject<typeof en> = {
         reactedWith: 'reagierte mit',
     },
     reportActionsView: {
-        beginningOfArchivedRoom: ({reportName, reportDetailsLink}: BeginningOfArchivedRoomParams) =>
+        beginningOfArchivedRoom: (reportName: string, reportDetailsLink: string) =>
             `Du hast die Party in <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> verpasst, hier gibt es nichts zu sehen.`,
         beginningOfChatHistoryDomainRoom: (domainRoom: string) =>
             `Dieser Chat ist mit allen Expensify-Mitgliedern in der Domain <strong>${domainRoom}</strong>. Verwende ihn, um mit Kolleg:innen zu chatten, Tipps auszutauschen und Fragen zu stellen.`,
         beginningOfChatHistoryAdminRoom: (workspaceName: string) =>
             `Dieser Chat ist mit dem Admin von <strong>${workspaceName}</strong>. Verwende ihn, um über das Einrichten des Workspaces und mehr zu chatten.`,
         beginningOfChatHistoryAnnounceRoom: (workspaceName: string) => `Dieser Chat ist mit allen in <strong>${workspaceName}</strong>. Verwenden Sie ihn für die wichtigsten Ankündigungen.`,
-        beginningOfChatHistoryUserRoom: ({reportName, reportDetailsLink}: BeginningOfChatHistoryUserRoomParams) =>
+        beginningOfChatHistoryUserRoom: (reportName: string, reportDetailsLink: string) =>
             `Dieser Chatraum ist für alles, was mit <strong><a class="no-style-link" href="${reportDetailsLink}">${reportName}</a></strong> zu tun hat.`,
-        beginningOfChatHistoryInvoiceRoom: ({invoicePayer, invoiceReceiver}: BeginningOfChatHistoryInvoiceRoomParams) =>
+        beginningOfChatHistoryInvoiceRoom: (invoicePayer: string, invoiceReceiver: string) =>
             `Dieser Chat ist für Rechnungen zwischen <strong>${invoicePayer}</strong> und <strong>${invoiceReceiver}</strong>. Verwende die +‑Taste, um eine Rechnung zu senden.`,
-        beginningOfChatHistory: ({users}: BeginningOfChatHistoryParams) => `Dieser Chat ist mit ${users}.`,
-        beginningOfChatHistoryPolicyExpenseChat: ({workspaceName, submitterDisplayName}: BeginningOfChatHistoryPolicyExpenseChatParams) =>
+        beginningOfChatHistory: (users: string) => `Dieser Chat ist mit ${users}.`,
+        beginningOfChatHistoryPolicyExpenseChat: (workspaceName: string, submitterDisplayName: string) =>
             `Hier reicht <strong>${submitterDisplayName}</strong> Ausgaben bei <strong>${workspaceName}</strong> ein. Verwende einfach die +‑Schaltfläche.`,
         beginningOfChatHistorySelfDM: 'Dies ist dein persönlicher Bereich. Verwende ihn für Notizen, Aufgaben, Entwürfe und Erinnerungen.',
         beginningOfChatHistorySystemDM: 'Willkommen! Lass uns alles für dich einrichten.',
@@ -1281,16 +1260,16 @@ const translations: TranslationDeepObject<typeof en> = {
         settlePayment: ({formattedAmount}: SettleExpensifyCardParams) => `${formattedAmount} bezahlen`,
         settleBusiness: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount} als Unternehmen zahlen` : `Mit Geschäftskonto bezahlen`),
         payElsewhere: ({formattedAmount}: SettleExpensifyCardParams) => (formattedAmount ? `${formattedAmount} als bezahlt markieren` : `Als bezahlt markieren`),
-        settleInvoicePersonal: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit Privatkonto ${last4Digits} bezahlt` : `Mit privatem Konto bezahlt`),
-        settleInvoiceBusiness: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit dem Geschäftskonto ${last4Digits} bezahlt` : `Mit Geschäftskonto bezahlt`),
+        settleInvoicePersonal: (amount?: string, last4Digits?: string) => (amount ? `${amount} mit Privatkonto ${last4Digits} bezahlt` : `Mit privatem Konto bezahlt`),
+        settleInvoiceBusiness: (amount?: string, last4Digits?: string) => (amount ? `${amount} mit dem Geschäftskonto ${last4Digits} bezahlt` : `Mit Geschäftskonto bezahlt`),
         payWithPolicy: ({
             formattedAmount,
             policyName,
         }: SettleExpensifyCardParams & {
             policyName: string;
         }) => (formattedAmount ? `Bezahle ${formattedAmount} über ${policyName}` : `Per ${policyName} bezahlen`),
-        businessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) => (amount ? `${amount} mit Bankkonto ${last4Digits} bezahlt` : `bezahlt mit Bankkonto ${last4Digits}`),
-        automaticallyPaidWithBusinessBankAccount: ({amount, last4Digits}: BusinessBankAccountParams) =>
+        businessBankAccount: (amount?: string, last4Digits?: string) => (amount ? `${amount} mit Bankkonto ${last4Digits} bezahlt` : `bezahlt mit Bankkonto ${last4Digits}`),
+        automaticallyPaidWithBusinessBankAccount: (amount?: string, last4Digits?: string) =>
             `${amount ? `${amount} ` : ''} mit Bankkonto ${last4Digits} über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> bezahlt`,
         invoicePersonalBank: (lastFour: string) => `Persönliches Konto • ${lastFour}`,
         invoiceBusinessBank: (lastFour: string) => `Geschäftskonto • ${lastFour}`,
@@ -1305,16 +1284,16 @@ const translations: TranslationDeepObject<typeof en> = {
         splitAmount: ({amount}: SplitAmountParams) => `Split ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `aufteilen ${formattedAmount}${comment ? `für ${comment}` : ''}`,
         yourSplit: ({amount}: UserSplitParams) => `Dein Anteil ${amount}`,
-        payerOwesAmount: ({payer, amount, comment}: PayerOwesAmountParams) => `${payer} schuldet ${amount}${comment ? `für ${comment}` : ''}`,
+        payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} schuldet ${amount}${comment ? `für ${comment}` : ''}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} schuldet:`,
-        payerPaidAmount: ({payer, amount}: PayerPaidAmountParams) => `${payer ? `${payer} ` : ''} hat ${amount} bezahlt`,
+        payerPaidAmount: (amount: number | string, payer?: string) => `${payer ? `${payer} ` : ''} hat ${amount} bezahlt`,
         payerPaid: ({payer}: PayerPaidParams) => `${payer} hat bezahlt:`,
-        payerSpentAmount: ({payer, amount}: PayerPaidAmountParams) => `${payer} hat ${amount} ausgegeben`,
+        payerSpentAmount: (amount: number | string, payer?: string) => `${payer} hat ${amount} ausgegeben`,
         payerSpent: ({payer}: PayerPaidParams) => `${payer} hat ausgegeben:`,
         managerApproved: ({manager}: ManagerApprovedParams) => `${manager} hat genehmigt:`,
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} hat ${amount} genehmigt`,
-        payerSettled: ({amount}: PayerSettledParams) => `bezahlt ${amount}`,
-        payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `${amount} bezahlt. Füge ein Bankkonto hinzu, um deine Zahlung zu erhalten.`,
+        payerSettled: (amount: number | string) => `bezahlt ${amount}`,
+        payerSettledWithMissingBankAccount: (amount: number | string) => `${amount} bezahlt. Füge ein Bankkonto hinzu, um deine Zahlung zu erhalten.`,
         automaticallyApproved: `über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> genehmigt`,
         approvedAmount: (amount: number | string) => `${amount} genehmigt`,
         approvedMessage: `Genehmigt`,
@@ -1328,9 +1307,9 @@ const translations: TranslationDeepObject<typeof en> = {
             `hat die Zahlung über ${amount} storniert, weil ${submitterDisplayName} seine Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} hat ein Bankkonto hinzugefügt. Die Zahlung über ${amount} wurde durchgeführt.`,
-        paidElsewhere: ({payer}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}als bezahlt markiert`,
-        paidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) => `${payer ? `${payer} ` : ''}mit Wallet bezahlt`,
-        automaticallyPaidWithExpensify: ({payer}: PaidWithExpensifyParams = {}) =>
+        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}als bezahlt markiert`,
+        paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}mit Wallet bezahlt`,
+        automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}mit Expensify über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> bezahlt`,
         noReimbursableExpenses: 'Dieser Bericht enthält einen ungültigen Betrag',
         pendingConversionMessage: 'Die Gesamtsumme wird aktualisiert, sobald du wieder online bist',
@@ -1512,6 +1491,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         moveExpenses: () => ({one: 'Auslage verschieben', other: 'Ausgaben verschieben'}),
+        moveExpensesError: 'Sie können Per Diem-Ausgaben nicht in Berichte auf anderen Arbeitsbereichen verschieben, da sich die Tagessätze zwischen Arbeitsbereichen unterscheiden können.',
         changeApprover: {
             title: 'Genehmigenden ändern',
             subtitle: 'Wählen Sie eine Option, um den Genehmiger für diesen Bericht zu ändern.',
@@ -2297,7 +2277,7 @@ ${amount} für ${merchant} – ${date}`,
             },
         },
         approverInMultipleWorkflows: 'Dieses Mitglied gehört bereits zu einem anderen Genehmigungs-Workflow. Alle Änderungen hier werden sich auch dort auswirken.',
-        approverCircularReference: ({name1, name2}: ApprovalWorkflowErrorParams) =>
+        approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> genehmigt bereits Berichte für <strong>${name2}</strong>. Bitte wählen Sie eine andere approver, um einen zirkulären Workflow zu vermeiden.`,
         emptyContent: {
             title: 'Keine Mitglieder zum Anzeigen',
@@ -3756,14 +3736,13 @@ ${
                 `Ihr Ticket für Flug ${airlineCode} (${origin} → ${destination}) am ${startDate} wurde erstattet oder umgebucht.`,
             flightCancelled: ({airlineCode, origin, destination, startDate}: FlightParams) =>
                 `Ihr Flug ${airlineCode} (${origin} → ${destination}) am ${startDate}} wurde von der Fluggesellschaft storniert.`,
-            flightScheduleChangePending: ({airlineCode}: AirlineParams) =>
-                `Die Fluggesellschaft hat eine Flugplanänderung für Flug ${airlineCode} vorgeschlagen; wir warten auf die Bestätigung.`,
-            flightScheduleChangeClosed: ({airlineCode, startDate}: AirlineParams) => `Flugplanänderung bestätigt: Flug ${airlineCode} startet jetzt um ${startDate}.`,
+            flightScheduleChangePending: (airlineCode: string) => `Die Fluggesellschaft hat eine Flugplanänderung für Flug ${airlineCode} vorgeschlagen; wir warten auf die Bestätigung.`,
+            flightScheduleChangeClosed: (airlineCode: string, startDate?: string) => `Flugplanänderung bestätigt: Flug ${airlineCode} startet jetzt um ${startDate}.`,
             flightUpdated: ({airlineCode, origin, destination, startDate}: FlightParams) => `Ihr Flug ${airlineCode} (${origin} → ${destination}) am ${startDate} wurde aktualisiert.`,
-            flightCabinChanged: ({airlineCode, cabinClass}: AirlineParams) => `Ihre Kabinenklasse wurde für den Flug ${airlineCode} auf ${cabinClass} aktualisiert.`,
-            flightSeatConfirmed: ({airlineCode}: AirlineParams) => `Ihre Sitzplatzzuweisung auf Flug ${airlineCode} wurde bestätigt.`,
-            flightSeatChanged: ({airlineCode}: AirlineParams) => `Ihre Sitzplatzzuweisung auf Flug ${airlineCode} wurde geändert.`,
-            flightSeatCancelled: ({airlineCode}: AirlineParams) => `Ihre Sitzplatzzuweisung auf Flug ${airlineCode} wurde entfernt.`,
+            flightCabinChanged: (airlineCode: string, cabinClass?: string) => `Ihre Kabinenklasse wurde für den Flug ${airlineCode} auf ${cabinClass} aktualisiert.`,
+            flightSeatConfirmed: (airlineCode: string) => `Ihre Sitzplatzzuweisung auf Flug ${airlineCode} wurde bestätigt.`,
+            flightSeatChanged: (airlineCode: string) => `Ihre Sitzplatzzuweisung auf Flug ${airlineCode} wurde geändert.`,
+            flightSeatCancelled: (airlineCode: string) => `Ihre Sitzplatzzuweisung auf Flug ${airlineCode} wurde entfernt.`,
             paymentDeclined: 'Die Zahlung für Ihre Flugbuchung ist fehlgeschlagen. Bitte versuchen Sie es erneut.',
             bookingCancelledByTraveler: ({type, id = ''}: TravelTypeParams) => `Sie haben Ihre ${type}-Reservierung ${id} storniert.`,
             bookingCancelledByVendor: ({type, id = ''}: TravelTypeParams) => `Der Anbieter hat Ihre ${type}-Reservierung ${id} storniert.`,
@@ -4877,7 +4856,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             cardName: 'Kartenname',
             brokenConnectionError:
                 '<rbr>Die Karten-Feed-Verbindung ist unterbrochen. Bitte <a href="#">melden Sie sich bei Ihrer Bank an</a>, damit wir die Verbindung erneut herstellen können.</rbr>',
-            assignedCard: ({assignee, link}: AssignedCardParams) => `${assignee} ein ${link} zugewiesen! Importierte Transaktionen werden in diesem Chat erscheinen.`,
+            assignedCard: (assignee: string, link: string) => `${assignee} ein ${link} zugewiesen! Importierte Transaktionen werden in diesem Chat erscheinen.`,
             companyCard: 'Firmenkarte',
             chooseCardFeed: 'Kartenfeed auswählen',
             ukRegulation:
@@ -6328,9 +6307,9 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         billcom: 'BILLCOM',
     },
     workspaceActions: {
-        addApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) =>
+        addApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `${approverName} (${approverEmail}) als Genehmiger für das Feld ${field} „${name}“ hinzugefügt`,
-        deleteApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) =>
+        deleteApprovalRule: (approverEmail: string, approverName: string, field: string, name: string) =>
             `hat ${approverName} (${approverEmail}) als Genehmigenden für das ${field} „${name}“ entfernt`,
         updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) => {
             const formatApprover = (displayName?: string, email?: string) => (displayName ? `${displayName} (${email})` : email);
@@ -6406,7 +6385,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
             `den/die/das ${customUnitName} ${updatedField} in „${newValue}“ geändert (zuvor „${oldValue}“)`,
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'aktiviert' : 'deaktiviert'} Steuerverfolgung bei Entfernungsraten`,
-        addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `hat einen neuen „${customUnitName}“-Satz „${rateName}“ hinzugefügt`,
+        addCustomUnitRate: (customUnitName: string, rateName: string) => `hat einen neuen „${customUnitName}“-Satz „${rateName}“ hinzugefügt`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
             `hat den Satz für ${customUnitName} ${updatedField} „${customUnitRateName}“ auf „${newValue}“ geändert (zuvor „${oldValue}“)`,
         updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
@@ -6427,8 +6406,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
             return `${newValue ? 'aktiviert' : 'deaktiviert'} ${customUnitName}-Tarif "${customUnitRateName}"`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `hat den Preis „${rateName}“ für „${customUnitName}“ entfernt`,
-        addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType}-Berichtsfield „${fieldName}“ hinzugefügt`,
+        deleteCustomUnitRate: (customUnitName: string, rateName: string) => `hat den Preis „${rateName}“ für „${customUnitName}“ entfernt`,
+        addedReportField: (fieldType: string, fieldName?: string) => `${fieldType}-Berichtsfield „${fieldName}“ hinzugefügt`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `Standardwert des Berichtsfelds „${fieldName}“ auf „${defaultValue}“ festlegen`,
         addedReportFieldOption: ({fieldName, optionName}: PolicyAddedReportFieldOptionParams) => `die Option „${optionName}“ zum Berichts­feld „${fieldName}“ hinzugefügt`,
@@ -6441,7 +6420,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             }
             return `${allEnabled ? 'aktiviert' : 'deaktiviert'} die Option "${optionName}" für das Berichtsfeld "${fieldName}", sodass alle Optionen ${allEnabled ? 'aktiviert' : 'deaktiviert'}`;
         },
-        deleteReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `${fieldType}-Berichts­feld „${fieldName}“ entfernt`,
+        deleteReportField: (fieldType: string, fieldName?: string) => `${fieldType}-Berichts­feld „${fieldName}“ entfernt`,
         preventSelfApproval: ({oldValue, newValue}: UpdatedPolicyPreventSelfApprovalParams) =>
             `„Verhinderung der Selbstgenehmigung“ aktualisiert auf „${newValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“ (zuvor „${oldValue === 'true' ? 'Aktiviert' : 'Deaktiviert'}“)`,
         updateMaxExpenseAmountNoReceipt: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
@@ -6827,6 +6806,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             title: 'Export erstellen',
             description: 'Wow, das sind viele Elemente! Wir bündeln sie, und Concierge sendet dir in Kürze eine Datei.',
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Alle passenden Elemente auswählen',
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
@@ -7012,7 +6992,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 takeControl: `Kontrolle übernommen`,
                 integrationSyncFailed: ({label, errorMessage, workspaceAccountingLink}: IntegrationSyncFailedParams) =>
                     `Beim Synchronisieren mit ${label}${errorMessage ? ` ("${errorMessage}")` : ''} ist ein Problem aufgetreten. Bitte behebe das Problem in den <a href="${workspaceAccountingLink}">Workspace-Einstellungen</a>.`,
-                addEmployee: ({email, role}: AddEmployeeParams) => `${email} als ${role === 'member' ? 'a' : 'ein'} ${role} hinzugefügt`,
+                addEmployee: (email: string, role: string) => `${email} als ${role === 'member' ? 'a' : 'ein'} ${role} hinzugefügt`,
                 updateRole: ({email, currentRole, newRole}: UpdateRoleParams) => `hat die Rolle von ${email} in ${newRole} geändert (zuvor ${currentRole})`,
                 updatedCustomField1: ({email, previousValue, newValue}: UpdatedCustomFieldParams) => {
                     if (!newValue) {
@@ -7031,7 +7011,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                         : `Benutzerdefiniertes Feld 2 von ${email} wurde in „${newValue}“ geändert (zuvor „${previousValue}“)`;
                 },
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} hat den Workspace verlassen`,
-                removeMember: ({email, role}: AddEmployeeParams) => `${role} ${email} entfernt`,
+                removeMember: (email: string, role: string) => `${role} ${email} entfernt`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `Verbindung zu ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} entfernt`,
                 addedConnection: ({connectionName}: ConnectionNameParams) => `verbunden mit ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
                 leftTheChat: 'hat den Chat verlassen',
@@ -7446,7 +7426,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             },
             policyOwnerAmountOwedOverdue: {
                 title: 'Ihre Zahlung konnte nicht verarbeitet werden',
-                subtitle: ({date, purchaseAmountOwed}: BillingBannerOwnerAmountOwedOverdueParams) =>
+                subtitle: (date?: string, purchaseAmountOwed?: string) =>
                     date && purchaseAmountOwed
                         ? `Ihre Belastung vom ${date} über ${purchaseAmountOwed} konnte nicht verarbeitet werden. Bitte fügen Sie eine Zahlungskarte hinzu, um den offenen Betrag zu begleichen.`
                         : 'Bitte füge eine Zahlungskarte hinzu, um den ausstehenden Betrag zu begleichen.',
@@ -7461,7 +7441,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             },
             billingDisputePending: {
                 title: 'Ihre Karte konnte nicht belastet werden',
-                subtitle: ({amountOwed, cardEnding}: BillingBannerDisputePendingParams) =>
+                subtitle: (amountOwed: number, cardEnding: string) =>
                     `Du hast die Belastung über ${amountOwed} auf der Karte mit der Endung ${cardEnding} angefochten. Dein Konto bleibt gesperrt, bis die Angelegenheit mit deiner Bank geklärt ist.`,
             },
             cardAuthenticationRequired: {
@@ -7492,7 +7472,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 subtitle:
                     'Bevor Sie es erneut versuchen, rufen Sie bitte direkt Ihre Bank an, um Expensify‑Abbuchungen zu autorisieren und eventuelle Sperrungen aufzuheben. Andernfalls versuchen Sie, eine andere Zahlungskarte hinzuzufügen.',
             },
-            cardOnDispute: ({amountOwed, cardEnding}: BillingBannerCardOnDisputeParams) =>
+            cardOnDispute: (amountOwed: string, cardEnding: string) =>
                 `Du hast die Belastung über ${amountOwed} auf der Karte mit der Endung ${cardEnding} angefochten. Dein Konto bleibt gesperrt, bis die Angelegenheit mit deiner Bank geklärt ist.`,
             preTrial: {
                 title: 'Kostenlose Testversion starten',
@@ -7981,6 +7961,11 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             enable: 'Aktivieren',
         },
         admins: {title: 'Admins', findAdmin: 'Admin finden', primaryContact: 'Hauptansprechpartner', addPrimaryContact: 'Primären Kontakt hinzufügen', settings: 'Einstellungen'},
+    },
+    desktopAppRetiredPage: {
+        title: 'Desktop-App wurde eingestellt',
+        body: 'Die neue Expensify Desktop-App für Mac wurde eingestellt. Bitte verwenden Sie künftig die Web-App, um auf Ihr Konto zuzugreifen.',
+        goToWeb: 'Zur Web-App gehen',
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
