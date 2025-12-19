@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import Badge from '@components/Badge';
@@ -107,7 +108,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceExpensifyCardDetailsPage.displayName}
+                testID="WorkspaceExpensifyCardDetailsPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.expensifyCard.cardDetails')}
@@ -145,7 +146,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                         title={displayName}
                         icon={cardholder?.avatar ?? FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
-                        description={cardholder?.login}
+                        description={Str.removeSMSDomain(cardholder?.login ?? '')}
                         interactive={false}
                     />
                     <MenuItemWithTopDescription
@@ -252,7 +253,5 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceExpensifyCardDetailsPage.displayName = 'WorkspaceExpensifyCardDetailsPage';
 
 export default WorkspaceExpensifyCardDetailsPage;

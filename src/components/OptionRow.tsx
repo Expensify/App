@@ -349,8 +349,6 @@ function OptionRow({
     );
 }
 
-OptionRow.displayName = 'OptionRow';
-
 export default React.memo(
     OptionRow,
     (prevProps, nextProps) =>

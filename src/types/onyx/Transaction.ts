@@ -105,6 +105,12 @@ type Comment = {
     /** Total that the user currently owes for splitExpenses */
     splitExpensesTotal?: number;
 
+    /** Start date for splits */
+    splitsStartDate?: string;
+
+    /** End date for splits */
+    splitsEndDate?: string;
+
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
 
@@ -456,6 +462,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
         groupCurrency?: string;
+
+        /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
+        groupExchangeRate?: number;
 
         /** Used during the creation flow before the transaction is saved to the server */
         iouRequestType?: IOURequestType;

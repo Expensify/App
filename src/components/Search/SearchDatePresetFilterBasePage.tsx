@@ -27,7 +27,7 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
 
     return (
         <ScreenWrapper
-            testID={SearchDatePresetFilterBasePage.displayName}
+            testID="SearchDatePresetFilterBasePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -45,7 +45,5 @@ function SearchDatePresetFilterBasePage({dateKey, titleKey}: SearchDatePresetFil
         </ScreenWrapper>
     );
 }
-
-SearchDatePresetFilterBasePage.displayName = 'SearchDatePresetFilterBasePage';
 
 export default SearchDatePresetFilterBasePage;

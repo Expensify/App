@@ -39,6 +39,4 @@ function useLogin() {
     return useContext(Context);
 }
 
-LoginProvider.displayName = 'LoginProvider';
-
 export {LoginProvider, useLogin, Context};

@@ -153,7 +153,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations);
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
-    const isParentReportDM = isDM(parentReport);
+    const isParentChatReportDM = isDM(chatIOUReport);
 
     // If the parent report is a selfDM, it should always be opened in the Inbox tab
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
@@ -162,8 +162,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
 
     const markAsCash = useCallback(() => {
-        markAsCashAction(transaction?.transactionID, reportID);
-    }, [reportID, transaction?.transactionID]);
+        markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
+    }, [reportID, transaction?.transactionID, transactionViolations]);
 
     const duplicateTransaction = useCallback(
         (transactions: Transaction[]) => {
@@ -356,8 +356,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 }
 
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
-
-                if (isDismissed || isParentReportDM) {
+                if (isDismissed || isParentChatReportDM) {
                     changeMoneyRequestHoldStatus(parentReportAction);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);
@@ -577,7 +576,5 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         </View>
     );
 }
-
-MoneyRequestHeader.displayName = 'MoneyRequestHeader';
 
 export default MoneyRequestHeader;

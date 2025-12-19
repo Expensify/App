@@ -70,7 +70,7 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
             includeSafeAreaPaddingBottom
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={TripDetailsPage.displayName}
+            testID="TripDetailsPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <FullPageNotFoundView
@@ -146,7 +146,5 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
         </ScreenWrapper>
     );
 }
-
-TripDetailsPage.displayName = 'TripDetailsPage';
 
 export default TripDetailsPage;

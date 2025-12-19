@@ -80,5 +80,4 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     );
 }
 
-TypeCell.displayName = 'TypeCell';
 export default TypeCell;
