@@ -59,8 +59,11 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
     );
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
-        <View {...props}>
+        <View
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            style={styles.flex1}
+        >
             <FlashList<T>
                 data={filteredAndSortedData}
                 ListEmptyComponent={isEmptySearchResult ? EmptySearchComponent : ListEmptyComponent}

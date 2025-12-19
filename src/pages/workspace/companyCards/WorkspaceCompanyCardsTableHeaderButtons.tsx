@@ -126,23 +126,17 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, should
 
     return (
         <View>
-            <View
-                style={[
-                    styles.w100,
-                    styles.ph5,
-                    styles.gap5,
-                    styles.pb2,
-                    !shouldShowNarrowLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
-                ]}
-            >
-                <FeedSelector
-                    plaidUrl={plaidUrl}
-                    onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
-                    cardIcon={getCardFeedIcon(feed, illustrations, companyCardFeedIcons)}
-                    feedName={formattedFeedName}
-                    supportingText={supportingText}
-                    shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed)}
-                />
+            <View style={[styles.w100, styles.ph5, styles.gap5, styles.pb2, !shouldShowNarrowLayout && [styles.flexRow, styles.pv2, styles.alignItemsCenter, styles.justifyContentBetween]]}>
+                <View style={[styles.flexRow, !shouldShowNarrowLayout && styles.flex1]}>
+                    <FeedSelector
+                        plaidUrl={plaidUrl}
+                        onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
+                        cardIcon={getCardFeedIcon(feed, illustrations, companyCardFeedIcons)}
+                        feedName={formattedFeedName}
+                        supportingText={supportingText}
+                        shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed)}
+                    />
+                </View>
                 <View
                     style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
                 >
