@@ -46,6 +46,8 @@ function adminAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
     );
 }
 
+const technicalContactEmailSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => domainMemberSharedNVP?.settings?.technicalContactEmail;
+
 /**
  * Extracts a list of member IDs (accountIDs) from the domain object.
  * * It iterates through the security groups in the domain, extracts account IDs from the 'shared' property,
@@ -73,4 +75,4 @@ function selectMemberIDs(domain: Domain | undefined): number[] {
     return [...new Set(memberIDs)];
 }
 
-export {domainMemberSamlSettingsSelector, domainSamlSettingsStateSelector, domainNameSelector, metaIdentitySelector, adminAccountIDsSelector, selectMemberIDs};
+export {domainMemberSamlSettingsSelector, domainSamlSettingsStateSelector, domainNameSelector, metaIdentitySelector, adminAccountIDsSelector, technicalContactEmailSelector, selectMemberIDs};

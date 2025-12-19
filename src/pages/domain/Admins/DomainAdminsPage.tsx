@@ -1,13 +1,13 @@
 import {adminAccountIDsSelector} from '@selectors/Domain';
 import React from 'react';
-import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
-import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
+import type {MemberOption} from '@pages/domain/BaseDomainMembersPage';
+import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -18,6 +18,7 @@ type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamL
 
 function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {domainAccountID} = route.params;
+
     const {translate} = useLocalize();
 
     const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -32,16 +33,17 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isUserAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
-
     return (
         <BaseDomainMembersPage
             accountIDs={adminAccountIDs ?? []}
             headerTitle={translate('domain.admins.title')}
             searchPlaceholder={translate('domain.admins.findAdmin')}
-            onSelectRow={(item: MemberOption)=>Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
+            onSelectRow={(item: MemberOption) => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
             shouldShowNotFoundView={!isUserAdmin}
         />
     );
 }
+
+DomainAdminsPage.displayName = 'DomainAdminsPage';
 
 export default DomainAdminsPage;
