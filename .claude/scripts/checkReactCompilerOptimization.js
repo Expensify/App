@@ -62,37 +62,40 @@ function getImports(filePath) {
 
     // Standard imports: default and named
     const standardRegex = /import\s+(?:(\w+)(?:\s*,\s*)?)?(?:\{([^}]+)\})?\s+from\s+['"]([^'"]+)['"]/g;
-    let match;
 
-    while ((match = standardRegex.exec(content)) !== null) {
+    for (const match of content.matchAll(standardRegex)) {
         const [, defaultImport, namedImports, modulePath] = match;
 
         // Skip external packages (react, react-native, lodash, etc.)
-        if (!modulePath.startsWith('@') && !modulePath.startsWith('.')) continue;
+        if (!modulePath.startsWith('@') && !modulePath.startsWith('.')) {
+            continue;
+        }
 
         if (defaultImport) {
             standardImports.push({name: defaultImport, originalName: defaultImport, module: modulePath, isDefault: true});
         }
 
         if (namedImports) {
-            namedImports.split(',').forEach((n) => {
+            for (const n of namedImports.split(',')) {
                 const parts = n.trim().split(/\s+as\s+/);
                 const originalName = parts[0].trim();
                 const aliasName = parts.length > 1 ? parts[1].trim() : originalName;
                 if (originalName && !originalName.startsWith('type ')) {
                     standardImports.push({name: aliasName, originalName, module: modulePath, isDefault: false});
                 }
-            });
+            }
         }
     }
 
     // Namespace imports: import * as X from '...'
     const namespaceRegex = /import\s+\*\s+as\s+(\w+)\s+from\s+['"]([^'"]+)['"]/g;
-    while ((match = namespaceRegex.exec(content)) !== null) {
+    for (const match of content.matchAll(namespaceRegex)) {
         const [, namespaceName, modulePath] = match;
 
         // Skip external packages
-        if (!modulePath.startsWith('@') && !modulePath.startsWith('.')) continue;
+        if (!modulePath.startsWith('@') && !modulePath.startsWith('.')) {
+            continue;
+        }
 
         namespaceImports.push({namespaceName, module: modulePath});
     }
@@ -108,9 +111,8 @@ function findNamespaceUsage(content, namespaceName) {
     const usedMembers = new Set();
     // Match Namespace.MemberName where MemberName starts with capital letter (component)
     const usageRegex = new RegExp(`${namespaceName}\\.([A-Z]\\w+)`, 'g');
-    let match;
 
-    while ((match = usageRegex.exec(content)) !== null) {
+    for (const match of content.matchAll(usageRegex)) {
         usedMembers.add(match[1]);
     }
 
@@ -124,11 +126,15 @@ function findNamespaceUsage(content, namespaceName) {
  */
 function resolveImportToSourceFile(program, checker, fromFile, modulePath, exportName, isDefault) {
     const sourceFile = program.getSourceFile(fromFile);
-    if (!sourceFile) return null;
+    if (!sourceFile) {
+        return null;
+    }
 
     // Get the module specifier's resolved file
     const resolvedModule = ts.resolveModuleName(modulePath, fromFile, options, ts.sys);
-    if (!resolvedModule.resolvedModule) return null;
+    if (!resolvedModule.resolvedModule) {
+        return null;
+    }
 
     const resolvedFileName = resolvedModule.resolvedModule.resolvedFileName;
 
@@ -193,7 +199,9 @@ function resolveImportToSourceFile(program, checker, fromFile, modulePath, expor
  * Returns Map<absolutePath, Set<componentNames>>
  */
 function runHealthcheck(filePaths) {
-    if (!filePaths.length) return new Map();
+    if (!filePaths.length) {
+        return new Map();
+    }
 
     const fileNames = [...new Set(filePaths.map((p) => path.basename(p)))];
     const glob = `**/+(${fileNames.join('|')})`;
@@ -333,4 +341,4 @@ for (const [usedAs, data] of importDataMap) {
     };
 }
 
-console.log(JSON.stringify(result, null, 2));
+process.stdout.write(JSON.stringify(result, null, 2));
