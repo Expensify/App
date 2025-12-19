@@ -68,7 +68,7 @@ const restrictedImportPaths = [
     {
         name: 'react',
         importNames: ['forwardRef'],
-        message: "forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs",
+        message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
     },
     {
         name: '@styles/index',
