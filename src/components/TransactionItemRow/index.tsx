@@ -9,6 +9,7 @@ import RadioButton from '@components/RadioButton';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 import ActionCell from '@components/SelectionListWithSections/Search/ActionCell';
 import DateCell from '@components/SelectionListWithSections/Search/DateCell';
+import ExportedIconCell from '@components/SelectionListWithSections/Search/ExportedIconCell';
 import StatusCell from '@components/SelectionListWithSections/Search/StatusCell';
 import TextCell from '@components/SelectionListWithSections/Search/TextCell';
 import AmountCell from '@components/SelectionListWithSections/Search/TotalCell';
@@ -560,6 +561,11 @@ function TransactionItemRow({
                         stateNum={transactionItem.report?.stateNum}
                         statusNum={transactionItem.report?.statusNum}
                     />
+                </View>
+            ),
+            [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
+                    <ExportedIconCell reportID={transactionItem.reportID} />
                 </View>
             ),
         }),

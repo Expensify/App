@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';

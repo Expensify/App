@@ -49,8 +49,11 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const selectedFeedData = selectedFeed && companyFeeds[selectedFeed];
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
+
     const [cardsList, cardsListMetadata] = useCardsList(selectedFeed);
-    const hasNoAssignedCard = Object.keys(cardsList ?? {}).length === 0;
+    const {cardList, ...assignedCards} = cardsList ?? {};
+    const hasNoAssignedCard = Object.keys(assignedCards).length === 0;
+
     const isNoFeed = !selectedFeedData;
     const isFeedPending = !!selectedFeedData?.pending;
     const isFeedAdded = !isFeedPending && !isNoFeed;
@@ -130,9 +133,10 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
 
                     {isFeedAdded && !isFeedPending && (
                         <WorkspaceCompanyCardsTable
+                            policyID={policyID}
+                            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
                             selectedFeed={selectedFeed}
                             shouldShowGBDisclaimer={shouldShowGBDisclaimer}
-                            policyID={policyID}
                             onAssignCard={assignCard}
                             isAssigningCardDisabled={isAssigningCardDisabled}
                             CardFeedIcon={cardFeedIcon}

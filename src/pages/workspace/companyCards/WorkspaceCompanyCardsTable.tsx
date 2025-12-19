@@ -30,6 +30,9 @@ type WorkspaceCompanyCardsTableProps = {
     /** Current policy id */
     policyID: string;
 
+    /** Domain or workspace account ID */
+    domainOrWorkspaceAccountID: number;
+
     /** On assign card callback */
     onAssignCard: (cardID: string) => void;
 
@@ -56,13 +59,15 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
     const isLoadingCardsTableData = isLoadingCardsList || isLoadingPersonalDetails;
 
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
+    const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}`, {canBeMissing: true});
 
     const {cardList, ...assignedCards} = cardsList ?? {};
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
+    const companyCardFeedData = companyFeeds[selectedFeed];
 
     const isPlaidCardFeed = !!getPlaidInstitutionId(selectedFeed);
-    const cards = isPlaidCardFeed ? (companyFeeds?.[selectedFeed]?.accountList ?? []) : Object.keys(cardList ?? {});
+    const cards = isPlaidCardFeed ? (companyCardFeedData?.accountList ?? []) : Object.keys(cardList ?? {});
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
@@ -70,11 +75,32 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
 
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
+    const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
+        {
+            key: 'member',
+            label: translate('common.member'),
+        },
+        {
+            key: 'card',
+            label: translate('workspace.companyCards.card'),
+        },
+        {
+            key: 'customCardName',
+            label: translate('workspace.companyCards.cardName'),
+            styling: {
+                containerStyles: [styles.justifyContentEnd],
+                labelStyles: [styles.pr3],
+            },
+        },
+    ];
+
     const data: WorkspaceCompanyCardTableItemData[] =
         cards?.map((cardName) => {
             const assignedCardPredicate = (card: Card) => (isPlaidCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
 
             const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
+
+            const failedCompanyCardAssignment = failedCompanyCardAssignments?.[cardName];
 
             const cardholder = assignedCard?.accountID ? personalDetails?.[assignedCard.accountID] : undefined;
 
@@ -84,7 +110,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
 
             const isAssigned = !!assignedCard;
 
-            return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder};
+            return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder, failedCompanyCardAssignment};
         }) ?? [];
 
     const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceCompanyCardTableItemData>) => (
@@ -97,6 +123,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
             shouldUseNarrowTableRowLayout={shouldShowNarrowLayout}
+            columnCount={columns.length}
         />
     );
 
@@ -183,24 +210,6 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
             default: 'all',
         },
     };
-
-    const columns: Array<TableColumn<CompanyCardsTableColumnKey>> = [
-        {
-            key: 'member',
-            label: translate('common.member'),
-        },
-        {
-            key: 'card',
-            label: translate('workspace.companyCards.card'),
-        },
-        {
-            key: 'customCardName',
-            label: translate('workspace.companyCards.cardName'),
-            styling: {
-                labelStyles: [styles.textAlignRight, styles.pr7],
-            },
-        },
-    ];
 
     const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
     const isNarrowLayoutRef = useRef(shouldShowNarrowLayout);
