@@ -17,7 +17,7 @@ import {
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDomainNameForPolicy, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
-import {clearAddNewCardFlow, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -145,9 +145,28 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
         }
 
         clearAddNewCardFlow();
-        setAssignCardStepAndData({data, currentStep});
+        clearAssignCardStepAndData();
+        setAssignCardStepAndData({data});
+
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed: selectedFeed, cardID}));
+            const routeParams = {policyID, feed: selectedFeed, cardID: cardID ?? ''};
+
+            switch (currentStep) {
+                case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
+                case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed: selectedFeed, cardID}));
+                    break;
+                case CONST.COMPANY_CARD.STEP.CARD:
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
+                    break;
+                case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute(routeParams));
+                    break;
+                case CONST.COMPANY_CARD.STEP.ASSIGNEE:
+                default:
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(routeParams));
+                    break;
+            }
         });
     };
 

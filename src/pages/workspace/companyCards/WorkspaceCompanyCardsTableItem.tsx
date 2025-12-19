@@ -14,13 +14,14 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {resetFailedWorkspaceCompanyCardAssignment} from '@libs/actions/CompanyCards';
 import {getCardFeedIcon, getCompanyCardFeedWithDomainID, lastFourNumbersFromCardName, splitMaskedCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, PersonalDetails} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, FailedCompanyCardAssignment, PersonalDetails} from '@src/types/onyx';
 
 type WorkspaceCompanyCardTableItemData = {
     /** Card number */
@@ -35,6 +36,9 @@ type WorkspaceCompanyCardTableItemData = {
     /** Assigned card */
     assignedCard: Card | undefined;
 
+    /** Pending company card assignment */
+    failedCompanyCardAssignment: FailedCompanyCardAssignment | undefined;
+
     /** Whether the card is deleted */
     isCardDeleted: boolean;
 
@@ -48,6 +52,9 @@ type WorkspaceCompanyCardTableItemProps = {
 
     /** Policy ID */
     policyID: string;
+
+    /** Domain or workspace account ID */
+    domainOrWorkspaceAccountID: number;
 
     /** Selected feed */
     selectedFeed: CompanyCardFeedWithDomainID;
@@ -72,8 +79,9 @@ type WorkspaceCompanyCardTableItemProps = {
 };
 
 function WorkspaceCompanyCardTableItem({
-    item: {cardName, customCardName, assignedCard, isAssigned, cardholder, isCardDeleted},
+    item,
     policyID,
+    domainOrWorkspaceAccountID,
     selectedFeed,
     plaidIconUrl,
     isPlaidCardFeed,
@@ -94,17 +102,42 @@ function WorkspaceCompanyCardTableItem({
         cardFeedIcon = getCardFeedIcon(selectedFeed as CompanyCardFeed, illustrations, companyCardFeedIcons);
     }
 
+    const {failedCompanyCardAssignment} = item;
+    let {cardName, customCardName, cardholder, assignedCard, isAssigned, isCardDeleted} = item;
+    let errors = assignedCard?.errors;
+    let pendingAction = assignedCard?.pendingAction;
+
+    if (failedCompanyCardAssignment) {
+        cardName = failedCompanyCardAssignment.cardNumber;
+        customCardName = failedCompanyCardAssignment.cardName;
+        cardholder = failedCompanyCardAssignment.cardholder;
+        assignedCard = undefined;
+        isAssigned = true;
+        isCardDeleted = false;
+        errors = failedCompanyCardAssignment?.errors;
+        pendingAction = failedCompanyCardAssignment?.pendingAction;
+    }
+
     const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
 
     const alternateLoginText = shouldUseNarrowTableRowLayout ? `${customCardName}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : (cardholder?.login ?? '');
+
+    const resetFailedCompanyCardAssignment = () => {
+        if (!failedCompanyCardAssignment) {
+            return;
+        }
+
+        resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, cardName);
+    };
 
     const assignCard = () => onAssignCard(cardName);
 
     return (
         <OfflineWithFeedback
             errorRowStyles={styles.ph5}
-            errors={assignedCard?.errors}
-            pendingAction={assignedCard?.pendingAction}
+            errors={errors}
+            pendingAction={pendingAction}
+            onClose={resetFailedCompanyCardAssignment}
         >
             <PressableWithFeedback
                 role={CONST.ROLE.BUTTON}
@@ -226,6 +259,7 @@ function WorkspaceCompanyCardTableItem({
                             )}
                             {!isAssigned && (
                                 <Button
+                                    success
                                     text={shouldUseNarrowTableRowLayout ? translate('workspace.companyCards.assign') : translate('workspace.companyCards.assignCard')}
                                     onPress={assignCard}
                                     isDisabled={isAssigningCardDisabled}

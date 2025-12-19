@@ -493,7 +493,8 @@ function getPlaidInstitutionIconUrl(feedName?: string) {
 }
 
 function getPlaidInstitutionId(feedName?: string) {
-    const feed = feedName?.split('.');
+    const feedNameWithoutDomainID = getCompanyCardFeed(feedName ?? '');
+    const feed = feedNameWithoutDomainID?.split('.');
     if (!feed || feed?.at(0) !== CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
         return '';
     }

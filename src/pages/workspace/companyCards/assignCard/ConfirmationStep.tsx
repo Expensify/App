@@ -9,71 +9,78 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useInitial from '@hooks/useInitial';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyCardFeed, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import Navigation from '@navigation/Navigation';
 import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
-import type {AssignCardStep} from '@src/types/onyx/AssignCard';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-type ConfirmationStepProps = {
-    /** Current policy id */
-    policyID: string | undefined;
+type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
 
-    /** Route to go back to */
-    backTo?: Route;
-
-    /** Selected feed */
-    feed: CompanyCardFeedWithDomainID;
-};
-
-function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
+function ConfirmationStep({route}: ConfirmationStepProps) {
+    const policyID = route.params.policyID;
+    const feed = route.params.feed as CompanyCardFeedWithDomainID;
+    const cardID = route.params.cardID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const firstAssigneeEmail = useInitial(assignCard?.data?.email);
+    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === assignCard?.data?.email;
+    const backTo = shouldUseBackToParam ? route.params?.backTo : undefined;
+    const policy = usePolicy(policyID);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const bankName = assignCard?.data?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
+    const companyCardFeedData = cardFeeds?.[feed];
+
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCardFeedData);
+
     const data = assignCard?.data;
-    const cardholderDetails = getPersonalDetailByEmail(data?.email ?? '');
-    const cardholderName = Str.removeSMSDomain(cardholderDetails?.displayName ?? '');
+
+    const cardholder = getPersonalDetailByEmail(data?.email ?? '');
+    const cardholderName = Str.removeSMSDomain(cardholder?.displayName ?? '');
     const cardholderEmail = data?.email ?? '';
-    const cardholderAccountID = cardholderDetails?.accountID;
+    const cardholderAccountID = cardholder?.accountID;
 
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
 
     useEffect(() => {
-        if (!assignCard?.isAssigned) {
+        if (!assignCard?.isAssignmentFinished) {
             return;
         }
 
-        const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
-        if (backTo ?? lastRoute?.name === SCREENS.WORKSPACE.COMPANY_CARDS) {
+        if (backTo) {
             Navigation.goBack(backTo);
-        } else {
+        } else if (!shouldUseBackToParam && route.params?.backTo) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
+        } else {
+            Navigation.dismissModal();
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard?.isAssigned, backTo, policyID, currentFullScreenRoute?.state?.routes]);
+    }, [assignCard?.isAssignmentFinished, backTo, policyID, shouldUseBackToParam, route.params?.backTo, currentFullScreenRoute?.state?.routes]);
 
     const submit = () => {
         if (!policyID) {
@@ -92,18 +99,33 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                     },
                 });
             }
-            setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
+            // For expired feeds, navigate to the old ASSIGN_CARD route which handles these special cases
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed, cardID}));
             return;
         }
-        assignWorkspaceCompanyCard(policy, {...data, bankName});
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, {...data, cardholder, bankName});
     };
 
-    const editStep = (step: AssignCardStep) => {
-        setAssignCardStepAndData({currentStep: step, isEditing: true});
+    const editStep = (step: string) => {
+        setAssignCardStepAndData({isEditing: true});
+
+        const routeParams = {policyID, feed, cardID};
+
+        switch (step) {
+            case CONST.COMPANY_CARD.STEP.ASSIGNEE:
+                Navigation.goBack();
+                break;
+            case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute(routeParams));
+                break;
+            case CONST.COMPANY_CARD.STEP.CARD_NAME:
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_NAME.getRoute(routeParams));
+                break;
+        }
     };
 
     const handleBackButtonPress = () => {
-        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
+        Navigation.goBack();
     };
 
     return (
@@ -131,7 +153,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                     labelStyle={styles.mb3}
                     title={cardholderName && cardholderName !== cardholderEmail ? cardholderName : cardholderEmail}
                     description={cardholderName && cardholderName !== cardholderEmail ? cardholderEmail : undefined}
-                    icon={cardholderDetails?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
+                    icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
@@ -153,7 +175,6 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                         shouldDisplayErrorAbove
                         errors={assignCard?.errors}
                         errorRowStyles={styles.mv2}
-                        canDismissError={false}
                     >
                         <Button
                             isDisabled={isOffline}

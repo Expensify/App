@@ -19,11 +19,16 @@ import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 
-function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD>}) {
+function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE>}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+
+    const policyID = route.params.policyID;
+    const feed = route.params.feed;
+    const cardID = route.params.cardID;
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
@@ -37,18 +42,10 @@ function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<Settin
     const handleBackButtonPress = () => {
         if (isEditing) {
             setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
-            return;
         }
-        const backTo = route?.params?.backTo;
-        if (backTo) {
-            Navigation.goBack(backTo);
-            return;
-        }
-        const nextStep = data?.encryptedCardNumber ? CONST.COMPANY_CARD.STEP.ASSIGNEE : CONST.COMPANY_CARD.STEP.CARD;
-        setAssignCardStepAndData({currentStep: nextStep});
+        Navigation.goBack();
     };
 
     const handleSelectDateOption = (dateOption: string) => {
@@ -69,13 +66,14 @@ function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<Settin
         const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
 
         setAssignCardStepAndData({
-            currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
             data: {
                 dateOption: dateOptionSelected,
                 startDate: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate,
             },
             isEditing: false,
         });
+
+        Navigation.goBack();
     };
 
     const dateOptions = [
