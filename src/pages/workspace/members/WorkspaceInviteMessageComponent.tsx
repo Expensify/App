@@ -29,7 +29,6 @@ import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
-import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import {clearInviteDraft} from '@userActions/Policy/Member';

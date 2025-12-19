@@ -29,14 +29,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
+import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type ConfirmationStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION>;
 
 function ConfirmationStep({route}: ConfirmationStepProps) {
     const policyID = route.params.policyID;
-    const feed = route.params.feed as CompanyCardFeedWithDomainID;
+    const feed = route.params.feed;
     const cardID = route.params.cardID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();

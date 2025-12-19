@@ -37,7 +37,7 @@ type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamLis
 
 function CardSelectionStep({route}: CardSelectionStepProps) {
     const policyID = route.params.policyID;
-    const feed = route.params.feed as CompanyCardFeedWithDomainID;
+    const feed = route.params.feed;
     const cardID = route.params.cardID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
