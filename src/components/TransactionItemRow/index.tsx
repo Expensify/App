@@ -491,11 +491,11 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
                 >
                     <AmountCell
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
                         total={
                             isExpenseReport(transactionItem.report)
-                                ? -((transactionItem.originalAmount || transactionItem.amount) ?? 0)
-                                : getOriginalAmount(transactionItem) || Math.abs(transactionItem.amount ?? 0)
+                                ? -((transactionItem.originalAmount || transactionItem.amount || transactionItem.modifiedAmount) ?? 0)
+                                : getOriginalAmount(transactionItem) || Math.abs(transactionItem.amount ?? 0) || Math.abs(transactionItem.modifiedAmount ?? 0)
                         }
                         currency={getOriginalCurrency(transactionItem)}
                     />
