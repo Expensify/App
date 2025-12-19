@@ -46,7 +46,7 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
                     return Promise.resolve();
                 }
                 // Use the actual file name if available, otherwise fall back to extracting from path/uri
-                const fileName = name || (path ? path.split('/').pop() ?? '' : '') || '';
+                const fileName = name || (path ? (path.split('/').pop() ?? '') : '') || '';
                 return readFileAsync(source, fileName, () => {}, undefined, type).then((file) => {
                     if (!file) {
                         return;
