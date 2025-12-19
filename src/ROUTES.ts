@@ -759,7 +759,7 @@ const ROUTES = {
         },
     },
     SPLIT_EXPENSE_CREATE_DATE_RANGE: {
-        route: 'create/split-expense/create-date-range/:reportID/:transactionID/:splitExpenseTransactionID?',
+        route: 'create/split-expense/create-date-range/:reportID/:transactionID?',
         getRoute: (reportID: string | undefined, transactionID: string | undefined, backTo?: string) => {
             if (!reportID || !transactionID) {
                 Log.warn(`Invalid ${reportID}(reportID) or ${transactionID}(transactionID) is used to build the SPLIT_EXPENSE_CREATE_DATE_RANGE route`);
