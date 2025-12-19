@@ -45,11 +45,11 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const {isBetaEnabled} = usePermissions();
 
     const {
-        allCardFeeds: cardFeeds,
+        allCardFeeds,
         feedName,
         cardList,
         assignedCards,
-        cardNames: cards,
+        cardNames,
         cardFeedType,
         selectedFeed,
         onyxMetadata: {cardListMetadata, allCardFeedsMetadata},
@@ -65,7 +65,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}`, {canBeMissing: true});
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
-    const isInitiallyLoadingFeeds = isEmptyObject(cardFeeds);
+    const isInitiallyLoadingFeeds = isEmptyObject(allCardFeeds);
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
     const isFeedPending = !!selectedFeed?.pending;
     const isFeedAdded = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed;
@@ -122,7 +122,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     ];
 
     const data: WorkspaceCompanyCardTableItemData[] = isFeedAdded
-        ? (cards?.map((cardName) => {
+        ? (cardNames?.map((cardName) => {
               const assignedCardPredicate = (card: Card) => (isPlaidCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
 
               const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
@@ -286,7 +286,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                     <WorkspaceCompanyCardsTableHeaderButtons
                         policyID={policy.id}
                         feedName={feedName}
-                        shouldDisplayTableComponents
+                        showTableControls
                         CardFeedIcon={cardFeedIcon}
                     />
                 </View>

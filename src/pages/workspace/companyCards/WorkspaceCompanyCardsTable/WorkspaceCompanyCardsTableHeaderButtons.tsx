@@ -43,13 +43,13 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     feedName: CompanyCardFeedWithDomainID;
 
     /** Whether the feed is pending */
-    shouldDisplayTableComponents?: boolean;
+    showTableControls?: boolean;
 
     /** Card feed icon */
     CardFeedIcon?: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, shouldDisplayTableComponents = false, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, showTableControls = false, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -114,13 +114,13 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, shouldDisp
                 <View
                     style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
                 >
-                    {shouldDisplayTableComponents && (
+                    {showTableControls && (
                         <View style={[styles.mnw200]}>
                             <Table.SearchBar />
                         </View>
                     )}
                     <View style={[styles.flexRow, styles.gap3]}>
-                        {shouldDisplayTableComponents && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />}
+                        {showTableControls && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />}
                         <ButtonWithDropdownMenu
                             success={false}
                             onPress={() => {}}
