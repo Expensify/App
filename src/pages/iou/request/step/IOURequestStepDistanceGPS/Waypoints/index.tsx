@@ -59,8 +59,6 @@ function Waypoints() {
     );
 }
 
-Waypoints.displayName = 'Waypoints';
-
 export default Waypoints;
 
 function GPSTooltip({children}: React.PropsWithChildren) {

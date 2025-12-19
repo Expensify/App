@@ -21,7 +21,7 @@ function TripStatusIndicator() {
         return <TripStatusIndicatorWrapper>{translate('gps.trackingDistance')}</TripStatusIndicatorWrapper>;
     }
 
-    const isTripStopped = !isTrackingInProgress && (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0;
+    const isTripStopped = (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0;
 
     if (isTripStopped) {
         return <TripStatusIndicatorWrapper>{translate('gps.stopped')}</TripStatusIndicatorWrapper>;
@@ -29,7 +29,5 @@ function TripStatusIndicator() {
 
     return null;
 }
-
-TripStatusIndicator.displayName = 'TripStatusIndicator';
 
 export default TripStatusIndicator;
