@@ -16,7 +16,6 @@ import {searchInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SearchOptionData} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -57,31 +56,12 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeRecentReports: false,
         shouldInitialize: didScreenTransitionEnd,
-        onSingleSelect: (option) => {
-            const result = {...option, isSelected: true};
-            setCurrentlySelectedUser(result);
-        },
+        onSingleSelect: (option) => setCurrentlySelectedUser({...option, isSelected: true}),
     });
 
-    const sections: Sections[] = [];
-    let filteredOptions: SearchOptionData[] = [];
-    if (areOptionsInitialized) {
-        if (currentlySelectedUser) {
-            sections.push({
-                title: undefined,
-                data: [currentlySelectedUser],
-            });
-        }
-
-        filteredOptions = availableOptions.personalDetails.filter(({accountID}) => accountID && accountID !== currentlySelectedUser?.accountID && !adminIDs?.includes(accountID));
-
-        if (filteredOptions.length > 0) {
-            sections.push({
-                title: translate('common.contacts'),
-                data: filteredOptions,
-            });
-        }
-    }
+    useEffect(() => {
+        searchInServer(searchTerm);
+    }, [searchTerm]);
 
     const inviteUser = () => {
         if (!currentlySelectedUser || !currentlySelectedUser.accountID || !currentlySelectedUser.login || !domainName) {
@@ -91,6 +71,27 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
         addAdminToDomain(domainAccountID, currentlySelectedUser.accountID, currentlySelectedUser.login, domainName);
         Navigation.dismissModal();
     };
+
+    const filteredOptions = areOptionsInitialized
+        ? availableOptions.personalDetails.filter(({accountID}) => accountID && accountID !== currentlySelectedUser?.accountID && !adminIDs?.includes(accountID))
+        : [];
+
+    const sections: Sections[] = [];
+    if (areOptionsInitialized) {
+        if (currentlySelectedUser) {
+            sections.push({
+                title: undefined,
+                data: [currentlySelectedUser],
+            });
+        }
+
+        if (filteredOptions.length > 0) {
+            sections.push({
+                title: translate('common.contacts'),
+                data: filteredOptions,
+            });
+        }
+    }
 
     const footerContent = (
         <FormAlertWithSubmitButton
@@ -102,18 +103,6 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
             enabledWhenOffline
         />
     );
-
-    useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
-
-    const searchValue = searchTerm.trim().toLowerCase();
-    let headerMessage;
-    if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
-        headerMessage = translate('messages.errorMessageInvalidEmail');
-    } else {
-        headerMessage = getHeaderMessage(filteredOptions.length > 0 || !!currentlySelectedUser, !!currentlySelectedUser, searchValue, countryCode, false);
-    }
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -130,7 +119,7 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
                 />
                 <SelectionList
                     sections={sections}
-                    headerMessage={headerMessage}
+                    headerMessage={getHeaderMessage(filteredOptions.length > 0 || !!currentlySelectedUser, !!currentlySelectedUser, searchTerm.trim().toLowerCase(), countryCode, false)}
                     ListItem={InviteMemberListItem}
                     textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                     textInputValue={searchTerm}
