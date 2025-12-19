@@ -96,8 +96,7 @@ function WorkspaceCompanyCardsTable({
             key: 'customCardName',
             label: translate('workspace.companyCards.cardName'),
             styling: {
-                containerStyles: [styles.justifyContentEnd],
-                labelStyles: [styles.pr3],
+                containerStyles: [styles.justifyContentEnd, styles.pr3],
             },
         },
     ];
