@@ -64,10 +64,10 @@ function TableBody<T>({contentContainerStyle, ...props}: TableBodyProps) {
     // Determine the message based on what caused the empty result
     const getEmptyMessage = () => {
         if (hasSearchString) {
-            return `Nothing to show for "${activeSearchString}"...`;
+            return translate('common.noResultsFoundMatching', activeSearchString);
         }
         if (hasActiveFilters) {
-            return 'Nothing to show...';
+            return translate('common.noResultsFound');
         }
         return '';
     };
