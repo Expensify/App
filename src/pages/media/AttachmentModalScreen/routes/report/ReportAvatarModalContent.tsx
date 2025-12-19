@@ -73,6 +73,5 @@ function ReportAvatarModalContent({navigation, route}: AttachmentModalScreenProp
         />
     );
 }
-ReportAvatarModalContent.displayName = 'ReportAvatarModalContent';
 
 export default ReportAvatarModalContent;

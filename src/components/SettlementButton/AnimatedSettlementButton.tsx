@@ -16,6 +16,7 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isApprovedAnimationRunning: boolean;
     shouldAddTopMargin?: boolean;
     canIOUBePaid: boolean;
+    sentryLabel?: string;
 };
 
 function AnimatedSettlementButton({
@@ -26,11 +27,12 @@ function AnimatedSettlementButton({
     isDisabled,
     canIOUBePaid,
     wrapperStyle,
+    sentryLabel,
     ...settlementButtonProps
 }: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'Checkmark'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'Checkmark']);
     const isAnimationRunning = isPaidAnimationRunning || isApprovedAnimationRunning;
     const buttonDuration = isPaidAnimationRunning ? CONST.ANIMATION_PAID_DURATION : CONST.ANIMATION_THUMBS_UP_DURATION;
     const buttonDelay = CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
@@ -121,12 +123,11 @@ function AnimatedSettlementButton({
                     {...settlementButtonProps}
                     wrapperStyle={wrapperStyle}
                     isDisabled={isAnimationRunning || isDisabled}
+                    sentryLabel={sentryLabel}
                 />
             )}
         </Animated.View>
     );
 }
-
-AnimatedSettlementButton.displayName = 'AnimatedSettlementButton';
 
 export default AnimatedSettlementButton;

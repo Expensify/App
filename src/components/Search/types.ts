@@ -56,6 +56,9 @@ type SelectedTransactionInfo = {
     /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
     groupCurrency?: string;
 
+    /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
+    groupExchangeRate?: number;
+
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport?: boolean;
 
@@ -110,6 +113,7 @@ type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 type SearchAction = ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
+type SearchCustomColumnIds = ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE> | ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT>;
 
 type SearchContextData = {
     currentSearchHash: number;
@@ -199,7 +203,8 @@ type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
 type UserFriendlyValue = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP>;
@@ -225,6 +230,7 @@ type SearchQueryAST = {
     status: SearchStatus;
     sortBy: SearchColumnType;
     sortOrder: SortOrder;
+    columns?: SearchCustomColumnIds[];
     groupBy?: SearchGroupBy;
     filters: ASTNode;
     policyID?: string[];
@@ -313,4 +319,5 @@ export type {
     SelectedReports,
     SearchTextFilterKeys,
     BankAccountMenuItem,
+    SearchCustomColumnIds,
 };
