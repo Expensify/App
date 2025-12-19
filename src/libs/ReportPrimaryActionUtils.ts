@@ -161,7 +161,15 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     return isProcessingReportUtils(report);
 }
 
-function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs, isChatReportArchived?: boolean, invoiceReceiverPolicy?: Policy) {
+function isPrimaryPayAction(
+    report: Report,
+    policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
+    isChatReportArchived?: boolean,
+    invoiceReceiverPolicy?: Policy,
+    reportActions?: ReportAction[],
+    isSecondaryAction?: boolean,
+) {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
@@ -171,6 +179,9 @@ function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePair
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
     const isProcessingReport = isProcessingReportUtils(report);
+    const isExported = isExportedUtil(reportActions);
+    const hasExportError = hasExportErrorUtil(reportActions, report);
+    const didExportFail = !isExported && hasExportError;
 
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
@@ -179,7 +190,7 @@ function isPrimaryPayAction(report: Report, policy?: Policy, reportNameValuePair
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && reimbursableSpend !== 0) {
-        return true;
+        return isSecondaryAction ?? !didExportFail;
     }
 
     if (!isProcessingReport) {
@@ -412,7 +423,8 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return '';
     }
 
-    const isPayActionWithAllExpensesHeld = isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived) && hasOnlyHeldExpenses(report?.reportID);
+    const isPayActionWithAllExpensesHeld =
+        isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions) && hasOnlyHeldExpenses(report?.reportID);
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy);
 
     if (isMarkAsCashAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
@@ -439,7 +451,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
-    if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy)) {
+    if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
