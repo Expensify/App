@@ -29,6 +29,7 @@ import {
     canRejectReportAction,
     doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
+    hasExportError as hasExportErrorUtils,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
@@ -702,7 +703,11 @@ function getSecondaryReportActions({
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    if (isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID)) {
+    const isExported = isExportedUtils(reportActions);
+    const hasExportError = hasExportErrorUtils(reportActions, report);
+    const didExportFail = !isExported && hasExportError;
+
+    if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions, true) && (hasOnlyHeldExpenses(report?.reportID) || didExportFail)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
@@ -767,8 +772,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
-    // Disabled for now to fix deploy blockers. Will be re-enabled in https://github.com/Expensify/App/pull/77343
-    if (isDuplicateAction(report, reportTransactions) && false) {
+    if (isDuplicateAction(report, reportTransactions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
     }
 
@@ -848,8 +852,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
     }
 
-    // Disabled for now to fix deploy blockers. Will be re-enabled in https://github.com/Expensify/App/pull/77343
-    if (isDuplicateAction(parentReport, [reportTransaction]) && false) {
+    if (isDuplicateAction(parentReport, [reportTransaction])) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
     }
 
