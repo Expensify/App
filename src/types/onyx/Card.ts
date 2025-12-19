@@ -1,6 +1,5 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {CompanyCardFeed} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
@@ -22,7 +21,7 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
     state: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
 
     /** Bank name */
-    bank: CompanyCardFeed;
+    bank: string;
 
     /** Available amount to spend */
     availableSpend?: number;
