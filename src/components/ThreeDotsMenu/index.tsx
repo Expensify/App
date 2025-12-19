@@ -44,6 +44,7 @@ function ThreeDotsMenu({
     isNested = false,
     shouldSelfPosition = false,
     threeDotsMenuRef,
+    sentryLabel,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
 
@@ -54,7 +55,7 @@ function ThreeDotsMenu({
     const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
     const {windowWidth, windowHeight} = useWindowDimensions();
     const showPopoverMenu = () => {
@@ -153,6 +154,7 @@ function ThreeDotsMenu({
                         role={getButtonRole(isNested)}
                         isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}
+                        sentryLabel={sentryLabel}
                     >
                         <Icon
                             src={icon ?? expensifyIcons.ThreeDots}
@@ -181,7 +183,5 @@ function ThreeDotsMenu({
         </>
     );
 }
-
-ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 
 export default ThreeDotsMenu;

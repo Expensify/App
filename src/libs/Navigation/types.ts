@@ -318,6 +318,10 @@ type SettingsNavigatorParamList = {
         policyID: string;
         categoryName: string;
     };
+    [SCREENS.WORKSPACE.CATEGORY_REQUIRED_FIELDS]: {
+        policyID: string;
+        categoryName: string;
+    };
     [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
         policyID: string;
         categoryName: string;
@@ -1328,6 +1332,16 @@ type SettingsNavigatorParamList = {
     [SCREENS.DOMAIN.VERIFIED]: {
         domainAccountID: number;
     };
+    [SCREENS.DOMAIN.ADMIN_DETAILS]: {
+        domainAccountID: number;
+        accountID: number;
+    };
+    [SCREENS.DOMAIN.ADMINS_SETTINGS]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
+        domainAccountID: number;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {
@@ -1664,6 +1678,14 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_GPS]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backToReport?: string;
+        reportActionID?: string;
+    };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
         reportID: string;
@@ -1981,12 +2003,6 @@ type ReimbursementAccountEnterSignerInfoNavigatorParamList = {
     };
 };
 
-type ConnectExistingBankAccountNavigatorParamList = {
-    [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {
-        policyID: string;
-    };
-};
-
 type WalletStatementNavigatorParamList = {
     [SCREENS.WALLET_STATEMENT_ROOT]: {
         /** The statement year and month as one string, i.e. 202110 */
@@ -2165,7 +2181,6 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.TRANSACTION_DUPLICATE]: NavigatorScreenParams<TransactionDuplicateNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.TRAVEL]: NavigatorScreenParams<TravelNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: NavigatorScreenParams<SearchReportActionsParamList>;
-    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: NavigatorScreenParams<SearchReportParamList>;
     [SCREENS.RIGHT_MODAL.RESTRICTED_ACTION]: NavigatorScreenParams<RestrictedActionParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_ADVANCED_FILTERS]: NavigatorScreenParams<SearchAdvancedFiltersParamList>;
     [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: NavigatorScreenParams<SearchSavedSearchParamList>;
@@ -2178,6 +2193,13 @@ type RightModalNavigatorParamList = {
     [SCREENS.RIGHT_MODAL.REPORT_CHANGE_APPROVER]: NavigatorScreenParams<ReportChangeApproverParamList>;
     [SCREENS.RIGHT_MODAL.MERGE_TRANSACTION]: NavigatorScreenParams<MergeTransactionNavigatorParamList>;
     [SCREENS.RIGHT_MODAL.DOMAIN]: NavigatorScreenParams<WorkspacesDomainModalNavigatorParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_COLUMNS]: NavigatorScreenParams<SearchColumnsParamList>;
+    [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
+        reportID: string;
+        reportActionID?: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
 };
 
 type TravelNavigatorParamList = {
@@ -2335,6 +2357,9 @@ type WorkspaceSplitNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.INVOICES]: {
@@ -2679,15 +2704,6 @@ type SearchReportActionsParamList = {
     };
 };
 
-type SearchReportParamList = {
-    [SCREENS.SEARCH.REPORT_RHP]: {
-        reportID: string;
-        reportActionID?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-    };
-};
-
 type SearchFullscreenNavigatorParamList = {
     [SCREENS.SEARCH.ROOT]: {
         q: SearchQueryString;
@@ -2710,6 +2726,10 @@ type SearchSavedSearchParamList = {
     [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: SaveSearchParams;
 };
 
+type SearchColumnsParamList = {
+    [SCREENS.SEARCH.COLUMNS_RHP]: Record<string, never>;
+};
+
 type RestrictedActionParamList = {
     [SCREENS.RESTRICTED_ACTION_ROOT]: {
         policyID: string;
@@ -2726,6 +2746,12 @@ type SplitExpenseParamList = {
         reportID: string;
         transactionID: string;
         splitExpenseTransactionID?: string;
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE]: {
+        reportID: string;
+        transactionID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -2865,7 +2891,6 @@ export type {
     ReportVerifyAccountNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
     ReimbursementAccountEnterSignerInfoNavigatorParamList,
-    ConnectExistingBankAccountNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
@@ -2879,7 +2904,6 @@ export type {
     RootNavigatorParamList,
     SearchAdvancedFiltersParamList,
     SearchReportActionsParamList,
-    SearchReportParamList,
     SearchSavedSearchParamList,
     SearchFullscreenNavigatorParamList,
     SettingsNavigatorParamList,
@@ -2919,4 +2943,5 @@ export type {
     WorkspacesDomainModalNavigatorParamList,
     DomainSplitNavigatorParamList,
     DomainScreenName,
+    SearchColumnsParamList,
 };
