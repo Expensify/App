@@ -12,9 +12,11 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openWorkspaceMembersPage} from '@libs/actions/Policy/Member';
 import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import variables from '@styles/variables';
@@ -88,8 +90,10 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             return;
         }
 
+        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
+        openWorkspaceMembersPage(policyID, clientMemberEmails);
         openPolicyCompanyCardsFeed(domainOrWorkspaceAccountID, policyID, feed);
-    }, [feed, isLoading, policyID, isFeedPending, domainOrWorkspaceAccountID]);
+    }, [feed, isLoading, policyID, isFeedPending, domainOrWorkspaceAccountID, policy?.employeeList]);
 
     const {assignCard, isAssigningCardDisabled} = useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal});
 
