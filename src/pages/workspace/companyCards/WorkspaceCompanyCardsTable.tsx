@@ -79,7 +79,7 @@ function WorkspaceCompanyCardsTable({
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
-    const shouldShowNarrowLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const tableRef = useRef<TableHandle<WorkspaceCompanyCardTableItemData, CompanyCardsTableColumnKey>>(null);
 
@@ -131,7 +131,7 @@ function WorkspaceCompanyCardsTable({
             isPlaidCardFeed={isPlaidCardFeed}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
-            shouldUseNarrowTableRowLayout={shouldShowNarrowLayout}
+            shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             columnCount={columns.length}
         />
     );
@@ -221,12 +221,12 @@ function WorkspaceCompanyCardsTable({
     };
 
     const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
-    const isNarrowLayoutRef = useRef(shouldShowNarrowLayout);
+    const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
 
     // When we switch from wide to narrow layout, we want to save the active sorting and set it to the member column.
     // When switching back to wide layout, we want to restore the previous sorting.
     useEffect(() => {
-        if (shouldShowNarrowLayout) {
+        if (shouldUseNarrowTableLayout) {
             if (isNarrowLayoutRef.current) {
                 return;
             }
@@ -244,7 +244,7 @@ function WorkspaceCompanyCardsTable({
 
         isNarrowLayoutRef.current = false;
         tableRef.current?.updateSorting(activeSortingInWideLayout);
-    }, [activeSortingInWideLayout, shouldShowNarrowLayout]);
+    }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
     // Show empty state when there are no cards
     if (!data.length && !isLoadingCardsTableData) {
@@ -273,7 +273,7 @@ function WorkspaceCompanyCardsTable({
             filters={filterConfig}
             ListEmptyComponent={!isOffline && isLoadingCardsTableData ? <TableRowSkeleton fixedNumItems={5} /> : undefined}
         >
-            <View style={shouldShowNarrowLayout && styles.mb5}>
+            <View style={shouldUseNarrowTableLayout && styles.mb5}>
                 <WorkspaceCompanyCardsTableHeaderButtons
                     policyID={policyID}
                     selectedFeed={selectedFeed}
@@ -282,7 +282,7 @@ function WorkspaceCompanyCardsTable({
                 />
             </View>
 
-            {!shouldShowNarrowLayout && <Table.Header />}
+            {!shouldUseNarrowTableLayout && <Table.Header />}
 
             <Table.Body />
         </Table>
