@@ -1186,7 +1186,7 @@ function getNetSuiteImportCustomFieldLabel(
     const importedTypes = Array.from(mappingSet)
         .sort((a, b) => localeCompare(b, a))
         .map((mapping) => translate(`workspace.netsuite.import.importTypes.${mapping !== '' ? mapping : 'TAG'}.label`).toLowerCase());
-    return translate(`workspace.netsuite.import.importCustomFields.label`, {importedTypes});
+    return translate(`workspace.netsuite.import.importCustomFields.label`, importedTypes);
 }
 
 function isNetSuiteCustomSegmentRecord(customField: NetSuiteCustomList | NetSuiteCustomSegment): boolean {

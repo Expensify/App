@@ -1534,10 +1534,7 @@ describe('ReportActionsUtils', () => {
         it('should return the correct message with a valid report ID and report name', () => {
             const reportID = '12345';
             const reportName = 'Test Expense Report';
-            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', {
-                reportUrl: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`,
-                reportName,
-            });
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`, reportName);
 
             const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
 

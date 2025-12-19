@@ -1684,40 +1684,26 @@ function getTravelUpdateMessage(action: ReportAction<'TRAVEL_TRIP_ROOM_UPDATE'>,
     switch (details?.operation) {
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_TICKETED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('travel.updates.bookingTicketed', {
-                airlineCode: details.route?.airlineCode ?? '',
-                origin: details.start.shortName ?? '',
-                destination: details.end?.shortName ?? '',
-                startDate: formattedStartDate,
-                confirmationID: details.confirmations?.at(0)?.value,
-            });
+            return translateLocal(
+                'travel.updates.bookingTicketed',
+                details.route?.airlineCode ?? '',
+                details.start.shortName ?? '',
+                details.end?.shortName ?? '',
+                formattedStartDate,
+                details.confirmations?.at(0)?.value,
+            );
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TICKET_VOIDED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('travel.updates.ticketVoided', {
-                airlineCode: details.route?.airlineCode ?? '',
-                origin: details.start.shortName ?? '',
-                destination: details.end?.shortName ?? '',
-                startDate: formattedStartDate,
-            });
+            return translateLocal('travel.updates.ticketVoided', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.TICKET_REFUNDED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('travel.updates.ticketRefunded', {
-                airlineCode: details.route?.airlineCode ?? '',
-                origin: details.start.shortName ?? '',
-                destination: details.end?.shortName ?? '',
-                startDate: formattedStartDate,
-            });
+            return translateLocal('travel.updates.ticketRefunded', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CANCELLED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('travel.updates.flightCancelled', {
-                airlineCode: details.route?.airlineCode ?? '',
-                origin: details.start.shortName ?? '',
-                destination: details.end?.shortName ?? '',
-                startDate: formattedStartDate,
-            });
+            return translateLocal('travel.updates.flightCancelled', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SCHEDULE_CHANGE_PENDING:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1734,12 +1720,7 @@ function getTravelUpdateMessage(action: ReportAction<'TRAVEL_TRIP_ROOM_UPDATE'>,
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CHANGED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('travel.updates.flightUpdated', {
-                airlineCode: details.route?.airlineCode ?? '',
-                origin: details.start.shortName ?? '',
-                destination: details.end?.shortName ?? '',
-                startDate: formattedStartDate,
-            });
+            return translateLocal('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CABIN_CHANGED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1813,12 +1794,7 @@ function getTravelUpdateMessage(action: ReportAction<'TRAVEL_TRIP_ROOM_UPDATE'>,
                 });
             }
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('travel.updates.flightUpdated', {
-                airlineCode: details.route?.airlineCode ?? '',
-                origin: details.start.shortName ?? '',
-                destination: details.end?.shortName ?? '',
-                startDate: formattedStartDate,
-            });
+            return translateLocal('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.BOOKING_OTHER_UPDATE:
             if (details.type === CONST.RESERVATION_TYPE.CAR || details.type === CONST.RESERVATION_TYPE.HOTEL) {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1835,12 +1811,7 @@ function getTravelUpdateMessage(action: ReportAction<'TRAVEL_TRIP_ROOM_UPDATE'>,
                 });
             }
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('travel.updates.flightUpdated', {
-                airlineCode: details.route?.airlineCode ?? '',
-                origin: details.start.shortName ?? '',
-                destination: details.end?.shortName ?? '',
-                startDate: formattedStartDate,
-            });
+            return translateLocal('travel.updates.flightUpdated', details.route?.airlineCode ?? '', details.start.shortName ?? '', details.end?.shortName ?? '', formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.REFUND:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -3326,7 +3297,7 @@ function getChangedApproverActionMessage<T extends typeof CONST.REPORT.ACTIONS.T
 
 function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate) {
     const reportUrl = getReportURLForCurrentContext(reportID);
-    return translate('reportAction.harvestCreatedExpenseReport', {reportUrl, reportName});
+    return translate('reportAction.harvestCreatedExpenseReport', reportUrl, reportName);
 }
 
 function isCardIssuedAction(
