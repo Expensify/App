@@ -587,7 +587,7 @@ const translations = {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
-        longID: 'Long ID',
+        longReportID: 'Long Report ID',
         withdrawalID: 'Withdrawal ID',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
@@ -6689,6 +6689,7 @@ const translations = {
             title: 'Create export',
             description: "Whoa, that's a lot of items! We'll bundle them up, and Concierge will send you a file shortly.",
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Select all matching items',
             allMatchingItemsSelected: 'All matching items selected',
@@ -6702,6 +6703,11 @@ const translations = {
             helpTextConcierge: 'If the problem persists, reach out to',
         },
         refresh: 'Refresh',
+    },
+    desktopAppRetiredPage: {
+        title: 'Desktop app has been retired',
+        body: 'The New Expensify Mac desktop app has been retired. Moving forward, please use the web app to access your account.',
+        goToWeb: 'Go to web',
     },
     fileDownload: {
         success: {
