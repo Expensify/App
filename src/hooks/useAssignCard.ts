@@ -145,9 +145,30 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
         }
 
         clearAddNewCardFlow();
-        setAssignCardStepAndData({data, currentStep});
+        clearAssignCardStepAndData();
+        setAssignCardStepAndData({data});
+
+        // Navigate directly to the appropriate screen based on the determined step
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed: selectedFeed, cardID}));
+            const routeParams = {policyID, feed: selectedFeed, cardID: cardID ?? ''};
+
+            switch (currentStep) {
+                case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
+                case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
+                    // For expired feeds, still use the old ASSIGN_CARD route which handles these cases
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed: selectedFeed, cardID}));
+                    break;
+                case CONST.COMPANY_CARD.STEP.CARD:
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
+                    break;
+                case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute(routeParams));
+                    break;
+                case CONST.COMPANY_CARD.STEP.ASSIGNEE:
+                default:
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(routeParams));
+                    break;
+            }
         });
     };
 
