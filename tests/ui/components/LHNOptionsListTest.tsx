@@ -182,6 +182,8 @@ describe('LHNOptionsList', () => {
             // Given a DEW policy and a report with pending submit
             const policyID = 'dewTestPolicy';
             const reportID = 'dewTestReport';
+            const accountID1 = 1;
+            const accountID2 = 2;
             const policy: Policy = {
                 id: policyID,
                 name: 'DEW Test Policy',
@@ -193,7 +195,7 @@ describe('LHNOptionsList', () => {
                 reportName: 'DEW Test Report',
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID,
-                participants: {1: {notificationPreference: 'always'}, 2: {notificationPreference: 'always'}},
+                participants: {[accountID1]: {notificationPreference: 'always'}, [accountID2]: {notificationPreference: 'always'}},
             };
             const submittedAction: ReportAction = {
                 reportActionID: '1',
@@ -232,10 +234,12 @@ describe('LHNOptionsList', () => {
             });
         });
 
-        it('does not show queued message when online with pending DEW submit', async () => {
+        it('shows submitted message when online with pending DEW submit', async () => {
             // Given a DEW policy and a report with pending submit
             const policyID = 'dewTestPolicyOnline';
             const reportID = 'dewTestReportOnline';
+            const accountID1 = 1;
+            const accountID2 = 2;
             const policy: Policy = {
                 id: policyID,
                 name: 'DEW Test Policy',
@@ -247,7 +251,7 @@ describe('LHNOptionsList', () => {
                 reportName: 'DEW Test Report',
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID,
-                participants: {1: {notificationPreference: 'always'}, 2: {notificationPreference: 'always'}},
+                participants: {[accountID1]: {notificationPreference: 'always'}, [accountID2]: {notificationPreference: 'always'}},
             };
             const submittedAction: ReportAction = {
                 reportActionID: '1',
@@ -280,9 +284,10 @@ describe('LHNOptionsList', () => {
             const reportItem = await waitFor(() => getReportItem(reportID));
             expect(reportItem).toBeTruthy();
 
-            // Then the queued message should NOT be displayed when online
+            // Then the queued message should NOT be displayed when online, instead show "submitted"
             await waitFor(() => {
                 expect(screen.queryByText('queued to submit via custom approval workflow')).toBeNull();
+                expect(screen.getByText('submitted')).toBeTruthy();
             });
         });
     });
