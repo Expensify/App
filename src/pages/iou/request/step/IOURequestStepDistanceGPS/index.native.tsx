@@ -50,7 +50,7 @@ function IOURequestStepDistanceGPS({
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
             onBackButtonPress={() => Navigation.goBack()}
-            testID={IOURequestStepDistanceGPS.displayName}
+            testID="IOURequestStepDistanceGPS"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
