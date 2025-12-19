@@ -1,5 +1,5 @@
 import mapValues from 'lodash/mapValues';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -213,7 +213,7 @@ function MoneyRequestReceiptView({
         [transaction?.errors, parentReportAction?.errors],
     );
 
-    const dismissReceiptError = useCallback(() => {
+    const dismissReceiptError = () => {
         if (!report?.reportID) {
             return;
         }
@@ -248,20 +248,7 @@ function MoneyRequestReceiptView({
             }
             navigateToConciergeChatAndDeleteReport(report.reportID, true, true);
         }
-    }, [
-        transaction,
-        chatReport,
-        parentReportAction,
-        linkedTransactionID,
-        report?.reportID,
-        iouReport,
-        chatIOUReport,
-        isChatIOUReportArchived,
-        errorsWithoutReportCreation,
-        reportCreationError,
-        isInNarrowPaneModal,
-        transactionAndReportActionErrors,
-    ]);
+    };
 
     let receiptStyle: StyleProp<ViewStyle>;
 
