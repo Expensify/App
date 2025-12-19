@@ -40,9 +40,6 @@ type WorkspaceCompanyCardTableItemData = {
 
     /** Whether the card is assigned */
     isAssigned: boolean;
-
-    /** Card identifier for unassigned cards */
-    cardIdentifier?: string;
 };
 
 type WorkspaceCompanyCardTableItemProps = {
@@ -67,8 +64,11 @@ type WorkspaceCompanyCardTableItemProps = {
     /** Whether to use narrow table row layout */
     shouldUseNarrowTableRowLayout?: boolean;
 
+    /** Number of columns in the table */
+    columnCount: number;
+
     /** On assign card callback */
-    onAssignCard: () => void;
+    onAssignCard: (cardID?: string) => void;
 };
 
 function WorkspaceCompanyCardTableItem({
@@ -78,6 +78,7 @@ function WorkspaceCompanyCardTableItem({
     plaidIconUrl,
     isPlaidCardFeed,
     shouldUseNarrowTableRowLayout,
+    columnCount,
     isAssigningCardDisabled,
     onAssignCard,
 }: WorkspaceCompanyCardTableItemProps) {
@@ -97,6 +98,8 @@ function WorkspaceCompanyCardTableItem({
 
     const alternateLoginText = shouldUseNarrowTableRowLayout ? `${customCardName}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : (cardholder?.login ?? '');
 
+    const assignCard = () => onAssignCard(cardName);
+
     return (
         <OfflineWithFeedback
             errorRowStyles={styles.ph5}
@@ -111,7 +114,7 @@ function WorkspaceCompanyCardTableItem({
                 disabled={isCardDeleted}
                 onPress={() => {
                     if (!assignedCard) {
-                        onAssignCard();
+                        assignCard();
                         return;
                     }
 
@@ -129,7 +132,18 @@ function WorkspaceCompanyCardTableItem({
                 }}
             >
                 {({hovered}) => (
-                    <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.br3, styles.p4]}>
+                    <View
+                        style={[
+                            styles.br3,
+                            styles.p4,
+                            styles.gap3,
+                            styles.dFlex,
+                            styles.flexRow,
+                            styles.alignItemsCenter,
+                            // Use Grid on web when available (will override flex if supported)
+                            !shouldUseNarrowTableRowLayout && [styles.dGrid, {gridTemplateColumns: `repeat(${columnCount}, 1fr)`}],
+                        ]}
+                    >
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             {isAssigned ? (
                                 <>
@@ -173,7 +187,7 @@ function WorkspaceCompanyCardTableItem({
                                         numberOfLines={1}
                                         style={[styles.optionDisplayName, styles.textStrong, styles.pre]}
                                     >
-                                        Unassigned
+                                        {translate('workspace.moreFeatures.companyCards.unassignedCards')}
                                     </Text>
                                 </>
                             )}
@@ -190,7 +204,7 @@ function WorkspaceCompanyCardTableItem({
                             </View>
                         )}
 
-                        <View style={[!shouldUseNarrowTableRowLayout && styles.flex1, styles.alignItemsEnd]}>
+                        <View style={[styles.flex1, styles.alignItemsEnd]}>
                             {isAssigned && (
                                 <View style={[styles.justifyContentCenter, styles.flexRow, styles.alignItemsCenter, styles.ml2, styles.gap3]}>
                                     {!shouldUseNarrowTableRowLayout && (
@@ -213,7 +227,7 @@ function WorkspaceCompanyCardTableItem({
                             {!isAssigned && (
                                 <Button
                                     text={shouldUseNarrowTableRowLayout ? translate('workspace.companyCards.assign') : translate('workspace.companyCards.assignCard')}
-                                    onPress={onAssignCard}
+                                    onPress={assignCard}
                                     isDisabled={isAssigningCardDisabled}
                                 />
                             )}

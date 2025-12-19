@@ -52,7 +52,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const isFeedPending = !!selectedFeedData?.pending;
     const isFeedAdded = !isFeedPending && !isNoFeed;
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData)
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
 
     const {isOffline} = useNetwork({
         onReconnect: () => openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID),

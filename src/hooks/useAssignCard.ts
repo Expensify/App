@@ -74,7 +74,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
 
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
 
-    const assignCard = (cardID?: string) => {
+    const assignCard = (cardID: string) => {
         if (isAssigningCardDisabled) {
             return;
         }

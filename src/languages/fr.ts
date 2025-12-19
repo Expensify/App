@@ -6842,6 +6842,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             title: 'Créer une exportation',
             description: 'Ouah, ça fait beaucoup d’éléments ! Nous allons les regrouper, et Concierge vous enverra bientôt un fichier.',
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Sélectionner tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
