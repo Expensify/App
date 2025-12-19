@@ -236,7 +236,7 @@ function WorkspaceCompanyCardTableItem({
 
                         <View style={[styles.flex1, styles.alignItemsEnd]}>
                             {isAssigned && (
-                                <View style={[styles.justifyContentEnd, styles.w100, styles.flexRow, styles.alignItemsCenter, styles.ml2, styles.gap3]}>
+                                <View style={[styles.justifyContentEnd, styles.w100, styles.flexRow, styles.ml2, styles.gap3]}>
                                     {!shouldUseNarrowTableRowLayout && (
                                         <Text
                                             numberOfLines={1}
