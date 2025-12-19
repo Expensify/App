@@ -21,8 +21,8 @@ import {
     checkIfFeedConnectionIsBroken,
     filterInactiveCards,
     flatAllCardsList,
-    getBankName,
-    getCompanyCardFeed,
+    getBankDisplayName,
+    getBankNameFromFeedName,
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
@@ -33,14 +33,14 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {CompanyCardFeedName} from '@src/types/onyx';
 
 type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Current policy id */
     policyID: string;
 
     /** Currently selected feed */
-    selectedFeed: CompanyCardFeedWithDomainID;
+    feedName: CompanyCardFeedName;
 
     /** Whether the feed is pending */
     shouldDisplayTableComponents?: boolean;
@@ -49,7 +49,7 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     CardFeedIcon?: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, shouldDisplayTableComponents = false, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, shouldDisplayTableComponents = false, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -61,21 +61,21 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, should
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
-    const feed = getCompanyCardFeed(selectedFeed);
-    const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.[selectedFeed]?.customFeedName);
-    const isCommercialFeed = isCustomFeed(selectedFeed);
-    const isPlaidCardFeed = !!getPlaidInstitutionId(selectedFeed);
+    const feed = getBankNameFromFeedName(feedName);
+    const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.[feedName]?.customFeedName);
+    const isCommercialFeed = isCustomFeed(feedName);
+    const isPlaidCardFeed = !!getPlaidInstitutionId(feedName);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const currentFeedData = companyFeeds?.[selectedFeed];
-    const bankName = isPlaidCardFeed && formattedFeedName ? formattedFeedName : getBankName(feed);
+    const currentFeedData = companyFeeds?.[feedName];
+    const bankName = isPlaidCardFeed && formattedFeedName ? formattedFeedName : getBankDisplayName(feed);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeedData);
-    const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
-    const hasFeedError = !!cardFeeds?.[selectedFeed]?.errors;
+    const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${feedName}`]);
+    const hasFeedError = !!cardFeeds?.[feedName]?.errors;
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
 
     const openBankConnection = () =>
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, selectedFeed)));
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, feedName)));
 
     const secondaryActions = [
         {
@@ -109,7 +109,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, should
                     CardFeedIcon={CardFeedIcon}
                     feedName={formattedFeedName}
                     supportingText={supportingText}
-                    shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed)}
+                    shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), feedName)}
                 />
                 <View
                     style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
