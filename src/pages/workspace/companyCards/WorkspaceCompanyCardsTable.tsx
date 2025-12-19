@@ -81,7 +81,7 @@ function WorkspaceCompanyCardsTable({selectedFeed, policyID, onAssignCard, isAss
             label: translate('workspace.companyCards.cardName'),
             styling: {
                 containerStyles: [styles.justifyContentEnd],
-                labelStyles: [styles.textAlignRight, styles.pr7],
+                labelStyles: [styles.pr3],
             },
         },
     ];

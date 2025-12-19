@@ -120,7 +120,7 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
             accessible
             accessibilityLabel={column.label}
             accessibilityRole="button"
-            style={[styles.flexRow, styles.alignItemsCenter, column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
+            style={[column.styling?.labelStyles, styles.flexRow, styles.alignItemsCenter, column.styling?.flex ? {flex: column.styling.flex} : styles.flex1, column.styling?.containerStyles]}
             onPress={() => toggleSorting(column.key)}
         >
             <Text
@@ -128,7 +128,6 @@ function TableHeaderColumn<T, ColumnKey extends string = string>({column}: {colu
                 color={theme.textSupporting}
                 style={[
                     styles.lh16,
-                    column.styling?.labelStyles,
                     isSortingByColumn ? styles.textMicroBoldSupporting : [styles.textMicroSupporting, styles.pr1, {marginRight: variables.iconSizeExtraSmall, marginBottom: 1, marginTop: 1}],
                 ]}
             >
