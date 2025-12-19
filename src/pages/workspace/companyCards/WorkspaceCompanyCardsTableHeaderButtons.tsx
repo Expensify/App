@@ -9,7 +9,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import RenderHTML from '@components/RenderHTML';
 import Table from '@components/Table';
 import Text from '@components/Text';
-import type {CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import useCardFeeds from '@hooks/useCardFeeds';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -31,19 +30,14 @@ import {
     getCompanyFeeds,
     getCustomOrFormattedFeedName,
     getDomainOrWorkspaceAccountID,
-    getPlaidCountry,
     getPlaidInstitutionIconUrl,
-    getPlaidInstitutionId,
     isCustomFeed,
 } from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
-import {setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {CurrencyList} from '@src/types/onyx';
-import type {AssignCardData} from '@src/types/onyx/AssignCard';
-import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
 
 type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Current policy id */
@@ -69,8 +63,6 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, should
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const feed = getCompanyCardFeed(selectedFeed);
     const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.[selectedFeed]?.customFeedName);
     const isCommercialFeed = isCustomFeed(selectedFeed);
@@ -84,29 +76,8 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, should
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
 
-    const openBankConnection = () => {
-        const institutionId = !!getPlaidInstitutionId(selectedFeed);
-        const data: Partial<AssignCardData> = {
-            bankName: feed,
-        };
-        if (institutionId) {
-            const country = getPlaidCountry(policy?.outputCurrency, currencyList, countryByIp);
-            setAddNewCompanyCardStepAndData({
-                data: {
-                    selectedCountry: country,
-                },
-            });
-            setAssignCardStepAndData({
-                data,
-                currentStep: CONST.COMPANY_CARD.STEP.PLAID_CONNECTION,
-            });
-            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed: selectedFeed})));
-            return;
-        }
-
-        setAssignCardStepAndData({data, currentStep: CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
+    const openBankConnection = () =>
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed: selectedFeed})));
-    };
 
     const secondaryActions = [
         {
