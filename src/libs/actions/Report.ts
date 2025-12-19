@@ -1374,8 +1374,10 @@ function openReport(
     }
 }
 
-function prepareOnyxDataForCleanUpOptimisticParticipants(preexistingReportID: string): { settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null> } | undefined {
-    const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`];
+function prepareOnyxDataForCleanUpOptimisticParticipants(
+    reportID: string,
+): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined {
+    const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!existingReport?.participants) {
         return undefined;
     }
@@ -1388,7 +1390,7 @@ function prepareOnyxDataForCleanUpOptimisticParticipants(preexistingReportID: st
         settledPersonalDetails[accountID] = null;
         redundantParticipants[accountID] = null;
     }
-    return { settledPersonalDetails, redundantParticipants };
+    return {settledPersonalDetails, redundantParticipants};
 }
 
 /**

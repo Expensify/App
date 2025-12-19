@@ -1,17 +1,18 @@
 import clone from 'lodash/clone';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import {prepareOnyxDataForCleanUpOptimisticParticipants} from '@libs/actions/Report';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import deepReplaceKeysAndValues from '@libs/deepReplaceKeysAndValues';
 import type {Middleware} from '@libs/Request';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetailsList} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
-import { prepareOnyxDataForCleanUpOptimisticParticipants } from '@libs/actions/Report';
-import Onyx, { OnyxEntry } from 'react-native-onyx';
-import { PersonalDetailsList } from '@src/types/onyx';
-import { WRITE_COMMANDS } from '@libs/API/types';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 // Local cache of reportID to optimistic Onyx data
-const reportOptimisticData = new Map<string, { settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null> } | undefined>();
+const reportOptimisticData = new Map<string, {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined>();
 
 /**
  * This middleware checks for the presence of a field called preexistingReportID in the response.
@@ -76,7 +77,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
         }
 
         if (!!currentRequestReportID && request?.command === WRITE_COMMANDS.OPEN_REPORT && !!response?.onyxData && reportOptimisticData.has(currentRequestReportID)) {
-            const { settledPersonalDetails, redundantParticipants } = reportOptimisticData.get(currentRequestReportID) ?? {};
+            const {settledPersonalDetails, redundantParticipants} = reportOptimisticData.get(currentRequestReportID) ?? {};
             reportOptimisticData.delete(currentRequestReportID);
             if (!isEmptyObject(settledPersonalDetails) && !isEmptyObject(redundantParticipants)) {
                 response.onyxData.push(
@@ -91,8 +92,9 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
                         onyxMethod: Onyx.METHOD.MERGE,
                         key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                         value: redundantParticipants,
-                    }
+                    },
                 );
+                return Promise.resolve(response);
             }
         }
         return response;
