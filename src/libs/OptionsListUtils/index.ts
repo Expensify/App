@@ -2086,6 +2086,7 @@ function getValidOptions(
         maxElements,
         includeUserToInvite = false,
         maxRecentReportElements = undefined,
+        shouldAcceptName = false,
         ...config
     }: GetOptionsConfig = {},
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
@@ -2271,6 +2272,7 @@ function getValidOptions(
             countryCode,
             {
                 excludeLogins: loginsToExclude,
+                shouldAcceptName,
             },
         );
     }
