@@ -2,82 +2,93 @@ import React, {useCallback, useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
-import type {CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {setDraftInviteAccountID} from '@libs/actions/Card';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import Navigation from '@navigation/Navigation';
 import WorkspaceInviteMessageComponent from '@pages/workspace/members/WorkspaceInviteMessageComponent';
-import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
-import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {clearInviteDraft} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+import type {AssignCardData} from '@src/types/onyx/AssignCard';
 
-type InviteeNewMemberStepProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
-    WithCurrentUserPersonalDetailsProps & {
-        route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER>;
-        /** Selected feed */
-        feed: CompanyCardFeedWithDomainID;
-    };
+type InviteeNewMemberStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER> &
+    WithCurrentUserPersonalDetailsProps;
 
-function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: InviteeNewMemberStepProps) {
+function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemberStepProps) {
     const {translate} = useLocalize();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
-    const isEditing = assignCard?.isEditing;
     const policyID = route.params.policyID;
+    const feed = route.params.feed;
+    const cardID = route.params.cardID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [list] = useCardsList(feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
 
     const handleBackButtonPress = () => {
-        if (isEditing) {
-            setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                data: {
-                    ...assignCard?.data,
-                    invitingMemberEmail: undefined,
-                },
-            });
-        } else {
-            setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
-                data: {
-                    ...assignCard?.data,
-                    invitingMemberEmail: undefined,
-                },
-                isEditing: false,
-            });
-        }
+        clearInviteDraft(policyID);
+        setAssignCardStepAndData({
+            currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
+            data: {
+                ...assignCard?.data,
+                invitingMemberEmail: undefined,
+                invitingMemberAccountID: undefined,
+            },
+            isEditing: false,
+        });
+        Navigation.goBack();
     };
 
     const goToNextStep = useCallback(() => {
-        let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
         const data: Partial<AssignCardData> = {
             email: assignCard?.data?.invitingMemberEmail,
             cardName: getDefaultCardName(assignCard?.data?.invitingMemberEmail),
             invitingMemberEmail: '',
         };
 
-        if (hasOnlyOneCardToAssign(filteredCardList)) {
-            nextStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
+        const routeParams = {policyID, feed, cardID};
+
+        if (assignCard?.data?.encryptedCardNumber) {
+            data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
+            data.cardNumber = assignCard.data.cardNumber;
+            data.startDate = assignCard?.data?.startDate ?? new Date().toISOString().split('T').at(0);
+            data.dateOption = assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+            setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+                data,
+                isEditing: false,
+            });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams));
+        } else if (hasOnlyOneCardToAssign(filteredCardList)) {
             data.cardNumber = Object.keys(filteredCardList).at(0);
             data.encryptedCardNumber = Object.values(filteredCardList).at(0);
+            data.startDate = assignCard?.data?.startDate ?? new Date().toISOString().split('T').at(0);
+            data.dateOption = assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+            setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+                data,
+                isEditing: false,
+            });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams));
+        } else {
+            setAssignCardStepAndData({
+                currentStep: CONST.COMPANY_CARD.STEP.CARD,
+                data,
+                isEditing: false,
+            });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
         }
-
-        setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
-            data,
-            isEditing: false,
-        });
-    }, [isEditing, assignCard?.data, filteredCardList]);
+    }, [assignCard?.data, filteredCardList, policyID, feed, cardID]);
 
     // If the currently inviting member is already a member of the policy then we should just call goToNextStep
     // See https://github.com/Expensify/App/issues/74256 for more details
@@ -94,10 +105,8 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
             wrapperID="InviteNewMemberStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            headerTitle={translate('workspace.card.issueCard')}
+            headerTitle={translate('workspace.companyCards.assignCard')}
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={0}
-            stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <WorkspaceInviteMessageComponent
@@ -115,4 +124,4 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails, feed}: 
     );
 }
 
-export default withPolicyAndFullscreenLoading(withCurrentUserPersonalDetails(InviteNewMemberStep));
+export default withCurrentUserPersonalDetails(InviteNewMemberStep);
