@@ -107,10 +107,15 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
                 ?.at(0) ?? '';
 
         setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
             data: {encryptedCardNumber: cardSelected, cardNumber},
             isEditing: false,
         });
+
+        if (isEditing) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute({policyID, feed, cardID}));
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute({policyID, feed, cardID}));
+        }
     };
 
     const searchedListOptions = useMemo(() => {
