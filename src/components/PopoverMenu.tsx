@@ -296,7 +296,7 @@ function BasePopoverMenu({
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const prevMenuItems = usePrevious(menuItems);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
@@ -309,19 +309,19 @@ function BasePopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
+        } else if (selectedItem.shouldCloseModalOnSelect === false) {
+            onItemSelected?.(selectedItem, index, event);
+            selectedItem.onSelected?.();
+            setFocusedIndex(-1);
         } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
             onItemSelected?.(selectedItem, index, event);
-            if (selectedItem.shouldCloseModalOnSelect !== false) {
-                close(
-                    () => {
-                        selectedItem.onSelected?.();
-                    },
-                    undefined,
-                    selectedItem.shouldCloseAllModals,
-                );
-            } else {
-                selectedItem.onSelected?.();
-            }
+            close(
+                () => {
+                    selectedItem.onSelected?.();
+                },
+                undefined,
+                selectedItem.shouldCloseAllModals,
+            );
         } else {
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
@@ -583,17 +583,18 @@ function BasePopoverMenu({
     );
 }
 
-PopoverMenu.displayName = 'PopoverMenu';
-
 export default React.memo(
     PopoverMenu,
     (prevProps, nextProps) =>
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- menuItems array is created inline in most usages with unstable references
         deepEqual(prevProps.menuItems, nextProps.menuItems) &&
         prevProps.isVisible === nextProps.isVisible &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- anchorPosition object is created inline in most usages
         deepEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
         prevProps.anchorRef === nextProps.anchorRef &&
         prevProps.headerText === nextProps.headerText &&
         prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- anchorAlignment object is created inline in most usages
         deepEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
         prevProps.animationIn === nextProps.animationIn &&
         prevProps.animationOut === nextProps.animationOut &&
