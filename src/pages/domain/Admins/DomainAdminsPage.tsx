@@ -1,5 +1,5 @@
 import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -60,32 +60,35 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
-    const data: AdminOption[] = [];
-    for (const accountID of adminAccountIDs ?? []) {
-        const details = personalDetails?.[accountID];
-        data.push({
-            keyForList: String(accountID),
-            accountID,
-            login: details?.login ?? '',
-            text: formatPhoneNumber(getDisplayNameOrDefault(details)),
-            alternateText: formatPhoneNumber(details?.login ?? ''),
-            icons: [
-                {
-                    source: details?.avatar ?? icons.FallbackAvatar,
-                    name: formatPhoneNumber(details?.login ?? ''),
-                    type: CONST.ICON_TYPE_AVATAR,
-                    id: accountID,
-                },
-            ],
-            rightElement: technicalContactSettings?.technicalContactEmail === details?.login && <Badge text={translate('domain.admins.primaryContact')} />,
-        });
-    }
+    const data: AdminOption[] = useMemo(() => {
+        const result: AdminOption[] = [];
+        for (const accountID of adminAccountIDs ?? []) {
+            const details = personalDetails?.[accountID];
+            result.push({
+                keyForList: String(accountID),
+                accountID,
+                login: details?.login ?? '',
+                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+                alternateText: formatPhoneNumber(details?.login ?? ''),
+                icons: [
+                    {
+                        source: details?.avatar ?? icons.FallbackAvatar,
+                        name: formatPhoneNumber(details?.login ?? ''),
+                        type: CONST.ICON_TYPE_AVATAR,
+                        id: accountID,
+                    },
+                ],
+                rightElement: technicalContactSettings?.technicalContactEmail === details?.login && <Badge text={translate('domain.admins.primaryContact')} />,
+            });
+        }
+        return result;
+    }, [adminAccountIDs, formatPhoneNumber, icons.FallbackAvatar, personalDetails, technicalContactSettings?.technicalContactEmail, translate]);
 
-    const filterMember = (adminOption: AdminOption, searchQuery: string) => {
+    const filterMember = useCallback((adminOption: AdminOption, searchQuery: string) => {
         const results = tokenizedSearch([adminOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
         return results.length > 0;
-    };
-    const sortMembers = (adminOptions: AdminOption[]) => sortAlphabetically(adminOptions, 'text', localeCompare);
+    }, []);
+    const sortMembers = useCallback((adminOptions: AdminOption[]) => sortAlphabetically(adminOptions, 'text', localeCompare), [localeCompare]);
     const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
 
     const getCustomListHeader = () => {

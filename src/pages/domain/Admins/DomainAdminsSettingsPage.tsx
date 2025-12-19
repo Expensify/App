@@ -77,8 +77,8 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                         }
                         toggleConsolidatedDomainBilling(domainAccountID, Str.extractEmailDomain(domain.email), value);
                     }}
-                    subtitle={<RenderHTML html={translate('domain.admins.consolidatedDomainBillingDescription', domain?.email ? Str.extractEmailDomain(domain.email) : '')} />}
                     title={translate('domain.admins.consolidatedDomainBilling')}
+                    subtitle={translate('domain.admins.consolidatedDomainBillingDescription', domain?.email ? Str.extractEmailDomain(domain.email) : '')}
                     shouldPlaceSubtitleBelowSwitch
                     pendingAction={domainPendingActions?.useTechnicalContactBillingCard}
                     errors={getLatestError(domainErrors?.useTechnicalContactBillingCardErrors)}
