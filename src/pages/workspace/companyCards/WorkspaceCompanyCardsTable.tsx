@@ -31,7 +31,7 @@ type WorkspaceCompanyCardsTableProps = {
     policyID: string;
 
     /** On assign card callback */
-    onAssignCard: (cardID?: string) => void;
+    onAssignCard: (cardID: string) => void;
 
     /** Whether to disable assign card button */
     isAssigningCardDisabled?: boolean;
