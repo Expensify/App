@@ -619,6 +619,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         showListEmptyContent={false}
                         onDismissError={dismissError}
                         showScrollIndicator={false}
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 )}
