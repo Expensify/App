@@ -68,6 +68,10 @@ type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps,
     WorkspacePolicyOnyxProps &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
 
+function isNameValuePairsObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -405,7 +409,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     {memberCards.map((memberCard) => {
                                         const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                                         const plaidUrl = getPlaidInstitutionIconUrl(memberCard?.bank);
-                                        const nameValuePairs = memberCard.nameValuePairs;
+                                        const nameValuePairs = isNameValuePairsObject(memberCard.nameValuePairs) ? memberCard.nameValuePairs : null;
                                         const unapprovedExpenseLimit = nameValuePairs?.unapprovedExpenseLimit;
                                         const cardTitle = nameValuePairs?.cardTitle;
 
