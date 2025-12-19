@@ -6,6 +6,7 @@ import {format} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import type {OnyxCollection, OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {OnyxMultiSetInput} from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {SearchQueryJSON, SearchStatus} from '@components/Search/types';
 import useOnyx from '@hooks/useOnyx';
@@ -27,6 +28,7 @@ import {
     evenlyDistributeSplitExpenseAmounts,
     getIOUReportActionToApproveOrPay,
     getPerDiemExpenseInformation,
+    getReportOriginalCreationTimestamp,
     getReportPreviewAction,
     getSendInvoiceInformation,
     initMoneyRequest,
@@ -10960,6 +10962,58 @@ describe('actions/IOU', () => {
             }
 
             isTransactionDuplicated(mockCashExpenseTransaction, duplicatedTransaction);
+        });
+    });
+
+    describe('getReportOriginalCreationTimestamp', () => {
+        it('should return undefined when report is undefined', () => {
+            const result = getReportOriginalCreationTimestamp(undefined);
+            expect(result).toBeUndefined();
+        });
+
+        it('should return timestamp from CREATED action when it exists', async () => {
+            const createdTimestamp = '2024-01-15 12:00:00.000';
+            const report = createRandomReport(1, undefined);
+            const reportAction1 = createRandomReportAction(1);
+            const reportAction2 = {
+                ...createRandomReportAction(2),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                created: createdTimestamp,
+            };
+            const reportAction3 = createRandomReportAction(3);
+
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
+                    [reportAction1.reportActionID]: reportAction1,
+                    [reportAction2.reportActionID]: reportAction2,
+                    [reportAction3.reportActionID]: reportAction3,
+                },
+            } as unknown as OnyxMultiSetInput);
+            await waitForBatchedUpdates();
+
+            const result = getReportOriginalCreationTimestamp(report);
+            expect(result).toBe(createdTimestamp);
+        });
+
+        it('should return report.created when CREATED action does not exist', async () => {
+            const reportCreatedTimestamp = '2024-01-15 10:00:00.000';
+            const report = {
+                ...createRandomReport(1, undefined),
+                created: reportCreatedTimestamp,
+            };
+            const reportAction1 = createRandomReportAction(1);
+
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
+                    [reportAction1.reportActionID]: reportAction1,
+                },
+            } as unknown as OnyxMultiSetInput);
+            await waitForBatchedUpdates();
+
+            const result = getReportOriginalCreationTimestamp(report);
+            expect(result).toBe(reportCreatedTimestamp);
         });
     });
 });

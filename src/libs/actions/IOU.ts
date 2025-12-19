@@ -10089,6 +10089,7 @@ function getReportFromHoldRequestsOnyxData(
     chatReport: OnyxTypes.Report,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     recipient: Participant,
+    createdTimestamp?: string,
 ): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -10114,6 +10115,8 @@ function getReportFromHoldRequestsOnyxData(
               iouReport?.currency ?? '',
               holdNonReimbursableAmount,
               newParentReportActionID,
+              undefined,
+              createdTimestamp,
           )
         : buildOptimisticIOUReport(
               iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -10123,6 +10126,8 @@ function getReportFromHoldRequestsOnyxData(
               iouReport?.currency ?? '',
               false,
               newParentReportActionID,
+              undefined,
+              createdTimestamp,
           );
 
     const optimisticExpenseReportPreview = buildOptimisticReportPreview(
@@ -10892,6 +10897,20 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
     });
 }
 
+/**
+ * Gets the original creation timestamp from a report's CREATED action or falls back to report.created
+ */
+function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.Report>): string | undefined {
+    if (!expenseReport?.reportID) {
+        return undefined;
+    }
+
+    const expenseReportActions = getAllReportActions(expenseReport.reportID);
+    const createdAction = Object.values(expenseReportActions ?? {}).find((action) => isCreatedAction(action));
+
+    return createdAction?.created ?? expenseReport.created;
+}
+
 function approveMoneyRequest(
     expenseReport: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
@@ -11075,7 +11094,9 @@ function approveMoneyRequest(
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
     if (!full && !!chatReport && !!expenseReport) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID});
+        const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
+
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID}, originalCreated);
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
         successData.push(...holdReportOnyxData.successData);
@@ -15392,6 +15413,7 @@ export {
     duplicateExpenseTransaction,
     getIOURequestPolicyID,
     getReceiverType,
+    getReportOriginalCreationTimestamp,
     initMoneyRequest,
     checkIfScanFileCanBeRead,
     dismissModalAndOpenReportInInboxTab,
