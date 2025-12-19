@@ -138,7 +138,21 @@ function AttachmentPickerWithMenuItems({
     raiseIsScrollLikelyLayoutTriggered,
     shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Collapse', 'Document', 'Expand', 'Location', 'Paperclip', 'Task']);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'Collapse',
+        'Document',
+        'Expand',
+        'Location',
+        'Paperclip',
+        'Task',
+        'Coins',
+        'Receipt',
+        'Cash',
+        'InvoiceGeneric',
+        'Transfer',
+        'Receipt',
+        'MoneyCircle',
+    ] as const);
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -208,7 +222,7 @@ function AttachmentPickerWithMenuItems({
         const options: MoneyRequestOptions = {
             [CONST.IOU.TYPE.SPLIT]: [
                 {
-                    icon: Expensicons.Transfer,
+                    icon: icons.Transfer,
                     text: translate('iou.splitExpense'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SPLIT_EXPENSE,
@@ -217,7 +231,7 @@ function AttachmentPickerWithMenuItems({
             ],
             [CONST.IOU.TYPE.SUBMIT]: [
                 {
-                    icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                    icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
                     text: translate('iou.createExpense'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
@@ -233,7 +247,7 @@ function AttachmentPickerWithMenuItems({
             ],
             [CONST.IOU.TYPE.PAY]: [
                 {
-                    icon: getIconForAction(CONST.IOU.TYPE.SEND),
+                    icon: getIconForAction(CONST.IOU.TYPE.SEND, icons),
                     text: translate('iou.paySomeone', {name: getPayeeName(report)}),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_PAY_SOMEONE,
@@ -250,7 +264,7 @@ function AttachmentPickerWithMenuItems({
             ],
             [CONST.IOU.TYPE.TRACK]: [
                 {
-                    icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                    icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
                     text: translate('iou.createExpense'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
@@ -266,7 +280,7 @@ function AttachmentPickerWithMenuItems({
             ],
             [CONST.IOU.TYPE.INVOICE]: [
                 {
-                    icon: Expensicons.InvoiceGeneric,
+                    icon: icons.InvoiceGeneric,
                     text: translate('workspace.invoices.sendInvoice'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SEND_INVOICE,
@@ -292,7 +306,7 @@ function AttachmentPickerWithMenuItems({
         shouldUseNarrowLayout,
         showDelegateNoAccessModal,
         translate,
-        icons.Location,
+        icons,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
