@@ -28,7 +28,6 @@ function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<Settin
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
     const data = assignCard?.data;
-    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '');
 
     const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const [errorText, setErrorText] = useState('');
