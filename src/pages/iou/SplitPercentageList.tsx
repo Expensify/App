@@ -30,7 +30,7 @@ function SplitPercentageList({sections, initiallyFocusedOptionKey, onSelectRow, 
             ...section,
             data: section.data.map((item) => ({
                 ...item,
-                mode: CONST.IOU.SPLIT_TYPE.PERCENTAGE,
+                mode: CONST.TAB.SPLIT.PERCENTAGE,
             })),
         }));
     }, [sections]);

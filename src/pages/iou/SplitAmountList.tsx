@@ -30,7 +30,7 @@ function SplitAmountList({sections, initiallyFocusedOptionKey, onSelectRow, list
             ...section,
             data: section.data.map((item) => ({
                 ...item,
-                mode: CONST.IOU.SPLIT_TYPE.AMOUNT,
+                mode: CONST.TAB.SPLIT.AMOUNT,
             })),
         }));
     }, [sections]);
