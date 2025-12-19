@@ -76,7 +76,7 @@ function getLength(): number {
 }
 
 function save(requestToPersist: Request) {
-    Log.info('[PersistedRequests] Saving request to queue started', false, {requestToPersist});
+    Log.info('[PersistedRequests] Saving request to queue started', false, {command: requestToPersist.command});
     // If not initialized yet, queue the request for later processing
     if (!isInitialized) {
         Log.info('[PersistedRequests] Queueing request until initialization completes', false);
@@ -91,8 +91,8 @@ function save(requestToPersist: Request) {
         .then(() => {
             Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
         })
-        .catch((error) => {
-            Log.info('[SequentialQueue] Error saving request to queue', false, {error, requestToPersist});
+        .catch(() => {
+            Log.info('[SequentialQueue] Error saving request to queue', false, {command: requestToPersist.command});
         });
 }
 

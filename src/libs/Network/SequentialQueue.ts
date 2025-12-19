@@ -352,7 +352,7 @@ function push(newRequest: OnyxRequest) {
         delete newRequest.checkAndFixConflictingRequest;
         handleConflictActions(conflictAction, newRequest);
     } else {
-        Log.info('[SequentialQueue] No conflict action. Adding request to Persisted Requests', false, {newRequest});
+        Log.info('[SequentialQueue] No conflict action. Adding request to Persisted Requests', false, {command: newRequest.command});
         // Add request to Persisted Requests so that it can be retried if it fails
         savePersistedRequest(newRequest);
     }
