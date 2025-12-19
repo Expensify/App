@@ -51,7 +51,7 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
     const internalInputRef = useRef<AnimatedTextInputRef>(null);
     useDelayedAutoFocus(internalInputRef, shouldDelayAutoFocus);
 
@@ -113,7 +113,5 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
         </FormProvider>
     );
 }
-
-RegistrationNumberStep.displayName = 'RegistrationNumberStep';
 
 export default RegistrationNumberStep;

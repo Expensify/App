@@ -153,6 +153,4 @@ function MoneyRequestReportTransactionItem({
     );
 }
 
-MoneyRequestReportTransactionItem.displayName = 'MoneyRequestReportTransactionItem';
-
 export default MoneyRequestReportTransactionItem;

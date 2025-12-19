@@ -25,11 +25,16 @@ type SearchTableHeaderProps = {
     sortOrder?: SortOrder;
     shouldShowSorting: boolean;
     dateColumnSize: TableColumnSize;
+    submittedColumnSize?: TableColumnSize;
+    approvedColumnSize?: TableColumnSize;
+    postedColumnSize?: TableColumnSize;
+    exportedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     containerStyles?: StyleProp<ViewStyle>;
     shouldShowColumn: (columnName: SearchColumnType) => boolean;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
+    shouldRemoveTotalColumnFlex?: boolean;
 };
 
 function SortableTableHeader({
@@ -38,11 +43,16 @@ function SortableTableHeader({
     sortOrder,
     shouldShowColumn,
     dateColumnSize,
+    submittedColumnSize,
+    approvedColumnSize,
+    postedColumnSize,
+    exportedColumnSize,
     containerStyles,
     shouldShowSorting,
     onSortPress,
     amountColumnSize,
     taxAmountColumnSize,
+    shouldRemoveTotalColumnFlex,
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -74,6 +84,11 @@ function SortableTableHeader({
                                     dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    exportedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    shouldRemoveTotalColumnFlex,
                                 ),
                             ]}
                             isSortable={isSortable}
@@ -85,7 +100,5 @@ function SortableTableHeader({
         </View>
     );
 }
-
-SortableTableHeader.displayName = 'SortableTableHeader';
 
 export default SortableTableHeader;
