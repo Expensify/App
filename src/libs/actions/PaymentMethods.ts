@@ -468,7 +468,7 @@ function deletePaymentCard(fundID: number) {
         fundID,
     };
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FUND_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.FUND_LIST}`,

@@ -52,8 +52,8 @@ function removePolicyConnection(policy: Policy, connectionName: PolicyConnection
         },
     ];
 
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [];
     const supportedConnections: PolicyConnectionName[] = [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO];
 
     if (PolicyUtils.isCollectPolicy(policy) && supportedConnections.includes(connectionName)) {

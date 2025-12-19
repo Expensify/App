@@ -189,7 +189,7 @@ function getShortLivedLoginParams(isSupportAuthTokenUsed = false, isSAML = false
         },
     ];
 
-    const failureData: OnyxUpdate[] = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.HYBRID_APP>> = [];
 
     if (CONFIG.IS_HYBRID_APP && isSAML) {
         optimisticData.push({

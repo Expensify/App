@@ -441,8 +441,8 @@ function deletePolicyDistanceRates(
         },
     ];
 
-    const optimisticTransactionsViolations: OnyxUpdate[] = [];
-    const failureTransactionsViolations: OnyxUpdate[] = [];
+    const optimisticTransactionsViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [];
+    const failureTransactionsViolations: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [];
 
     for (const transactionID of transactionIDsAffected) {
         const currentTransactionViolations = transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];

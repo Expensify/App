@@ -1476,9 +1476,9 @@ type RespondToProactiveAppReviewParams = {
  */
 function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', currentProactiveAppReview: AppReview | null | undefined, message?: string, conciergeChatReportID?: string) {
     const params: RespondToProactiveAppReviewParams = {response};
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
 
     // Capture current values for failure data
     const originalResponse = currentProactiveAppReview?.response;
