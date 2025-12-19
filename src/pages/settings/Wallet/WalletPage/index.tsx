@@ -227,15 +227,20 @@ function WalletPage() {
                 .sort((a, b) => {
                     const aCreated = a.accountData?.created ?? '';
                     const bCreated = b.accountData?.created ?? '';
-                    if (!aCreated) return 1;
-                    if (!bCreated) return -1;
+                    if (!aCreated) {
+                        return 1;
+                    }
+                    if (!bCreated) {
+                        return -1;
+                    }
                     return new Date(bCreated).getTime() - new Date(aCreated).getTime();
                 });
 
             if (remainingPaymentMethods.length > 0) {
-                const newDefaultMethod = remainingPaymentMethods[0];
-                newBankAccountID = newDefaultMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? (newDefaultMethod.accountData?.bankAccountID ?? 0) : 0;
-                newFundID = newDefaultMethod.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD ? (newDefaultMethod.accountData?.fundID ?? 0) : 0;
+                const newDefaultMethod = remainingPaymentMethods.at(0);
+                newBankAccountID =
+                    newDefaultMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT ? (newDefaultMethod.accountData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID) : 0;
+                newFundID = newDefaultMethod.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD ? (newDefaultMethod.accountData?.fundID ?? CONST.DEFAULT_NUMBER_ID) : 0;
             }
         }
 
