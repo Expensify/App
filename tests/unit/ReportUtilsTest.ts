@@ -10693,7 +10693,6 @@ describe('ReportUtils', () => {
             // Then they should NOT be able to edit it
             expect(canEdit).toBe(false);
         });
-
     });
 
     describe('getReportPreviewMessage', () => {
