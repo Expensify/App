@@ -80,6 +80,24 @@ function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigat
     });
 }
 
+/**
+ * We will check whether we need to navigate with the target route along with the changes of the fullscreen route.
+ * When the fullscreen route needs to change, the background of the route will change according to the matchingFullScreenRoute.
+ */
+function shouldChangeToMatchingFullScreen(
+    newFocusedRoute: ReturnType<typeof findFocusedRoute>,
+    matchingFullScreenRoute: NavigationPartialRoute,
+    lastFullScreenRoute: NavigationPartialRoute,
+) {
+    if (matchingFullScreenRoute.name !== lastFullScreenRoute.name) {
+        return true;
+    }
+
+    const lastRouteInLastFullScreenRoute = lastFullScreenRoute?.state?.routes.at(-1);
+    // Always ensure that the fullscreen route for SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD is SCREENS.SETTINGS.SUBSCRIPTION
+    return newFocusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastRouteInLastFullScreenRoute?.name !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT;
+}
+
 export default function linkTo(navigation: NavigationContainerRef<RootNavigatorParamList> | null, path: Route, options?: LinkToOptions) {
     if (!navigation) {
         throw new Error("Couldn't find a navigation object. Is your component inside a screen in a navigator?");
@@ -142,13 +160,7 @@ export default function linkTo(navigation: NavigationContainerRef<RootNavigatorP
             const matchingFullScreenRoute = getMatchingFullScreenRoute(newFocusedRoute);
 
             const lastFullScreenRoute = currentState.routes.findLast((route) => isFullScreenName(route.name));
-            const lastRouteInLastFullScreenRoute = lastFullScreenRoute?.state?.routes.at(-1);
-            if (
-                matchingFullScreenRoute &&
-                lastFullScreenRoute &&
-                (matchingFullScreenRoute.name !== lastFullScreenRoute.name ||
-                    (newFocusedRoute.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastRouteInLastFullScreenRoute?.name !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT))
-            ) {
+            if (matchingFullScreenRoute && lastFullScreenRoute && shouldChangeToMatchingFullScreen(newFocusedRoute, matchingFullScreenRoute, lastFullScreenRoute as NavigationPartialRoute)) {
                 if (isRoutePreloaded(currentState, matchingFullScreenRoute)) {
                     navigation.dispatch(StackActions.push(matchingFullScreenRoute.name));
                 } else {
