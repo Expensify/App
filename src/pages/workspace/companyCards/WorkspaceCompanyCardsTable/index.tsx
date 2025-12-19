@@ -281,18 +281,15 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             filters={filterConfig}
             ListEmptyComponent={ListEmptyComponent}
         >
-            {!isLoadingFeed && (
-                <View style={shouldUseNarrowTableLayout && styles.mb5}>
-                    <WorkspaceCompanyCardsTableHeaderButtons
-                        policyID={policy.id}
-                        feedName={feedName}
-                        showTableControls
-                        CardFeedIcon={cardFeedIcon}
-                    />
-                </View>
-            )}
-
-            {!shouldUseNarrowTableLayout && <Table.Header />}
+            <View style={shouldUseNarrowTableLayout && styles.mb5}>
+                <WorkspaceCompanyCardsTableHeaderButtons
+                    isLoadingFeed={isLoadingFeed}
+                    policyID={policy?.id}
+                    feedName={feedName}
+                    CardFeedIcon={cardFeedIcon}
+                />
+            </View>
+            {!shouldUseNarrowTableLayout && !isLoadingFeed && <Table.Header />}
 
             <Table.Body />
         </Table>

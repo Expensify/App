@@ -35,6 +35,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
+const FEED_SELECTOR_SKELETON_WIDTH = 289;
+
 type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Current policy id */
     policyID: string;
@@ -42,15 +44,16 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Currently selected feed */
     feedName: CompanyCardFeedWithDomainID;
 
-    /** Whether the feed is pending */
-    showTableControls?: boolean;
+    /** Whether the feed is loading */
+    isLoadingFeed?: boolean;
 
     /** Card feed icon */
     CardFeedIcon?: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, showTableControls = false, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoadingFeed, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
+
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -104,32 +107,44 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, showTableC
                     !shouldShowNarrowLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
                 ]}
             >
-                <FeedSelector
-                    onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
-                    CardFeedIcon={CardFeedIcon}
-                    feedName={formattedFeedName}
-                    supportingText={supportingText}
-                    shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), feedName)}
-                />
+                {isLoadingFeed ? (
+                    <AccountSwitcherSkeletonView
+                        avatarSize={CONST.AVATAR_SIZE.DEFAULT}
+                        width={FEED_SELECTOR_SKELETON_WIDTH}
+                        style={[styles.mb11, styles.mw100]}
+                    />
+                ) : (
+                    <FeedSelector
+                        onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID ?? ''))}
+                        CardFeedIcon={CardFeedIcon}
+                        feedName={formattedFeedName}
+                        supportingText={supportingText}
+                        shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), feedName)}
+                    />
+                )}
+
                 <View
                     style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
                 >
-                    {showTableControls && (
                         <View style={[styles.mnw200]}>
                             <Table.SearchBar />
                         </View>
                     )}
-                    <View style={[styles.flexRow, styles.gap3]}>
-                        {showTableControls && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />}
-                        <ButtonWithDropdownMenu
-                            success={false}
-                            onPress={() => {}}
-                            shouldUseOptionIcon
-                            customText={translate('common.more')}
-                            options={secondaryActions}
-                            isSplitButton={false}
-                            wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
-                        />
+                    <View style={[styles.flex1, styles.flexRow, styles.gap3]}>
+                        {!isLoadingFeed && (
+                            <>
+                                <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />
+                                <ButtonWithDropdownMenu
+                                    success={false}
+                                    onPress={() => {}}
+                                    shouldUseOptionIcon
+                                    customText={translate('common.more')}
+                                    options={secondaryActions}
+                                    isSplitButton={false}
+                                    wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
+                                />
+                            </>
+                        )}
                     </View>
                 </View>
             </View>
