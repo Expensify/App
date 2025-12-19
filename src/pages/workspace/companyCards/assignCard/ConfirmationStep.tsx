@@ -35,6 +35,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const policyID = route.params.policyID;
     const feed = route.params.feed as CompanyCardFeedWithDomainID;
     const cardID = route.params.cardID;
+    const backTo = route.params?.backTo;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -64,9 +65,12 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
         }
 
         Navigation.dismissModal();
+        if (backTo) {
+            Navigation.navigate(backTo);
+        }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard?.isAssignmentFinished]);
+    }, [assignCard?.isAssignmentFinished, backTo]);
 
     const submit = () => {
         if (!policyID) {
@@ -85,7 +89,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     },
                 });
             }
-            // For expired feeds, navigate to the old ASSIGN_CARD route which handles these special cases
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed, cardID}));
             return;
         }
@@ -99,7 +102,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
         switch (step) {
             case CONST.COMPANY_CARD.STEP.ASSIGNEE:
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(routeParams));
+                Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(routeParams), {compareParams: false});
                 break;
             case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute(routeParams));
@@ -113,7 +116,8 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     };
 
     const handleBackButtonPress = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed, cardID}));
+        setAssignCardStepAndData({isEditing: true});
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed, cardID}), {compareParams: false});
     };
 
     return (

@@ -27,10 +27,10 @@ import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {CombinedCardFeed} from './useCardFeeds';
 import useCardFeeds from './useCardFeeds';
 import useCardsList from './useCardsList';
-import usePolicy from './usePolicy';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import usePolicy from './usePolicy';
 
 type UseAssignCardProps = {
     selectedFeed: CompanyCardFeedWithDomainID | undefined;
