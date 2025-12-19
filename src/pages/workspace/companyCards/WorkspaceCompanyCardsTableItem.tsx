@@ -97,6 +97,25 @@ function WorkspaceCompanyCardTableItem({
 
     const alternateLoginText = shouldUseNarrowTableRowLayout ? `${customCardName}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : (cardholder?.login ?? '');
 
+    const handleAssignCard = () => {
+        if (!assignedCard) {
+            onAssignCard();
+            return;
+        }
+
+        if (!assignedCard?.accountID || !assignedCard?.fundID) {
+            return;
+        }
+
+        Navigation.navigate(
+            ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
+                policyID,
+                assignedCard.cardID.toString(),
+                getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID),
+            ),
+        );
+    };
+
     return (
         <OfflineWithFeedback
             errorRowStyles={styles.ph5}
@@ -109,24 +128,7 @@ function WorkspaceCompanyCardTableItem({
                 accessibilityLabel="row"
                 hoverStyle={styles.hoveredComponentBG}
                 disabled={isCardDeleted}
-                onPress={() => {
-                    if (!assignedCard) {
-                        onAssignCard();
-                        return;
-                    }
-
-                    if (!assignedCard?.accountID || !assignedCard?.fundID) {
-                        return;
-                    }
-
-                    return Navigation.navigate(
-                        ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
-                            policyID,
-                            assignedCard.cardID.toString(),
-                            getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID),
-                        ),
-                    );
-                }}
+                onPress={handleAssignCard}
             >
                 {({hovered}) => (
                     <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter, styles.br3, styles.p4]}>
