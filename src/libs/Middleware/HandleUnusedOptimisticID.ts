@@ -31,7 +31,7 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
         if (isCreatingNewReport) {
             // We're opening a new report, which can be a new or preexisting report
             // For new report, clean up optimistic data after this request returned successfully
-            // For report redirect a preexisting repoort, clean up optimistic data after the request of preexisting report returned successfully
+            // For report redirect a preexisting report, clean up optimistic data after the request of preexisting report returned successfully
             reportOptimisticData.set(currentRequestReportID, prepareOnyxDataForCleanUpOptimisticParticipants(currentRequestReportID));
         }
 
