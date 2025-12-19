@@ -208,6 +208,10 @@ function isMoneyRequestAction(reportAction: OnyxInputOrEntry<ReportAction>): rep
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU);
 }
 
+function isExportedToIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION);
+}
+
 function isReportPreviewAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW);
 }
@@ -1717,16 +1721,11 @@ function getTravelUpdateMessage(action: ReportAction<'TRAVEL_TRIP_ROOM_UPDATE'>,
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SCHEDULE_CHANGE_PENDING:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('travel.updates.flightScheduleChangePending', {
-                airlineCode: details.route?.airlineCode ?? '',
-            });
+            return translateLocal('travel.updates.flightScheduleChangePending', details.route?.airlineCode ?? '');
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SCHEDULE_CHANGE_CLOSED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('travel.updates.flightScheduleChangeClosed', {
-                airlineCode: details.route?.airlineCode ?? '',
-                startDate: formattedStartDate,
-            });
+            return translateLocal('travel.updates.flightScheduleChangeClosed', details.route?.airlineCode ?? '', formattedStartDate);
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CHANGED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1739,28 +1738,19 @@ function getTravelUpdateMessage(action: ReportAction<'TRAVEL_TRIP_ROOM_UPDATE'>,
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_CABIN_CHANGED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('travel.updates.flightCabinChanged', {
-                airlineCode: details.route?.airlineCode ?? '',
-                cabinClass: details.route?.class ?? '',
-            });
+            return translateLocal('travel.updates.flightCabinChanged', details.route?.airlineCode ?? '', details.route?.class ?? '');
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SEAT_CONFIRMED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('travel.updates.flightSeatConfirmed', {
-                airlineCode: details.route?.airlineCode ?? '',
-            });
+            return translateLocal('travel.updates.flightSeatConfirmed', details.route?.airlineCode ?? '');
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SEAT_CHANGED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('travel.updates.flightSeatChanged', {
-                airlineCode: details.route?.airlineCode ?? '',
-            });
+            return translateLocal('travel.updates.flightSeatChanged', details.route?.airlineCode ?? '');
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.FLIGHT_SEAT_CANCELLED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('travel.updates.flightSeatCancelled', {
-                airlineCode: details.route?.airlineCode ?? '',
-            });
+            return translateLocal('travel.updates.flightSeatCancelled', details.route?.airlineCode ?? '');
 
         case CONST.TRAVEL.UPDATE_OPERATION_TYPE.PAYMENT_DECLINED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2318,7 +2308,7 @@ function getPolicyChangeLogAddEmployeeMessage(reportAction: OnyxInputOrEntry<Rep
     const role = translateLocal('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
     const formattedEmail = formatPhoneNumber(email);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('report.actions.type.addEmployee', {email: formattedEmail, role});
+    return translateLocal('report.actions.type.addEmployee', formattedEmail, role);
 }
 
 function isPolicyChangeLogChangeRoleMessage(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> {
@@ -2702,10 +2692,7 @@ function getWorkspaceCustomUnitRateAddedMessage(action: ReportAction): string {
 
     if (customUnitName && rateName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.addCustomUnitRate', {
-            customUnitName,
-            rateName,
-        });
+        return translateLocal('workspaceActions.addCustomUnitRate', customUnitName, rateName);
     }
 
     return getReportActionText(action);
@@ -2773,10 +2760,7 @@ function getWorkspaceCustomUnitRateDeletedMessage(action: ReportAction): string 
     const {customUnitName, rateName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE>) ?? {};
     if (customUnitName && rateName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.deleteCustomUnitRate', {
-            customUnitName,
-            rateName,
-        });
+        return translateLocal('workspaceActions.deleteCustomUnitRate', customUnitName, rateName);
     }
 
     return getReportActionText(action);
@@ -2787,11 +2771,7 @@ function getWorkspaceReportFieldAddMessage(action: ReportAction): string {
 
     if (fieldName && fieldType) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.addedReportField', {
-            fieldName,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            fieldType: translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(),
-        });
+        return translateLocal('workspaceActions.addedReportField', translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(), fieldName);
     }
 
     return getReportActionText(action);
@@ -2852,11 +2832,7 @@ function getWorkspaceReportFieldDeleteMessage(action: ReportAction): string {
 
     if (fieldType && fieldName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.deleteReportField', {
-            fieldName,
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            fieldType: translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(),
-        });
+        return translateLocal('workspaceActions.deleteReportField', translateLocal(getReportFieldTypeTranslationKey(fieldType as PolicyReportFieldType)).toLowerCase(), fieldName);
     }
 
     return getReportActionText(action);
@@ -3132,7 +3108,7 @@ function getPolicyChangeLogDeleteMemberMessage(reportAction: OnyxInputOrEntry<Re
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const role = translateLocal('workspace.common.roleName', {role: originalMessage?.role ?? ''}).toLowerCase();
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('report.actions.type.removeMember', {email, role});
+    return translateLocal('report.actions.type.removeMember', email, role);
 }
 
 function getAddedConnectionMessage(reportAction: OnyxEntry<ReportAction>): string {
@@ -3172,12 +3148,7 @@ function getAddedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
 
     if (name && approverAccountID && approverEmail && field && approverName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.addApprovalRule', {
-            approverEmail,
-            approverName,
-            field,
-            name,
-        });
+        return translateLocal('workspaceActions.addApprovalRule', approverEmail, approverName, field, name);
     }
 
     return getReportActionText(reportAction);
@@ -3189,12 +3160,7 @@ function getDeletedApprovalRuleMessage(reportAction: OnyxEntry<ReportAction>) {
 
     if (name && approverAccountID && approverEmail && field && approverName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.deleteApprovalRule', {
-            approverEmail,
-            approverName,
-            field,
-            name,
-        });
+        return translateLocal('workspaceActions.deleteApprovalRule', approverEmail, approverName, field, name);
     }
 
     return getReportActionText(reportAction);
@@ -3414,7 +3380,7 @@ function getCardIssuedMessage({
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
             return translate('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink(translate('workspace.expensifyCard.card'))});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
-            return translate('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
+            return translate('workspace.companyCards.assignedCard', assignee, companyCardLink);
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
             return translate('workspace.expensifyCard.issuedCardNoShippingDetails', assignee);
         case CONST.REPORT.ACTIONS.TYPE.CARD_REPLACED_VIRTUAL:
@@ -3596,6 +3562,7 @@ export {
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,
     isConsecutiveChronosAutomaticTimerAction,
+    isExportedToIntegrationAction,
     hasNextActionMadeBySameActor,
     isCreatedAction,
     isCreatedTaskReportAction,
