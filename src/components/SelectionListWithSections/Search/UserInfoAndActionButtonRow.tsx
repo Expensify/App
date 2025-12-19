@@ -37,7 +37,6 @@ function UserInfoAndActionButtonRow({
     const participantFromDisplayName = item?.from?.displayName ?? item?.from?.login ?? translate('common.hidden');
     const participantToDisplayName = item?.to?.displayName ?? item?.to?.login ?? translate('common.hidden');
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
-    const isLoading = 'isActionLoading' in item ? item?.isActionLoading : isActionLoading;
     return (
         <View
             style={[
@@ -70,7 +69,7 @@ function UserInfoAndActionButtonRow({
                     action={item.action}
                     goToItem={handleActionButtonPress}
                     isSelected={item.isSelected}
-                    isLoading={isLoading}
+                    isLoading={isActionLoading}
                     policyID={item.policyID}
                     reportID={item.reportID}
                     hash={item.hash}

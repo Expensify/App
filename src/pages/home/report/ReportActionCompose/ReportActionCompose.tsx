@@ -12,16 +12,17 @@ import DropZoneUI from '@components/DropZone/DropZoneUI';
 import DualDropZone from '@components/DropZone/DualDropZone';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -34,6 +35,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
+import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -53,6 +55,7 @@ import {
     isSettled,
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import {getTransactionID, hasReceipt as hasReceiptTransactionUtils} from '@libs/TransactionUtils';
 import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutside';
 import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
@@ -149,12 +152,20 @@ function ReportActionCompose({
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [newParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
+
+    const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
+
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {
+        canBeMissing: true,
+    });
+    const ancestors = useAncestors(transactionThreadReport ?? report);
     /**
      * Updates the Highlight state of the composer
      */
     const [isFocused, setIsFocused] = useState(() => {
-        return shouldFocusInputOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
+        return shouldFocusComposerOnScreenFocus && shouldShowComposeInput && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
     });
+
     const [isFullComposerAvailable, setIsFullComposerAvailable] = useState(isComposerFullSize);
 
     const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
@@ -176,6 +187,8 @@ function ReportActionCompose({
     const {hasExceededMaxCommentLength, validateCommentMaxLength, setHasExceededMaxCommentLength} = useHandleExceedMaxCommentLength();
     const {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength, setHasExceededMaxTitleLength} = useHandleExceedMaxTaskTitleLength();
     const [exceededMaxLength, setExceededMaxLength] = useState<number | null>(null);
+
+    const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle']);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerRef | undefined>(undefined);
@@ -310,15 +323,23 @@ function ReportActionCompose({
             const newCommentTrimmed = newComment.trim();
 
             if (attachmentFileRef.current) {
-                addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
+                addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
                 Timing.start(CONST.TIMING.SEND_MESSAGE);
+                startSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE, {
+                    name: 'send-message',
+                    op: CONST.TELEMETRY.SPAN_SEND_MESSAGE,
+                    attributes: {
+                        [CONST.TELEMETRY.ATTRIBUTE_REPORT_ID]: reportID,
+                        [CONST.TELEMETRY.ATTRIBUTE_MESSAGE_LENGTH]: newCommentTrimmed.length,
+                    },
+                });
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, reportID, personalDetail.timezone, transactionThreadReportID],
+        [onSubmit, ancestors, reportID, personalDetail.timezone, transactionThreadReportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -369,7 +390,7 @@ function ReportActionCompose({
     );
 
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to mention other reports they are members of, so we only check if the policyID in the report is from a workspace
-    const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report]);
+    const isGroupPolicyReport = useMemo(() => !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE, [report?.policyID]);
     const reportRecipientAccountIDs = getReportRecipientAccountIDs(report, currentUserPersonalDetails.accountID);
     const reportRecipient = personalDetails?.[reportRecipientAccountIDs[0]];
     const shouldUseFocusedColor = !isBlockedFromConcierge && isFocused;
@@ -444,7 +465,13 @@ function ReportActionCompose({
         const reportActionComposeHeight = emojiPositionValues.composeBoxMinHeight + chatItemComposeSecondaryRowHeight;
         const emojiOffsetWithComposeBox = (emojiPositionValues.composeBoxMinHeight - emojiPositionValues.emojiButtonHeight) / 2;
         return reportActionComposeHeight - emojiOffsetWithComposeBox - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM;
-    }, [emojiPositionValues]);
+    }, [
+        emojiPositionValues.secondaryRowHeight,
+        emojiPositionValues.secondaryRowMarginTop,
+        emojiPositionValues.secondaryRowMarginBottom,
+        emojiPositionValues.composeBoxMinHeight,
+        emojiPositionValues.emojiButtonHeight,
+    ]);
 
     const onValueChange = useCallback(
         (value: string) => {
@@ -471,6 +498,8 @@ function ReportActionCompose({
         isAttachmentPreviewActive,
         setIsAttachmentPreviewActive,
     });
+
+    const fsClass = FS.getChatFSClass(report);
 
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
@@ -511,7 +540,7 @@ function ReportActionCompose({
                             onAddActionPressed={onAddActionPressed}
                             onItemSelected={onItemSelected}
                             onCanceledAttachmentPicker={() => {
-                                if (!shouldFocusInputOnScreenFocus) {
+                                if (!shouldFocusComposerOnScreenFocus) {
                                     return;
                                 }
                                 focus();
@@ -550,6 +579,7 @@ function ReportActionCompose({
                             measureParentContainer={measureContainer}
                             onValueChange={onValueChange}
                             didHideComposerInput={didHideComposerInput}
+                            forwardedFSClass={fsClass}
                         />
                         {shouldDisplayDualDropZone && (
                             <DualDropZone
@@ -562,7 +592,7 @@ function ReportActionCompose({
                         {!shouldDisplayDualDropZone && (
                             <DragAndDropConsumer onDrop={(dragEvent) => validateAttachments({dragEvent})}>
                                 <DropZoneUI
-                                    icon={Expensicons.MessageInABottle}
+                                    icon={icons.MessageInABottle}
                                     dropTitle={translate('dropzone.addAttachments')}
                                     dropStyles={styles.attachmentDropOverlay(true)}
                                     dropTextStyles={styles.attachmentDropText}
@@ -622,8 +652,6 @@ function ReportActionCompose({
         </View>
     );
 }
-
-ReportActionCompose.displayName = 'ReportActionCompose';
 
 export default memo(ReportActionCompose);
 export {onSubmitAction};

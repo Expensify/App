@@ -207,7 +207,7 @@ function AvatarWithDisplayName({
         }
         const parentReportAction = parentReportActions?.[report?.parentReportActionID];
         actorAccountID.current = parentReportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    }, [parentReportActions, report]);
+    }, [parentReportActions, report?.parentReportActionID]);
 
     const goToDetailsPage = useCallback(() => {
         navigateToDetailsPage(report, Navigation.getActiveRoute());
@@ -290,6 +290,7 @@ function AvatarWithDisplayName({
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                reportID={report?.reportID}
                                 parentReportID={report?.parentReportID}
                                 parentReportActionID={report?.parentReportActionID}
                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
@@ -330,7 +331,5 @@ function AvatarWithDisplayName({
         </PressableWithoutFeedback>
     );
 }
-
-AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 
 export default AvatarWithDisplayName;

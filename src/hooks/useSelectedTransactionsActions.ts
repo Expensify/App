@@ -1,32 +1,35 @@
 import {useCallback, useMemo, useState} from 'react';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
-import {unholdRequest} from '@libs/actions/IOU';
+import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID, isDeletedAction} from '@libs/ReportActionsUtils';
-import {isMergeAction} from '@libs/ReportSecondaryActionUtils';
+import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
+import {isMergeAction, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
     canEditFieldOfMoneyRequest,
     canHoldUnholdReportAction,
+    canRejectReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getReportOrDraftReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
+import {getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import useAllTransactions from './useAllTransactions';
 import useDeleteTransactions from './useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from './useDuplicateTransactionsAndViolations';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -37,6 +40,7 @@ const HOLD = 'HOLD';
 const UNHOLD = 'UNHOLD';
 const MOVE = 'MOVE';
 const MERGE = 'MERGE';
+const SPLIT = 'SPLIT';
 
 function useSelectedTransactionsActions({
     report,
@@ -59,13 +63,14 @@ function useSelectedTransactionsActions({
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const allTransactions = useAllTransactions();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
-
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
 
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit', 'ThumbsDown']);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
@@ -121,10 +126,11 @@ function useSelectedTransactionsActions({
         }
 
         return false;
-    }, [selectedTransactionsList, selectedTransactionsMeta, selectedTransactionIDs]);
+    }, [selectedTransactionsList, selectedTransactionsMeta, selectedTransactionIDs.length]);
 
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    // eslint-disable-next-line  @typescript-eslint/no-deprecated
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
 
@@ -159,6 +165,7 @@ function useSelectedTransactionsActions({
         const options = [];
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+
         let canHoldTransactions = selectedTransactionsList.length > 0 && isMoneyRequestReport && !isReportReimbursed;
         let canUnholdTransactions = selectedTransactionsList.length > 0 && isMoneyRequestReport;
 
@@ -173,7 +180,8 @@ function useSelectedTransactionsActions({
                 continue;
             }
             const iouReportAction = getIOUActionForTransactionID(reportActions, selectedTransaction.transactionID);
-            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(iouReportAction);
+            const holdReportAction = getReportAction(iouReportAction?.childReportID, `${selectedTransaction?.comment?.hold ?? ''}`);
+            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(report, iouReportAction, holdReportAction, selectedTransaction, policy);
 
             canHoldTransactions = canHoldTransactions && canHoldRequest;
             canUnholdTransactions = canUnholdTransactions && canUnholdRequest;
@@ -182,7 +190,7 @@ function useSelectedTransactionsActions({
         if (canHoldTransactions) {
             options.push({
                 text: translate('iou.hold'),
-                icon: Expensicons.Stopwatch,
+                icon: expensifyIcons.Stopwatch,
                 value: HOLD,
                 onSelected: () => {
                     if (!report?.reportID) {
@@ -196,7 +204,7 @@ function useSelectedTransactionsActions({
         if (canUnholdTransactions) {
             options.push({
                 text: translate('iou.unhold'),
-                icon: Expensicons.Stopwatch,
+                icon: expensifyIcons.Stopwatch,
                 value: UNHOLD,
                 onSelected: () => {
                     for (const transactionID of selectedTransactionIDs) {
@@ -211,13 +219,27 @@ function useSelectedTransactionsActions({
             });
         }
 
+        const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(id));
+        const canRejectTransactions =
+            selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report, policy) && hasNoRejectedTransaction;
+        if (canRejectTransactions) {
+            options.push({
+                text: translate('search.bulkActions.reject'),
+                icon: expensifyIcons.ThumbsDown,
+                value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
+                onSelected: () => {
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: report.reportID}));
+                },
+            });
+        }
+
         // Gets the list of options for the export sub-menu
         const getExportOptions = (): PopoverMenuItem[] => {
             // We provide the basic and expense level export options by default
             const exportOptions: PopoverMenuItem[] = [
                 {
                     text: translate('export.basicExport'),
-                    icon: Expensicons.Table,
+                    icon: expensifyIcons.Table,
                     onSelected: () => {
                         if (!report) {
                             return;
@@ -226,9 +248,13 @@ function useSelectedTransactionsActions({
                             onExportOffline?.();
                             return;
                         }
-                        exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
-                            onExportFailed?.();
-                        });
+                        exportReportToCSV(
+                            {reportID: report.reportID, transactionIDList: selectedTransactionIDs},
+                            () => {
+                                onExportFailed?.();
+                            },
+                            translate,
+                        );
                         clearSelectedTransactions(true);
                     },
                 },
@@ -242,7 +268,7 @@ function useSelectedTransactionsActions({
             for (const template of exportTemplates) {
                 exportOptions.push({
                     text: template.name,
-                    icon: Expensicons.Table,
+                    icon: expensifyIcons.Table,
                     description: template.description,
                     onSelected: () => beginExportWithTemplate(template.templateName, template.type, selectedTransactionIDs, template.policyID),
                 });
@@ -254,8 +280,8 @@ function useSelectedTransactionsActions({
             value: CONST.REPORT.SECONDARY_ACTIONS.EXPORT,
             text: translate('common.export'),
             backButtonText: translate('common.export'),
-            icon: Expensicons.Export,
-            rightIcon: Expensicons.ArrowRight,
+            icon: expensifyIcons.Export,
+            rightIcon: expensifyIcons.ArrowRight,
             subMenuItems: getExportOptions(),
         });
 
@@ -273,7 +299,7 @@ function useSelectedTransactionsActions({
         if (canSelectedExpensesBeMoved && canUserPerformWriteAction && !hasTransactionsFromMultipleOwners) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionIDs.length}),
-                icon: Expensicons.DocumentMerge,
+                icon: expensifyIcons.DocumentMerge,
                 value: MOVE,
                 onSelected: () => {
                     const shouldTurnOffSelectionMode = allTransactionsLength - selectedTransactionIDs.length <= 1;
@@ -283,12 +309,29 @@ function useSelectedTransactionsActions({
             });
         }
 
+        const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionIDs.at(0)}`];
+        const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction?.comment?.originalTransactionID}`];
+
+        const {isExpenseSplit} = getOriginalTransactionWithSplitInfo(firstTransaction, originalTransaction);
+        const canSplitTransaction = selectedTransactionsList.length === 1 && report && !isExpenseSplit && isSplitAction(report, [firstTransaction], originalTransaction, policy);
+
+        if (canSplitTransaction) {
+            options.push({
+                text: translate('iou.split'),
+                icon: expensifyIcons.ArrowSplit,
+                value: SPLIT,
+                onSelected: () => {
+                    initSplitExpense(allTransactions, allReports, firstTransaction);
+                },
+            });
+        }
+
         // In phase 1, we only show merge action if report is eligible for merge and only one transaction is selected
         const canMergeTransaction = selectedTransactionsList.length === 1 && report && isMergeAction(report, selectedTransactionsList, policy);
         if (canMergeTransaction) {
             options.push({
                 text: translate('common.merge'),
-                icon: Expensicons.ArrowCollapse,
+                icon: expensifyIcons.ArrowCollapse,
                 value: MERGE,
                 onSelected: () => {
                     const targetTransaction = selectedTransactionsList.at(0);
@@ -317,7 +360,7 @@ function useSelectedTransactionsActions({
         if (canRemoveReportTransaction && canAllSelectedTransactionsBeRemoved) {
             options.push({
                 text: translate('common.delete'),
-                icon: Expensicons.Trashcan,
+                icon: expensifyIcons.Trashcan,
                 value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
                 onSelected: showDeleteModal,
             });
@@ -329,6 +372,7 @@ function useSelectedTransactionsActions({
         selectedTransactionsList,
         translate,
         isReportArchived,
+        hasTransactionsFromMultipleOwners,
         policy,
         reportActions,
         clearSelectedTransactions,
@@ -342,9 +386,11 @@ function useSelectedTransactionsActions({
         outstandingReportsByPolicyID,
         iouType,
         lastVisitedPath,
+        allTransactions,
+        allReports,
         session?.accountID,
         showDeleteModal,
-        hasTransactionsFromMultipleOwners,
+        expensifyIcons,
     ]);
 
     return {

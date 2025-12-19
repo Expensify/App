@@ -4,12 +4,12 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useTheme from '@hooks/useTheme';
@@ -51,7 +51,7 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
     const internalInputRef = useRef<AnimatedTextInputRef>(null);
     useDelayedAutoFocus(internalInputRef, shouldDelayAutoFocus);
 
@@ -80,7 +80,7 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
             style={[styles.mh5, styles.flexGrow1]}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.whatsTheBusinessRegistrationNumber', {country})}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.whatsTheBusinessRegistrationNumber', country)}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 label={translate('businessInfoStep.registrationNumber')}
@@ -92,10 +92,11 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
                 shouldSaveDraft={!isEditing}
                 autoFocus={!shouldDelayAutoFocus}
                 ref={internalInputRef}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
                 <Icon
-                    src={Expensicons.QuestionMark}
+                    src={icons.QuestionMark}
                     width={12}
                     height={12}
                     fill={theme.icon}
@@ -112,7 +113,5 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
         </FormProvider>
     );
 }
-
-RegistrationNumberStep.displayName = 'RegistrationNumberStep';
 
 export default RegistrationNumberStep;

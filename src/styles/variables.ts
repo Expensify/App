@@ -34,6 +34,7 @@ export default {
     appModalAppIconSize: 48,
     buttonBorderRadius: 100,
     avatarSizeLargeBordered: 88,
+    avatarSizeXXLarge: 720,
     avatarSizeXLarge: 100,
     avatarSizeLarge: 80,
     avatarSizeMediumLarge: 60,
@@ -51,6 +52,7 @@ export default {
     defaultAvatarPreviewSize: 360,
     fabBottom: 25,
     breadcrumbsFontSize: getValueUsingPixelRatio(19, 32),
+    labelPaddingVertical: Math.abs((getValueUsingPixelRatio(13, 19) - 16) / 2),
     fontSizeXXSmall: 7,
     fontSizeSmall: getValueUsingPixelRatio(11, 17),
     fontSizeExtraSmall: 9,
@@ -62,7 +64,7 @@ export default {
     fontSizeHeroXL: 72,
     fontSizeH1: 19,
     fontSizeH2: 19,
-    fontSizeXLarge: 22,
+    fontSizeXLarge: getValueUsingPixelRatio(22, 28),
     fontSizeXXLarge: 28,
     fontSizeXXXLarge: getValueUsingPixelRatio(32, 37),
     fontSizeNormalHeight: getValueUsingPixelRatio(20, 28),
@@ -102,6 +104,7 @@ export default {
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
     receiptPaneRHPMaxWidth: 465,
+    superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
@@ -131,6 +134,7 @@ export default {
     inputHeightSmall: 28,
     inputIconMarginTopSmall: getValueUsingPixelRatio(8, 11),
     inputIconMarginTopLarge: getValueUsingPixelRatio(16, 21),
+    paddingSmall: getValueUsingPixelRatio(7, 8),
     formErrorLineHeight: getValueUsingPixelRatio(18, 23),
     communicationsLinkHeight: getValueUsingPixelRatio(20, 30),
     alternateTextHeight: getValueUsingPixelRatio(20, 24),
@@ -275,6 +279,10 @@ export default {
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
 
+    desktopAppRetiredIllustrationW: 264,
+    desktopAppRetiredIllustrationH: 230,
+    desktopAppRetiredViewContainerWidth: 310,
+
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
     bankButtonMargin: 23,
@@ -339,6 +347,7 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
+    w200: 200,
     // Transaction item row heights based on layout types
     // Wide screen (desktop) layout
     optionRowWideItemHeight: 64,
@@ -380,4 +389,12 @@ export default {
     uberEmployeeInviteButtonWidth: 62,
     uberEmptyListIconWidth: 190,
     uberEmptyListIconHeight: 136,
+
+    // Report search header max width
+    reportSearchHeaderMaxWidth: 700,
+
+    // Split expense tabs
+    splitExpenseAmountMobileWidth: 82,
+    splitExpensePercentageWidth: 42,
+    splitExpensePercentageMobileWidth: 62,
 } as const;

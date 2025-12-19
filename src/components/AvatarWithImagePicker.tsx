@@ -2,6 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,6 +19,7 @@ import AvatarButtonWithIcon from './AvatarButtonWithIcon';
 import type {AvatarButtonWithIconProps} from './AvatarButtonWithIcon';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
@@ -98,9 +100,10 @@ function AvatarWithImagePicker({
     disabled = false,
     onViewPhotoPress,
     enablePreview = false,
-    editIcon = Expensicons.Pencil,
+    editIcon,
     name = '',
 }: AvatarWithImagePickerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Upload']);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
@@ -171,7 +174,7 @@ function AvatarWithImagePicker({
     const createMenuItems = (openPicker: OpenPicker): MenuItem[] => {
         const menuItems: MenuItem[] = [
             {
-                icon: Expensicons.Upload,
+                icon: icons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
                     if (isSafari()) {
@@ -263,9 +266,10 @@ function AvatarWithImagePicker({
                                         fallbackIcon={fallbackIcon}
                                         anchorRef={anchorRef}
                                         DefaultAvatar={DefaultAvatar}
-                                        editIcon={editIcon}
+                                        editIcon={editIcon ?? icons.Pencil}
                                         size={size}
                                         type={type}
+                                        disabled={disabled}
                                         disabledStyle={disabledStyle}
                                         editIconStyle={editIconStyle}
                                         name={name}
@@ -315,7 +319,5 @@ function AvatarWithImagePicker({
         </View>
     );
 }
-
-AvatarWithImagePicker.displayName = 'AvatarWithImagePicker';
 
 export default AvatarWithImagePicker;

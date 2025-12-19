@@ -1,22 +1,17 @@
-import {useIsFocused} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {emailSelector} from '@selectors/Session';
 import {searchResultsErrorSelector} from '@selectors/Snapshot';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
-import {View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
+import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import ScrollView from '@components/ScrollView';
 import type {SearchDateValues} from '@components/Search/FilterComponents/DatePresetFilterBase';
 import DateSelectPopup from '@components/Search/FilterDropdowns/DateSelectPopup';
 import type {PopoverComponentProps} from '@components/Search/FilterDropdowns/DropdownButton';
@@ -30,6 +25,7 @@ import type {BankAccountMenuItem, SearchDateFilterKeys, SearchQueryJSON, Singula
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -37,16 +33,18 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceList from '@hooks/useWorkspaceList';
 import {close} from '@libs/actions/Modal';
-import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
+import {handleBulkPayItemSelected} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getActiveAdminWorkspaces, getAllTaxRates, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
-import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
+import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -55,6 +53,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {AMOUNT_FILTER_KEYS, DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersKey} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {CurrencyList, Policy} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import type {SearchHeaderOptionValue} from './SearchPageHeader';
 
@@ -84,10 +83,10 @@ function SearchFiltersBar({
     confirmPayment,
     latestBankItems,
 }: SearchFiltersBarProps) {
-    const isFocused = useIsFocused();
-    const scrollRef = useRef<RNScrollView>(null);
+    const scrollRef = useRef<FlatList<FilterItem>>(null);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
+    const [filterFormValues = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
     const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
@@ -99,22 +98,42 @@ function SearchFiltersBar({
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading} = useSearchContext();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: searchResultsErrorSelector});
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
 
-    const taxRates = getAllTaxRates();
+    // Get workspace data for the filter
+    const {sections: workspaces, shouldShowSearchInput: shouldShowWorkspaceSearchInput} = useWorkspaceList({
+        policies: allPolicies,
+        currentUserLogin: email,
+        shouldShowPendingDeletePolicy: false,
+        selectedPolicyIDs: undefined,
+        searchTerm: '',
+        localeCompare,
+    });
+
+    const shouldDisplayWorkspaceFilter = useMemo(() => workspaces.some((section) => section.data.length > 1), [workspaces]);
+
+    const workspaceOptions = useMemo<Array<MultiSelectItem<string>>>(() => {
+        return workspaces
+            .flatMap((section) => section.data)
+            .filter((workspace): workspace is typeof workspace & {policyID: string; icons: Icon[]} => !!workspace.policyID && !!workspace.icons)
+            .map((workspace) => ({
+                text: workspace.text,
+                value: workspace.policyID,
+                icons: workspace.icons,
+            }));
+    }, [workspaces]);
+
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const hasMultipleOutputCurrency = useMemo(() => {
@@ -123,24 +142,51 @@ function SearchFiltersBar({
         return policies.some((policy) => policy.outputCurrency !== outputCurrency);
     }, [allPolicies]);
 
-    const filterFormValues = useMemo(() => {
-        return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
-    }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
+    // Get selected workspace options from filterFormValues or queryJSON
+    const selectedWorkspaceOptions = useMemo(() => {
+        const policyIDs = filterFormValues.policyID ?? queryJSON.policyID;
+        if (!policyIDs) {
+            return [];
+        }
+        const normalizedIDs = Array.isArray(policyIDs) ? policyIDs : [policyIDs];
+        return workspaceOptions.filter((option) => normalizedIDs.includes(option.value));
+    }, [filterFormValues.policyID, queryJSON.policyID, workspaceOptions]);
 
     const hasErrors = Object.keys(searchResultsErrors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
 
     const [typeOptions, type] = useMemo(() => {
-        const options = getTypeOptions(allPolicies, email);
+        const options = getTypeOptions(translate, allPolicies, email);
         const value = options.find((option) => option.value === unsafeType) ?? null;
         return [options, value];
-    }, [allPolicies, email, unsafeType]);
+    }, [translate, allPolicies, email, unsafeType]);
+
+    const isExpenseReportType = useMemo(() => type?.value === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [type?.value]);
+
+    const selectedItemsCount = useMemo(() => {
+        if (!selectedTransactions) {
+            return 0;
+        }
+
+        if (isExpenseReportType) {
+            // In expense report mode, count unique reports instead of individual transactions
+            const reportIDs = new Set(
+                Object.values(selectedTransactions)
+                    .map((transaction) => transaction?.reportID)
+                    .filter((reportID): reportID is string => !!reportID),
+            );
+            return reportIDs.size;
+        }
+
+        // Otherwise count transactions
+        return selectedTransactionsKeys.length;
+    }, [selectedTransactions, isExpenseReportType, selectedTransactionsKeys.length]);
 
     const [groupByOptions, groupBy] = useMemo(() => {
-        const options = getGroupByOptions();
+        const options = getGroupByOptions(translate);
         const value = options.find((option) => option.value === unsafeGroupBy) ?? null;
         return [options, value];
-    }, [unsafeGroupBy]);
+    }, [translate, unsafeGroupBy]);
 
     const [groupCurrencyOptions, groupCurrency] = useMemo(() => {
         const options = getGroupCurrencyOptions(currencyList);
@@ -165,10 +211,10 @@ function SearchFiltersBar({
 
     const [hasOptions, has] = useMemo(() => {
         const hasFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS)?.filters?.map((filter) => filter.value);
-        const options = getHasOptions(type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
+        const options = getHasOptions(translate, type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
         const value = hasFilterValues ? options.filter((option) => hasFilterValues.includes(option.value)) : [];
         return [options, value];
-    }, [flatFilters, type]);
+    }, [translate, flatFilters, type?.value]);
 
     const [isOptions, is] = useMemo(() => {
         const isFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IS)?.filters?.map((filter) => filter.value);
@@ -251,35 +297,26 @@ function SearchFiltersBar({
             // If the type has changed, reset the status so we dont have an invalid status selected
             if (updatedFilterFormValues.type !== filterFormValues.type) {
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
+                updatedFilterFormValues.columns = [];
             }
 
             const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
 
             close(() => {
-                Navigation.setParams({q: queryString});
+                // We want to explicitly clear stale rawQuery since it’s only used for manually typed-in queries.
+                Navigation.setParams({q: queryString, rawQuery: undefined});
             });
         },
         [filterFormValues],
     );
 
     const openAdvancedFilters = useCallback(() => {
-        updateAdvancedFilters(filterFormValues, true);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [filterFormValues]);
+    }, []);
 
-    const isFormInitializedRef = useRef(false);
-
-    useEffect(() => {
-        if (isFormInitializedRef.current) {
-            return;
-        }
-        if (filterFormValues && Object.keys(filterFormValues).length > 0) {
-            if (isFocused) {
-                updateAdvancedFilters(filterFormValues, true);
-            }
-            isFormInitializedRef.current = true;
-        }
-    }, [queryJSON, filterFormValues, isFocused]);
+    const openSearchColumns = () => {
+        Navigation.navigate(ROUTES.SEARCH_COLUMNS);
+    };
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
@@ -369,6 +406,7 @@ function SearchFiltersBar({
             items: Array<MultiSelectItem<T>>,
             value: Array<MultiSelectItem<T>>,
             onChangeCallback: (selectedItems: Array<MultiSelectItem<T>>) => void,
+            isSearchable?: boolean,
         ) => {
             return ({closeOverlay}: PopoverComponentProps) => {
                 return (
@@ -378,6 +416,7 @@ function SearchFiltersBar({
                         value={value}
                         closeOverlay={closeOverlay}
                         onChange={onChangeCallback}
+                        isSearchable={isSearchable}
                     />
                 );
             };
@@ -452,6 +491,31 @@ function SearchFiltersBar({
         },
         [filterFormValues.from, updateFilterForm],
     );
+
+    const handleWorkspaceChange = useCallback(
+        (items: Array<MultiSelectItem<string>>) => {
+            updateFilterForm({policyID: items.map((item) => item.value)});
+        },
+        [updateFilterForm],
+    );
+
+    const workspaceComponent = useCallback(
+        ({closeOverlay}: PopoverComponentProps) => {
+            return (
+                <MultiSelectPopup
+                    label={translate('workspace.common.workspace')}
+                    items={workspaceOptions}
+                    value={selectedWorkspaceOptions}
+                    closeOverlay={closeOverlay}
+                    onChange={handleWorkspaceChange}
+                    isSearchable={shouldShowWorkspaceSearchInput}
+                />
+            );
+        },
+        [workspaceOptions, selectedWorkspaceOptions, handleWorkspaceChange, shouldShowWorkspaceSearchInput, translate],
+    );
+
+    const workspaceValue = useMemo(() => selectedWorkspaceOptions.map((option) => option.text), [selectedWorkspaceOptions]);
 
     const {typeFiltersKeys} = useAdvancedSearchFilters();
 
@@ -574,14 +638,26 @@ function SearchFiltersBar({
                 value: fromValue,
                 filterKey: FILTER_KEYS.FROM,
             },
+            ...(shouldDisplayWorkspaceFilter
+                ? [
+                      {
+                          label: translate('workspace.common.workspace'),
+                          PopoverComponent: workspaceComponent,
+                          value: workspaceValue,
+                          filterKey: FILTER_KEYS.POLICY_ID,
+                      },
+                  ]
+                : []),
         ].filter((filterItem) => isFilterSupported(filterItem.filterKey, type?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE));
 
         return filterList;
     }, [
-        type,
-        groupBy,
-        groupCurrency,
-        withdrawalType,
+        type?.value,
+        type?.text,
+        groupBy?.value,
+        groupBy?.text,
+        groupCurrency?.value,
+        withdrawalType?.text,
         displayDate,
         displayPosted,
         displayWithdrawn,
@@ -614,6 +690,9 @@ function SearchFiltersBar({
         hasMultipleOutputCurrency,
         has,
         is,
+        shouldDisplayWorkspaceFilter,
+        workspaceComponent,
+        workspaceValue,
     ]);
 
     const hiddenSelectedFilters = useMemo(() => {
@@ -654,6 +733,81 @@ function SearchFiltersBar({
         });
     }, [filterFormValues, filters, typeFiltersKeys]);
 
+    const adjustScroll = useCallback((info: {distanceFromEnd: number}) => {
+        // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
+        // When the FlatList is scrolled to the end and the last item is deleted, a blank space is left behind.
+        // To fix this, we detect when onEndReached is triggered due to an item deletion,
+        // and programmatically scroll to the end to fill the space.
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (!shouldAdjustScroll || info.distanceFromEnd > 0) {
+            return;
+        }
+        scrollRef.current?.scrollToEnd();
+    }, []);
+
+    const renderFilterItem = useCallback(
+        // eslint-disable-next-line react/no-unused-prop-types
+        ({item}: {item: FilterItem}) => (
+            <DropdownButton
+                label={item.label}
+                value={item.value}
+                PopoverComponent={item.PopoverComponent}
+            />
+        ),
+        [],
+    );
+
+    const shouldShowColumnsButton = isLargeScreenWidth && (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE || queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT);
+
+    const filterButtonText = useMemo(
+        () => translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : ''),
+        [translate, hiddenSelectedFilters.length],
+    );
+
+    const renderListFooter = useCallback(
+        () => (
+            <View style={[styles.flexRow, styles.gap2]}>
+                <Button
+                    link
+                    small
+                    shouldUseDefaultHover={false}
+                    text={filterButtonText}
+                    iconFill={theme.link}
+                    iconHoverFill={theme.linkHover}
+                    icon={expensifyIcons.Filter}
+                    textStyles={[styles.textMicroBold]}
+                    onPress={openAdvancedFilters}
+                />
+                {shouldShowColumnsButton && (
+                    <Button
+                        link
+                        small
+                        shouldUseDefaultHover={false}
+                        text={translate('search.columns')}
+                        iconFill={theme.link}
+                        iconHoverFill={theme.linkHover}
+                        icon={expensifyIcons.Columns}
+                        textStyles={[styles.textMicroBold]}
+                        onPress={openSearchColumns}
+                    />
+                )}
+            </View>
+        ),
+        [
+            styles.flexRow,
+            styles.gap2,
+            styles.textMicroBold,
+            filterButtonText,
+            theme.link,
+            theme.linkHover,
+            expensifyIcons.Filter,
+            expensifyIcons.Columns,
+            openAdvancedFilters,
+            shouldShowColumnsButton,
+            translate,
+        ],
+    );
+
     if (hasErrors) {
         return null;
     }
@@ -662,9 +816,7 @@ function SearchFiltersBar({
         return <SearchFiltersSkeleton shouldAnimate />;
     }
 
-    const selectionButtonText = areAllMatchingItemsSelected
-        ? translate('search.exportAll.allMatchingItemsSelected')
-        : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
+    const selectionButtonText = areAllMatchingItemsSelected ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedItemsCount});
 
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchFiltersBarContainer]}>
@@ -721,40 +873,23 @@ function SearchFiltersBar({
                     )}
                 </KYCWall>
             ) : (
-                <ScrollView
+                <FlatList
                     horizontal
                     keyboardShouldPersistTaps="always"
                     style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
                     contentContainerStyle={[styles.flexRow, styles.flexGrow0, styles.gap2, styles.ph5]}
                     ref={scrollRef}
                     showsHorizontalScrollIndicator={false}
-                >
-                    {filters.map((filter) => (
-                        <DropdownButton
-                            key={filter.label}
-                            label={filter.label}
-                            value={filter.value}
-                            PopoverComponent={filter.PopoverComponent}
-                        />
-                    ))}
-
-                    <Button
-                        link
-                        small
-                        shouldUseDefaultHover={false}
-                        text={translate('search.filtersHeader') + (hiddenSelectedFilters.length > 0 ? ` (${hiddenSelectedFilters.length})` : '')}
-                        iconFill={theme.link}
-                        iconHoverFill={theme.linkHover}
-                        icon={Expensicons.Filter}
-                        textStyles={[styles.textMicroBold]}
-                        onPress={openAdvancedFilters}
-                    />
-                </ScrollView>
+                    data={filters}
+                    keyExtractor={(item) => item.label}
+                    renderItem={renderFilterItem}
+                    ListFooterComponent={renderListFooter}
+                    onEndReached={adjustScroll}
+                    onEndReachedThreshold={0.75}
+                />
             )}
         </View>
     );
 }
-
-SearchFiltersBar.displayName = 'SearchFiltersBar';
 
 export default SearchFiltersBar;

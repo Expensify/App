@@ -1,35 +1,37 @@
+import {Str} from 'expensify-common';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Icon from '@components/Icon';
-import {BrokenMagnifyingGlass} from '@components/Icon/Illustrations';
 import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import PlaidCardFeedIcon from '@components/PlaidCardFeedIcon';
 import RenderHTML from '@components/RenderHTML';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
+import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {getCardFeedIcon, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, getCompanyCardFeed, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
 type CardSelectionStepProps = {
     /** Selected feed */
-    feed: CompanyCardFeed;
+    feed: CompanyCardFeedWithDomainID;
 
     /** Current policy id */
     policyID: string | undefined;
@@ -39,16 +41,18 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
+    const companyCardFeedIcons = useCompanyCardFeedIcons();
+    const lazyIllustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
-    const [list] = useCardsList(policyID, feed);
+    const [list] = useCardsList(feed);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
     const isEditing = assignCard?.isEditing;
-    const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
+    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '');
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -66,7 +70,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             />
         ) : (
             <Icon
-                src={getCardFeedIcon(feed, illustrations)}
+                src={getCardFeedIcon(getCompanyCardFeed(feed), illustrations, companyCardFeedIcons)}
                 height={variables.cardIconHeight}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -118,9 +122,35 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage: searchedListOptions.length ? undefined : translate('common.noResultsFound'),
+            label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
+            value: searchText,
+            onChangeText: setSearchText,
+            shouldBeInsideList: true,
+        }),
+        [cardListOptions.length, searchText, searchedListOptions.length, translate],
+    );
+
+    const customListHeader = (
+        <View>
+            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                <InteractiveStepSubHeader
+                    startStepIndex={1}
+                    stepNames={CONST.COMPANY_CARD.STEP_NAMES}
+                />
+            </View>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
+            <View style={[styles.renderHTML, styles.ph5, styles.mv3, styles.textSupporting]}>
+                <RenderHTML html={translate('workspace.companyCards.chooseCardFor', assigneeDisplayName)} />
+            </View>
+        </View>
+    );
+
     return (
         <InteractiveStepWrapper
-            wrapperID={CardSelectionStep.displayName}
+            wrapperID="CardSelectionStep"
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={assigneeDisplayName}
@@ -129,7 +159,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
             {!cardListOptions.length ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9, safeAreaPaddingBottomStyle]}>
                     <Icon
-                        src={BrokenMagnifyingGlass}
+                        src={lazyIllustrations.BrokenMagnifyingGlass}
                         width={116}
                         height={168}
                     />
@@ -140,38 +170,15 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                 </View>
             ) : (
                 <SelectionList
-                    sections={[{data: searchedListOptions}]}
-                    headerMessage={searchedListOptions.length ? undefined : translate('common.noResultsFound')}
-                    shouldShowTextInput={cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
-                    textInputLabel={translate('common.search')}
-                    textInputValue={searchText}
-                    onChangeText={setSearchText}
+                    data={searchedListOptions}
                     ListItem={RadioListItem}
                     onSelectRow={({value}) => handleSelectCard(value)}
-                    initiallyFocusedOptionKey={cardSelected}
-                    listHeaderContent={
-                        <View>
-                            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                                <InteractiveStepSubHeader
-                                    startStepIndex={1}
-                                    stepNames={CONST.COMPANY_CARD.STEP_NAMES}
-                                />
-                            </View>
-                            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
-                            <View style={[styles.renderHTML, styles.ph5, styles.mv3, styles.textSupporting]}>
-                                <RenderHTML
-                                    html={translate('workspace.companyCards.chooseCardFor', {
-                                        assignee: assigneeDisplayName,
-                                    })}
-                                />
-                            </View>
-                        </View>
-                    }
-                    shouldShowTextInputAfterHeader
-                    shouldShowHeaderMessageAfterHeader
-                    addBottomSafeAreaPadding
-                    shouldShowListEmptyContent={false}
+                    initiallyFocusedItemKey={cardSelected}
+                    textInputOptions={textInputOptions}
+                    customListHeaderContent={customListHeader}
                     shouldScrollToFocusedIndex={false}
+                    showListEmptyContent={false}
+                    addBottomSafeAreaPadding
                     shouldUpdateFocusedIndex
                     footerContent={
                         <FormAlertWithSubmitButton
@@ -187,7 +194,5 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         </InteractiveStepWrapper>
     );
 }
-
-CardSelectionStep.displayName = 'CardSelectionStep';
 
 export default CardSelectionStep;

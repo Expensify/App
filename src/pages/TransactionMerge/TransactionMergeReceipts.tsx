@@ -1,11 +1,11 @@
 import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import {Zoom} from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RadioButton from '@components/RadioButton';
 import ReportActionItemImage from '@components/ReportActionItem/ReportActionItemImage';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionThreadReportID} from '@libs/MergeTransactionUtils';
@@ -25,6 +25,7 @@ type TransactionMergeReceiptsProps = {
 function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: TransactionMergeReceiptsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Zoom']);
 
     return (
         <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentBetween]}>
@@ -69,7 +70,7 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
                                 <View style={[styles.pAbsolute, styles.b2, styles.r2]}>
                                     <Button
                                         innerStyles={[styles.arrowIcon]}
-                                        icon={Zoom}
+                                        icon={expensifyIcons.Zoom}
                                         onPress={() => {
                                             Navigation.navigate(
                                                 ROUTES.TRANSACTION_RECEIPT.getRoute(getTransactionThreadReportID(transaction) ?? transaction.reportID, transaction.transactionID, true),
@@ -86,5 +87,4 @@ function TransactionMergeReceipts({transactions, selectedReceiptID, onSelect}: T
     );
 }
 
-TransactionMergeReceipts.displayName = 'TransactionMergeReceipts';
 export default TransactionMergeReceipts;

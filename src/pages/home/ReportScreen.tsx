@@ -12,7 +12,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
@@ -21,12 +20,13 @@ import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestRe
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {useShowWideRHPVersion} from '@components/WideRHPContextProvider';
+import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useNewTransactions from '@hooks/useNewTransactions';
@@ -70,6 +70,7 @@ import {
     getReportOfflinePendingActionAndErrors,
     getReportTransactions,
     isAdminRoom,
+    isAnnounceRoom,
     isChatThread,
     isConciergeChatReport,
     isGroupChat,
@@ -84,6 +85,7 @@ import {
     isTaskReport,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
+import {cancelSpan} from '@libs/telemetry/activeSpans';
 import {isNumeric} from '@libs/ValidationUtils';
 import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@navigation/types';
 import {setShouldShowComposeInput} from '@userActions/Composer';
@@ -150,6 +152,7 @@ function isEmpty(report: OnyxEntry<OnyxTypes.Report>): boolean {
 
 function ReportScreen({route, navigation}: ReportScreenProps) {
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb']);
     const {translate} = useLocalize();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
@@ -160,6 +163,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
+    const hasCreatedLegacyThreadRef = useRef(false);
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
@@ -210,7 +214,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Log.info(`[ReportScreen] no reportID found in params, setting it to lastAccessedReportID: ${lastAccessedReportID}`);
             navigation.setParams({reportID: lastAccessedReportID});
         });
-    }, [isBetaEnabled, navigation, route]);
+    }, [isBetaEnabled, navigation, route.params]);
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
@@ -221,7 +225,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             const displayName = getDisplayNameOrDefault(participantPersonalDetail);
             const login = participantPersonalDetail?.login;
             if (displayName && login) {
-                return translate('common.chatWithAccountManager', {accountManagerDisplayName: `${displayName} (${login})`});
+                return translate('common.chatWithAccountManager', `${displayName} (${login})`);
             }
         }
         return '';
@@ -280,7 +284,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 policyAvatar: reportOnyx.policyAvatar,
                 nextStep: reportOnyx.nextStep,
             },
-        [reportOnyx, reportNameValuePairsOnyx, permissions],
+        [reportOnyx, reportNameValuePairsOnyx?.private_isArchived, permissions],
     );
     const reportID = report?.reportID;
 
@@ -363,7 +367,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         wasReportAccessibleRef.current = true;
-    }, [report]);
+    }, [report?.reportID]);
 
     const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(
@@ -523,7 +527,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         }
 
         // If there is one transaction thread that has not yet been created, we should create it.
-        if ((transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) || (visibleTransactions.length === 1 && !transactionThreadReportID)) {
+        if (transactionThreadReportID === CONST.FAKE_REPORT_ID && !transactionThreadReport) {
             createOneTransactionThreadReport();
             return;
         }
@@ -549,7 +553,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         isOffline,
         transactionThreadReportID,
         transactionThreadReport,
-        visibleTransactions.length,
         reportIDFromRoute,
         reportActionIDFromRoute,
         createOneTransactionThreadReport,
@@ -601,6 +604,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
         return () => {
             skipOpenReportListener.remove();
+
+            // We need to cancel telemetry span when user leaves the screen before full report data is loaded
+            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
         };
     }, [reportID]);
 
@@ -660,7 +666,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             return;
         }
         fetchReport();
-    }, [prevReportActions, reportActions, fetchReport]);
+    }, [prevReportActions.length, reportActions, fetchReport]);
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
@@ -686,7 +692,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const prevOnyxReportID = prevReport?.reportID;
         const wasReportRemoved = !!prevOnyxReportID && prevOnyxReportID === reportIDFromRoute && !onyxReportID;
         const isRemovalExpectedForReportType =
-            isEmpty(report) && (isMoneyRequest(prevReport) || isMoneyRequestReport(prevReport) || isPolicyExpenseChat(prevReport) || isGroupChat(prevReport) || isAdminRoom(prevReport));
+            isEmpty(report) &&
+            (isMoneyRequest(prevReport) ||
+                isMoneyRequestReport(prevReport) ||
+                isPolicyExpenseChat(prevReport) ||
+                isGroupChat(prevReport) ||
+                isAdminRoom(prevReport) ||
+                isAnnounceRoom(prevReport));
         const didReportClose = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
         const isTopLevelPolicyRoomWithNoStatus = !report?.statusNum && !prevReport?.parentReportID && prevReport?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_ROOM;
         const isClosedTopLevelPolicyRoom = wasReportRemoved && prevReport.statusNum === CONST.REPORT.STATUS_NUM.OPEN && isTopLevelPolicyRoomWithNoStatus;
@@ -790,7 +802,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             }
             interactionTask.cancel();
         };
-    }, [report, didSubscribeToReportLeavingEvents, reportIDFromRoute]);
+    }, [report?.reportID, didSubscribeToReportLeavingEvents, reportIDFromRoute, report?.pendingFields]);
 
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
@@ -844,6 +856,41 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // After creating the task report then navigating to task detail we don't have any report actions and the last read time is empty so We need to update the initial last read time when opening the task report detail.
         readNewestAction(report?.reportID);
     }, [report]);
+
+    // Reset the ref when navigating to a different report
+    useEffect(() => {
+        hasCreatedLegacyThreadRef.current = false;
+    }, [reportID]);
+
+    // When opening IOU report for single transaction, we will create IOU action and transaction thread
+    // for legacy transaction that doesn't have IOU action
+    useEffect(() => {
+        // Skip if already created, coming from Search page, or thread already exists
+        if (hasCreatedLegacyThreadRef.current || route.name === SCREENS.SEARCH.REPORT_RHP || transactionThreadReport || (transactionThreadReportID && transactionThreadReportID !== '0')) {
+            return;
+        }
+
+        // Only handle single transaction expense reports that are fully loaded
+        const transaction = visibleTransactions?.at(0);
+        if (!reportID || visibleTransactions?.length !== 1 || report?.type !== CONST.REPORT.TYPE.EXPENSE || !transaction?.transactionID) {
+            return;
+        }
+
+        // Skip legacy transaction handling if:
+        // - IOU action already exists (not a legacy transaction)
+        // - Transaction is pending addition (new transaction, not legacy)
+        const iouAction = getIOUActionForReportID(reportID, transaction.transactionID);
+        if (iouAction || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+            return;
+        }
+
+        // Mark as created BEFORE calling to prevent race conditions
+        hasCreatedLegacyThreadRef.current = true;
+
+        // For legacy transactions, pass undefined as IOU action and the transaction object
+        // It will be created optimistically and in the backend when call openReport
+        createTransactionThreadReport(report, undefined, transaction);
+    }, [report, visibleTransactions, transactionThreadReport, transactionThreadReportID, reportID, route.name]);
 
     const lastRoute = usePrevious(route);
 
@@ -905,7 +952,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                     >
                         <DragAndDropProvider isDisabled={isEditingDisabled}>
                             <OfflineWithFeedback
-                                pendingAction={reportPendingAction}
+                                pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
                                 errors={reportErrors}
                                 shouldShowErrorMessages={false}
                                 needsOffscreenAlphaCompositing
@@ -919,7 +966,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     onClose={dismissBanner}
                                     onButtonPress={chatWithAccountManager}
                                     shouldShowCloseButton
-                                    icon={Expensicons.Lightbulb}
+                                    icon={expensifyIcons.Lightbulb}
                                     shouldShowIcon
                                     shouldShowButton
                                 />
@@ -966,6 +1013,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                             hasOlderActions={hasOlderActions}
                                             hasNewerActions={hasNewerActions}
                                             showReportActionsLoadingState={showReportActionsLoadingState}
+                                            reportPendingAction={reportPendingAction}
                                         />
                                     ) : null}
                                     {isCurrentReportLoadedFromOnyx ? (
@@ -992,5 +1040,5 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 }
 
-ReportScreen.displayName = 'ReportScreen';
+// eslint-disable-next-line rulesdir/no-deep-equal-in-memo
 export default memo(ReportScreen, (prevProps, nextProps) => deepEqual(prevProps.route, nextProps.route));

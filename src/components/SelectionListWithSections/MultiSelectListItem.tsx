@@ -35,9 +35,11 @@ function MultiSelectListItem<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 onPress={() => onSelectRow(item)}
                 isIndeterminate={item.isIndeterminate}
+                style={[isMultilineSupported ? styles.ml3 : null]}
+                disabled={isDisabled ?? false}
             />
         );
-    }, [isSelected, item, onSelectRow]);
+    }, [isDisabled, isMultilineSupported, isSelected, item, onSelectRow, styles.ml3]);
 
     return (
         <RadioListItem
@@ -59,7 +61,5 @@ function MultiSelectListItem<TItem extends ListItem>({
         />
     );
 }
-
-MultiSelectListItem.displayName = 'MultiSelectListItem';
 
 export default MultiSelectListItem;

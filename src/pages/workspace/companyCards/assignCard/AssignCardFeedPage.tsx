@@ -14,11 +14,12 @@ import {clearAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';
 import CardSelectionStep from './CardSelectionStep';
 import ConfirmationStep from './ConfirmationStep';
+import InviteNewMemberStep from './InviteNewMemberStep';
 import TransactionStartDateStep from './TransactionStartDateStep';
 
 type AssignCardFeedPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD> & WithPolicyAndFullscreenLoadingProps;
@@ -27,7 +28,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const currentStep = assignCard?.currentStep;
 
-    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeed;
+    const feed = decodeURIComponent(route.params?.feed) as CompanyCardFeedWithDomainID;
     const backTo = route.params?.backTo;
     const policyID = policy?.id;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
@@ -43,7 +44,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
-                testID={AssignCardFeedPage.displayName}
+                testID="AssignCardFeedPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
             >
@@ -72,6 +73,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                 <AssigneeStep
                     policy={policy}
                     feed={feed}
+                    route={route}
                 />
             );
         case CONST.COMPANY_CARD.STEP.CARD:
@@ -93,15 +95,22 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
                     backTo={shouldUseBackToParam ? backTo : undefined}
                 />
             );
+        case CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER:
+            return (
+                <InviteNewMemberStep
+                    route={route}
+                    feed={feed}
+                />
+            );
         default:
             return (
                 <AssigneeStep
                     policy={policy}
                     feed={feed}
+                    route={route}
                 />
             );
     }
 }
 
-AssignCardFeedPage.displayName = 'AssignCardFeedPage';
 export default withPolicyAndFullscreenLoading(AssignCardFeedPage);

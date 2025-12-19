@@ -38,7 +38,7 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
         isSelected: qboConfig?.exportDate === dateType,
     }));
 
-    const exportDate = useMemo(() => qboConfig?.exportDate, [qboConfig]);
+    const exportDate = useMemo(() => qboConfig?.exportDate, [qboConfig?.exportDate]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID));
@@ -59,7 +59,7 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksExportDateSelectPage.displayName}
+            displayName="QuickbooksExportDateSelectPage"
             sections={[{data}]}
             listItem={RadioListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportDate.description')}</Text>}
@@ -76,7 +76,5 @@ function QuickbooksExportDateSelectPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-QuickbooksExportDateSelectPage.displayName = 'QuickbooksExportDateSelectPage';
 
 export default withPolicyConnections(QuickbooksExportDateSelectPage);

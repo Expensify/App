@@ -6,6 +6,7 @@ import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
@@ -13,6 +14,7 @@ import SearchButton from '@components/Search/SearchRouter/SearchButton';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -73,6 +75,7 @@ function HeaderWithBackButton({
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
 }: HeaderWithBackButtonProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -145,6 +148,7 @@ function HeaderWithBackButton({
                         style={[styles.touchableButtonImage]}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={threeDotsMenuItems.at(0)?.text ?? ''}
+                        sentryLabel={threeDotsMenuItems.at(0)?.sentryLabel}
                     >
                         <Icon
                             src={threeDotsMenuItems.at(0)?.icon as React.FC<SvgProps>}
@@ -163,6 +167,7 @@ function HeaderWithBackButton({
                     shouldOverlay={shouldOverlayDots}
                     anchorAlignment={threeDotsAnchorAlignment}
                     shouldSetModalVisibility={shouldSetModalVisibility}
+                    sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                 />
             );
         }
@@ -218,6 +223,7 @@ function HeaderWithBackButton({
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.back')}
                             id={CONST.BACK_BUTTON_NATIVE_ID}
+                            sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
                         >
                             <Icon
                                 src={Expensicons.BackArrow}
@@ -267,9 +273,10 @@ function HeaderWithBackButton({
                                         style={[styles.touchableButtonImage]}
                                         role="button"
                                         accessibilityLabel={translate('common.download')}
+                                        sentryLabel={CONST.SENTRY_LABEL.HEADER.DOWNLOAD_BUTTON}
                                     >
                                         <Icon
-                                            src={Expensicons.Download}
+                                            src={icons.Download}
                                             fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
                                         />
                                     </PressableWithoutFeedback>
@@ -287,6 +294,7 @@ function HeaderWithBackButton({
                                 style={[styles.touchableButtonImage]}
                                 role={CONST.ROLE.BUTTON}
                                 accessibilityLabel={translate('common.close')}
+                                sentryLabel={CONST.SENTRY_LABEL.HEADER.CLOSE_BUTTON}
                             >
                                 <Icon
                                     src={Expensicons.Close}
@@ -302,7 +310,5 @@ function HeaderWithBackButton({
         </View>
     );
 }
-
-HeaderWithBackButton.displayName = 'HeaderWithBackButton';
 
 export default HeaderWithBackButton;

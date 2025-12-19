@@ -7,6 +7,7 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import {useFullScreenLoader} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
@@ -14,6 +15,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -135,6 +137,7 @@ function AttachmentPickerWithMenuItems({
     raiseIsScrollLikelyLayoutTriggered,
     shouldDisableAttachmentItem,
 }: AttachmentPickerWithMenuItemsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Collapse', 'Document', 'Expand', 'Location', 'Paperclip', 'Task']);
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -151,17 +154,21 @@ function AttachmentPickerWithMenuItems({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
+    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
     const [reportSummaries = getEmptyArray<ReturnType<typeof reportSummariesOnyxSelector>[number]>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         canBeMissing: true,
         selector: reportSummariesOnyxSelector,
     });
-    const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, report?.policyID, accountID), [accountID, report?.policyID, reportSummaries]);
+    const shouldShowEmptyReportConfirmation = useMemo(
+        () => hasEmptyReportsForPolicy(reportSummaries, report?.policyID, accountID) && hasDismissedEmptyReportsConfirmation !== true,
+        [accountID, hasDismissedEmptyReportsConfirmation, report?.policyID, reportSummaries],
+    );
 
     const selectOption = useCallback(
         (onSelected: () => void, shouldRestrictAction: boolean) => {
-            if (shouldRestrictAction && policy && shouldRestrictUserBillableActions(policy.id)) {
+            if (shouldRestrictAction && policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && shouldRestrictUserBillableActions(policy.id)) {
                 Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                 return;
             }
@@ -174,19 +181,20 @@ function AttachmentPickerWithMenuItems({
     const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
         policyID: report?.policyID,
         policyName: policy?.name ?? '',
-        onConfirm: () => selectOption(() => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, true), true),
+        onConfirm: (shouldDismissEmptyReportsConfirmation) =>
+            selectOption(() => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, true, shouldDismissEmptyReportsConfirmation), true),
     });
 
     const openCreateReportConfirmationRef = useRef(openCreateReportConfirmation);
     openCreateReportConfirmationRef.current = openCreateReportConfirmation;
 
     const handleCreateReport = useCallback(() => {
-        if (hasEmptyReport) {
+        if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmationRef.current();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, true);
+            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, true, false);
         }
-    }, [currentUserPersonalDetails, hasEmptyReport, isASAPSubmitBetaEnabled, hasViolations, report?.policyID]);
+    }, [currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, shouldShowEmptyReportConfirmation]);
 
     const teacherUnitePolicyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
     const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
@@ -201,6 +209,7 @@ function AttachmentPickerWithMenuItems({
                     icon: Expensicons.Transfer,
                     text: translate('iou.splitExpense'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SPLIT_EXPENSE,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SPLIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
                 },
             ],
@@ -209,12 +218,14 @@ function AttachmentPickerWithMenuItems({
                     icon: getIconForAction(CONST.IOU.TYPE.CREATE),
                     text: translate('iou.createExpense'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
                 },
                 {
-                    icon: Expensicons.Location,
+                    icon: icons.Location,
                     text: translate('quickAction.recordDistance'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
                     onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.SUBMIT, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
                 },
             ],
@@ -223,6 +234,7 @@ function AttachmentPickerWithMenuItems({
                     icon: getIconForAction(CONST.IOU.TYPE.SEND),
                     text: translate('iou.paySomeone', {name: getPayeeName(report)}),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_PAY_SOMEONE,
                     onSelected: () => {
                         if (isDelegateAccessRestricted) {
                             close(() => {
@@ -239,12 +251,14 @@ function AttachmentPickerWithMenuItems({
                     icon: getIconForAction(CONST.IOU.TYPE.CREATE),
                     text: translate('iou.createExpense'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_EXPENSE,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), true),
                 },
                 {
-                    icon: Expensicons.Location,
+                    icon: icons.Location,
                     text: translate('iou.trackDistance'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_TRACK_DISTANCE,
                     onSelected: () => selectOption(() => startDistanceRequest(CONST.IOU.TYPE.TRACK, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID), lastDistanceExpenseType), true),
                 },
             ],
@@ -253,6 +267,7 @@ function AttachmentPickerWithMenuItems({
                     icon: Expensicons.InvoiceGeneric,
                     text: translate('workspace.invoices.sendInvoice'),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
+                    sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_SEND_INVOICE,
                     onSelected: () => selectOption(() => startMoneyRequest(CONST.IOU.TYPE.INVOICE, report?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)), false),
                 },
             ],
@@ -275,6 +290,7 @@ function AttachmentPickerWithMenuItems({
         shouldUseNarrowLayout,
         showDelegateNoAccessModal,
         translate,
+        icons.Location,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {
@@ -284,13 +300,14 @@ function AttachmentPickerWithMenuItems({
 
         return [
             {
-                icon: Expensicons.Document,
+                icon: icons.Document,
                 text: translate('report.newReport.createReport'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_CREATE_REPORT,
                 onSelected: () => selectOption(() => handleCreateReport(), true),
             },
         ];
-    }, [handleCreateReport, report, selectOption, shouldUseNarrowLayout, translate]);
+    }, [icons.Document, handleCreateReport, report, selectOption, shouldUseNarrowLayout, translate]);
 
     /**
      * Determines if we can show the task option
@@ -302,13 +319,14 @@ function AttachmentPickerWithMenuItems({
 
         return [
             {
-                icon: Expensicons.Task,
+                icon: icons.Task,
                 text: translate('newTaskPage.assignTask'),
                 shouldCallAfterModalHide: shouldUseNarrowLayout,
+                sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_ASSIGN_TASK,
                 onSelected: () => clearOutTaskInfoAndNavigate(currentUserPersonalDetails.accountID, undefined, reportID, report),
             },
         ];
-    }, [report, translate, shouldUseNarrowLayout, currentUserPersonalDetails.accountID, reportID]);
+    }, [report, translate, shouldUseNarrowLayout, currentUserPersonalDetails.accountID, reportID, icons.Task]);
 
     const onPopoverMenuClose = () => {
         setMenuVisibility(false);
@@ -380,9 +398,10 @@ function AttachmentPickerWithMenuItems({
                     ...(!isTeachersUniteReport ? createReportOption : []),
                     ...taskOption,
                     {
-                        icon: Expensicons.Paperclip,
+                        icon: icons.Paperclip,
                         text: translate('reportActionCompose.addAttachment'),
                         disabled: shouldDisableAttachmentItem,
+                        sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_ADD_ATTACHMENT,
                     },
                 ];
                 return (
@@ -409,6 +428,7 @@ function AttachmentPickerWithMenuItems({
                                             disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('common.create')}
+                                            sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_CREATE_BUTTON}
                                         >
                                             <Icon
                                                 fill={theme.icon}
@@ -436,6 +456,7 @@ function AttachmentPickerWithMenuItems({
                                                     disabled={disabled}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('reportActionCompose.collapse')}
+                                                    sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_COLLAPSE_BUTTON}
                                                 >
                                                     <Icon
                                                         fill={theme.icon}
@@ -460,6 +481,7 @@ function AttachmentPickerWithMenuItems({
                                                     disabled={disabled}
                                                     role={CONST.ROLE.BUTTON}
                                                     accessibilityLabel={translate('reportActionCompose.expand')}
+                                                    sentryLabel={CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_EXPAND_BUTTON}
                                                 >
                                                     <Icon
                                                         fill={theme.icon}
@@ -509,7 +531,5 @@ function AttachmentPickerWithMenuItems({
         </AttachmentPicker>
     );
 }
-
-AttachmentPickerWithMenuItems.displayName = 'AttachmentPickerWithMenuItems';
 
 export default AttachmentPickerWithMenuItems;

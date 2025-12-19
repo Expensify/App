@@ -1,11 +1,12 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -13,7 +14,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {changeReportPolicy, changeReportPolicyAndInviteSubmitter, moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
@@ -64,7 +64,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
-    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
 
     const selectPolicy = useCallback(
         (policyID?: string) => {
@@ -125,7 +125,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         ],
     );
 
-    const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
+    const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin: session?.email,
         shouldShowPendingDeletePolicy: false,
@@ -135,13 +135,23 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy),
     });
 
+    const textInputOptions = useMemo(
+        () => ({
+            label: shouldShowSearchInput ? translate('common.search') : undefined,
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
+        }),
+        [searchTerm, setSearchTerm, shouldShowNoResultsFoundMessage, shouldShowSearchInput, translate],
+    );
+
     if (!isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report)) {
         return <NotFoundPage />;
     }
 
     return (
         <ScreenWrapper
-            testID={ReportChangeWorkspacePage.displayName}
+            testID="ReportChangeWorkspacePage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -157,16 +167,14 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
                     {shouldShowLoadingIndicator ? (
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     ) : (
-                        <SelectionList<WorkspaceListItem>
+                        <SelectionList<WorkspaceListItemType>
                             ListItem={UserListItem}
-                            sections={sections}
+                            data={data}
                             onSelectRow={(option) => selectPolicy(option.policyID)}
-                            textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
-                            textInputValue={searchTerm}
-                            onChangeText={setSearchTerm}
-                            headerMessage={shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : ''}
-                            initiallyFocusedOptionKey={report.policyID}
+                            textInputOptions={textInputOptions}
+                            initiallyFocusedItemKey={report.policyID}
                             showLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                            disableMaintainingScrollPosition
                         />
                     )}
                 </>
@@ -174,7 +182,5 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         </ScreenWrapper>
     );
 }
-
-ReportChangeWorkspacePage.displayName = 'ReportChangeWorkspacePage';
 
 export default withReportOrNotFound()(ReportChangeWorkspacePage);

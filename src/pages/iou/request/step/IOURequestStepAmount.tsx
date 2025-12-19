@@ -22,7 +22,7 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, getReportOrDraftReport, getTransactionDetails, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
+import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
 import {
     getMoneyRequestParticipantsFromReport,
@@ -88,6 +88,7 @@ function IOURequestStepAmount({
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactionID ? [transactionID] : []);
@@ -99,7 +100,7 @@ function IOURequestStepAmount({
     const isSubmitType = iouType === CONST.IOU.TYPE.SUBMIT;
     const isEditingSplitBill = isEditing && isSplitBill;
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
-    const allowNegative = shouldEnableNegative(report, policy, iouType);
+    const allowNegative = shouldEnableNegative(report, policy, iouType, transaction?.participants);
     const disableOppositeConversion = isCreateAction || (isSubmitType && isSubmitAction);
     const {amount: transactionAmount} = getTransactionDetails(currentTransaction, undefined, undefined, allowNegative, disableOppositeConversion) ?? {amount: 0};
     const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
@@ -107,8 +108,12 @@ function IOURequestStepAmount({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
+    const isUnreportedDistanceExpense = isEditing && isDistanceRequest(transaction) && isExpenseUnreported(transaction);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
@@ -190,7 +195,7 @@ function IOURequestStepAmount({
         // to the confirm step.
         // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
         if (report?.reportID && !isReportArchived && iouType !== CONST.IOU.TYPE.CREATE) {
-            const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
+            const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
             const participants = selectedParticipants.map((participant) => {
                 const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
                 return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
@@ -200,10 +205,10 @@ function IOURequestStepAmount({
             if (shouldSkipConfirmation) {
                 if (iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SEND) {
                     if (paymentMethod && paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        sendMoneyWithWallet(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
+                        sendMoneyWithWallet(report, quickAction, backendAmount, currency, '', currentUserAccountIDParam, participants.at(0) ?? {});
                         return;
                     }
-                    sendMoneyElsewhere(report, backendAmount, currency, '', currentUserPersonalDetails.accountID, participants.at(0) ?? {});
+                    sendMoneyElsewhere(report, quickAction, backendAmount, currency, '', currentUserAccountIDParam, participants.at(0) ?? {});
                     return;
                 }
                 if (iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.REQUEST) {
@@ -211,8 +216,8 @@ function IOURequestStepAmount({
                         report,
                         participantParams: {
                             participant: participants.at(0) ?? {},
-                            payeeEmail: currentUserPersonalDetails.login,
-                            payeeAccountID: currentUserPersonalDetails.accountID,
+                            payeeEmail: currentUserEmailParam,
+                            payeeAccountID: currentUserAccountIDParam,
                         },
                         transactionParams: {
                             amount: backendAmount,
@@ -224,6 +229,9 @@ function IOURequestStepAmount({
                         backToReport,
                         shouldGenerateTransactionThreadReport,
                         isASAPSubmitBetaEnabled,
+                        currentUserAccountIDParam,
+                        currentUserEmailParam,
+                        transactionViolations,
                     });
                     return;
                 }
@@ -232,8 +240,8 @@ function IOURequestStepAmount({
                         report,
                         isDraftPolicy: false,
                         participantParams: {
-                            payeeEmail: currentUserPersonalDetails.login,
-                            payeeAccountID: currentUserPersonalDetails.accountID,
+                            payeeEmail: currentUserEmailParam,
+                            payeeAccountID: currentUserAccountIDParam,
                             participant: participants.at(0) ?? {},
                         },
                         transactionParams: {
@@ -251,7 +259,7 @@ function IOURequestStepAmount({
                 const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
                 setSplitShares(transaction, amountInSmallestCurrencyUnits, currency || CONST.CURRENCY.USD, participantAccountIDs);
             }
-            setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+            setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
                 navigateToConfirmationPage();
             });
             return;
@@ -265,14 +273,14 @@ function IOURequestStepAmount({
             defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
             !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
         ) {
-            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
+            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
             const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
             const isReturningFromConfirmationPage = !!transaction?.participants?.length;
 
             const resetToDefaultWorkspace = () => {
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-                setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+                setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat, currentUserPersonalDetails.accountID).then(() => {
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, activePolicyExpenseChat?.reportID));
                 });
             };
@@ -351,6 +359,9 @@ function IOURequestStepAmount({
             policy,
             taxCode,
             policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
         });
         navigateBack();
     };
@@ -359,7 +370,7 @@ function IOURequestStepAmount({
         <StepScreenWrapper
             headerTitle={translate('iou.amount')}
             onBackButtonPress={navigateBack}
-            testID={IOURequestStepAmount.displayName}
+            testID="IOURequestStepAmount"
             shouldShowWrapper={!!backTo || isEditing}
             includeSafeAreaPaddingBottom
             shouldShowNotFoundPage={shouldShowNotFoundPage}
@@ -380,12 +391,11 @@ function IOURequestStepAmount({
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
+                isCurrencyPressable={!isUnreportedDistanceExpense}
             />
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepAmount.displayName = 'IOURequestStepAmount';
 
 /**
  * Check if the participant is a P2P chat

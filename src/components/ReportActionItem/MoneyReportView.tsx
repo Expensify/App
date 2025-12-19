@@ -33,6 +33,7 @@ import {
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
     isSettled as isSettledReportUtils,
+    shouldHideSingleReportField,
 } from '@libs/ReportUtils';
 import AnimatedEmptyStateBackground from '@pages/home/report/AnimatedEmptyStateBackground';
 import variables from '@styles/variables';
@@ -91,7 +92,7 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
         return fields.filter((field) => field.target === report?.type).sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
-    }, [policy, report]);
+    }, [policy?.fieldList, report]);
 
     const enabledReportFields = sortedPolicyReportFields.filter(
         (reportField) => !isReportFieldDisabled(report, reportField, policy) || reportField.type === CONST.REPORT_FIELD_TYPES.FORMULA,
@@ -100,13 +101,6 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
     const isClosedExpenseReportWithNoExpenses = isClosedExpenseReportWithNoExpensesReportUtils(report);
     const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
-
-    const shouldHideSingleReportField = (reportField: PolicyReportField) => {
-        const fieldValue = reportField.value ?? reportField.defaultValue;
-        const hasEnableOption = reportField.type !== CONST.REPORT_FIELD_TYPES.LIST || reportField.disabledOptions.some((option) => !option);
-
-        return isReportFieldOfTypeTitle(reportField) || (!fieldValue && !hasEnableOption);
-    };
 
     const shouldShowReportField =
         !isClosedExpenseReportWithNoExpenses &&
@@ -265,7 +259,5 @@ function MoneyReportView({report, policy, isCombinedReport = false, shouldShowTo
         </>
     );
 }
-
-MoneyReportView.displayName = 'MoneyReportView';
 
 export default MoneyReportView;

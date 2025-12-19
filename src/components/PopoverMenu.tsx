@@ -4,9 +4,9 @@ import type {ReactNode, RefObject} from 'react';
 import React, {useCallback, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -20,9 +20,9 @@ import CONST from '@src/CONST';
 import type {AnchorPosition} from '@src/styles';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
+import type IconAsset from '@src/types/utils/IconAsset';
 import FocusableMenuItem from './FocusableMenuItem';
 import FocusTrapForModal from './FocusTrap/FocusTrapForModal';
-import * as Expensicons from './Icon/Expensicons';
 import type {MenuItemProps} from './MenuItem';
 import MenuItem from './MenuItem';
 import type ReanimatedModalProps from './Modal/ReanimatedModal/types';
@@ -58,7 +58,7 @@ type PopoverMenuItem = MenuItemProps & {
 
     pendingAction?: PendingAction;
 
-    rightIcon?: React.FC<SvgProps>;
+    rightIcon?: IconAsset;
 
     key?: string;
 
@@ -296,7 +296,7 @@ function BasePopoverMenu({
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
-
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const prevMenuItems = usePrevious(menuItems);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
@@ -309,19 +309,19 @@ function BasePopoverMenu({
             setEnteredSubMenuIndexes([...enteredSubMenuIndexes, index]);
             const selectedSubMenuItemIndex = selectedItem?.subMenuItems.findIndex((option) => option.isSelected);
             setFocusedIndex(selectedSubMenuItemIndex);
+        } else if (selectedItem.shouldCloseModalOnSelect === false) {
+            onItemSelected?.(selectedItem, index, event);
+            selectedItem.onSelected?.();
+            setFocusedIndex(-1);
         } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
             onItemSelected?.(selectedItem, index, event);
-            if (selectedItem.shouldCloseModalOnSelect !== false) {
-                close(
-                    () => {
-                        selectedItem.onSelected?.();
-                    },
-                    undefined,
-                    selectedItem.shouldCloseAllModals,
-                );
-            } else {
-                selectedItem.onSelected?.();
-            }
+            close(
+                () => {
+                    selectedItem.onSelected?.();
+                },
+                undefined,
+                selectedItem.shouldCloseAllModals,
+            );
         } else {
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
@@ -348,7 +348,7 @@ function BasePopoverMenu({
         return (
             <MenuItem
                 key={previouslySelectedItem?.text}
-                icon={Expensicons.BackArrow}
+                icon={expensifyIcons.BackArrow}
                 iconFill={(isHovered) => (isHovered ? theme.iconHovered : theme.icon)}
                 style={hasBackButtonText ? styles.pv0 : undefined}
                 additionalIconStyles={[{width: variables.iconSizeSmall, height: variables.iconSizeSmall}, styles.opacitySemiTransparent, styles.mr1]}
@@ -583,17 +583,18 @@ function BasePopoverMenu({
     );
 }
 
-PopoverMenu.displayName = 'PopoverMenu';
-
 export default React.memo(
     PopoverMenu,
     (prevProps, nextProps) =>
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- menuItems array is created inline in most usages with unstable references
         deepEqual(prevProps.menuItems, nextProps.menuItems) &&
         prevProps.isVisible === nextProps.isVisible &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- anchorPosition object is created inline in most usages
         deepEqual(prevProps.anchorPosition, nextProps.anchorPosition) &&
         prevProps.anchorRef === nextProps.anchorRef &&
         prevProps.headerText === nextProps.headerText &&
         prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- anchorAlignment object is created inline in most usages
         deepEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
         prevProps.animationIn === nextProps.animationIn &&
         prevProps.animationOut === nextProps.animationOut &&

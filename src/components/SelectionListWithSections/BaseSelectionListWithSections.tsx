@@ -24,7 +24,6 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
-import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -143,6 +142,9 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     renderScrollComponent,
     shouldShowRightCaret,
     shouldHighlightSelectedItem = true,
+    shouldDisableHoverStyle = false,
+    setShouldDisableHoverStyle = () => {},
+    isPercentageMode,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -353,7 +355,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
 
-            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea});
+            let viewOffset = variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea;
+            // Remove contentHeaderHeight from viewOffset calculation if isPercentageMode (for scroll offset calculation on native)
+            if (isPercentageMode) {
+                viewOffset = viewOffsetToKeepFocusedItemAtTopOfViewableArea;
+            }
+            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset});
             pendingScrollIndexRef.current = null;
         },
 
@@ -419,8 +426,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         hasKeyBeenPressed.current = true;
     }, []);
 
+    const onArrowUpDownCallback = useCallback(() => {
+        setShouldDisableHoverStyle(true);
+    }, [setShouldDisableHoverStyle]);
+
     // If `initiallyFocusedOptionKey` is not passed, we fall back to `-1`, to avoid showing the highlight on the first member
-    const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
+    const [focusedIndex, setFocusedIndex, currentHoverIndexRef] = useArrowKeyFocusManager({
         initialFocusedIndex: flattenedSections.allOptions.findIndex((option) => option.keyForList === initiallyFocusedOptionKey),
         maxIndex: Math.min(flattenedSections.allOptions.length - 1, CONST.MAX_SELECTION_LIST_PAGE_LENGTH * currentPage - 1),
         disabledIndexes: disabledArrowKeyIndexes,
@@ -434,15 +445,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
             }
         },
-        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
+        setHasKeyBeenPressed,
         isFocused,
+        onArrowUpDownCallback,
     });
-
-    useEffect(() => {
-        addKeyDownPressListener(setHasKeyBeenPressed);
-
-        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
-    }, [setHasKeyBeenPressed]);
 
     const selectedItemIndex = useMemo(
         () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex(isItemSelected) : -1),
@@ -636,6 +642,16 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </>
     );
 
+    const setCurrentHoverIndex = useCallback(
+        (hoverIndex: number | null) => {
+            if (shouldDisableHoverStyle) {
+                return;
+            }
+            currentHoverIndexRef.current = hoverIndex;
+        },
+        [currentHoverIndexRef, shouldDisableHoverStyle],
+    );
+
     const renderItem = ({item, index, section}: SectionListRenderItemInfo<TItem, SectionWithIndexOffset<TItem>>) => {
         const normalizedIndex = index + (section?.indexOffset ?? 0);
         const isDisabled = !!section.isDisabled || item.isDisabled;
@@ -644,7 +660,15 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList ?? '');
 
         return (
-            <View onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}>
+            <View
+                onLayout={(event: LayoutChangeEvent) => onItemLayout(event, item?.keyForList)}
+                onMouseMove={() => setCurrentHoverIndex(normalizedIndex)}
+                onMouseEnter={() => setCurrentHoverIndex(normalizedIndex)}
+                onMouseLeave={(e) => {
+                    e.stopPropagation();
+                    setCurrentHoverIndex(null);
+                }}
+            >
                 <BaseSelectionListItemRenderer
                     ListItem={ListItem}
                     item={{
@@ -680,6 +704,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                     titleContainerStyles={listItemTitleContainerStyles}
                     canShowProductTrainingTooltip={canShowProductTrainingTooltipMemo}
                     shouldShowRightCaret={shouldShowRightCaret}
+                    shouldDisableHoverStyle={shouldDisableHoverStyle}
+                    shouldStopMouseLeavePropagation={false}
                 />
             </View>
         );
@@ -1092,7 +1118,5 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </View>
     );
 }
-
-BaseSelectionListWithSections.displayName = 'BaseSelectionListWithSections';
 
 export default BaseSelectionListWithSections;

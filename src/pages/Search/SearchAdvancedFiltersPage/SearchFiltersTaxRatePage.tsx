@@ -1,6 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSelectionPicker';
@@ -20,59 +19,50 @@ function SearchFiltersTaxRatePage() {
     const {translate} = useLocalize();
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
-    const allTaxRates = getAllTaxRates();
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const allTaxRates = getAllTaxRates(policies);
     const selectedTaxesItems: SearchMultipleSelectionPickerItem[] = [];
-    Object.entries(allTaxRates).forEach(([taxRateName, taxRateKeys]) => {
-        searchAdvancedFiltersForm?.taxRate?.forEach((taxRateKey) => {
-            if (!taxRateKeys.includes(taxRateKey) || selectedTaxesItems.some((item) => item.name === taxRateName)) {
-                return;
+    for (const [taxRateName, taxRateKeys] of Object.entries(allTaxRates)) {
+        if (searchAdvancedFiltersForm?.taxRate) {
+            for (const taxRateKey of searchAdvancedFiltersForm.taxRate) {
+                if (!taxRateKeys.includes(taxRateKey) || selectedTaxesItems.some((item) => item.name === taxRateName)) {
+                    continue;
+                }
+                selectedTaxesItems.push({name: taxRateName, value: taxRateKeys});
             }
-            selectedTaxesItems.push({name: taxRateName, value: taxRateKeys});
-        });
-    });
-    const policyIDs = useMemo(() => searchAdvancedFiltersForm?.policyID ?? [], [searchAdvancedFiltersForm]);
-    const policiesSelector = useCallback(
-        (allPolicies: OnyxCollection<Policy>) => (allPolicies ? Object.values(allPolicies).filter((policy) => policy && policyIDs.includes(policy.id)) : undefined),
-        [policyIDs],
-    );
+        }
+    }
+    const policyIDs = useMemo(() => searchAdvancedFiltersForm?.policyID ?? [], [searchAdvancedFiltersForm?.policyID]);
 
-    const [policies] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}`, {
-        selector: policiesSelector,
-        canBeMissing: true,
-    });
-    const selectedPoliciesTaxRates = policies?.map((policy) => policy?.taxRates?.taxes).filter((taxRates) => !!taxRates);
+    const selectedPoliciesMap = useMemo(() => {
+        if (!policies || policyIDs.length === 0) {
+            return null;
+        }
+
+        return policyIDs.reduce<Record<string, Policy>>((acc, policyID) => {
+            const key = `${ONYXKEYS.COLLECTION.POLICY}${policyID}`;
+            const policy = policies[key];
+            if (policy) {
+                acc[key] = policy;
+            }
+            return acc;
+        }, {});
+    }, [policies, policyIDs]);
 
     const taxItems = useMemo(() => {
-        if (!selectedPoliciesTaxRates || selectedPoliciesTaxRates?.length === 0) {
-            return Object.entries(allTaxRates).map(([taxRateName, taxRateKeys]) => ({name: taxRateName, value: taxRateKeys}));
-        }
-        const selectedPoliciesTaxRatesItems = selectedPoliciesTaxRates.reduce(
-            (acc, taxRates) => {
-                if (!taxRates) {
-                    return acc;
-                }
-                Object.entries(taxRates).forEach(([taxRateKey, taxRate]) => {
-                    if (!acc[taxRate.name]) {
-                        acc[taxRate.name] = [];
-                    }
-                    if (acc[taxRate.name].includes(taxRateKey)) {
-                        return;
-                    }
-                    acc[taxRate.name].push(taxRateKey);
-                });
-                return acc;
-            },
-            {} as Record<string, string[]>,
-        );
+        const scopedTaxRates = !selectedPoliciesMap || Object.keys(selectedPoliciesMap).length === 0 ? allTaxRates : getAllTaxRates(selectedPoliciesMap);
 
-        return Object.entries(selectedPoliciesTaxRatesItems).map(([taxRateName, taxRateKeys]) => ({name: taxRateName, value: taxRateKeys}));
-    }, [allTaxRates, selectedPoliciesTaxRates]);
+        return Object.entries(scopedTaxRates).map(([taxRateName, taxRateKeys]) => ({
+            name: taxRateName,
+            value: taxRateKeys,
+        }));
+    }, [allTaxRates, selectedPoliciesMap]);
 
     const updateTaxRateFilters = useCallback((values: string[]) => updateAdvancedFilters({taxRate: values}), []);
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersTaxRatePage.displayName}
+            testID="SearchFiltersTaxRatePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -93,7 +83,5 @@ function SearchFiltersTaxRatePage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersTaxRatePage.displayName = 'SearchFiltersTaxRatePage';
 
 export default SearchFiltersTaxRatePage;

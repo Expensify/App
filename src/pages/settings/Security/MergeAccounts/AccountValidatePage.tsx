@@ -89,6 +89,8 @@ function AccountValidatePage() {
         canBeMissing: true,
     });
 
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+
     const privateSubscription = usePrivateSubscription();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -158,7 +160,7 @@ function AccountValidatePage() {
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={AccountValidatePage.displayName}
+            testID="AccountValidatePage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -190,21 +192,19 @@ function AccountValidatePage() {
                         mergeWithValidateCodeAction(email, code);
                     }}
                     sendValidateCode={() => {
-                        requestValidationCodeForAccountMerge(email, true);
+                        requestValidationCodeForAccountMerge(email, true, countryCode);
                     }}
                     shouldSkipInitialValidation
                     clearError={() => clearMergeWithValidateCode()}
                     validateError={validateCodeError}
                     hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeResent}
                     submitButtonText={translate('mergeAccountsPage.mergeAccount')}
-                    forwardedRef={validateCodeFormRef}
+                    ref={validateCodeFormRef}
                     isLoading={mergeWithValidateCode?.isLoading}
                 />
             </ScrollView>
         </ScreenWrapper>
     );
 }
-
-AccountValidatePage.displayName = 'AccountValidatePage';
 
 export default AccountValidatePage;

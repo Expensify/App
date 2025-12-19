@@ -1,8 +1,8 @@
 import React from 'react';
 import AttachmentPicker from '@components/AttachmentPicker';
 import DecisionModal from '@components/DecisionModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,6 +17,7 @@ function BaseImportOnyxState({
     isErrorModalVisible: boolean;
     setIsErrorModalVisible: (value: boolean) => void;
 }) {
+    const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -34,7 +35,7 @@ function BaseImportOnyxState({
                 {({openPicker}) => {
                     return (
                         <MenuItem
-                            icon={Expensicons.Upload}
+                            icon={icons.Upload}
                             title={translate('initialSettingsPage.troubleshoot.importOnyxState')}
                             wrapperStyle={[styles.sectionMenuItemTopDescription]}
                             onPress={() => {

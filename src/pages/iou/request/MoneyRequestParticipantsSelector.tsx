@@ -12,7 +12,6 @@ import Button from '@components/Button';
 import ContactPermissionModal from '@components/ContactPermissionModal';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {UserPlus} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -21,6 +20,7 @@ import InviteMemberListItem from '@components/SelectionListWithSections/InviteMe
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
 import useContactImport from '@hooks/useContactImport';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -100,6 +100,7 @@ function MoneyRequestParticipantsSelector({
     isCorporateCardTransaction = false,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['UserPlus']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {contactPermissionState, contacts, setContactPermissionState, importAndSaveContacts} = useContactImport();
@@ -171,7 +172,7 @@ function MoneyRequestParticipantsSelector({
         () => ({
             selectedOptions: participants as Participant[],
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT,
+            includeOwnedWorkspaceChats: iouType === CONST.IOU.TYPE.SUBMIT || iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
             excludeNonAdminWorkspaces: action === CONST.IOU.ACTION.SHARE,
             includeP2P: !isCategorizeOrShareAction && !isPerDiemRequest && !isCorporateCardTransaction,
             includeInvoiceRooms: iouType === CONST.IOU.TYPE.INVOICE,
@@ -399,7 +400,7 @@ function MoneyRequestParticipantsSelector({
 
             onFinish(CONST.IOU.TYPE.SPLIT);
         },
-        [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, selectedOptions],
+        [shouldShowSplitBillErrorMessage, onFinish, addSingleParticipant, selectedOptions.length],
     );
 
     const showLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
@@ -506,13 +507,13 @@ function MoneyRequestParticipantsSelector({
         return (
             <MenuItem
                 title={translate('contact.importContacts')}
-                icon={UserPlus}
+                icon={icons.UserPlus}
                 onPress={goToSettings}
                 shouldShowRightIcon
                 style={styles.mb3}
             />
         );
-    }, [contactState?.showImportUI, showImportContacts, styles.mb3, translate]);
+    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, styles.mb3, translate]);
 
     const ClickableImportContactTextComponent = useMemo(() => {
         if (searchTerm.length || isSearchingForReports) {
@@ -525,7 +526,7 @@ function MoneyRequestParticipantsSelector({
                 isInSearch={false}
             />
         );
-    }, [searchTerm, isSearchingForReports, contactState?.showImportUI, showImportContacts, translate]);
+    }, [searchTerm.length, isSearchingForReports, contactState?.showImportUI, showImportContacts, translate]);
     const EmptySelectionListContentWithPermission = useMemo(() => {
         return (
             <>
@@ -588,11 +589,10 @@ function MoneyRequestParticipantsSelector({
     );
 }
 
-MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
-
 export default memo(
     MoneyRequestParticipantsSelector,
     (prevProps, nextProps) =>
+        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo
         deepEqual(prevProps.participants, nextProps.participants) &&
         prevProps.iouType === nextProps.iouType &&
         prevProps.isWorkspacesOnly === nextProps.isWorkspacesOnly &&

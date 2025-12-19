@@ -12,6 +12,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
+import {getDefaultAvatarURL} from './UserAvatarUtils';
 import {generateAccountID} from './UserUtils';
 
 type FirstAndLastName = {
@@ -117,7 +118,7 @@ function getPersonalDetailsByIDs({
     personalDetailsParam = allPersonalDetails,
 }: {
     accountIDs: number[];
-    currentUserAccountID: number;
+    currentUserAccountID?: number;
     shouldChangeUserDisplayName?: boolean;
     personalDetailsParam?: Partial<PersonalDetailsList>;
 }): PersonalDetails[] {
@@ -223,6 +224,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(
         personalDetailsNew[accountID] = {
             login,
             accountID,
+            avatar: getDefaultAvatarURL({accountID, accountEmail: login}),
             displayName: formatPhoneNumber(login),
             isOptimisticPersonalDetail: true,
         };
@@ -384,9 +386,9 @@ function extractFirstAndLastNameFromAvailableDetails({login, displayName, firstN
 function getUserNameByEmail(email: string, nameToDisplay: 'firstName' | 'displayName') {
     const userDetails = getPersonalDetailByEmail(email);
     if (userDetails) {
-        return userDetails[nameToDisplay] ? userDetails[nameToDisplay] : userDetails.login;
+        return userDetails[nameToDisplay] ? Str.removeSMSDomain(userDetails[nameToDisplay]) : Str.removeSMSDomain(userDetails.login ?? '');
     }
-    return email;
+    return Str.removeSMSDomain(email);
 }
 
 const getShortMentionIfFound = (displayText: string, userAccountID: string, currentUserPersonalDetails: OnyxEntry<PersonalDetails>, userLogin = '') => {

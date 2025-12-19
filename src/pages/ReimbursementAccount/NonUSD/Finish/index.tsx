@@ -1,14 +1,14 @@
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import {ChatBubble} from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -22,6 +22,8 @@ function Finish() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Shield']);
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow']);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -33,7 +35,7 @@ function Finish() {
 
     return (
         <ScreenWrapper
-            testID={Finish.displayName}
+            testID="Finish"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -45,7 +47,7 @@ function Finish() {
             <ScrollView style={[styles.flex1]}>
                 <Section
                     title={translate('finishStep.letsFinish')}
-                    icon={Illustrations.ConciergeBubble}
+                    icon={illustrations.ConciergeBubble}
                     containerStyles={[styles.mb8, styles.mh5]}
                     titleStyles={[styles.mb3, styles.textHeadline]}
                 >
@@ -60,7 +62,7 @@ function Finish() {
                 </Section>
                 <Section
                     title={translate('finishStep.enable2FA')}
-                    icon={Illustrations.ShieldYellow}
+                    icon={illustrations.ShieldYellow}
                     titleStyles={[styles.mb4, styles.textHeadline]}
                     containerStyles={[styles.mh5]}
                     menuItems={[
@@ -69,9 +71,9 @@ function Finish() {
                             onPress: () => {
                                 Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute(policyID)));
                             },
-                            icon: Expensicons.Shield,
+                            icon: icons.Shield,
                             shouldShowRightIcon: true,
-                            iconRight: Expensicons.NewWindow,
+                            iconRight: icons.NewWindow,
                             outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                         },
                     ]}
@@ -84,7 +86,5 @@ function Finish() {
         </ScreenWrapper>
     );
 }
-
-Finish.displayName = 'Finish';
 
 export default Finish;

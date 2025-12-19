@@ -43,7 +43,17 @@ function loadIllustrationsChunk(): Promise<IllustrationsChunk> {
  * Get an Illustration by name from the eagerly loaded chunk
  * This function provides immediate access once the chunk is loaded
  */
-function loadIllustration(illustrationName: IllustrationName): Promise<{default: IconAsset}> {
+function loadIllustration(illustrationName: IllustrationName): {default: IconAsset} | Promise<{default: IconAsset}> {
+    const cachedChunk = getIllustrationsChunk();
+    if (cachedChunk) {
+        const illustration = cachedChunk.getIllustration(illustrationName);
+        if (!illustration) {
+            return Promise.reject(new Error(`Illustration "${illustrationName}" not found`));
+        }
+        return {default: illustration};
+    }
+
+    // Fallback to async loading if chunk not cached
     return loadIllustrationsChunk()
         .then((chunk) => {
             const illustration = chunk.getIllustration(illustrationName);
@@ -59,6 +69,15 @@ function loadIllustration(illustrationName: IllustrationName): Promise<{default:
         });
 }
 
-export {loadIllustration, loadIllustrationsChunk};
+/**
+ * Get the cached Illustrations chunk synchronously
+ * Returns null if the chunk hasn't been loaded yet
+ * Use this to avoid Promise microtask delay when chunk is already loaded
+ */
+function getIllustrationsChunk(): IllustrationsChunk | null {
+    return illustrationsChunk;
+}
 
-export type {IllustrationName};
+export {loadIllustration, loadIllustrationsChunk, getIllustrationsChunk};
+
+export type {IllustrationName, IllustrationsChunk};
