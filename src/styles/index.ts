@@ -32,7 +32,6 @@ import editedLabelStyles from './utils/editedLabelStyles';
 import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
-import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -1920,7 +1919,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.contentHeaderHeight,
             justifyContent: 'center',
             paddingRight: 10,
-            paddingLeft: 20,
         },
 
         chatContentScrollView: {
@@ -5298,8 +5296,8 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 16,
         },
 
-        // We have to use 10000 here as sidePanel has to be displayed on top of modals which have z-index of 9999
-        sidePanelContainer: {zIndex: 10000},
+        // We have to use 9998 here as sidePanel has to be displayed right under popovers which have z-index of 9999
+        sidePanelContainer: {zIndex: variables.sidePanelZIndex},
 
         reportPreviewArrowButton: {
             borderRadius: 50,
@@ -5717,20 +5715,14 @@ const dynamicStyles = (theme: ThemeColors) =>
                 vertical: windowHeight - (variables.fabBottom + variables.componentSizeNormal + 12),
             }) satisfies AnchorPosition,
 
-        createAccountMenuPositionProfile: () =>
-            ({
-                horizontal: 18,
-                ...getPopOverVerticalOffset(202 + 40),
-            }) satisfies AnchorPosition,
-
         overlayStyles: ({
             progress,
             positionLeftValue,
             positionRightValue,
         }: {
             progress: OverlayStylesParams;
-            positionLeftValue: number | Animated.Value;
-            positionRightValue: number | Animated.Value;
+            positionLeftValue: number | Animated.Value | Animated.AnimatedAddition<number>;
+            positionRightValue: number | Animated.Value | Animated.AnimatedAddition<number>;
         }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
@@ -5905,10 +5897,10 @@ const dynamicStyles = (theme: ThemeColors) =>
             }) satisfies ViewStyle,
 
         sidePanelOverlayOpacity: (isOverlayVisible: boolean) => ({
-            opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
+            opacity: isOverlayVisible ? variables.overlayOpacity : 0,
         }),
         sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
-            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            width: shouldUseNarrowLayout ? '100%' : variables.sidePanelWidth,
         }),
         sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
