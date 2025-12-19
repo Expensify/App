@@ -21,6 +21,10 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+const FEED_DOMAIN_ID = 1234;
+const FEED = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX}.${FEED_DOMAIN_ID}`;
+const CARD_ID = '1234';
+
 // Set up a global fetch mock for API requests in tests.
 TestHelper.setupGlobalFetchMock();
 
@@ -92,7 +96,7 @@ const renderPage = (
     );
 };
 
-describe('AssignCardFeedPage', () => {
+describe('AssignCardFeed', () => {
     beforeAll(() => {
         // Initialize Onyx with required keys before running any test.
         Onyx.init({
@@ -150,8 +154,8 @@ describe('AssignCardFeedPage', () => {
         // Render the page with the specified policyID and backTo param
         const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE, {
             policyID: policy.id,
-            feed: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
-            cardID: '1234',
+            feed: FEED,
+            cardID: CARD_ID,
             backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy?.id, 1234),
         });
 
@@ -217,8 +221,8 @@ describe('AssignCardFeedPage', () => {
         // Render the page with the specified policyID and backTo param
         const {unmount} = renderPage(SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE, {
             policyID: policy.id,
-            feed: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
-            cardID: '1234',
+            feed: FEED,
+            cardID: CARD_ID,
             backTo: ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy?.id, 1234),
         });
 
