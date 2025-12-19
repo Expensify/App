@@ -41,12 +41,7 @@ const FILLER_MESSAGE_POOLS: Record<string, string[]> = {
         'Concierge is correlating sources...',
         'Concierge is validating sources...',
     ],
-    expenseAction: [
-        'Concierge is verifying details...',
-        'Concierge is saving changes...',
-        'Concierge is confirming completion...',
-        'Concierge is ensuring compliance...',
-    ],
+    expenseAction: ['Concierge is verifying details...', 'Concierge is saving changes...', 'Concierge is confirming completion...', 'Concierge is ensuring compliance...'],
     expenseUpdate: [
         'Concierge is updating the expense...',
         'Concierge is checking policy rules...',
