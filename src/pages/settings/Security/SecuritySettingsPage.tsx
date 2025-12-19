@@ -175,7 +175,7 @@ function SecuritySettingsPage() {
 
         if (userHasRegisteredOnAtLeastOneDevice) {
             baseMenuItems.splice(1, 0, {
-                translationKey: 'multifactorAuthentication.revokePage.headerTitle',
+                translationKey: 'multifactorAuthentication.revokeAccess.faceOrFingerprintVerification',
                 icon: icons.Fingerprint,
                 action: () => {
                     if (isDelegateAccessRestricted) {

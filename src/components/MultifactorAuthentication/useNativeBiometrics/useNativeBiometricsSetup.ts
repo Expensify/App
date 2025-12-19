@@ -23,14 +23,11 @@ import CONST from '@src/CONST';
  */
 function useNativeBiometricsSetup(): UseBiometricsSetup {
     /** Tracks whether biometrics is properly configured and ready for authentication */
-    const [status, setStatus] = useMultifactorAuthenticationStatus<BiometricsStatus>(
-        {
-            isBiometryRegisteredLocally: false,
-            isAnyDeviceRegistered: false,
-            isLocalPublicKeyInAuth: false,
-        },
-        CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION,
-    );
+    const [status, setStatus] = useMultifactorAuthenticationStatus<BiometricsStatus>({
+        isBiometryRegisteredLocally: false,
+        isAnyDeviceRegistered: false,
+        isLocalPublicKeyInAuth: false,
+    });
     const {accountID} = useCurrentUserPersonalDetails();
 
     /**
@@ -78,7 +75,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
         await revokePublicKeys();
         return refreshStatus(
             {
-                reason: 'multifactorAuthentication.reason.success.keyDeletedFromSecureStore',
+                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_DELETED,
                 step: {
                     wasRecentStepSuccessful: true,
                     isRequestFulfilled: true,
@@ -119,7 +116,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
 
         /** Save private key (handles existing/conflict cases) */
         const privateKeyResult = await PrivateKeyStore.set(accountID, privateKey, {nativePromptTitle});
-        const privateKeyExists = privateKeyResult.reason === 'multifactorAuthentication.reason.expoErrors.keyExists';
+        const privateKeyExists = privateKeyResult.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.EXPO.KEY_EXISTS;
 
         if (!privateKeyResult.value) {
             if (privateKeyExists && !status.value) {
@@ -149,7 +146,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
             validateCode,
         });
 
-        const successMessage = 'multifactorAuthentication.reason.success.keyPairGenerated';
+        const successMessage = CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_PAIR_GENERATED;
         const isCallSuccessful = wasRecentStepSuccessful && isRequestFulfilled;
 
         /** Cleanup keys on failure to avoid partial state */
@@ -192,7 +189,8 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
         ...status.step,
         ...status.value,
         deviceSupportBiometrics,
-        message: status.message,
+        headerTitle: status.headerTitle,
+        description: status.description,
         title: status.title,
         register,
         revoke,

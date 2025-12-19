@@ -6,7 +6,6 @@ import useMultifactorAuthenticationStatus from '@components/MultifactorAuthentic
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import MultifactorAuthenticationChallenge from '@libs/MultifactorAuthentication/Biometrics/Challenge';
-import CONST from '@src/CONST';
 import useNativeBiometricsSetup from './useNativeBiometricsSetup';
 
 /**
@@ -20,7 +19,7 @@ import useNativeBiometricsSetup from './useNativeBiometricsSetup';
  * Returns current authorization status and methods to control the flow.
  */
 function useNativeBiometrics() {
-    const [status, setStatus] = useMultifactorAuthenticationStatus(false, CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION);
+    const [status, setStatus] = useMultifactorAuthenticationStatus(false);
     const BiometricsSetup = useNativeBiometricsSetup();
     const {accountID} = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();

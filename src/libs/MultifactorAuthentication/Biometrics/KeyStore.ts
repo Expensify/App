@@ -1,4 +1,3 @@
-import type {TranslationPaths} from '@src/languages/types';
 import {decodeExpoMessage} from './helpers';
 import {SECURE_STORE_METHODS, SECURE_STORE_VALUES} from './SecureStore';
 import type {SecureStoreOptions} from './SecureStore';
@@ -59,13 +58,13 @@ class MultifactorAuthenticationKeyStore {
             const type = await MultifactorAuthenticationStore.set(`${accountID}_${this.key}`, value, KSOptions);
             return {
                 value: true,
-                reason: 'multifactorAuthentication.reason.success.keySavedInSecureStore' as TranslationPaths,
+                reason: VALUES.REASON.KEYSTORE.KEY_SAVED,
                 type,
             };
         } catch (error) {
             return {
                 value: false,
-                reason: decodeExpoMessage(error, 'multifactorAuthentication.reason.error.unableToSaveKey'),
+                reason: decodeExpoMessage(error, VALUES.REASON.KEYSTORE.UNABLE_TO_SAVE_KEY),
             };
         }
     }
@@ -79,12 +78,12 @@ class MultifactorAuthenticationKeyStore {
             await MultifactorAuthenticationStore.delete(`${accountID}_${this.key}`);
             return {
                 value: true,
-                reason: 'multifactorAuthentication.reason.success.keyDeletedFromSecureStore' as TranslationPaths,
+                reason: VALUES.REASON.KEYSTORE.KEY_DELETED,
             };
         } catch (error) {
             return {
                 value: false,
-                reason: decodeExpoMessage(error, 'multifactorAuthentication.reason.error.unableToDelete'),
+                reason: decodeExpoMessage(error, VALUES.REASON.KEYSTORE.UNABLE_TO_DELETE_KEY),
             };
         }
     }
@@ -98,13 +97,13 @@ class MultifactorAuthenticationKeyStore {
             const [key, type] = await MultifactorAuthenticationStore.get(`${accountID}_${this.key}`, KSOptions);
             return {
                 value: key,
-                reason: `multifactorAuthentication.reason.success.${key ? 'keyRetrievedFromSecureStore' : 'keyNotInSecureStore'}`,
+                reason: key ? VALUES.REASON.KEYSTORE.KEY_RETRIEVED : VALUES.REASON.KEYSTORE.KEY_NOT_FOUND,
                 type,
             };
         } catch (error) {
             return {
                 value: null,
-                reason: decodeExpoMessage(error, 'multifactorAuthentication.reason.error.unableToRetrieve'),
+                reason: decodeExpoMessage(error, VALUES.REASON.KEYSTORE.UNABLE_TO_RETRIEVE_KEY),
             };
         }
     }

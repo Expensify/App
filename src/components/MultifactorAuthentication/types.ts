@@ -70,10 +70,12 @@ type MultifactorAuthenticationInfo = {
  */
 type MultifactorAuthenticationStatusMessage = {
     /** Detailed message explaining the current state or required scenario */
-    message: string;
+    description: string;
 
     /** Brief status header (e.g. "Authentication Successful") */
     title: string;
+
+    headerTitle: string;
 };
 
 /**

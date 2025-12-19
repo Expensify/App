@@ -1,12 +1,11 @@
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioAdditionalParams} from '@components/MultifactorAuthentication/config/types';
 import {resetKeys} from '@components/MultifactorAuthentication/helpers';
 import {requestBiometricChallenge} from '@libs/actions/MultifactorAuthentication';
-import type {TranslationPaths} from '@src/languages/types';
 import {signToken as signTokenED25519} from './ED25519';
 import type {MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
 import {isChallengeSigned, processScenario} from './helpers';
 import {PrivateKeyStore, PublicKeyStore} from './KeyStore';
-import type {MultifactorAuthenticationPartialStatus, MultifactorKeyStoreOptions} from './types';
+import type {MultifactorAuthenticationPartialStatus, MultifactorAuthenticationReason, MultifactorKeyStoreOptions} from './types';
 import VALUES from './VALUES';
 
 /**
@@ -24,7 +23,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
     /** Tracks the current state and status of the authentication process */
     private auth: MultifactorAuthenticationPartialStatus<MultifactorAuthenticationChallengeObject | SignedChallenge | undefined, true> = {
         value: undefined,
-        reason: 'multifactorAuthentication.reason.generic.notRequested',
+        reason: VALUES.REASON.GENERIC.NO_ACTION_MADE_YET,
     };
 
     private publicKeys: string[] = [];
@@ -36,7 +35,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
     ) {}
 
     /** Creates a standardized error response with the given reason key */
-    private createErrorReturnValue(reasonKey: TranslationPaths): MultifactorAuthenticationPartialStatus<boolean, true> {
+    private createErrorReturnValue(reasonKey: MultifactorAuthenticationReason): MultifactorAuthenticationPartialStatus<boolean, true> {
         return {value: false, reason: reasonKey};
     }
 
@@ -48,11 +47,11 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
         const {challenge, publicKeys: authPublicKeys, reason: apiReason} = await requestBiometricChallenge();
         this.publicKeys = authPublicKeys ?? [];
 
-        const reason = apiReason.endsWith('unknownResponse') ? 'multifactorAuthentication.reason.error.badToken' : apiReason;
+        const reason = apiReason === VALUES.REASON.BACKEND.UNKNOWN_RESPONSE ? VALUES.REASON.CHALLENGE.BAD_TOKEN : apiReason;
 
         this.auth = {
             value: challenge,
-            reason: challenge ? 'multifactorAuthentication.reason.success.tokenReceived' : reason,
+            reason: challenge ? VALUES.REASON.CHALLENGE.CHALLENGE_RECEIVED : reason,
         };
 
         return {...this.auth, value: true};
@@ -68,29 +67,29 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
         chainedPrivateKeyStatus?: MultifactorAuthenticationPartialStatus<string | null, true>,
     ): Promise<MultifactorAuthenticationPartialStatus<boolean, true>> {
         if (!this.auth.value) {
-            return this.createErrorReturnValue('multifactorAuthentication.reason.error.tokenMissing');
+            return this.createErrorReturnValue(VALUES.REASON.CHALLENGE.CHALLENGE_MISSING);
         }
 
         if (isChallengeSigned(this.auth.value)) {
-            return this.createErrorReturnValue('multifactorAuthentication.reason.error.challengeIsAlreadySigned');
+            return this.createErrorReturnValue(VALUES.REASON.CHALLENGE.CHALLENGE_ALREADY_SIGNED);
         }
 
         const {value, type, reason} = chainedPrivateKeyStatus?.value ? chainedPrivateKeyStatus : await PrivateKeyStore.get(accountID, this.options);
 
         if (!value) {
-            return this.createErrorReturnValue(reason || 'multifactorAuthentication.reason.error.keyMissing');
+            return this.createErrorReturnValue(reason || VALUES.REASON.KEYSTORE.KEY_MISSING);
         }
 
         const {value: publicKey} = await PublicKeyStore.get(accountID);
 
         if (!publicKey || !this.publicKeys.includes(publicKey)) {
             resetKeys(accountID);
-            return this.createErrorReturnValue('multifactorAuthentication.reason.error.keyMissingOnTheBE');
+            return this.createErrorReturnValue(VALUES.REASON.KEYSTORE.KEY_MISSING_ON_THE_BACKEND);
         }
 
         this.auth = {
             value: signTokenED25519(accountID, this.auth.value, value),
-            reason: 'multifactorAuthentication.reason.success.tokenSigned',
+            reason: VALUES.REASON.CHALLENGE.CHALLENGE_SIGNED,
             type,
         };
 
@@ -106,7 +105,7 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
         const {value} = this.auth;
 
         if (!value || !isChallengeSigned(value)) {
-            return this.createErrorReturnValue('multifactorAuthentication.reason.error.signatureMissing');
+            return this.createErrorReturnValue(VALUES.REASON.GENERIC.SIGNATURE_MISSING);
         }
 
         const authorizationResult = processScenario(
@@ -124,12 +123,12 @@ class MultifactorAuthenticationChallenge<T extends MultifactorAuthenticationScen
         } = await authorizationResult;
 
         if (!wasRecentStepSuccessful || !isRequestFulfilled) {
-            return this.createErrorReturnValue(reason.endsWith('unknownResponse') ? 'multifactorAuthentication.reason.error.challengeRejected' : reason);
+            return this.createErrorReturnValue(reason === VALUES.REASON.BACKEND.UNKNOWN_RESPONSE ? VALUES.REASON.GENERIC.SIGNATURE_INVALID : reason);
         }
 
         return {
             value: true,
-            reason: 'multifactorAuthentication.reason.success.verificationSuccess',
+            reason: VALUES.REASON.BACKEND.AUTHORIZATION_SUCCESSFUL,
             type: this.auth.type,
         };
     }

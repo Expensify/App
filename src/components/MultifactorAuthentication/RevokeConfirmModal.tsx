@@ -18,8 +18,8 @@ function MultifactorAuthenticationRevokeConfirmModal({isVisible, onConfirm, onCa
             onConfirm={onConfirm}
             onCancel={onCancel}
             isVisible={isVisible}
-            prompt={translate('multifactorAuthentication.revokePage.confirmationContent')}
-            confirmText={translate('multifactorAuthentication.revokePage.bottomButtonContent')}
+            prompt={translate('multifactorAuthentication.revokeAccess.youWillNeedMagicCodeNextTime')}
+            confirmText={translate('multifactorAuthentication.revokeAccess.revokeAccess')}
             cancelText={translate('common.cancel')}
             shouldDisableConfirmButtonWhenOffline
             shouldShowCancelButton

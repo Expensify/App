@@ -40,9 +40,9 @@ const MultifactorAuthenticationContext = createContext<UseMultifactorAuthenticat
         isAnyDeviceRegistered: false,
         isBiometryRegisteredLocally: false,
         deviceSupportBiometrics: false,
-        message: EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS.message,
+        description: EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS.description,
         title: EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS.title,
-        headerTitle: EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS.title,
+        headerTitle: EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS.headerTitle,
         success: undefined,
         scenario: undefined,
     },
@@ -63,15 +63,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     triggerOnyxConnect();
 
     const NativeBiometrics = useNativeBiometrics();
-    const [mergedStatus, setMergedStatus] = useMultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>(
-        {
-            scenario: undefined,
-            type: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.NONE,
-            successNotification: undefined,
-            failureNotification: undefined,
-        },
-        CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.NONE,
-    );
+    const [mergedStatus, setMergedStatus] = useMultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>({
+        scenario: undefined,
+        type: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.NONE,
+        successNotification: undefined,
+        failureNotification: undefined,
+    });
     const {translate} = useLocalize();
 
     useEffect(() => {
@@ -265,7 +262,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         params?: MultifactorAuthenticationScenarioParams<T> & NotificationPaths,
     ): Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>> => {
         const {successNotification, failureNotification} = params ?? {};
-        const softPromptAccepted = !!softStorePromptAccepted.current;
+        const softPromptAccepted = softStorePromptAccepted.current;
 
         const notificationPaths = {
             successNotification,
@@ -336,7 +333,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         /** Multifactor authentication is configured already, let's do the challenge logic */
         const result = await authorize(scenario, {...(params as MultifactorAuthenticationScenarioParams<T>), chainedPrivateKeyStatus: undefined}, notificationPaths, softPromptAccepted);
 
-        if (result.reason === 'multifactorAuthentication.reason.error.keyMissingOnTheBE') {
+        if (result.reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_MISSING_ON_THE_BACKEND) {
             await NativeBiometrics.setup.revoke();
         }
 
@@ -433,7 +430,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const info = {
         title,
         headerTitle,
-        message: mergedStatus.message,
+        description: mergedStatus.description,
         success,
         deviceSupportBiometrics,
         isLocalPublicKeyInAuth,

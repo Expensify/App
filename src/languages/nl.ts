@@ -797,141 +797,60 @@ const translations: TranslationDeepObject<typeof en> = {
         continueInWeb: 'doorgaan naar de webapp',
     },
     multifactorAuthentication: {
-        generic: {
-            cancelAuthenticationTitle: 'Weet je zeker dat je de authenticatie wilt annuleren?',
-            cancelAuthenticationDescription: 'Als je dit scherm sluit, wordt de authenticatie geannuleerd.',
+        reviewTransaction: {
+            reviewTransaction: 'Review transaction',
+            pleaseReview: 'Please review this transaction',
+            requiresYourReview: 'An Expensify Card transaction requires your review below.',
+            transactionDetails: 'Transaction details',
+            deny: 'Deny',
+            approve: 'Approve',
+            denyTransaction: 'Deny transaction',
+            transactionDenied: 'Transaction denied',
+            transactionApproved: 'Transaction approved!',
+            areYouSureToDeny: 'Are you sure? The transaction will be denied if you close this screen.',
+            youCanTryAgainAtMerchantOrReachOut: 'You can try again at the merchant. If you didn’t attempt this transaction, reach out to Concierge to report potential fraud.',
+            youNeedToTryAgainAtMerchant: 'This transaction was not verified, so we denied it. You’ll need to try again at the merchant.',
+            goBackToTheMerchant: 'Go back to the merchant site to continue the transaction.',
+            authorizationFailed: 'Your approval failed, so we denied this transaction. You can try again at the merchant.',
         },
-        approveTransaction: {
-            headerButtonTitle: 'Transactie goedkeuren',
-            pageTitle: 'Goedkeur deze transactie alstublieft',
-            pageContent: 'Een Expensify Card transactie vereist uw goedkeuring, controleer deze hieronder.',
-            transactionDetails: 'Transactiedetails',
-            denyTransactionButton: 'Transactie weigeren',
-            denyTransactionContent: 'De transactie wordt geweigerd als u dit scherm sluit.',
-            deny: 'Weigeren',
-            approve: 'Goedkeuren',
-        },
-        biometrics: {
-            biometricsNotRegistered: 'Biometrie (Niet geregistreerd)',
-            biometricsRegistered: 'Biometrie (Geregistreerd)',
-            biometricsTest: 'Biometrie testen',
-            notificationTitle: 'Verificatie geslaagd',
-            additionalFactorPageTitle: 'Laten we verifiëren dat u het bent',
-            additionalFactorMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Voer alstublieft de magic code in die is verzonden naar ${contactMethod}.`,
+        biometricsTest: {
+            biometricsTest: 'Biometrics test',
+            authenticationSuccessful: 'Authentication successful',
+            successfullyAuthenticatedUsing: ({authType}) => `You’ve successfully authenticated using ${authType}.`,
+            troubleshootBiometricsStatus: ({registered}) => `Biometrics (${registered ? 'Registered' : 'Not registered'})`,
+            deviceCouldNotBeRegistered: "Your device couldn't be registered.",
+            yourAttemptWasUnsuccessful: 'Your authentication attempt was unsuccessful.',
+            youCouldNotBeAuthenticated: 'You couldn’t be authenticated',
+            areYouSureToReject: 'Are you sure? The authentication attempt will be rejected if you close this screen.',
+            rejectAuthentication: 'Reject authentication',
             test: 'Test',
+            biometricsAuthentication: 'Biometrics authentication',
         },
-        revokePage: {
-            headerTitle: 'Gezicht/vingerafdruk verificatie',
-            revokeContent:
-                'Gezicht/vingerafdruk verificatie is ingeschakeld op een of meer apparaten. Het intrekken van toegang vereist een magic code voor de volgende gezicht/vingerafdruk verificatie op elk apparaat.',
-            reEnableContent:
-                'Gezicht/vingerafdruk verificatie is ingesteld op een of meer apparaten, maar vereist een magic code om opnieuw in te schakelen. Daarna kunt u hier toegang intrekken.',
-            confirmationContent: 'U heeft een magic code nodig voor de volgende gezicht/vingerafdruk verificatie op elk apparaat.',
-            bottomButtonContent: 'Toegang intrekken',
+        revokeAccess: {
+            verificationIsEnabledAndYouCanRevoke:
+                'Face/fingerprint verification is enabled on one or more devices. Revoking access will require a magic code for the next face/fingerprint verification on any device.',
+            revokeAccess: 'Revoke access',
+            faceOrFingerprintVerification: 'Face/fingerprint verification',
+            faceFingerprintOrPasskeys: 'Face/fingerprint & passkeys',
+            youWillNeedMagicCodeNextTime: 'You’ll need a magic code for the next face/fingerprint verification on any device.',
+            youHaveNotRegisteredAnyDevices: 'You haven’t registered any devices for face/fingerprint or passkey verification. Once you do, you can revoke that access here.',
         },
-        prompts: {
-            enableBiometricsPromptTitle: 'Verifieer uzelf met uw gezicht of vingerafdruk',
-            enableBiometricsPromptContent: 'Schakel snelle, veilige verificatie in met uw gezicht of vingerafdruk—geen wachtwoorden of codes vereist.',
-            enablePasskeyPromptTitle: 'Verifieer uzelf met een passkey',
-            enablePasskeyPromptContent: 'Schakel snelle, veilige verificatie in met een passkey - geen wachtwoorden of codes vereist.',
+        pleaseEnableInSystemSettings: 'Please enable face/fingerprint verification or set a device passcode in your system settings.',
+        oops: 'Oops, something went wrong',
+        looksLikeYouRanOutOfTime: 'Looks like you ran out of time! Please try again at the merchant.',
+        youRanOutOfTime: 'You ran out of time',
+        letsVerifyItsYou: 'Let’s verify it’s you',
+        verifyYourself: {
+            biometrics: 'Verify yourself with your face or fingerprint',
+            passkeys: 'Verify yourself with a passkey',
         },
-        uiText: {
-            transactionApproved: {
-                headerTitle: 'Transactie goedgekeurd',
-                title: 'Transactie goedgekeurd',
-            },
-            transactionDenied: {
-                headerTitle: 'Transactie geweigerd',
-                title: 'Transactie geweigerd',
-            },
-            outOfTime: {
-                headerTitle: 'Transactie geweigerd',
-                title: 'Je tijd is op!',
-            },
+        pleaseUpdateYourDeviceSettings: 'Please update your device settings',
+        devicePasscodeOrBiometricsMustBeEnabled: 'A device passcode or face/fingerprint login must be enabled in your device settings to review transactions.',
+        openDeviceSettings: 'Open device settings',
+        enableQuickVerification: {
+            biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
+            passkeys: 'Enable quick, secure verification using a passkey. No passwords or codes required.',
         },
-        /** Messages and titles displayed after multifactorial authentication operations */
-        statusMessage: {
-            successMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
-                `Je hebt de ${authorization ? 'uitdaging succesvol geautoriseerd' : 'authenticatie succesvol voltooid'}${because ? ` met ${because}` : ''}`,
-            failedMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
-                `Je ${authorization ? 'autorisatie' : 'authenticatie'} ${because ? `is mislukt: ${because}` : 'is niet gelukt'}`,
-            successTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? 'Autorisatie' : 'Authenticatie'} geslaagd`,
-            failedTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? 'Autorisatie' : 'Authenticatie'} mislukt`,
-            successTitleGeneral: 'Handeling geslaagd',
-            failedTitleGeneral: 'Handeling mislukt',
-        },
-        /** Title indicating multifactorial authentication registration status */
-        title: ({registered = true}: {registered?: boolean}) => `Multifactorauthenticatie (${registered ? 'Geregistreerd' : 'Niet geregistreerd'})`,
-        reason: {
-            /** Success messages for multifactorial authentication operations */
-            success: {
-                keySavedInSecureStore: 'Sleutel succesvol opgeslagen in SecureStore',
-                keyRetrievedFromSecureStore: 'Sleutel succesvol opgehaald uit SecureStore',
-                keyNotInSecureStore: 'Geen sleutel gevonden in SecureStore',
-                keyPairGenerated: 'Sleutelpaar succesvol gegenereerd',
-                tokenReceived: 'Token succesvol ontvangen',
-                tokenSigned: 'Token succesvol ondertekend',
-                verificationSuccess: 'Verificatie succesvol voltooid',
-                keyDeletedFromSecureStore: 'Sleutel succesvol verwijderd uit SecureStore',
-            },
-            /** Error messages for multifactorial authentication operation failures */
-            error: {
-                unableToSaveKey: 'Sleutel kon niet worden opgeslagen in SecureStore',
-                unableToRetrieve: 'Sleutel kon niet worden opgehaald uit SecureStore',
-                unableToDelete: 'Sleutel kon niet worden verwijderd uit SecureStore',
-                badToken: 'Ongeldig of ontbrekend token',
-                tokenMissing: 'Token ontbreekt',
-                keyMissing: 'Sleutel ontbreekt',
-                signatureMissing: 'Handtekening ontbreekt',
-                challengeIsAlreadySigned: 'Uitdaging is al ondertekend',
-                challengeRejected: 'Uitdaging afgewezen door de API',
-                validateCodeMissing: 'Verificatiecode ontbreekt',
-                keyMissingOnTheBE: 'Sleutel lokaal opgeslagen maar niet gevonden op de server',
-                multifactorAuthenticationNotSupported: 'Dit apparaat ondersteunt geen multifactorauthenticatie',
-                badRequest: 'Ongeldig verzoek',
-                biometricsNotAllowed: 'Biometrische acties zijn niet toegestaan voor dit scenario',
-            },
-            /** Error messages specific to Expo's SecureStore */
-            expoErrors: {
-                notInForeground: 'De app moet op de voorgrond draaien',
-                alreadyInProgress: 'Authenticatie is al bezig',
-                canceled: 'Authenticatie geannuleerd door gebruiker',
-                generic: 'Er is een fout opgetreden',
-                keyExists: 'Deze sleutel bestaat al',
-                noAuthentication: 'Geen beschikbare authenticatiemethoden',
-                oldAndroid: 'Deze functie wordt niet ondersteund op je apparaat',
-            },
-            /** Generic status messages */
-            generic: {
-                notRequested: 'Nog geen verzoek verzonden',
-                apiError: 'Er is een API-fout opgetreden',
-                authFactorsError: 'Fout in authenticatiefactoren',
-                authFactorsSufficient: 'Authenticatiefactoren succesvol geverifieerd',
-            },
-        },
-        /** API response messages */
-        apiResponse: {
-            registrationRequired: 'Registratie vereist',
-            challengeGenerated: 'Uitdaging succesvol gegenereerd',
-            noPublicKey: 'Geen openbare sleutel opgegeven',
-            keyAlreadyRegistered: 'Deze openbare sleutel is al geregistreerd',
-            validationCodeRequired: 'Voer een verificatiecode in',
-            validationCodeInvalid: 'Ongeldige verificatiecode',
-            multifactorAuthenticationSuccess: 'Multifactorauthenticatie succesvol geregistreerd',
-            noTransactionID: 'Transactie-ID niet opgegeven',
-            userNotRegistered: 'Gebruikersregistratie niet gevonden',
-            unableToAuthorize: 'Autorisatie mislukt met de opgegeven gegevens',
-            userAuthorized: 'Gebruiker succesvol geautoriseerd',
-            badRequest: 'Ongeldig verzoek',
-            signatureInvalid: 'Ongeldige handtekening',
-            unknownResponse: 'Onbekend type antwoord',
-            noPublicKeysRegistered: 'Geen openbare sleutels geregistreerd',
-            revokedAccess: 'Toegang op alle apparaten succesvol ingetrokken',
-        },
-        /** User input prompts during multifactorial authentication flows */
-        provideValidateCode: 'Voer je verificatiecode in om door te gaan',
-        softPromptTitle: 'Verifieer jezelf met je gezicht of vingerafdruk',
-        softPromptDescription: 'Schakel snelle, veilige verificatie in met je gezicht of vingerafdruk – geen wachtwoorden of codes nodig.',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

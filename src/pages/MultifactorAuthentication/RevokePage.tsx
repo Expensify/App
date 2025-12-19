@@ -38,7 +38,7 @@ function MultifactorAuthenticationRevokePage() {
     return (
         <ScreenWrapper testID={MultifactorAuthenticationRevokePage.displayName}>
             <HeaderWithBackButton
-                title={translate('multifactorAuthentication.revokePage.headerTitle')}
+                title={translate('multifactorAuthentication.revokeAccess.faceOrFingerprintVerification')}
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />

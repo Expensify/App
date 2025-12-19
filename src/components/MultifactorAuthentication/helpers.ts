@@ -25,9 +25,10 @@ const EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS: MultifactorAuthenticationStatus<M
     value: {
         scenario: undefined,
     },
-    reason: 'multifactorAuthentication.reason.generic.notRequested',
-    message: 'No request made yet',
-    title: 'No request made yet',
+    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ACTION_MADE_YET,
+    headerTitle: 'Biometrics authentication',
+    title: 'You couldn’t be authenticated',
+    description: 'Your authentication attempt was unsuccessful.',
     step: {
         ...failedStep,
     },
@@ -108,7 +109,7 @@ function createValidateCodeMissingStatus(prevStatus: MultifactorAuthenticationSt
     return {
         ...prevStatus,
         step: createBaseStep(false, false, CONST.MULTIFACTOR_AUTHENTICATION.FACTORS.VALIDATE_CODE),
-        reason: 'multifactorAuthentication.reason.error.validateCodeMissing',
+        reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.VALIDATE_CODE_MISSING,
     };
 }
 
@@ -215,16 +216,17 @@ const createBiometricsNotAllowedStatus = <T extends MultifactorAuthenticationSce
                 scenario,
                 payload: extractAdditionalParameters<T>(params),
             },
-            reason: 'multifactorAuthentication.reason.error.biometricsNotAllowed',
+            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BIOMETRICS_NOT_ALLOWED,
         },
         authorization ? CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION : CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION,
     ];
 };
 
-const createEmptyStatus = <T>(initialValue: T, defaultText: string): MultifactorAuthenticationStatus<T> => ({
-    reason: 'multifactorAuthentication.reason.generic.notRequested',
-    message: defaultText,
-    title: defaultText,
+const createEmptyStatus = <T>(initialValue: T, {headerTitle, title, description}: {headerTitle: string; title: string; description: string}): MultifactorAuthenticationStatus<T> => ({
+    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ACTION_MADE_YET,
+    headerTitle,
+    title,
+    description,
     value: initialValue,
     step: {
         wasRecentStepSuccessful: undefined,
@@ -312,7 +314,7 @@ const badRequestStatus = (
             ...currentStatus.value,
             ...notificationPaths,
         },
-        reason: 'multifactorAuthentication.reason.error.badRequest',
+        reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.BAD_REQUEST,
         step: {
             ...failedStep,
         },

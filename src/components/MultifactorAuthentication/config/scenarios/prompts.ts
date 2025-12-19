@@ -5,13 +5,13 @@ import type {MultifactorAuthenticationPrompt} from '@components/MultifactorAuthe
 export default {
     'enable-biometrics': {
         animation: LottieAnimations.Fingerprint,
-        title: 'multifactorAuthentication.prompts.enableBiometricsPromptTitle',
-        subtitle: 'multifactorAuthentication.prompts.enableBiometricsPromptContent',
+        title: 'multifactorAuthentication.verifyYourself.biometrics',
+        subtitle: 'multifactorAuthentication.enableQuickVerification.biometrics',
     },
     'enable-passkeys': {
         animation: LottieAnimations.Fingerprint,
-        title: 'multifactorAuthentication.prompts.enablePasskeyPromptTitle',
-        subtitle: 'multifactorAuthentication.prompts.enablePasskeyPromptContent',
+        title: 'multifactorAuthentication.verifyYourself.passkeys',
+        subtitle: 'multifactorAuthentication.enableQuickVerification.passkeys',
     },
 } as const satisfies MultifactorAuthenticationPrompt;
 /* eslint-enable @typescript-eslint/naming-convention */

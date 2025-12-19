@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import type {AuthTypeName} from '@components/MultifactorAuthentication/types';
 import type CONST from '@src/CONST';
 import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
@@ -8,6 +9,11 @@ import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 type CharacterLengthLimitParams = {
     limit: number;
     length: number;
+};
+
+type MultifactorAuthenticationTranslationParams = {
+    authType?: AuthTypeName;
+    registered?: boolean;
 };
 
 type ZipCodeExampleFormatParams = {
@@ -1107,4 +1113,5 @@ export type {
     FocusModeUpdateParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
+    MultifactorAuthenticationTranslationParams,
 };

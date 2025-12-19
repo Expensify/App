@@ -1,4 +1,4 @@
-import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
+import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
@@ -20,35 +20,28 @@ export default {
             iconWidth: variables.transactionHandWidth,
             iconHeight: variables.transactionHandHeight,
             padding: spacing.p0,
-            headerTitle: 'multifactorAuthentication.uiText.transactionApproved.headerTitle',
-            title: 'multifactorAuthentication.uiText.transactionApproved.title',
+            headerTitle: 'multifactorAuthentication.reviewTransaction.reviewTransaction',
+            title: 'multifactorAuthentication.reviewTransaction.transactionApproved',
         },
         failure: {
             illustration: 'DeniedTransactionHand',
             iconWidth: variables.transactionHandWidth,
             iconHeight: variables.transactionHandHeight,
             padding: spacing.p0,
-            headerTitle: 'multifactorAuthentication.uiText.transactionDenied.headerTitle',
-            title: 'multifactorAuthentication.uiText.transactionDenied.title',
+            headerTitle: 'multifactorAuthentication.reviewTransaction.reviewTransaction',
+            title: 'multifactorAuthentication.reviewTransaction.transactionDenied',
         },
         outOfTime: {
-            illustration: 'RunOutOfTime',
-            iconWidth: variables.runOutOfTimeWidth,
-            iconHeight: variables.runOutOfTimeHeight,
-            padding: spacing.p0,
-            headerTitle: 'multifactorAuthentication.uiText.outOfTime.headerTitle',
-            title: 'multifactorAuthentication.uiText.outOfTime.title',
+            headerTitle: 'multifactorAuthentication.reviewTransaction.reviewTransaction',
         },
     },
     MODALS: {
         cancelConfirmation: {
-            title: 'common.areYouSure',
-            description: 'multifactorAuthentication.approveTransaction.denyTransactionContent',
-            confirmButtonText: 'multifactorAuthentication.approveTransaction.denyTransactionButton',
-            cancelButtonText: 'common.cancel',
+            description: 'multifactorAuthentication.reviewTransaction.areYouSureToDeny',
+            confirmButtonText: 'multifactorAuthentication.reviewTransaction.denyTransaction',
         },
     },
-    nativePromptTitle: 'multifactorAuthentication.approveTransaction.headerButtonTitle',
-} as const satisfies MultifactorAuthenticationScenarioConfig<Payload>;
+    nativePromptTitle: 'multifactorAuthentication.letsVerifyItsYou',
+} as const satisfies MultifactorAuthenticationScenarioCustomConfig<Payload>;
 
 export type {Payload};

@@ -89,11 +89,11 @@ function MultifactorAuthenticationApproveTransactionContent({transactionID}: Mul
     return (
         <View style={styles.mh5}>
             <View style={[styles.gap2, styles.mb6]}>
-                <Text style={styles.textHeadlineLineHeightXXL}>{translate('multifactorAuthentication.approveTransaction.pageTitle')}</Text>
-                <Text style={styles.textSupporting}>{translate('multifactorAuthentication.approveTransaction.pageContent')}</Text>
+                <Text style={styles.textHeadlineLineHeightXXL}>{translate('multifactorAuthentication.reviewTransaction.pleaseReview')}</Text>
+                <Text style={styles.textSupporting}>{translate('multifactorAuthentication.reviewTransaction.requiresYourReview')}</Text>
             </View>
             <View style={styles.mb2}>
-                <Text style={styles.textMicroSupporting}>{translate('multifactorAuthentication.approveTransaction.transactionDetails')}</Text>
+                <Text style={styles.textMicroSupporting}>{translate('multifactorAuthentication.reviewTransaction.transactionDetails')}</Text>
             </View>
             <TransactionPreview
                 allReports={allReports}

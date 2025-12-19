@@ -31,7 +31,7 @@ function MultifactorAuthenticationNotificationPage({route}: MultifactorAuthentic
 
     const {asset: icon} = useMemoizedLazyAsset(() => loadIllustration(data.illustration));
 
-    const {headerTitle, title, content} = {headerTitle: info.headerTitle, title: info.title, content: info.message};
+    const {headerTitle, title, description} = info;
 
     if (!data) {
         return <NotFoundPage />;
@@ -52,7 +52,7 @@ function MultifactorAuthenticationNotificationPage({route}: MultifactorAuthentic
                     iconHeight={data.iconHeight}
                     title={title}
                     titleStyles={styles.mb2}
-                    subtitle={content}
+                    subtitle={description}
                     subtitleStyle={styles.textSupporting}
                     containerStyle={styles.ph5}
                     testID={MultifactorAuthenticationNotificationPage.displayName}

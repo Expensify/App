@@ -2,7 +2,12 @@ import type {ViewStyle} from 'react-native';
 import type {EmptyObject, ValueOf} from 'type-fest';
 import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
-import type {AllMultifactorAuthenticationFactors, MultifactorAuthenticationActionParams, MultifactorAuthenticationKeyInfo} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {
+    AllMultifactorAuthenticationFactors,
+    MultifactorAuthenticationActionParams,
+    MultifactorAuthenticationKeyInfo,
+    MultifactorAuthenticationReason,
+} from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type SCREENS from '@src/SCREENS';
@@ -26,8 +31,9 @@ type MultifactorAuthenticationNotificationConfig = {
     iconWidth: number;
     iconHeight: number;
     padding: ViewStyle;
-    headerTitle?: TranslationPaths;
-    title?: TranslationPaths;
+    headerTitle: TranslationPaths;
+    title: TranslationPaths;
+    description: TranslationPaths;
 };
 
 type MultifactorAuthenticationPrompt = Record<string, MultifactorAuthenticationPromptConfig>;
@@ -35,8 +41,14 @@ type MultifactorAuthenticationPrompt = Record<string, MultifactorAuthenticationP
 type MultifactorAuthenticationNotification = Record<string, MultifactorAuthenticationNotificationConfig>;
 
 type MultifactorAuthenticationModal = {
-    cancelConfirmation?: MultifactorAuthenticationCancelConfirm;
+    cancelConfirmation: MultifactorAuthenticationCancelConfirm;
 };
+
+type MultifactorAuthenticationModalOptional = {
+    cancelConfirmation?: Partial<MultifactorAuthenticationCancelConfirm>;
+};
+
+type MultifactorAuthenticationNotificationOptional = Record<string, Partial<MultifactorAuthenticationNotificationConfig>>;
 
 type MultifactorAuthenticationConfigRecordConst = typeof MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG;
 
@@ -52,8 +64,6 @@ type MultifactorAuthenticationNotificationRecord = Record<MultifactorAuthenticat
 
 type MultifactorAuthenticationNotificationType<T extends MultifactorAuthenticationScenario> = `${Lowercase<T>}-${Lowercase<MultifactorAuthenticationNotificationScenarioOptions[T]>}`;
 
-type MultifactorAuthenticationUIRecord = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationUI>;
-
 type MultifactorAuthenticationUI = {
     MODALS: MultifactorAuthenticationModal;
     NOTIFICATIONS: MultifactorAuthenticationNotification;
@@ -63,13 +73,11 @@ type AllMultifactorAuthenticationNotificationType = MultifactorAuthenticationNot
 
 type MultifactorAuthenticationNotificationMap = Record<AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationNotificationConfig>;
 
-type MultifactorAuthenticationNotificationMapEntry = Record<MultifactorAuthenticationNotificationType<MultifactorAuthenticationScenario>, MultifactorAuthenticationNotificationConfig>;
-
 type MultifactorAuthenticationNotificationOptions = keyof MultifactorAuthenticationScenarioNotificationConst[MultifactorAuthenticationScenario];
 
 type MultifactorAuthenticationScenarioResponse = {
     httpCode: number;
-    reason: TranslationPaths;
+    reason: MultifactorAuthenticationReason;
 };
 
 type MultifactorAuthenticationScreen = ValueOf<typeof SCREENS.MULTIFACTOR_AUTHENTICATION>;
@@ -83,8 +91,19 @@ type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> =
     allowedAuthentication: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>;
     screen: MultifactorAuthenticationScreen;
     pure?: true;
-    nativePromptTitle?: TranslationPaths;
+    nativePromptTitle: TranslationPaths;
 } & MultifactorAuthenticationUI;
+
+type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unknown> = EmptyObject> = Omit<
+    MultifactorAuthenticationScenarioConfig<T>,
+    'MODALS' | 'NOTIFICATIONS' | 'nativePromptTitle'
+> & {
+    nativePromptTitle?: TranslationPaths;
+    MODALS?: MultifactorAuthenticationModalOptional;
+    NOTIFICATIONS: MultifactorAuthenticationNotificationOptional;
+};
+
+type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig<never>, 'nativePromptTitle' | 'MODALS' | 'NOTIFICATIONS'>;
 
 type MultifactorAuthenticationScenarioConfigRecord = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfig<never>>;
 
@@ -141,7 +160,6 @@ export type {
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioParameters,
     MultifactorAuthenticationScenario,
-    MultifactorAuthenticationNotificationMapEntry,
     MultifactorAuthenticationNotificationOptions,
     MultifactorAuthenticationScenarioParams,
     MultifactorAuthenticationPromptType,
@@ -150,5 +168,6 @@ export type {
     MultifactorAuthenticationUI,
     MultifactorAuthenticationScenarioConfigRecord,
     MultifactorAuthenticationProcessScenarioParameters,
-    MultifactorAuthenticationUIRecord,
+    MultifactorAuthenticationDefaultUIConfig,
+    MultifactorAuthenticationScenarioCustomConfig,
 };

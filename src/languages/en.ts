@@ -98,6 +98,7 @@ import type {
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
+    MultifactorAuthenticationTranslationParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
     NextStepParams,
@@ -782,140 +783,60 @@ const translations = {
         continueInWeb: 'continue to the web app',
     },
     multifactorAuthentication: {
-        generic: {
-            cancelAuthenticationTitle: 'Are you sure you want to cancel the authentication?',
-            cancelAuthenticationDescription: 'The authentication will be canceled if you close this screen.',
-        },
-        approveTransaction: {
-            headerButtonTitle: 'Approve transaction',
-            pageTitle: 'Please approve this transaction',
-            pageContent: 'An Expensify Card transaction requires your approval, please review it below.',
-            transactionDetails: 'Transaction Details',
-            denyTransactionButton: 'Deny transaction',
-            denyTransactionContent: 'The transaction will be denied if you close this screen.',
+        reviewTransaction: {
+            reviewTransaction: 'Review transaction',
+            pleaseReview: 'Please review this transaction',
+            requiresYourReview: 'An Expensify Card transaction requires your review below.',
+            transactionDetails: 'Transaction details',
             deny: 'Deny',
             approve: 'Approve',
+            denyTransaction: 'Deny transaction',
+            transactionDenied: 'Transaction denied',
+            transactionApproved: 'Transaction approved!',
+            areYouSureToDeny: 'Are you sure? The transaction will be denied if you close this screen.',
+            youCanTryAgainAtMerchantOrReachOut: 'You can try again at the merchant. If you didn’t attempt this transaction, reach out to Concierge to report potential fraud.',
+            youNeedToTryAgainAtMerchant: 'This transaction was not verified, so we denied it. You’ll need to try again at the merchant.',
+            goBackToTheMerchant: 'Go back to the merchant site to continue the transaction.',
+            authorizationFailed: 'Your approval failed, so we denied this transaction. You can try again at the merchant.',
         },
-        biometrics: {
-            biometricsNotRegistered: 'Biometrics (Not registered)',
-            biometricsRegistered: 'Biometrics (Registered)',
-            biometricsTest: 'Testing Biometrics',
-            notificationTitle: 'Authentication successful',
-            additionalFactorPageTitle: "Let's verify it's you",
-            additionalFactorMagicCodeContent: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod}.`,
+        biometricsTest: {
+            biometricsTest: 'Biometrics test',
+            authenticationSuccessful: 'Authentication successful',
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `You’ve successfully authenticated using ${authType}.`,
+            troubleshootBiometricsStatus: ({registered}: MultifactorAuthenticationTranslationParams) => `Biometrics (${registered ? 'Registered' : 'Not registered'})`,
+            deviceCouldNotBeRegistered: "Your device couldn't be registered.",
+            yourAttemptWasUnsuccessful: 'Your authentication attempt was unsuccessful.',
+            youCouldNotBeAuthenticated: 'You couldn’t be authenticated',
+            areYouSureToReject: 'Are you sure? The authentication attempt will be rejected if you close this screen.',
+            rejectAuthentication: 'Reject authentication',
             test: 'Test',
+            biometricsAuthentication: 'Biometrics authentication',
         },
-        revokePage: {
-            headerTitle: 'Face/fingerprint verification',
-            revokeContent:
+        revokeAccess: {
+            verificationIsEnabledAndYouCanRevoke:
                 'Face/fingerprint verification is enabled on one or more devices. Revoking access will require a magic code for the next face/fingerprint verification on any device.',
-            reEnableContent: 'Face/fingerprint verification is set up on one or more devices, but requires a magic code to re-enable. After that, you can revoke access here.',
-            confirmationContent: 'You’ll need a magic code for the next face/fingerprint verification on any device.',
-            bottomButtonContent: 'Revoke access',
+            revokeAccess: 'Revoke access',
+            faceOrFingerprintVerification: 'Face/fingerprint verification',
+            faceFingerprintOrPasskeys: 'Face/fingerprint & passkeys',
+            youWillNeedMagicCodeNextTime: 'You’ll need a magic code for the next face/fingerprint verification on any device.',
+            youHaveNotRegisteredAnyDevices: 'You haven’t registered any devices for face/fingerprint or passkey verification. Once you do, you can revoke that access here.',
         },
-        prompts: {
-            enableBiometricsPromptTitle: 'Verify yourself with your face or fingerprint',
-            enableBiometricsPromptContent: 'Enable quick, secure verification using your face or fingerprint—no passwords or codes required.',
-            enablePasskeyPromptTitle: 'Verify yourself with a passkey',
-            enablePasskeyPromptContent: 'Enable quick, secure verification using a passkey - no passwords or codes required.',
+        pleaseEnableInSystemSettings: 'Please enable face/fingerprint verification or set a device passcode in your system settings.',
+        oops: 'Oops, something went wrong',
+        looksLikeYouRanOutOfTime: 'Looks like you ran out of time! Please try again at the merchant.',
+        youRanOutOfTime: 'You ran out of time',
+        letsVerifyItsYou: 'Let’s verify it’s you',
+        verifyYourself: {
+            biometrics: 'Verify yourself with your face or fingerprint',
+            passkeys: 'Verify yourself with a passkey',
         },
-        uiText: {
-            transactionApproved: {
-                headerTitle: 'Transaction approved',
-                title: 'Transaction approved',
-            },
-            transactionDenied: {
-                headerTitle: 'Transaction denied',
-                title: 'Transaction denied',
-            },
-            outOfTime: {
-                headerTitle: 'Transaction denied',
-                title: 'You ran out of time!',
-            },
+        enableQuickVerification: {
+            biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
+            passkeys: 'Enable quick, secure verification using a passkey. No passwords or codes required.',
         },
-        /** Messages and titles displayed after multifactorial authentication operations */
-        statusMessage: {
-            successMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
-                `You have successfully ${authorization ? 'authorized the challenge' : 'authenticated'}${because ? ` using ${because}` : ''}`,
-            failedMessage: ({authorization, because}: {authorization?: boolean; because?: string}) =>
-                `Your ${authorization ? 'authorization' : 'authentication'} ${because ? `failed: ${because}` : 'was unsuccessful'}`,
-            successTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? 'Authorization' : 'Authentication'} successful`,
-            failedTitle: ({authorization}: {authorization?: boolean}) => `${authorization ? 'Authorization' : 'Authentication'} failed`,
-            successTitleGeneral: 'Operation successful',
-            failedTitleGeneral: 'Operation failed',
-        },
-        /** Title indicating multifactorial authentication registration status */
-        title: ({registered = true}: {registered?: boolean}) => `Multifactor Authentication (${registered ? 'Registered' : 'Not registered'})`,
-        reason: {
-            /** Success messages for multifactorial authentication operations */
-            success: {
-                keySavedInSecureStore: 'Key successfully saved in SecureStore',
-                keyRetrievedFromSecureStore: 'Key successfully retrieved from SecureStore',
-                keyNotInSecureStore: 'No key found in SecureStore',
-                keyPairGenerated: 'Key pair successfully generated',
-                tokenReceived: 'Token received successfully',
-                tokenSigned: 'Token signed successfully',
-                verificationSuccess: 'Verification completed successfully',
-                keyDeletedFromSecureStore: 'Key successfully deleted from SecureStore',
-            },
-            /** Error messages for multifactorial authentication operation failures */
-            error: {
-                unableToSaveKey: 'Failed to save key in SecureStore',
-                unableToRetrieve: 'Failed to retrieve key from SecureStore',
-                unableToDelete: 'Failed to delete key from SecureStore',
-                badToken: 'Invalid or missing token',
-                tokenMissing: 'Token is missing',
-                keyMissing: 'Key is missing',
-                signatureMissing: 'Signature is missing',
-                challengeIsAlreadySigned: 'Challenge has already been signed',
-                challengeRejected: 'Challenge rejected by API',
-                validateCodeMissing: 'Validation code is missing',
-                keyMissingOnTheBE: 'Key is stored locally but not found on server',
-                multifactorAuthenticationNotSupported: 'This device does not support multifactorial authentication',
-                badRequest: 'Bad request',
-                biometricsNotAllowed: 'The biometrics actions are not allowed for this scenario',
-            },
-            /** Error messages specific to Expo's SecureStore */
-            expoErrors: {
-                notInForeground: 'Application must be in the foreground',
-                alreadyInProgress: 'Authentication already in progress',
-                canceled: 'Authentication canceled by user',
-                generic: 'An error occurred',
-                keyExists: 'This key already exists',
-                noAuthentication: 'No authentication methods available',
-                oldAndroid: 'This feature is not supported on your device',
-            },
-            /** Generic status messages */
-            generic: {
-                notRequested: 'No request made yet',
-                apiError: 'API error occurred',
-                authFactorsError: 'Authentication factors error',
-                authFactorsSufficient: 'Authentication factors verified',
-            },
-        },
-        /** API response messages */
-        apiResponse: {
-            registrationRequired: 'Registration is required',
-            challengeGenerated: 'Challenge generated successfully',
-            noPublicKey: 'Public key not provided',
-            keyAlreadyRegistered: 'This public key is already registered',
-            validationCodeRequired: 'Please provide a validation code',
-            validationCodeInvalid: 'Invalid validation code',
-            multifactorAuthenticationSuccess: 'Multifactor authentication registration successful',
-            noTransactionID: 'Transaction ID not provided',
-            userNotRegistered: 'User registration not found',
-            unableToAuthorize: 'Authorization failed with provided credentials',
-            userAuthorized: 'User authorized successfully',
-            badRequest: 'Invalid request',
-            signatureInvalid: 'Signature is invalid',
-            unknownResponse: 'Unrecognized response type',
-            noPublicKeysRegistered: 'No public keys are currently registered',
-            revokedAccess: 'Successfully revoked access on all devices',
-        },
-        /** User input prompts during multifactorial authentication flows */
-        provideValidateCode: 'Enter your verification code to continue',
-        softPromptTitle: 'Verify yourself with your face or fingerprint',
-        softPromptDescription: 'Enable quick, secure verification using your face or fingerprint - no passwords or codes required.',
+        pleaseUpdateYourDeviceSettings: 'Please update your device settings',
+        devicePasscodeOrBiometricsMustBeEnabled: 'A device passcode or face/fingerprint login must be enabled in your device settings to review transactions.',
+        openDeviceSettings: 'Open device settings',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`

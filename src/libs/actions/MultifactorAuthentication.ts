@@ -25,20 +25,20 @@ import CONST from '@src/CONST';
 /** Send multifactorial authentication public key to the API along with the validation code if required. */
 async function registerBiometrics({keyInfo, validateCode}: MultifactorAuthenticationScenarioParameters['REGISTER-BIOMETRICS']) {
     if (!validateCode) {
-        return parseHttpCode(401, CONST.MULTIFACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.REGISTER_BIOMETRICS);
+        return parseHttpCode(401, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_BIOMETRICS);
     }
 
     const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REGISTER_BIOMETRICS, {keyInfo, validateCode}, {});
 
     const {jsonCode} = response ?? {};
-    return parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.REGISTER_BIOMETRICS);
+    return parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REGISTER_BIOMETRICS);
 }
 
 async function revokePublicKeys() {
     const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS, {}, {});
 
     const {jsonCode} = response ?? {};
-    return parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS);
+    return parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVOKE_MULTIFACTOR_AUTHENTICATION_KEYS);
 }
 
 /** Ask API for the multifactorial authentication challenge. */
@@ -47,7 +47,7 @@ async function requestBiometricChallenge() {
     const {jsonCode, challenge, publicKeys} = response ?? {};
 
     return {
-        ...parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.REQUEST_BIOMETRIC_CHALLENGE),
+        ...parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REQUEST_BIOMETRIC_CHALLENGE),
         challenge,
         publicKeys,
     };
@@ -62,26 +62,26 @@ async function requestBiometricChallenge() {
  */
 async function authorizeTransaction({transactionID, signedChallenge}: MultifactorAuthenticationScenarioParameters['AUTHORIZE-TRANSACTION']) {
     if (!signedChallenge) {
-        return parseHttpCode(400, CONST.MULTIFACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.AUTHORIZE_TRANSACTION);
+        return parseHttpCode(400, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.AUTHORIZE_TRANSACTION);
     }
 
     const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.AUTHORIZE_TRANSACTION, {transactionID, signedChallenge}, {});
 
     const {jsonCode} = response ?? {};
 
-    return parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.AUTHORIZE_TRANSACTION);
+    return parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.AUTHORIZE_TRANSACTION);
 }
 
 async function biometricsTest({signedChallenge}: MultifactorAuthenticationScenarioParameters['BIOMETRICS-TEST']) {
     if (!signedChallenge) {
-        return parseHttpCode(400, CONST.MULTIFACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.BIOMETRICS_TEST);
+        return parseHttpCode(400, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.BIOMETRICS_TEST);
     }
 
     const response = await makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.BIOMETRICS_TEST, {signedChallenge}, {});
 
     const {jsonCode} = response ?? {};
 
-    return parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.RESPONSE_TRANSLATION_PATH.BIOMETRICS_TEST);
+    return parseHttpCode(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.BIOMETRICS_TEST);
 }
 
 export {registerBiometrics, requestBiometricChallenge, authorizeTransaction, revokePublicKeys, biometricsTest};

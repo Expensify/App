@@ -42,13 +42,14 @@ function MultifactorAuthenticationScenarioApproveTransactionPage({route}: Multif
         if (isConfirmModalVisible) {
             hideConfirmModal();
         }
+        // TODO: MFA/Dev should not be done here
         trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE, 'authorize-transaction-failure');
     };
 
     return (
         <ScreenWrapper testID={MultifactorAuthenticationScenarioApproveTransactionPage.displayName}>
             <HeaderWithBackButton
-                title={translate('multifactorAuthentication.approveTransaction.headerButtonTitle')}
+                title={translate('multifactorAuthentication.reviewTransaction.reviewTransaction')}
                 onBackButtonPress={showConfirmModal}
                 shouldShowBackButton
             />

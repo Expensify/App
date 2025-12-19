@@ -1,7 +1,4 @@
-import type {MultifactorAuthenticationScenarioConfig} from '@components/MultifactorAuthentication/config/types';
-// eslint-disable-next-line no-restricted-imports
-import spacing from '@styles/utils/spacing';
-import variables from '@styles/variables';
+import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 import {biometricsTest} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
@@ -13,33 +10,13 @@ export default {
     pure: true,
     NOTIFICATIONS: {
         success: {
-            illustration: 'OpenPadlock',
-            iconWidth: variables.openPadlockWidth,
-            iconHeight: variables.openPadlockHeight,
-            padding: spacing.p2,
+            headerTitle: 'multifactorAuthentication.biometricsTest.biometricsTest',
         },
         failure: {
-            illustration: 'HumptyDumpty',
-            iconWidth: variables.humptyDumptyWidth,
-            iconHeight: variables.humptyDumptyHeight,
-            padding: spacing.p0,
+            headerTitle: 'multifactorAuthentication.biometricsTest.biometricsTest',
         },
         outOfTime: {
-            illustration: 'RunOutOfTime',
-            iconWidth: variables.runOutOfTimeWidth,
-            iconHeight: variables.runOutOfTimeHeight,
-            padding: spacing.p0,
-            headerTitle: 'multifactorAuthentication.uiText.outOfTime.headerTitle',
-            title: 'multifactorAuthentication.uiText.outOfTime.title',
+            headerTitle: 'multifactorAuthentication.biometricsTest.biometricsTest',
         },
     },
-    MODALS: {
-        cancelConfirmation: {
-            title: 'common.areYouSure',
-            description: 'multifactorAuthentication.approveTransaction.denyTransactionContent',
-            confirmButtonText: 'multifactorAuthentication.approveTransaction.denyTransactionButton',
-            cancelButtonText: 'common.cancel',
-        },
-    },
-    nativePromptTitle: 'multifactorAuthentication.biometrics.additionalFactorPageTitle',
-} as const satisfies MultifactorAuthenticationScenarioConfig;
+} as const satisfies MultifactorAuthenticationScenarioCustomConfig;

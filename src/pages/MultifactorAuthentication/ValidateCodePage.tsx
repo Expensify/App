@@ -37,8 +37,8 @@ function MultifactorAuthenticationValidateCodePage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
-    const title: TranslationPaths = 'multifactorAuthentication.biometrics.additionalFactorPageTitle';
-    const description: TranslationPaths = 'multifactorAuthentication.biometrics.additionalFactorMagicCodeContent';
+    const title: TranslationPaths = 'multifactorAuthentication.letsVerifyItsYou';
+    const description: TranslationPaths = 'contacts.enterMagicCode';
     const contactMethod = account?.primaryLogin ?? '';
     const autoComplete: AutoCompleteVariant = 'one-time-code';
     const resendButtonText: TranslationPaths = 'validateCodeForm.magicCodeNotReceived';

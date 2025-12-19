@@ -8,7 +8,6 @@ import type {
     MultifactorAuthenticationScenarioResponseWithSuccess,
 } from '@components/MultifactorAuthentication/config/types';
 import {registerBiometrics} from '@libs/actions/MultifactorAuthentication';
-import type {TranslationPaths} from '@src/languages/types';
 import {base64URL} from './ED25519';
 import type {Base64URL, MultifactorAuthenticationChallengeObject, SignedChallenge} from './ED25519/types';
 import type {
@@ -16,33 +15,34 @@ import type {
     MultifactorAuthenticationFactor,
     MultifactorAuthenticationKeyInfo,
     MultifactorAuthenticationPartialStatus,
-    MultifactorAuthenticationResponseTranslationPath,
+    MultifactorAuthenticationReason,
+    MultifactorAuthenticationResponseMap,
 } from './types';
 import VALUES, {MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS} from './VALUES';
 
 /** Helper method to create an object with an HTTP code and the reason translation path */
 function parseHttpCode(
     jsonCode: string | number | undefined,
-    source: ValueOf<Omit<MultifactorAuthenticationResponseTranslationPath, 'UNKNOWN'>>,
+    source: ValueOf<Omit<MultifactorAuthenticationResponseMap, 'UNKNOWN'>>,
 ): {
     httpCode: number;
-    reason: TranslationPaths;
+    reason: MultifactorAuthenticationReason;
 } {
     const httpCode = Number(jsonCode) || 0;
-    const translation = source[httpCode as keyof typeof source] ?? VALUES.RESPONSE_TRANSLATION_PATH.UNKNOWN;
+    const reason = source[httpCode as keyof typeof source] ?? VALUES.API_RESPONSE_MAP.UNKNOWN;
 
     return {
         httpCode,
-        reason: `multifactorAuthentication.apiResponse.${translation}` as TranslationPaths,
+        reason,
     };
 }
 
-function factorMissingReason(factor: MultifactorAuthenticationFactor): TranslationPaths {
-    return MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS.FACTOR_MISSING_REASONS[factor] ?? 'multifactorAuthentication.reason.generic.authFactorsError';
+function factorMissingReason(factor: MultifactorAuthenticationFactor): MultifactorAuthenticationReason {
+    return MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS.FACTOR_MISSING_REASONS[factor] ?? VALUES.REASON.GENERIC.FACTORS_ERROR;
 }
 
-function factorInvalidReason(factor: MultifactorAuthenticationFactor): TranslationPaths {
-    return MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS.FACTOR_INVALID_REASONS[factor] ?? 'multifactorAuthentication.reason.generic.authFactorsError';
+function factorInvalidReason(factor: MultifactorAuthenticationFactor): MultifactorAuthenticationReason {
+    return MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS.FACTOR_INVALID_REASONS[factor] ?? VALUES.REASON.GENERIC.FACTORS_ERROR;
 }
 
 /**
@@ -98,7 +98,7 @@ function areMultifactorAuthenticationFactorsSufficient(
             wasRecentStepSuccessful: undefined,
             isRequestFulfilled: false,
         },
-        reason: 'multifactorAuthentication.reason.generic.authFactorsSufficient',
+        reason: VALUES.REASON.GENERIC.FACTORS_VERIFIED,
     };
 }
 
@@ -120,10 +120,10 @@ const authorizeMultifactorAuthenticationPostMethod = <T extends MultifactorAuthe
     // Determine the appropriate error reason
     let reason = status.reason;
 
-    if (status.reason !== 'multifactorAuthentication.apiResponse.unableToAuthorize') {
+    if (status.reason !== VALUES.REASON.BACKEND.UNABLE_TO_AUTHORIZE) {
         reason = status.reason;
     } else if (!validateCode) {
-        reason = 'multifactorAuthentication.apiResponse.validationCodeInvalid';
+        reason = VALUES.REASON.BACKEND.VALIDATE_CODE_INVALID;
     }
 
     return {
@@ -148,8 +148,8 @@ const registerMultifactorAuthenticationPostMethod = (
 
     // Determine the appropriate error reason
     let reason = status.reason;
-    if (status.reason === 'multifactorAuthentication.apiResponse.unableToAuthorize') {
-        reason = validateCode ? 'multifactorAuthentication.apiResponse.validationCodeInvalid' : 'multifactorAuthentication.reason.error.validateCodeMissing';
+    if (status.reason === VALUES.REASON.BACKEND.UNABLE_TO_AUTHORIZE) {
+        reason = validateCode ? VALUES.REASON.BACKEND.VALIDATE_CODE_INVALID : VALUES.REASON.BACKEND.VALIDATE_CODE_MISSING;
     }
 
     return {
@@ -257,18 +257,18 @@ async function processMultifactorAuthenticationScenario<T extends MultifactorAut
  * Parses the error string using a separator and searches for known error patterns.
  * Returns a generic error translation if no specific mapping is found.
  */
-function decodeExpoMessage(error: unknown): TranslationPaths {
+function decodeExpoMessage(error: unknown): MultifactorAuthenticationReason {
     const errorString = String(error);
     const parts = errorString.split(VALUES.EXPO_ERRORS.SEPARATOR);
     const searchString = parts.length > 1 ? parts.slice(1).join(';').trim() : errorString;
 
-    for (const [searchKey, translationPath] of Object.entries(MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS.EXPO_ERROR_MAPPINGS)) {
+    for (const [searchKey, errorValue] of Object.entries(MULTIFACTOR_AUTHENTICATION_ERROR_MAPPINGS.EXPO_ERROR_MAPPINGS)) {
         if (searchString.includes(searchKey)) {
-            return translationPath;
+            return errorValue;
         }
     }
 
-    return 'multifactorAuthentication.reason.expoErrors.generic';
+    return VALUES.REASON.EXPO.GENERIC;
 }
 
 /**
@@ -277,9 +277,9 @@ function decodeExpoMessage(error: unknown): TranslationPaths {
  * If the error maps to a generic message and a fallback is provided, returns the fallback instead.
  * This allows for more specific error messaging in known error scenarios.
  */
-const decodeMultifactorAuthenticationExpoMessage = (message: unknown, fallback?: TranslationPaths): TranslationPaths => {
+const decodeMultifactorAuthenticationExpoMessage = (message: unknown, fallback?: MultifactorAuthenticationReason): MultifactorAuthenticationReason => {
     const decodedMessage = decodeExpoMessage(message);
-    return decodedMessage === 'multifactorAuthentication.reason.expoErrors.generic' && fallback ? fallback : decodedMessage;
+    return decodedMessage === VALUES.REASON.EXPO.GENERIC && fallback ? fallback : decodedMessage;
 };
 
 function isChallengeSigned(challenge: MultifactorAuthenticationChallengeObject | SignedChallenge): challenge is SignedChallenge {

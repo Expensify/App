@@ -1,9 +1,17 @@
 import {useRef, useState} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import type {MultifactorAuthenticationPartialStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
-import CONST from '@src/CONST';
+import type {MultifactorAuthenticationTranslationParams} from '@src/languages/params';
+import type {TranslationPaths} from '@src/languages/types';
+import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI} from './config';
 import {getAuthTypeName, Status} from './helpers';
-import type {MultifactorAuthenticationStatusKeyType, SetMultifactorAuthenticationStatus, UseMultifactorAuthenticationStatus} from './types';
+import type {SetMultifactorAuthenticationStatus, UseMultifactorAuthenticationStatus} from './types';
+
+type MultifactorAuthenticationTranslate = <TPath extends TranslationPaths>(path: TPath, params: MultifactorAuthenticationTranslationParams) => string;
+
+const {
+    NOTIFICATIONS: {failure},
+} = MULTIFACTOR_AUTHENTICATION_DEFAULT_UI;
 
 /**
  * A hook that manages multifactorial authentication status state and messaging.
@@ -19,12 +27,15 @@ import type {MultifactorAuthenticationStatusKeyType, SetMultifactorAuthenticatio
  */
 export default function useMultifactorAuthenticationStatus<T>(
     initialValue: T,
-    type: MultifactorAuthenticationStatusKeyType,
     successSelector?: (prevStatus: MultifactorAuthenticationPartialStatus<T>) => boolean,
 ): UseMultifactorAuthenticationStatus<T> {
     const {translate} = useLocalize();
 
-    const defaultText = translate('multifactorAuthentication.reason.generic.notRequested');
+    const defaultText = {
+        headerTitle: translate(failure.headerTitle),
+        title: translate(failure.title),
+        description: translate(failure.description),
+    };
 
     /**
      * State for the current multifactorial authentication status.
@@ -47,34 +58,34 @@ export default function useMultifactorAuthenticationStatus<T>(
      * or a function to transform the existing status. Returns the newly set status
      * for immediate use, though the status value from the hook can be used for reactive updates.
      */
-    const setStatus: SetMultifactorAuthenticationStatus<T> = (partialStatus, overwriteType) => {
+    const setStatus: SetMultifactorAuthenticationStatus<T> = (partialStatus) => {
         const state = typeof partialStatus === 'function' ? partialStatus(previousStatus.current) : partialStatus;
-        const scenarioType = overwriteType ?? type;
 
         const success = successSource.current ? successSource.current(state) : !!state.step.wasRecentStepSuccessful;
 
-        const isAuthorization = scenarioType === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION;
-
-        const isAuthentication = scenarioType === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION;
-        const isAuthAction = isAuthentication || isAuthorization;
-
         const typeName = getAuthTypeName(state);
-        const statusType = success ? 'success' : 'failed';
-        const originalMessage = translate(state.reason);
+        const statusType = success ? 'success' : 'failure';
 
-        const title = isAuthAction
-            ? translate(`multifactorAuthentication.statusMessage.${statusType}Title`, {authorization: isAuthorization})
-            : translate(`multifactorAuthentication.statusMessage.${statusType}TitleGeneral`);
+        // TODO: MFA/Dev here the title and message should be retrieved from the UI config, but we do not know the scenario
+        // const {headerTitle: headerTitleTPath, title: titleTPath, description: descriptionTPah} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[SCENARIO]
 
-        const message = isAuthAction
-            ? translate(`multifactorAuthentication.statusMessage.${statusType}Message`, {authorization: isAuthorization, because: success ? typeName : originalMessage})
-            : originalMessage;
+        const {headerTitle: headerTitleTPath, title: titleTPath, description: descriptionTPath} = MULTIFACTOR_AUTHENTICATION_DEFAULT_UI.NOTIFICATIONS[statusType];
+
+        const translateMFA = translate as MultifactorAuthenticationTranslate;
+        const translationParameters = {
+            authType: typeName,
+        };
+
+        const headerTitle = translateMFA(headerTitleTPath, translationParameters);
+        const title = translateMFA(titleTPath, translationParameters);
+        const description = translateMFA(descriptionTPath, translationParameters);
 
         const createdStatus = {
             ...state,
             typeName,
-            message,
+            headerTitle,
             title,
+            description,
         };
 
         setStatusSource(createdStatus);

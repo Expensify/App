@@ -1,6 +1,5 @@
 import type {EmptyObject, ValueOf} from 'type-fest';
 import type {AllMultifactorAuthenticationNotificationType} from '@components/MultifactorAuthentication/config/types';
-import type {TranslationPaths} from '@src/languages/types';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
@@ -24,6 +23,10 @@ type MultifactorAuthenticationTriggerArgument = {
     [VALUES.TRIGGER.FULFILL]: AllMultifactorAuthenticationNotificationType;
 };
 
+type MultifactorAuthenticationReason = ValueOf<{
+    [K in keyof typeof VALUES.REASON]: ValueOf<(typeof VALUES.REASON)[K]>;
+}>;
+
 /**
  * Represents the core status information for multifactorial authentication operations.
  * @template T - The type of the value of the multifactorial authentication operation.
@@ -40,7 +43,7 @@ type MultifactorAuthenticationPartialStatus<T, OmitStep = false> = MultifactorAu
      * Translation key explaining the current status or error condition.
      * Used to provide user feedback about what happened.
      */
-    reason: TranslationPaths;
+    reason: MultifactorAuthenticationReason;
 
     /**
      * The numeric authentication type identifier from SecureStore.
@@ -59,16 +62,18 @@ type MultifactorAuthenticationStatus<T, OmitStep = false> = MultifactorAuthentic
     typeName?: string;
 
     /**
-     * Formatted message combining status, reason, and authentication type
-     * for displaying detailed feedback to users
-     */
-    message: string;
-
-    /**
      * Concise status message suitable for headers or brief notifications
      * Examples: "Authorization Successful", "Authentication Failed"
      */
+    headerTitle: string;
+
+    /**
+     * Formatted message combining status, reason, and authentication type
+     * for displaying detailed feedback to users
+     */
     title: string;
+
+    description: string;
 };
 
 type Simplify<T> = T extends Record<string, unknown> ? {[K in keyof T]: Simplify<T[K]>} : T;
@@ -118,7 +123,7 @@ type MultifactorAuthenticationStep = {
  */
 type MultifactorAuthenticationFactorsRequirements = ValueOf<typeof VALUES.FACTORS_REQUIREMENTS>;
 
-type MultifactorAuthenticationResponseTranslationPath = typeof VALUES.RESPONSE_TRANSLATION_PATH;
+type MultifactorAuthenticationResponseMap = typeof VALUES.API_RESPONSE_MAP;
 
 type MultifactorAuthenticationKeyType = ValueOf<typeof VALUES.KEY_ALIASES>;
 
@@ -150,7 +155,7 @@ type MultifactorKeyStoreOptions = {
 export type {
     MultifactorAuthenticationFactor,
     MultifactorAuthenticationStep,
-    MultifactorAuthenticationResponseTranslationPath,
+    MultifactorAuthenticationResponseMap,
     MultifactorAuthenticationKeyType,
     AllMultifactorAuthenticationFactors,
     MultifactorAuthenticationStatus,
@@ -160,4 +165,5 @@ export type {
     MultifactorAuthenticationActionParams,
     MultifactorAuthenticationTriggerArgument,
     MultifactorKeyStoreOptions,
+    MultifactorAuthenticationReason,
 };

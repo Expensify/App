@@ -23,7 +23,7 @@ function MultifactorAuthenticationBiometricsTestPage() {
     return (
         <ScreenWrapper testID={MultifactorAuthenticationBiometricsTestPage.displayName}>
             <HeaderWithBackButton
-                title={translate('multifactorAuthentication.biometrics.biometricsTest')}
+                title={translate('multifactorAuthentication.biometricsTest.biometricsTest')}
                 onBackButtonPress={onGoBackPress}
                 shouldShowBackButton
             />
@@ -34,7 +34,7 @@ function MultifactorAuthenticationBiometricsTestPage() {
                         contentFitImage="fill"
                         iconWidth={variables.openPadlockWidth}
                         iconHeight={variables.openPadlockHeight}
-                        title={translate('multifactorAuthentication.biometrics.biometricsTest')}
+                        title={translate('multifactorAuthentication.biometricsTest.biometricsTest')}
                         containerStyle={styles.p1}
                         testID={MultifactorAuthenticationBiometricsTestPage.displayName}
                     />
@@ -46,7 +46,7 @@ function MultifactorAuthenticationBiometricsTestPage() {
                         onPress={() => {
                             process(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
                         }}
-                        text={translate('multifactorAuthentication.biometrics.test')}
+                        text={translate('multifactorAuthentication.biometricsTest.test')}
                     />
                 </View>
             </FullPageOfflineBlockingView>

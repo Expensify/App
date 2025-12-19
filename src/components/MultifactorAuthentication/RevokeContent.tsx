@@ -19,7 +19,7 @@ function MultifactorAuthenticationRevokeContent({isAccessRevoked, onGoBackPress,
         return (
             <>
                 <View style={styles.flex1}>
-                    <Text style={[styles.mt3, styles.ph5]}>{translate('multifactorAuthentication.revokePage.reEnableContent')}</Text>
+                    <Text style={[styles.mt3, styles.ph5]}>{translate('multifactorAuthentication.revokeAccess.youHaveNotRegisteredAnyDevices')}</Text>
                 </View>
                 <View style={[styles.flexRow, styles.m5, styles.mt0]}>
                     <Button
@@ -36,14 +36,14 @@ function MultifactorAuthenticationRevokeContent({isAccessRevoked, onGoBackPress,
     return (
         <>
             <View style={styles.flex1}>
-                <Text style={[styles.mt3, styles.ph5]}>{translate('multifactorAuthentication.revokePage.revokeContent')}</Text>
+                <Text style={[styles.mt3, styles.ph5]}>{translate('multifactorAuthentication.revokeAccess.verificationIsEnabledAndYouCanRevoke')}</Text>
             </View>
             <View style={[styles.flexRow, styles.m5, styles.mt0]}>
                 <Button
                     danger
                     style={[styles.flex1]}
                     onPress={onShowConfirmModal}
-                    text={translate('multifactorAuthentication.revokePage.bottomButtonContent')}
+                    text={translate('multifactorAuthentication.revokeAccess.revokeAccess')}
                 />
             </View>
         </>
