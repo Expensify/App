@@ -189,7 +189,7 @@ function WorkspaceCompanyCardTableItem({
                             </View>
                         )}
 
-                        <View style={[!shouldUseNarrowTableRowLayout && styles.flex1, styles.alignItemsEnd]}>
+                        <View style={[!shouldUseNarrowTableRowLayout && styles.flex1, !isAssigned && styles.alignItemsEnd]}>
                             {isAssigned && (
                                 <View style={[styles.justifyContentCenter, styles.flexRow, styles.alignItemsCenter, styles.ml2, styles.gap3]}>
                                     {!shouldUseNarrowTableRowLayout && (
