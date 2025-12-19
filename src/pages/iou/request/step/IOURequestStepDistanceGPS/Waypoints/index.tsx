@@ -39,6 +39,7 @@ function Waypoints() {
                             title={gpsDraftDetails.startAddress.value}
                             icon={icons.DotIndicatorUnfilled}
                             style={styles.pv0}
+                            shouldIconUseAutoWidthStyle
                         />
                     </View>
                 </GPSTooltip>
@@ -51,6 +52,7 @@ function Waypoints() {
                     title={shouldShowLoadingEndAddress ? '...' : gpsDraftDetails.endAddress.value}
                     icon={icons.Location}
                     style={styles.pv0}
+                    shouldIconUseAutoWidthStyle
                 />
             ) : null}
         </View>
@@ -75,13 +77,13 @@ function GPSTooltip({children}: React.PropsWithChildren) {
     const showEducationalTooltip = !hasUserClosedTooltip && !firstCreatedGPSExpenseDate && gpsDraftDetails?.isTracking;
 
     const renderTooltipContent = () => (
-        <View style={[styles.p3, styles.flexRow, styles.overflowHidden, styles.gap3, styles.alignItemsCenter]}>
+        <View style={[styles.ph1, styles.pv2, styles.flexRow, styles.overflowHidden, styles.gap3, styles.alignItemsCenter]}>
             <Icon
                 src={icons.Lightbulb}
                 fill={theme.tooltipHighlightText}
                 small
             />
-            <Text style={[styles.fontSizeLabel, styles.flexShrink1, styles.distanceLabelText, styles.fontWeightNormal]}>{translate('gps.tooltip')}</Text>
+            <Text style={[styles.fontSizeLabel, styles.flexShrink1, styles.productTrainingTooltipText, styles.fontWeightNormal]}>{translate('gps.tooltip')}</Text>
 
             <PressableWithoutFeedback
                 onPress={() => setHasUserClosedTooltip(true)}
@@ -99,6 +101,8 @@ function GPSTooltip({children}: React.PropsWithChildren) {
 
     return (
         <EducationalTooltip
+            wrapperStyle={styles.productTrainingTooltipWrapper}
+            shiftVertical={-12}
             renderTooltipContent={renderTooltipContent}
             shouldRender={showEducationalTooltip}
         >
