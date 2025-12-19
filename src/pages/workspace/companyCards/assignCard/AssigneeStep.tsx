@@ -84,56 +84,65 @@ function AssigneeStep({route}: AssigneeStepProps) {
 
         Keyboard.dismiss();
 
+        const routeParams = {policyID, feed, cardID};
+
         if (assignee?.login === assignCard?.data?.email) {
             if (assignCard?.data?.encryptedCardNumber) {
-                nextStep = CONST.COMPANY_CARD.STEP.CONFIRMATION;
                 data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
                 data.cardNumber = assignCard.data.cardNumber;
-                data.startDate = data.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-                data.dateOption = data.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+                data.startDate = !isEditing ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING) : (assignCard?.data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+                data.dateOption = !isEditing ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM : (assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+                setAssignCardStepAndData({
+                    data,
+                    isEditing: false,
+                });
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams, backTo));
+            } else {
+                setAssignCardStepAndData({
+                    data,
+                    isEditing: false,
+                });
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
             }
-            setAssignCardStepAndData({
-                currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
-                data,
-                isEditing: false,
-            });
             return;
         }
 
         if (!policy?.employeeList?.[assignee?.login ?? '']) {
             setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER,
                 data: {
                     invitingMemberEmail: assignee?.login ?? '',
                     invitingMemberAccountID: assignee?.accountID ?? undefined,
                 },
             });
             setDraftInviteAccountID(assignee?.login ?? '', assignee?.accountID ?? undefined, policyID);
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER.getRoute(routeParams));
             return;
         }
 
         if (assignCard?.data?.encryptedCardNumber) {
-            nextStep = CONST.COMPANY_CARD.STEP.CONFIRMATION;
             data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
             data.cardNumber = assignCard.data.cardNumber;
-            data.startDate = data.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-            data.dateOption = data.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
+            data.startDate = !isEditing ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING) : (assignCard?.data?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+            data.dateOption = !isEditing ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM : (assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+            setAssignCardStepAndData({
+                data,
+                isEditing: false,
+            });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams, backTo));
+        } else {
+            setAssignCardStepAndData({
+                data,
+                isEditing: false,
+            });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
         }
-
-        setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
-            data,
-            isEditing: false,
-        });
     };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
             setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
-            return;
         }
         Navigation.goBack();
     };
