@@ -530,6 +530,4 @@ function BaseSelectionList<TItem extends ListItem>({
     );
 }
 
-BaseSelectionList.displayName = 'BaseSelectionList';
-
 export default BaseSelectionList;

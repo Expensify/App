@@ -13,5 +13,4 @@ function ReportActionItemDraft({children}: ChildrenProps) {
     );
 }
 
-ReportActionItemDraft.displayName = 'ReportActionItemDraft';
 export default ReportActionItemDraft;

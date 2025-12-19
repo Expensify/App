@@ -197,5 +197,4 @@ function ParentNavigationSubtitle({
     );
 }
 
-ParentNavigationSubtitle.displayName = 'ParentNavigationSubtitle';
 export default ParentNavigationSubtitle;
