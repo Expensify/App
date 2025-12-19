@@ -13,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
-import {isSettled} from '@libs/ReportUtils';
+import {isOpenExpenseReport, isProcessingReport, isSettled} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
@@ -106,8 +106,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
+    const shouldShowViolationDescription = isOpenExpenseReport(reportItem) || isProcessingReport(reportItem);
+
     const getDescription = useMemo(() => {
-        if (!reportItem?.hasVisibleViolations || isSettled(reportItem.reportID)) {
+        if (!reportItem?.hasVisibleViolations || !shouldShowViolationDescription) {
             return;
         }
         return (
@@ -124,16 +126,16 @@ function ExpenseReportListItem<TItem extends ListItem>({
         );
     }, [
         reportItem?.hasVisibleViolations,
-        reportItem.reportID,
-        styles.alignItemsCenter,
+        shouldShowViolationDescription,
         styles.flexRow,
-        styles.mr1,
+        styles.alignItemsCenter,
         styles.mt2,
-        styles.textDanger,
+        styles.mr1,
         styles.textMicro,
+        styles.textDanger,
+        expensifyIcons.DotIndicator,
         theme.danger,
         translate,
-        expensifyIcons.DotIndicator,
     ]);
 
     return (
