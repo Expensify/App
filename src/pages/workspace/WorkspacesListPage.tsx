@@ -585,7 +585,7 @@ function WorkspacesListPage() {
         }
 
         return Object.values(allDomains).reduce<DomainItem[]>((domainItems, domain) => {
-            if (!domain || domain.accountID === undefined || !domain.email) {
+            if (!domain || !domain.accountID || !domain.email) {
                 return domainItems;
             }
 
