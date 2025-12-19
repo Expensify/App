@@ -441,9 +441,18 @@ function MoneyRequestView({
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         }
     } else {
-        if (!isDistanceRequest && !isPerDiemRequest && !isTimeRequest) {
+        if (isTimeRequest) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.time')}`;
+        } else if (isDistanceRequest) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.distance')}`;
+        } else if (isPerDiemRequest) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.perDiem')}`;
+        } else if (isCardTransaction) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.card')}`;
+        } else {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
+
         if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         } else if (isApproved) {
