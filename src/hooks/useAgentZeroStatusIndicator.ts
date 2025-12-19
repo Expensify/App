@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import useOnyx from '@hooks/useOnyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useOnyx from './useOnyx';
 
 type AgentZeroStatusState = {
     displayLabel?: string;
@@ -176,7 +176,7 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
     const [optimisticLabel, setOptimisticLabel] = useState<string>();
     const [displayLabel, setDisplayLabel] = useState<string>();
 
-    const baseLabel = useMemo(() => serverLabel || optimisticLabel || '', [optimisticLabel, serverLabel]);
+    const baseLabel = useMemo(() => serverLabel ?? optimisticLabel ?? '', [optimisticLabel, serverLabel]);
 
     const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fillerIndexRef = useRef<number>(0);
@@ -201,9 +201,11 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
 
     useEffect(() => {
         // Server has taken over, drop optimistic labels.
-        if (serverLabel) {
-            setOptimisticLabel(undefined);
+        if (!serverLabel) {
+            return;
         }
+
+        setOptimisticLabel(undefined);
     }, [serverLabel]);
 
     useEffect(() => {
@@ -234,7 +236,7 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
 
                 const messages = getFillerMessagesForLabel(baseLabelRef.current);
                 const nextIndex = fillerIndexRef.current % messages.length;
-                setDisplayLabel(messages[nextIndex]);
+                setDisplayLabel(messages.at(nextIndex));
                 fillerIndexRef.current = (fillerIndexRef.current + 1) % messages.length;
                 nextDelayRef.current = Math.min(MAX_FILLER_DELAY_MS, Math.round(nextDelayRef.current * BACKOFF_MULTIPLIER));
                 scheduleNextFiller();
