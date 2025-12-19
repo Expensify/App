@@ -596,7 +596,7 @@ type SplitListItemType = ListItem &
         isEditable: boolean;
 
         /** Current mode for the split editor: amount or percentage */
-        mode: ValueOf<typeof CONST.IOU.SPLIT_TYPE>;
+        mode: ValueOf<typeof CONST.TAB.SPLIT>;
 
         /** Percentage value to show when in percentage mode (0-100) */
         percentage: number;
@@ -604,7 +604,7 @@ type SplitListItemType = ListItem &
         /**
          * Function for updating value (amount or percentage based on mode)
          */
-        onSplitExpenseValueChange: (transactionID: string, value: number, mode: ValueOf<typeof CONST.IOU.SPLIT_TYPE>) => void;
+        onSplitExpenseValueChange: (transactionID: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => void;
     };
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;

@@ -14514,6 +14514,8 @@ function addSplitExpenseField(transaction: OnyxEntry<OnyxTypes.Transaction>, dra
                     reportID: draftTransaction?.reportID,
                 }),
             ],
+            splitsStartDate: null,
+            splitsEndDate: null,
         },
     });
 }
@@ -14614,6 +14616,8 @@ function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transacti
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
         comment: {
             splitExpenses,
+            splitsStartDate: null,
+            splitsEndDate: null,
         },
     });
 }
