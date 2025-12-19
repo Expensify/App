@@ -29,8 +29,6 @@ import type SCREENS from '@src/SCREENS';
 
 type ShareBankAccountProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.UNSHARE_BANK_ACCOUNT>;
 
-const emptyFunction = () => {};
-
 function UnshareBankAccount({route}: ShareBankAccountProps) {
     const bankAccountID = route.params?.bankAccountID;
     const styles = useThemeStyles();
@@ -155,7 +153,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                             canDismissError
                         />
                     }
-                    onSelectRow={emptyFunction}
+                    onSelectRow={() => {}}
                     ListItem={UserListItem}
                 />
             </>
