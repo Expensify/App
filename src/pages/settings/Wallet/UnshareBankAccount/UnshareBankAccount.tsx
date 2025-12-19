@@ -61,6 +61,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
         if (!bankAccountID || !unshareUser?.login) {
             return;
         }
+
         // Unsharing a bank account isn’t possible if the selected user’s copy of the bank account is set as an Expensify Card settlement account.
         if (isExpensifyCardSettlementAccount) {
             setUnshareUser(undefined);
