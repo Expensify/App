@@ -9,16 +9,13 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useInitial from '@hooks/useInitial';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
-import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -28,7 +25,7 @@ import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompany
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -43,9 +40,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const {isOffline} = useNetwork();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
-    const firstAssigneeEmail = useInitial(assignCard?.data?.email);
-    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === assignCard?.data?.email;
-    const backTo = shouldUseBackToParam ? route.params?.backTo : undefined;
     const policy = usePolicy(policyID);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
@@ -64,23 +58,15 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const cardholderEmail = data?.email ?? '';
     const cardholderAccountID = cardholder?.accountID;
 
-    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
-
     useEffect(() => {
         if (!assignCard?.isAssignmentFinished) {
             return;
         }
 
-        if (backTo) {
-            Navigation.goBack(backTo);
-        } else if (!shouldUseBackToParam && route.params?.backTo) {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID), {forceReplace: true});
-        } else {
-            Navigation.dismissModal();
-        }
+        Navigation.dismissModal();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard?.isAssignmentFinished, backTo, policyID, shouldUseBackToParam, route.params?.backTo, currentFullScreenRoute?.state?.routes]);
+    }, [assignCard?.isAssignmentFinished]);
 
     const submit = () => {
         if (!policyID) {
@@ -113,7 +99,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
         switch (step) {
             case CONST.COMPANY_CARD.STEP.ASSIGNEE:
-                Navigation.goBack();
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(routeParams));
                 break;
             case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute(routeParams));
@@ -121,11 +107,13 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             case CONST.COMPANY_CARD.STEP.CARD_NAME:
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_NAME.getRoute(routeParams));
                 break;
+            default:
+                break;
         }
     };
 
     const handleBackButtonPress = () => {
-        Navigation.goBack();
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed, cardID}));
     };
 
     return (

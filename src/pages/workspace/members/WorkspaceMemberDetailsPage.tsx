@@ -8,8 +8,6 @@ import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -69,6 +67,10 @@ type WorkspacePolicyOnyxProps = {
 type WorkspaceMemberDetailsPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     WorkspacePolicyOnyxProps &
     PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBER_DETAILS>;
+
+function isNameValuePairsObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
 
 function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceMemberDetailsPageProps) {
     const policyID = route.params.policyID;
@@ -407,23 +409,26 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     {memberCards.map((memberCard) => {
                                         const isCardDeleted = memberCard.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                                         const plaidUrl = getPlaidInstitutionIconUrl(memberCard?.bank);
+                                        const nameValuePairs = isNameValuePairsObject(memberCard.nameValuePairs) ? memberCard.nameValuePairs : null;
+                                        const unapprovedExpenseLimit = nameValuePairs?.unapprovedExpenseLimit;
+                                        const cardTitle = nameValuePairs?.cardTitle;
 
                                         return (
                                             <OfflineWithFeedback
-                                                key={`${memberCard.nameValuePairs?.cardTitle}_${memberCard.cardID}`}
+                                                key={`${cardTitle ?? ''}_${memberCard.cardID}`}
                                                 errorRowStyles={styles.ph5}
                                                 errors={memberCard.errors}
                                                 pendingAction={memberCard.pendingAction}
                                             >
                                                 <MenuItem
                                                     key={memberCard.cardID}
-                                                    title={
-                                                        memberCard.nameValuePairs?.cardTitle ??
-                                                        customCardNames?.[memberCard.cardID] ??
-                                                        maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)
-                                                    }
+                                                    title={cardTitle ?? customCardNames?.[memberCard.cardID] ?? maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
                                                     description={memberCard?.lastFourPAN ?? lastFourNumbersFromCardName(memberCard?.cardName)}
-                                                    badgeText={memberCard.bank === CONST.EXPENSIFY_CARD.BANK ? convertToDisplayString(memberCard.nameValuePairs?.unapprovedExpenseLimit) : ''}
+                                                    badgeText={
+                                                        memberCard.bank === CONST.EXPENSIFY_CARD.BANK && unapprovedExpenseLimit !== undefined
+                                                            ? convertToDisplayString(unapprovedExpenseLimit)
+                                                            : ''
+                                                    }
                                                     icon={getCardFeedIcon(memberCard.bank as CompanyCardFeed, illustrations, companyCardFeedIcons)}
                                                     plaidUrl={plaidUrl}
                                                     displayInDefaultIconColor

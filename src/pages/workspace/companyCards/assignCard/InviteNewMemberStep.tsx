@@ -13,12 +13,12 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import Navigation from '@navigation/Navigation';
 import WorkspaceInviteMessageComponent from '@pages/workspace/members/WorkspaceInviteMessageComponent';
-import {clearInviteDraft} from '@userActions/Policy/Member';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {clearInviteDraft} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {AssignCardData} from '@src/types/onyx/AssignCard';
 
 type InviteeNewMemberStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER> &
@@ -28,11 +28,10 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
     const {translate} = useLocalize();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
-    const isEditing = assignCard?.isEditing;
     const policyID = route.params.policyID;
     const feed = route.params.feed as CompanyCardFeedWithDomainID;
     const cardID = route.params.cardID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [list] = useCardsList(feed);
     const [cardFeeds] = useCardFeeds(policy?.id);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
@@ -63,7 +62,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
         if (assignCard?.data?.encryptedCardNumber) {
             data.encryptedCardNumber = assignCard.data.encryptedCardNumber;
             data.cardNumber = assignCard.data.cardNumber;
-            data.startDate = assignCard?.data?.startDate ?? new Date().toISOString().split('T')[0];
+            data.startDate = assignCard?.data?.startDate ?? new Date().toISOString().split('T').at(0);
             data.dateOption = assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
@@ -74,7 +73,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
         } else if (hasOnlyOneCardToAssign(filteredCardList)) {
             data.cardNumber = Object.keys(filteredCardList).at(0);
             data.encryptedCardNumber = Object.values(filteredCardList).at(0);
-            data.startDate = assignCard?.data?.startDate ?? new Date().toISOString().split('T')[0];
+            data.startDate = assignCard?.data?.startDate ?? new Date().toISOString().split('T').at(0);
             data.dateOption = assignCard?.data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM;
             setAssignCardStepAndData({
                 currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,

@@ -101,11 +101,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
         case CONST.COMPANY_CARD.STEP.CARD_NAME:
             return <CardNameStep policyID={policyID} />;
         case CONST.COMPANY_CARD.STEP.CONFIRMATION:
-            return (
-                <ConfirmationStep
-                    route={route}
-                />
-            );
+            return <ConfirmationStep route={route} />;
         case CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER:
             return (
                 <InviteNewMemberStep

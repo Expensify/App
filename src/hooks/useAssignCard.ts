@@ -149,7 +149,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
         setAssignCardStepAndData({data});
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            const routeParams = {policyID, feed: selectedFeed, cardID: cardID ?? ''};
+            const routeParams = {policyID, feed: selectedFeed, cardID};
 
             switch (currentStep) {
                 case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
