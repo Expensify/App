@@ -201,7 +201,7 @@ describe('CurrencyUtils', () => {
             [undefined, 'USD', false],
             ['USD', undefined, false],
             [undefined, undefined, false],
-        ])('Returns %s for symbol=%s, currencyCode=%s', (symbol, currencyCode, expected) => {
+        ])('symbol=%s, currencyCode=%s returns %s', (symbol, currencyCode, expected) => {
             expect(CurrencyUtils.isCurrencyCodeLikeSymbol(symbol, currencyCode)).toBe(expected);
         });
     });
