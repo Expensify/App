@@ -18,7 +18,7 @@ function Waypoints() {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
     const {translate} = useLocalize();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled']);
 
     if (!gpsDraftDetails?.startAddress?.value && !gpsDraftDetails?.endAddress?.value) {
         return null;
