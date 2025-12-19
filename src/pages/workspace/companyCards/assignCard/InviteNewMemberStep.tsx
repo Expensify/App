@@ -22,7 +22,7 @@ import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
 
 type InviteeNewMemberStepProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     WithCurrentUserPersonalDetailsProps & {
-        route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD>;
+        route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER>;
         /** Selected feed */
         feed: CompanyCardFeedWithDomainID;
     };

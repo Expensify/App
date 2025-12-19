@@ -1,5 +1,4 @@
 import {format, subDays} from 'date-fns';
-import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
@@ -11,24 +10,15 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
-function TransactionStartDateStep({route}: {route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE>}) {
+function TransactionStartDateStep() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-
-    const policyID = route.params.policyID;
-    const feed = route.params.feed;
-    const cardID = route.params.cardID;
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;

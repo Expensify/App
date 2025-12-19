@@ -109,7 +109,7 @@ function useAssignCard({selectedFeed, policyID, setShouldShowOfflineModal}: UseA
             switch (initialStep) {
                 case CONST.COMPANY_CARD.STEP.PLAID_CONNECTION:
                 case CONST.COMPANY_CARD.STEP.BANK_CONNECTION:
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed: selectedFeed, cardID}));
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(policyID, selectedFeed));
                     break;
                 case CONST.COMPANY_CARD.STEP.ASSIGNEE:
                 default:

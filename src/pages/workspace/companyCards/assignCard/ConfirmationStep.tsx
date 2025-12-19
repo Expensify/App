@@ -28,7 +28,7 @@ import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAddNewCompany
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID, CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -64,7 +64,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const cardholderEmail = data?.email ?? '';
     const cardholderAccountID = cardholder?.accountID;
 
-    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
+    const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((currentRoute) => isFullScreenName(currentRoute.name)));
 
     useEffect(() => {
         if (!assignCard?.isAssignmentFinished) {
@@ -100,7 +100,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 });
             }
             // For expired feeds, navigate to the old ASSIGN_CARD route which handles these special cases
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.getRoute({policyID, feed, cardID}));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BANK_CONNECTION.getRoute(policyID, feed));
             return;
         }
         assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, {...data, cardholder, bankName});
@@ -121,6 +121,8 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             case CONST.COMPANY_CARD.STEP.CARD_NAME:
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_NAME.getRoute(routeParams));
                 break;
+            default:
+                throw new Error(`Invalid step: ${step}`);
         }
     };
 

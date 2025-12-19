@@ -2169,7 +2169,7 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARDS_BANK_CONNECTION: {
         route: 'workspaces/:policyID/company-cards/:feed/bank-connection',
-        getRoute: (policyID: string | undefined, feed: string, backTo: string) => {
+        getRoute: (policyID: string | undefined, feed: string, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_COMPANY_CARDS_BANK_CONNECTION route');
             }
@@ -2225,11 +2225,11 @@ const ROUTES = {
             `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/invite-new-member` as const,
     },
     WORKSPACE_COMPANY_CARD_DETAILS: {
-        route: 'workspaces/:policyID/company-cards/:bank/:cardID',
+        route: 'workspaces/:policyID/company-cards/:feed/:cardID',
 
-        getRoute: (policyID: string, cardID: string, bank: string, backTo?: string) =>
+        getRoute: (policyID: string, cardID: string, feed: string, backTo?: string) =>
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${encodeURIComponent(bank)}/${encodeURIComponent(cardID)}`, backTo),
+            getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}`, backTo),
     },
     WORKSPACE_COMPANY_CARD_NAME: {
         route: 'workspaces/:policyID/company-cards/:bank/:cardID/edit/name',

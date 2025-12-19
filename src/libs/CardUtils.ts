@@ -637,7 +637,7 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
-function filterInactiveCards(cardsList: CardList | undefined) {
+function filterInactiveCards(cardsList: WorkspaceCardsList | undefined) {
     const {cardList = {}, ...assignedCards} = cardsList ?? {};
 
     const closedStates = new Set<number>([CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED]);
@@ -646,7 +646,7 @@ function filterInactiveCards(cardsList: CardList | undefined) {
     return {
         cardList,
         ...filteredAssignedCards,
-    } as CardList;
+    } as WorkspaceCardsList;
 }
 
 function getAllCardsForWorkspace(
@@ -655,7 +655,7 @@ function getAllCardsForWorkspace(
     cardFeeds?: CombinedCardFeeds,
     expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
 ): CardList {
-    const cards = {};
+    const cards: CardList = {};
     const companyCardsDomainFeeds = Object.entries(cardFeeds ?? {}).map(([feedName, feedData]) => ({domainID: feedData.domainID, feedName}));
     const expensifyCardsDomainIDs = Object.keys(expensifyCardSettings ?? {})
         .map((key) => key.split('_').at(-1))
@@ -665,8 +665,8 @@ function getAllCardsForWorkspace(
         const isCompanyDomainCards = companyCardsDomainFeeds?.some((domainFeed) => domainFeed.domainID && key.includes(domainFeed.domainID.toString()) && key.includes(domainFeed.feedName));
         const isExpensifyDomainCards = expensifyCardsDomainIDs.some((domainID) => key.includes(domainID.toString()) && key.includes(CONST.EXPENSIFY_CARD.BANK));
         if ((isWorkspaceAccountCards || isCompanyDomainCards || isExpensifyDomainCards) && values) {
-            const {cardList, ...rest} = values;
-            const filteredCards = filterInactiveCards(rest);
+            const {cardList: assignableCards, ...assignedCards} = values ?? {};
+            const filteredCards = filterInactiveCards(assignedCards);
             Object.assign(cards, filteredCards);
         }
     }
