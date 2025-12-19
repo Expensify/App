@@ -123,6 +123,10 @@ const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
  * Returns the current active route.
  */
 function getActiveRoute(): string {
+    if (!navigationRef.isReady()) {
+        return '';
+    }
+
     const currentRoute = navigationRef.current && navigationRef.current.getCurrentRoute();
     if (!currentRoute?.name) {
         return '';
