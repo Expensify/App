@@ -26,6 +26,8 @@ type DraggableListProps<T> = {
 type SortableItemProps = {
     id: string | number;
     children: React.ReactNode | React.ReactNode[];
+    /** Whether dragging is disabled for this item */
+    disabled?: boolean;
 };
 
 export default DraggableListProps;

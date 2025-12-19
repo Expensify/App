@@ -52,7 +52,7 @@ import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTagsData} from './Policy/Tag';
 import {getCurrentUserAccountID} from './Report';
 
-const allTransactions: Record<string, Transaction> = {};
+const allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     callback: (transaction, key) => {
@@ -398,7 +398,7 @@ function dismissDuplicateTransactionViolation(
 ) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
-    const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction.reportID, transaction.transactionID));
+    const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction?.reportID, transaction?.transactionID));
     const optimisticDismissedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
     });
@@ -501,11 +501,11 @@ function dismissDuplicateTransactionViolation(
 
     const optimisticDataTransactions: OnyxUpdate[] = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
         value: {
             ...transaction,
             comment: {
-                ...transaction.comment,
+                ...transaction?.comment,
                 dismissedViolations: {
                     duplicatedTransaction: {
                         [dismissedPersonalDetails.login ?? '']: getUnixTime(new Date()),
@@ -526,7 +526,7 @@ function dismissDuplicateTransactionViolation(
 
     const failureDataTransaction: OnyxUpdate[] = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
         value: {
             ...transaction,
         },
@@ -614,7 +614,7 @@ function revert(transaction?: OnyxEntry<Transaction>, originalMessage?: Original
     });
 }
 
-function markAsCash(transactionID: string | undefined, transactionThreadReportID: string | undefined) {
+function markAsCash(transactionID: string | undefined, transactionThreadReportID: string | undefined, transactionViolations: TransactionViolations = []) {
     if (!transactionID || !transactionThreadReportID) {
         return;
     }
@@ -632,7 +632,7 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
                 // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
+                value: transactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.RTER),
             },
             // Optimistically adding the system message indicating we dismissed the violation
             {
@@ -646,7 +646,7 @@ function markAsCash(transactionID: string | undefined, transactionThreadReportID
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-                value: allTransactionViolations,
+                value: transactionViolations,
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1314,7 +1314,7 @@ function changeTransactionsReport(
             (affectedReportID === selfDMReport?.reportID ? selfDMReport : undefined);
 
         if (!affectedReport) {
-            return;
+            continue;
         }
 
         const updatedTotal = updatedReportTotals[affectedReportID] ?? affectedReport.total;
