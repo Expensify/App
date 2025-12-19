@@ -14,6 +14,7 @@ import type {
     OpenReimbursementAccountPageParams,
     SaveCorpayOnboardingBeneficialOwnerParams,
     SendReminderForCorpaySignerInformationParams,
+    UploadUserKYBDocsParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -1121,6 +1122,10 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
 }
 
+function uploadUserKYBDocs(parameters: UploadUserKYBDocsParams) {
+    API.write(WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS, parameters, getVBBADataForOnyx());
+}
+
 function openWorkspaceView(policyID: string | undefined) {
     API.read(
         READ_COMMANDS.OPEN_WORKSPACE_VIEW,
@@ -1339,4 +1344,5 @@ export {
     sendReminderForCorpaySignerInformation,
     clearReimbursementAccountSendReminderForCorpaySignerInformation,
     getBankAccountFromID,
+    uploadUserKYBDocs,
 };
