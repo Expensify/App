@@ -416,13 +416,13 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                 <MenuItem
                                                     key={memberCard.cardID}
                                                     title={
-                                                        memberCard.nameValuePairs?.cardTitle ??
+                                                        (memberCard.nameValuePairs?.cardTitle as string | undefined) ??
                                                         customCardNames?.[memberCard.cardID] ??
                                                         maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)
                                                     }
                                                     description={memberCard?.lastFourPAN ?? lastFourNumbersFromCardName(memberCard?.cardName)}
                                                     badgeText={
-                                                        memberCard.bank === CONST.EXPENSIFY_CARD.BANK && memberCard.nameValuePairs?.unapprovedExpenseLimit !== undefined
+                                                        memberCard.bank === CONST.EXPENSIFY_CARD.BANK && typeof memberCard.nameValuePairs?.unapprovedExpenseLimit === 'number'
                                                             ? convertToDisplayString(memberCard.nameValuePairs.unapprovedExpenseLimit)
                                                             : ''
                                                     }

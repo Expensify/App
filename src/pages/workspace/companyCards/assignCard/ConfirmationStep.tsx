@@ -9,7 +9,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
-import useInitial from '@hooks/useInitial';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -41,9 +40,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
     const {isOffline} = useNetwork();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
-    const firstAssigneeEmail = useInitial(assignCard?.data?.email);
-    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === assignCard?.data?.email;
-    const backTo = shouldUseBackToParam ? route.params?.backTo : undefined;
     const policy = usePolicy(policyID);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
