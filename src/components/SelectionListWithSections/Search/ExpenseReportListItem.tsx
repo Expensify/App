@@ -13,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
-import {isOpenExpenseReport, isProcessingReport, isSettled} from '@libs/ReportUtils';
+import {isOpenExpenseReport, isProcessingReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
