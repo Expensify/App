@@ -422,11 +422,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             >
                                                 <MenuItem
                                                     key={memberCard.cardID}
-                                                    title={
-                                                        cardTitle ??
-                                                        customCardNames?.[memberCard.cardID] ??
-                                                        maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)
-                                                    }
+                                                    title={cardTitle ?? customCardNames?.[memberCard.cardID] ?? maskCardNumber(memberCard?.cardName ?? '', memberCard.bank)}
                                                     description={memberCard?.lastFourPAN ?? lastFourNumbersFromCardName(memberCard?.cardName)}
                                                     badgeText={
                                                         memberCard.bank === CONST.EXPENSIFY_CARD.BANK && unapprovedExpenseLimit !== undefined
