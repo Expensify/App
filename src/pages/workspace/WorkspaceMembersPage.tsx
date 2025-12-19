@@ -501,7 +501,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     messages={{0: translate('workspace.people.addedWithPrimary')}}
                     containerStyles={[styles.pb5, styles.ph5]}
-                    onClose={() => dismissAddedWithPrimaryLoginMessages(policyID)}
+                    onDismiss={() => dismissAddedWithPrimaryLoginMessages(policyID)}
                 />
             )}
         </View>

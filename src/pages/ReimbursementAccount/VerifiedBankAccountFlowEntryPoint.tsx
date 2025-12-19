@@ -239,8 +239,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 }
                                 errorRowStyles={styles.mt2}
                                 shouldShowErrorMessages
-                                canDismissError={!reimbursementAccount?.maxAttemptsReached}
-                                onClose={resetReimbursementAccount}
+                                onClose={reimbursementAccount?.maxAttemptsReached ? undefined : resetReimbursementAccount}
                             >
                                 <MenuItem
                                     title={translate('workspace.bankAccount.continueWithSetup')}

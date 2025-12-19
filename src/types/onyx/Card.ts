@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
+import type PersonalDetails from './PersonalDetails';
 
 /** Model of Expensify card status changes */
 type CardStatusChanges = {
@@ -222,7 +223,7 @@ type ExpensifyCardDetails = {
 /** List of assignable cards */
 type AssignableCardsList = Record<string, string>;
 
-/** Record of Expensify cards, indexed by cardID */
+/** Record of Company or Expensify cards, indexed by cardID */
 type CardList = Record<string, Card> & {
     /** List of assignable cards */
     cardList?: AssignableCardsList;
@@ -291,6 +292,34 @@ type WorkspaceCardsList = Record<string, Card> & {
     cardList?: Record<string, string>;
 };
 
+/**
+ * Pending action for a company card assignment
+ */
+type FailedCompanyCardAssignment = {
+    /** Cardholder personal details */
+    cardholder?: PersonalDetails;
+
+    /** The name of the card */
+    cardName: string;
+
+    /** The card number */
+    cardNumber: string;
+
+    /** Card related error messages */
+    errors?: OnyxCommon.Errors;
+
+    /** Collection of form field errors  */
+    errorFields?: OnyxCommon.ErrorFields;
+
+    /**
+     * The type of action that's pending
+     */
+    pendingAction?: OnyxCommon.PendingAction;
+};
+
+/** Pending action for a company card assignment */
+type FailedCompanyCardAssignments = Record<string, FailedCompanyCardAssignment>;
+
 /** Card list with only available card */
 type FilteredCardList = Record<string, string>;
 
@@ -306,4 +335,6 @@ export type {
     FilteredCardList,
     ProvisioningCardData,
     AssignableCardsList,
+    FailedCompanyCardAssignment,
+    FailedCompanyCardAssignments,
 };

@@ -938,6 +938,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.activeComponentBG,
         },
 
+        messagesRowHeight: {
+            height: variables.componentSizeXSmall,
+        },
+
         touchableButtonImage: {
             alignItems: 'center',
             height: variables.componentSizeNormal,

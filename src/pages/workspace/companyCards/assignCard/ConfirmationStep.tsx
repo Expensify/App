@@ -14,7 +14,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCompanyCardFeed, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, getPlaidCountry, getPlaidInstitutionId, isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
@@ -52,16 +53,22 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
     const bankName = assignCard?.data?.bankName ?? getCompanyCardFeed(feed);
     const [cardFeeds] = useCardFeeds(policyID);
 
+    const companyCardFeedData = cardFeeds?.[feed];
+
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyCardFeedData);
+
     const data = assignCard?.data;
-    const cardholderDetails = getPersonalDetailByEmail(data?.email ?? '');
-    const cardholderName = Str.removeSMSDomain(cardholderDetails?.displayName ?? '');
+
+    const cardholder = getPersonalDetailByEmail(data?.email ?? '');
+    const cardholderName = Str.removeSMSDomain(cardholder?.displayName ?? '');
     const cardholderEmail = data?.email ?? '';
-    const cardholderAccountID = cardholderDetails?.accountID;
+    const cardholderAccountID = cardholder?.accountID;
 
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
 
     useEffect(() => {
-        if (!assignCard?.isAssigned) {
+        if (!assignCard?.isAssignmentFinished) {
             return;
         }
 
@@ -73,7 +80,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
-    }, [assignCard?.isAssigned, backTo, policyID, currentFullScreenRoute?.state?.routes]);
+    }, [assignCard?.isAssignmentFinished, backTo, policyID, currentFullScreenRoute?.state?.routes]);
 
     const submit = () => {
         if (!policyID) {
@@ -95,7 +102,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
             setAssignCardStepAndData({currentStep: institutionId ? CONST.COMPANY_CARD.STEP.PLAID_CONNECTION : CONST.COMPANY_CARD.STEP.BANK_CONNECTION});
             return;
         }
-        assignWorkspaceCompanyCard(policy, {...data, bankName});
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, {...data, cardholder, bankName});
     };
 
     const editStep = (step: AssignCardStep) => {
@@ -131,7 +138,7 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                     labelStyle={styles.mb3}
                     title={cardholderName && cardholderName !== cardholderEmail ? cardholderName : cardholderEmail}
                     description={cardholderName && cardholderName !== cardholderEmail ? cardholderEmail : undefined}
-                    icon={cardholderDetails?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
+                    icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.ASSIGNEE)}
@@ -153,7 +160,6 @@ function ConfirmationStep({policyID, feed, backTo}: ConfirmationStepProps) {
                         shouldDisplayErrorAbove
                         errors={assignCard?.errors}
                         errorRowStyles={styles.mv2}
-                        canDismissError={false}
                     >
                         <Button
                             isDisabled={isOffline}

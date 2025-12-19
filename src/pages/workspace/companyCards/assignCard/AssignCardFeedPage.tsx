@@ -89,7 +89,6 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
         case CONST.COMPANY_CARD.STEP.ASSIGNEE:
             return (
                 <AssigneeStep
-                    feed={feed}
                     policy={policy}
                     route={route}
                 />
