@@ -7879,7 +7879,17 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須化し、ワークスペースの作成を制限するなど、さらに多くのことができます。',
             enable: '有効にする',
         },
-        admins: {title: '管理者', findAdmin: '管理者を検索', primaryContact: '主要連絡先', addPrimaryContact: '主要連絡先を追加', settings: '設定'},
+        admins: {
+            title: '管理者',
+            findAdmin: '管理者を検索',
+            primaryContact: '主要連絡先',
+            addPrimaryContact: '主要連絡先を追加',
+            settings: '設定',
+            setPrimaryContactError: 'メインの連絡先を設定できませんでした。後でもう一度お試しください。',
+            addAdmin: '管理者を追加',
+            invite: '招待',
+            addAdminError: 'このメンバーを管理者として追加できません。もう一度お試しください。',
+        },
     },
     desktopAppRetiredPage: {
         title: 'デスクトップアプリは廃止されました',
