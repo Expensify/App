@@ -20,4 +20,3 @@ export default function useDeepLink(): UseDeepLinkResult {
         deepLinkUrl,
     };
 }
-
