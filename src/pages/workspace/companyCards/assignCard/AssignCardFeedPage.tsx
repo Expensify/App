@@ -33,19 +33,22 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
     }, []);
 
     useEffect(() => {
-        if (!cardID || currentStep) {
+        if (!cardID) {
             return;
         }
-        const companyCardFeed = getCompanyCardFeed(feed);
 
+        // Initialize assign card data
+        const companyCardFeed = getCompanyCardFeed(feed);
         setAssignCardStepAndData({
-            currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
             data: {
                 bankName: companyCardFeed,
                 encryptedCardNumber: cardID,
             },
         });
-    }, [cardID, currentStep, feed]);
+
+        // Redirect to the first step
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed, cardID}, backTo));
+    }, [cardID, feed, policyID, backTo]);
 
     if (isActingAsDelegate) {
         return (
