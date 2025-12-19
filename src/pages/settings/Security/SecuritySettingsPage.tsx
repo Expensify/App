@@ -86,7 +86,7 @@ function SecuritySettingsPage() {
     });
 
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate, isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
@@ -235,6 +235,10 @@ function SecuritySettingsPage() {
                     const error = getLatestError(addDelegateErrors);
 
                     const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
+                        if (isActingAsDelegate) {
+                            showDelegateNoAccessModal();
+                            return;
+                        }
                         if (isEmptyObject(pendingAction)) {
                             showPopoverMenu(e, {email, role});
                             return;
@@ -272,7 +276,7 @@ function SecuritySettingsPage() {
                     };
                 }),
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail],
+        [delegates, translate, styles, personalDetails, errorFields, windowWidth, selectedEmail, isActingAsDelegate, showDelegateNoAccessModal],
     );
 
     const delegatorMenuItems: MenuItemProps[] = useMemo(
@@ -302,7 +306,7 @@ function SecuritySettingsPage() {
             text: translate('delegate.changeAccessLevel'),
             icon: icons.Pencil,
             onPress: () => {
-                if (isDelegateAccessRestricted) {
+                if (isDelegateAccessRestricted || isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
@@ -320,7 +324,7 @@ function SecuritySettingsPage() {
             text: translate('delegate.removeCopilot'),
             icon: Expensicons.Trashcan,
             onPress: () => {
-                if (isDelegateAccessRestricted) {
+                if (isDelegateAccessRestricted || isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
@@ -453,6 +457,11 @@ function SecuritySettingsPage() {
                                 prompt={translate('delegate.removeCopilotConfirmation')}
                                 danger
                                 onConfirm={() => {
+                                    if (isActingAsDelegate) {
+                                        setShouldShowRemoveDelegateModal(false);
+                                        showDelegateNoAccessModal();
+                                        return;
+                                    }
                                     removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
                                     setShouldShowRemoveDelegateModal(false);
                                     setSelectedDelegate(undefined);
