@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {BeginningOfChatHistoryParams, HarvestCreatedExpenseReportParams, ViolationsRterParams} from './params';
+import type {BeginningOfChatHistoryParams, HarvestCreatedExpenseReportParams, SplitDateRangeParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -291,7 +291,7 @@ const translations: TranslationDeepObject<typeof en> = {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
-        longID: 'ID largo',
+        longReportID: 'ID de informe largo',
         withdrawalID: 'ID de retiro',
         bankAccounts: 'Cuentas bancarias',
         chooseFile: 'Elegir archivo',
@@ -378,6 +378,7 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Acción requerida',
         duplicate: 'Duplicar',
         duplicated: 'Duplicado',
+        exchangeRate: 'Tipo de cambio',
         reimbursableTotal: 'Total reembolsable',
         nonReimbursableTotal: 'Total no reembolsable',
     },
@@ -800,6 +801,7 @@ const translations: TranslationDeepObject<typeof en> = {
     iou: {
         amount: 'Importe',
         percent: 'Porcentaje',
+        date: 'Fecha',
         taxAmount: 'Importe del impuesto',
         taxRate: 'Tasa de impuesto',
         approve: ({formattedAmount} = {}) => (formattedAmount ? `Aprobar ${formattedAmount}` : 'Aprobar'),
@@ -809,8 +811,11 @@ const translations: TranslationDeepObject<typeof en> = {
         original: 'Original',
         split: 'Dividir',
         splitExpense: 'Dividir gasto',
+        splitDates: 'Fechas de división',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} al ${endDate} (${count} días)`,
         splitExpenseSubtitle: ({amount, merchant}) => `${amount} de ${merchant}`,
         splitByPercentage: 'Dividir por porcentaje',
+        splitByDate: 'Dividir por fecha',
         addSplit: 'Añadir división',
         makeSplitsEven: 'Igualar divisiones',
         editSplits: 'Editar divisiones',
@@ -1033,6 +1038,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: 'La cantidad debe ser mayor que cero',
             invalidSubrateLength: 'Debe haber al menos una subtasa',
             invalidRate: 'Tasa no válida para este espacio de trabajo. Por favor, selecciona una tasa disponible en el espacio de trabajo.',
+            endDateBeforeStartDate: 'La fecha de finalización no puede ser anterior a la fecha de inicio',
+            endDateSameAsStartDate: 'La fecha de finalización no puede ser la misma que la fecha de inicio',
         },
         dismissReceiptError: 'Descartar error',
         dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',
@@ -6356,6 +6363,7 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Crear exportación',
             description: '¡Wow, esos son muchos elementos! Los agruparemos y Concierge te enviará un archivo en breve.',
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
             allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
@@ -6369,6 +6377,11 @@ ${amount} para ${merchant} - ${date}`,
             helpTextConcierge: 'Si el problema persiste, comunícate con',
         },
         refresh: 'Actualizar',
+    },
+    desktopAppRetiredPage: {
+        title: 'La aplicación de escritorio ha sido retirada',
+        body: 'La nueva aplicación de escritorio Expensify para Mac ha sido retirada. En adelante, utiliza la aplicación web para acceder a tu cuenta.',
+        goToWeb: 'Ir a la web',
     },
     fileDownload: {
         success: {
