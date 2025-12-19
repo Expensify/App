@@ -1312,8 +1312,12 @@ function PureReportActionItem({
             const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
             const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
             const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+            const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
             const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport;
+            const htmlContent = true
+                ? `<del><comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment></del>`
+                : `<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`;
             // When expenses are merged multiple times, the previous fromReportID may reference a deleted report,
             // making it impossible to retrieve the report name for display
             // Ref: https://github.com/Expensify/App/issues/70338
@@ -1322,7 +1326,10 @@ function PureReportActionItem({
             } else {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`} />
+                        <RenderHTML
+                            html={htmlContent}
+                            onLinkPress={isPendingDelete ? () => {} : undefined}
+                        />
                     </ReportActionItemBasicMessage>
                 );
             }
