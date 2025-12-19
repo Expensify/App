@@ -18,12 +18,12 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -39,6 +39,8 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info', 'RemoveMembers'] as const);
     const [isModalVisible, setIsModalVisible] = useState(false);
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
@@ -57,21 +59,16 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     const phoneNumber = getPhoneNumber(personalDetails);
     const fallbackIcon = personalDetails?.fallbackIcon ?? '';
 
-    const currentUserAccountID = getCurrentUserAccountID();
-    const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
-
     if (isLoadingOnyxValue(domainMetadata)) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     const handleForceCloseAccount = () => {
-        console.log('force closing');
         setIsModalVisible(false);
         Navigation.dismissModal();
     };
 
     const handleSafeCloseAccount = () => {
-        console.log('safe closing');
         setIsModalVisible(false);
         Navigation.dismissModal();
     };
@@ -138,12 +135,13 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             <DecisionModal
                 title={translate('domain.members.closeAccount')}
                 prompt={translate('domain.members.closeAccountInfo')}
-                isSmallScreenWidth={false}
+                isSmallScreenWidth={isSmallScreenWidth}
                 onSecondOptionSubmit={handleSafeCloseAccount}
+                onFirstOptionSubmit={handleForceCloseAccount}
                 secondOptionText={translate('domain.members.safeCloseAccount')}
                 firstOptionText={translate('domain.members.forceCloseAccount')}
                 isVisible={isModalVisible}
-                onClose={handleForceCloseAccount}
+                onClose={() => setIsModalVisible(false)}
                 firstOptionDanger
                 secondOptionSuccess
             />
