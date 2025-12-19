@@ -191,7 +191,9 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
-            return statusList.includes(range.value);
+            // Accept both English status values and translated values (any non-empty string)
+            // Translated status values come from getStatusOptions which ensures validity
+            return statusList.includes(range.value) || range.value.length > 0;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
             return actionList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
@@ -215,7 +217,9 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
             return datePresetList.includes(range.value) || /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS:
-            return hasList.includes(range.value);
+            // Accept both English has values and translated values (any non-empty string)
+            // Translated has values come from getHasOptions which ensures validity
+            return hasList.includes(range.value) || range.value.length > 0;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:

@@ -44,6 +44,7 @@ import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetai
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
+import {getStatusOptions, getHasOptions} from './SearchUIUtils';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
@@ -1065,6 +1066,8 @@ function getDisplayQueryFiltersForKey(
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
+    type?: SearchDataTypes,
+    translate?: LocaleContextProps['translate'],
 ) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
@@ -1120,6 +1123,29 @@ function getDisplayQueryFiltersForKey(
             }
             return acc;
         }, [] as QueryFilter[]);
+    }
+
+    // Handle HAS filter with translations
+    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS && translate && type) {
+        const hasOptions = getHasOptions(translate, type);
+        return queryFilter.map((filter) => {
+            const hasValue = filter.value.toString();
+            const hasOption = hasOptions.find((option) => option.value === hasValue);
+            if (hasOption) {
+                const translatedText = hasOption.text.toLowerCase();
+                // Replace regular spaces with thin spaces (U+2009) to keep multi-word values together
+                // The parser excludes only: space, comma, tab, newline, carriage return, and non-breaking space
+                // Thin space is NOT in that exclusion list, so the parser treats it as part of the word
+                return {
+                    operator: filter.operator,
+                    value: translatedText.replaceAll(' ', '\u2009'),
+                };
+            }
+            return {
+                operator: filter.operator,
+                value: getUserFriendlyValue(hasValue),
+            };
+        });
     }
 
     return queryFilter.map((filter) => ({
@@ -1197,8 +1223,26 @@ function buildUserReadableQueryString(
     policies: OnyxCollection<OnyxTypes.Policy>,
     currentUserAccountID: number,
     autoCompleteWithSpace = false,
+    translate?: LocaleContextProps['translate'],
 ) {
     const {type, status, groupBy, policyID, rawFilterList, flatFilters: filters = []} = queryJSON;
+
+    // Helper function to translate status values
+    const translateStatusValue = (statusValue: string): string => {
+        if (!translate || !type) {
+            return getUserFriendlyValue(statusValue);
+        }
+        const statusOptions = getStatusOptions(translate, type);
+        const statusOption = statusOptions.find((option) => option.value === statusValue);
+        if (!statusOption) {
+            return getUserFriendlyValue(statusValue);
+        }
+        const translatedText = statusOption.text.toLowerCase();
+        // Replace regular spaces with thin spaces (U+2009) to keep multi-word values together
+        // The parser excludes only: space, comma, tab, newline, carriage return, and non-breaking space
+        // Thin space is NOT in that exclusion list, so the parser treats it as part of the word
+        return translatedText.replaceAll(' ', '\u2009');
+    };
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
@@ -1229,7 +1273,7 @@ function buildUserReadableQueryString(
                 continue;
             }
 
-            const displayQueryFilters = getDisplayQueryFiltersForKey(rawFilter.key, queryFilters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
+            const displayQueryFilters = getDisplayQueryFiltersForKey(rawFilter.key, queryFilters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID, type, translate);
 
             if (!displayQueryFilters.length) {
                 continue;
@@ -1248,7 +1292,7 @@ function buildUserReadableQueryString(
     }
 
     let title = status
-        ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(getUserFriendlyValue).join(',') : getUserFriendlyValue(status)}`
+        ? `type:${getUserFriendlyValue(type)} status:${Array.isArray(status) ? status.map(translateStatusValue).join(',') : translateStatusValue(status)}`
         : `type:${getUserFriendlyValue(type)}`;
 
     if (groupBy) {
@@ -1261,7 +1305,7 @@ function buildUserReadableQueryString(
 
     for (const filterObject of filters) {
         const key = filterObject.key;
-        const displayQueryFilters = getDisplayQueryFiltersForKey(key, filterObject.filters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
+        const displayQueryFilters = getDisplayQueryFiltersForKey(key, filterObject.filters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID, type, translate);
 
         if (!displayQueryFilters.length) {
             continue;
