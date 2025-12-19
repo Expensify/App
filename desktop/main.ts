@@ -748,12 +748,19 @@ const mainWindow = (): Promise<void> => {
                 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
                 // So we track preferredLocale separately via ELECTRON_EVENTS.LOCALE_UPDATED
                 ipcMain.on(ELECTRON_EVENTS.LOCALE_UPDATED, (event, updatedLocale: Locale) => {
-                    IntlStore.load(updatedLocale).then(() => {
+                    const onLocaleLoaded = () => {
                         preferredLocale = updatedLocale;
                         Menu.setApplicationMenu(Menu.buildFromTemplate(localizeMenuItems(initialMenuTemplate, updatedLocale)));
                         disposeContextMenu?.();
                         disposeContextMenu = createContextMenu(updatedLocale);
-                    });
+                    };
+
+                    const loadResult = IntlStore.load(updatedLocale);
+                    if (loadResult instanceof Promise) {
+                        loadResult.then(onLocaleLoaded);
+                    } else {
+                        onLocaleLoaded();
+                    }
                 });
 
                 ipcMain.on(ELECTRON_EVENTS.REQUEST_VISIBILITY, (event) => {
