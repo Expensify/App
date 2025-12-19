@@ -196,6 +196,7 @@ function WorkspaceInviteMessageComponent({
             },
             isEditing: false,
         });
+        Navigation.goBack();
     };
 
     useEffect(() => {

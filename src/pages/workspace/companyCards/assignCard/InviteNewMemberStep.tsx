@@ -48,6 +48,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             },
             isEditing: false,
         });
+        Navigation.goBack();
     };
 
     const goToNextStep = useCallback(() => {
