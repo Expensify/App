@@ -593,7 +593,7 @@ function WorkspacesListPage() {
             domainItems.push({
                 listItemType: 'domain',
                 accountID: domain.accountID,
-                title: Str.extractEmailDomain(domain?.email ?? ''),
+                title: Str.extractEmailDomain(domain.email),
                 action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin}),
                 isAdmin,
                 isValidated: domain.validated,
