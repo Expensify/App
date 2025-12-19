@@ -88,7 +88,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
-    const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
+    const [currentLocale, setCurrentLocale] = useState<Locale>(() => IntlStore.getCurrentLocale());
 
     const localeToApply = useMemo(() => {
         if (isLoadingOnyxValue(nvpPreferredLocaleMetadata)) {
