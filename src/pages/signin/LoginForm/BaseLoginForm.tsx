@@ -332,6 +332,4 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
     );
 }
 
-BaseLoginForm.displayName = 'BaseLoginForm';
-
 export default withToggleVisibilityView(BaseLoginForm);

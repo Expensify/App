@@ -63,7 +63,7 @@ function DisplayNamesWithToolTip({
             style={[textStyles, styles.pRelative]}
             numberOfLines={numberOfLines || undefined}
             ref={containerRef}
-            testID={DisplayNamesWithToolTip.displayName}
+            testID="DisplayNamesWithToolTip"
             fsClass={forwardedFSClass}
         >
             {shouldUseFullTitle
@@ -98,7 +98,5 @@ function DisplayNamesWithToolTip({
         </Text>
     );
 }
-
-DisplayNamesWithToolTip.displayName = 'DisplayNamesWithTooltip';
 
 export default DisplayNamesWithToolTip;

@@ -95,6 +95,4 @@ function InputWrapper<TInput extends ValidInputs, TValue extends ValueTypeKey>({
     );
 }
 
-InputWrapper.displayName = 'InputWrapper';
-
 export default InputWrapper;

@@ -119,7 +119,7 @@ function ConsolePage() {
     const saveLogs = () => {
         const logsWithParsedMessages = parseStringifiedMessages(filteredLogsList);
 
-        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));
+        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2), translate);
     };
 
     const shareLogs = () => {
@@ -158,7 +158,7 @@ function ConsolePage() {
 
     return (
         <ScreenWrapper
-            testID={ConsolePage.displayName}
+            testID="ConsolePage"
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -227,7 +227,5 @@ function ConsolePage() {
         </ScreenWrapper>
     );
 }
-
-ConsolePage.displayName = 'ConsolePage';
 
 export default ConsolePage;

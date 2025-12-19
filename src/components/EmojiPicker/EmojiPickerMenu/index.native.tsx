@@ -126,6 +126,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     role={CONST.ROLE.PRESENTATION}
                     onChangeText={filterEmojis}
                     submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
+                    sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}
                 />
             </View>
             <BaseEmojiPickerMenu
@@ -149,5 +150,4 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
     );
 }
 
-EmojiPickerMenu.displayName = 'EmojiPickerMenu';
 export default EmojiPickerMenu;
