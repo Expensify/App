@@ -246,7 +246,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                             const focused = activeItemIndex === flattenedIndex;
 
                                             const onPress = singleExecution(() => {
-                                                clearAllFilters();
                                                 clearSelectedTransactions();
                                                 setSearchContext(false);
                                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
