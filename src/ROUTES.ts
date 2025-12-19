@@ -748,6 +748,7 @@ const ROUTES = {
         },
     },
     SPLIT_EXPENSE: {
+        // TODO: Remove backTo from route once we have find another way to fix navigation issues with tabs
         route: 'create/split-expense/overview/:reportID/:transactionID/:splitExpenseTransactionID/:backTo?',
         getRoute: (reportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string, backTo?: string) => {
             if (!reportID || !originalTransactionID) {
