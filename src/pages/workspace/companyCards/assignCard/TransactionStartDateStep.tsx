@@ -37,15 +37,6 @@ function TransactionStartDateStep() {
         Navigation.goBack();
     };
 
-    const handleSelectDateOption = (dateOption: string) => {
-        setErrorText('');
-        setDateOptionSelected(dateOption);
-        if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
-            return;
-        }
-        setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
-    };
-
     const submit = () => {
         if (dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM && !isRequiredFulfilled(startDate)) {
             setErrorText(translate('common.error.fieldRequired'));
@@ -63,6 +54,15 @@ function TransactionStartDateStep() {
         });
 
         Navigation.goBack();
+    };
+
+    const handleSelectDateOption = (dateOption: string) => {
+        setErrorText('');
+        setDateOptionSelected(dateOption);
+        if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
+            return;
+        }
+        setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
     };
 
     const dateOptions = [
