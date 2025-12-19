@@ -31,7 +31,7 @@ import {
     getDescription,
     getExchangeRate,
     getMerchant,
-    getOriginalAmount,
+    getOriginalAmountForDisplay,
     getOriginalCurrency,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
@@ -492,12 +492,7 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
                 >
                     <AmountCell
-                        /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-                        total={
-                            isExpenseReport(transactionItem.report)
-                                ? -((transactionItem.originalAmount || transactionItem.amount || transactionItem.modifiedAmount) ?? 0)
-                                : getOriginalAmount(transactionItem) || Math.abs(transactionItem.amount ?? 0) || Math.abs(transactionItem.modifiedAmount ?? 0)
-                        }
+                        total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
                         currency={getOriginalCurrency(transactionItem)}
                     />
                 </View>

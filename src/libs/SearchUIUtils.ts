@@ -119,7 +119,7 @@ import {
     getCategory,
     getDescription,
     getExchangeRate,
-    getOriginalAmount,
+    getOriginalAmountForDisplay,
     getTag,
     getTaxAmount,
     getAmount as getTransactionAmount,
@@ -2250,16 +2250,8 @@ function getSortedTransactionData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT) {
         return data.sort((a, b) => {
-            const aIsExpenseReport = a.report?.type === CONST.REPORT.TYPE.EXPENSE;
-            const bIsExpenseReport = b.report?.type === CONST.REPORT.TYPE.EXPENSE;
-            /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-            const aValue = aIsExpenseReport
-                ? -((a.originalAmount || a.amount || a.modifiedAmount) ?? 0)
-                : getOriginalAmount(a) || Math.abs(a.amount ?? 0) || Math.abs(a.modifiedAmount ?? 0);
-            const bValue = bIsExpenseReport
-                ? -((b.originalAmount || b.amount || b.modifiedAmount) ?? 0)
-                : getOriginalAmount(b) || Math.abs(b.amount ?? 0) || Math.abs(b.modifiedAmount ?? 0);
-            /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+            const aValue = getOriginalAmountForDisplay(a, a.report?.type === CONST.REPORT.TYPE.EXPENSE);
+            const bValue = getOriginalAmountForDisplay(b, b.report?.type === CONST.REPORT.TYPE.EXPENSE);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare, true);
         });
     }
