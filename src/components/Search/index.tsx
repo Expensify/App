@@ -518,6 +518,20 @@ function Search({
         return [enriched];
     }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, formatPhoneNumber, isActionLoadingSet]);
 
+    // For group-by views, compute total transactions count from each snapshot's search.count
+    // This ensures we know the total even when snapshots have paginated transactions
+    const groupByTransactionsTotal = useMemo(() => {
+        if (!validGroupBy) {
+            return undefined;
+        }
+        return (baseFilteredData as TransactionGroupListItemType[]).reduce((acc, item) => {
+            const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
+            // snapshot.search.count gives us the total count including paginated items
+            const snapshotCount = snapshot?.search?.count ?? item.transactions?.length ?? 0;
+            return acc + snapshotCount;
+        }, 0);
+    }, [validGroupBy, baseFilteredData, groupByTransactionSnapshots]);
+
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
         setShouldShowFiltersBarLoading(shouldShowLoadingState && lastSearchType !== type);
@@ -1164,6 +1178,7 @@ function Search({
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
+                    totalTransactionsCount={groupByTransactionsTotal}
                 />
                 <ConfirmModal
                     title={translate('customApprovalWorkflow.title')}
