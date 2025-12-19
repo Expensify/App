@@ -518,18 +518,17 @@ function Search({
         return [enriched];
     }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, formatPhoneNumber, isActionLoadingSet]);
 
-    // For group-by views, compute total transactions count from each snapshot's search.count
-    // This ensures we know the total even when snapshots have paginated transactions
-    const groupByTransactionsTotal = useMemo(() => {
+    // For group-by views, check if any group has unloaded transactions
+    const hasUnloadedGroupTransactions = useMemo(() => {
         if (!validGroupBy) {
-            return undefined;
+            return false;
         }
-        return (baseFilteredData as TransactionGroupListItemType[]).reduce((acc, item) => {
+        return (baseFilteredData as TransactionGroupListItemType[]).some((item) => {
             const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
-            // snapshot.search.count gives us the total count including paginated items
-            const snapshotCount = snapshot?.search?.count ?? item.transactions?.length ?? 0;
-            return acc + snapshotCount;
-        }, 0);
+            // If snapshot doesn't exist, the group hasn't been expanded yet (transactions not loaded)
+            // If snapshot exists and has hasMoreResults: true, not all transactions are loaded
+            return !snapshot || snapshot?.search?.hasMoreResults === true;
+        });
     }, [validGroupBy, baseFilteredData, groupByTransactionSnapshots]);
 
     useEffect(() => {
@@ -1178,7 +1177,7 @@ function Search({
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
-                    totalTransactionsCount={groupByTransactionsTotal}
+                    hasUnloadedTransactions={hasUnloadedGroupTransactions}
                 />
                 <ConfirmModal
                     title={translate('customApprovalWorkflow.title')}

@@ -125,8 +125,8 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
 
-    /** Total transactions count for group-by views - the actual total from the API, including transactions not yet loaded */
-    totalTransactionsCount?: number;
+    /** Whether there are transactions not yet loaded from snapshots in group-by views */
+    hasUnloadedTransactions?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
@@ -179,7 +179,7 @@ function SearchList({
     newTransactions = [],
     violations,
     onDEWModalOpen,
-    totalTransactionsCount,
+    hasUnloadedTransactions,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -401,11 +401,9 @@ function SearchList({
         ],
     );
 
-    const effectiveTotalCount = totalTransactionsCount ?? flattenedItemsWithoutPendingDelete.length;
-    const areAllTransactionsLoaded = !totalTransactionsCount || totalTransactionsCount === flattenedItemsWithoutPendingDelete.length;
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === effectiveTotalCount;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length && !hasUnloadedTransactions;
 
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
@@ -415,7 +413,7 @@ function SearchList({
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== effectiveTotalCount || !areAllTransactionsLoaded)}
+                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== flattenedItemsWithoutPendingDelete.length || hasUnloadedTransactions)}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
