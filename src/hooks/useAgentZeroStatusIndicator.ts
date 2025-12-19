@@ -130,17 +130,8 @@ const FILLER_MESSAGE_POOLS: Record<string, string[]> = {
 
 // Grouped backend labels by the pool we want to use
 const STATUS_LABEL_GROUPS: Record<string, string[]> = {
-    data: [
-        'Concierge is looking up categories...',
-        'Concierge is looking up tags...',
-        'Concierge is looking up tax codes...',
-        'Concierge is searching documentation...',
-    ],
-    expenseAction: [
-        'Concierge is creating an expense...',
-        'Concierge is creating a distance expense...',
-        'Concierge is deleting an expense...',
-    ],
+    data: ['Concierge is looking up categories...', 'Concierge is looking up tags...', 'Concierge is looking up tax codes...', 'Concierge is searching documentation...'],
+    expenseAction: ['Concierge is creating an expense...', 'Concierge is creating a distance expense...', 'Concierge is deleting an expense...'],
     expenseUpdate: [
         'Concierge is updating category...',
         'Concierge is updating description...',

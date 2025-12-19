@@ -17,8 +17,8 @@ import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
-import useAncestors from '@hooks/useAncestors';
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
+import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useHandleExceedMaxTaskTitleLength from '@hooks/useHandleExceedMaxTaskTitleLength';
@@ -638,19 +638,19 @@ function ReportActionCompose({
                             styles.flexRow,
                             styles.justifyContentBetween,
                             styles.alignItemsCenter,
-                        (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
-                    ]}
-                >
-                    {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                    <AgentZeroProcessingRequestIndicator
-                        reportID={reportID}
-                        label={agentZeroDisplayLabel}
-                    />
-                    <ReportTypingIndicator reportID={reportID} />
-                    {!!exceededMaxLength && (
-                        <ExceededCommentLength
-                            maxCommentLength={exceededMaxLength}
-                            isTaskTitle={hasExceededMaxTaskTitleLength}
+                            (!isSmallScreenWidth || (isSmallScreenWidth && !isOffline)) && styles.chatItemComposeSecondaryRow,
+                        ]}
+                    >
+                        {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
+                        <AgentZeroProcessingRequestIndicator
+                            reportID={reportID}
+                            label={agentZeroDisplayLabel}
+                        />
+                        <ReportTypingIndicator reportID={reportID} />
+                        {!!exceededMaxLength && (
+                            <ExceededCommentLength
+                                maxCommentLength={exceededMaxLength}
+                                isTaskTitle={hasExceededMaxTaskTitleLength}
                             />
                         )}
                     </View>
