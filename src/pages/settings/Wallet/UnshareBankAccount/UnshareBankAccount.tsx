@@ -120,13 +120,14 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
 
     const onButtonPress = () => Navigation.goBack(ROUTES.SETTINGS_WALLET);
 
+    const adminsList = getAdminsList();
+
     const getHeaderSearchMessage = () => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
         return getHeaderMessage(adminsList.length !== 0, false, searchValue, countryCode, false);
     };
 
     const headerMessage = getHeaderSearchMessage();
-    const adminsList = getAdminsList();
 
     return (
         <ScreenWrapper testID={UnshareBankAccount.displayName}>
