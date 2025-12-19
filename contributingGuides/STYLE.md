@@ -1146,7 +1146,7 @@ export default function <TProps extends WithCurrentUserPersonalDetailsProps>(Wra
 
 ### Forwarding refs
 
-In React 19, `forwardRef` is no longer necessary. Simply pass `ref` as a prop instead of using `forwardRef`.
+In React 19, `forwardRef` is deprecated and no longer necessary. Simply pass `ref` as a prop instead of using `forwardRef`.
 
 ***Note:*** *prop must be named `ref` explicitly (it's a special prop like `children`)*
 
