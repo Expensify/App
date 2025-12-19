@@ -1,5 +1,5 @@
 import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
-import {getCompanyCardFeed, getCompanyFeeds, getPlaidInstitutionId, getSelectedFeed} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getPlaidInstitutionId} from '@libs/CardUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList} from '@src/types/onyx';
 import type {AssignableCardsList, WorkspaceCardsList} from '@src/types/onyx/Card';
