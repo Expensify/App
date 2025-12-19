@@ -59,6 +59,4 @@ function ScimTokenContent({domainName}: ScimTokenContentProps) {
     );
 }
 
-ScimTokenContent.displayName = 'ScimTokenContent';
-
 export default ScimTokenContent;

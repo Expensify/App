@@ -48,7 +48,7 @@ function RulesCustomPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesCustomPage.displayName}
+                testID="RulesCustomPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.customRules.title')}
@@ -85,7 +85,5 @@ function RulesCustomPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesCustomPage.displayName = 'RulesCustomPage';
 
 export default RulesCustomPage;

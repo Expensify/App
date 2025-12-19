@@ -1,5 +1,10 @@
 {
     "language": "en",
+    "enableGlobDot": false,
+    "cache": {
+        "useCache": true,
+        "cacheLocation": ".cspellcache"
+    },
     "words": [
         "--longpress",
         "Accelo",
@@ -19,6 +24,7 @@
         "alrt",
         "Amal",
         "Amal's",
+        "americanexpress",
         "americanexpressfdx",
         "Amina",
         "androiddebugkey",
@@ -96,6 +102,7 @@
         "buildscript",
         "Buildscript",
         "Bushwick",
+        "BYOC",
         "capitalone",
         "CAROOT",
         "Carta",
@@ -237,6 +244,7 @@
         "falso",
         "favicons",
         "Ferroalloy",
+        "FinancialForce",
         "firebaselogging",
         "firstname",
         "Fiscale",
@@ -794,7 +802,8 @@
         "setuptools",
         "DYNAMICEXTERNAL",
         "RNCORE",
-        "Wooo"
+        "Wooo",
+        "Splittable"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

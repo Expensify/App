@@ -185,7 +185,7 @@ function AccessOrNotFoundWrapper({
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.
     useEffect(() => {
-        if (!isFocused || isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled)) {
+        if (!isFocused || isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled) || shouldShowNotFoundPage) {
             return;
         }
 
@@ -198,7 +198,7 @@ function AccessOrNotFoundWrapper({
         // We don't need to run the effect on policyID change as we only use it to get the route to navigate to.
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pendingField, isOffline, isFeatureEnabled, isFocused]);
+    }, [pendingField, isOffline, isFeatureEnabled, shouldShowNotFoundPage, isFocused]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

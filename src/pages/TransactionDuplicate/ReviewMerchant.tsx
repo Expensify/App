@@ -63,7 +63,7 @@ function ReviewMerchant() {
     };
 
     return (
-        <ScreenWrapper testID={ReviewMerchant.displayName}>
+        <ScreenWrapper testID="ReviewMerchant">
             <HeaderWithBackButton
                 title={translate('iou.reviewDuplicates')}
                 onBackButtonPress={goBack}
@@ -78,7 +78,5 @@ function ReviewMerchant() {
         </ScreenWrapper>
     );
 }
-
-ReviewMerchant.displayName = 'ReviewMerchant';
 
 export default ReviewMerchant;

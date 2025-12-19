@@ -1,6 +1,7 @@
 import lodashSortBy from 'lodash/sortBy';
 import type {OnyxCollection} from 'react-native-onyx';
 import type IllustrationsType from '@styles/theme/illustrations/types';
+// eslint-disable-next-line no-restricted-imports
 import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
@@ -26,6 +27,8 @@ import {
     getFilteredCardList,
     getMonthFromExpirationDateString,
     getOriginalCompanyFeeds,
+    getPlaidInstitutionIconUrl,
+    getPlaidInstitutionId,
     getSelectedFeed,
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
@@ -38,6 +41,7 @@ import {
 } from '@src/libs/CardUtils';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {localeCompare} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -347,6 +351,8 @@ const allCardsList = {
     },
 } as OnyxCollection<WorkspaceCardsList>;
 
+const mockIcon = (iconName: string): IconAsset => iconName as IconAsset;
+
 const mockIllustrations = {
     EmptyStateBackgroundImage: 'EmptyStateBackgroundImage',
     ExampleCheckES: 'ExampleCheckES',
@@ -356,6 +362,35 @@ const mockIllustrations = {
     GenericCompanyCard: 'GenericCompanyCard',
     GenericCSVCompanyCardLarge: 'GenericCSVCompanyCardLarge',
     GenericCompanyCardLarge: 'GenericCompanyCardLarge',
+};
+type CompanyCardFeedIconsMock = Parameters<typeof getCardFeedIcon>[2];
+type CompanyCardBankIconsMock = Parameters<typeof getBankCardDetailsImage>[2];
+
+const mockCompanyCardFeedIcons: CompanyCardFeedIconsMock = {
+    VisaCompanyCardDetailLarge: mockIcon('VisaCompanyCardDetailLarge'),
+    AmexCardCompanyCardDetailLarge: mockIcon('AmexCardCompanyCardDetailLarge'),
+    MasterCardCompanyCardDetailLarge: mockIcon('MasterCardCompanyCardDetailLarge'),
+    BankOfAmericaCompanyCardDetailLarge: mockIcon('BankOfAmericaCompanyCardDetailLarge'),
+    CapitalOneCompanyCardDetailLarge: mockIcon('CapitalOneCompanyCardDetailLarge'),
+    ChaseCompanyCardDetailLarge: mockIcon('ChaseCompanyCardDetailLarge'),
+    CitibankCompanyCardDetailLarge: mockIcon('CitibankCompanyCardDetailLarge'),
+    WellsFargoCompanyCardDetailLarge: mockIcon('WellsFargoCompanyCardDetailLarge'),
+    BrexCompanyCardDetailLarge: mockIcon('BrexCompanyCardDetailLarge'),
+    StripeCompanyCardDetailLarge: mockIcon('StripeCompanyCardDetailLarge'),
+    PlaidCompanyCardDetailLarge: mockIcon('PlaidCompanyCardDetailLarge'),
+};
+const mockCompanyCardBankIcons: CompanyCardBankIconsMock = {
+    AmexCardCompanyCardDetail: mockIcon('AmexCardCompanyCardDetail'),
+    BankOfAmericaCompanyCardDetail: mockIcon('BankOfAmericaCompanyCardDetail'),
+    CapitalOneCompanyCardDetail: mockIcon('CapitalOneCompanyCardDetail'),
+    ChaseCompanyCardDetail: mockIcon('ChaseCompanyCardDetail'),
+    CitibankCompanyCardDetail: mockIcon('CitibankCompanyCardDetail'),
+    WellsFargoCompanyCardDetail: mockIcon('WellsFargoCompanyCardDetail'),
+    BrexCompanyCardDetail: mockIcon('BrexCompanyCardDetail'),
+    StripeCompanyCardDetail: mockIcon('StripeCompanyCardDetail'),
+    MasterCardCompanyCardDetail: mockIcon('MasterCardCompanyCardDetail'),
+    VisaCompanyCardDetail: mockIcon('VisaCompanyCardDetail'),
+    PlaidCompanyCardDetail: mockIcon('PlaidCompanyCardDetail'),
 };
 
 jest.mock('@src/components/Icon/Illustrations', () => require('../../__mocks__/Illustrations') as typeof Illustrations);
@@ -640,25 +675,25 @@ describe('CardUtils', () => {
     describe('getCardFeedIcon', () => {
         it('Should return a valid illustration if a valid feed was provided', () => {
             const feed = 'vcf';
-            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
+            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType, mockCompanyCardFeedIcons);
             expect(illustration).toBe('VisaCompanyCardDetailLarge');
         });
 
         it('Should return a valid illustration if an OldDot feed variation was provided', () => {
             const feed = 'oauth.americanexpressfdx.com 2003' as CompanyCardFeed;
-            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
+            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType, mockCompanyCardFeedIcons);
             expect(illustration).toBe('AmexCardCompanyCardDetailLarge');
         });
 
         it('Should return a valid illustration if a CSV imported feed variation was provided', () => {
             const feed = 'cards_2267989_ccupload666' as CompanyCardFeed;
-            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
+            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType, mockCompanyCardFeedIcons);
             expect(illustration).toBe('GenericCSVCompanyCardLarge');
         });
 
         it('Should return valid illustration if a non-matching feed was provided', () => {
             const feed = '666' as CompanyCardFeed;
-            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType);
+            const illustration = getCardFeedIcon(feed, mockIllustrations as unknown as IllustrationsType, mockCompanyCardFeedIcons);
             expect(illustration).toBe('GenericCompanyCardLarge');
         });
     });
@@ -666,13 +701,13 @@ describe('CardUtils', () => {
     describe('getBankCardDetailsImage', () => {
         it('Should return a valid illustration if a valid bank name was provided', () => {
             const bank = 'American Express';
-            const illustration = getBankCardDetailsImage(bank, mockIllustrations as unknown as IllustrationsType);
+            const illustration = getBankCardDetailsImage(bank, mockIllustrations as unknown as IllustrationsType, mockCompanyCardBankIcons);
             expect(illustration).toBe('AmexCardCompanyCardDetail');
         });
 
         it('Should return a valid illustration if Other bank name was provided', () => {
             const bank = 'Other';
-            const illustration = getBankCardDetailsImage(bank, mockIllustrations as unknown as IllustrationsType);
+            const illustration = getBankCardDetailsImage(bank, mockIllustrations as unknown as IllustrationsType, mockCompanyCardBankIcons);
             expect(illustration).toBe('GenericCompanyCard');
         });
     });
@@ -1305,6 +1340,40 @@ describe('CardUtils', () => {
             const domainID = 11111111;
             const combinedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
             expect(combinedKey).toBe(`${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`);
+        });
+    });
+
+    describe('getPlaidInstitutionId', () => {
+        it('should return institution ID from plaid feed name without domain ID', () => {
+            const feedName = 'plaid.ins_123456';
+            const institutionId = getPlaidInstitutionId(feedName);
+            expect(institutionId).toBe('ins_123456');
+        });
+
+        it('should return institution ID from plaid feed name with domain ID', () => {
+            const feedName = 'plaid.ins_129663#12345';
+            const institutionId = getPlaidInstitutionId(feedName);
+            expect(institutionId).toBe('ins_129663');
+        });
+
+        it('should return empty string for non-plaid feed', () => {
+            const feedName = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const institutionId = getPlaidInstitutionId(feedName);
+            expect(institutionId).toBe('');
+        });
+    });
+
+    describe('getPlaidInstitutionIconUrl', () => {
+        it('should return correct icon URL for plaid feed without domain ID', () => {
+            const feedName = 'plaid.ins_123456';
+            const iconUrl = getPlaidInstitutionIconUrl(feedName);
+            expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_123456.png`);
+        });
+
+        it('should return correct icon URL for plaid feed with domain ID', () => {
+            const feedName = 'plaid.ins_129663#12345';
+            const iconUrl = getPlaidInstitutionIconUrl(feedName);
+            expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_129663.png`);
         });
     });
 });
