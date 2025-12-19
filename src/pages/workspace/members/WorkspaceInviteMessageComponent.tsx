@@ -23,16 +23,16 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
-import {setAssignCardStepAndData} from '@userActions/CompanyCards';
-import {clearInviteDraft} from '@userActions/Policy/Member';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
-import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import variables from '@styles/variables';
+import {setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {clearInviteDraft} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AccessOrNotFoundWrapper from '@src/pages/workspace/AccessOrNotFoundWrapper';
@@ -252,14 +252,14 @@ function WorkspaceInviteMessageComponent({
                     </View>
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>
-                        {isInviteNewMemberStep && (
-                            <MenuItemWithTopDescription
-                                  title={invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : invitingMemberEmail}
-                                  description={translate('common.member')}
-                                  shouldShowRightIcon
-                                  onPress={handleMemberPress}
-                              />
-                          )}
+                            {isInviteNewMemberStep && (
+                                <MenuItemWithTopDescription
+                                    title={invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : invitingMemberEmail}
+                                    description={translate('common.member')}
+                                    shouldShowRightIcon
+                                    onPress={handleMemberPress}
+                                />
+                            )}
                             {shouldShowMemberNames && !isInviteNewMemberStep && (
                                 <MenuItemWithTopDescription
                                     title={memberNames}
