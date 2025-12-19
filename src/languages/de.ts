@@ -5099,6 +5099,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 pendingBankLink: 'Bitte hier klicken',
                 giveItNameInstruction: 'Gib der Karte einen Namen, der sie von anderen abhebt.',
                 updating: 'Wird aktualisiert...',
+                neverUpdated: 'Nie',
                 noAccountsFound: 'Keine Konten gefunden',
                 defaultCard: 'Standardkarte',
                 downgradeTitle: `Workspace kann nicht herabgestuft werden`,
