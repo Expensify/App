@@ -6,7 +6,6 @@ import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, Updat
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getDefaultApprover} from '@libs/PolicyUtils';
 import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees} from '@libs/WorkflowUtils';
-import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,19 +13,14 @@ import type {ApprovalWorkflowOnyx, IntroSelected, PersonalDetailsList, Policy, R
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as Task from './Task';
 
-let deprecatedIntroSelected: OnyxEntry<IntroSelected>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => (deprecatedIntroSelected = value),
-});
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
+type CreateApprovalWorkflowParams = {
+    approvalWorkflow: ApprovalWorkflow;
+    policy: OnyxEntry<Policy>;
+    introSelected: OnyxEntry<IntroSelected>;
+    allReports: OnyxCollection<Report>;
+};
 
 type SetApprovalWorkflowApproverParams = {
     approver: Approver;
@@ -41,7 +35,7 @@ type ClearApprovalWorkflowApproverParams = {
     currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
 };
 
-function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
+function createApprovalWorkflow({approvalWorkflow, policy, introSelected, allReports}: CreateApprovalWorkflowParams) {
     if (!policy) {
         return;
     }
@@ -95,7 +89,7 @@ function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     const parameters: CreateWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 
-    const addExpenseApprovalsTaskReportID = deprecatedIntroSelected?.addExpenseApprovals;
+    const addExpenseApprovalsTaskReportID = introSelected?.addExpenseApprovals;
     if (addExpenseApprovalsTaskReportID) {
         const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`];
 
