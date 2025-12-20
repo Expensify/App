@@ -76,6 +76,10 @@ function BaseListItem<TItem extends ListItem>({
         return rightHandSideComponent;
     };
 
+    const shouldShowCheckmark = !canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark;
+
+    const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
+
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
@@ -136,7 +140,23 @@ function BaseListItem<TItem extends ListItem>({
                 >
                     {typeof children === 'function' ? children(hovered) : children}
 
-                    {!canSelectMultiple && !!item.isSelected && !rightHandSideComponent && shouldUseDefaultRightHandSideCheckmark && (
+                    {shouldShowRBRIndicator && (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml3]}>
+                            <Icon
+                                testID={CONST.DOT_INDICATOR_TEST_ID}
+                                src={Expensicons.DotIndicator}
+                                fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger}
+                            />
+                        </View>
+                    )}
+
+                    {shouldShowRBRIndicator && !shouldShowCheckmark && (
+                        <View style={[styles.ml3, styles.opacity0]}>
+                            <Icon src={Expensicons.Checkmark} />
+                        </View>
+                    )}
+
+                    {shouldShowCheckmark && (
                         <View
                             style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
                             accessible={false}
@@ -147,15 +167,6 @@ function BaseListItem<TItem extends ListItem>({
                                     fill={theme.success}
                                 />
                             </View>
-                        </View>
-                    )}
-                    {(!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
-                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <Icon
-                                testID={CONST.DOT_INDICATOR_TEST_ID}
-                                src={Expensicons.DotIndicator}
-                                fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger}
-                            />
                         </View>
                     )}
 
