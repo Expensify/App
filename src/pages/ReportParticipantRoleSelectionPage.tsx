@@ -58,7 +58,7 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
     };
 
     return (
-        <ScreenWrapper testID={ReportParticipantRoleSelectionPage.displayName}>
+        <ScreenWrapper testID="ReportParticipantRoleSelectionPage">
             <HeaderWithBackButton
                 title={translate('common.role')}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -75,7 +75,5 @@ function ReportParticipantRoleSelectionPage({report, route}: ReportParticipantRo
         </ScreenWrapper>
     );
 }
-
-ReportParticipantRoleSelectionPage.displayName = 'ReportParticipantRoleSelectionPage';
 
 export default withReportOrNotFound()(ReportParticipantRoleSelectionPage);

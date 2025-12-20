@@ -132,6 +132,4 @@ function BaseEmojiPickerMenu({
     );
 }
 
-BaseEmojiPickerMenu.displayName = 'BaseEmojiPickerMenu';
-
 export default BaseEmojiPickerMenu;

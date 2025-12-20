@@ -118,7 +118,7 @@ function Confirmation() {
 
     return (
         <ScreenWrapper
-            testID={Confirmation.displayName}
+            testID="Confirmation"
             shouldShowOfflineIndicator
         >
             <FullPageNotFoundView shouldShow={shouldShowNotFoundPage}>
@@ -143,6 +143,7 @@ function Confirmation() {
                             <MoneyRequestView
                                 allReports={allReports}
                                 report={report}
+                                parentReportID={report?.parentReportID}
                                 expensePolicy={policy}
                                 shouldShowAnimatedBackground={false}
                                 readonly
@@ -170,7 +171,5 @@ function Confirmation() {
         </ScreenWrapper>
     );
 }
-
-Confirmation.displayName = 'Confirmation';
 
 export default Confirmation;

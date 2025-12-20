@@ -4,8 +4,6 @@ import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -35,7 +33,7 @@ import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound
 type RoomMemberDetailsPagePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
 
 function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
@@ -70,7 +68,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     }
 
     return (
-        <ScreenWrapper testID={RoomMemberDetailsPage.displayName}>
+        <ScreenWrapper testID="RoomMemberDetailsPage">
             <HeaderWithBackButton
                 title={displayName}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -118,7 +116,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                 <View style={styles.w100}>
                     <MenuItem
                         title={translate('common.profile')}
-                        icon={Expensicons.Info}
+                        icon={icons.Info}
                         onPress={navigateToProfile}
                         shouldShowRightIcon
                     />
@@ -127,7 +125,5 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
         </ScreenWrapper>
     );
 }
-
-RoomMemberDetailsPage.displayName = 'RoomMemberDetailsPage';
 
 export default withReportOrNotFound()(RoomMemberDetailsPage);

@@ -196,6 +196,5 @@ function ReportAddAttachmentModalContent({route, navigation}: AttachmentModalScr
         />
     );
 }
-ReportAddAttachmentModalContent.displayName = 'ReportAddAttachmentModalContent';
 
 export default ReportAddAttachmentModalContent;

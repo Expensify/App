@@ -1,5 +1,6 @@
 import React from 'react';
-import {ChatBubble, RotateLeft} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {RotateLeft} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -34,8 +35,8 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(true, undefined, undefined, reimbursementAccount?.achData?.ACHRequestReportActionID);
 
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ChatBubble']);
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble']);
 
     return (
         <ScrollView style={[styles.flex1]}>
@@ -47,7 +48,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
                 <MenuItem
-                    icon={ChatBubble}
+                    icon={icons.ChatBubble}
                     title={translate('workspace.bankAccount.finishInChat')}
                     onPress={handleNavigateToConciergeChat}
                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
@@ -84,7 +85,5 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
         </ScrollView>
     );
 }
-
-FinishChatCard.displayName = 'FinishChatCard';
 
 export default FinishChatCard;
