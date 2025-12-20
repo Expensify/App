@@ -33,7 +33,8 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const {translate} = useLocalize();
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const addExpenseApprovalsTaskReportID = introSelected?.addExpenseApprovals;
+    const [addExpenseApprovalsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`, {canBeMissing: true});
     const formRef = useRef<ScrollView>(null);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -48,9 +49,9 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        createApprovalWorkflowAction({approvalWorkflow, policy, introSelected, allReports});
+        createApprovalWorkflowAction({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
         Navigation.dismissModal();
-    }, [approvalWorkflow, policy, introSelected, allReports]);
+    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport]);
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 

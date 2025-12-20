@@ -233,7 +233,7 @@ describe('actions/Workflow', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
             await waitForBatchedUpdates();
 
-            createApprovalWorkflow({approvalWorkflow, policy, introSelected: undefined, allReports: undefined});
+            createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTaskReport: undefined});
             await mockFetch.resume();
 
             let updatedPolicy: Policy | undefined;
@@ -249,7 +249,6 @@ describe('actions/Workflow', () => {
         it('should auto-complete the addExpenseApprovals task when creating an approval workflow', async () => {
             mockFetch.pause();
 
-            const taskReportID = '999';
             const policy = {
                 id: '123456789',
                 name: 'Test Workspace',
@@ -272,21 +271,13 @@ describe('actions/Workflow', () => {
                 },
             } as unknown as Policy;
 
-            const taskReport: Report = {
-                reportID: taskReportID,
+            const addExpenseApprovalsTaskReport: Report = {
+                reportID: '999',
                 type: CONST.REPORT.TYPE.TASK,
                 stateNum: CONST.REPORT.STATE_NUM.OPEN,
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             };
 
-            const introSelected = {
-                addExpenseApprovals: taskReportID,
-            };
-
-            const allReports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`]: taskReport,
-            };
-
             const approvalWorkflow = {
                 members: [
                     {
@@ -312,17 +303,16 @@ describe('actions/Workflow', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
             await waitForBatchedUpdates();
 
-            createApprovalWorkflow({approvalWorkflow, policy, introSelected, allReports});
+            createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
             await mockFetch.resume();
             await waitForBatchedUpdates();
 
-            expect(completeTaskMock).toHaveBeenCalledWith(taskReport, false, false, undefined);
+            expect(completeTaskMock).toHaveBeenCalledWith(addExpenseApprovalsTaskReport, false, false, undefined);
         });
 
         it('should not auto-complete the task if it is already approved', async () => {
             mockFetch.pause();
 
-            const taskReportID = '999';
             const policy = {
                 id: '123456789',
                 name: 'Test Workspace',
@@ -345,19 +335,11 @@ describe('actions/Workflow', () => {
                 },
             } as unknown as Policy;
 
-            const taskReport: Report = {
-                reportID: taskReportID,
+            const addExpenseApprovalsTaskReport: Report = {
+                reportID: '999',
                 type: CONST.REPORT.TYPE.TASK,
                 stateNum: CONST.REPORT.STATE_NUM.APPROVED,
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-            };
-
-            const introSelected = {
-                addExpenseApprovals: taskReportID,
-            };
-
-            const allReports = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`]: taskReport,
             };
 
             const approvalWorkflow = {
@@ -385,14 +367,14 @@ describe('actions/Workflow', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
             await waitForBatchedUpdates();
 
-            createApprovalWorkflow({approvalWorkflow, policy, introSelected, allReports});
+            createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
             await mockFetch.resume();
             await waitForBatchedUpdates();
 
             expect(completeTaskMock).not.toHaveBeenCalled();
         });
 
-        it('should not auto-complete the task if introSelected has no addExpenseApprovals', async () => {
+        it('should not auto-complete the task if addExpenseApprovalsTaskReport is undefined', async () => {
             mockFetch.pause();
 
             const policy = {
@@ -442,7 +424,7 @@ describe('actions/Workflow', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
             await waitForBatchedUpdates();
 
-            createApprovalWorkflow({approvalWorkflow, policy, introSelected: {}, allReports: undefined});
+            createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTaskReport: undefined});
             await mockFetch.resume();
             await waitForBatchedUpdates();
 
