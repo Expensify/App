@@ -80,6 +80,8 @@ function BaseListItem<TItem extends ListItem>({
 
     const shouldShowRBRIndicator = (!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR;
 
+    const shouldShowHiddenCheckmark = shouldShowRBRIndicator && !shouldShowCheckmark;
+
     return (
         <OfflineWithFeedback
             onClose={() => onDismissError(item)}
@@ -150,15 +152,9 @@ function BaseListItem<TItem extends ListItem>({
                         </View>
                     )}
 
-                    {shouldShowRBRIndicator && !shouldShowCheckmark && (
-                        <View style={[styles.ml3, styles.opacity0]}>
-                            <Icon src={Expensicons.Checkmark} />
-                        </View>
-                    )}
-
-                    {shouldShowCheckmark && (
+                    {(shouldShowCheckmark || shouldShowHiddenCheckmark) && (
                         <View
-                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3]}
+                            style={[styles.flexRow, styles.alignItemsCenter, styles.ml3, shouldShowHiddenCheckmark ? styles.opacity0 : undefined]}
                             accessible={false}
                         >
                             <View>
