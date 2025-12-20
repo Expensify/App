@@ -15,7 +15,7 @@ type StatementCloseDateStepProps = {
     /** ID of the current policy */
     policyID: string | undefined;
 
-    /** Workspace account ID if the current policy */
+    /** Workspace account ID of the current policy */
     workspaceAccountID: number;
 };
 
