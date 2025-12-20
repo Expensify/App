@@ -4842,6 +4842,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             feedName: (feedName: string) => `Cartes ${feedName}`,
             directFeed: 'Flux direct',
             whoNeedsCardAssigned: 'Qui a besoin d’une carte attribuée ?',
+            chooseTheCardholder: 'Choisissez le titulaire de la carte',
             chooseCard: 'Choisissez une carte',
             chooseCardFor: (assignee: string) =>
                 `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous recherchez ? <concierge-link>Faites-le-nous savoir.</concierge-link>`,
@@ -4865,6 +4866,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             chooseCardFeed: 'Choisir le flux de carte',
             ukRegulation:
                 'Expensify Limited est un agent de Plaid Financial Ltd., un établissement de paiement agréé réglementé par la Financial Conduct Authority en vertu des Payment Services Regulations 2017 (numéro de référence de l’entreprise : 804718). Plaid vous fournit des services réglementés d’information sur les comptes par l’intermédiaire de Expensify Limited en tant que son agent.',
+            assign: 'Assigner',
+            assignCardFailedError: 'L’attribution de la carte a échoué.',
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',
@@ -5081,6 +5084,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 cardNumber: 'Numéro de carte',
                 cardholder: 'Titulaire de la carte',
                 cardName: 'Nom de la carte',
+                allCards: 'Toutes les cartes',
+                assignedCards: 'Attribué',
+                unassignedCards: 'Non attribué',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `Exportation ${integration} ${type.toLowerCase()}` : `Export ${integration}`),
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Choisissez le compte ${integration} vers lequel les transactions doivent être exportées.`,
                 integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
@@ -5119,6 +5125,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 pendingBankLink: 'veuillez cliquer ici',
                 giveItNameInstruction: 'Donnez à la carte un nom qui la distingue des autres.',
                 updating: 'Mise à jour...',
+                neverUpdated: 'Jamais',
                 noAccountsFound: 'Aucun compte trouvé',
                 defaultCard: 'Carte par défaut',
                 downgradeTitle: `Impossible de rétrograder l’espace de travail`,
