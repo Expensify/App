@@ -10359,9 +10359,9 @@ function getPayMoneyRequestParams({
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
-    currentUserAccountIDParam: number;
-    currentUserEmailParam: string;
-    introSelectedParam: OnyxEntry<OnyxTypes.IntroSelected>;
+    currentUserAccountIDParam?: number;
+    currentUserEmailParam?: string;
+    introSelectedParam?: OnyxEntry<OnyxTypes.IntroSelected>;
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -12103,9 +12103,6 @@ function payMoneyRequest(
         full,
         paymentPolicyID,
         activePolicy,
-        currentUserAccountIDParam: CONST.DEFAULT_NUMBER_ID,
-        currentUserEmailParam: '',
-        introSelectedParam: undefined,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
