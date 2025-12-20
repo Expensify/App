@@ -188,10 +188,18 @@ function getInternalExpensifyPath(href: string) {
     return attrPath;
 }
 
-function getRouteBasePath(route: string) {
+function getNormalizedRoute(route: string) {
     const routeWithoutParams = route.split('?').at(0) ?? '';
     const segments = routeWithoutParams.split('/').filter((segment) => segment !== '');
-    return segments.at(0) ?? '';
+    const normalizedSegments = segments.map((segment) => {
+        // Check if segment is a number, UUID, or likely a dynamic ID and return :id for that
+        if (/^[\d]+$/.test(segment) || /^[a-f0-9-]{20,}$/i.test(segment) || /^[A-Z0-9]{8,}$/i.test(segment)) {
+            return ':id';
+        }
+        return segment;
+    });
+
+    return normalizedSegments.join('/');
 }
 
 function openLink(href: string, environmentURL: string, isAttachment = false) {
@@ -205,16 +213,16 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const willOpenInRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
     const isNarrowLayout = getIsNarrowLayout();
 
-    let isDifferentRHPRoute = false;
+    let isOldAndNewNormalizedRouteSame = false;
     if (isRHPOpen && willOpenInRHP) {
         const currentRoute = Navigation.getActiveRoute();
         const newRoute = internalNewExpensifyPath;
-        const currentRouteBase = getRouteBasePath(currentRoute);
-        const newRouteBase = getRouteBasePath(newRoute);
-        isDifferentRHPRoute = currentRouteBase !== newRouteBase && currentRouteBase !== '' && newRouteBase !== '';
+        const currentNormalizedRoute = getNormalizedRoute(currentRoute);
+        const newNormalizedRoute = getNormalizedRoute(newRoute);
+        isOldAndNewNormalizedRouteSame = currentNormalizedRoute === newNormalizedRoute;
     }
 
-    const shouldCloseRHP = !isNarrowLayout && isRHPOpen && (!willOpenInRHP || isDifferentRHPRoute);
+    const shouldCloseRHP = !isNarrowLayout && isRHPOpen && (!willOpenInRHP || !isOldAndNewNormalizedRouteSame);
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
     // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
