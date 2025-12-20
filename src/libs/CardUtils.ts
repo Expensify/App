@@ -91,8 +91,9 @@ function getAssignedCardSortKey(card: Card): number {
 }
 
 /**
- * @param card
- * @returns boolean s
+ * Checks if the card is an Expensify card.
+ * @param card - The card to check.
+ * @returns boolean
  */
 function isExpensifyCard(card?: Card) {
     if (!card) {

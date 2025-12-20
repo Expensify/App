@@ -25,6 +25,7 @@ type Props = {
     /** Whether the RBR indicator should be shown */
     shouldShowRBR?: boolean;
 
+    /** Whether the feed selector should render a loading skeleton */
     isLoading?: boolean;
 };
 

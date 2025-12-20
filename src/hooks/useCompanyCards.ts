@@ -1,5 +1,7 @@
 import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import {getCompanyCardFeed, getCompanyFeeds, getPlaidInstitutionId} from '@libs/CardUtils';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList} from '@src/types/onyx';
 import type {AssignableCardsList, WorkspaceCardsList} from '@src/types/onyx/Card';
@@ -9,7 +11,7 @@ import type {CombinedCardFeed, CombinedCardFeeds} from './useCardFeeds';
 import useCardsList from './useCardsList';
 import useOnyx from './useOnyx';
 
-type CardFeedType = 'plaid' | 'commercial';
+type CardFeedType = ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
 
 type UsCompanyCardsResult = Partial<{
     cardFeedType: CardFeedType;
@@ -41,13 +43,13 @@ function useCompanyCards(policyID?: string): UsCompanyCardsResult {
     const selectedFeed = feedName && companyCardFeeds[feedName];
     const isPlaidCardFeed = !!getPlaidInstitutionId(feedName);
 
-    let cardFeedType: CardFeedType = 'commercial';
+    let cardFeedType: CardFeedType = 'customFeed';
     if (isPlaidCardFeed) {
-        cardFeedType = 'plaid';
+        cardFeedType = 'directFeed';
     }
 
     const {cardList, ...assignedCards} = cardsList ?? {};
-    const cardNames = cardFeedType === 'plaid' ? (selectedFeed?.accountList ?? []) : Object.keys(cardList ?? {});
+    const cardNames = cardFeedType === 'directFeed' ? (selectedFeed?.accountList ?? []) : Object.keys(cardList ?? {});
 
     const onyxMetadata = {
         cardListMetadata,

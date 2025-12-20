@@ -20,6 +20,7 @@ type AccountSwitcherSkeletonViewProps = {
     /** The width of the skeleton view */
     width?: number;
 
+    /** Additional styles for the skeleton view */
     style?: StyleProp<ViewStyle>;
 };
 

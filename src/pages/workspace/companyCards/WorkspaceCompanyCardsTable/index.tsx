@@ -89,10 +89,10 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
 
     const isLoadingFeed = !feedName || policy?.id === undefined;
 
-    const isPlaidCardFeed = cardFeedType === 'plaid';
-    const isLoadingPlaidCardFeed = isPlaidCardFeed && selectedFeed?.accountList === undefined;
-    const isLoadingCommercialCardFeed = !isPlaidCardFeed && (isLoadingOnyxValue(cardListMetadata) || cardList === undefined);
-    const isLoadingCards = isLoadingOnyxValue(allCardFeedsMetadata) && (isLoadingPlaidCardFeed || isLoadingCommercialCardFeed);
+    const isDirectCardFeed = cardFeedType === 'directFeed';
+    const isLoadingDirectCardFeed = isDirectCardFeed && selectedFeed?.accountList === undefined;
+    const isLoadingCommercialCardFeed = !isDirectCardFeed && (isLoadingOnyxValue(cardListMetadata) || cardList === undefined);
+    const isLoadingCards = isLoadingOnyxValue(allCardFeedsMetadata) && (isLoadingDirectCardFeed || isLoadingCommercialCardFeed);
     const isLoadingPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
     const isLoadingCardsTableData = isLoadingFeed || (!isOffline && isLoadingCards) || isLoadingPersonalDetails;
 
@@ -123,7 +123,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const showCards = !isFeedPending && !isNoFeed && isFeedAdded;
     const data: WorkspaceCompanyCardTableItemData[] = showCards
         ? (cardNames?.map((cardName) => {
-              const assignedCardPredicate = (card: Card) => (isPlaidCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
+              const assignedCardPredicate = (card: Card) => (isDirectCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
 
               const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
 
@@ -148,7 +148,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             policyID={policy?.id ?? ''}
             domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
             CardFeedIcon={cardFeedIcon}
-            isPlaidCardFeed={isPlaidCardFeed}
+            isPlaidCardFeed={isDirectCardFeed}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
