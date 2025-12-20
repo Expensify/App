@@ -1,6 +1,7 @@
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
+import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
@@ -35,22 +36,28 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
+const FEED_SELECTOR_SKELETON_WIDTH = 289;
+
 type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     /** Current policy id */
-    policyID: string;
+    policyID: string | undefined;
 
     /** Currently selected feed */
-    selectedFeed: CompanyCardFeedWithDomainID;
+    feedName: CompanyCardFeedWithDomainID | undefined;
 
-    /** Whether the feed is pending */
-    shouldDisplayTableComponents?: boolean;
+    /** Whether the feed is loading */
+    isLoadingFeed?: boolean;
+
+    /** Whether to show the table controls */
+    showTableControls: boolean;
 
     /** Card feed icon */
     CardFeedIcon?: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, shouldDisplayTableComponents = false, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoadingFeed, showTableControls, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
+
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -61,27 +68,34 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, should
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
     const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
-    const feed = getCompanyCardFeed(selectedFeed);
-    const formattedFeedName = getCustomOrFormattedFeedName(feed, cardFeeds?.[selectedFeed]?.customFeedName);
-    const isCommercialFeed = isCustomFeed(selectedFeed);
-    const isPlaidCardFeed = !!getPlaidInstitutionId(selectedFeed);
+    const feed = getCompanyCardFeed(feedName);
+    const formattedFeedName = feedName ? getCustomOrFormattedFeedName(feed, cardFeeds?.[feedName]?.customFeedName) : undefined;
+    const isCommercialFeed = isCustomFeed(feedName);
+    const isPlaidCardFeed = !!getPlaidInstitutionId(feedName);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const currentFeedData = companyFeeds?.[selectedFeed];
+    const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
     const bankName = isPlaidCardFeed && formattedFeedName ? formattedFeedName : getBankName(feed);
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeedData);
-    const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${selectedFeed}`]);
-    const hasFeedError = !!cardFeeds?.[selectedFeed]?.errors;
+    const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${feedName}`]);
+    const hasFeedError = feedName ? !!cardFeeds?.[feedName]?.errors : false;
     const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
 
-    const openBankConnection = () =>
-        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, selectedFeed)));
+    const openBankConnection = () => {
+        if (!feedName) {
+            return;
+        }
+
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID ?? '', feedName));
+        });
+    };
 
     const secondaryActions = [
         {
             icon: icons.Gear,
             text: translate('common.settings'),
-            onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID)),
+            onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? '')),
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
         },
     ];
@@ -104,32 +118,46 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, selectedFeed, should
                     !shouldShowNarrowLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
                 ]}
             >
-                <FeedSelector
-                    onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
-                    CardFeedIcon={CardFeedIcon}
-                    feedName={formattedFeedName}
-                    supportingText={supportingText}
-                    shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), selectedFeed)}
-                />
+                {isLoadingFeed ? (
+                    <AccountSwitcherSkeletonView
+                        avatarSize={CONST.AVATAR_SIZE.DEFAULT}
+                        width={FEED_SELECTOR_SKELETON_WIDTH}
+                        style={[shouldShowNarrowLayout ? [styles.mb2, styles.mt2] : styles.mb11, styles.mw100]}
+                    />
+                ) : (
+                    <FeedSelector
+                        onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID ?? ''))}
+                        CardFeedIcon={CardFeedIcon}
+                        feedName={formattedFeedName}
+                        supportingText={supportingText}
+                        shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), feedName)}
+                    />
+                )}
+
                 <View
                     style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
                 >
-                    {shouldDisplayTableComponents && (
+                    {!isLoadingFeed && showTableControls && (
                         <View style={[styles.mnw200]}>
                             <Table.SearchBar />
                         </View>
                     )}
+
                     <View style={[styles.flexRow, styles.gap3]}>
-                        {shouldDisplayTableComponents && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />}
-                        <ButtonWithDropdownMenu
-                            success={false}
-                            onPress={() => {}}
-                            shouldUseOptionIcon
-                            customText={translate('common.more')}
-                            options={secondaryActions}
-                            isSplitButton={false}
-                            wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
-                        />
+                        {!isLoadingFeed && (
+                            <>
+                                {showTableControls && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />}
+                                <ButtonWithDropdownMenu
+                                    success={false}
+                                    onPress={() => {}}
+                                    shouldUseOptionIcon
+                                    customText={translate('common.more')}
+                                    options={secondaryActions}
+                                    isSplitButton={false}
+                                    wrapperStyle={shouldShowNarrowLayout ? styles.flex1 : styles.flexGrow0}
+                                />
+                            </>
+                        )}
                     </View>
                 </View>
             </View>
