@@ -198,7 +198,7 @@ function TroubleshootPage() {
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>
-                                <RecordTroubleshootDataToolMenu />
+                                {!isProduction && <RecordTroubleshootDataToolMenu />}
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
