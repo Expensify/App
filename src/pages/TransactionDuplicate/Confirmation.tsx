@@ -29,7 +29,6 @@ import * as ReportActionsUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import {generateReportID} from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
-import {getTransactionID} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
@@ -102,8 +101,7 @@ function Confirmation() {
         [report, reportAction],
     );
 
-    const reportTransactionID = getTransactionID(report);
-    const doesTransactionBelongToReport = reviewDuplicates?.transactionID === reportTransactionID || (reportTransactionID && reviewDuplicates?.duplicates.includes(reportTransactionID));
+    const doesTransactionBelongToReport = reviewDuplicates?.transactionID === transactionID || (transactionID && reviewDuplicates?.duplicates.includes(transactionID));
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
