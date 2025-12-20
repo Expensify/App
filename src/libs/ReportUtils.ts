@@ -4530,12 +4530,13 @@ function getTransactionDetails(
     allowNegativeAmount = false,
     disableOppositeConversion = false,
     currentUserDetails = currentUserPersonalDetails,
+    reportParam: OnyxInputOrEntry<Report>,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
     }
 
-    const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
+    const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined) ?? reportParam;
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
 

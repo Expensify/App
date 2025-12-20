@@ -28,9 +28,7 @@ type SplitAmountInputProps = {
 function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onSplitExpenseValueChange, focusHandler, onInputBlur, inputCallbackRef}: SplitAmountInputProps) {
     const styles = useThemeStyles();
 
-    const isNegative = useMemo(() => {
-        return Number(formattedOriginalAmount) < 0;
-    }, [formattedOriginalAmount]);
+    const isNegative = useMemo(() => splitItem.originalAmount < 0, [splitItem.originalAmount]);
 
     const onSplitExpenseAmountChange = useCallback(
         (amount: string) => {
@@ -45,11 +43,7 @@ function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onS
     if (splitItem.isEditable) {
         return (
             <View style={styles.flexRow}>
-                {isNegative && (
-                    <View>
-                        <Text style={styles.iouAmountText}>-</Text>
-                    </View>
-                )}
+                {isNegative && <Text style={styles.iouAmountText}>-</Text>}
                 <MoneyRequestAmountInput
                     ref={inputCallbackRef}
                     disabled={!splitItem.isEditable}
