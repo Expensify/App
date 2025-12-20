@@ -32,6 +32,8 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [approvalWorkflow] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const formRef = useRef<ScrollView>(null);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -46,9 +48,9 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
             return;
         }
 
-        createApprovalWorkflowAction(approvalWorkflow, policy);
+        createApprovalWorkflowAction({approvalWorkflow, policy, introSelected, allReports});
         Navigation.dismissModal();
-    }, [approvalWorkflow, policy]);
+    }, [approvalWorkflow, policy, introSelected, allReports]);
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 

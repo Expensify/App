@@ -2,10 +2,12 @@ import Onyx from 'react-native-onyx';
 import {INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {generatePolicyID} from '@src/libs/actions/Policy/Policy';
+import * as Task from '@src/libs/actions/Task';
 import {clearApprovalWorkflowApprover, createApprovalWorkflow, setApprovalWorkflowApprover} from '@src/libs/actions/Workflow';
 import {calculateApprovers} from '@src/libs/WorkflowUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType} from '@src/types/onyx';
+import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType, Report} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import createRandomPolicy from '../utils/collections/policies';
 import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
@@ -23,7 +25,12 @@ jest.mock('@src/libs/WorkflowUtils', () => {
     };
 });
 
+jest.mock('@src/libs/actions/Task', () => ({
+    completeTask: jest.fn(),
+}));
+
 const calculateApproversMock = calculateApprovers as jest.Mock;
+const completeTaskMock = Task.completeTask as jest.Mock;
 
 OnyxUpdateManager();
 
@@ -60,6 +67,7 @@ describe('actions/Workflow', () => {
         mockFetch = fetch as MockFetch;
         calculateApproversMock.mockClear();
         calculateApproversMock.mockImplementation(() => []);
+        completeTaskMock.mockClear();
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -225,7 +233,7 @@ describe('actions/Workflow', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
             await waitForBatchedUpdates();
 
-            createApprovalWorkflow(approvalWorkflow, policy);
+            createApprovalWorkflow({approvalWorkflow, policy, introSelected: undefined, allReports: undefined});
             await mockFetch.resume();
 
             let updatedPolicy: Policy | undefined;
@@ -236,6 +244,209 @@ describe('actions/Workflow', () => {
 
             expect(updatedPolicy?.employeeList?.[employee1Email]?.pendingFields).toBeUndefined();
             expect(updatedPolicy?.employeeList?.[employee2Email]?.pendingFields).toBeUndefined();
+        });
+
+        it('should auto-complete the addExpenseApprovals task when creating an approval workflow', async () => {
+            mockFetch.pause();
+
+            const taskReportID = '999';
+            const policy = {
+                id: '123456789',
+                name: "Test Workspace",
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {
+                        email: ownerEmail,
+                        forwardsTo: '',
+                        role: 'admin',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee1Email]: {
+                        email: employee1Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                },
+            } as unknown as Policy;
+
+            const taskReport: Report = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const introSelected = {
+                addExpenseApprovals: taskReportID,
+            };
+
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`]: taskReport,
+            };
+
+            const approvalWorkflow = {
+                members: [
+                    {
+                        displayName: employee1Email,
+                        email: employee1Email,
+                    },
+                ],
+                approvers: [
+                    {
+                        email: employee1Email,
+                        displayName: employee1Email,
+                        isCircularReference: false,
+                    },
+                ],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: false,
+                action: 'create',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            createApprovalWorkflow({approvalWorkflow, policy, introSelected, allReports});
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            expect(completeTaskMock).toHaveBeenCalledWith(taskReport, false, false, undefined);
+        });
+
+        it('should not auto-complete the task if it is already approved', async () => {
+            mockFetch.pause();
+
+            const taskReportID = '999';
+            const policy = {
+                id: '123456789',
+                name: "Test Workspace",
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {
+                        email: ownerEmail,
+                        forwardsTo: '',
+                        role: 'admin',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee1Email]: {
+                        email: employee1Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                },
+            } as unknown as Policy;
+
+            const taskReport: Report = {
+                reportID: taskReportID,
+                type: CONST.REPORT.TYPE.TASK,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            };
+
+            const introSelected = {
+                addExpenseApprovals: taskReportID,
+            };
+
+            const allReports = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`]: taskReport,
+            };
+
+            const approvalWorkflow = {
+                members: [
+                    {
+                        displayName: employee1Email,
+                        email: employee1Email,
+                    },
+                ],
+                approvers: [
+                    {
+                        email: employee1Email,
+                        displayName: employee1Email,
+                        isCircularReference: false,
+                    },
+                ],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: false,
+                action: 'create',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            createApprovalWorkflow({approvalWorkflow, policy, introSelected, allReports});
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            expect(completeTaskMock).not.toHaveBeenCalled();
+        });
+
+        it('should not auto-complete the task if introSelected has no addExpenseApprovals', async () => {
+            mockFetch.pause();
+
+            const policy = {
+                id: '123456789',
+                name: "Test Workspace",
+                role: 'admin',
+                type: 'corporate',
+                owner: ownerEmail,
+                employeeList: {
+                    [ownerEmail]: {
+                        email: ownerEmail,
+                        forwardsTo: '',
+                        role: 'admin',
+                        submitsTo: ownerEmail,
+                    },
+                    [employee1Email]: {
+                        email: employee1Email,
+                        forwardsTo: '',
+                        role: 'user',
+                        submitsTo: ownerEmail,
+                    },
+                },
+            } as unknown as Policy;
+
+            const approvalWorkflow = {
+                members: [
+                    {
+                        displayName: employee1Email,
+                        email: employee1Email,
+                    },
+                ],
+                approvers: [
+                    {
+                        email: employee1Email,
+                        displayName: employee1Email,
+                        isCircularReference: false,
+                    },
+                ],
+                availableMembers: [],
+                usedApproverEmails: [ownerEmail],
+                isDefault: false,
+                action: 'create',
+                originalApprovers: [],
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: '123456789'});
+            await waitForBatchedUpdates();
+
+            createApprovalWorkflow({approvalWorkflow, policy, introSelected: {}, allReports: undefined});
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            expect(completeTaskMock).not.toHaveBeenCalled();
         });
     });
 });
