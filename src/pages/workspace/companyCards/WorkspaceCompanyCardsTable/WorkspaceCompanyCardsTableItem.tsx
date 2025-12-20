@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed, FailedCompanyCardAssignment, PersonalDetails} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID, FailedCompanyCardAssignment, PersonalDetails} from '@src/types/onyx';
 
 type WorkspaceCompanyCardTableItemData = {
     /** Card number */
@@ -49,6 +49,9 @@ type WorkspaceCompanyCardTableItemProps = {
     /** Policy ID */
     policyID: string;
 
+    /** Feed name */
+    feed: CompanyCardFeedWithDomainID | undefined;
+
     /** Domain or workspace account ID */
     domainOrWorkspaceAccountID: number;
 
@@ -74,6 +77,7 @@ type WorkspaceCompanyCardTableItemProps = {
 function WorkspaceCompanyCardTableItem({
     item,
     policyID,
+    feed,
     domainOrWorkspaceAccountID,
     CardFeedIcon,
     isPlaidCardFeed,
@@ -115,7 +119,7 @@ function WorkspaceCompanyCardTableItem({
             return;
         }
 
-        resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, cardName);
+        resetFailedWorkspaceCompanyCardAssignment(domainOrWorkspaceAccountID, feed, cardName);
     };
 
     const assignCard = () => onAssignCard(cardName);

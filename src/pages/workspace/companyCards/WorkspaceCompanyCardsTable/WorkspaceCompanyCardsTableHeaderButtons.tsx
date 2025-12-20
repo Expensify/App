@@ -17,20 +17,10 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {
-    checkIfFeedConnectionIsBroken,
-    filterInactiveCards,
-    flatAllCardsList,
-    getBankName,
-    getCompanyCardFeed,
-    getCompanyFeeds,
-    getCustomOrFormattedFeedName,
-    getDomainOrWorkspaceAccountID,
-    getPlaidInstitutionId,
-    isCustomFeed,
-} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
+import useCompanyCardFeedErrors from '@pages/workspace/companyCards/hooks/useCardFeedErrors';
+import useHasWorkspaceCompanyCardErrors from '@pages/workspace/companyCards/hooks/useHasWorkspaceCompanyCardErrors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -64,22 +54,17 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const icons = useMemoizedLazyExpensifyIcons(['Gear']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const policy = usePolicy(policyID);
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const feed = getCompanyCardFeed(feedName);
     const formattedFeedName = feedName ? getCustomOrFormattedFeedName(feed, cardFeeds?.[feedName]?.customFeedName) : undefined;
     const isCommercialFeed = isCustomFeed(feedName);
-    const isPlaidCardFeed = !!getPlaidInstitutionId(feedName);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
-    const bankName = isPlaidCardFeed && formattedFeedName ? formattedFeedName : getBankName(feed);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, currentFeedData);
-    const filteredFeedCards = filterInactiveCards(allFeedsCards?.[`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${feedName}`]);
-    const hasFeedError = feedName ? !!cardFeeds?.[feedName]?.errors : false;
-    const isSelectedFeedConnectionBroken = checkIfFeedConnectionIsBroken(filteredFeedCards) || hasFeedError;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
+
+    const {hasFeedError, isFeedConnectionBroken} = useCompanyCardFeedErrors({policyID, feedName});
+    const hasCompanyCardFeedError = useHasWorkspaceCompanyCardErrors({policyID});
 
     const openBankConnection = () => {
         if (!feedName) {
@@ -130,7 +115,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                         CardFeedIcon={CardFeedIcon}
                         feedName={formattedFeedName}
                         supportingText={supportingText}
-                        shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, domainOrWorkspaceAccountID), feedName)}
+                        shouldShowRBR={hasCompanyCardFeedError}
                     />
                 )}
 
@@ -161,7 +146,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                     </View>
                 </View>
             </View>
-            {isSelectedFeedConnectionBroken && !!bankName && (
+            {(isFeedConnectionBroken || hasFeedError) && (
                 <View style={[styles.flexRow, styles.ph5, styles.alignItemsCenter]}>
                     <Icon
                         src={expensifyIcons.DotIndicator}

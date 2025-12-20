@@ -39,7 +39,7 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         selectedFeed,
         bankName,
         onyxMetadata: {allCardFeedsMetadata},
-    } = useCompanyCards(policyID);
+    } = useCompanyCards({policyID});
     const [, cardsListMetadata] = useCardsList(feedName);
 
     const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
