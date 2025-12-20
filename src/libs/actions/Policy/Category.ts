@@ -1,5 +1,5 @@
 import lodashCloneDeep from 'lodash/cloneDeep';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -37,29 +37,6 @@ import type {IntroSelected, Policy, PolicyCategories, PolicyCategory, Report, Re
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
-
-let deprecatedIntroSelected: OnyxEntry<IntroSelected>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => (deprecatedIntroSelected = value),
-});
-
-let allReports: OnyxCollection<Report>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
-
-function completeSetupCategoriesTask() {
-    const setupCategoriesTaskReportID = deprecatedIntroSelected?.setupCategories;
-    if (setupCategoriesTaskReportID) {
-        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${setupCategoriesTaskReportID}`];
-        if (taskReport) {
-            completeTask(taskReport, false, undefined);
-        }
-    }
-}
 
 function appendSetupCategoriesOnboardingData(
     onyxData: OnyxData,
@@ -440,8 +417,6 @@ function setWorkspaceCategoryEnabled(
     };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED, parameters, onyxData);
-
-    completeSetupCategoriesTask();
 }
 
 function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: string, areCommentsRequired: boolean, policyCategories: PolicyCategories = {}) {
@@ -668,8 +643,6 @@ function createPolicyCategory(
     };
 
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES, parameters, onyxData);
-
-    completeSetupCategoriesTask();
 }
 
 function importPolicyCategories(policyID: string, categories: PolicyCategory[]) {
@@ -690,8 +663,6 @@ function importPolicyCategories(policyID: string, categories: PolicyCategory[]) 
     };
 
     API.write(WRITE_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, parameters, onyxData);
-
-    completeSetupCategoriesTask();
 }
 
 function renamePolicyCategory(policyData: PolicyData, policyCategory: {oldName: string; newName: string}) {
