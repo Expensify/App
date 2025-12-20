@@ -16,7 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftInviteAccountID} from '@libs/actions/Card';
-import {searchInServer} from '@libs/actions/Reporconst assigneest';
+import {searchInServer} from '@libs/actions/Report';
 import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -202,7 +202,6 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         debouncedSearchTerm,
         membersDetails,
         selectedOptionsForDisplay,
-        icons.FallbackAvatar,
     ]);
 
     useEffect(() => {
