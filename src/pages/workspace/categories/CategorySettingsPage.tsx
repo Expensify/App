@@ -17,7 +17,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatRequiredFieldsTitle} from '@libs/AttendeeUtils';
 import {
     formatDefaultTaxRateText,
     formatRequireItemizedReceiptsOverText,
@@ -400,7 +399,7 @@ function CategorySettingsPage({
                     )}
                     {!isThereAnyAccountingConnection && (
                         <MenuItem
-                            icon={Trashcan}
+                            icon={expensifyIcons.Trashcan}
                             title={translate('common.delete')}
                             onPress={() => {
                                 if (shouldPreventDisableOrDelete) {
