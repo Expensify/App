@@ -99,8 +99,8 @@ function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     if (addExpenseApprovalsTaskReportID) {
         const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`];
 
-        if (taskReport) {
-            Task.completeTask(taskReport, false, undefined);
+        if (taskReport && (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)) {
+            Task.completeTask(taskReport, false, false, undefined);
         }
     }
 }
