@@ -71,7 +71,7 @@ function NetSuiteTokenInputPage({policy}: WithPolicyConnectionsProps) {
             <View style={[styles.ph5, styles.mb3, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
                 <InteractiveStepSubHeader
                     ref={ref}
-                    startStepIndex={0}
+                    startStepIndex={screenIndex}
                     stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT_STEP_NAMES}
                 />
             </View>
