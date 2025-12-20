@@ -13,7 +13,7 @@ import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@s
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as Task from './Task';
+import {completeTask} from './Task';
 
 type CreateApprovalWorkflowParams = {
     approvalWorkflow: ApprovalWorkflow;
@@ -92,7 +92,7 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
         addExpenseApprovalsTaskReport &&
         (addExpenseApprovalsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || addExpenseApprovalsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)
     ) {
-        Task.completeTask(addExpenseApprovalsTaskReport, false, false, undefined);
+        completeTask(addExpenseApprovalsTaskReport, false, false, undefined);
     }
 }
 
