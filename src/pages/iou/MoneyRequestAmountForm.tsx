@@ -263,7 +263,7 @@ function MoneyRequestAmountForm({
                 shouldKeepUserInput={shouldKeepUserInput}
                 inputStyle={styles.iouAmountTextInput}
                 containerStyle={styles.iouAmountTextInputContainer}
-                touchableInputWrapperStyle={styles.h100}
+                touchableInputWrapperStyle={styles.heightUndefined}
                 testID="moneyRequestAmountInput"
                 isNegative={isNegative}
                 allowFlippingAmount={allowFlippingAmount}

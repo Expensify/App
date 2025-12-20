@@ -1,6 +1,5 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import type {TextInputSelectionChangeEvent} from 'react-native';
-import {View} from 'react-native';
 import AmountTextInput from '@components/AmountTextInput';
 import SymbolButton from '@components/SymbolButton';
 import Text from '@components/Text';
@@ -24,7 +23,6 @@ function BaseTextInputWithSymbol({
     hideSymbol = false,
     style,
     symbolTextStyle,
-    flipButton,
     isNegative = false,
     ref,
     disabled,
@@ -43,18 +41,11 @@ function BaseTextInputWithSymbol({
         onChangeAmount(newAmount);
     };
 
-    const negativeSymbolContainerStyle = useMemo(
-        () => [styles.flexRow, flipButton ? styles.alignItemsStart : styles.alignItemsCenter],
-        [flipButton, styles.flexRow, styles.alignItemsStart, styles.alignItemsCenter],
-    );
+    const negativeSymbol = <Text style={[styles.iouAmountText]}>-</Text>;
 
     return (
-        <View style={styles.flexRow}>
-            {isNegative && (
-                <View style={negativeSymbolContainerStyle}>
-                    <Text style={styles.iouAmountText}>-</Text>
-                </View>
-            )}
+        <>
+            {isNegative && negativeSymbol}
             {!hideSymbol && symbolPosition === CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX && (
                 <SymbolButton
                     symbol={symbol}
@@ -86,7 +77,7 @@ function BaseTextInputWithSymbol({
                     textStyle={symbolTextStyle}
                 />
             )}
-        </View>
+        </>
     );
 }
 

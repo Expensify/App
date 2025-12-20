@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
@@ -69,9 +69,6 @@ type NumberWithSymbolFormProps = {
 
     /** Whether the amount is negative */
     isNegative?: boolean;
-
-    /** Whether the text input is on a split list item or not */
-    isSplitItemInput?: boolean;
 
     /** Function to toggle the amount to negative */
     toggleNegative?: () => void;
@@ -143,7 +140,6 @@ function NumberWithSymbolForm({
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
     isNegative = false,
-    isSplitItemInput = false,
     allowFlippingAmount = false,
     toggleNegative,
     clearNegative,
@@ -361,29 +357,6 @@ function NumberWithSymbolForm({
     }));
 
     const formattedNumber = replaceAllDigits(currentNumber, toLocaleDigit);
-    const shouldShowFlipButton = allowFlippingAmount && canUseTouchScreen;
-
-    const flipButtonStyle = useMemo(
-        () => (isSplitItemInput ? [styles.minWidth18, styles.mt2, styles.ml3] : styles.minWidth18),
-        [isSplitItemInput, styles.minWidth18, styles.mt2, styles.ml3],
-    );
-
-    const flipButton = useMemo(
-        () => (
-            <Button
-                shouldShowRightIcon
-                small
-                shouldBlendOpacity={isSplitItemInput}
-                iconRight={Expensicons.PlusMinus}
-                style={flipButtonStyle}
-                innerStyles={isSplitItemInput && styles.bgTransparent}
-                onPress={toggleNegative}
-                isContentCentered
-                text={translate('iou.flip')}
-            />
-        ),
-        [isSplitItemInput, flipButtonStyle, toggleNegative, translate, styles.bgTransparent],
-    );
 
     if (displayAsTextInput) {
         return (
@@ -479,7 +452,6 @@ function NumberWithSymbolForm({
             isNegative={isNegative}
             toggleNegative={toggleNegative}
             onFocus={props.onFocus}
-            flipButton={shouldShowFlipButton && isSplitItemInput ? flipButton : undefined}
         />
     );
 
@@ -532,7 +504,17 @@ function NumberWithSymbolForm({
                         text={currency}
                     />
                 )}
-                {shouldShowFlipButton && !isSplitItemInput && flipButton}
+                {allowFlippingAmount && canUseTouchScreen && (
+                    <Button
+                        shouldShowRightIcon
+                        small
+                        iconRight={Expensicons.PlusMinus}
+                        onPress={toggleNegative}
+                        style={styles.minWidth18}
+                        isContentCentered
+                        text={translate('iou.flip')}
+                    />
+                )}
             </View>
 
             {shouldShowBigNumberPad || !!footer ? (

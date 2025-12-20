@@ -1,11 +1,11 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {BlurEvent} from 'react-native';
+import {View} from 'react-native';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {SplitListItemType} from '@components/SelectionListWithSections/types';
+import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToBackendAmount, convertToFrontendAmountAsInteger} from '@libs/CurrencyUtils';
-import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import SplitAmountDisplay from './SplitAmountDisplay';
 
 type SplitAmountInputProps = {
@@ -28,86 +28,56 @@ type SplitAmountInputProps = {
 function SplitAmountInput({splitItem, formattedOriginalAmount, contentWidth, onSplitExpenseValueChange, focusHandler, onInputBlur, inputCallbackRef}: SplitAmountInputProps) {
     const styles = useThemeStyles();
 
-    const [isNegativeAmount, setIsNegativeAmount] = useState(splitItem.amount < 0);
+    const isNegative = useMemo(() => {
+        return Number(formattedOriginalAmount) < 0;
+    }, [formattedOriginalAmount]);
 
     const onSplitExpenseAmountChange = useCallback(
         (amount: string) => {
-            const realAmount = isNegativeAmount ? -1 * Number(amount) : Number(amount);
-
-            // Skip handling amount changes to prevent a race condition when the user toggles the negative sign,
-            // which could cause an incorrect amount update.
-            if (convertToBackendAmount(realAmount) === splitItem.amount) {
-                return;
-            }
+            const realAmount = isNegative ? -1 * Number(amount) : Number(amount);
             onSplitExpenseValueChange(String(realAmount));
         },
-        [onSplitExpenseValueChange, isNegativeAmount, splitItem.amount],
+        [onSplitExpenseValueChange, isNegative],
     );
 
-    const canUseTouchScreen = useMemo(() => canUseTouchScreenUtil(), []);
     const displayedAmount = useMemo(() => Math.abs(splitItem.amount), [splitItem.amount]);
-
-    useEffect(() => {
-        if (splitItem.amount === 0) {
-            return;
-        }
-        setIsNegativeAmount(splitItem.amount < 0);
-    }, [splitItem.amount]);
-
-    const handleToggleNegative = useCallback(() => {
-        const isCurrentlyNegative = !isNegativeAmount;
-        const currentAbsAmount = Math.abs(convertToFrontendAmountAsInteger(splitItem.amount, splitItem.currency));
-        if (currentAbsAmount === 0) {
-            setIsNegativeAmount(isCurrentlyNegative);
-            return;
-        }
-
-        const realAmount = isCurrentlyNegative ? -1 * currentAbsAmount : currentAbsAmount;
-        onSplitExpenseValueChange(String(realAmount));
-    }, [splitItem.amount, splitItem.currency, isNegativeAmount, onSplitExpenseValueChange]);
-
-    const handleClearNegative = useCallback(() => {
-        if (canUseTouchScreen) {
-            return;
-        }
-
-        setIsNegativeAmount(false);
-    }, [canUseTouchScreen]);
 
     if (splitItem.isEditable) {
         return (
-            <MoneyRequestAmountInput
-                ref={inputCallbackRef}
-                disabled={!splitItem.isEditable}
-                autoGrow={false}
-                amount={displayedAmount}
-                currency={splitItem.currency}
-                prefixCharacter={splitItem.currencySymbol}
-                disableKeyboard={false}
-                isCurrencyPressable={false}
-                hideFocusedState={false}
-                hideCurrencySymbol
-                submitBehavior="blurAndSubmit"
-                formatAmountOnBlur
-                onAmountChange={onSplitExpenseAmountChange}
-                prefixContainerStyle={[styles.pv0, styles.h100]}
-                prefixStyle={styles.lineHeightUndefined}
-                inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
-                containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
-                touchableInputWrapperStyle={[styles.ml3]}
-                maxLength={formattedOriginalAmount.length + 1}
-                contentWidth={contentWidth}
-                shouldApplyPaddingToContainer
-                shouldUseDefaultLineHeightForPrefix={false}
-                shouldWrapInputInContainer={false}
-                onFocus={focusHandler}
-                onBlur={onInputBlur}
-                toggleNegative={handleToggleNegative}
-                clearNegative={handleClearNegative}
-                isNegative={isNegativeAmount}
-                allowFlippingAmount
-                isSplitItemInput
-            />
+            <View style={styles.flexRow}>
+                {isNegative && (
+                    <View>
+                        <Text style={styles.iouAmountText}>-</Text>
+                    </View>
+                )}
+                <MoneyRequestAmountInput
+                    ref={inputCallbackRef}
+                    disabled={!splitItem.isEditable}
+                    autoGrow={false}
+                    amount={displayedAmount}
+                    currency={splitItem.currency}
+                    prefixCharacter={splitItem.currencySymbol}
+                    disableKeyboard={false}
+                    isCurrencyPressable={false}
+                    hideFocusedState={false}
+                    hideCurrencySymbol
+                    submitBehavior="blurAndSubmit"
+                    formatAmountOnBlur
+                    onAmountChange={onSplitExpenseAmountChange}
+                    prefixContainerStyle={[styles.pv0, styles.h100]}
+                    prefixStyle={styles.lineHeightUndefined}
+                    inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
+                    containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
+                    touchableInputWrapperStyle={[styles.ml3]}
+                    maxLength={formattedOriginalAmount.length + 1}
+                    contentWidth={contentWidth}
+                    shouldApplyPaddingToContainer
+                    shouldUseDefaultLineHeightForPrefix={false}
+                    shouldWrapInputInContainer={false}
+                    onFocus={focusHandler}
+                    onBlur={onInputBlur}
+                />
+            </View>
         );
     }
 

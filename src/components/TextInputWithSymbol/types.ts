@@ -1,4 +1,3 @@
-import type {ReactElement} from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {TextSelection} from '@components/Composer/types';
@@ -81,9 +80,6 @@ type BaseTextInputWithSymbolProps = {
 
     /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
     shouldApplyPaddingToContainer?: boolean;
-
-    /** The flip (negative) button element to display inside the amount text input container */
-    flipButton?: ReactElement;
 
     /** Whether the amount is negative */
     isNegative?: boolean;

@@ -1,9 +1,6 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useMemo} from 'react';
-import type {ReactElement} from 'react';
-import {View} from 'react-native';
+import React from 'react';
 import type {NativeSyntheticEvent, StyleProp, TextInputKeyPressEvent, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {TextSelection} from './Composer/types';
 import TextInput from './TextInput';
@@ -34,9 +31,6 @@ type AmountTextInputProps = {
     /** Whether to disable keyboard */
     disableKeyboard?: boolean;
 
-    /** The flip (negative) button element to display inside the amount text input container */
-    flipButton?: ReactElement;
-
     /** Function to call to handle key presses in the text input */
     onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
 
@@ -65,51 +59,44 @@ function AmountTextInput({
     shouldApplyPaddingToContainer = false,
     ref,
     disabled,
-    flipButton,
     ...rest
 }: AmountTextInputProps) {
     const navigation = useNavigation();
-    const styles = useThemeStyles();
-
-    const viewContainerStyle = useMemo(() => (flipButton ? styles.flexColumn : styles.flexRow), [flipButton, styles.flexColumn, styles.flexRow]);
 
     return (
-        <View style={viewContainerStyle}>
-            <TextInput
-                autoGrow
-                hideFocusedState={hideFocusedState}
-                shouldInterceptSwipe
-                disableKeyboard={disableKeyboard}
-                inputStyle={style}
-                textInputContainerStyles={containerStyle}
-                onChangeText={onChangeAmount}
-                ref={ref}
-                disabled={disabled}
-                value={formattedAmount}
-                placeholder={placeholder}
-                inputMode={CONST.INPUT_MODE.DECIMAL}
-                // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
-                // See https://github.com/Expensify/App/issues/51868 for more information
-                autoCapitalize="words"
-                submitBehavior="submit"
-                selection={selection}
-                onSelectionChange={onSelectionChange}
-                role={CONST.ROLE.PRESENTATION}
-                onKeyPress={onKeyPress as (event: TextInputKeyPressEvent) => void}
-                touchableInputWrapperStyle={touchableInputWrapperStyle}
-                // On iPad, even if the soft keyboard is hidden, the keyboard suggestion is still shown.
-                // Setting both autoCorrect and spellCheck to false will hide the suggestion.
-                autoCorrect={false}
-                spellCheck={false}
-                disableKeyboardShortcuts
-                shouldUseFullInputHeight
-                shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
-                navigation={navigation}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...rest}
-            />
-            {!!flipButton && flipButton}
-        </View>
+        <TextInput
+            autoGrow
+            hideFocusedState={hideFocusedState}
+            shouldInterceptSwipe
+            disableKeyboard={disableKeyboard}
+            inputStyle={style}
+            textInputContainerStyles={containerStyle}
+            onChangeText={onChangeAmount}
+            ref={ref}
+            disabled={disabled}
+            value={formattedAmount}
+            placeholder={placeholder}
+            inputMode={CONST.INPUT_MODE.DECIMAL}
+            // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
+            // See https://github.com/Expensify/App/issues/51868 for more information
+            autoCapitalize="words"
+            submitBehavior="submit"
+            selection={selection}
+            onSelectionChange={onSelectionChange}
+            role={CONST.ROLE.PRESENTATION}
+            onKeyPress={onKeyPress as (event: TextInputKeyPressEvent) => void}
+            touchableInputWrapperStyle={touchableInputWrapperStyle}
+            // On iPad, even if the soft keyboard is hidden, the keyboard suggestion is still shown.
+            // Setting both autoCorrect and spellCheck to false will hide the suggestion.
+            autoCorrect={false}
+            spellCheck={false}
+            disableKeyboardShortcuts
+            shouldUseFullInputHeight
+            shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
+            navigation={navigation}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
+        />
     );
 }
 

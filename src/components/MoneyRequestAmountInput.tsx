@@ -119,9 +119,6 @@ type MoneyRequestAmountInputProps = {
     /** Whether the input is disabled or not */
     disabled?: boolean;
 
-    /** Whether the text input is on a split list item or not */
-    isSplitItemInput?: boolean;
-
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
@@ -162,7 +159,6 @@ function MoneyRequestAmountInput({
     shouldUseDefaultLineHeightForPrefix = true,
     shouldWrapInputInContainer = true,
     isNegative = false,
-    isSplitItemInput = false,
     allowFlippingAmount = false,
     toggleNegative,
     clearNegative,
@@ -260,7 +256,6 @@ function MoneyRequestAmountInput({
             allowFlippingAmount={allowFlippingAmount}
             toggleNegative={toggleNegative}
             clearNegative={clearNegative}
-            isSplitItemInput={isSplitItemInput}
             onFocus={props.onFocus}
         />
     );
