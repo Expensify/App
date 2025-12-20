@@ -528,7 +528,9 @@ function getMergeFieldUpdatedValues<K extends MergeFieldKey>(
         updatedValues.amount = getMergeFieldValue(transactionDetails, transaction, 'amount') as number;
         updatedValues.currency = getCurrency(transaction);
         updatedValues.customUnit = transaction?.comment?.customUnit;
-        updatedValues.iouRequestType = transaction?.iouRequestType;
+        if (transaction?.iouRequestType) {
+            updatedValues.iouRequestType = transaction?.iouRequestType;
+        }
         // For manual distance requests, set waypoints/routes and receipt to null to clear any existing values
         updatedValues.receipt = transaction?.receipt ?? null;
         updatedValues.waypoints = getWaypoints(transaction) ?? null;
