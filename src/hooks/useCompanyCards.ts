@@ -1,6 +1,6 @@
-import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, ResultMetadata} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {getCompanyCardFeed, getCompanyFeeds, getPlaidInstitutionId} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getPlaidInstitutionId, getSelectedFeed} from '@libs/CardUtils';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList} from '@src/types/onyx';
@@ -27,14 +27,15 @@ type UsCompanyCardsResult = Partial<{
     onyxMetadata: {
         cardListMetadata: ResultMetadata<WorkspaceCardsList>;
         allCardFeedsMetadata: ResultMetadata<OnyxCollection<CardFeeds>>;
+        lastSelectedFeedMetadata: ResultMetadata<OnyxEntry<CompanyCardFeedWithDomainID>>;
     };
 };
 
 function useCompanyCards(policyID?: string): UsCompanyCardsResult {
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+    const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [allCardFeeds, allCardFeedsMetadata] = useCardFeeds(policyID);
 
-    const feedName = lastSelectedFeed;
+    const feedName = getSelectedFeed(lastSelectedFeed, allCardFeeds);
     const bankName = feedName ? getCompanyCardFeed(feedName) : undefined;
 
     const [cardsList, cardListMetadata] = useCardsList(feedName);
@@ -54,6 +55,7 @@ function useCompanyCards(policyID?: string): UsCompanyCardsResult {
     const onyxMetadata = {
         cardListMetadata,
         allCardFeedsMetadata,
+        lastSelectedFeedMetadata,
     };
 
     if (!policyID) {

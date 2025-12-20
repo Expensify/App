@@ -54,47 +54,32 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         cardNames,
         cardFeedType,
         selectedFeed,
-        onyxMetadata: {cardListMetadata, allCardFeedsMetadata},
+        onyxMetadata: {cardListMetadata, lastSelectedFeedMetadata},
     } = useCompanyCards(policy?.id);
-
-    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
-    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const isDirectCardFeed = cardFeedType === 'directFeed';
 
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
-
+    const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
+    const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}`, {canBeMissing: true});
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
     const isInitiallyLoadingFeeds = isEmptyObject(allCardFeeds);
+
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
     const isFeedPending = !!selectedFeed?.pending;
-    const isFeedAdded = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed;
+    const isLoadingFeed = !feedName || policy?.id === undefined || isLoadingOnyxValue(lastSelectedFeedMetadata);
+
+    const isLoadingCards = cardFeedType === 'directFeed' ? selectedFeed?.accountList === undefined : isLoadingOnyxValue(cardListMetadata) || cardList === undefined;
+    const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata));
+
+    const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed;
+    const showTableControls = !(showCards && !!selectedFeed);
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
-
-    const cardFeedIcon = (
-        <CardFeedIcon
-            key={feedName}
-            iconProps={{
-                height: variables.cardIconHeight,
-                width: variables.cardIconWidth,
-                additionalStyles: styles.cardIcon,
-            }}
-            selectedFeed={feedName}
-        />
-    );
-
-    const isLoadingFeed = !feedName || policy?.id === undefined;
-
-    const isDirectCardFeed = cardFeedType === 'directFeed';
-    const isLoadingDirectCardFeed = isDirectCardFeed && selectedFeed?.accountList === undefined;
-    const isLoadingCommercialCardFeed = !isDirectCardFeed && (isLoadingOnyxValue(cardListMetadata) || cardList === undefined);
-    const isLoadingCards = isLoadingOnyxValue(allCardFeedsMetadata) && (isLoadingDirectCardFeed || isLoadingCommercialCardFeed);
-    const isLoadingPersonalDetails = isLoadingOnyxValue(personalDetailsMetadata);
-    const isLoadingCardsTableData = isLoadingFeed || (!isOffline && isLoadingCards) || isLoadingPersonalDetails;
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
@@ -120,9 +105,9 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         },
     ];
 
-    const showCards = !isFeedPending && !isNoFeed && isFeedAdded;
-    const data: WorkspaceCompanyCardTableItemData[] = showCards
-        ? (cardNames?.map((cardName) => {
+    const cardsData: WorkspaceCompanyCardTableItemData[] = isLoadingCards
+        ? []
+        : (cardNames?.map((cardName) => {
               const assignedCardPredicate = (card: Card) => (isDirectCardFeed ? card.cardName === cardName : isMaskedCardNumberEqual(card.cardName, cardName));
 
               const assignedCard = Object.values(assignedCards ?? {}).find(assignedCardPredicate);
@@ -138,23 +123,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
               const isAssigned = !!assignedCard;
 
               return {cardName, customCardName, isCardDeleted, isAssigned, assignedCard, cardholder, failedCompanyCardAssignment};
-          }) ?? [])
-        : [];
-
-    const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceCompanyCardTableItemData>) => (
-        <WorkspaceCompanyCardTableItem
-            key={`${item.cardName}_${index}`}
-            item={item}
-            policyID={policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)}
-            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
-            CardFeedIcon={cardFeedIcon}
-            isPlaidCardFeed={isDirectCardFeed}
-            onAssignCard={onAssignCard}
-            isAssigningCardDisabled={isAssigningCardDisabled}
-            shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
-            columnCount={columns.length}
-        />
-    );
+          }) ?? []);
 
     const keyExtractor = (item: WorkspaceCompanyCardTableItemData, index: number) => `${item.cardName}_${index}`;
 
@@ -240,6 +209,33 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         },
     };
 
+    const cardFeedIcon = (
+        <CardFeedIcon
+            key={feedName}
+            iconProps={{
+                height: variables.cardIconHeight,
+                width: variables.cardIconWidth,
+                additionalStyles: styles.cardIcon,
+            }}
+            selectedFeed={feedName}
+        />
+    );
+
+    const renderItem = ({item, index}: ListRenderItemInfo<WorkspaceCompanyCardTableItemData>) => (
+        <WorkspaceCompanyCardTableItem
+            key={`${item.cardName}_${index}`}
+            item={item}
+            policyID={policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)}
+            domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
+            CardFeedIcon={cardFeedIcon}
+            isPlaidCardFeed={isDirectCardFeed}
+            onAssignCard={onAssignCard}
+            isAssigningCardDisabled={isAssigningCardDisabled}
+            shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
+            columnCount={columns.length}
+        />
+    );
+
     const [activeSortingInWideLayout, setActiveSortingInWideLayout] = useState<ActiveSorting<CompanyCardsTableColumnKey> | undefined>(undefined);
     const isNarrowLayoutRef = useRef(shouldUseNarrowTableLayout);
 
@@ -266,14 +262,10 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         tableRef.current?.updateSorting(activeSortingInWideLayout);
     }, [activeSortingInWideLayout, shouldUseNarrowTableLayout]);
 
-    const showTableControls = !(isFeedPending && !!selectedFeed);
-
-    const ListEmptyComponent = showCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />;
-
     return (
         <Table
             ref={tableRef}
-            data={isLoadingCardsTableData ? [] : data}
+            data={cardsData}
             columns={columns}
             renderItem={renderItem}
             keyExtractor={keyExtractor}
@@ -281,8 +273,22 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
             isItemInSearch={isItemInSearch}
             isItemInFilter={isItemInFilter}
             filters={filterConfig}
-            ListEmptyComponent={ListEmptyComponent}
+            ListEmptyComponent={isLoadingCards ? <TableRowSkeleton fixedNumItems={5} /> : <WorkspaceCompanyCardsFeedAddedEmptyPage shouldShowGBDisclaimer={shouldShowGBDisclaimer} />}
         >
+            {(showCards || isLoadingPage) && (
+                <View style={shouldUseNarrowTableLayout && styles.mb5}>
+                    <WorkspaceCompanyCardsTableHeaderButtons
+                        isLoading={isLoadingPage}
+                        policyID={policy?.id}
+                        feedName={feedName}
+                        showTableControls={showTableControls}
+                        CardFeedIcon={cardFeedIcon}
+                    />
+                </View>
+            )}
+
+            {isLoadingPage && <TableRowSkeleton fixedNumItems={5} />}
+
             {isFeedPending && (
                 <View style={styles.flex1}>
                     <WorkspaceCompanyCardsFeedPendingPage />
@@ -300,15 +306,6 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
 
             {showCards && (
                 <>
-                    <View style={shouldUseNarrowTableLayout && styles.mb5}>
-                        <WorkspaceCompanyCardsTableHeaderButtons
-                            isLoadingFeed={isLoadingFeed}
-                            policyID={policy?.id}
-                            feedName={feedName}
-                            showTableControls={showTableControls}
-                            CardFeedIcon={cardFeedIcon}
-                        />
-                    </View>
                     {!shouldUseNarrowTableLayout && !isLoadingFeed && <Table.Header />}
                     <Table.Body />
                 </>

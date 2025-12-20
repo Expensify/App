@@ -46,7 +46,7 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     feedName: CompanyCardFeedWithDomainID | undefined;
 
     /** Whether the feed is loading */
-    isLoadingFeed?: boolean;
+    isLoading?: boolean;
 
     /** Whether to show the table controls */
     showTableControls: boolean;
@@ -55,7 +55,7 @@ type WorkspaceCompanyCardsTableHeaderButtonsProps = {
     CardFeedIcon?: React.ReactNode;
 };
 
-function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoadingFeed, showTableControls, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
+function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading, showTableControls, CardFeedIcon}: WorkspaceCompanyCardsTableHeaderButtonsProps) {
     const styles = useThemeStyles();
 
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -118,7 +118,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoadingF
                     !shouldShowNarrowLayout && [styles.flexColumn, styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween],
                 ]}
             >
-                {isLoadingFeed ? (
+                {isLoading ? (
                     <AccountSwitcherSkeletonView
                         avatarSize={CONST.AVATAR_SIZE.DEFAULT}
                         width={FEED_SELECTOR_SKELETON_WIDTH}
@@ -137,14 +137,14 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoadingF
                 <View
                     style={[styles.alignItemsCenter, styles.gap3, shouldShowNarrowLayout ? [styles.flexColumnReverse, styles.w100, styles.alignItemsStretch, styles.gap5] : styles.flexRow]}
                 >
-                    {!isLoadingFeed && showTableControls && (
+                    {!isLoading && showTableControls && (
                         <View style={[styles.mnw200]}>
                             <Table.SearchBar />
                         </View>
                     )}
 
                     <View style={[styles.flexRow, styles.gap3]}>
-                        {!isLoadingFeed && (
+                        {!isLoading && (
                             <>
                                 {showTableControls && <Table.FilterButtons style={shouldShowNarrowLayout && [styles.flex1]} />}
                                 <ButtonWithDropdownMenu
