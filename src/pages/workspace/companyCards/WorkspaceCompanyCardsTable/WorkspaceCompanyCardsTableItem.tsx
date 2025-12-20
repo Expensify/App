@@ -104,8 +104,11 @@ function WorkspaceCompanyCardTableItem({
     }
 
     const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
+    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? cardholder?.login : undefined;
+    const narrowWidthCardName = isAssigned ? `${customCardName ?? ''}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : cardName;
 
-    const alternateLoginText = shouldUseNarrowTableLayout ? `${customCardName ?? ''}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : (cardholder?.login ?? '');
+    const leftColumnTitle = isAssigned ? (cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
+    const leftColumnSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
 
     const resetFailedCompanyCardAssignment = () => {
         if (!failedCompanyCardAssignment) {
@@ -142,7 +145,7 @@ function WorkspaceCompanyCardTableItem({
 
                     const feedName = getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID);
 
-                    return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, assignedCard.cardID.toString(), feedName));
+                    return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, assignedCard.cardID.toString()));
                 }}
             >
                 {({hovered}) => (
@@ -160,46 +163,33 @@ function WorkspaceCompanyCardTableItem({
                     >
                         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                             {isAssigned ? (
-                                <>
-                                    <Avatar
-                                        source={
-                                            cardholder?.avatar ??
-                                            getDefaultAvatarURL({
-                                                accountID: cardholder?.accountID,
-                                            })
-                                        }
-                                        avatarID={cardholder?.accountID}
-                                        type={CONST.ICON_TYPE_AVATAR}
-                                        size={CONST.AVATAR_SIZE.DEFAULT}
-                                    />
-
-                                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                                        <TextWithTooltip
-                                            text={cardholder?.displayName ?? ''}
-                                            style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.justifyContentCenter]}
-                                        />
-                                        <TextWithTooltip
-                                            text={alternateLoginText}
-                                            style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
-                                        />
-                                    </View>
-                                </>
+                                <Avatar
+                                    source={
+                                        cardholder?.avatar ??
+                                        getDefaultAvatarURL({
+                                            accountID: cardholder?.accountID,
+                                        })
+                                    }
+                                    avatarID={cardholder?.accountID}
+                                    type={CONST.ICON_TYPE_AVATAR}
+                                    size={CONST.AVATAR_SIZE.DEFAULT}
+                                />
                             ) : (
-                                <>
-                                    {CardFeedIcon}
-
-                                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
-                                        <TextWithTooltip
-                                            text={translate('workspace.moreFeatures.companyCards.unassignedCards')}
-                                            style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.justifyContentCenter]}
-                                        />
-                                        <TextWithTooltip
-                                            text={cardName}
-                                            style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
-                                        />
-                                    </View>
-                                </>
+                                CardFeedIcon
                             )}
+
+                            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                                <TextWithTooltip
+                                    text={leftColumnTitle}
+                                    style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.justifyContentCenter]}
+                                />
+                                {!!leftColumnSubtitle && (
+                                    <TextWithTooltip
+                                        text={leftColumnSubtitle}
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.mr3]}
+                                    />
+                                )}
+                            </View>
                         </View>
 
                         {!shouldUseNarrowTableLayout && (
@@ -213,7 +203,7 @@ function WorkspaceCompanyCardTableItem({
                             </View>
                         )}
 
-                        <View style={[styles.flex0, styles.flexRow, styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                        <View style={[styles.flexRow, styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
                             {isAssigned ? (
                                 <View style={[styles.flexRow, styles.ml2, styles.gap3, styles.mw100]}>
                                     {!shouldUseNarrowTableLayout && (
@@ -235,7 +225,7 @@ function WorkspaceCompanyCardTableItem({
                             ) : (
                                 <Button
                                     success
-                                    small={!shouldUseNarrowTableLayout}
+                                    small={shouldUseNarrowTableLayout}
                                     text={translate('workspace.companyCards.assign')}
                                     onPress={assignCard}
                                     isDisabled={isAssigningCardDisabled}
