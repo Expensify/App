@@ -22,22 +22,22 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
 import {getCardFeedIcon, getCompanyCardFeed, getFilteredCardList, getPlaidInstitutionIconUrl, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
-type CardSelectionStepProps = {
-    /** Selected feed */
-    feed: CompanyCardFeedWithDomainID;
+type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION>;
 
-    /** Current policy id */
-    policyID: string | undefined;
-};
-
-function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
+function CardSelectionStep({route}: CardSelectionStepProps) {
+    const policyID = route.params.policyID;
+    const feed = route.params.feed;
+    const cardID = route.params.cardID;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
@@ -51,10 +51,10 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
     const isEditing = assignCard?.isEditing;
-    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '');
+    const assigneeDisplayName = Str.removeSMSDomain(getPersonalDetailByEmail(assignCard?.cardToAssign?.email ?? '')?.displayName ?? '');
     const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds);
 
-    const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
+    const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
 
     const cardListOptions = Object.entries(filteredCardList).map(([cardNumber, encryptedCardNumber]) => ({
@@ -81,16 +81,12 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const handleBackButtonPress = () => {
         if (isEditing) {
             setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute({policyID, feed, cardID}));
             return;
         }
-        if (!cardListOptions.length) {
-            Navigation.goBack();
-            return;
-        }
-        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE});
+        Navigation.goBack();
     };
 
     const handleSelectCard = (cardNumber: string) => {
@@ -110,10 +106,15 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                 ?.at(0) ?? '';
 
         setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE,
-            data: {encryptedCardNumber: cardSelected, cardNumber},
+            cardToAssign: {encryptedCardNumber: cardSelected, cardNumber},
             isEditing: false,
         });
+
+        if (isEditing) {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute({policyID, feed, cardID}));
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute({policyID, feed, cardID}));
+        }
     };
 
     const searchedListOptions = useMemo(() => {
