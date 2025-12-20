@@ -87,7 +87,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoadingF
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID ?? '', feedName));
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID), feedName));
         });
     };
 
@@ -95,7 +95,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoadingF
         {
             icon: icons.Gear,
             text: translate('common.settings'),
-            onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? '')),
+            onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID))),
             value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
         },
     ];
@@ -126,7 +126,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoadingF
                     />
                 ) : (
                     <FeedSelector
-                        onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID ?? ''))}
+                        onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID ?? String(CONST.DEFAULT_NUMBER_ID)))}
                         CardFeedIcon={CardFeedIcon}
                         feedName={formattedFeedName}
                         supportingText={supportingText}
