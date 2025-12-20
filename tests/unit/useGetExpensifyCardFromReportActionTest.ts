@@ -247,4 +247,42 @@ describe('useGetExpensifyCardFromReportAction', () => {
             expect(result.current).toEqual(mockCard);
         });
     });
+
+    describe('workspaceAccountID handling', () => {
+        it('uses policy workspaceAccountID for building expensify cards key', async () => {
+            const policyWithWorkspaceID = {
+                ...mockPolicy,
+                workspaceAccountID: 456,
+            };
+            mockUsePolicy.mockReturnValue(policyWithWorkspaceID);
+            mockIsPolicyAdmin.mockReturnValue(true);
+
+            const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}456_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
+
+            const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current).toEqual(mockCard);
+        });
+
+        it('uses DEFAULT_NUMBER_ID when policy has no workspaceAccountID', async () => {
+            const policyWithoutWorkspaceID = {
+                ...mockPolicy,
+                workspaceAccountID: undefined,
+            };
+            mockUsePolicy.mockReturnValue(policyWithoutWorkspaceID);
+            mockIsPolicyAdmin.mockReturnValue(true);
+
+            const workspaceCardsKey = `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${CONST.DEFAULT_NUMBER_ID}_${CONST.EXPENSIFY_CARD.BANK}` as OnyxKey;
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            mockUseWorkspaceCardList.mockReturnValue({[workspaceCardsKey]: {123: mockCard}});
+
+            const {result} = renderHook(() => useGetExpensifyCardFromReportAction({reportAction: createMockReportAction(), policyID: 'policy123'}));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(result.current).toEqual(mockCard);
+        });
+    });
 });
