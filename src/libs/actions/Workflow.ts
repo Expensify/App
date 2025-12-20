@@ -1,5 +1,5 @@
 import lodashDropRightWhile from 'lodash/dropRightWhile';
-import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
@@ -9,7 +9,7 @@ import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees} from '@lib
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ApprovalWorkflowOnyx, IntroSelected, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
+import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -18,8 +18,7 @@ import * as Task from './Task';
 type CreateApprovalWorkflowParams = {
     approvalWorkflow: ApprovalWorkflow;
     policy: OnyxEntry<Policy>;
-    introSelected: OnyxEntry<IntroSelected>;
-    allReports: OnyxCollection<Report>;
+    addExpenseApprovalsTaskReport: OnyxEntry<Report>;
 };
 
 type SetApprovalWorkflowApproverParams = {
@@ -35,7 +34,7 @@ type ClearApprovalWorkflowApproverParams = {
     currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
 };
 
-function createApprovalWorkflow({approvalWorkflow, policy, introSelected, allReports}: CreateApprovalWorkflowParams) {
+function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTaskReport}: CreateApprovalWorkflowParams) {
     if (!policy) {
         return;
     }
@@ -89,13 +88,11 @@ function createApprovalWorkflow({approvalWorkflow, policy, introSelected, allRep
     const parameters: CreateWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
 
-    const addExpenseApprovalsTaskReportID = introSelected?.addExpenseApprovals;
-    if (addExpenseApprovalsTaskReportID) {
-        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${addExpenseApprovalsTaskReportID}`];
-
-        if (taskReport && (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)) {
-            Task.completeTask(taskReport, false, false, undefined);
-        }
+    if (
+        addExpenseApprovalsTaskReport &&
+        (addExpenseApprovalsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || addExpenseApprovalsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)
+    ) {
+        Task.completeTask(addExpenseApprovalsTaskReport, false, false, undefined);
     }
 }
 
