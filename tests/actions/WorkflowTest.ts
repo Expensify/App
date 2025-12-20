@@ -1,11 +1,11 @@
 import Onyx from 'react-native-onyx';
 import {INITIAL_APPROVAL_WORKFLOW} from '@libs/WorkflowUtils';
+import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {generatePolicyID} from '@src/libs/actions/Policy/Policy';
 import * as Task from '@src/libs/actions/Task';
 import {clearApprovalWorkflowApprover, createApprovalWorkflow, setApprovalWorkflowApprover} from '@src/libs/actions/Workflow';
 import {calculateApprovers} from '@src/libs/WorkflowUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType, Report} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
@@ -252,7 +252,7 @@ describe('actions/Workflow', () => {
             const taskReportID = '999';
             const policy = {
                 id: '123456789',
-                name: "Test Workspace",
+                name: 'Test Workspace',
                 role: 'admin',
                 type: 'corporate',
                 owner: ownerEmail,
@@ -325,7 +325,7 @@ describe('actions/Workflow', () => {
             const taskReportID = '999';
             const policy = {
                 id: '123456789',
-                name: "Test Workspace",
+                name: 'Test Workspace',
                 role: 'admin',
                 type: 'corporate',
                 owner: ownerEmail,
@@ -397,7 +397,7 @@ describe('actions/Workflow', () => {
 
             const policy = {
                 id: '123456789',
-                name: "Test Workspace",
+                name: 'Test Workspace',
                 role: 'admin',
                 type: 'corporate',
                 owner: ownerEmail,
