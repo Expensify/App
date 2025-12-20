@@ -1,6 +1,6 @@
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
+import {ScrollView, View} from 'react-native';
 import CardFeedIcon from '@components/CardFeedIcon';
 import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Table from '@components/Table';
@@ -287,21 +287,25 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                 </View>
             )}
 
-            {isLoadingPage && <TableRowSkeleton fixedNumItems={5} />}
+            {(isLoadingPage || isFeedPending || isNoFeed) && (
+                <ScrollView>
+                    {isLoadingPage && <TableRowSkeleton fixedNumItems={5} />}
 
-            {isFeedPending && (
-                <View style={styles.flex1}>
-                    <WorkspaceCompanyCardsFeedPendingPage />
-                </View>
-            )}
+                    {isFeedPending && (
+                        <View style={styles.flex1}>
+                            <WorkspaceCompanyCardsFeedPendingPage />
+                        </View>
+                    )}
 
-            {isNoFeed && (
-                <View style={styles.flex1}>
-                    <WorkspaceCompanyCardPageEmptyState
-                        policy={policy}
-                        shouldShowGBDisclaimer={shouldShowGBDisclaimer}
-                    />
-                </View>
+                    {isNoFeed && (
+                        <View style={styles.flex1}>
+                            <WorkspaceCompanyCardPageEmptyState
+                                policy={policy}
+                                shouldShowGBDisclaimer={shouldShowGBDisclaimer}
+                            />
+                        </View>
+                    )}
+                </ScrollView>
             )}
 
             {showCards && (
