@@ -12,6 +12,9 @@ import type Middleware from './types';
 
 type PagedResource<TResourceKey extends OnyxCollectionKey> = OnyxValues[TResourceKey] extends Record<string, infer TResource> ? TResource : never;
 
+// Simplified type for paginated resource collections to avoid complex union type errors
+type PaginatedResourceCollection = Record<string, unknown>;
+
 type PaginationCommonConfig<TResourceKey extends OnyxCollectionKey = OnyxCollectionKey, TPageKey extends OnyxPagesKey = OnyxPagesKey> = {
     resourceCollectionKey: TResourceKey;
     pageCollectionKey: TPageKey;
@@ -95,7 +98,8 @@ const Pagination: Middleware = (requestResponse, request) => {
         const pageKey = `${pageCollectionKey}${resourceID}` as const;
 
         // Create a new page based on the response
-        const pageItems = (response.onyxData.find((data) => data.key === resourceKey)?.value ?? {}) as OnyxValues[typeof resourceCollectionKey];
+        const pageData = response.onyxData.find((data) => data.key === resourceKey) as {value?: PaginatedResourceCollection} | undefined;
+        const pageItems: PaginatedResourceCollection = pageData?.value ?? {};
         const sortedPageItems = sortItems(pageItems, resourceID);
         if (sortedPageItems.length === 0) {
             // Must have at least 1 action to create a page.
@@ -113,7 +117,7 @@ const Pagination: Middleware = (requestResponse, request) => {
         }
 
         const resourceCollections = resources.get(resourceCollectionKey) ?? {};
-        const existingItems = resourceCollections[resourceKey] ?? {};
+        const existingItems = (resourceCollections[resourceKey] ?? {}) as PaginatedResourceCollection;
         const allItems = fastMerge(existingItems, pageItems, true);
         const sortedAllItems = sortItems(allItems, resourceID);
 

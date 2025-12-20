@@ -52,7 +52,7 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksDesktopImportPage.displayName}
+            displayName="QuickbooksDesktopImportPage"
             headerTitle="workspace.accounting.import"
             title="workspace.qbd.importDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -80,7 +80,5 @@ function QuickbooksDesktopImportPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-QuickbooksDesktopImportPage.displayName = 'PolicyQuickbooksDesktopImportPage';
 
 export default withPolicyConnections(QuickbooksDesktopImportPage);

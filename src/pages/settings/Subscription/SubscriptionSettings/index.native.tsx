@@ -41,7 +41,7 @@ function SubscriptionSettings() {
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type, hasTeam2025Pricing);
-    const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual', 'SubscriptionPPU'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['SubscriptionAnnual', 'SubscriptionPPU']);
     const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
@@ -64,7 +64,7 @@ function SubscriptionSettings() {
 
     return (
         <ScreenWrapper
-            testID={SubscriptionSettings.displayName}
+            testID="SubscriptionSettings"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -120,7 +120,5 @@ function SubscriptionSettings() {
         </ScreenWrapper>
     );
 }
-
-SubscriptionSettings.displayName = 'SubscriptionSettings';
 
 export default SubscriptionSettings;

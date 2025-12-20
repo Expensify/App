@@ -68,10 +68,6 @@ jest.mock('@rnmapbox/maps', () => {
     };
 });
 
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
-
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
@@ -1944,6 +1940,28 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite).toBe(null);
         });
 
+        it('should not return userToInvite for plain text name when shouldAcceptName is false', () => {
+            // Given a set of options
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, {includeUserToInvite: true});
+
+            // When we call filterAndOrderOptions with a plain text name (not email or phone) without shouldAcceptName
+            const filteredOptions = filterAndOrderOptions(options, 'Jeff Amazon', COUNTRY_CODE, {shouldAcceptName: false});
+
+            // Then userToInvite should be null since plain names are not accepted by default
+            expect(filteredOptions?.userToInvite).toBe(null);
+        });
+
+        it('should return userToInvite for plain text name when shouldAcceptName is true', () => {
+            // Given a set of options
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, {includeUserToInvite: true});
+
+            // When we call filterAndOrderOptions with a plain text name (not email or phone) with shouldAcceptName
+            const filteredOptions = filterAndOrderOptions(options, 'Jeff', COUNTRY_CODE, {shouldAcceptName: true});
+
+            // Then userToInvite should be returned for the plain name
+            expect(filteredOptions?.userToInvite?.text).toBe('jeff');
+        });
+
         it('should not return any options if search value does not match any personal details', () => {
             // Given a set of options
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining);
@@ -2788,6 +2806,28 @@ describe('OptionsListUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
+        });
+        it('should return last visible message text when last action is hidden (e.g. whisper)', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                lastMessageText: 'joined the chat',
+            };
+            const whisperAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [whisperAction.reportActionID]: whisperAction,
+            });
+            await waitForBatchedUpdates();
+
+            const expectedVisibleText = '';
+            const result = getLastMessageTextForReport({
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(result).toBe(expectedVisibleText);
         });
     });
 
