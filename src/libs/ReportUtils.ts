@@ -5127,10 +5127,11 @@ function getTransactionReportName({
         return translateLocal('iou.fieldPending');
     }
 
-    // If a map distance request has no route (and the distance is zero) the merchant would be empty
+    // If a map distance request has no route (the distance is zero) the merchant would be empty
     // Using the merchant is easier than explicitly checking for distance
     if (isMapDistanceRequest(transaction) && !getMerchant(transaction)) {
-        return translateLocal('iou.noRoute');
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('violations.noRoute');
     }
 
     if (isSentMoneyReportAction(reportAction)) {

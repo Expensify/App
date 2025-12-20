@@ -1188,7 +1188,6 @@ const translations = {
         fieldPending: 'Pending...',
         defaultRate: 'Default rate',
         receiptMissingDetails: 'Receipt missing details',
-        noRoute: 'No route was found',
         missingAmount: 'Missing amount',
         missingMerchant: 'Missing merchant',
         receiptStatusTitle: 'Scanning…',
@@ -7233,7 +7232,7 @@ const translations = {
         hold: 'This expense was put on hold',
         resolvedDuplicates: 'resolved the duplicate',
         companyCardRequired: 'Company card purchases required',
-        noRoute: 'No route was found. Please select a valid address',
+        noRoute: 'Please select a valid address',
     },
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: ({fieldName}: RequiredFieldParams) => `${fieldName} is required`,
