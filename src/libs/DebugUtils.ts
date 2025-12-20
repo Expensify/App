@@ -1042,6 +1042,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     isLoading: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     customUnit: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    units: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     source: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     originalTransactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     splits: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1151,6 +1152,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 splitExpenses: 'array',
                 isDemoTransaction: 'boolean',
                 splitExpensesTotal: 'number',
+                units: 'object',
                 splitsStartDate: 'string',
                 splitsEndDate: 'string',
             });
