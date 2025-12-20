@@ -893,9 +893,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER]: {
                             path: ROUTES.WORKSPACE_CATEGORY_REQUIRE_ITEMIZED_RECEIPTS_OVER.route,
                         },
-                        [SCREENS.WORKSPACE.CATEGORY_REQUIRED_FIELDS]: {
-                            path: ROUTES.WORKSPACE_CATEGORY_REQUIRED_FIELDS.route,
-                        },
                         [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: {
                             path: ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.route,
                         },
@@ -1432,6 +1429,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                                 'distance-manual': {
                                     path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route,
                                 },
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'distance-gps': {
+                                    path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_GPS.route,
+                                },
                             },
                         },
                         [SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT]: ROUTES.SETTINGS_CATEGORIES_ROOT.route,
@@ -1478,6 +1479,21 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
                             path: ROUTES.SPLIT_EXPENSE.route,
+                            exact: true,
+                            screens: {
+                                [CONST.TAB.SPLIT.AMOUNT]: {
+                                    path: CONST.TAB.SPLIT.AMOUNT,
+                                },
+                                [CONST.TAB.SPLIT.PERCENTAGE]: {
+                                    path: CONST.TAB.SPLIT.PERCENTAGE,
+                                },
+                                [CONST.TAB.SPLIT.DATE]: {
+                                    path: CONST.TAB.SPLIT.DATE,
+                                },
+                            },
+                        },
+                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE]: {
+                            path: ROUTES.SPLIT_EXPENSE_CREATE_DATE_RANGE.route,
                             exact: true,
                         },
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
@@ -1591,7 +1607,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.RIGHT_MODAL.TRAVEL]: {
                     screens: {
-                        [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS,
+                        [SCREENS.TRAVEL.MY_TRIPS]: ROUTES.TRAVEL_MY_TRIPS.route,
                         [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: ROUTES.TRAVEL_DOT_LINK_WEB_VIEW.route,
                         [SCREENS.TRAVEL.UPGRADE]: ROUTES.TRAVEL_UPGRADE.route,
                         [SCREENS.TRAVEL.TCS]: ROUTES.TRAVEL_TCS.route,
@@ -1615,11 +1631,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.COLUMNS_RHP]: ROUTES.SEARCH_COLUMNS,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
-                    screens: {
-                        [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
-                    },
-                },
+                [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: ROUTES.SEARCH_REPORT.route,
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: {
                     screens: {
                         [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: ROUTES.SEARCH_ROOT_VERIFY_ACCOUNT,
@@ -1671,7 +1683,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_HAS_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.HAS),
                         [SCREENS.SEARCH.ADVANCED_FILTERS_PURCHASE_AMOUNT_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PURCHASE_AMOUNT),
                         [SCREENS.SEARCH.ADVANCED_FILTERS_PURCHASE_CURRENCY_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PURCHASE_CURRENCY),
-                        [SCREENS.SEARCH.ADVANCED_FILTERS_ACTION_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION),
                         [SCREENS.SEARCH.ADVANCED_FILTERS_ATTENDEE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ATTENDEE),
                         [SCREENS.SEARCH.ADVANCED_FILTERS_REPORT_FIELD_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REPORT_FIELD),
                     },
@@ -1930,6 +1941,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.WORKSPACE.DISTANCE_RATES]: {
                     path: ROUTES.WORKSPACE_DISTANCE_RATES.route,
+                },
+                [SCREENS.WORKSPACE.TRAVEL]: {
+                    path: ROUTES.WORKSPACE_TRAVEL.route,
                 },
                 [SCREENS.WORKSPACE.RULES]: {
                     path: ROUTES.WORKSPACE_RULES.route,

@@ -2,6 +2,7 @@ import lodashCloneDeep from 'lodash/cloneDeep';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type PolicyData from '@hooks/usePolicyData/types';
 import * as API from '@libs/API';
 import type {
@@ -11,7 +12,6 @@ import type {
     RemovePolicyCategoryItemizedReceiptsRequiredParams,
     RemovePolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryApproverParams,
-    SetPolicyCategoryAttendeesRequiredParams,
     SetPolicyCategoryDescriptionRequiredParams,
     SetPolicyCategoryItemizedReceiptsRequiredParams,
     SetPolicyCategoryMaxAmountParams,
@@ -488,68 +488,6 @@ function setPolicyCategoryDescriptionRequired(policyID: string, categoryName: st
     };
 
     API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_DESCRIPTION_REQUIRED, parameters, onyxData);
-}
-
-function setPolicyCategoryAttendeesRequired(policyID: string, categoryName: string, areAttendeesRequired: boolean, policyCategories: PolicyCategories = {}) {
-    const policyCategoryToUpdate = policyCategories?.[categoryName];
-    const originalAreAttendeesRequired = policyCategoryToUpdate?.areAttendeesRequired;
-
-    const onyxData: OnyxData = {
-        optimisticData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        pendingFields: {
-                            areAttendeesRequired: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                        },
-                        areAttendeesRequired,
-                    },
-                },
-            },
-        ],
-        successData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        pendingAction: null,
-                        pendingFields: {
-                            areAttendeesRequired: null,
-                        },
-                        areAttendeesRequired,
-                    },
-                },
-            },
-        ],
-        failureData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-                value: {
-                    [categoryName]: {
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                        pendingAction: null,
-                        pendingFields: {
-                            areAttendeesRequired: null,
-                        },
-                        areAttendeesRequired: originalAreAttendeesRequired,
-                    },
-                },
-            },
-        ],
-    };
-
-    const parameters: SetPolicyCategoryAttendeesRequiredParams = {
-        policyID,
-        categoryName,
-        areAttendeesRequired,
-    };
-
-    API.write(WRITE_COMMANDS.SET_POLICY_CATEGORY_ATTENDEES_REQUIRED, parameters, onyxData);
 }
 
 function setPolicyCategoryReceiptsRequired(policyData: PolicyData, categoryName: string, maxAmountNoReceipt: number) {
@@ -1429,7 +1367,7 @@ function setPolicyCustomUnitDefaultCategory(policyID: string, customUnitID: stri
     API.write(WRITE_COMMANDS.SET_CUSTOM_UNIT_DEFAULT_CATEGORY, params, {optimisticData, successData, failureData});
 }
 
-function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void) {
+function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_CATEGORIES_CSV, {
         policyID,
     });
@@ -1441,7 +1379,7 @@ function downloadCategoriesCSV(policyID: string, onDownloadFailed: () => void) {
         formData.append(key, String(value));
     }
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_CATEGORIES_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function setWorkspaceCategoryDescriptionHint(policyID: string, categoryName: string, commentHint: string, policyCategories: PolicyCategories = {}) {
@@ -1728,7 +1666,6 @@ export {
     removePolicyCategoryItemizedReceiptsRequired,
     renamePolicyCategory,
     setPolicyCategoryApprover,
-    setPolicyCategoryAttendeesRequired,
     setPolicyCategoryDescriptionRequired,
     buildOptimisticPolicyWithExistingCategories,
     setPolicyCategoryGLCode,
