@@ -235,7 +235,7 @@ function WorkspaceCompanyCardTableItem({
                             ) : (
                                 <Button
                                     success
-                                    small={!shouldUseNarrowTableLayout}
+                                    small={shouldUseNarrowTableLayout}
                                     text={translate('workspace.companyCards.assign')}
                                     onPress={assignCard}
                                     isDisabled={isAssigningCardDisabled}
