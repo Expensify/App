@@ -21,7 +21,6 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, Policy} from '@src/types/onyx';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableItem';
@@ -48,14 +47,13 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const {isBetaEnabled} = usePermissions();
 
     const {
-        allCardFeeds,
         feedName,
         cardList,
         assignedCards,
         cardNames,
         cardFeedType,
         selectedFeed,
-        onyxMetadata: {cardListMetadata, lastSelectedFeedMetadata},
+        onyxMetadata: {cardListMetadata, lastSelectedFeedMetadata, allCardFeedsMetadata},
     } = useCompanyCards({policyID: policy?.id});
     const isDirectCardFeed = cardFeedType === 'directFeed';
 
@@ -67,11 +65,11 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feedName ?? ''}`, {canBeMissing: true});
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
-    const isInitiallyLoadingFeeds = isEmptyObject(allCardFeeds);
+    const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
 
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
     const isFeedPending = !!selectedFeed?.pending;
-    const isLoadingFeed = !feedName || policy?.id === undefined || isLoadingOnyxValue(lastSelectedFeedMetadata);
+    const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || policy?.id === undefined || isLoadingOnyxValue(lastSelectedFeedMetadata);
 
     const isLoadingCards = cardFeedType === 'directFeed' ? selectedFeed?.accountList === undefined : isLoadingOnyxValue(cardListMetadata) || cardList === undefined;
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata));
