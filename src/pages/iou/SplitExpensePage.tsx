@@ -100,7 +100,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(
         () => getTransactionDetails(transaction, undefined, undefined, undefined, undefined, undefined, currentReport ?? transactionReport) ?? {},
-        [transaction],
+        [transaction, currentReport, transactionReport],
     );
     const transactionDetailsAmount = transactionDetails?.amount ?? 0;
     const sumOfSplitExpenses = useMemo(() => (draftTransaction?.comment?.splitExpenses ?? []).reduce((acc, item) => acc + (item.amount ?? 0), 0), [draftTransaction?.comment?.splitExpenses]);

@@ -4530,7 +4530,7 @@ function getTransactionDetails(
     allowNegativeAmount = false,
     disableOppositeConversion = false,
     currentUserDetails = currentUserPersonalDetails,
-    reportParam: OnyxInputOrEntry<Report>,
+    reportParam: OnyxInputOrEntry<Report> = undefined,
 ): TransactionDetails | undefined {
     if (!transaction) {
         return;
