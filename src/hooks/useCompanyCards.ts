@@ -13,6 +13,11 @@ import useOnyx from './useOnyx';
 
 type CardFeedType = ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
 
+type UseCompanyCardsProps = {
+    policyID: string | undefined;
+    feedName?: CompanyCardFeedWithDomainID;
+};
+
 type UsCompanyCardsResult = Partial<{
     cardFeedType: CardFeedType;
     bankName: CompanyCardFeed;
@@ -31,11 +36,11 @@ type UsCompanyCardsResult = Partial<{
     };
 };
 
-function useCompanyCards(policyID?: string): UsCompanyCardsResult {
+function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProps): UsCompanyCardsResult {
     const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [allCardFeeds, allCardFeedsMetadata] = useCardFeeds(policyID);
 
-    const feedName = getSelectedFeed(lastSelectedFeed, allCardFeeds);
+    const feedName = feedNameProp ?? getSelectedFeed(lastSelectedFeed, allCardFeeds);
     const bankName = feedName ? getCompanyCardFeed(feedName) : undefined;
 
     const [cardsList, cardListMetadata] = useCardsList(feedName);
