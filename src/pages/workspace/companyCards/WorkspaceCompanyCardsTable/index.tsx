@@ -47,7 +47,6 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const {isBetaEnabled} = usePermissions();
 
     const {
-        allCardFeeds,
         feedName,
         cardList,
         assignedCards,
