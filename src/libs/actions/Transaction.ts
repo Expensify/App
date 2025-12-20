@@ -52,7 +52,7 @@ import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTagsData} from './Policy/Tag';
 import {getCurrentUserAccountID} from './Report';
 
-const allTransactions: Record<string, Transaction> = {};
+const allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     callback: (transaction, key) => {
@@ -398,7 +398,7 @@ function dismissDuplicateTransactionViolation(
 ) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
-    const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction.reportID, transaction.transactionID));
+    const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction?.reportID, transaction?.transactionID));
     const optimisticDismissedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
     });
@@ -501,11 +501,11 @@ function dismissDuplicateTransactionViolation(
 
     const optimisticDataTransactions: OnyxUpdate[] = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
         value: {
             ...transaction,
             comment: {
-                ...transaction.comment,
+                ...transaction?.comment,
                 dismissedViolations: {
                     duplicatedTransaction: {
                         [dismissedPersonalDetails.login ?? '']: getUnixTime(new Date()),
@@ -526,7 +526,7 @@ function dismissDuplicateTransactionViolation(
 
     const failureDataTransaction: OnyxUpdate[] = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
         value: {
             ...transaction,
         },
@@ -1330,7 +1330,7 @@ function changeTransactionsReport(
             (affectedReportID === selfDMReport?.reportID ? selfDMReport : undefined);
 
         if (!affectedReport) {
-            return;
+            continue;
         }
 
         const updatedTotal = updatedReportTotals[affectedReportID] ?? affectedReport.total;

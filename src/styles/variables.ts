@@ -277,6 +277,10 @@ export default {
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
 
+    desktopAppRetiredIllustrationW: 264,
+    desktopAppRetiredIllustrationH: 230,
+    desktopAppRetiredViewContainerWidth: 310,
+
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
     bankButtonMargin: 23,
@@ -341,6 +345,7 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
+    w200: 200,
     // Transaction item row heights based on layout types
     // Wide screen (desktop) layout
     optionRowWideItemHeight: 64,
@@ -385,4 +390,9 @@ export default {
 
     // Report search header max width
     reportSearchHeaderMaxWidth: 700,
+
+    // Split expense tabs
+    splitExpenseAmountMobileWidth: 82,
+    splitExpensePercentageWidth: 42,
+    splitExpensePercentageMobileWidth: 62,
 } as const;

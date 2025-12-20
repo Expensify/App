@@ -1251,6 +1251,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
+        removeSpacing: {
+            marginVertical: 0,
+            paddingHorizontal: 0,
+        },
+
         outlinedButton: {
             backgroundColor: 'transparent',
             borderColor: theme.border,
@@ -1259,6 +1264,20 @@ const staticStyles = (theme: ThemeColors) =>
 
         optionRowAmountInput: {
             textAlign: 'right',
+        },
+
+        optionRowAmountMobileInputContainer: {
+            width: variables.splitExpenseAmountMobileWidth,
+        },
+
+        optionRowPercentInputContainer: {
+            width: variables.splitExpensePercentageMobileWidth,
+        },
+
+        optionRowPercentInput: {
+            width: variables.splitExpensePercentageWidth,
+            textAlign: 'right',
+            marginRight: 2,
         },
 
         textInputLabelContainer: {
@@ -5018,6 +5037,15 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        desktopAppRetiredIllustration: {
+            width: variables.desktopAppRetiredIllustrationW,
+            height: variables.desktopAppRetiredIllustrationH,
+        },
+
+        desktopAppRetiredViewTextContainer: {
+            width: variables.desktopAppRetiredViewContainerWidth,
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
@@ -5059,6 +5087,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: 254,
             height: 165,
             marginBottom: 12,
+        },
+
+        travelCardIllustration: {
+            width: 191,
+            height: 170,
         },
 
         emptyStateMoneyRequestReport: {
@@ -5394,17 +5427,24 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         wideRHPExtendedCardInterpolatorStyles: {
-            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            position: 'absolute',
             height: '100%',
             right: 0,
             width: animatedWideRHPWidth,
         },
 
         superWideRHPExtendedCardInterpolatorStyles: {
-            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            position: 'absolute',
             height: '100%',
             right: 0,
             width: animatedSuperWideRHPWidth,
+        },
+
+        singleRHPExtendedCardInterpolatorStyles: {
+            position: 'absolute',
+            height: '100%',
+            right: 0,
+            width: variables.sideBarWidth,
         },
 
         flexibleHeight: {
@@ -5594,7 +5634,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             paddingBottom: bottomSafeAreaOffset,
         }),
 
-        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,
             marginRight: 4,
@@ -5681,13 +5721,6 @@ const dynamicStyles = (theme: ThemeColors) =>
             ({
                 horizontal: 18,
                 ...getPopOverVerticalOffset(202 + 40),
-            }) satisfies AnchorPosition,
-
-        createMenuPositionReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
-            ({
-                // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
-                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWithLHBWidth : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) + 18,
-                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             }) satisfies AnchorPosition,
 
         overlayStyles: ({

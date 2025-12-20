@@ -6,7 +6,6 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getPolicy} from '@libs/PolicyUtils';
 import {buildOptimisticChatReport, buildOptimisticCreatedReportAction} from '@libs/ReportUtils';
 import type {OptimisticCreatedReportAction} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -120,9 +119,7 @@ function addSchoolPrincipal(
                 name: policyName,
                 role: CONST.POLICY.ROLE.USER,
                 owner: sessionEmail,
-                // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                outputCurrency: getPolicy(policyID)?.outputCurrency ?? localCurrencyCode ?? CONST.CURRENCY.USD,
+                outputCurrency: localCurrencyCode ?? CONST.CURRENCY.USD,
                 employeeList: {
                     [sessionEmail]: {
                         role: CONST.POLICY.ROLE.USER,

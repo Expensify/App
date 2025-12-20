@@ -10,7 +10,7 @@ import type {Route} from '@src/ROUTES';
 /**
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
  */
-function acceptSpotnanaTerms(domain?: string) {
+function acceptSpotnanaTerms(domain?: string, policyID?: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRAVEL_SETTINGS | typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
         {
             onyxMethod: 'merge',
@@ -29,12 +29,21 @@ function acceptSpotnanaTerms(domain?: string) {
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_PROVISIONING | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.TRAVEL_PROVISIONING,
             value: {
                 isLoading: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                travelSettings: {
+                    hasAcceptedTerms: true,
+                },
             },
         },
     ];
@@ -50,7 +59,7 @@ function acceptSpotnanaTerms(domain?: string) {
         },
     ];
 
-    const params: AcceptSpotnanaTermsParams = {domain};
+    const params: AcceptSpotnanaTermsParams = {domain, policyID};
 
     // We need to call this API immediately to get the response and open the travel page.
     // See https://github.com/Expensify/App/pull/69769#discussion_r2368967354 for more info.

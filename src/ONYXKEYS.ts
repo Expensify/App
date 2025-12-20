@@ -447,6 +447,9 @@ const ONYXKEYS = {
     /** Indicates whether we should record troubleshoot data or not */
     SHOULD_RECORD_TROUBLESHOOT_DATA: 'shouldRecordTroubleshootData',
 
+    /** Timestamp when troubleshoot recording was started (for auto-off after 10 minutes) */
+    TROUBLESHOOT_RECORDING_START_TIME: 'troubleshootRecordingStartTime',
+
     /** Indicates whether we should mask fragile user data while exporting onyx state or not */
     SHOULD_MASK_ONYX_STATE: 'shouldMaskOnyxState',
 
@@ -537,6 +540,9 @@ const ONYXKEYS = {
 
     /** The user's Concierge reportID */
     CONCIERGE_REPORT_ID: 'conciergeReportID',
+
+    /** The user's Self DM reportID */
+    SELF_DM_REPORT_ID: 'selfDMReportID',
 
     /** The details of unknown user while sharing a file - we don't know if they exist */
     SHARE_UNKNOWN_USER_DETAILS: 'shareUnknownUserDetails',
@@ -737,6 +743,12 @@ const ONYXKEYS = {
 
         /** Stores domain admin account ID */
         EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
+
+        /** Pending actions for a domain */
+        DOMAIN_PENDING_ACTIONS: 'domainPendingActions_',
+
+        /** Errors related to a domain */
+        DOMAIN_ERRORS: 'domainErrors_',
     },
 
     /** List of Form ids */
@@ -943,6 +955,8 @@ const ONYXKEYS = {
         ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT: 'enableGlobalReimbursementsFormDraft',
         CREATE_DOMAIN_FORM: 'createDomainForm',
         CREATE_DOMAIN_FORM_DRAFT: 'createDomainFormDraft',
+        SPLIT_EXPENSE_EDIT_DATES: 'splitExpenseEditDates',
+        SPLIT_EXPENSE_EDIT_DATES_DRAFT: 'splitExpenseEditDatesDraft',
     },
     DERIVED: {
         REPORT_ATTRIBUTES: 'reportAttributes',
@@ -1058,6 +1072,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
     [ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS]: FormTypes.EnableGlobalReimbursementsForm;
     [ONYXKEYS.FORMS.CREATE_DOMAIN_FORM]: FormTypes.CreateDomainForm;
+    [ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES]: FormTypes.SplitExpenseEditDateForm;
 };
 
 type OnyxFormDraftValuesMapping = {
@@ -1124,6 +1139,8 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS]: boolean;
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
     [ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX]: number;
+    [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
+    [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
 };
 
 type OnyxValuesMapping = {
@@ -1265,6 +1282,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LOGS]: OnyxTypes.CapturedLogs;
     [ONYXKEYS.SHOULD_STORE_LOGS]: boolean;
     [ONYXKEYS.SHOULD_RECORD_TROUBLESHOOT_DATA]: boolean;
+    [ONYXKEYS.TROUBLESHOOT_RECORDING_START_TIME]: number | null;
     [ONYXKEYS.SHOULD_MASK_ONYX_STATE]: boolean;
     [ONYXKEYS.SHOULD_USE_STAGING_SERVER]: boolean;
     [ONYXKEYS.IS_DEBUG_MODE_ENABLED]: boolean;
@@ -1301,6 +1319,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.IS_USING_IMPORTED_STATE]: boolean;
     [ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES]: Record<string, string>;
     [ONYXKEYS.CONCIERGE_REPORT_ID]: string;
+    [ONYXKEYS.SELF_DM_REPORT_ID]: string;
     [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: Participant;
     [ONYXKEYS.SHARE_TEMP_FILE]: OnyxTypes.ShareTempFile;
     [ONYXKEYS.VALIDATED_FILE_OBJECT]: OnyxTypes.FileObject | undefined;
