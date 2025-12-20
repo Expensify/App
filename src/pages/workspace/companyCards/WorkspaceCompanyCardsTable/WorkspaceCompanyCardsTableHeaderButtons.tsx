@@ -86,7 +86,9 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoadingF
             return;
         }
 
-        Navigation.setNavigationActionToMicrotaskQueue(() => {Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID ?? '', feedName)));
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID ?? '', feedName));
+        });
     };
 
     const secondaryActions = [
