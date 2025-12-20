@@ -33,7 +33,13 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const {allCardFeeds, feedName, selectedFeed, bankName, onyxMetadata: {allCardFeedsMetadata}} = useCompanyCards(policyID);
+    const {
+        allCardFeeds,
+        feedName,
+        selectedFeed,
+        bankName,
+        onyxMetadata: {allCardFeedsMetadata},
+    } = useCompanyCards(policyID);
     const [, cardsListMetadata] = useCardsList(feedName);
 
     const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
