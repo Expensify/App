@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, isCustomFeed} from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
 import useCompanyCardFeedErrors from '@pages/workspace/companyCards/hooks/useCardFeedErrors';
+import useHasWorkspaceCompanyCardErrors from '@pages/workspace/companyCards/hooks/useHasWorkspaceCompanyCardErrors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -62,7 +63,8 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
     const currentFeedData = feedName ? companyFeeds?.[feedName] : undefined;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${currentFeedData?.domainID}`, {canBeMissing: true});
 
-    const {shouldShowRBR, hasFeedError, isFeedConnectionBroken} = useCompanyCardFeedErrors({policyID, feedName});
+    const {hasFeedError, isFeedConnectionBroken} = useCompanyCardFeedErrors({policyID, feedName});
+    const hasCompanyCardFeedError = useHasWorkspaceCompanyCardErrors({policyID});
 
     const openBankConnection = () => {
         if (!feedName) {
@@ -113,7 +115,7 @@ function WorkspaceCompanyCardsTableHeaderButtons({policyID, feedName, isLoading,
                         CardFeedIcon={CardFeedIcon}
                         feedName={formattedFeedName}
                         supportingText={supportingText}
-                        shouldShowRBR={shouldShowRBR}
+                        shouldShowRBR={hasCompanyCardFeedError}
                     />
                 )}
 

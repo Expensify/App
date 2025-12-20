@@ -13,9 +13,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import useCardFeeds from '@hooks/useCardFeeds';
-import type {CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
-import useCompanyCards from '@hooks/useCompanyCards';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -32,7 +29,6 @@ import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
-import {checkIfFeedConnectionIsBroken, flatAllCardsList, getCompanyFeeds} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -60,7 +56,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import useCompanyCardFeedErrors from './companyCards/hooks/useCardFeedErrors';
+import useHasWorkspaceCompanyCardErrors from './companyCards/hooks/useHasWorkspaceCompanyCardErrors';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -116,17 +112,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     ] as const);
 
     const policy = policyDraft?.id ? policyDraft : policyProp;
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const isFocused = useIsFocused();
-    const [cardFeeds] = useCardFeeds(policy?.id);
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`, {canBeMissing: true});
-    const cardsDomainIDs = Object.values(getCompanyFeeds(cardFeeds))
-        .map((data) => data.domainID)
-        .filter((domainID): domainID is number => !!domainID);
     const {login, accountID} = useCurrentUserPersonalDetails();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policy?.id);
@@ -213,10 +203,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const [highlightedFeature, setHighlightedFeature] = useState<string | undefined>(undefined);
 
-    const {companyCardFeeds} = useCompanyCards({policyID});
-    const companyCardFeedNames = Object.keys(companyCardFeeds ?? {}) as CompanyCardFeedWithDomainID[];
-    const {getCardFeedErrors} = useCompanyCardFeedErrors({policyID});
-    const hasCompanyCardFeedError = companyCardFeedNames.some((feed) => getCardFeedErrors(feed).shouldShowRBR);
+    const hasCompanyCardFeedError = useHasWorkspaceCompanyCardErrors({policyID});
 
     const workspaceMenuItems: WorkspaceMenuItem[] = useMemo(() => {
         const protectedMenuItems: WorkspaceMenuItem[] = [];
@@ -338,8 +325,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }
 
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]) {
-            const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, workspaceAccountID, cardsDomainIDs));
-
             protectedMenuItems.push({
                 translationKey: 'workspace.common.companyCards',
                 icon: expensifyIcons.CreditCard,
@@ -428,9 +413,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         highlightedFeature,
         shouldShowEnterCredentialsError,
         hasPolicyCategoryError,
-        allFeedsCards,
-        workspaceAccountID,
-        cardsDomainIDs,
         hasCompanyCardFeedError,
     ]);
 
