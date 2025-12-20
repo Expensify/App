@@ -6102,6 +6102,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                     `<muted-text>Stel uitgavenlimieten en standaardwaarden in voor afzonderlijke uitgaven. Je kunt ook regels maken voor <a href="${categoriesPageLink}">categorieën</a> en <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Vereist bedrag voor bon',
                 receiptRequiredAmountDescription: 'Bonnen verplicht stellen wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriewaarde.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Bedrag kan niet hoger zijn dan het bedrag dat vereist is voor gespecificeerde bonnen (${amount})`,
                 itemizedReceiptRequiredAmount: 'Gespecificeerde bon vereist bedrag',
                 itemizedReceiptRequiredAmountDescription:
                     'Vereis gespecificeerde bonnen wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriewaarde.',

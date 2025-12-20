@@ -6133,6 +6133,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                     `<muted-text>Legen Sie Ausgabenkontrollen und Standardwerte für einzelne Ausgaben fest. Sie können auch Regeln für <a href="${categoriesPageLink}">Kategorien</a> und <a href="${tagsPageLink}">Tags</a> erstellen.</muted-text>`,
                 receiptRequiredAmount: 'Erforderlicher Belegbetrag',
                 receiptRequiredAmountDescription: 'Belege verlangen, wenn die Ausgaben diesen Betrag überschreiten, sofern dies nicht durch eine Kategorienregel außer Kraft gesetzt wird.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Der Betrag darf nicht höher sein als der für detaillierte Belege erforderliche Betrag (${amount})`,
                 itemizedReceiptRequiredAmount: 'Detaillierter Beleg erforderlicher Betrag',
                 itemizedReceiptRequiredAmountDescription:
                     'Detaillierte Belege anfordern, wenn die Ausgaben diesen Betrag überschreiten, es sei denn, eine Kategorievorschrift hebt dies auf.',

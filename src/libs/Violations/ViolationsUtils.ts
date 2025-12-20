@@ -374,24 +374,18 @@ const ViolationsUtils = {
             !TransactionUtils.hasReceipt(updatedTransaction) &&
             isControlPolicy;
 
+        const isEligibleForItemizedReceiptViolation = canCalculateAmountViolations && !isInvoiceTransaction && !TransactionUtils.hasReceipt(updatedTransaction) && isControlPolicy;
+
         // Check for itemized receipt requirement - policy level
         const shouldShowItemizedReceiptRequiredViolation =
-            canCalculateAmountViolations &&
-            !isInvoiceTransaction &&
+            isEligibleForItemizedReceiptViolation &&
             typeof categoryMaxAmountNoItemizedReceipt !== 'number' &&
             typeof maxAmountNoItemizedReceipt === 'number' &&
-            expenseAmount > maxAmountNoItemizedReceipt &&
-            !TransactionUtils.hasReceipt(updatedTransaction) &&
-            isControlPolicy;
+            expenseAmount > maxAmountNoItemizedReceipt;
 
         // Check for itemized receipt requirement - category level override
         const shouldShowCategoryItemizedReceiptRequiredViolation =
-            canCalculateAmountViolations &&
-            !isInvoiceTransaction &&
-            typeof categoryMaxAmountNoItemizedReceipt === 'number' &&
-            expenseAmount > categoryMaxAmountNoItemizedReceipt &&
-            !TransactionUtils.hasReceipt(updatedTransaction) &&
-            isControlPolicy;
+            isEligibleForItemizedReceiptViolation && typeof categoryMaxAmountNoItemizedReceipt === 'number' && expenseAmount > categoryMaxAmountNoItemizedReceipt;
 
         const overLimitAmount = policy.maxExpenseAmount;
         const categoryOverLimit = policyCategories[categoryName ?? '']?.maxExpenseAmount;

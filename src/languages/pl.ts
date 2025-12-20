@@ -6094,6 +6094,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                     `<muted-text>Ustaw limity wydatków i domyślne ustawienia dla poszczególnych wydatków. Możesz też utworzyć reguły dla <a href="${categoriesPageLink}">kategorii</a> i <a href="${tagsPageLink}">tagów</a>.</muted-text>`,
                 receiptRequiredAmount: 'Wymagana kwota paragonu',
                 receiptRequiredAmountDescription: 'Wymagaj paragonów, gdy wydatki przekraczają tę kwotę, chyba że zostanie to nadpisane przez regułę kategorii.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Kwota nie może być wyższa niż kwota wymagana dla szczegółowych paragonów (${amount})`,
                 itemizedReceiptRequiredAmount: 'Wymagana kwota szczegółowego paragonu',
                 itemizedReceiptRequiredAmountDescription: 'Wymagaj szczegółowych paragonów, gdy wydatki przekraczają tę kwotę, chyba że zostanie to zmienione przez regułę kategorii.',
                 itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Kwota nie może być niższa niż kwota wymagana dla zwykłych paragonów (${amount})`,

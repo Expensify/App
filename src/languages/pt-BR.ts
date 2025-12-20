@@ -6096,6 +6096,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                     `<muted-text>Defina controles de gastos e padrões para despesas individuais. Você também pode criar regras para <a href="${categoriesPageLink}">categorias</a> e <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Valor que exige recibo',
                 receiptRequiredAmountDescription: 'Exigir recibos quando o gasto exceder este valor, a menos que seja substituído por uma regra de categoria.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `O valor não pode ser maior que o valor necessário para recibos detalhados (${amount})`,
                 itemizedReceiptRequiredAmount: 'Valor necessário do recibo detalhado',
                 itemizedReceiptRequiredAmountDescription: 'Exigir recibos detalhados quando o gasto exceder este valor, a menos que seja substituído por uma regra de categoria.',
                 itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `O valor não pode ser menor que o valor necessário para recibos regulares (${amount})`,

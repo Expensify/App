@@ -5983,6 +5983,7 @@ ${reportName}
                     `<muted-text>为单笔报销设置支出控制和默认值。您还可以为<a href="${categoriesPageLink}">类别</a>和<a href="${tagsPageLink}">标签</a>创建规则。</muted-text>`,
                 receiptRequiredAmount: '所需收据金额',
                 receiptRequiredAmountDescription: '当支出超过此金额时要求提供收据，除非被类别规则覆盖。',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `金额不能高于明细收据所需金额（${amount}）`,
                 itemizedReceiptRequiredAmount: '明细收据所需金额',
                 itemizedReceiptRequiredAmountDescription: '当支出超过此金额时需要明细收据，除非被类别规则覆盖。',
                 itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `金额不能低于常规收据所需金额（${amount}）`,

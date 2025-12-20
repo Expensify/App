@@ -5988,6 +5988,7 @@ const translations = {
                     `<muted-text>Set spend controls and defaults for individual expenses. You can also create rules for <a href="${categoriesPageLink}">categories</a> and <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Receipt required amount',
                 receiptRequiredAmountDescription: 'Require receipts when spend exceeds this amount, unless overridden by a category rule.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `Amount can't be greater than the itemized receipt required amount (${amount})`,
                 itemizedReceiptRequiredAmount: 'Itemized receipt required amount',
                 itemizedReceiptRequiredAmountDescription: 'Require itemized receipts when spend exceeds this amount, unless overridden by a category rule.',
                 itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `Amount can't be lower than the amount required for regular receipts (${amount})`,

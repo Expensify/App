@@ -6072,6 +6072,7 @@ ${reportName}
                     `<muted-text>個々の経費に対して支出コントロールとデフォルトを設定します。<a href="${categoriesPageLink}">カテゴリ</a>や<a href="${tagsPageLink}">タグ</a>のルールを作成することもできます。</muted-text>`,
                 receiptRequiredAmount: '領収書が必要な金額',
                 receiptRequiredAmountDescription: 'カテゴリルールで上書きされない限り、支出がこの金額を超えた場合に領収書を必須にする。',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `金額は明細領収書の必要金額（${amount}）より高くすることはできません`,
                 itemizedReceiptRequiredAmount: '明細領収書の必要金額',
                 itemizedReceiptRequiredAmountDescription: 'カテゴリルールで上書きされない限り、この金額を超える支出には明細領収書が必要です。',
                 itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `金額は通常の領収書に必要な金額（${amount}）より低くすることはできません`,

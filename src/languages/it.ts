@@ -6113,6 +6113,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                     `<muted-text>Imposta controlli di spesa e valori predefiniti per le singole spese. Puoi anche creare regole per le <a href="${categoriesPageLink}">categorie</a> e per i <a href="${tagsPageLink}">tag</a>.</muted-text>`,
                 receiptRequiredAmount: 'Importo richiesto della ricevuta',
                 receiptRequiredAmountDescription: 'Richiedi ricevute quando la spesa supera questo importo, a meno che non venga sostituito da una regola della categoria.',
+                receiptRequiredAmountError: ({amount}: {amount: string}) => `L'importo non può essere superiore all'importo richiesto per le ricevute dettagliate (${amount})`,
                 itemizedReceiptRequiredAmount: 'Importo richiesto per ricevuta dettagliata',
                 itemizedReceiptRequiredAmountDescription: 'Richiedi ricevute dettagliate quando la spesa supera questo importo, a meno che non sia derogato da una regola di categoria.',
                 itemizedReceiptRequiredAmountError: ({amount}: {amount: string}) => `L'importo non può essere inferiore all'importo richiesto per le ricevute normali (${amount})`,
