@@ -93,7 +93,7 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.getRoute(policyID, feed));
             return;
         }
-        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, {...cardToAssign, cardholder, bankName});
+        assignWorkspaceCompanyCard(policy, domainOrWorkspaceAccountID, translate, {...cardToAssign, cardholder, bankName});
     };
 
     const editStep = (step: string) => {

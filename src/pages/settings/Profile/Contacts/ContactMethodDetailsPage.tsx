@@ -7,7 +7,6 @@ import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Star, Trashcan} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -16,6 +15,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -62,6 +62,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     const {formatPhoneNumber, translate} = useLocalize();
     const themeStyles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
@@ -170,13 +171,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         const menuItems = [];
         if (isValidateCodeFormVisible && !isDefaultContactMethod) {
             menuItems.push({
-                icon: Trashcan,
+                icon: icons.Trashcan,
                 text: translate('common.remove'),
                 onSelected: () => close(() => toggleDeleteModal(true)),
             });
         }
         return menuItems;
-    }, [isValidateCodeFormVisible, translate, toggleDeleteModal, isDefaultContactMethod]);
+    }, [isValidateCodeFormVisible, translate, toggleDeleteModal, isDefaultContactMethod, icons.Trashcan]);
 
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
@@ -231,7 +232,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 >
                     <MenuItem
                         title={translate('contacts.setAsDefault')}
-                        icon={Star}
+                        icon={icons.Star}
                         onPress={isAccountLocked ? showLockedAccountModal : setAsDefault}
                     />
                 </OfflineWithFeedback>
@@ -254,7 +255,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 >
                     <MenuItem
                         title={translate('common.remove')}
-                        icon={Trashcan}
+                        icon={icons.Trashcan}
                         onPress={() => {
                             if (isActingAsDelegate) {
                                 showDelegateNoAccessModal();

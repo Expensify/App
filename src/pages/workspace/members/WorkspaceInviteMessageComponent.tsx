@@ -30,8 +30,6 @@ import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalD
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
-import {setAssignCardStepAndData} from '@userActions/CompanyCards';
-import {clearInviteDraft} from '@userActions/Policy/Member';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import AccessOrNotFoundWrapper from '@src/pages/workspace/AccessOrNotFoundWrapper';
@@ -83,7 +81,6 @@ function WorkspaceInviteMessageComponent({
         canBeMissing: true,
     });
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, {canBeMissing: true});
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
     const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
     const memberNames = Object.values(personalDetailsOfInvitedEmails)
@@ -183,20 +180,6 @@ function WorkspaceInviteMessageComponent({
     const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
     const invitingMemberDetails = getPersonalDetailByEmail(invitingMemberEmail);
     const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
-
-    const handleMemberPress = () => {
-        clearInviteDraft(policyID);
-        setAssignCardStepAndData({
-            currentStep: CONST.COMPANY_CARD.STEP.ASSIGNEE,
-            cardToAssign: {
-                ...assignCard?.cardToAssign,
-                invitingMemberEmail: undefined,
-                invitingMemberAccountID: undefined,
-            },
-            isEditing: false,
-        });
-        Navigation.goBack();
-    };
 
     useEffect(() => {
         return () => {

@@ -1,6 +1,7 @@
 import React from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,7 +11,6 @@ import type {ReceiptError} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
 
@@ -38,6 +38,7 @@ function MessagesRow({messages = {}, type, onDismiss = () => {}, containerStyles
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Close']);
 
     const showDismissButton = !!onDismiss;
 
@@ -65,7 +66,7 @@ function MessagesRow({messages = {}, type, onDismiss = () => {}, containerStyles
                     >
                         <Icon
                             fill={theme.icon}
-                            src={Expensicons.Close}
+                            src={icons.Close}
                         />
                     </PressableWithoutFeedback>
                 </Tooltip>
