@@ -768,6 +768,22 @@ class Checker {
         return isPassed;
     }
 
+    static async checkEslint({files}: CheckParameters): Promise<boolean> {
+        const results = ReactCompilerHealthcheck.run(this.createFilesGlob(files));
+
+        // Convert Map to array format for ESLint rule
+        const compilerErrors = Array.from(results.errors.values());
+        const manualMemoErrors = Array.from(results.manualMemoErrors.values()).flat();
+
+        // Output JSON to stdout for ESLint rule to parse
+        const output = JSON.stringify({
+            compilerErrors,
+            manualMemoErrors,
+        });
+
+        return true;
+    }
+
     /**
      * Create a glob pattern from an array of file paths.
      */
@@ -784,7 +800,7 @@ class Checker {
     }
 }
 
-const CLI_COMMANDS = ['check', 'check-changed'] as const;
+const CLI_COMMANDS = ['check', 'check-changed', 'check-eslint'] as const;
 type CliCommand = TupleToUnion<typeof CLI_COMMANDS>;
 
 async function main() {
@@ -839,6 +855,8 @@ async function main() {
                 return Checker.check({files: file ? [file] : undefined, ...commonOptions});
             case 'check-changed':
                 return Checker.checkChangedFiles({remote, ...commonOptions});
+            case 'check-eslint':
+                return Checker.checkEslint({files: [file]});
             default:
                 logError(`Unknown command: ${String(command)}`);
                 return Promise.resolve(false);
@@ -858,4 +876,5 @@ if (require.main === module) {
     main();
 }
 
+export {ReactCompilerHealthcheck};
 export default Checker;

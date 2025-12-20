@@ -10,12 +10,17 @@ import testingLibrary from 'eslint-plugin-testing-library';
 import youDontNeedLodashUnderscore from 'eslint-plugin-you-dont-need-lodash-underscore';
 import {defineConfig, globalIgnores} from 'eslint/config';
 import globals from 'globals';
+import {createRequire} from 'node:module';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import typescriptEslint from 'typescript-eslint';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
+
+// Import local ESLint rules
+const require = createRequire(import.meta.url);
+const localRules = require('./eslint-local-rules/index.js');
 
 const restrictedImportPaths = [
     {
@@ -177,6 +182,7 @@ const config = defineConfig([
             'testing-library': testingLibrary,
             'react-compiler': reactCompiler,
             lodash,
+            'local-rules': localRules,
         },
 
         languageOptions: {
@@ -318,6 +324,15 @@ const config = defineConfig([
                 },
             ],
             'react-compiler/react-compiler': 'error',
+
+            // Local custom rules
+            'local-rules/react-compiler-check': [
+                'warn',
+                {
+                    scriptPath: path.resolve(dirname, './scripts/react-compiler-compliance-check.js'),
+                    enabled: true,
+                },
+            ],
 
             // Disallow usage of certain functions and imports
             'no-restricted-syntax': [
