@@ -18,7 +18,6 @@ import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSection
 import {openPolicyCompanyCardsFeed, openPolicyCompanyCardsPage} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsTable from './WorkspaceCompanyCardsTable';
 
@@ -34,10 +33,10 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const {allCardFeeds, feedName, selectedFeed, bankName} = useCompanyCards(policyID);
+    const {allCardFeeds, feedName, selectedFeed, bankName, onyxMetadata: {allCardFeedsMetadata}} = useCompanyCards(policyID);
     const [, cardsListMetadata] = useCardsList(feedName);
 
-    const isInitiallyLoadingFeeds = isEmptyObject(allCardFeeds);
+    const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
     const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
     const isFeedPending = !!selectedFeed?.pending;
     const isFeedAdded = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed;
