@@ -256,8 +256,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
             Navigation.navigate(
                 ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(
                     policyID,
-                    card.cardID.toString(),
                     getCompanyCardFeedWithDomainID(card.bank as CompanyCardFeed, card.fundID),
+                    card.cardID.toString(),
                     Navigation.getActiveRoute(),
                 ),
             );
