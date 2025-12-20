@@ -91,7 +91,8 @@ function getAssignedCardSortKey(card: Card): number {
 }
 
 /**
- * @param card
+ * Checks if the card is an Expensify card.
+ * @param card - The card to check.
  * @returns boolean
  */
 function isExpensifyCard(card?: Card) {
@@ -388,7 +389,11 @@ function getCardFeedIcon(cardFeed: CompanyCardFeed | typeof CONST.EXPENSIFY_CARD
 /**
  * Verify if the feed is a custom feed. Those are also referred to as commercial feeds.
  */
-function isCustomFeed(feed: CompanyCardFeedWithNumber): boolean {
+function isCustomFeed(feed: CompanyCardFeedWithNumber | undefined): boolean {
+    if (!feed) {
+        return false;
+    }
+
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
 }
 
@@ -822,7 +827,10 @@ function getFeedConnectionBrokenCard(feedCards: Record<string, Card> | undefined
 }
 
 /** Extract feed from feed with domainID */
-function getCompanyCardFeed(feedWithDomainID: string): CompanyCardFeed {
+function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFeed {
+    if (!feedWithDomainID) {
+        return '' as CompanyCardFeed;
+    }
     const [feed] = feedWithDomainID.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR);
     return feed as CompanyCardFeed;
 }

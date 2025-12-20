@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
 import {PressableWithFeedback} from './Pressable';
+import SearchInputSelectionSkeleton from './Skeletons/SearchInputSelectionSkeleton';
 import Text from './Text';
 
 type Props = {
@@ -23,12 +24,19 @@ type Props = {
 
     /** Whether the RBR indicator should be shown */
     shouldShowRBR?: boolean;
+
+    /** Whether the feed selector should render a loading skeleton */
+    isLoading?: boolean;
 };
 
-function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, shouldShowRBR = false}: Props) {
+function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, shouldShowRBR = false, isLoading = false}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+
+    if (isLoading) {
+        return <SearchInputSelectionSkeleton />;
+    }
 
     return (
         <PressableWithFeedback

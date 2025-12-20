@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Card, CompanyCardFeed, FailedCompanyCardAssignment, PersonalDetails} from '@src/types/onyx';
+import type {Card, FailedCompanyCardAssignment, PersonalDetails} from '@src/types/onyx';
 
 type WorkspaceCompanyCardTableItemData = {
     /** Card number */
@@ -126,7 +126,7 @@ function WorkspaceCompanyCardTableItem({
         >
             <PressableWithFeedback
                 role={CONST.ROLE.BUTTON}
-                style={[styles.mh5, styles.br3, styles.mb2, styles.highlightBG]}
+                style={[styles.mh5, styles.flexRow, styles.br3, styles.mb2, styles.highlightBG, styles.overflowHidden]}
                 accessibilityLabel="row"
                 hoverStyle={styles.hoveredComponentBG}
                 disabled={isCardDeleted}
@@ -140,20 +140,20 @@ function WorkspaceCompanyCardTableItem({
                         return;
                     }
 
-                    const feed = getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID);
+                    const feedName = getCompanyCardFeedWithDomainID(assignedCard?.bank, assignedCard.fundID);
 
-                    return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, assignedCard.cardID.toString(), feed));
+                    return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, assignedCard.cardID.toString(), feedName));
                 }}
             >
                 {({hovered}) => (
                     <View
                         style={[
-                            styles.br3,
+                            styles.flex1,
+                            styles.flexRow,
+                            styles.alignItemsCenter,
                             styles.p4,
                             styles.gap3,
                             styles.dFlex,
-                            styles.flexRow,
-                            styles.alignItemsCenter,
                             // Use Grid on web when available (will override flex if supported)
                             !shouldUseNarrowTableLayout && [styles.dGrid, {gridTemplateColumns: `repeat(${columnCount}, 1fr)`}],
                         ]}
@@ -213,9 +213,9 @@ function WorkspaceCompanyCardTableItem({
                             </View>
                         )}
 
-                        <View style={[shouldUseNarrowTableLayout ? styles.flex0 : styles.flex1, styles.alignItemsEnd]}>
-                            {isAssigned && (
-                                <View style={[styles.justifyContentEnd, styles.w100, styles.flexRow, styles.ml2, styles.gap3]}>
+                        <View style={[styles.flex0, styles.flexRow, styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                            {isAssigned ? (
+                                <View style={[styles.flexRow, styles.ml2, styles.gap3]}>
                                     {!shouldUseNarrowTableLayout && (
                                         <Text
                                             numberOfLines={1}
@@ -232,21 +232,11 @@ function WorkspaceCompanyCardTableItem({
                                         isButtonIcon
                                     />
                                 </View>
-                            )}
-                            {!isAssigned && shouldUseNarrowTableLayout && (
+                            ) : (
                                 <Button
                                     success
-                                    small
+                                    small={!shouldUseNarrowTableLayout}
                                     text={translate('workspace.companyCards.assign')}
-                                    onPress={assignCard}
-                                    isDisabled={isAssigningCardDisabled}
-                                />
-                            )}
-
-                            {!isAssigned && !shouldUseNarrowTableLayout && (
-                                <Button
-                                    success
-                                    text={translate('workspace.companyCards.assignCard')}
                                     onPress={assignCard}
                                     isDisabled={isAssigningCardDisabled}
                                 />
