@@ -236,6 +236,13 @@ const combinedCardFeeds: CombinedCardFeeds = {
         customFeedName: 'Custom feed name',
         feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
     },
+    [`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#12345`]: {
+        liabilityType: 'personal',
+        pending: false,
+        domainID: 12345,
+        customFeedName: 'Custom feed name 2',
+        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+    },
     [`${CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD}#11111111`]: {
         pending: true,
         domainID: 11111111,
@@ -249,6 +256,15 @@ const combinedCardFeeds: CombinedCardFeeds = {
         expiration: 1730998958,
         pending: false,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+    },
+    [`${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#12345`]: {
+        liabilityType: 'personal',
+        domainID: 12345,
+        accountList: ['CREDIT CARD...6607', 'CREDIT CARD...5501'],
+        credentials: 'xxxxx',
+        expiration: 1730998958,
+        pending: false,
         feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
     },
     [`${CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE}#11111111`]: {
