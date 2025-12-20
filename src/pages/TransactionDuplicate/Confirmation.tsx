@@ -147,7 +147,6 @@ function Confirmation() {
                                 expensePolicy={policy}
                                 shouldShowAnimatedBackground={false}
                                 readonly
-                                isFromReviewDuplicates
                                 updatedTransaction={newTransaction as OnyxEntry<Transaction>}
                             />
                         </ShowContextMenuContext.Provider>

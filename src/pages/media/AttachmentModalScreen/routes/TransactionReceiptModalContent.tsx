@@ -27,7 +27,7 @@ import type SCREENS from '@src/SCREENS';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
-    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, isFromReviewDuplicates: isFromReviewDuplicatesParam, mergeTransactionID} = route.params;
+    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID} = route.params;
 
     const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const {translate} = useLocalize();
@@ -54,7 +54,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             return transactionDraft;
         }
 
-        if (mergeTransactionID && mergeTransaction && transactionMain && mergeTransaction?.receipt?.source) {
+        if (mergeTransactionID && mergeTransaction && transactionMain) {
             // If we have a merge transaction, we need to use the receipt from the merge transaction
             return {
                 ...transactionMain,
@@ -69,7 +69,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isLocalFile = receiptURIs.isLocalFile;
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
     const readonly = readonlyParam === 'true';
-    const isFromReviewDuplicates = isFromReviewDuplicatesParam === 'true';
     const source = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
@@ -134,9 +133,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        isTrackExpenseReportValue || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID || isFromReviewDuplicates || !!mergeTransactionID
-            ? !transaction
-            : moneyRequestReportID !== transaction?.reportID;
+        isTrackExpenseReportValue || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID || readonly ? !transaction : moneyRequestReportID !== transaction?.reportID;
 
     const originalFileName = isDraftTransaction ? transaction?.receipt?.filename : receiptURIs?.filename;
     const headerTitle = translate('common.receipt');

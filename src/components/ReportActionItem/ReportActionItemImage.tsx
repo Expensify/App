@@ -103,7 +103,6 @@ function ReportActionItemImage({
     isSingleImage = true,
     readonly = false,
     shouldMapHaveBorderRadius,
-    isFromReviewDuplicates = false,
     mergeTransactionID,
     onPress,
     shouldUseFullHeight,
@@ -189,7 +188,6 @@ function ReportActionItemImage({
                                     transactionThreadReport?.reportID ?? report?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
                                     transaction?.transactionID,
                                     readonly,
-                                    isFromReviewDuplicates,
                                     mergeTransactionID,
                                 ),
                             )

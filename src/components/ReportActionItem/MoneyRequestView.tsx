@@ -179,7 +179,7 @@ function MoneyRequestView({
     const isFromMergeTransaction = !!mergeTransactionID;
     const linkedTransactionID = parentReportAction && isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
     let [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
-    if (!transaction && !!updatedTransaction) {
+    if (updatedTransaction) {
         transaction = updatedTransaction;
     }
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
@@ -724,7 +724,6 @@ function MoneyRequestView({
                         report={transactionThreadReport ?? parentReport}
                         readonly={readonly}
                         updatedTransaction={updatedTransaction}
-                        isFromReviewDuplicates={isFromReviewDuplicates}
                         mergeTransactionID={mergeTransactionID}
                     />
                 )}
