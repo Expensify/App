@@ -266,6 +266,5 @@ export {
     convertToShortDisplayString,
     getCurrency,
     sanitizeCurrencyCode,
-    isCurrencyCodeLikeSymbol,
     getPreferredCurrencySymbol,
 };

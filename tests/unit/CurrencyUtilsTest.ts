@@ -191,21 +191,6 @@ describe('CurrencyUtils', () => {
         );
     });
 
-    describe('isCurrencyCodeLikeSymbol', () => {
-        test.each([
-            ['USD', 'USD', true],
-            [' usd ', 'USD', true],
-            ['Usd', 'uSd', true],
-            ['$', 'USD', false],
-            ['US$', 'USD', false],
-            [undefined, 'USD', false],
-            ['USD', undefined, false],
-            [undefined, undefined, false],
-        ])('symbol=%s, currencyCode=%s returns %s', (symbol, currencyCode, expected) => {
-            expect(CurrencyUtils.isCurrencyCodeLikeSymbol(symbol, currencyCode)).toBe(expected);
-        });
-    });
-
     describe('getPreferredCurrencySymbol', () => {
         test('Uses CURRENCY_LIST.symbol when it exists and is not code-like', () => {
             const currencyListTyped = currencyList as CurrencyList;
@@ -278,5 +263,35 @@ describe('CurrencyUtils', () => {
             await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
             await waitForBatchedUpdates();
         });
+
+        test.each([
+            ['USD'],
+            [' usd '],
+            ['Usd'],
+        ])('Falls back to localized value when CURRENCY_LIST.symbol is code-like (%s)', async (codeLikeSymbol) => {
+            await IntlStore.load(CONST.LOCALES.EN);
+            await waitForBatchedUpdates();
+
+            const modifiedCurrencyList = {
+                ...currencyList,
+                USD: {
+                    ...currencyList.USD,
+                    symbol: codeLikeSymbol,
+                },
+            };
+
+            await Onyx.set(ONYXKEYS.CURRENCY_LIST, modifiedCurrencyList);
+            await waitForBatchedUpdates();
+
+            const preferred = CurrencyUtils.getPreferredCurrencySymbol(CONST.CURRENCY.USD);
+            const localized = CurrencyUtils.getLocalizedCurrencySymbol(CONST.CURRENCY.USD);
+
+            expect(preferred).toBe(localized);
+            expect(preferred).not.toBe(codeLikeSymbol);
+
+            await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
+            await waitForBatchedUpdates();
+        });
+
     });
 });
