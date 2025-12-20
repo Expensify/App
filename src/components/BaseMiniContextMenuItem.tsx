@@ -8,11 +8,12 @@ import getButtonState from '@libs/getButtonState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
-type BaseMiniContextMenuItemProps = {
+type BaseMiniContextMenuItemProps = WithSentryLabel & {
     /**
      * Text to display when hovering the menu item
      */
@@ -41,11 +42,6 @@ type BaseMiniContextMenuItemProps = {
      * Reference to the outer element
      */
     ref?: PressableRef;
-
-    /**
-     * Label for Sentry tracking
-     */
-    sentryLabel?: string;
 };
 
 /**
