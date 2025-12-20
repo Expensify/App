@@ -1,5 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+import type {CompanyCardFeedWithDomainID} from './CardFeeds';
 import type * as OnyxCommon from './OnyxCommon';
 import type PersonalDetails from './PersonalDetails';
 
@@ -293,6 +294,12 @@ type WorkspaceCardsList = CardList & {
  * Pending action for a company card assignment
  */
 type FailedCompanyCardAssignment = {
+    /** The domain or workspace account ID */
+    domainOrWorkspaceAccountID: number;
+
+    /** The name of the feed */
+    feed: CompanyCardFeedWithDomainID;
+
     /** Cardholder personal details */
     cardholder?: PersonalDetails;
 

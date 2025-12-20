@@ -14,6 +14,8 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useCardFeeds from '@hooks/useCardFeeds';
+import type {CompanyCardFeedWithDomainID} from '@hooks/useCardFeeds';
+import useCompanyCards from '@hooks/useCompanyCards';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -58,6 +60,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import useCompanyCardFeedErrors from './companyCards/hooks/useCardFeedErrors';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -210,6 +213,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const [highlightedFeature, setHighlightedFeature] = useState<string | undefined>(undefined);
 
+    const {companyCardFeeds} = useCompanyCards({policyID});
+    const companyCardFeedNames = Object.keys(companyCardFeeds ?? {}) as CompanyCardFeedWithDomainID[];
+    const {getCardFeedErrors} = useCompanyCardFeedErrors({policyID});
+    const hasCompanyCardFeedError = companyCardFeedNames.some((feed) => getCardFeedErrors(feed).shouldShowRBR);
+
     const workspaceMenuItems: WorkspaceMenuItem[] = useMemo(() => {
         const protectedMenuItems: WorkspaceMenuItem[] = [];
 
@@ -337,7 +345,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 icon: expensifyIcons.CreditCard,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.COMPANY_CARDS,
-                brickRoadIndicator: hasBrokenFeedConnection ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasCompanyCardFeedError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
             });
         }
@@ -391,7 +399,23 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
         return menuItems;
     }, [
-        expensifyIcons,
+        expensifyIcons.Document,
+        expensifyIcons.Gear,
+        expensifyIcons.Building,
+        expensifyIcons.Users,
+        expensifyIcons.Sync,
+        expensifyIcons.Receipt,
+        expensifyIcons.Folder,
+        expensifyIcons.Tag,
+        expensifyIcons.Coins,
+        expensifyIcons.Workflows,
+        expensifyIcons.Feed,
+        expensifyIcons.Car,
+        expensifyIcons.LuggageWithLines,
+        expensifyIcons.ExpensifyCard,
+        expensifyIcons.CreditCard,
+        expensifyIcons.CalendarSolid,
+        expensifyIcons.InvoiceGeneric,
         singleExecution,
         waitForNavigate,
         featureStates,
@@ -402,11 +426,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         policyID,
         hasSyncError,
         highlightedFeature,
-        hasPolicyCategoryError,
         shouldShowEnterCredentialsError,
+        hasPolicyCategoryError,
         allFeedsCards,
         workspaceAccountID,
         cardsDomainIDs,
+        hasCompanyCardFeedError,
     ]);
 
     // We only update feature states if they aren't pending.
