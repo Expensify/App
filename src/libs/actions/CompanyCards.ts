@@ -1,5 +1,6 @@
 import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CombinedCardFeeds} from '@hooks/useCardFeeds';
 import * as API from '@libs/API';
 import type {
@@ -16,7 +17,6 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CardUtils from '@libs/CardUtils';
 import {getCompanyCardFeedWithDomainID} from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
-import * as Localize from '@libs/Localize';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as PolicyUtils from '@libs/PolicyUtils';
@@ -309,7 +309,7 @@ function deleteWorkspaceCompanyCardFeed(policyID: string, domainOrWorkspaceAccou
     API.write(WRITE_COMMANDS.DELETE_COMPANY_CARD_FEED, parameters, {optimisticData, successData, failureData});
 }
 
-function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspaceAccountID: number, data?: Partial<AssignCardData>) {
+function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspaceAccountID: number, translate: LocaleContextProps['translate'], data?: Partial<AssignCardData>) {
     if (!data || !policy?.id) {
         return;
     }
@@ -323,7 +323,7 @@ function assignWorkspaceCompanyCard(policy: OnyxEntry<Policy>, domainOrWorkspace
         cardNumber: encryptedCardNumber,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         errors: {
-            failed: Localize.translateLocal('workspace.companyCards.assignCardFailedError'),
+            failed: translate('workspace.companyCards.assignCardFailedError'),
         },
     };
 
