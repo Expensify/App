@@ -17,7 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Card, FailedCompanyCardAssignment, PersonalDetails} from '@src/types/onyx';
+import type {Card, CompanyCardFeed, FailedCompanyCardAssignment, PersonalDetails} from '@src/types/onyx';
 
 type WorkspaceCompanyCardTableItemData = {
     /** Card number */
@@ -140,7 +140,7 @@ function WorkspaceCompanyCardTableItem({
                         return;
                     }
 
-                    const feedName = getCompanyCardFeedWithDomainID(assignedCard?.bank, assignedCard.fundID);
+                    const feedName = getCompanyCardFeedWithDomainID(assignedCard?.bank as CompanyCardFeed, assignedCard.fundID);
 
                     return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, assignedCard.cardID.toString(), feedName));
                 }}

@@ -145,7 +145,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         <WorkspaceCompanyCardTableItem
             key={`${item.cardName}_${index}`}
             item={item}
-            policyID={policy?.id ?? ''}
+            policyID={policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)}
             domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
             CardFeedIcon={cardFeedIcon}
             isPlaidCardFeed={isDirectCardFeed}
