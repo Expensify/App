@@ -31,7 +31,7 @@ type DistanceEReceiptProps = {
 function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     const thumbnail = hasReceipt(transaction) ? getThumbnailAndImageURIs(transaction).thumbnail : null;
     const {
         amount: transactionAmount,
@@ -118,7 +118,5 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
         </View>
     );
 }
-
-DistanceEReceipt.displayName = 'DistanceEReceipt';
 
 export default DistanceEReceipt;

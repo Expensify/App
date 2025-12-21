@@ -211,7 +211,7 @@ function StatusClearAfterPage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={StatusClearAfterPage.displayName}
+            testID="StatusClearAfterPage"
         >
             <HeaderWithBackButton
                 title={translate('statusPage.clearAfter')}
@@ -222,7 +222,5 @@ function StatusClearAfterPage() {
         </ScreenWrapper>
     );
 }
-
-StatusClearAfterPage.displayName = 'StatusClearAfterPage';
 
 export default StatusClearAfterPage;

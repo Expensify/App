@@ -47,6 +47,4 @@ function TableListItemSkeleton({shouldAnimate = true, fixedNumItems, gradientOpa
     );
 }
 
-TableListItemSkeleton.displayName = 'TableListItemSkeleton';
-
 export default TableListItemSkeleton;

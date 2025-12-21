@@ -99,6 +99,4 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
     );
 }
 
-HotelTripDetails.displayName = 'HotelTripDetails';
-
 export default HotelTripDetails;

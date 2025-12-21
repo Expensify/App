@@ -150,6 +150,4 @@ function EmployeeTestDriveModal() {
     );
 }
 
-EmployeeTestDriveModal.displayName = 'EmployeeTestDriveModal';
-
 export default EmployeeTestDriveModal;

@@ -941,6 +941,22 @@ function getFormattedDateRangeForPerDiem(date1: Date, date2: Date): string {
 }
 
 /**
+ * Returns a formatted date range with the number of days in the range.
+ * Format: "YYYY-MM-DD to YYYY-MM-DD (X days)"
+ */
+function getFormattedSplitDateRange(translateParam: LocaleContextProps['translate'], startDate: string | undefined, endDate: string | undefined): string {
+    if (!startDate || !endDate) {
+        return '';
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const daysCount = differenceInDays(end, start) + 1;
+
+    return translateParam('iou.splitDateRange', {startDate, endDate, count: daysCount});
+}
+
+/**
  * Checks if the current time falls within the specified time range.
  */
 const isCurrentTimeWithinRange = (startTime: string, endTime: string): boolean => {
@@ -1022,6 +1038,7 @@ const DateUtils = {
     getFormattedDuration,
     isFutureDay,
     getFormattedDateRangeForPerDiem,
+    getFormattedSplitDateRange,
     isCurrentTimeWithinRange,
     formatInTimeZoneWithFallback,
 };

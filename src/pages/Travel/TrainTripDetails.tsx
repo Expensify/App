@@ -109,6 +109,4 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
     );
 }
 
-TrainTripDetails.displayName = 'TrainTripDetails';
-
 export default TrainTripDetails;

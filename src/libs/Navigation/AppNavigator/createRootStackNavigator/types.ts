@@ -22,7 +22,7 @@ type RootStackNavigatorActionType =
     | {
           type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_DOMAIN_SPLIT;
           payload: {
-              accountID: number;
+              domainAccountID: number;
               screenName: DomainScreenName;
           };
       }

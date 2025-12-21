@@ -25,16 +25,11 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
-    const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
 
     const values = useMemo(() => getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const policyID = reimbursementAccount?.achData?.policyID;
 
     const submit = useCallback(() => {
-        if (!policyID) {
-            return;
-        }
-
         acceptACHContractForBankAccount(
             Number(reimbursementAccount?.achData?.bankAccountID),
             {
@@ -43,9 +38,8 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
                 acceptTermsAndConditions: values.acceptTermsAndConditions,
             },
             policyID,
-            lastPaymentMethod?.[policyID],
         );
-    }, [reimbursementAccount?.achData?.bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID, lastPaymentMethod]);
+    }, [reimbursementAccount?.achData?.bankAccountID, values.isAuthorizedToUseBankAccount, values.certifyTrueInformation, values.acceptTermsAndConditions, policyID]);
 
     const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo, goToTheLastStep} = useSubStep({bodyContent, startFrom: 0, onFinished: submit});
 
@@ -64,7 +58,7 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
 
     return (
         <InteractiveStepWrapper
-            wrapperID={CompleteVerification.displayName}
+            wrapperID="CompleteVerification"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('completeVerificationStep.completeVerification')}
@@ -80,7 +74,5 @@ function CompleteVerification({onBackButtonPress}: CompleteVerificationProps) {
         </InteractiveStepWrapper>
     );
 }
-
-CompleteVerification.displayName = 'CompleteVerification';
 
 export default CompleteVerification;

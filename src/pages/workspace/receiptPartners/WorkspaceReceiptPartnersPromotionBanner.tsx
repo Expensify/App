@@ -32,7 +32,7 @@ function WorkspaceReceiptPartnersPromotionBanner({policy, readOnly}: WorkspaceRe
     const {setAsDismissed, isDismissed} = useDismissedUberBanners({policyID});
     const shouldDismissBanner = !!policy?.receiptPartners?.enabled || !isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS) || isDismissed || readOnly;
 
-    const illustrations = useMemoizedLazyIllustrations(['PinkCar'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PinkCar']);
 
     const handleConnectUber = useCallback(() => {
         if (!policyID) {

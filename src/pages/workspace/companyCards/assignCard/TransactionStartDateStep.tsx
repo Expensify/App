@@ -10,8 +10,8 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,33 +22,22 @@ function TransactionStartDateStep() {
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
-    const data = assignCard?.data;
-    const assigneeDisplayName = getPersonalDetailByEmail(data?.email ?? '')?.displayName ?? '';
+    const cardToAssign = assignCard?.cardToAssign;
     const formatter = useMemo(() => {
         return new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
     }, [preferredLocale]);
 
-    const [dateOptionSelected, setDateOptionSelected] = useState(data?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+    const [dateOptionSelected, setDateOptionSelected] = useState(cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const [errorText, setErrorText] = useState('');
-    const [startDate, setStartDate] = useState(() => {
-        if (assignCard?.startDate) {
-            return assignCard.startDate;
-        }
-        if (data?.startDate) {
-            return data.startDate;
-        }
-        return formatter.format();
-    });
+    const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? cardToAssign?.startDate ?? formatter.format());
 
     const handleBackButtonPress = () => {
         if (isEditing) {
             setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
-            return;
         }
-        setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CARD});
+        Navigation.goBack();
     };
 
     const handleSelectDateOption = (dateOption: string) => {
@@ -69,44 +58,38 @@ function TransactionStartDateStep() {
         const date90DaysBack = format(subDays(new Date(), 90), CONST.DATE.FNS_FORMAT_STRING);
 
         setAssignCardStepAndData({
-            currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
-            data: {
+            cardToAssign: {
                 dateOption: dateOptionSelected,
                 startDate: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING ? date90DaysBack : startDate,
             },
             isEditing: false,
         });
+
+        Navigation.goBack();
     };
 
-    const dateOptions = useMemo(
-        () => [
-            {
-                value: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
-                text: translate('workspace.companyCards.fromTheBeginning'),
-                keyForList: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
-                isSelected: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
-            },
-            {
-                value: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
-                text: translate('workspace.companyCards.customStartDate'),
-                keyForList: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
-                isSelected: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
-            },
-        ],
-        [dateOptionSelected, translate],
-    );
+    const dateOptions = [
+        {
+            value: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
+            text: translate('workspace.companyCards.fromTheBeginning'),
+            keyForList: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
+            isSelected: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING,
+        },
+        {
+            value: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
+            text: translate('workspace.companyCards.customStartDate'),
+            keyForList: CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
+            isSelected: dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM,
+        },
+    ];
 
     return (
         <InteractiveStepWrapper
-            wrapperID={TransactionStartDateStep.displayName}
+            wrapperID="TransactionStartDateStep"
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={2}
-            stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
-            headerSubtitle={assigneeDisplayName}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseTransactionStartDate')}</Text>
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
             <View style={styles.flex1}>
                 <SelectionList
@@ -123,7 +106,7 @@ function TransactionStartDateStep() {
                             success
                             large
                             pressOnEnter
-                            text={translate(isEditing ? 'common.confirm' : 'common.next')}
+                            text={translate(isEditing ? 'common.save' : 'common.next')}
                             onPress={submit}
                         />
                     }
@@ -154,7 +137,5 @@ function TransactionStartDateStep() {
         </InteractiveStepWrapper>
     );
 }
-
-TransactionStartDateStep.displayName = 'TransactionStartDateStep';
 
 export default TransactionStartDateStep;

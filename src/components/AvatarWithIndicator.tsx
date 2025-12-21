@@ -52,6 +52,4 @@ function AvatarWithIndicator({source, accountID, tooltipText = '', fallbackIcon 
     );
 }
 
-AvatarWithIndicator.displayName = 'AvatarWithIndicator';
-
 export default AvatarWithIndicator;
