@@ -10110,7 +10110,7 @@ function copySubmissionApprovalActionsForReport(
     }
 
     const sourceReportActions = getAllReportActions(sourceReportID);
-    
+
     // Match the backend's WORKFLOW_ACTIONS list
     const workflowActionTypes = [
         CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -10125,7 +10125,7 @@ function copySubmissionApprovalActionsForReport(
         CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
         CONST.REPORT.ACTIONS.TYPE.REROUTE,
     ] as const;
-    
+
     for (const action of Object.values(sourceReportActions)) {
         if (action && (workflowActionTypes as readonly string[]).includes(action.actionName)) {
             const newActionID = NumberUtils.rand64();
