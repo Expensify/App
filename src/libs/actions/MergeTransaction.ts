@@ -47,6 +47,7 @@ function setupMergeTransactionDataAndNavigate(
     localeCompare: LocaleContextProps['localeCompare'],
     searchReports?: Report[],
     cardList?: CardList,
+    isSelectingSourceTransaction?: boolean,
 ) {
     if (!transactions.length || transactions.length > 2) {
         return;
@@ -66,7 +67,12 @@ function setupMergeTransactionDataAndNavigate(
         return;
     }
 
-    setMergeTransactionKey(navigationTransactionID, {targetTransactionID: targetTransaction?.transactionID, sourceTransactionID: sourceTransaction?.transactionID});
+    const setupData = {targetTransactionID: targetTransaction?.transactionID, sourceTransactionID: sourceTransaction?.transactionID};
+    if (isSelectingSourceTransaction) {
+        setMergeTransactionKey(navigationTransactionID, setupData);
+    } else {
+        setupMergeTransactionData(navigationTransactionID, setupData);
+    }
     if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
         // Navigate to the receipt review page if both transactions have a receipt
         Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute()));

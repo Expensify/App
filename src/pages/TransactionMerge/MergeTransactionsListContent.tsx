@@ -111,7 +111,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
-        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, reports, allCards);
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, reports, allCards, true);
     }, [transactionID, targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, localeCompare, allCards]);
 
     const confirmButtonOptions = {
