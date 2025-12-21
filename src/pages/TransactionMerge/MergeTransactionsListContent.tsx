@@ -4,8 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import MergeExpensesSkeleton from '@components/Skeletons/MergeExpensesSkeleton';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -40,7 +40,7 @@ type MergeTransactionsListContentProps = {
 type MergeTransactionListItemType = Transaction & ListItem;
 
 function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTransactionsListContentProps) {
-    const illustrations = useMemoizedLazyIllustrations(['EmptyShelves'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
 
@@ -48,10 +48,13 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const {isOffline} = useNetwork();
     const [targetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [originalTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getTransactionThreadReportID(targetTransaction)}`, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
+    const sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction);
+    const [originalSourceTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${sourceTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
     const currentUserLogin = session?.email;
 
     useEffect(() => {
@@ -61,23 +64,22 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         getTransactionsForMerging({isOffline, targetTransaction, transactions, policy, report, currentUserLogin});
-    }, [transactions, isOffline, mergeTransaction, policy, report, currentUserLogin, targetTransaction]);
+    }, [transactions, isOffline, mergeTransaction?.eligibleTransactions, policy, report, currentUserLogin, targetTransaction]);
 
-    const sections = useMemo(() => {
-        return [
-            {
-                data: (eligibleTransactions ?? [])
-                    .map((eligibleTransaction) => ({
-                        ...fillMissingReceiptSource(eligibleTransaction),
-                        keyForList: eligibleTransaction.transactionID,
-                        isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
-                        errors: eligibleTransaction.errors as Errors | undefined,
-                    }))
-                    .sort((a, b) => localeCompare(getCreated(b), getCreated(a))),
-                shouldShow: true,
-            },
-        ];
-    }, [eligibleTransactions, mergeTransaction, localeCompare]);
+    const data = useMemo(() => {
+        if (!eligibleTransactions) {
+            return [];
+        }
+
+        return eligibleTransactions
+            .map((eligibleTransaction) => ({
+                ...fillMissingReceiptSource(eligibleTransaction),
+                keyForList: eligibleTransaction.transactionID,
+                isSelected: eligibleTransaction.transactionID === mergeTransaction?.sourceTransactionID,
+                errors: eligibleTransaction.errors as Errors | undefined,
+            }))
+            .sort((a, b) => localeCompare(getCreated(b), getCreated(a)));
+    }, [eligibleTransactions, mergeTransaction?.sourceTransactionID, localeCompare]);
 
     const handleSelectRow = useCallback(
         (item: MergeTransactionListItemType) => {
@@ -88,7 +90,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 eligibleTransactions: mergeTransaction?.eligibleTransactions,
             });
         },
-        [mergeTransaction, transactionID],
+        [mergeTransaction?.eligibleTransactions, transactionID],
     );
 
     const headerContent = useMemo(
@@ -109,13 +111,15 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     }, [translate, styles.renderHTML, styles.textNormal]);
 
     const handleConfirm = useCallback(() => {
-        const sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction);
-
         if (!sourceTransaction || !targetTransaction) {
             return;
         }
 
-        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(targetTransaction, sourceTransaction);
+        const {targetTransaction: newTargetTransaction, sourceTransaction: newSourceTransaction} = selectTargetAndSourceTransactionsForMerge(
+            targetTransaction,
+            sourceTransaction,
+            originalSourceTransaction,
+        );
         if (shouldNavigateToReceiptReview([newTargetTransaction, newSourceTransaction])) {
             setMergeTransactionKey(transactionID, {
                 targetTransactionID: newTargetTransaction?.transactionID,
@@ -130,7 +134,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
                 receipt: mergedReceipt,
             });
 
-            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction, localeCompare);
+            const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(newTargetTransaction, newSourceTransaction, originalTargetTransaction, localeCompare);
             if (!conflictFields.length) {
                 // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
                 setMergeTransactionKey(transactionID, mergeableData);
@@ -139,7 +143,18 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             }
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
         }
-    }, [mergeTransaction, transactionID, targetTransaction, localeCompare]);
+    }, [transactionID, targetTransaction, sourceTransaction, originalSourceTransaction, originalTargetTransaction, localeCompare]);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('common.continue'),
+            style: styles.justifyContentCenter,
+            isDisabled: !mergeTransaction?.sourceTransactionID,
+            onConfirm: handleConfirm,
+        }),
+        [handleConfirm, mergeTransaction?.sourceTransactionID, styles.justifyContentCenter, translate],
+    );
 
     if (eligibleTransactions?.length === 0) {
         return (
@@ -160,23 +175,15 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
 
     return (
         <SelectionList<MergeTransactionListItemType>
-            sections={sections}
-            shouldShowTextInput={false}
-            ListItem={MergeTransactionItem}
-            confirmButtonStyles={[styles.justifyContentCenter]}
-            showConfirmButton
-            confirmButtonText={translate('common.continue')}
-            isConfirmButtonDisabled={!mergeTransaction?.sourceTransactionID}
+            data={data}
             onSelectRow={handleSelectRow}
+            ListItem={MergeTransactionItem}
+            customListHeader={headerContent}
+            confirmButtonOptions={confirmButtonOptions}
+            customLoadingPlaceholder={<MergeExpensesSkeleton fixedNumItems={3} />}
             showLoadingPlaceholder
-            LoadingPlaceholderComponent={MergeExpensesSkeleton}
-            fixedNumItemsForLoader={3}
-            headerContent={headerContent}
-            onConfirm={handleConfirm}
         />
     );
 }
-
-MergeTransactionsListContent.displayName = 'MergeTransactionsListContent';
 
 export default MergeTransactionsListContent;

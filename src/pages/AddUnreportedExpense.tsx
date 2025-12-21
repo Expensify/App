@@ -27,7 +27,7 @@ import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/
 import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {createUnreportedExpenseSections, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
+import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {convertBulkTrackedExpensesToIOU, startMoneyRequest} from '@userActions/IOU';
@@ -38,7 +38,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import NewChatSelectorPage from './NewChatSelectorPage';
 import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 
 type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpensesParamList, typeof SCREENS.ADD_UNREPORTED_EXPENSES_ROOT>;
@@ -154,12 +153,10 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     }, [debouncedSearchValue, shouldShowTextInput, transactions]);
 
     const unreportedExpenses = useMemo(() => {
-        return createUnreportedExpenseSections(filteredTransactions)
-            .flatMap((section) => section.data)
-            .map((item) => ({
-                ...item,
-                isSelected: selectedIds.has(item.transactionID),
-            }));
+        return createUnreportedExpenses(filteredTransactions).map((item) => ({
+            ...item,
+            isSelected: selectedIds.has(item.transactionID),
+        }));
     }, [filteredTransactions, selectedIds]);
 
     const handleConfirm = useCallback(() => {
@@ -193,7 +190,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
         });
         setErrorMessage('');
-    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, reportToConfirm, policy, reportNextStep, policyCategories, transactionViolations]);
+    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, transactionViolations, reportToConfirm, policy, reportNextStep, policyCategories]);
 
     const footerContent = useMemo(() => {
         return (
@@ -223,7 +220,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             return translate('common.noResultsFound');
         }
         return '';
-    }, [debouncedSearchValue, unreportedExpenses, translate]);
+    }, [debouncedSearchValue, unreportedExpenses?.length, translate]);
 
     const textInputOptions = useMemo(
         () => ({
@@ -263,7 +260,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 includeSafeAreaPaddingBottom
                 shouldShowOfflineIndicator={false}
                 shouldEnablePickerAvoiding={false}
-                testID={NewChatSelectorPage.displayName}
+                testID="NewChatSelectorPage"
                 focusTrapSettings={{active: false}}
             >
                 <HeaderWithBackButton
@@ -281,7 +278,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 shouldEnableKeyboardAvoidingView={false}
                 includeSafeAreaPaddingBottom
                 shouldEnablePickerAvoiding={false}
-                testID={NewChatSelectorPage.displayName}
+                testID="NewChatSelectorPage"
                 focusTrapSettings={{active: false}}
             >
                 <HeaderWithBackButton
@@ -325,7 +322,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             enableEdgeToEdgeBottomSafeAreaPadding
-            testID={NewChatSelectorPage.displayName}
+            testID="NewChatSelectorPage"
             focusTrapSettings={{active: false}}
         >
             <HeaderWithBackButton
@@ -345,11 +342,10 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 addBottomSafeAreaPadding
                 listFooterContent={shouldShowUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined}
                 footerContent={footerContent}
+                disableMaintainingScrollPosition
             />
         </ScreenWrapper>
     );
 }
-
-AddUnreportedExpense.displayName = 'AddUnreportedExpense';
 
 export default AddUnreportedExpense;

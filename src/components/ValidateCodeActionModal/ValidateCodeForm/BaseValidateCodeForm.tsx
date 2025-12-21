@@ -202,8 +202,8 @@ function BaseValidateCodeForm({
         if (!validateCodeSent) {
             return;
         }
-        // Delay prevents the input from gaining focus before the RHP slide out animation finishes,
-        // which would cause the wide RHP to flicker in the background.
+        // Delay prevents the input from gaining focus before the RHP slide-out animation finishes,
+        // which would cause issues with the RHP sliding out smoothly and flickering of the wide RHP in the background.
         if ((wideRHPRouteKeys.length > 0 && !isMobileSafari()) || isInPageModal) {
             focusTimeoutRef.current = setTimeout(() => {
                 inputValidateCodeRef.current?.clear();
@@ -276,7 +276,7 @@ function BaseValidateCodeForm({
             return translate(formError?.validateCode);
         }
         return getLatestErrorMessage(account ?? {});
-    }, [canShowError, formError, account, translate]);
+    }, [canShowError, formError?.validateCode, account, translate]);
 
     const shouldShowTimer = isCountdownRunning && !isOffline;
 
@@ -378,8 +378,6 @@ function BaseValidateCodeForm({
         </>
     );
 }
-
-BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export type {ValidateCodeFormProps, ValidateCodeFormHandle};
 

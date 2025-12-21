@@ -19,6 +19,7 @@ function TextPicker({
     disabled = false,
     interactive = true,
     required = false,
+    customValidate,
     wrapperStyle,
     numberOfLinesTitle,
     titleStyle,
@@ -78,13 +79,12 @@ function TextPicker({
                 onValueSelected={updateInput}
                 disabled={disabled}
                 required={required}
+                customValidate={customValidate}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
         </View>
     );
 }
-
-TextPicker.displayName = 'TextPicker';
 
 export default TextPicker;

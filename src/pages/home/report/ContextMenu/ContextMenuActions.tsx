@@ -1,8 +1,7 @@
 import {Str} from 'expensify-common';
 import type {RefObject} from 'react';
 import React from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text, View} from 'react-native';
+import type {GestureResponderEvent, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 // eslint-disable-next-line no-restricted-imports
@@ -31,9 +30,12 @@ import {
     getAddedConnectionMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
     getDeletedBudgetMessage,
     getExportIntegrationMessageHTML,
+    getForwardsToUpdateMessage,
+    getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
@@ -56,6 +58,7 @@ import {
     getReportActionMessageText,
     getRoomAvatarUpdatedMessage,
     getSetAutoJoinMessage,
+    getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTagListUpdatedMessage,
     getTagListUpdatedRequiredMessage,
@@ -86,6 +89,7 @@ import {
     getWorkspaceCustomUnitSubRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceDescriptionUpdatedMessage,
+    getWorkspaceFeatureEnabledMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
     getWorkspaceReportFieldAddMessage,
@@ -99,6 +103,7 @@ import {
     isActionableTrackExpense,
     isActionOfType,
     isCardIssuedAction,
+    isCreatedAction,
     isCreatedTaskReportAction,
     isDeletedAction as isDeletedActionReportActionsUtils,
     isMarkAsClosedAction,
@@ -119,6 +124,7 @@ import {
     isUnapprovedAction,
     isWhisperAction as isWhisperActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteReportAction,
     canEditReportAction,
@@ -131,12 +137,13 @@ import {
     getForcedCorporateUpgradeMessage,
     getIOUReportActionDisplayMessage,
     getMovedActionMessage,
+    getMovedTransactionMessage,
     getOriginalReportID,
     getPolicyChangeMessage,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
-    getReportName,
+    getReportName as getReportNameDeprecated,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
@@ -163,6 +170,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
@@ -210,6 +218,7 @@ type ShouldShow = (args: {
     transactions?: OnyxCollection<Transaction>;
     moneyRequestReport?: OnyxEntry<ReportType>;
     moneyRequestPolicy?: OnyxEntry<Policy>;
+    isHarvestReport?: boolean;
 }) => boolean;
 
 type ContextMenuActionPayload = {
@@ -233,13 +242,16 @@ type ContextMenuActionPayload = {
     moneyRequestAction: ReportAction | undefined;
     card?: Card;
     originalReport: OnyxEntry<ReportType>;
+    isHarvestReport?: boolean;
     isTryNewDotNVPDismissed?: boolean;
     childReport?: OnyxEntry<ReportType>;
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
+    policy?: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
+    harvestReport?: OnyxEntry<ReportType>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -252,11 +264,35 @@ type ContextMenuActionWithContent = {
     renderContent: RenderContent;
 };
 
-type ContextMenuActionWithIcon = {
+type ContextMenuActionWithIcon = WithSentryLabel & {
     textTranslateKey: TranslationPaths;
-    icon: IconAsset | Extract<ExpensifyIconName, 'Download'>;
+    icon:
+        | IconAsset
+        | Extract<
+              ExpensifyIconName,
+              'Download' | 'ThreeDots' | 'ChatBubbleReply' | 'ChatBubbleUnread' | 'Mail' | 'Pencil' | 'Stopwatch' | 'Bell' | 'Copy' | 'LinkCopy' | 'Pin' | 'Flag' | 'Bug' | 'Trashcan'
+          >;
     successTextTranslateKey?: TranslationPaths;
-    successIcon?: IconAsset | Extract<ExpensifyIconName, 'Download'>;
+    successIcon?:
+        | IconAsset
+        | Extract<
+              ExpensifyIconName,
+              | 'Download'
+              | 'ChatBubbleReply'
+              | 'ChatBubbleUnread'
+              | 'Checkmark'
+              | 'Mail'
+              | 'Pencil'
+              | 'Stopwatch'
+              | 'Bell'
+              | 'Copy'
+              | 'LinkCopy'
+              | 'Pin'
+              | 'Flag'
+              | 'Bug'
+              | 'Trashcan'
+              | 'ThreeDots'
+          >;
     onPress: OnPress;
     getDescription: GetDescription;
 };
@@ -287,8 +323,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 }
             };
 
-            const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>) => {
-                toggleEmojiReaction(reportID, reportAction, emoji, existingReactions);
+            const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>, preferredSkinTone: number) => {
+                toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, preferredSkinTone);
                 closeContextMenu();
                 setIsEmojiPickerActive?.(false);
             };
@@ -327,12 +363,12 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.replyInThread',
-        icon: Expensicons.ChatBubbleReply,
+        icon: 'ChatBubbleReply',
         shouldShow: ({type, reportAction, reportID, isThreadReportParentAction, isArchivedRoom}) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !reportID) {
                 return false;
             }
-            return !shouldDisableThread(reportAction, reportID, isThreadReportParentAction, isArchivedRoom);
+            return !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -347,12 +383,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.REPLY_IN_THREAD,
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.markAsUnread',
-        icon: Expensicons.ChatBubbleUnread,
-        successIcon: Expensicons.Checkmark,
+        icon: 'ChatBubbleUnread',
+        successIcon: 'Checkmark',
         shouldShow: ({type, isUnreadChat}) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
         onPress: (closePopover, {reportAction, reportID}) => {
             markCommentAsUnread(reportID, reportAction);
@@ -361,12 +398,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MARK_AS_UNREAD,
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.markAsRead',
-        icon: Expensicons.Mail,
-        successIcon: Expensicons.Checkmark,
+        icon: 'Mail',
+        successIcon: 'Checkmark',
         shouldShow: ({type, isUnreadChat}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && isUnreadChat,
         onPress: (closePopover, {reportID}) => {
             readNewestAction(reportID, true);
@@ -375,11 +413,12 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MARK_AS_READ,
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.editAction',
-        icon: Expensicons.Pencil,
+        icon: 'Pencil',
         shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, moneyRequestAction}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && (canEditReportAction(reportAction) || canEditReportAction(moneyRequestAction)) && !isArchivedRoom && !isChronosReport,
         onPress: (closePopover, {reportID, reportAction, draftMessage, moneyRequestAction}) => {
@@ -414,11 +453,12 @@ const ContextMenuActions: ContextMenuAction[] = [
             editAction();
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EDIT_COMMENT,
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'iou.unhold',
-        icon: Expensicons.Stopwatch,
+        icon: 'Stopwatch',
         shouldShow: ({type, moneyRequestReport, moneyRequestAction, moneyRequestPolicy, areHoldRequirementsMet, iouTransaction}) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !areHoldRequirementsMet) {
                 return false;
@@ -436,11 +476,12 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(moneyRequestAction);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.UNHOLD,
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'iou.hold',
-        icon: Expensicons.Stopwatch,
+        icon: 'Stopwatch',
         shouldShow: ({type, moneyRequestReport, moneyRequestAction, moneyRequestPolicy, areHoldRequirementsMet, iouTransaction}) => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !areHoldRequirementsMet) {
                 return false;
@@ -458,12 +499,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(moneyRequestAction);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
-        icon: Expensicons.Bell,
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction}) => {
+        icon: 'Bell',
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
             const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
@@ -471,12 +513,16 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
+            const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
+            const shouldDisableJoinThread = shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
             return (
                 !subscribed &&
                 !isWhisperAction &&
                 !isTaskAction &&
                 !isExpenseReportAction &&
                 !isThreadReportParentAction &&
+                !isHarvestCreatedExpenseReportAction &&
+                !shouldDisableJoinThread &&
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
@@ -495,52 +541,96 @@ const ContextMenuActions: ContextMenuAction[] = [
             toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD,
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.leaveThread',
+        icon: Expensicons.Exit,
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
+            const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
+            const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
+            const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
+            const subscribed = childReportNotificationPreference !== 'hidden';
+            const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
+            const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
+            const isTaskAction = isCreatedTaskReportAction(reportAction);
+            const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
+            return (
+                subscribed &&
+                !isWhisperAction &&
+                !isTaskAction &&
+                !isExpenseReportAction &&
+                !isThreadReportParentAction &&
+                !isHarvestCreatedExpenseReportAction &&
+                (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
+            );
+        },
+        onPress: (closePopover, {reportAction, reportID}) => {
+            const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
+            const originalReportID = getOriginalReportID(reportID, reportAction);
+            if (closePopover) {
+                hideContextMenu(false, () => {
+                    ReportActionComposeFocusManager.focus();
+                    toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
+                });
+                return;
+            }
+
+            ReportActionComposeFocusManager.focus();
+            toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
+        },
+        getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.LEAVE_THREAD,
     },
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyURLToClipboard',
-        icon: Expensicons.Copy,
+        icon: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
-        successIcon: Expensicons.Checkmark,
+        successIcon: 'Checkmark',
         shouldShow: ({type}) => type === CONST.CONTEXT_MENU_TYPES.LINK,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: (selection) => selection,
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_URL,
     },
     {
         isAnonymousAction: true,
         textTranslateKey: 'common.copyToClipboard',
-        icon: Expensicons.Copy,
+        icon: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
-        successIcon: Expensicons.Checkmark,
+        successIcon: 'Checkmark',
         shouldShow: ({type}) => type === CONST.CONTEXT_MENU_TYPES.TEXT,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(selection);
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => undefined,
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_TO_CLIPBOARD,
     },
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyEmailToClipboard',
-        icon: Expensicons.Copy,
+        icon: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
-        successIcon: Expensicons.Checkmark,
+        successIcon: 'Checkmark',
         shouldShow: ({type}) => type === CONST.CONTEXT_MENU_TYPES.EMAIL,
         onPress: (closePopover, {selection}) => {
             Clipboard.setString(EmailUtils.trimMailTo(selection));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: (selection) => EmailUtils.prefixMailSeparatorsWithBreakOpportunities(EmailUtils.trimMailTo(selection ?? '')),
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_EMAIL,
     },
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyMessage',
-        icon: Expensicons.Copy,
+        icon: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
-        successIcon: Expensicons.Checkmark,
+        successIcon: 'Checkmark',
         shouldShow: ({type, reportAction}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isReportActionAttachment(reportAction) && !isMessageDeleted(reportAction) && !isTripPreview(reportAction),
 
@@ -557,14 +647,17 @@ const ContextMenuActions: ContextMenuAction[] = [
                 reportID,
                 card,
                 originalReport,
+                isHarvestReport,
                 isTryNewDotNVPDismissed,
                 movedFromReport,
                 movedToReport,
                 childReport,
                 policy,
                 getLocalDateFromDatetime,
+                policy,
                 policyTags,
                 translate,
+                harvestReport,
             },
         ) => {
             const isReportPreviewAction = isReportPreviewActionReportActionsUtils(reportAction);
@@ -584,7 +677,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(displayMessage);
                 } else if (isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = getForReportActionTemp({
+                        translate,
                         reportAction,
+                        policy,
                         movedFromReport,
                         movedToReport,
                         policyTags,
@@ -605,7 +700,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const taskPreviewMessage = getTaskCreatedMessage(reportAction, childReport, true);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
-                    const logMessage = getMemberChangeMessageFragment(reportAction, getReportName).html ?? '';
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    const logMessage = getMemberChangeMessageFragment(reportAction, getReportNameDeprecated).html ?? '';
                     setClipboardMessage(logMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
                     Clipboard.setString(Str.htmlDecode(getWorkspaceNameUpdatedMessage(reportAction)));
@@ -664,8 +760,16 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getWorkspaceReportFieldDeleteMessage(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
                     setClipboardMessage(getWorkspaceUpdateFieldMessage(reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED) {
+                    Clipboard.setString(getWorkspaceFeatureEnabledMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {
                     Clipboard.setString(getWorkspaceAttendeeTrackingUpdateMessage(reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER) {
+                    Clipboard.setString(getDefaultApproverUpdateMessage(reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO) {
+                    Clipboard.setString(getSubmitsToUpdateMessage(reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
+                    Clipboard.setString(getForwardsToUpdateMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
                     Clipboard.setString(getWorkspaceReimbursementUpdateMessage(reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
@@ -681,7 +785,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
                     setClipboardMessage(Parser.htmlToText(getUpdatedOwnershipMessage(reportAction, policy) ?? ''));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
-                    setClipboardMessage(getUnreportedTransactionMessage());
+                    setClipboardMessage(getUnreportedTransactionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(translate('iou.paidElsewhere'));
                 } else if (isReimbursementQueuedAction(reportAction)) {
@@ -771,7 +875,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
                     setClipboardMessage(getIntegrationSyncFailedMessage(reportAction, report?.policyID, isTryNewDotNVPDismissed));
                 } else if (isCardIssuedAction(reportAction)) {
-                    setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, expensifyCard: card}));
+                    setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, expensifyCard: card, translate}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {
                     setClipboardMessage(getAddedConnectionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
@@ -814,6 +918,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedSharedBudgetNotificationMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
                     setClipboardMessage(getChangedApproverActionMessage(reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
+                    setClipboardMessage(getMovedTransactionMessage(reportAction));
                 } else if (isMovedAction(reportAction)) {
                     setClipboardMessage(getMovedActionMessage(reportAction, originalReport));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT)) {
@@ -829,6 +935,10 @@ const ContextMenuActions: ContextMenuAction[] = [
                     reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM
                 ) {
                     Clipboard.setString(getLeaveRoomMessage());
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestReport) {
+                    const harvestReportName = getReportName(harvestReport);
+                    const displayMessage = getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate);
+                    setClipboardMessage(displayMessage);
                 } else if (content) {
                     setClipboardMessage(
                         content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
@@ -846,12 +956,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE,
     },
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyLink',
-        icon: Expensicons.LinkCopy,
-        successIcon: Expensicons.Checkmark,
+        icon: 'LinkCopy',
+        successIcon: 'Checkmark',
         successTextTranslateKey: 'reportActionContextMenu.copied',
         shouldShow: ({type, reportAction, menuTarget}) => {
             const isAttachment = isReportActionAttachment(reportAction);
@@ -869,11 +980,12 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_LINK,
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'common.pin',
-        icon: Expensicons.Pin,
+        icon: 'Pin',
         shouldShow: ({type, isPinnedChat}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !isPinnedChat,
         onPress: (closePopover, {reportID}) => {
             togglePinnedState(reportID, false);
@@ -882,11 +994,12 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.PIN,
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'common.unPin',
-        icon: Expensicons.Pin,
+        icon: 'Pin',
         shouldShow: ({type, isPinnedChat}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && isPinnedChat,
         onPress: (closePopover, {reportID}) => {
             togglePinnedState(reportID, true);
@@ -895,11 +1008,12 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.UNPIN,
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.flagAsOffensive',
-        icon: Expensicons.Flag,
+        icon: 'Flag',
         shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID}) =>
             type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION &&
             canFlagReportAction(reportAction, reportID) &&
@@ -924,6 +1038,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute));
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.FLAG_AS_OFFENSIVE,
     },
     {
         isAnonymousAction: true,
@@ -937,7 +1052,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isUploading = html.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE);
             return isAttachment && !isUploading && !!reportAction?.reportActionID && !isMessageDeleted(reportAction) && !isOffline;
         },
-        onPress: (closePopover, {reportAction}) => {
+        onPress: (closePopover, {reportAction, translate}) => {
             const html = getActionHtml(reportAction);
             const {originalFileName, sourceURL} = getAttachmentDetails(html);
             const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '');
@@ -945,31 +1060,33 @@ const ContextMenuActions: ContextMenuAction[] = [
             setDownload(sourceID, true);
             const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
             const isAnchorTag = anchorRegex.test(html);
-            fileDownload(sourceURLWithAuth, originalFileName ?? '', '', isAnchorTag && isMobileSafari()).then(() => setDownload(sourceID, false));
+            fileDownload(translate, sourceURLWithAuth, originalFileName ?? '', '', isAnchorTag && isMobileSafari()).then(() => setDownload(sourceID, false));
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
         },
         getDescription: () => {},
         shouldDisable: (download) => download?.isDownloading ?? false,
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.DOWNLOAD,
     },
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.copyOnyxData',
-        icon: Expensicons.Copy,
+        icon: 'Copy',
         successTextTranslateKey: 'reportActionContextMenu.copied',
-        successIcon: Expensicons.Checkmark,
+        successIcon: 'Checkmark',
         shouldShow: ({type, isProduction}) => type === CONST.CONTEXT_MENU_TYPES.REPORT && !isProduction,
         onPress: (closePopover, {report}) => {
             Clipboard.setString(JSON.stringify(report, null, 4));
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_ONYX_DATA,
     },
     {
         isAnonymousAction: true,
         textTranslateKey: 'debug.debug',
-        icon: Expensicons.Bug,
+        icon: 'Bug',
         shouldShow: ({type, isDebugModeEnabled}) => [CONST.CONTEXT_MENU_TYPES.REPORT_ACTION, CONST.CONTEXT_MENU_TYPES.REPORT].some((value) => value === type) && !!isDebugModeEnabled,
         onPress: (closePopover, {reportID, reportAction}) => {
             if (reportAction) {
@@ -980,11 +1097,12 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(false, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.DEBUG,
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'common.delete',
-        icon: Expensicons.Trashcan,
+        icon: 'Trashcan',
         shouldShow: ({type, reportAction, isArchivedRoom, isChronosReport, reportID: reportIDParam, moneyRequestAction, iouTransaction, transactions, childReportActions}) => {
             // Until deleting parent threads is supported in FE, we will prevent the user from deleting a thread parent
             let reportID = reportIDParam;
@@ -1016,6 +1134,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             showDeleteModal(reportID, moneyRequestAction ?? reportAction);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.DELETE,
     },
     {
         isAnonymousAction: true,
@@ -1028,6 +1147,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         getDescription: () => {},
         shouldPreventDefaultFocusOnPress: false,
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MENU,
     },
 ];
 

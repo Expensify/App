@@ -2,8 +2,9 @@ import type {OnboardingPurpose} from '@libs/actions/Welcome/OnboardingFlow';
 import type {FileObject} from '@src/types/utils/Attachment';
 import type Account from './Account';
 import type AccountData from './AccountData';
+import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
-import type {AssignCard} from './AssignCard';
+import type {AssignCard, AssignCardData} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
@@ -14,7 +15,8 @@ import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
-import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
+import type {CardList, FailedCompanyCardAssignment, FailedCompanyCardAssignments, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
+import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID, DomainSettings, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
@@ -30,6 +32,8 @@ import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
 import type {SamlMetadata} from './Domain';
+import type DomainErrors from './DomainErrors';
+import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
@@ -38,6 +42,7 @@ import type ExportTemplate from './ExportTemplate';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
 import type Fund from './Fund';
+import type GpsDraftDetails from './GpsDraftDetails';
 import type HybridApp from './HybridApp';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type ImportedSpreadsheetMemberData from './ImportedSpreadsheetMemberData';
@@ -157,16 +162,21 @@ export type {
     Download,
     DuplicateWorkspace,
     WorkspaceCardsList,
+    FailedCompanyCardAssignment,
+    FailedCompanyCardAssignments,
     ExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
     Fund,
     FundID,
     FundList,
+    GpsDraftDetails,
     IntroSelected,
     IssueNewCard,
+    AssignCardData,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
+    CardContinuousReconciliation,
     CompanyCardFeedWithDomainID,
     LastExportMethod,
     Locale,
@@ -291,5 +301,8 @@ export type {
     BillingReceiptDetails,
     ExportTemplate,
     HybridApp,
+    AppReview,
     SamlMetadata,
+    DomainErrors,
+    DomainPendingActions,
 };

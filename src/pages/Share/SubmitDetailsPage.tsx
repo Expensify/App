@@ -24,6 +24,7 @@ import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction'
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
@@ -73,6 +74,7 @@ function SubmitDetailsPage({
     const fileUri = shouldUsePreValidatedFile ? (validFilesToUpload?.uri ?? '') : (currentAttachment?.content ?? '');
     const fileName = shouldUsePreValidatedFile ? getFileName(validFilesToUpload?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
+    const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true, selector: hasOnlyPersonalPoliciesUtil});
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -92,10 +94,11 @@ function SubmitDetailsPage({
             parentReport,
             currentDate,
             currentUserPersonalDetails,
+            hasOnlyPersonalPolicies,
         });
-    }, [reportOrAccountID, policy, report, parentReport, currentDate, currentUserPersonalDetails]);
+    }, [reportOrAccountID, policy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
 
-    const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
+    const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const participants = selectedParticipants.map((participant) =>
         participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived),
     );
@@ -193,10 +196,6 @@ function SubmitDetailsPage({
                     Log.info('[SubmitDetailsPage] getCurrentPosition failed', false, errorData);
                     finishRequestAndNavigate(participant, receipt);
                 },
-                {
-                    maximumAge: CONST.GPS.MAX_AGE,
-                    timeout: CONST.GPS.TIMEOUT,
-                },
             );
             return;
         }
@@ -228,7 +227,7 @@ function SubmitDetailsPage({
     };
 
     return (
-        <ScreenWrapper testID={SubmitDetailsPage.displayName}>
+        <ScreenWrapper testID="SubmitDetailsPage">
             <FullPageNotFoundView shouldShow={!reportOrAccountID}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
@@ -280,7 +279,5 @@ function SubmitDetailsPage({
         </ScreenWrapper>
     );
 }
-
-SubmitDetailsPage.displayName = 'SubmitDetailsPage';
 
 export default SubmitDetailsPage;

@@ -154,6 +154,7 @@ type GetValidReportsConfig = {
     shouldShowGBR?: boolean;
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
+    shouldUnreadBeBold?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -189,6 +190,7 @@ type GetOptionsConfig = {
     maxElements?: number;
     maxRecentReportElements?: number;
     includeUserToInvite?: boolean;
+    shouldAcceptName?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {

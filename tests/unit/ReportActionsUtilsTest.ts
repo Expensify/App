@@ -1,8 +1,10 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
+import ROUTES from '@src/ROUTES';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
@@ -378,6 +380,13 @@ describe('ReportActionsUtils', () => {
             childReportID: 'existingChildReportID',
         };
 
+        const deletedLinkedActionWithChildReportID: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+            ...mockIOUAction,
+            message: [{deleted: '2025-11-27 09:06:16.568', type: 'COMMENT', text: ''}],
+            originalMessage: {...originalMessage, IOUTransactionID: '123'},
+            childReportID: 'existingChildReportID',
+        };
+
         const linkedActionWithoutChildReportID = {
             ...mockIOUAction,
             originalMessage: {...originalMessage, IOUTransactionID},
@@ -435,6 +444,16 @@ describe('ReportActionsUtils', () => {
         it('should return undefined when only PAY actions exist', () => {
             const result = ReportActionsUtils.getOneTransactionThreadReportAction(mockedReports[IOUReportID], mockedReports[mockChatReportID], [payAction], false, [IOUTransactionID]);
             expect(result).toBeUndefined();
+        });
+
+        it('should return action when single IOU action and deleted IOU action exist', () => {
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(
+                mockedReports[IOUReportID],
+                mockedReports[mockChatReportID],
+                [linkedActionWithChildReportID, deletedLinkedActionWithChildReportID],
+                false,
+            );
+            expect(result).toEqual(linkedActionWithChildReportID);
         });
     });
 
@@ -1088,15 +1107,7 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('shouldShowAddMissingDetails', () => {
-        it('should return true if personal detail is not completed', async () => {
-            const card = {
-                cardID: 1,
-                state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
-                bank: 'vcf',
-                domainName: 'expensify',
-                lastUpdated: '2022-11-09 22:27:01.825',
-                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
-            };
+        it('should return true if personal detail is not completed', () => {
             const mockPersonalDetail = {
                 address: {
                     street: '123 Main St',
@@ -1105,19 +1116,10 @@ describe('ReportActionsUtils', () => {
                     postalCode: '10001',
                 },
             };
-            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
-            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
             expect(res).toEqual(true);
         });
-        it('should return true if card state is STATE_NOT_ISSUED', async () => {
-            const card = {
-                cardID: 1,
-                state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
-                bank: 'vcf',
-                domainName: 'expensify',
-                lastUpdated: '2022-11-09 22:27:01.825',
-                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
-            };
+        it('should return false if personal detail is completed', () => {
             const mockPersonalDetail = {
                 addresses: [
                     {
@@ -1132,35 +1134,7 @@ describe('ReportActionsUtils', () => {
                 phoneNumber: '+162992973',
                 dob: '9-9-2000',
             };
-            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
-            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
-            expect(res).toEqual(true);
-        });
-        it('should return false if no condition is matched', async () => {
-            const card = {
-                cardID: 1,
-                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-                bank: 'vcf',
-                domainName: 'expensify',
-                lastUpdated: '2022-11-09 22:27:01.825',
-                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
-            };
-            const mockPersonalDetail = {
-                addresses: [
-                    {
-                        street: '123 Main St',
-                        city: 'New York',
-                        state: 'NY',
-                        postalCode: '10001',
-                    },
-                ],
-                legalFirstName: 'John',
-                legalLastName: 'David',
-                phoneNumber: '+162992973',
-                dob: '9-9-2000',
-            };
-            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
-            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
             expect(res).toEqual(false);
         });
     });
@@ -1364,6 +1338,7 @@ describe('ReportActionsUtils', () => {
                     shouldRenderHTML: true,
                     policyID: testPolicyID,
                     expensifyCard: undefined,
+                    translate: translateLocal,
                 });
 
                 expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
@@ -1375,10 +1350,11 @@ describe('ReportActionsUtils', () => {
                     shouldRenderHTML: true,
                     policyID: testPolicyID,
                     expensifyCard: activeExpensifyCard,
+                    translate: translateLocal,
                 });
 
                 expect(messageResult).toBe(
-                    `issued <mention-user accountID="456"/> a virtual <a href='https://dev.new.expensify.com:8082/settings/card/789'>Expensify Card</a>! The card can be used right away.`,
+                    `issued <mention-user accountID="456"/> a virtual Expensify Card! The <a href='https://dev.new.expensify.com:8082/settings/card/789'>card</a> can be used right away.`,
                 );
             });
         });
@@ -1392,7 +1368,7 @@ describe('ReportActionsUtils', () => {
                 reportActionID: '1',
                 created: '2025-09-29',
                 originalMessage: {
-                    toReportID: '2',
+                    fromReportID: '2',
                 },
             };
 
@@ -1429,6 +1405,7 @@ describe('ReportActionsUtils', () => {
                 created: '2025-09-29',
                 originalMessage: {
                     toReportID: report.reportID,
+                    fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
                 },
             };
 
@@ -1460,6 +1437,52 @@ describe('ReportActionsUtils', () => {
             const expected = translateLocal('report.actions.type.updatedCustomField1', {email: formatPhoneNumber(email), newValue, previousValue});
             expect(actual).toBe(expected);
         });
+
+        it('should concatenate multiple field changes when fields array is present', () => {
+            const email = 'employee@example.com';
+            const newRole = CONST.POLICY.ROLE.ADMIN;
+            const previousRole = CONST.POLICY.ROLE.USER;
+            const customFieldNewValue = '12';
+            const customFieldOldValue = '10';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    fields: [
+                        {
+                            field: CONST.CUSTOM_FIELD_KEYS.customField1,
+                            newValue: customFieldNewValue,
+                            oldValue: customFieldOldValue,
+                        },
+                        {
+                            field: 'role',
+                            newValue: newRole,
+                            oldValue: previousRole,
+                        },
+                    ],
+                },
+            };
+
+            const formattedEmail = formatPhoneNumber(email);
+            const expectedCustomFieldMessage = translateLocal('report.actions.type.updatedCustomField1', {
+                email: formattedEmail,
+                newValue: customFieldNewValue,
+                previousValue: customFieldOldValue,
+            });
+            const expectedRoleMessage = translateLocal('report.actions.type.updateRole', {
+                email: formattedEmail,
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                newRole: translateLocal('workspace.common.roleName', {role: newRole}).toLowerCase(),
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                currentRole: translateLocal('workspace.common.roleName', {role: previousRole}).toLowerCase(),
+            });
+
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(action);
+            expect(actual).toBe(`${expectedCustomFieldMessage}, ${expectedRoleMessage}`);
+        });
     });
 
     describe('getPolicyChangeLogDeleteMemberMessage', () => {
@@ -1478,7 +1501,7 @@ describe('ReportActionsUtils', () => {
             };
 
             const actual = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(action);
-            const expected = translateLocal('report.actions.type.removeMember', {email: formatPhoneNumber(email), role: translateLocal('workspace.common.roleName', {role}).toLowerCase()});
+            const expected = translateLocal('report.actions.type.removeMember', formatPhoneNumber(email), translateLocal('workspace.common.roleName', {role}).toLowerCase());
             expect(actual).toBe(expected);
         });
     });
@@ -1499,6 +1522,26 @@ describe('ReportActionsUtils', () => {
                 previousMessage: [],
             };
             expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
+        });
+    });
+
+    describe('getHarvestCreatedExpenseReportMessage', () => {
+        let environmentURL: string;
+        beforeAll(async () => {
+            environmentURL = await getEnvironmentURL();
+        });
+
+        it('should return the correct message with a valid report ID and report name', () => {
+            const reportID = '12345';
+            const reportName = 'Test Expense Report';
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', {
+                reportUrl: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`,
+                reportName,
+            });
+
+            const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
+
+            expect(result).toBe(expectedMessage);
         });
     });
 });

@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
+import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -30,6 +31,7 @@ function SelectBankStep() {
     const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
+    const companyCardBankIcons = useCompanyCardBankIcons();
     const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
 
@@ -80,7 +82,7 @@ function SelectBankStep() {
         isSelected: bankSelected === bank,
         leftElement: (
             <Icon
-                src={getBankCardDetailsImage(bank, illustrations)}
+                src={getBankCardDetailsImage(bank, illustrations, companyCardBankIcons)}
                 height={variables.iconSizeExtraLarge}
                 width={variables.iconSizeExtraLarge}
                 additionalStyles={styles.mr3}
@@ -101,7 +103,7 @@ function SelectBankStep() {
 
     return (
         <ScreenWrapper
-            testID={SelectBankStep.displayName}
+            testID="SelectBankStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -136,7 +138,5 @@ function SelectBankStep() {
         </ScreenWrapper>
     );
 }
-
-SelectBankStep.displayName = 'SelectBankStep';
 
 export default SelectBankStep;
