@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -35,7 +35,8 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const policyID = route.params?.policyID;
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
+    const ownerPoliciesSelectorWithAccountID = (policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID);
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false, selector: ownerPoliciesSelectorWithAccountID});
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
@@ -43,10 +44,10 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
-    const canPerformDowngrade = useMemo(() => canModifyPlan(ownerPolicies, policy), [ownerPolicies, policy]);
-    const isDowngraded = useMemo(() => isCollectPolicy(policy), [policy]);
+    const canPerformDowngrade = () => canModifyPlan(ownerPolicies, policy);
+    const isDowngraded = isCollectPolicy(policy);
 
-    const dismissModalAndNavigate = useCallback((targetPolicyID: string) => {
+    const dismissModalAndNavigate = (targetPolicyID: string) => {
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(targetPolicyID));
@@ -56,17 +57,17 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(targetPolicyID));
             });
         });
-    }, []);
+    };
 
-    const onMoveToCompanyCardFeeds = useCallback(() => {
+    const onMoveToCompanyCardFeeds = () => {
         if (!policyID) {
             return;
         }
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => dismissModalAndNavigate(policyID));
-    }, [policyID, dismissModalAndNavigate]);
+    };
 
-    const onDowngradeToTeam = useCallback(() => {
+    const onDowngradeToTeam = () => {
         if (!canPerformDowngrade || !policy) {
             return;
         }
@@ -92,7 +93,7 @@ function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
             return;
         }
         downgradeToTeam(policy.id);
-    }, [canPerformDowngrade, policy, companyFeeds, showConfirmModal, translate, styles.flexRow, onMoveToCompanyCardFeeds, policyID, dismissModalAndNavigate]);
+    };
 
     if (!canPerformDowngrade) {
         return <NotFoundPage />;
