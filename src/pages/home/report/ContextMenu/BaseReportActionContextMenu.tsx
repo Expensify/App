@@ -18,7 +18,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
@@ -404,7 +403,6 @@ function BaseReportActionContextMenu({
                             movedFromReport,
                             movedToReport,
                             getLocalDateFromDatetime,
-                            policy,
                             policyTags,
                             translate,
                             harvestReport,

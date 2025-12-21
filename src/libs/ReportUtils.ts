@@ -13,7 +13,13 @@ import type {ColorValue} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMovedTransaction, OriginalMessagePolicyChangeLog} from 'src/types/onyx/OriginalMessage';
+import type {
+    OriginalMessageChangePolicy,
+    OriginalMessageExportIntegration,
+    OriginalMessageModifiedExpense,
+    OriginalMessageMovedTransaction,
+    OriginalMessagePolicyChangeLog,
+} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 // eslint-disable-next-line no-restricted-imports
@@ -173,8 +179,8 @@ import {
     getAllReportActions,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
-    getDeletedBudgetMessage,
     getDefaultApproverUpdateMessage,
+    getDeletedBudgetMessage,
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
     getForwardsToUpdateMessage,
@@ -5321,6 +5327,7 @@ function getReportPreviewMessage(
             return translateLocal(translatePhraseKey, payerDisplayName ?? '');
         }
         if (translatePhraseKey === 'iou.payerPaidAmount') {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal(translatePhraseKey, '', payerDisplayName ?? '');
         }
     }
@@ -10553,6 +10560,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
 
                 if (automaticAction) {
                     if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         return translateLocal('iou.automaticallyPaidWithExpensify', '');
                     }
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -10560,6 +10568,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
                 }
                 break;
             default:
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return translateLocal('iou.payerPaidAmount', '', '');
         }
         if (translationKey === 'iou.businessBankAccount') {

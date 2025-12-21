@@ -249,7 +249,6 @@ type ContextMenuActionPayload = {
     movedFromReport?: OnyxEntry<ReportType>;
     movedToReport?: OnyxEntry<ReportType>;
     getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'];
-    policy?: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;
