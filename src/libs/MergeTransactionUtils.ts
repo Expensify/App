@@ -178,6 +178,7 @@ function getMergeableDataAndConflictFields(
     sourceTransaction: OnyxEntry<Transaction>,
     localeCompare: LocaleContextProps['localeCompare'],
     searchReports: Array<OnyxEntry<Report>> = [],
+    cardList?: CardList,
 ) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
@@ -197,7 +198,7 @@ function getMergeableDataAndConflictFields(
             // Card takes precedence over split expense
             // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
             const isTargetExpenseSplit = isExpenseSplit(targetTransaction);
-            if (isManagedCardTransaction(targetTransaction) || isTargetExpenseSplit) {
+            if (isManagedCardTransaction(targetTransaction, cardList) || isTargetExpenseSplit) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
                 if (isTargetExpenseSplit) {
@@ -240,7 +241,7 @@ function getMergeableDataAndConflictFields(
 
         // Use the reimbursable flag coming from card transactions automatically
         // See https://github.com/Expensify/App/issues/69598
-        if (field === 'reimbursable' && isManagedCardTransaction(targetTransaction)) {
+        if (field === 'reimbursable' && isManagedCardTransaction(targetTransaction, cardList)) {
             mergeableData[field] = targetValue;
             continue;
         }
