@@ -3116,7 +3116,7 @@ describe('SearchUIUtils', () => {
             transactionID: '1',
             amount: 1000,
             currency: 'USD',
-            reportID: reportID,
+            reportID,
             accountID: adminAccountID,
             created: '2024-12-21 13:05:20',
             merchant: 'Test Merchant',
