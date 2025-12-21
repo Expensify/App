@@ -2,8 +2,8 @@ import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import * as CurrencyUtils from '@src/libs/CurrencyUtils';
-import type {CurrencyList} from '@src/types/onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CurrencyList} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // This file can get outdated. In that case, you can follow these steps to update it:
 // - open your browser console and navigate to the Network tab
@@ -264,11 +264,7 @@ describe('CurrencyUtils', () => {
             await waitForBatchedUpdates();
         });
 
-        test.each([
-            ['USD'],
-            [' usd '],
-            ['Usd'],
-        ])('Falls back to localized value when CURRENCY_LIST.symbol is code-like (%s)', async (codeLikeSymbol) => {
+        test.each([['USD'], [' usd '], ['Usd']])('Falls back to localized value when CURRENCY_LIST.symbol is code-like (%s)', async (codeLikeSymbol) => {
             await IntlStore.load(CONST.LOCALES.EN);
             await waitForBatchedUpdates();
 
@@ -292,6 +288,5 @@ describe('CurrencyUtils', () => {
             await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
             await waitForBatchedUpdates();
         });
-
     });
 });
