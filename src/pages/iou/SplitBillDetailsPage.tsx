@@ -86,7 +86,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
         created: splitCreated,
         category: splitCategory,
         billable: splitBillable,
-    } = getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction, undefined, undefined, undefined, undefined, undefined, preferredLocale) ?? {};
+    } = getTransactionDetails(isEditingSplitBill && draftTransaction ? draftTransaction : transaction) ?? {};
 
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
