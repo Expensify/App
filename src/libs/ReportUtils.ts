@@ -16,8 +16,8 @@ import type {SvgProps} from 'react-native-svg';
 import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMovedTransaction} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
-import * as Expensicons from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
@@ -1199,6 +1199,12 @@ Onyx.connectWithoutView({
     },
 });
 
+let cachedSelfDMReportID: OnyxEntry<string>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.SELF_DM_REPORT_ID,
+    callback: (value) => (cachedSelfDMReportID = value),
+});
+
 let hiddenTranslation = '';
 let unavailableTranslation = '';
 
@@ -1862,6 +1868,9 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
 }
 
 function findSelfDMReportID(): string | undefined {
+    if (cachedSelfDMReportID) {
+        return cachedSelfDMReportID;
+    }
     if (!allReports) {
         return;
     }
@@ -2678,26 +2687,19 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
 
 function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, onlyShowPayElsewhere = false, reportPolicy?: OnyxInputOrEntry<Policy>) {
     const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
-
-    if (!policy) {
-        Log.warn('Missing policy during isPayer check');
-
-        return false;
-    }
-
-    const policyType = policy.type;
-    const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy.role === CONST.POLICY.ROLE.ADMIN;
+    const policyType = policy?.type;
+    const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = iouReport?.managerID === session?.accountID;
-    const reimbursementChoice = policy.reimbursementChoice;
+    const reimbursementChoice = policy?.reimbursementChoice;
 
     if (isPaidGroupPolicy(iouReport)) {
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
-            if (!policy.achAccount?.reimburser) {
+            if (!policy?.achAccount?.reimburser) {
                 return isAdmin;
             }
 
             // If we are the reimburser and the report is approved or we are the manager then we can pay it.
-            const isReimburser = session?.email === policy.achAccount?.reimburser;
+            const isReimburser = session?.email === policy?.achAccount?.reimburser;
             return isReimburser;
         }
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
@@ -2863,7 +2865,7 @@ function hasOutstandingChildRequest(chatReport: Report, iouReportOrID: OnyxEntry
  * @returns The dropdown options for the add expense button
  */
 function getAddExpenseDropdownOptions(
-    icons: Record<'Location', IconAsset>,
+    icons: Record<'Location' | 'ReceiptPlus', IconAsset>,
     iouReportID: string | undefined,
     policy: OnyxEntry<Policy>,
     iouRequestBackToReport?: string,
@@ -2875,7 +2877,7 @@ function getAddExpenseDropdownOptions(
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             text: translateLocal('iou.createExpense'),
-            icon: Expensicons.Plus,
+            icon: Plus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
             onSelected: () => {
                 if (!iouReportID) {
@@ -2909,7 +2911,7 @@ function getAddExpenseDropdownOptions(
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_UNREPORTED_EXPENSE,
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             text: translateLocal('iou.addUnreportedExpense'),
-            icon: Expensicons.ReceiptPlus,
+            icon: icons.ReceiptPlus,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_UNREPORTED,
             onSelected: () => {
                 if (policy && shouldRestrictUserBillableActions(policy.id)) {
@@ -4493,10 +4495,7 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', {
-        payer: payerOrApproverName,
-        amount: formattedAmount,
-    });
+    const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', formattedAmount, payerOrApproverName);
 
     if (isReportApproved({report})) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -4514,12 +4513,12 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
+        return translateLocal('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
     }
 
     if (isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
+        return translateLocal('iou.payerOwesAmount', formattedAmount, payerOrApproverName);
     }
 
     return payerPaidAmountMessage;
@@ -4544,7 +4543,7 @@ function getTransactionDetails(
 
     const report = getReportOrDraftReport(transaction?.reportID, undefined, 'report' in transaction ? transaction.report : undefined);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
-    const isFromExpenseReport = !isEmptyObject(report) && isExpenseReport(report);
+    const isFromExpenseReport = (!isEmptyObject(report) && isExpenseReport(report)) || isPaidGroupPolicyPolicyUtils(policy);
 
     return {
         created: getFormattedCreated(transaction, createdDateFormat),
@@ -4984,10 +4983,6 @@ const changeMoneyRequestHoldStatus = (reportAction: OnyxEntry<ReportAction>): vo
 };
 
 const rejectMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void => {
-    if (!Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_REJECT, allBetas)) {
-        return;
-    }
-
     if (!isMoneyRequestAction(reportAction)) {
         return;
     }
@@ -5300,10 +5295,7 @@ function getReportPreviewMessage(
                 translatePhraseKey = originalMessage?.payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal';
                 const currentBankAccount = getBankAccountFromID(originalMessage?.bankAccountID);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal(translatePhraseKey, {
-                    amount: formattedAmount,
-                    last4Digits: currentBankAccount?.accountData?.accountNumber?.slice(-4) ?? '',
-                });
+                return translateLocal(translatePhraseKey, formattedAmount, currentBankAccount?.accountData?.accountNumber?.slice(-4) ?? '');
             }
         }
 
@@ -5315,12 +5307,17 @@ function getReportPreviewMessage(
 
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal(translatePhraseKey, {
-            amount: '',
-            payer: payerDisplayName ?? '',
-            last4Digits: reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '',
-        });
+        if (translatePhraseKey === 'iou.businessBankAccount') {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal(translatePhraseKey, '', reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '');
+        }
+        if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify' || translatePhraseKey === 'iou.paidWithExpensify' || translatePhraseKey === 'iou.paidElsewhere') {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal(translatePhraseKey, payerDisplayName ?? '');
+        }
+        if (translatePhraseKey === 'iou.payerPaidAmount') {
+            return translateLocal(translatePhraseKey, '', payerDisplayName ?? '');
+        }
     }
 
     if (report.isWaitingOnBankAccount) {
@@ -5362,13 +5359,14 @@ function getReportPreviewMessage(
 
     if (containsNonReimbursable) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerSpentAmount', {
-            payer: getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '',
-            amount: formattedAmount,
-        });
+        return translateLocal(
+            'iou.payerSpentAmount',
+            formattedAmount,
+            getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '',
+        );
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.payerOwesAmount', {payer: payerName ?? '', amount: formattedAmount, comment});
+    return translateLocal('iou.payerOwesAmount', formattedAmount, payerName ?? '', comment);
 }
 
 /**
@@ -5929,10 +5927,10 @@ function getReportName(
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
                 if (originalMessage.automaticAction) {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    return translateLocal('iou.automaticallyPaidWithBusinessBankAccount', {last4Digits});
+                    return translateLocal('iou.automaticallyPaidWithBusinessBankAccount', undefined, last4Digits);
                 }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('iou.businessBankAccount', {last4Digits});
+                return translateLocal('iou.businessBankAccount', undefined, last4Digits);
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 if (originalMessage.automaticAction) {
@@ -7215,7 +7213,7 @@ function getIOUReportActionMessage(
                         ? // eslint-disable-next-line @typescript-eslint/no-deprecated
                           translateLocal('iou.payElsewhere', {formattedAmount: amount})
                         : // eslint-disable-next-line @typescript-eslint/no-deprecated
-                          translateLocal(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', {amount, last4Digits: String(bankAccountID).slice(-4)});
+                          translateLocal(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', amount, String(bankAccountID).slice(-4));
             } else {
                 iouMessage = isSettlingUp ? `paid ${amount}${paymentMethodMessage}` : `sent ${amount}${comment && ` for ${comment}`}${paymentMethodMessage}`;
             }
@@ -10188,7 +10186,7 @@ function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: b
             ROUTES.SEARCH_REPORT.getRoute({
                 reportID: ancestor.report.reportID,
                 reportActionID: ancestor.reportAction.reportActionID,
-                backTo: SCREENS.SEARCH.REPORT_RHP,
+                backTo: SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             }),
         );
         return;
@@ -10246,12 +10244,7 @@ function getOriginalReportID(reportID: string | undefined, reportAction: OnyxInp
  */
 function getReportOfflinePendingActionAndErrors(report: OnyxEntry<Report>): ReportOfflinePendingActionAndErrors {
     // It shouldn't be possible for all of these actions to be pending (or to have errors) for the same report at the same time, so just take the first that exists
-    const reportPendingAction =
-        report?.pendingFields?.addWorkspaceRoom ??
-        report?.pendingFields?.createChat ??
-        report?.pendingFields?.reimbursed ??
-        report?.pendingFields?.createReport ??
-        report?.pendingFields?.reportName;
+    const reportPendingAction = report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat ?? report?.pendingFields?.createReport ?? report?.pendingFields?.reportName;
     const reportErrors = getCreationReportErrors(report);
     return {reportPendingAction, reportErrors};
 }
@@ -10522,24 +10515,33 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
             case CONST.IOU.PAYMENT_TYPE.VBBA:
                 if (isInvoice) {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    return translateLocal(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', {amount: '', last4Digits});
+                    return translateLocal(payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', '', last4Digits);
                 }
                 translationKey = 'iou.businessBankAccount';
 
                 if (automaticAction) {
                     if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        translationKey = 'iou.automaticallyPaidWithExpensify';
-                    } else {
-                        translationKey = 'iou.automaticallyPaidWithBusinessBankAccount';
+                        return translateLocal('iou.automaticallyPaidWithExpensify', '');
                     }
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    return translateLocal('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
                 }
                 break;
             default:
-                translationKey = 'iou.payerPaidAmount';
-                break;
+                return translateLocal('iou.payerPaidAmount', '', '');
         }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal(translationKey, {amount: '', payer: '', last4Digits});
+        if (translationKey === 'iou.businessBankAccount') {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal(translationKey, '', last4Digits);
+        }
+        if (translationKey === 'iou.paidElsewhere') {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal(translationKey, '');
+        }
+        if (translationKey === 'iou.payerSettledWithMissingBankAccount') {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal(translationKey, '');
+        }
     }
 
     const amount = getTransactionAmount(transaction, !isEmptyObject(iouReport) && isExpenseReport(iouReport), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
@@ -10548,9 +10550,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
     const isApproved = isReportApproved({report: iouReport});
     if (isRequestSettled) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerSettled', {
-            amount: formattedAmount,
-        });
+        return translateLocal('iou.payerSettled', formattedAmount);
     }
     if (isApproved) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -12685,10 +12685,6 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
 }
 
 function canRejectReportAction(currentUserLogin: string, report: Report, policy?: Policy): boolean {
-    if (!Permissions.isBetaEnabled(CONST.BETAS.NEWDOT_REJECT, allBetas)) {
-        return false;
-    }
-
     const isReportApprover = isApproverUtils(policy, currentUserLogin);
     const isReportBeingProcessed = isProcessingReport(report);
     const isIOU = isIOUReport(report);

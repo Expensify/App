@@ -1,5 +1,5 @@
 /* eslint-disable max-lines */
-import {format} from 'date-fns';
+import {eachDayOfInterval, format} from 'date-fns';
 import {fastMerge, Str} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
@@ -1001,8 +1001,7 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string) {
             // When a report with one expense is opened in the wide RHP and the user adds another expense, RHP should be dismissed and ROUTES.SEARCH_MONEY_REQUEST_REPORT should be displayed.
             if (hasMultipleTransactions && reportID) {
                 Navigation.dismissModal();
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                InteractionManager.runAfterInteractions(() => {
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
                     Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID}));
                 });
                 return;
@@ -6022,7 +6021,7 @@ function convertBulkTrackedExpensesToIOU(
         const actionableWhisperReportActionID = getTrackExpenseActionableWhisper(transactionID, selfDMReportID)?.reportActionID;
 
         const commentText = typeof transaction.comment === 'string' ? transaction.comment : (transaction.comment?.comment ?? '');
-        const parsedComment = getParsedComment(commentText);
+        const parsedComment = getParsedComment(Parser.htmlToMarkdown(commentText));
 
         const attendees = transaction.comment?.attendees;
 
@@ -7076,13 +7075,13 @@ function duplicateExpenseTransaction(
             ...transaction,
             ...transactionDetails,
             attendees: transactionDetails?.attendees as Attendee[] | undefined,
-            comment: transactionDetails?.comment,
+            comment: Parser.htmlToMarkdown(transactionDetails?.comment ?? ''),
             created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             customUnitRateID: transaction?.comment?.customUnit?.customUnitRateID,
             isTestDrive: transaction?.receipt?.isTestDriveReceipt,
             merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
             modifiedAmount: undefined,
-            originalTransactionID: transaction?.comment?.originalTransactionID,
+            originalTransactionID: undefined,
             receipt: undefined,
             source: undefined,
             waypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
@@ -7097,12 +7096,6 @@ function duplicateExpenseTransaction(
 
     // If no workspace is provided the expense should be unreported
     if (!targetPolicy) {
-        const selfDMReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${findSelfDMReportID()}`];
-
-        if (!selfDMReport) {
-            return;
-        }
-
         const trackExpenseParams: CreateTrackExpenseParams = {
             ...params,
             participantParams: {
@@ -7113,7 +7106,7 @@ function duplicateExpenseTransaction(
                 ...(params.transactionParams ?? {}),
                 validWaypoints: transactionDetails?.waypoints as WaypointCollection | undefined,
             },
-            report: selfDMReport,
+            report: undefined,
             isDraftPolicy: false,
         };
         return trackExpense(trackExpenseParams);
@@ -8974,10 +8967,11 @@ function prepareToCleanUpMoneyRequest(
 
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReport?.reportID);
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-        payer: getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? CONST.DEFAULT_NUMBER_ID).login ?? '',
-        amount: convertToDisplayString(updatedIOUReport?.total, updatedIOUReport?.currency),
-    });
+    const messageText = Localize.translateLocal(
+        hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount',
+        convertToDisplayString(updatedIOUReport?.total, updatedIOUReport?.currency),
+        getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? CONST.DEFAULT_NUMBER_ID).login ?? '',
+    );
 
     if (getReportActionMessage(updatedReportPreviewAction)) {
         if (Array.isArray(updatedReportPreviewAction?.message)) {
@@ -10921,6 +10915,10 @@ function canIOUBePaid(
         !isPayAtEndExpenseReport &&
         (!isExpenseReport(iouReport) || arePaymentsEnabled(policy as OnyxEntry<OnyxTypes.Policy>))
     );
+}
+
+function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxEntry<OnyxTypes.Session>) {
+    return isPayerReportUtils(session, iouReport) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
 }
 
 function canSubmitReport(
@@ -14452,7 +14450,7 @@ function markRejectViolationAsResolved(transactionID: string, reportID?: string)
 
 function initSplitExpenseItemData(
     transaction: OnyxEntry<OnyxTypes.Transaction>,
-    {amount, transactionID, reportID}: {amount?: number; transactionID?: string; reportID?: string} = {},
+    {amount, transactionID, reportID, created}: {amount?: number; transactionID?: string; reportID?: string; created?: string} = {},
 ): SplitExpense {
     const transactionDetails = getTransactionDetails(transaction);
     const currentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
@@ -14463,7 +14461,7 @@ function initSplitExpenseItemData(
         description: transactionDetails?.comment,
         category: transactionDetails?.category,
         tags: transaction?.tag ? [transaction?.tag] : [],
-        created: transactionDetails?.created ?? DateUtils.formatWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
+        created: created ?? transactionDetails?.created ?? DateUtils.formatWithUTCTimeZone(DateUtils.getDBTime(), CONST.DATE.FNS_FORMAT_STRING),
         merchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : (transaction?.merchant ?? ''),
         statusNum: currentReport?.statusNum ?? 0,
         reportID: reportID ?? transaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
@@ -14635,6 +14633,49 @@ function evenlyDistributeSplitExpenseAmounts(draftTransaction: OnyxEntry<OnyxTyp
     });
 }
 
+/**
+ * Reset all split expenses and create new ones based on the date range.
+ * The original amount is distributed proportionally across all dates.
+ *
+ * @param transaction - The transaction containing split expenses
+ * @param startDate - Start date in format 'YYYY-MM-DD'
+ * @param endDate - End date in format 'YYYY-MM-DD'
+ */
+function resetSplitExpensesByDateRange(transaction: OnyxEntry<OnyxTypes.Transaction>, startDate: string, endDate: string) {
+    if (!transaction || !startDate || !endDate) {
+        return;
+    }
+
+    // Generate all dates in the range
+    const dates = eachDayOfInterval({
+        start: new Date(startDate),
+        end: new Date(endDate),
+    });
+
+    const transactionDetails = getTransactionDetails(transaction);
+    const total = transactionDetails?.amount ?? 0;
+    const currency = transactionDetails?.currency ?? CONST.CURRENCY.USD;
+
+    // Create split expenses for each date with proportional amounts
+    const lastIndex = dates.length - 1;
+    const newSplitExpenses: SplitExpense[] = dates.map((date, index) => {
+        return initSplitExpenseItemData(transaction, {
+            amount: calculateIOUAmount(lastIndex, total, currency, index === lastIndex, true),
+            transactionID: NumberUtils.rand64(),
+            reportID: transaction?.reportID,
+            created: format(date, CONST.DATE.FNS_FORMAT_STRING),
+        });
+    });
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction.transactionID}`, {
+        comment: {
+            splitExpenses: newSplitExpenses,
+            splitsStartDate: startDate,
+            splitsEndDate: endDate,
+        },
+    });
+}
+
 function removeSplitExpenseField(draftTransaction: OnyxEntry<OnyxTypes.Transaction>, splitExpenseTransactionID: string) {
     if (!draftTransaction || !splitExpenseTransactionID) {
         return;
@@ -14661,11 +14702,14 @@ function updateSplitExpenseField(
     }
 
     const originalTransactionID = splitExpenseDraftTransaction?.comment?.originalTransactionID;
+    const transactionDetails = getTransactionDetails(splitExpenseDraftTransaction);
+    let shouldResetDateRange = false;
 
     const splitExpenses = originalTransactionDraft?.comment?.splitExpenses?.map((item) => {
         if (item.transactionID === splitExpenseTransactionID) {
-            const transactionDetails = getTransactionDetails(splitExpenseDraftTransaction);
-
+            if (transactionDetails?.created !== item.created) {
+                shouldResetDateRange = true;
+            }
             return {
                 ...item,
                 description: transactionDetails?.comment,
@@ -14680,6 +14724,9 @@ function updateSplitExpenseField(
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
         comment: {
             splitExpenses,
+            // Reset date range if the created date was modified
+            splitsStartDate: shouldResetDateRange ? null : originalTransactionDraft?.comment?.splitsStartDate,
+            splitsEndDate: shouldResetDateRange ? null : originalTransactionDraft?.comment?.splitsEndDate,
         },
     });
 }
@@ -15405,6 +15452,7 @@ export {
     canUnapproveIOU,
     cancelPayment,
     canIOUBePaid,
+    canCancelPayment,
     cleanUpMoneyRequest,
     clearMoneyRequest,
     completeSplitBill,
@@ -15508,6 +15556,7 @@ export {
     initSplitExpenseItemData,
     addSplitExpenseField,
     evenlyDistributeSplitExpenseAmounts,
+    resetSplitExpensesByDateRange,
     updateSplitExpenseAmountField,
     updateSplitTransactions,
     updateSplitTransactionsFromSplitExpensesFlow,

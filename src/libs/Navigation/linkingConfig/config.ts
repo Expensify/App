@@ -1477,6 +1477,21 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
                             path: ROUTES.SPLIT_EXPENSE.route,
                             exact: true,
+                            screens: {
+                                [CONST.IOU.SPLIT_TYPE.AMOUNT]: {
+                                    path: CONST.IOU.SPLIT_TYPE.AMOUNT,
+                                },
+                                [CONST.IOU.SPLIT_TYPE.PERCENTAGE]: {
+                                    path: CONST.IOU.SPLIT_TYPE.PERCENTAGE,
+                                },
+                                [CONST.IOU.SPLIT_TYPE.DATE]: {
+                                    path: CONST.IOU.SPLIT_TYPE.DATE,
+                                },
+                            },
+                        },
+                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE]: {
+                            path: ROUTES.SPLIT_EXPENSE_CREATE_DATE_RANGE.route,
+                            exact: true,
                         },
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: {
                             path: ROUTES.SPLIT_EXPENSE_EDIT.route,
@@ -1613,11 +1628,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.COLUMNS_RHP]: ROUTES.SEARCH_COLUMNS,
                     },
                 },
-                [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
-                    screens: {
-                        [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
-                    },
-                },
+                [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: ROUTES.SEARCH_REPORT.route,
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT_ACTIONS]: {
                     screens: {
                         [SCREENS.SEARCH.ROOT_VERIFY_ACCOUNT]: ROUTES.SEARCH_ROOT_VERIFY_ACCOUNT,
