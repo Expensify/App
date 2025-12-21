@@ -59,7 +59,7 @@ function SplitPercentageList({sections, initiallyFocusedOptionKey, onSelectRow, 
             shouldPreventDefaultFocusOnSelectRow
             removeClippedSubviews={false}
             shouldHideListOnInitialRender={false}
-            isPercentageMode
+            shouldSkipContentHeaderHeightOffset
         />
     );
 }
