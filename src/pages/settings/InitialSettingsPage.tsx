@@ -275,6 +275,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         icons.Lock,
         icons.Wallet,
         icons.CreditCard,
+        icons.Bolt,
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
