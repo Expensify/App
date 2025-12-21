@@ -843,6 +843,10 @@ type FocusModeUpdateParams = {
     priorityModePageUrl: string;
 };
 
+type RoutedDueToDEWParams = {
+    to: string;
+};
+
 export type {
     SettlementAccountReconciliationParams,
     ToggleImportTitleParams,
@@ -1115,6 +1119,7 @@ export type {
     UpdatedPolicyReimbursementChoiceParams,
     UpdatedPolicyDefaultTitleParams,
     UpdatedPolicySetAutoJoinParams,
+    RoutedDueToDEWParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
 };
