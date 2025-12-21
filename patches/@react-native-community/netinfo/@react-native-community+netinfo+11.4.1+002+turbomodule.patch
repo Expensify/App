@@ -1348,3 +1348,22 @@ index 206a69a..4e58f6b 100644
 +  : NativeModules.RNCNetInfo;
    
  export default RNCNetInfo;
+diff --git a/node_modules/@react-native-community/netinfo/package.json b/node_modules/@react-native-community/netinfo/package.json
+index 3c80db2..15d214d 100644
+--- a/node_modules/@react-native-community/netinfo/package.json
++++ b/node_modules/@react-native-community/netinfo/package.json
+@@ -97,6 +97,14 @@
+     "webpack-cli": "^3.3.10",
+     "webpack-dev-server": "^3.11.3"
+   },
++  "codegenConfig": {
++    "name": "RNCNetInfoSpec",
++    "type": "modules",
++    "jsSrcsDir": "src/internal",
++    "android": {
++      "javaPackageName": "com.reactnativecommunity.netinfo"
++    }
++  },
+   "repository": {
+     "type": "git",
+     "url": "https://github.com/react-native-netinfo/react-native-netinfo.git"
