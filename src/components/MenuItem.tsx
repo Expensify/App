@@ -437,7 +437,7 @@ function MenuItem({
     iconWidth,
     iconHeight,
     iconStyles,
-    fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIcon,
     shouldShowTitleIcon = false,
     titleIcon,
     rightIconAccountID,
@@ -527,7 +527,7 @@ function MenuItem({
     isFocused,
     sentryLabel,
 }: MenuItemProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -807,7 +807,7 @@ function MenuItem({
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     size={CONST.AVATAR_SIZE.DEFAULT}
                                                                     source={icon}
-                                                                    fallbackIcon={fallbackIcon}
+                                                                    fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
                                                                     name={title}
                                                                     avatarID={avatarID}
                                                                     type={CONST.ICON_TYPE_WORKSPACE}
@@ -818,7 +818,7 @@ function MenuItem({
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     source={icon}
                                                                     avatarID={avatarID}
-                                                                    fallbackIcon={fallbackIcon}
+                                                                    fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
                                                                     size={avatarSize}
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
