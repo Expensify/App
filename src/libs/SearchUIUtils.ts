@@ -3211,5 +3211,6 @@ export {
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
+    getToFieldValueForTransaction,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
