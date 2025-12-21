@@ -108,15 +108,10 @@ import {
     getReportActionText,
     getTrackExpenseActionableWhisper,
     isActionableTrackExpense,
-    isApprovedAction,
     isCreatedAction,
     isDeletedAction,
-    isForwardedAction,
     isMoneyRequestAction,
     isReportPreviewAction,
-    isRetractedAction,
-    isSubmittedAction,
-    isUnapprovedAction,
 } from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
 import {
