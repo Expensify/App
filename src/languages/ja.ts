@@ -139,6 +139,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -1508,6 +1509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: '日付を分割',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} から ${endDate} まで（${count} 日間）`,
         splitByDate: '日付で分割',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
     },
     transactionMerge: {
         listPage: {

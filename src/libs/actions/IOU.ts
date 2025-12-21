@@ -11644,7 +11644,13 @@ function submitReport(
     const isCurrentUserManager = currentUserAccountIDParam === expenseReport.managerID;
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
-    const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
+    const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
+        expenseReport?.total ?? 0,
+        expenseReport.currency ?? '',
+        expenseReport.reportID,
+        adminAccountID,
+        policy?.approvalMode,
+    );
 
     // buildOptimisticNextStep is used in parallel
     // eslint-disable-next-line @typescript-eslint/no-deprecated
