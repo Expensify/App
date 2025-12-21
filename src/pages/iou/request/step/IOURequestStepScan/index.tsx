@@ -42,7 +42,7 @@ import {base64ToFile, isLocalFile as isLocalFileFileUtils} from '@libs/fileDownl
 import getCurrentPosition from '@libs/getCurrentPosition';
 import Navigation from '@libs/Navigation/Navigation';
 import {isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
-import {getDefaultTaxCode, hasReceipt} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, hasReceipt, shouldReuseInitialTransaction} from '@libs/TransactionUtils';
 import StepScreenDragAndDropWrapper from '@pages/iou/request/step/StepScreenDragAndDropWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
@@ -398,16 +398,19 @@ function IOURequestStepScan({
             return;
         }
 
+        if (!isMultiScanEnabled) {
+            removeDraftTransactions(true);
+        }
+
         for (const [index, file] of files.entries()) {
             const source = URL.createObjectURL(file as Blob);
-            const transaction =
-                !shouldAcceptMultipleFiles || (index === 0 && transactions.length === 1 && (!initialTransaction?.receipt?.source || initialTransaction?.receipt?.isTestReceipt))
-                    ? (initialTransaction as Partial<Transaction>)
-                    : buildOptimisticTransactionAndCreateDraft({
-                          initialTransaction: initialTransaction as Partial<Transaction>,
-                          currentUserPersonalDetails,
-                          reportID,
-                      });
+            const transaction = shouldReuseInitialTransaction(initialTransaction, shouldAcceptMultipleFiles, index, isMultiScanEnabled, transactions)
+                ? (initialTransaction as Partial<Transaction>)
+                : buildOptimisticTransactionAndCreateDraft({
+                      initialTransaction: initialTransaction as Partial<Transaction>,
+                      currentUserPersonalDetails,
+                      reportID,
+                  });
 
             const transactionID = transaction.transactionID ?? initialTransactionID;
             newReceiptFiles.push({file, source, transactionID});
@@ -613,6 +616,12 @@ function IOURequestStepScan({
         });
     };
 
+    const submitMultiScanReceipts = () => {
+        const transactionIDs = new Set(optimisticTransactions?.map((transaction) => transaction?.transactionID));
+        const validReceiptFiles = receiptFiles.filter((receiptFile) => transactionIDs.has(receiptFile.transactionID));
+        submitReceipts(validReceiptFiles);
+    };
+
     const mobileCameraView = () => (
         <>
             <View style={[styles.cameraView]}>
@@ -786,7 +795,7 @@ function IOURequestStepScan({
             {canUseMultiScan && (
                 <ReceiptPreviews
                     isMultiScanEnabled={isMultiScanEnabled}
-                    submit={submitReceipts}
+                    submit={submitMultiScanReceipts}
                 />
             )}
         </>
