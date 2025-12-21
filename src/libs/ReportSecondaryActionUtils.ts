@@ -595,6 +595,33 @@ function isMergeActionForSelectedTransactions(transactions: Transaction[], repor
         return false;
     }
 
+    if (transactions.length === 2) {
+        const currentUserAccountID = getCurrentUserAccountID();
+
+        const transactionReportData = transactions.map((transaction) => ({
+            transaction,
+            report: reports.find((r) => r.reportID === transaction.reportID),
+            isUnreported: transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID,
+        }));
+
+        const [first, second] = transactionReportData;
+
+        // Check if both transactions are unreported (in this case they must belong to current user)
+        const areBothUnreported = first.isUnreported && second.isUnreported;
+
+        // Check if both reports have the same owner accountID (when both are reported)
+        const haveSameOwner = !first.isUnreported && !second.isUnreported && first.report?.ownerAccountID === second.report?.ownerAccountID;
+
+        // Check if it's a mix of reported/unreported and the reported transaction belongs to current user
+        const isMixedAndValid =
+            (first.isUnreported && !second.isUnreported && second.report?.ownerAccountID === currentUserAccountID) ||
+            (!first.isUnreported && second.isUnreported && first.report?.ownerAccountID === currentUserAccountID);
+
+        if (!areBothUnreported && !haveSameOwner && !isMixedAndValid) {
+            return false;
+        }
+    }
+
     // All reports must be in an editable state by the current user to allow merging
     const allReportsEligible = reports.every((report) => {
         // Transaction could be unreported
