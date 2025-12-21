@@ -72,6 +72,11 @@ function setupMergeTransactionDataAndNavigate(transactions: Transaction[], local
         // Navigate to the receipt review page if both transactions have a receipt
         Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute()));
     } else {
+        const receipt = targetTransaction.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction.receipt;
+        if (receipt) {
+            setMergeTransactionKey(onyxMergeTransactionID, {receipt});
+        }
+
         // If transactions are identical, skip to the confirmation page
         const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare, searchReports);
         if (!conflictFields.length) {
@@ -81,10 +86,6 @@ function setupMergeTransactionDataAndNavigate(transactions: Transaction[], local
             return;
         }
 
-        const receipt = targetTransaction.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction.receipt;
-        if (receipt) {
-            setMergeTransactionKey(onyxMergeTransactionID, {receipt});
-        }
         Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute()));
     }
 }
