@@ -22,7 +22,7 @@ function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: str
                 type={CONST.ICON_TYPE_WORKSPACE}
             />
         ),
-        [name, policyID, source, styles.alignSelfCenter, styles.avatarXLarge],
+        [name, policyID, source, styles.alignSelfCenter, styles.avatarXLarge, icons.FallbackWorkspaceAvatar],
     );
 }
 

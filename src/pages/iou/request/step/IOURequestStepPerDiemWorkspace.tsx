@@ -72,7 +72,7 @@ function IOURequestStepPerDiemWorkspace({
                 ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, currentUserLogin, selectedWorkspace?.policyID, localeCompare]);
+    }, [allPolicies, currentUserLogin, selectedWorkspace?.policyID, localeCompare, icons.FallbackWorkspaceAvatar]);
 
     const filterWorkspace = useCallback((workspaceOption: WorkspaceListItem, searchInput: string) => {
         const results = tokenizedSearch([workspaceOption], searchInput, (option) => [option.text ?? '']);

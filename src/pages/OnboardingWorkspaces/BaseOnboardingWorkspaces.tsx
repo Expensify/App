@@ -109,7 +109,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 ],
             };
         });
-    }, [translate, isOffline, joinablePolicies, handleJoinWorkspace]);
+    }, [translate, isOffline, joinablePolicies, handleJoinWorkspace, icons.FallbackWorkspaceAvatar]);
 
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
