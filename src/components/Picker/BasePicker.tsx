@@ -103,7 +103,7 @@ function BasePicker<TPickerValue>({
                 {...(size === 'small' ? {width: styles.pickerSmall().icon.width, height: styles.pickerSmall().icon.height} : {})}
             />
         );
-    }, [icon, size, styles, theme.icon]);
+    }, [icon, size, styles, theme.icon, icons.DownArrow]);
 
     useImperativeHandle(ref, () => ({
         /**
