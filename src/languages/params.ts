@@ -394,6 +394,8 @@ type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inP
 
 type AddBudgetParams = {frequency: string; entityType: string; entityName: string; shared?: string; individual?: string; notificationThreshold?: number};
 
+type AddOrDeletePolicyCustomUnitRateParams = {customUnitName: string; rateName: string};
+
 type UpdatedBudgetParams = {
     entityType: string;
     entityName: string;
@@ -1055,6 +1057,7 @@ export type {
     PolicyExpenseChatNameParams,
     ReceiptPartnersUberSubtitleParams,
     YourPlanPriceValueParams,
+    AddedOrDeletedPolicyReportFieldParams,
     NeedCategoryForExportToIntegrationParams,
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
@@ -1078,12 +1081,12 @@ export type {
     PhoneErrorRouteParams,
     WorkspacesListRouteParams,
     WorkspaceRouteParams,
-    BusinessTaxIDParams,
     AddBudgetParams,
     UpdatedBudgetParams,
     DeleteBudgetParams,
     QBDSetupErrorBodyParams,
     EmptyCategoriesSubtitleWithAccountingParams,
+    AddOrDeletePolicyCustomUnitRateParams,
     EmptyTagsSubtitleWithAccountingParams,
     SettlementAccountInfoParams,
     MergeSuccessDescriptionParams,
@@ -1112,7 +1115,6 @@ export type {
     UpdatedPolicyReimbursementChoiceParams,
     UpdatedPolicyDefaultTitleParams,
     UpdatedPolicySetAutoJoinParams,
-    TagSelectionParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
 };
