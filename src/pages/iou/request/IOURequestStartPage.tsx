@@ -258,7 +258,6 @@ function IOURequestStartPage({
 
     useHandleBackButton(onBackButtonPress);
 
-    console.log(transaction, isLoadingSelectedTab, lastSelectedTab);
     return (
         <AccessOrNotFoundWrapper
             reportID={reportID}
