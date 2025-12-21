@@ -1,11 +1,12 @@
 import React, {useCallback} from 'react';
 import Avatar from '@components/Avatar';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useThemeStyles from './useThemeStyles';
 
 function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: string | undefined; source: AvatarSource; name: string}) {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const styles = useThemeStyles();
 
     return useCallback(
@@ -14,7 +15,7 @@ function useWorkspaceConfirmationAvatar({policyID, source, name}: {policyID: str
                 containerStyles={styles.avatarXLarge}
                 imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
                 source={source}
-                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                fallbackIcon={icons.FallbackWorkspaceAvatar}
                 size={CONST.AVATAR_SIZE.X_LARGE}
                 name={name}
                 avatarID={policyID}

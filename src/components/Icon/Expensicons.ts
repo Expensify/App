@@ -1,10 +1,7 @@
 import Android from '@assets/images/android.svg';
 import Apple from '@assets/images/apple.svg';
 import AttachmentNotFound from '@assets/images/attachment-not-found.svg';
-import ConciergeAvatar from '@assets/images/avatars/concierge-avatar.svg';
 import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
-import FallbackWorkspaceAvatar from '@assets/images/avatars/fallback-workspace-avatar.svg';
-import NotificationsAvatar from '@assets/images/avatars/notifications-avatar.svg';
 import Bank from '@assets/images/bank.svg';
 import Bell from '@assets/images/bell.svg';
 import Bill from '@assets/images/bill.svg';
@@ -186,7 +183,6 @@ export {
     ClosedSign,
     CommentBubbles,
     Concierge,
-    ConciergeAvatar,
     Connect,
     ConnectionComplete,
     Columns,
@@ -210,7 +206,6 @@ export {
     Eye,
     EyeDisabled,
     FallbackAvatar,
-    FallbackWorkspaceAvatar,
     Flag,
     FlagLevelOne,
     FlagLevelTwo,
@@ -243,7 +238,6 @@ export {
     MoneyHourglass,
     NewWindow,
     NewWorkspace,
-    NotificationsAvatar,
     Offline,
     OfflineCloud,
     Paperclip,
