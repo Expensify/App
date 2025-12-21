@@ -10533,13 +10533,14 @@ describe('ReportUtils', () => {
             // Verify GBR shows in LHN
             const reason = reasonForReportToBeInOptionList({
                 report: chatReport,
+                chatReport,
                 currentReportId: '',
                 isInFocusMode: false,
                 betas: [CONST.BETAS.DEFAULT_ROOMS],
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
-                policies: {},
                 isReportArchived: false,
+                draftComment: '',
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -10599,13 +10600,14 @@ describe('ReportUtils', () => {
             // Verify GBR shows
             const reason = reasonForReportToBeInOptionList({
                 report: chatReport,
+                chatReport,
                 currentReportId: '',
                 isInFocusMode: false,
                 betas: [CONST.BETAS.DEFAULT_ROOMS],
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
-                policies: {},
                 isReportArchived: false,
+                draftComment: '',
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -10669,13 +10671,14 @@ describe('ReportUtils', () => {
             // Verify GBR does NOT show (no outstanding request for GOLD user)
             const reason = reasonForReportToBeInOptionList({
                 report: chatReport,
+                chatReport,
                 currentReportId: '',
                 isInFocusMode: false,
                 betas: [CONST.BETAS.DEFAULT_ROOMS],
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
-                policies: {},
                 isReportArchived: false,
+                draftComment: '',
             });
             expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
@@ -10738,13 +10741,14 @@ describe('ReportUtils', () => {
             // GBR may still show (hasOutstandingChildRequest: true) but for different reason
             const reason = reasonForReportToBeInOptionList({
                 report: chatReport,
+                chatReport,
                 currentReportId: '',
                 isInFocusMode: false,
                 betas: [CONST.BETAS.DEFAULT_ROOMS],
                 doesReportHaveViolations: false,
                 excludeEmptyChats: false,
-                policies: {},
                 isReportArchived: false,
+                draftComment: '',
             });
             expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
 
