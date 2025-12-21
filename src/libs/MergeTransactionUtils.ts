@@ -4,7 +4,8 @@ import type {TupleToUnion} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {CardList, MergeTransaction, Report, Transaction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {CardList, MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -163,6 +164,28 @@ function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
     }
 
     return MERGE_FIELDS.filter((field) => !excludeFields.includes(field));
+}
+
+function getTransactionsAndReportsFromSearch(
+    searchResults: SearchResults,
+    transactionIDs: string[],
+): {
+    transactions: Transaction[];
+    reports: Report[];
+    policies: Policy[];
+} {
+    const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`];
+    const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(1)}`];
+
+    return {
+        transactions: [transaction1, transaction2].filter((transaction) => !!transaction),
+        reports: [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]].filter(
+            (report) => !!report,
+        ),
+        policies: [searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`], searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`]].filter(
+            (policy) => !!policy,
+        ),
+    };
 }
 
 /**
@@ -565,9 +588,10 @@ export {
     getReportIDForExpense,
     getMergeFieldErrorText,
     areTransactionsEligibleForMerge,
-    MERGE_FIELDS,
     getRateFromMerchant,
     getMergeFieldUpdatedValues,
+    getTransactionsAndReportsFromSearch,
+    MERGE_FIELDS,
 };
 
 export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};

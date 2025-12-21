@@ -60,6 +60,7 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {setNameValuePair} from '@libs/actions/User';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
+import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -664,22 +665,20 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
-            const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
-            const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(1)}`];
-            const reports = [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]];
-            const transactionPolicies = [
-                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`],
-                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`],
-            ];
-            const transactions = selectedTransactionsKeys.length === 1 ? [transaction1] : [transaction1, transaction2];
+            const {transactions, reports, policies: transactionPolicies} = getTransactionsAndReportsFromSearch(searchResults, selectedTransactionsKeys);
+
+            console.log(transactions, reports, transactionPolicies);
 
             if (isMergeActionForSelectedTransactions(transactions, reports, transactionPolicies, allCards)) {
-                options.push({
-                    text: translate('common.merge'),
-                    icon: expensifyIcons.ArrowCollapse,
-                    value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                    onSelected: () => setupMergeTransactionDataAndNavigate(transaction1.transactionID, transactions, localeCompare, reports),
-                });
+                const transactionID = transactions.at(0)?.transactionID;
+                if (transactionID) {
+                    options.push({
+                        text: translate('common.merge'),
+                        icon: expensifyIcons.ArrowCollapse,
+                        value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
+                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, transactions, localeCompare, reports),
+                    });
+                }
             }
         }
 
