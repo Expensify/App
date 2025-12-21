@@ -135,6 +135,13 @@ function IOURequestStartPage({
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE);
     }, []);
 
+    useEffect(() => {
+        if (isLoadingSelectedTab || selectedTab) {
+            return;
+        }
+        setSelectedTab(lastSelectedTab);
+    }, [isLoadingSelectedTab, selectedTab]);
+
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
@@ -249,6 +256,7 @@ function IOURequestStartPage({
 
     useHandleBackButton(onBackButtonPress);
 
+    console.log(transaction, isLoadingSelectedTab, lastSelectedTab);
     return (
         <AccessOrNotFoundWrapper
             reportID={reportID}
