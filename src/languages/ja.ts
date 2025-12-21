@@ -3594,7 +3594,7 @@ ${
         subtitle: 'Expensify Travel を使って、最高の旅行プランを手に入れ、すべてのビジネス経費を一か所で管理しましょう。',
         features: {
             saveMoney: '予約で節約しましょう',
-            alerts: 'リアルタイムの更新とアラートを受け取る',
+            alerts: '旅行計画が変更された場合のリアルタイムアラートを受け取る',
         },
         bookTravel: '出張を予約',
         bookDemo: 'デモを予約',
@@ -4795,6 +4795,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             feedName: (feedName: string) => `${feedName} カード`,
             directFeed: 'ダイレクトフィード',
             whoNeedsCardAssigned: '誰にカードを割り当てる必要がありますか？',
+            chooseTheCardholder: 'カード所有者を選択',
             chooseCard: 'カードを選択',
             chooseCardFor: (assignee: string) =>
                 `<strong>${assignee}</strong> に使うカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,
@@ -4817,6 +4818,8 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             chooseCardFeed: 'カードフィードを選択',
             ukRegulation:
                 'Expensify Limited は、Plaid Financial Ltd. の代理人であり、Payment Services Regulations 2017 に基づき Financial Conduct Authority によって規制されている認可支払機関です（企業登録番号：804718）。Plaid は、その代理人である Expensify Limited を通じて、規制対象の口座情報サービスをお客様に提供します。',
+            assign: '割り当て',
+            assignCardFailedError: 'カードの割り当てに失敗しました。',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードの発行と管理',
@@ -4970,6 +4973,25 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 title: '日当',
                 subtitle: '日当レートを設定して、従業員の1日あたりの支出を管理します。',
             },
+            travel: {
+                title: '旅行',
+                subtitle: 'すべてのビジネス旅行を予約、管理、調整します。',
+                getStarted: {
+                    title: 'Expensify Travelを始めましょう',
+                    subtitle: 'お客様のビジネスについてもう少し情報が必要です。その後、準備完了です。',
+                    ctaText: '始めましょう',
+                },
+                reviewingRequest: {
+                    title: '荷物をまとめてください。リクエストを受け取りました...',
+                    subtitle: '現在、Expensify Travelの有効化リクエストを確認中です。ご心配なく、準備ができ次第お知らせします。',
+                    ctaText: 'リクエスト送信済み',
+                },
+                bookOrManageYourTrip: {
+                    title: '旅行を予約または管理',
+                    subtitle: 'Expensify Travelを使用して最高の旅行オファーを取得し、すべてのビジネス経費を一箇所で管理します。',
+                    ctaText: '予約または管理',
+                },
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: '支出を把握し、コントロールしましょう。',
@@ -5006,6 +5028,9 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 cardNumber: 'カード番号',
                 cardholder: 'カード保有者',
                 cardName: 'カード名',
+                allCards: 'すべてのカード',
+                assignedCards: '割り当て済み',
+                unassignedCards: '未割り当て',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `${integration} ${type.toLowerCase()} エクスポート` : `${integration} エクスポート`,
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `取引をエクスポートする先の ${integration} アカウントを選択してください。`,
@@ -5044,6 +5069,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 pendingBankLink: 'ここをクリックしてください',
                 giveItNameInstruction: 'ほかのカードと区別できる名前を付けてください。',
                 updating: '更新中...',
+                neverUpdated: 'しない',
                 noAccountsFound: 'アカウントが見つかりません',
                 defaultCard: 'デフォルトのカード',
                 downgradeTitle: `ワークスペースをダウングレードできません`,

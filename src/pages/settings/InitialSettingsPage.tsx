@@ -101,6 +101,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         'Emoji',
         'CreditCard',
         'Wallet',
+        'Bolt',
     ] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
@@ -226,7 +227,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             },
             {
                 translationKey: 'expenseRulesPage.title',
-                icon: Expensicons.Bolt,
+                icon: icons.Bolt,
                 screenName: SCREENS.SETTINGS.RULES.ROOT,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_RULES),
             },
