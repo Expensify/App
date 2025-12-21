@@ -6287,13 +6287,13 @@ const translations = {
         },
         updateCategories: ({count}: UpdatedPolicyCategoriesParams) => `updated ${count} categories`,
         updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `changed the tag list name to "${newName}" (previously "${oldName}")`,
-        updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `updated the tags on the list "${tagListName}"`,
+        updateTagList: ({tagListName}: UpdatedPolicyTagListParams) => `updated tags on the list "${tagListName}"`,
         updateTagListRequired: ({tagListsName, isRequired}: UpdatedPolicyTagListRequiredParams) =>
-            `updated the tag lists ${tagListsName
+            `changed tag lists ${tagListsName
                 .split(',')
                 .map((v) => `"${v}"`)
-                .join(', ')} to be ${isRequired ? 'required' : 'not required'}`,
-        importTags: 'imported a tag CSV',
+                .join(', ')} to "${isRequired ? 'required' : 'not required'}"`,
+        importTags: 'imported tags from a spreadsheet',
         deletedAllTags: 'deleted all tags',
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}`,
@@ -6311,7 +6311,7 @@ const translations = {
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'enabled' : 'disabled'} tax tracking on distance rates`,
         updateCustomUnitDefaultCategory: ({customUnitName, newValue, oldValue}: UpdatePolicyCustomUnitDefaultCategoryParams) =>
             `changed the ${customUnitName} default category to "${newValue}" ${oldValue ? `(previously "${oldValue}")` : ''}`,
-        importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `imported custom unit rates for ${customUnitName}`,
+        importCustomUnitRates: ({customUnitName}: ImportPolicyCustomUnitRatesParams) => `imported rates for custom unit "${customUnitName}"`,
         addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `added a new ${customUnitName} rate "${rateName}"`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
             `changed the rate of the ${customUnitName} ${updatedField} "${customUnitRateName}" to "${newValue}" (previously "${oldValue}")`,
@@ -6410,77 +6410,55 @@ const translations = {
             }
             return `added a ${frequency} shared budget of ${shared} to the ${entityType} "${entityName}".${notificationThresholdText}`;
         },
-        updateBudget: ({
-            entityType,
-            entityName,
-            oldFrequency,
-            newFrequency,
-            oldIndividual,
-            newIndividual,
-            oldShared,
-            newShared,
-            oldNotificationThreshold,
-            newNotificationThreshold,
-        }: UpdatedBudgetParams) => {
+        updateBudget: ({oldFrequency, newFrequency, oldIndividual, newIndividual, oldShared, newShared, oldNotificationThreshold, newNotificationThreshold}: UpdatedBudgetParams) => {
             const changesList: string[] = [];
 
             if (newFrequency && oldFrequency !== newFrequency) {
-                changesList.push(`frequency from ${oldFrequency} to ${newFrequency}`);
+                changesList.push(`changed budget frequency to "${newFrequency}" (previously "${oldFrequency}")`);
             }
 
             if (newShared && oldShared !== newShared) {
-                changesList.push(`total policy budget from ${oldShared} to ${newShared}`);
+                changesList.push(`changed total workspace budget to "${newShared}" (previously "${oldShared}")`);
             }
 
             if (newIndividual && oldIndividual !== newIndividual) {
-                changesList.push(`individual budget from ${oldIndividual} to ${newIndividual}`);
+                changesList.push(`changed individual budget to "${newIndividual}" (previously "${oldIndividual}")`);
             }
 
             if (newNotificationThreshold && oldNotificationThreshold !== newNotificationThreshold) {
-                changesList.push(`notification threshold from ${oldNotificationThreshold}% to ${newNotificationThreshold}%`);
+                changesList.push(`changed notification threshold to "${newNotificationThreshold}%" (previously "${oldNotificationThreshold}%")`);
             }
 
-            const joined = changesList.join(', ');
-            if (!joined) {
-                return `updated the budget for ${entityType} "${entityName}".`;
-            }
-            return `updated the budget for ${entityType} "${entityName}". Budget's updated fields: ${joined}.`;
+            return changesList.join('; ');
         },
-        deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
-            const details: string[] = [];
-            if (frequency) {
-                details.push(`frequency: ${frequency}`);
+        deleteBudget: ({entityType, entityName, frequency, individual, shared}: DeleteBudgetParams) => {
+            if (shared) {
+                return `removed ${frequency} shared budget of "${shared}" from the ${entityType} "${entityName}"`;
             }
             if (individual) {
-                details.push(`individual budget: ${individual}`);
+                return `removed ${frequency} individual budget of "${individual}" from the ${entityType} "${entityName}"`;
             }
-            if (typeof notificationThreshold === 'number') {
-                details.push(`notification threshold: ${notificationThreshold}%`);
-            }
-            if (shared) {
-                details.push(`shared budget: ${shared}`);
-            }
-            const suffix = details.length ? ` Previous budget details: ${details.join(', ')}.` : '';
-            return `deleted the budget for the ${entityType} "${entityName}".${suffix}`;
+            return `removed budget from the ${entityType} "${entityName}"`;
         },
         updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
-            return `${enabled ? 'enabled' : 'disabled'} the Default Hourly Rate`;
+            return `${enabled ? 'enabled' : 'disabled'} time tracking`;
         },
 
         updatedTimeRate: ({newRate, oldRate}: UpdatedPolicyTimeRateParams) => {
-            return `changed the Default Hourly Rate from ${oldRate} to ${newRate}`;
+            return `changed hourly rate to "${newRate}" (previously "${oldRate}")`;
         },
-        addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added ${prohibitedExpense} as prohibited expenses`,
-        removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed ${prohibitedExpense} as prohibited expenses`,
+        addedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `added "${prohibitedExpense}" to prohibited expenses`,
+        removedProhibitedExpense: ({prohibitedExpense}: {prohibitedExpense: string}) => `removed "${prohibitedExpense}" from prohibited expenses`,
         updatedReimbursementChoice: ({newReimbursementChoice, oldReimbursementChoice}: UpdatedPolicyReimbursementChoiceParams) =>
-            `updated the reimbursement method from ${oldReimbursementChoice} to ${newReimbursementChoice}`,
-        setAutoJoin: ({enabled}: {enabled: boolean}) => `set the pre-approval of workspace join requests to ${enabled ? 'Enabled' : 'Disabled'}`,
+            `changed reimbursement method to "${newReimbursementChoice}" (previously "${oldReimbursementChoice}")`,
+
+        setAutoJoin: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} pre-approval of workspace join requests`,
         updatedDefaultTitle: ({newDefaultTitle, oldDefaultTitle}: UpdatedPolicyDefaultTitleParams) =>
-            `updated the Custom Report Name formula to "${newDefaultTitle}" (previously "${oldDefaultTitle}")`,
+            `changed custom report name formula to "${newDefaultTitle}" (previously "${oldDefaultTitle}")`,
 
         updatedOwnership: ({oldOwnerEmail, oldOwnerName, policyName}: UpdatedPolicyOwnershipParams) =>
             `took over ownership of <strong>${policyName}</strong>'s Workspace from ${oldOwnerName} (${oldOwnerEmail})`,
-        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => `turned Scheduled Submit ${enabled ? 'on' : 'off'}`,
+        updatedAutoHarvesting: ({enabled}: UpdatedPolicyAutoHarvestingParams) => ` ${enabled ? 'enabled' : 'disabled'} scheduled submit`,
 
         updatedIndividualBudgetNotification: ({
             budgetAmount,
@@ -6495,7 +6473,7 @@ const translations = {
             awaitingApprovalSpend,
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
-            `Heads up! This workspace has a ${budgetAmount} per person per ${budgetFrequency} for ${budgetName} ${budgetTypeForNotificationMessage} budget. ${userEmail} is currently at ${approvedReimbursedClosedSpend} which is over ${thresholdPercentage}% of the budget. There is also ${awaitingApprovalSpend} awaiting approval, and ${unsubmittedSpend} that hasn't been submitted yet, for a total of ${totalSpend}.${summaryLink ? ` <a href="${summaryLink}">Here is a report</a> with all those expenses for your records!` : ''}`,
+            `Heads up! This workspace has a ${budgetFrequency} ${budgetTypeForNotificationMessage} budget of "${budgetAmount}" for the category "${budgetName}". ${userEmail} is currently at ${approvedReimbursedClosedSpend}, which is over ${thresholdPercentage}% of the budget. There's also ${awaitingApprovalSpend} awaiting approval, and ${unsubmittedSpend} that hasn't been submitted yet, for a total of ${totalSpend}.${summaryLink ? ` <a href="${summaryLink}">Here's a report</a> with all those expenses for your records!` : ''}`,
         updatedSharedBudgetNotification: ({
             budgetAmount,
             budgetFrequency,
@@ -6508,7 +6486,7 @@ const translations = {
             awaitingApprovalSpend,
             approvedReimbursedClosedSpend,
         }: UpdatedPolicyBudgetNotificationParams) =>
-            `Heads up! This workspace has a ${budgetAmount} per ${budgetFrequency} for ${budgetName} ${budgetTypeForNotificationMessage} budget. You are currently at ${approvedReimbursedClosedSpend} which is over ${thresholdPercentage}% of the budget. There is also ${awaitingApprovalSpend} awaiting approval, and ${unsubmittedSpend} that hasn't been submitted yet, for a total of ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Here is a report</a> with all those expenses for your records!` : ''}`,
+            `Heads up! This workspace has a ${budgetFrequency} ${budgetTypeForNotificationMessage} budget of "${budgetAmount}" for the "${budgetName}" category. You're currently at ${approvedReimbursedClosedSpend}, which is over ${thresholdPercentage}% of the budget. There's also ${awaitingApprovalSpend} awaiting approval, and ${unsubmittedSpend} that hasn't been submitted yet, for a total of ${totalSpend}. ${summaryLink ? `<a href="${summaryLink}">Here's a report</a> with all those expenses for your records!` : ''}`,
         updatedFeatureEnabled: ({enabled, featureName}: {enabled: boolean; featureName: string}) => {
             switch (featureName) {
                 case 'categories':
