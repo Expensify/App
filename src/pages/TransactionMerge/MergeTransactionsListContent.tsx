@@ -14,6 +14,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
 import {getTransactionReportName} from '@libs/ReportUtils';
 import {getCreated} from '@libs/TransactionUtils';
@@ -42,8 +43,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const {isOffline} = useNetwork();
 
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
-    const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
+    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionReport?.policyID}`, {canBeMissing: true});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const allCards = mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
 
     useEffect(() => {
         // If the eligible transactions are already loaded, don't fetch them again
@@ -51,8 +55,8 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
-        getTransactionsForMerging({isOffline, targetTransaction, transactions, policy, report: targetTransactionReport, currentUserLogin});
-    }, [transactions, isOffline, mergeTransaction?.eligibleTransactions, policy, targetTransactionReport, currentUserLogin, targetTransaction]);
+        getTransactionsForMerging({isOffline, targetTransaction, transactions, policy, report: targetTransactionReport, currentUserLogin, cardList: allCards});
+    }, [transactions, isOffline, mergeTransaction?.eligibleTransactions, policy, targetTransactionReport, currentUserLogin, targetTransaction, allCards]);
 
     const data = useMemo(() => {
         if (!eligibleTransactions) {
@@ -106,8 +110,9 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
-        setupMergeTransactionDataAndNavigate([targetTransaction, sourceTransaction], localeCompare);
-    }, [targetTransaction, sourceTransaction, localeCompare]);
+        const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
+        setupMergeTransactionDataAndNavigate([targetTransaction, sourceTransaction], localeCompare, reports, allCards);
+    }, [targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, localeCompare, allCards]);
 
     const confirmButtonOptions = {
         showButton: true,

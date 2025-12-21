@@ -1129,8 +1129,8 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
 /**
  * Determine whether a transaction is made with a centrally managed card (Expensify or Company Card).
  */
-function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return !!transaction?.managedCard;
+function isManagedCardTransaction(transaction: OnyxEntry<Transaction>, cardList?: CardList): boolean {
+    return !!transaction?.managedCard || !!(transaction?.cardID && !!cardList?.[transaction.cardID]);
 }
 
 function getCardName(transaction: OnyxEntry<Transaction>): string {

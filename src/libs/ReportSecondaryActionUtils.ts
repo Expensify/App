@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {CardList, ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
@@ -590,7 +590,7 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
 }
 
-function isMergeActionForSelectedTransactions(transactions: Transaction[], reports: Report[], policies: Policy[]) {
+function isMergeActionForSelectedTransactions(transactions: Transaction[], reports: Report[], policies: Policy[], cardList: CardList) {
     if ([transactions, reports, policies].some((collection) => collection?.length > 2)) {
         return false;
     }
@@ -609,7 +609,7 @@ function isMergeActionForSelectedTransactions(transactions: Transaction[], repor
         return isMoneyRequestReportEligibleForMerge(report, policy?.role === CONST.POLICY.ROLE.ADMIN);
     });
 
-    return allReportsEligible && (transactions.length === 1 || areTransactionsEligibleForMerge(transactions.at(0), transactions.at(1)));
+    return allReportsEligible && (transactions.length === 1 || areTransactionsEligibleForMerge(transactions.at(0), transactions.at(1), cardList));
 }
 
 function isRemoveHoldAction(

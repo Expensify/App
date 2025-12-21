@@ -4,7 +4,7 @@ import type {TupleToUnion} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {MergeTransaction, Report, Transaction} from '@src/types/onyx';
+import type {CardList, MergeTransaction, Report, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -338,7 +338,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
 /**
  * Determines whether two transactions can be merged together.
  */
-function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, transaction2: OnyxEntry<Transaction>) {
+function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, transaction2: OnyxEntry<Transaction>, cardList?: CardList) {
     // Both transactions are required
     if (!transaction1 || !transaction2) {
         return false;
@@ -358,7 +358,7 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
     }
 
     // Do not allow merging two card transactions
-    if (isManagedCardTransaction(transaction1) && isManagedCardTransaction(transaction2)) {
+    if (isManagedCardTransaction(transaction1, cardList) && isManagedCardTransaction(transaction2, cardList)) {
         return false;
     }
 
@@ -373,7 +373,7 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
     }
 
     // Do not allow merging a per diem and a card transaction
-    if ((isPerDiemRequest(transaction1) && isManagedCardTransaction(transaction2)) || (isPerDiemRequest(transaction2) && isManagedCardTransaction(transaction1))) {
+    if ((isPerDiemRequest(transaction1) && isManagedCardTransaction(transaction2, cardList)) || (isPerDiemRequest(transaction2) && isManagedCardTransaction(transaction1, cardList))) {
         return false;
     }
 
@@ -401,10 +401,10 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
  * @param sourceTransaction - The selected transaction to be merged with the target transaction
  * @returns An object containing the determined targetTransaction and sourceTransaction
  */
-function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>) {
+function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, cardList?: CardList) {
     // If target transaction is a card or split expense, always preserve the target transaction
     // Card takes precedence over split expense
-    if (isManagedCardTransaction(sourceTransaction) || (isExpenseSplit(sourceTransaction) && !isManagedCardTransaction(targetTransaction))) {
+    if (isManagedCardTransaction(sourceTransaction, cardList) || (isExpenseSplit(sourceTransaction) && !isManagedCardTransaction(targetTransaction, cardList))) {
         return {targetTransaction: sourceTransaction, sourceTransaction: targetTransaction};
     }
 

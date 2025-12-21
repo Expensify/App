@@ -673,7 +673,7 @@ function SearchPage({route}: SearchPageProps) {
             ];
             const transactions = selectedTransactionsKeys.length === 1 ? [transaction1] : [transaction1, transaction2];
 
-            if (isMergeActionForSelectedTransactions(transactions, reports, transactionPolicies)) {
+            if (isMergeActionForSelectedTransactions(transactions, reports, transactionPolicies, allCards)) {
                 options.push({
                     text: translate('common.merge'),
                     icon: expensifyIcons.ArrowCollapse,
