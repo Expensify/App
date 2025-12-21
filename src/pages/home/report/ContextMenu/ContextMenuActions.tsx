@@ -660,7 +660,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 childReport,
                 policy,
                 getLocalDateFromDatetime,
-                policy,
                 policyTags,
                 translate,
                 harvestReport,
