@@ -10122,16 +10122,23 @@ function copySubmissionApprovalActionsForReport(
 
     const sourceReportActions = getAllReportActions(sourceReportID);
     
+    // Match the backend's WORKFLOW_ACTIONS list
+    const workflowActionTypes = [
+        CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+        CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+        CONST.REPORT.ACTIONS.TYPE.APPROVED,
+        CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+        CONST.REPORT.ACTIONS.TYPE.REJECTED,
+        CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+        CONST.REPORT.ACTIONS.TYPE.CLOSED,
+        CONST.REPORT.ACTIONS.TYPE.REOPENED,
+        CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+        CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+        CONST.REPORT.ACTIONS.TYPE.REROUTE,
+    ] as const;
+    
     for (const action of Object.values(sourceReportActions)) {
-        if (
-            action &&
-            (isSubmittedAction(action) ||
-                isApprovedAction(action) ||
-                isForwardedAction(action) ||
-                isUnapprovedAction(action) ||
-                isRetractedAction(action) ||
-                action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED)
-        ) {
+        if (action && (workflowActionTypes as readonly string[]).includes(action.actionName)) {
             const newActionID = NumberUtils.rand64();
             copiedActions[newActionID] = {
                 ...action,
