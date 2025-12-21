@@ -206,7 +206,7 @@ describe('getReportPreviewAction', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(
-            getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, undefined, undefined, undefined, {
+            getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, report, policy, [transaction], undefined, undefined, undefined, undefined, {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 violations,
             }),
