@@ -1237,7 +1237,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                setupMergeTransactionDataAndNavigate([currentTransaction], localeCompare);
+                setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {

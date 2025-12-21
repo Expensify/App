@@ -41,22 +41,21 @@ function setMergeTransactionKey(transactionID: string, values: MergeTransactionU
     Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, values as OnyxMergeInput<`${typeof ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${string}`>);
 }
 
-function setupMergeTransactionDataAndNavigate(transactions: Transaction[], localeCompare: LocaleContextProps['localeCompare'], searchReports?: Report[], cardList?: CardList) {
+function setupMergeTransactionDataAndNavigate(
+    navigationTransactionID: string,
+    transactions: Transaction[],
+    localeCompare: LocaleContextProps['localeCompare'],
+    searchReports?: Report[],
+    cardList?: CardList,
+) {
     if (!transactions.length || transactions.length > 2) {
-        return;
-    }
-
-    // Target & source transactionID might switch, we should keep the Onyx key consistent
-    // otherwise we might end up creating a new object entry in Onyx with a different transactionID
-    const onyxMergeTransactionID = transactions.at(0)?.transactionID;
-    if (!onyxMergeTransactionID) {
         return;
     }
 
     if (transactions.length === 1) {
         const transaction = transactions.at(0);
         if (transaction) {
-            setupMergeTransactionData(onyxMergeTransactionID, {targetTransactionID: transaction.transactionID});
+            setupMergeTransactionData(navigationTransactionID, {targetTransactionID: transaction.transactionID});
             Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute()));
             return;
         }
@@ -67,26 +66,26 @@ function setupMergeTransactionDataAndNavigate(transactions: Transaction[], local
         return;
     }
 
-    setupMergeTransactionData(onyxMergeTransactionID, {targetTransactionID: targetTransaction?.transactionID, sourceTransactionID: sourceTransaction?.transactionID});
+    setMergeTransactionKey(navigationTransactionID, {targetTransactionID: targetTransaction?.transactionID, sourceTransactionID: sourceTransaction?.transactionID});
     if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
         // Navigate to the receipt review page if both transactions have a receipt
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute()));
     } else {
         const receipt = targetTransaction.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction.receipt;
         if (receipt) {
-            setMergeTransactionKey(onyxMergeTransactionID, {receipt});
+            setMergeTransactionKey(navigationTransactionID, {receipt});
         }
 
         // If transactions are identical, skip to the confirmation page
         const {conflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare, searchReports);
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
-            setMergeTransactionKey(onyxMergeTransactionID, mergeableData);
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute()));
+            setMergeTransactionKey(navigationTransactionID, mergeableData);
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute()));
             return;
         }
 
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute()));
     }
 }
 

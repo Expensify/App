@@ -398,7 +398,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     return;
                 }
 
-                setupMergeTransactionDataAndNavigate([transaction], localeCompare);
+                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {
