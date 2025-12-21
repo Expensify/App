@@ -6329,9 +6329,9 @@ const translations = {
         },
         deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `removed the ${customUnitName} rate "${rateName}"`,
         updateCustomUnitSubRate: ({customUnitName, customUnitRateName, customUnitSubRateName, oldValue, newValue, updatedField}: UpdatedPolicyCustomUnitSubRateParams) =>
-            `changed the ${updatedField} of ${customUnitName} rate "${customUnitRateName}: ${customUnitSubRateName}" to "${newValue}" (previously "${oldValue}")`,
+            `changed "${customUnitName}" rate "${customUnitRateName}" sub-rate "${customUnitSubRateName}" ${updatedField} to "${newValue}" (previously "${oldValue}")`,
         removedCustomUnitSubRate: ({customUnitName, customUnitRateName, removedSubRateName}: RemovedPolicyCustomUnitSubRateParams) =>
-            `removed the sub rate "${removedSubRateName}" from the ${customUnitName} rate "${customUnitRateName}"`,
+            `removed "${customUnitName}" rate "${customUnitRateName}" sub-rate "${removedSubRateName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `added ${fieldType} Report Field "${fieldName}"`,
         updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
             return `changed the index of the ${customUnitName} rate "${customUnitRateName}" to "${newValue}" ${oldValue ? `(previously "${oldValue}")` : ''}`;
@@ -6401,14 +6401,14 @@ const translations = {
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
             `changed the manual approval limit for all expenses to ${newLimit} (previously ${oldLimit})`,
         addBudget: ({frequency, entityName, entityType, shared, individual, notificationThreshold}: AddBudgetParams) => {
-            const notificationThresholdText = notificationThreshold ? ` Notification threshold is set to ${notificationThreshold}%.` : '';
+            const thresholdSuffix = notificationThreshold ? ` with notification threshold of "${notificationThreshold}%"` : '';
             if (typeof shared !== 'undefined' && typeof individual !== 'undefined') {
-                return `added a ${frequency} individual budget of ${individual} and shared budget of ${shared} to the ${entityType} "${entityName}".${notificationThresholdText}`;
+                return `added ${frequency} individual budget of "${individual}" and ${frequency} shared budget of "${shared}"${thresholdSuffix} to the ${entityType} "${entityName}"`;
             }
             if (typeof individual !== 'undefined') {
-                return `added a ${frequency} individual budget of ${individual} to the ${entityType} "${entityName}".${notificationThresholdText}`;
+                return `added ${frequency} individual budget of "${individual}"${thresholdSuffix} to the ${entityType} "${entityName}"`;
             }
-            return `added a ${frequency} shared budget of ${shared} to the ${entityType} "${entityName}".${notificationThresholdText}`;
+            return `added ${frequency} shared budget of "${shared}"${thresholdSuffix} to the ${entityType} "${entityName}"`;
         },
         updateBudget: ({
             entityType,
@@ -6425,43 +6425,39 @@ const translations = {
             const changesList: string[] = [];
 
             if (newFrequency && oldFrequency !== newFrequency) {
-                changesList.push(`frequency from ${oldFrequency} to ${newFrequency}`);
+                changesList.push(`changed budget frequency to "${newFrequency}" (previously "${oldFrequency}")`);
             }
 
             if (newShared && oldShared !== newShared) {
-                changesList.push(`total policy budget from ${oldShared} to ${newShared}`);
+                changesList.push(`changed total workspace budget to "${newShared}" (previously "${oldShared}")`);
             }
 
             if (newIndividual && oldIndividual !== newIndividual) {
-                changesList.push(`individual budget from ${oldIndividual} to ${newIndividual}`);
+                changesList.push(`changed individual budget to "${newIndividual}" (previously "${oldIndividual}")`);
             }
 
             if (newNotificationThreshold && oldNotificationThreshold !== newNotificationThreshold) {
-                changesList.push(`notification threshold from ${oldNotificationThreshold}% to ${newNotificationThreshold}%`);
+                changesList.push(`changed notification threshold to "${newNotificationThreshold}%" (previously "${oldNotificationThreshold}%")`);
             }
 
-            const joined = changesList.join(', ');
+            const joined = changesList.join('; ');
             if (!joined) {
-                return `updated the budget for ${entityType} "${entityName}".`;
+                return `updated budget for the ${entityType} "${entityName}"`;
             }
-            return `updated the budget for ${entityType} "${entityName}". Budget's updated fields: ${joined}.`;
+            return `updated budget for the ${entityType} "${entityName}": ${joined}`;
         },
         deleteBudget: ({entityType, entityName, frequency, individual, shared, notificationThreshold}: DeleteBudgetParams) => {
-            const details: string[] = [];
-            if (frequency) {
-                details.push(`frequency: ${frequency}`);
-            }
-            if (individual) {
-                details.push(`individual budget: ${individual}`);
-            }
-            if (typeof notificationThreshold === 'number') {
-                details.push(`notification threshold: ${notificationThreshold}%`);
+            const thresholdSuffix = typeof notificationThreshold === 'number' ? ` with notification threshold of "${notificationThreshold}%"` : '';
+            if (shared && individual) {
+                return `removed ${frequency} shared budget of "${shared}" and individual budget of "${individual}"${thresholdSuffix} from the ${entityType} "${entityName}"`;
             }
             if (shared) {
-                details.push(`shared budget: ${shared}`);
+                return `removed ${frequency} shared budget of "${shared}"${thresholdSuffix} from the ${entityType} "${entityName}"`;
             }
-            const suffix = details.length ? ` Previous budget details: ${details.join(', ')}.` : '';
-            return `deleted the budget for the ${entityType} "${entityName}".${suffix}`;
+            if (individual) {
+                return `removed ${frequency} individual budget of "${individual}"${thresholdSuffix} from the ${entityType} "${entityName}"`;
+            }
+            return `removed budget from the ${entityType} "${entityName}"`;
         },
         updatedTimeEnabled: ({enabled}: UpdatedPolicyTimeEnabledParams) => {
             return `${enabled ? 'enabled' : 'disabled'} time tracking`;
