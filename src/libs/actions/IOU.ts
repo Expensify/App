@@ -10935,7 +10935,7 @@ function approveMoneyRequest(
 
     let total = expenseReport.total ?? 0;
     const hasHeldExpenses = hasHeldExpensesReportUtils(expenseReport.reportID);
-    const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, currentUserAccountIDParam, expenseReport, policy, allTransactionViolations);
+    const hasDuplicates = hasDuplicateTransactions(currentUserEmailParam, currentUserAccountIDParam, expenseReport, policy);
     if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
         total = expenseReport.unheldTotal;
     }
@@ -11109,18 +11109,11 @@ function approveMoneyRequest(
 
     // Remove duplicates violations if we approve the report
     if (hasDuplicates) {
-        let transactions = getReportTransactions(expenseReport.reportID).filter((transaction) =>
-            isDuplicate(
-                transaction,
-                currentUserEmailParam,
-                currentUserAccountIDParam,
-                expenseReport,
-                policy,
-                allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
-            ),
+        const transactions = getReportTransactions(expenseReport.reportID).filter((transaction) =>
+            isDuplicate(transaction, currentUserEmailParam, currentUserAccountIDParam, expenseReport, policy),
         );
         if (!full) {
-            transactions = transactions.filter((transaction) => !isOnHold(transaction));
+            transactions.filter((transaction) => !isOnHold(transaction));
         }
 
         for (const transaction of transactions) {

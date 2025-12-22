@@ -878,15 +878,13 @@ describe('isReviewDuplicatesAction', () => {
         } as unknown as Transaction;
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
-        const violation = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [
-                {
-                    name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-                } as TransactionViolation,
-            ],
-        };
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, [
+            {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            } as TransactionViolation,
+        ]);
 
-        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, violation)).toBe(true);
+        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined)).toBe(true);
     });
 
     it('should return false when report approver has no duplicated transactions', async () => {
@@ -906,7 +904,7 @@ describe('isReviewDuplicatesAction', () => {
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
 
-        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, undefined)).toBe(false);
+        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined)).toBe(false);
     });
 
     it('should return false when current user is neither the report submitter nor approver', async () => {
@@ -925,16 +923,13 @@ describe('isReviewDuplicatesAction', () => {
         } as unknown as Transaction;
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, [
+            {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            } as TransactionViolation,
+        ]);
 
-        expect(
-            isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined, {
-                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`]: [
-                    {
-                        name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-                    } as TransactionViolation,
-                ],
-            }),
-        ).toBe(false);
+        expect(isReviewDuplicatesAction(report, [transaction], CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, undefined)).toBe(false);
     });
 });
 
@@ -1001,11 +996,13 @@ describe('getTransactionThreadPrimaryAction', () => {
         } as unknown as Transaction;
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
-        const violation = {
-            name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-        } as unknown as TransactionViolation;
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TRANSACTION_ID}`, [
+            {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+            } as TransactionViolation,
+        ]);
 
-        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {} as Report, report, transaction, [violation], policy as Policy, false)).toBe(
+        expect(getTransactionThreadPrimaryAction(CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, {} as Report, report, transaction, [], policy as Policy, false)).toBe(
             CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES,
         );
     });

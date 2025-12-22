@@ -447,7 +447,7 @@ function MoneyReportHeader({
 
     const isFromPaidPolicy = policyType === CONST.POLICY.TYPE.TEAM || policyType === CONST.POLICY.TYPE.CORPORATE;
 
-    const hasDuplicates = hasDuplicateTransactions(email ?? '', accountID, moneyRequestReport, policy, allTransactionViolations);
+    const hasDuplicates = hasDuplicateTransactions(email ?? '', accountID, moneyRequestReport, policy);
     const shouldShowMarkAsResolved = isMarkAsResolvedAction(moneyRequestReport, transactionViolations);
     const shouldShowStatusBar =
         hasAllPendingRTERViolations ||
@@ -674,16 +674,7 @@ function MoneyReportHeader({
     };
 
     const getFirstDuplicateThreadID = (transactionsList: OnyxTypes.Transaction[], allReportActions: OnyxTypes.ReportAction[]) => {
-        const duplicateTransaction = transactionsList.find((reportTransaction) =>
-            isDuplicate(
-                reportTransaction,
-                email ?? '',
-                accountID,
-                moneyRequestReport,
-                policy,
-                allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + reportTransaction.transactionID],
-            ),
-        );
+        const duplicateTransaction = transactionsList.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '', accountID, moneyRequestReport, policy));
         if (!duplicateTransaction) {
             return null;
         }
@@ -998,16 +989,7 @@ function MoneyReportHeader({
                 onPress={() => {
                     let threadID = transactionThreadReportID ?? getFirstDuplicateThreadID(transactions, reportActions);
                     if (!threadID) {
-                        const duplicateTransaction = transactions.find((reportTransaction) =>
-                            isDuplicate(
-                                reportTransaction,
-                                email ?? '',
-                                accountID,
-                                moneyRequestReport,
-                                policy,
-                                allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + reportTransaction.transactionID],
-                            ),
-                        );
+                        const duplicateTransaction = transactions.find((reportTransaction) => isDuplicate(reportTransaction, email ?? '', accountID, moneyRequestReport, policy));
                         const transactionID = duplicateTransaction?.transactionID;
                         const iouAction = getIOUActionForReportID(moneyRequestReport?.reportID, transactionID);
                         const createdTransactionThreadReport = createTransactionThreadReport(moneyRequestReport, iouAction);
