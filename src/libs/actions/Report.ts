@@ -3694,7 +3694,6 @@ function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
 
     if (lastAccessedReportID) {
         // Check if route exists for super wide RHP vs regular full screen report
-        const routeWithLastAccessedReportID = Navigation.getReportRouteByID(lastAccessedReportID);
         const topmostSuperWideRHP = Navigation.getTopmostSuperWideRHPReportID();
 
         if (lastAccessedReportID === topmostSuperWideRHP && !getIsNarrowLayout()) {
