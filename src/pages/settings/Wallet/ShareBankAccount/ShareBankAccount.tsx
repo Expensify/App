@@ -133,11 +133,11 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         if (hasSelectedOptions) {
             setSelectedOptions([]);
         } else {
-            const selectedOptions = adminsList?.map((member) => ({
+            const selectedAllOptions = adminsList?.map((member) => ({
                 ...member,
                 isSelected: true,
             }));
-            setSelectedOptions(selectedOptions);
+            setSelectedOptions(selectedAllOptions);
         }
     };
 
