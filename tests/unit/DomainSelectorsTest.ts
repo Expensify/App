@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector,selectMemberIDs} from '@selectors/Domain';
+import {adminAccountIDsSelector, selectMemberIDs} from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain} from '@src/types/onyx';
@@ -145,4 +145,3 @@ describe('domainSelectors', () => {
         });
     });
 });
-

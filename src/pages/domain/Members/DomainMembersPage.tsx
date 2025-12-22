@@ -1,18 +1,18 @@
+import {selectMemberIDs} from '@selectors/Domain';
 import React from 'react';
-import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
+import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
+import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
-import {selectMemberIDs} from '@selectors/Domain';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
-import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
-import useThemeStyles from '@hooks/useThemeStyles';
-import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type SCREENS from '@src/SCREENS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS>;
 
@@ -23,7 +23,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Gear']);
     const styles = useThemeStyles();
 
-    const [memberIDs,memberMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    const [memberIDs, memberMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: selectMemberIDs,
     });
@@ -34,12 +34,14 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             onPress={() => {}}
             shouldAlwaysShowDropdownMenu
             customText={translate('common.more')}
-            options={[{
-                value: 'leave',
-                text: translate('domain.admins.settings'),
-                icon: icons.Gear,
-                onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
-            }]}
+            options={[
+                {
+                    value: 'leave',
+                    text: translate('domain.admins.settings'),
+                    icon: icons.Gear,
+                    onSelected: () => Navigation.navigate(ROUTES.DOMAIN_MEMBERS_SETTINGS.getRoute(domainAccountID)),
+                },
+            ]}
             isSplitButton={false}
             wrapperStyle={styles.flexGrow1}
         />
@@ -53,7 +55,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             headerTitle={translate('domain.members.title')}
             headerContent={headerContent}
             searchPlaceholder={translate('domain.members.findMember')}
-            onSelectRow={()=>{}}
+            onSelectRow={() => {}}
             headerIcon={illustrations.Members}
         />
     );

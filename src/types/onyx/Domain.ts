@@ -1,7 +1,7 @@
 import type ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxCommon from './OnyxCommon';
-import SecurityGroup from '@src/types/onyx/SecurityGroup';
 import type * as OnyxTypes from '@src/types/onyx/index';
+import SecurityGroup from '@src/types/onyx/SecurityGroup';
+import type * as OnyxCommon from './OnyxCommon';
 
 /**
  * A utility type that creates a record where all keys are strings that start with a specified prefix.

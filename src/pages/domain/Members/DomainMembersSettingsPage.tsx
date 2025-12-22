@@ -1,19 +1,19 @@
+import {domainMemberSettingsSelector} from '@selectors/Domain';
 import React from 'react';
+import {View} from 'react-native';
+import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
+import {Str} from 'expensify-common';
 import useOnyx from '@hooks/useOnyx';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {domainMemberSettingsSelector, twoFactorAuthRequiredSelector} from '@selectors/Domain';
-import BaseDomainSettingsPage from '@pages/domain/BaseDomainSettingsPage';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestError} from '@libs/ErrorUtils';
-
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import type SCREENS from '@src/SCREENS';
+import BaseDomainSettingsPage from '@pages/domain/BaseDomainSettingsPage';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import useThemeStyles from '@hooks/useThemeStyles';
-import domain from '@src/types/onyx/Domain';
-import RenderHTML from '@components/RenderHTML';
-import {View} from 'react-native';
+import {clearToggleTwoFactorAuthRequiredForDomainError, toggleTwoFactorAuthRequiredForDomain} from '@userActions/Domain';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
 
 type DomainMembersSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS_SETTINGS>;
 
@@ -33,6 +33,7 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
         canBeMissing: false,
         selector: domainMemberSettingsSelector,
     });
+    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
 
     return (
         <BaseDomainSettingsPage domainAccountID={domainAccountID}>
@@ -42,10 +43,10 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
                 isActive={!!domainSettings?.twoFactorAuthRequired}
                 disabled={!!domainSettings?.samlEnabled}
                 onToggle={(value) => {
-                    // if (!domain?.email) {
-                    //     return;
-                    // }
-                    // toggleConsolidatedDomainBilling(domainAccountID, Str.extractEmailDomain(domain.email), value);
+                    if (!domain?.email) {
+                        return;
+                    }
+                    toggleTwoFactorAuthRequiredForDomain(domainAccountID, Str.extractEmailDomain(domain.email), value);
                 }}
                 title={translate('domain.members.forceTwoFactorAuth')}
                 subtitle={
@@ -54,9 +55,9 @@ function DomainMembersSettingsPage({route}: DomainMembersSettingsPageProps) {
                     </View>
                 }
                 shouldPlaceSubtitleBelowSwitch
-                // pendingAction={domainPendingActions?.useTechnicalContactBillingCard}
-                // errors={getLatestError(domainErrors?.useTechnicalContactBillingCardErrors)}
-                // onCloseError={() => clearToggleConsolidatedDomainBillingErrors(domainAccountID)}
+                pendingAction={domainPendingActions?.twoFactorAuthRequired}
+                errors={getLatestError(domainErrors?.twoFactorAuthRequiredErrors)}
+                onCloseError={() => clearToggleTwoFactorAuthRequiredForDomainError(domainAccountID)}
             />
         </BaseDomainSettingsPage>
     );

@@ -8,6 +8,11 @@ type DomainPendingAction = {
      * Pending action for the technical contact email
      */
     technicalContactEmail?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for the 2FA toggle
+     */
+    twoFactorAuthRequired?: OnyxCommon.PendingAction;
 };
 
 export default DomainPendingAction;
