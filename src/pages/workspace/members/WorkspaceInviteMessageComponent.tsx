@@ -25,7 +25,6 @@ import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/action
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
