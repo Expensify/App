@@ -32,7 +32,6 @@ import editedLabelStyles from './utils/editedLabelStyles';
 import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
-import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -511,6 +510,13 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
+        textMicroBoldSupporting: {
+            color: theme.textSupporting,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightNormal,
+        },
+
         textMicroSupporting: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -935,6 +941,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.activeComponentBG,
         },
 
+        messagesRowHeight: {
+            height: variables.componentSizeXSmall,
+        },
+
         touchableButtonImage: {
             alignItems: 'center',
             height: variables.componentSizeNormal,
@@ -1255,6 +1265,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: 'transparent',
         },
 
+        removeSpacing: {
+            marginVertical: 0,
+            paddingHorizontal: 0,
+        },
+
         outlinedButton: {
             backgroundColor: 'transparent',
             borderColor: theme.border,
@@ -1263,6 +1278,20 @@ const staticStyles = (theme: ThemeColors) =>
 
         optionRowAmountInput: {
             textAlign: 'right',
+        },
+
+        optionRowAmountMobileInputContainer: {
+            width: variables.splitExpenseAmountMobileWidth,
+        },
+
+        optionRowPercentInputContainer: {
+            width: variables.splitExpensePercentageMobileWidth,
+        },
+
+        optionRowPercentInput: {
+            width: variables.splitExpensePercentageWidth,
+            textAlign: 'right',
+            marginRight: 2,
         },
 
         textInputLabelContainer: {
@@ -1905,7 +1934,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.contentHeaderHeight,
             justifyContent: 'center',
             paddingRight: 10,
-            paddingLeft: 20,
         },
 
         chatContentScrollView: {
@@ -4567,6 +4595,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 32,
         },
 
+        tableHeaderIconSpacing: {
+            marginRight: variables.iconSizeExtraSmall,
+            marginBottom: 1,
+            marginTop: 1,
+        },
+
         cardItemSecondaryIconStyle: {
             position: 'absolute',
             bottom: -4,
@@ -5022,6 +5056,15 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.updateTextViewContainerWidth,
         },
 
+        desktopAppRetiredIllustration: {
+            width: variables.desktopAppRetiredIllustrationW,
+            height: variables.desktopAppRetiredIllustrationH,
+        },
+
+        desktopAppRetiredViewTextContainer: {
+            width: variables.desktopAppRetiredViewContainerWidth,
+        },
+
         twoFARequiredContainer: {
             maxWidth: 520,
             margin: 'auto',
@@ -5063,6 +5106,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: 254,
             height: 165,
             marginBottom: 12,
+        },
+
+        travelCardIllustration: {
+            width: 191,
+            height: 170,
         },
 
         emptyStateMoneyRequestReport: {
@@ -5269,8 +5317,8 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 16,
         },
 
-        // We have to use 10000 here as sidePanel has to be displayed on top of modals which have z-index of 9999
-        sidePanelContainer: {zIndex: 10000},
+        // We have to use 9998 here as sidePanel has to be displayed right under popovers which have z-index of 9999
+        sidePanelContainer: {zIndex: variables.sidePanelZIndex},
 
         reportPreviewArrowButton: {
             borderRadius: 50,
@@ -5398,17 +5446,24 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         wideRHPExtendedCardInterpolatorStyles: {
-            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            position: 'absolute',
             height: '100%',
             right: 0,
             width: animatedWideRHPWidth,
         },
 
         superWideRHPExtendedCardInterpolatorStyles: {
-            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            position: 'absolute',
             height: '100%',
             right: 0,
             width: animatedSuperWideRHPWidth,
+        },
+
+        singleRHPExtendedCardInterpolatorStyles: {
+            position: 'absolute',
+            height: '100%',
+            right: 0,
+            width: variables.sideBarWidth,
         },
 
         flexibleHeight: {
@@ -5598,7 +5653,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             paddingBottom: bottomSafeAreaOffset,
         }),
 
-        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number) => ({
+        getSplitListItemAmountStyle: (inputMarginLeft: number, amountWidth: number | string) => ({
             marginLeft: inputMarginLeft,
             width: amountWidth,
             marginRight: 4,
@@ -5681,27 +5736,14 @@ const dynamicStyles = (theme: ThemeColors) =>
                 vertical: windowHeight - (variables.fabBottom + variables.componentSizeNormal + 12),
             }) satisfies AnchorPosition,
 
-        createAccountMenuPositionProfile: () =>
-            ({
-                horizontal: 18,
-                ...getPopOverVerticalOffset(202 + 40),
-            }) satisfies AnchorPosition,
-
-        createMenuPositionReportActionCompose: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
-            ({
-                // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
-                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWithLHBWidth : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) + 18,
-                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
-            }) satisfies AnchorPosition,
-
         overlayStyles: ({
             progress,
             positionLeftValue,
             positionRightValue,
         }: {
             progress: OverlayStylesParams;
-            positionLeftValue: number | Animated.Value;
-            positionRightValue: number | Animated.Value;
+            positionLeftValue: number | Animated.Value | Animated.AnimatedAddition<number>;
+            positionRightValue: number | Animated.Value | Animated.AnimatedAddition<number>;
         }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
@@ -5876,10 +5918,10 @@ const dynamicStyles = (theme: ThemeColors) =>
             }) satisfies ViewStyle,
 
         sidePanelOverlayOpacity: (isOverlayVisible: boolean) => ({
-            opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
+            opacity: isOverlayVisible ? variables.overlayOpacity : 0,
         }),
         sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
-            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            width: shouldUseNarrowLayout ? '100%' : variables.sidePanelWidth,
         }),
         sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
