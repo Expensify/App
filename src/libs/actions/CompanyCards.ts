@@ -19,7 +19,6 @@ import {getCompanyCardFeedWithDomainID} from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,6 +72,7 @@ function clearAddNewCardFlow() {
 
 function addNewCompanyCardsFeed(
     policyID: string | undefined,
+    workspaceAccountID: number,
     cardFeed: CompanyCardFeed,
     feedDetails: CardFeedDetails,
     cardFeeds: OnyxEntry<CombinedCardFeeds>,
@@ -81,7 +81,6 @@ function addNewCompanyCardsFeed(
     lastSelectedFeed?: CompanyCardFeedWithDomainID,
 ) {
     const authToken = NetworkStore.getAuthToken();
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     if (!authToken || !policyID) {
         return;
