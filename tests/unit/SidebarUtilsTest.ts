@@ -1969,6 +1969,7 @@ describe('SidebarUtils', () => {
                         currency: 'USD',
                         message: '',
                         to: 'email1@test.com',
+                        workflow: CONST.POLICY.APPROVAL_MODE.BASIC,
                     },
                     previousMessage: undefined,
                     automatic: false,

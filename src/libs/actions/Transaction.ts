@@ -52,7 +52,7 @@ import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTagsData} from './Policy/Tag';
 import {getCurrentUserAccountID} from './Report';
 
-const allTransactions: Record<string, Transaction> = {};
+const allTransactions: OnyxCollection<Transaction> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
     callback: (transaction, key) => {
@@ -398,7 +398,7 @@ function dismissDuplicateTransactionViolation(
 ) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
-    const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction.reportID, transaction.transactionID));
+    const transactionsReportActions = currentTransactions.map((transaction) => getIOUActionForReportID(transaction?.reportID, transaction?.transactionID));
     const optimisticDismissedViolationReportActions = transactionsReportActions.map(() => {
         return buildOptimisticDismissedViolationReportAction({reason: 'manual', violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION});
     });
@@ -501,11 +501,11 @@ function dismissDuplicateTransactionViolation(
 
     const optimisticDataTransactions: OnyxUpdate[] = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
         value: {
             ...transaction,
             comment: {
-                ...transaction.comment,
+                ...transaction?.comment,
                 dismissedViolations: {
                     duplicatedTransaction: {
                         [dismissedPersonalDetails.login ?? '']: getUnixTime(new Date()),
@@ -526,7 +526,7 @@ function dismissDuplicateTransactionViolation(
 
     const failureDataTransaction: OnyxUpdate[] = currentTransactions.map((transaction) => ({
         onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
         value: {
             ...transaction,
         },
@@ -823,6 +823,23 @@ function changeTransactionsReport(
         const oldReportID = isUnreportedExpense ? CONST.REPORT.UNREPORTED_REPORT_ID : transaction.reportID;
         const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
 
+        const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        const optimisticMoneyRequestReportActionID = rand64();
+
+        const originalMessage = getOriginalMessage(oldIOUAction) as OriginalMessageIOU;
+        const newIOUAction = {
+            ...oldIOUAction,
+            originalMessage: {
+                ...originalMessage,
+                IOUReportID: reportID,
+                type: isUnreported ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            },
+            reportActionID: optimisticMoneyRequestReportActionID,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            actionName: oldIOUAction?.actionName ?? CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+            created: oldIOUAction?.created ?? DateUtils.getDBTime(),
+        };
+
         // 1. Optimistically change the reportID on the passed transactions
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -832,6 +849,7 @@ function changeTransactionsReport(
                 comment: {
                     hold: null,
                 },
+                ...(oldIOUAction ? {linkedTrackedExpenseReportAction: newIOUAction} : {}),
             },
         });
 
@@ -940,7 +958,6 @@ function changeTransactionsReport(
         const allowNegative = shouldEnableNegative(newReport);
 
         // 3. Keep track of the new report totals
-        const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = isUnreported ? selfDMReportID : reportID;
         const {amount: transactionAmount = 0, currency: transactionCurrency} = getTransactionDetails(transaction, undefined, undefined, allowNegative) ?? {};
         const oldReportTotal = oldReport?.total ?? 0;
@@ -974,22 +991,6 @@ function changeTransactionsReport(
         }
 
         // 4. Optimistically update the IOU action reportID
-        const optimisticMoneyRequestReportActionID = rand64();
-
-        const originalMessage = getOriginalMessage(oldIOUAction) as OriginalMessageIOU;
-        const newIOUAction = {
-            ...oldIOUAction,
-            originalMessage: {
-                ...originalMessage,
-                IOUReportID: reportID,
-                type: isUnreported ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            },
-            reportActionID: optimisticMoneyRequestReportActionID,
-            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            actionName: oldIOUAction?.actionName ?? CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
-            created: oldIOUAction?.created ?? DateUtils.getDBTime(),
-        };
-
         const trackExpenseActionableWhisper = isUnreportedExpense ? getTrackExpenseActionableWhisper(transaction.transactionID, selfDMReportID) : undefined;
 
         if (oldIOUAction) {
@@ -1313,7 +1314,7 @@ function changeTransactionsReport(
             (affectedReportID === selfDMReport?.reportID ? selfDMReport : undefined);
 
         if (!affectedReport) {
-            return;
+            continue;
         }
 
         const updatedTotal = updatedReportTotals[affectedReportID] ?? affectedReport.total;
