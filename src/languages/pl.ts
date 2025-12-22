@@ -7944,7 +7944,7 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             settings: 'Ustawienia',
             consolidatedDomainBilling: 'Skonsolidowane rozliczanie domen',
             consolidatedDomainBillingDescription: (domainName: string) =>
-                `Gdy ta opcja jest włączona, główny kontakt będzie opłacać wszystkie przestrzenie robocze należące do członków <strong>${domainName}</strong> i otrzymywać wszystkie potwierdzenia rozliczeń.`,
+                `<comment><muted-text-label>Gdy ta opcja jest włączona, główny kontakt będzie opłacać wszystkie przestrzenie robocze należące do członków <strong>${domainName}</strong> i otrzymywać wszystkie potwierdzenia rozliczeń.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Nie udało się zmienić zbiorczego rozliczania domeny. Spróbuj ponownie później.',
         },
     },

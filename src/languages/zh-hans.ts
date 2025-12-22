@@ -7773,7 +7773,8 @@ ${reportName}
             addPrimaryContact: '添加主要联系人',
             settings: '设置',
             consolidatedDomainBilling: '合并域名结算',
-            consolidatedDomainBillingDescription: (domainName: string) => `启用后，主要联系人将为<strong>${domainName}</strong>成员拥有的所有工作区付款，并接收所有账单收据。`,
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>启用后，主要联系人将为<strong>${domainName}</strong>成员拥有的所有工作区付款，并接收所有账单收据。</muted-text-label></comment>`,
             consolidatedDomainBillingError: '无法更改合并域账单。请稍后重试。',
         },
     },

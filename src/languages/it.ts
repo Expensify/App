@@ -7973,7 +7973,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             settings: 'Impostazioni',
             consolidatedDomainBilling: 'Fatturazione consolidata del dominio',
             consolidatedDomainBillingDescription: (domainName: string) =>
-                `Quando abilitata, il contatto principale pagherà per tutti gli spazi di lavoro di proprietà dei membri di <strong>${domainName}</strong> e riceverà tutte le ricevute di fatturazione.`,
+                `<comment><muted-text-label>Quando abilitata, il contatto principale pagherà per tutti gli spazi di lavoro di proprietà dei membri di <strong>${domainName}</strong> e riceverà tutte le ricevute di fatturazione.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'La fatturazione dominio consolidata non può essere modificata. Riprova più tardi.',
         },
     },

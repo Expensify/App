@@ -1,9 +1,11 @@
 import {technicalContactSettingsSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
 import React from 'react';
+import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -77,7 +79,11 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                         toggleConsolidatedDomainBilling(domainAccountID, Str.extractEmailDomain(domain.email), value);
                     }}
                     title={translate('domain.admins.consolidatedDomainBilling')}
-                    subtitle={translate('domain.admins.consolidatedDomainBillingDescription', domain?.email ? Str.extractEmailDomain(domain.email) : '')}
+                    subtitle={
+                        <View style={[styles.flexRow, styles.renderHTML, styles.mt1]}>
+                            <RenderHTML html={translate('domain.admins.consolidatedDomainBillingDescription', domain?.email ? Str.extractEmailDomain(domain.email) : '')} />
+                        </View>
+                    }
                     shouldPlaceSubtitleBelowSwitch
                     pendingAction={domainPendingActions?.useTechnicalContactBillingCard}
                     errors={getLatestError(domainErrors?.useTechnicalContactBillingCardErrors)}

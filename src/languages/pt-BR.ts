@@ -7950,7 +7950,7 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             settings: 'Configurações',
             consolidatedDomainBilling: 'Cobrança consolidada de domínio',
             consolidatedDomainBillingDescription: (domainName: string) =>
-                `Quando ativado, o contato principal pagará por todos os espaços de trabalho pertencentes aos membros de <strong>${domainName}</strong> e receberá todos os recibos de cobrança.`,
+                `<comment><muted-text-label>Quando ativado, o contato principal pagará por todos os espaços de trabalho pertencentes aos membros de <strong>${domainName}</strong> e receberá todos os recibos de cobrança.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'A cobrança de domínio consolidada não pôde ser alterada. Tente novamente mais tarde.',
         },
     },
