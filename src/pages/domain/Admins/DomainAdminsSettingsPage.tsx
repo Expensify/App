@@ -28,7 +28,6 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         canBeMissing: true,
