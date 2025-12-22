@@ -66,6 +66,8 @@ function useSelectedTransactionsActions({
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID, {canBeMissing: true});
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
@@ -174,7 +176,7 @@ function useSelectedTransactionsActions({
         }
         const options = [];
 
-        const canEditMultiple = canEditMultipleTransactions(selectedTransactionsList);
+        const canEditMultiple = canEditMultipleTransactions(selectedTransactionsList, allReportActions, allReports, allPolicies);
 
         if (canEditMultiple) {
             options.push({
@@ -408,6 +410,8 @@ function useSelectedTransactionsActions({
         lastVisitedPath,
         allTransactions,
         allReports,
+        allReportActions,
+        allPolicies,
         session?.accountID,
         showDeleteModal,
         expensifyIcons,
