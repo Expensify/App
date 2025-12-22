@@ -7830,6 +7830,7 @@ const translations = {
             findMember: 'Find member',
             addMember: 'Add member',
             invite: 'Invite',
+            email: 'Email address'
         }
     },
 };

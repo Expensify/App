@@ -1,5 +1,6 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState, useEffect} from 'react';
+import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -22,13 +23,21 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const domainAccountID = route.params.accountID;
+    const domainAccountID = route.params.domainAccountID;
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
-
 
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
     const domainSuffix = useMemo(() => (domainName ? `@${domainName}` : ''), [domainName]);
+
     const [email, setEmail] = useState(domainSuffix);
+    const [selection, setSelection] = useState({start: 0, end: 0});
+
+    useEffect(() => {
+        setEmail(domainSuffix);
+        setSelection({start: 0, end: 0});
+    }, [domainSuffix]);
+
+    const maxCursorPosition = Math.max(0, email.length - domainSuffix.length);
 
     const handleInputChange = useCallback((value: string) => {
         if (!domainName) {
@@ -36,18 +45,33 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
             return;
         }
 
-        const loginPart = value.replace(domainSuffix, '').split('@').at(0);
+        const loginPart = value.replace(domainSuffix, '').split('@').at(0) ?? '';
 
         if (loginPart === '') {
-            setEmail('');
+            setEmail(domainSuffix);
+            setSelection({start: 0, end: 0});
         } else {
             setEmail(`${loginPart}${domainSuffix}`);
         }
     }, [domainName, domainSuffix]);
 
-    const inviteUser = useCallback(() => {
+    const handleSelectionChange = useCallback((event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+        const {start, end} = event.nativeEvent.selection;
 
-        }, [email, domainSuffix]);
+        if (start > maxCursorPosition || end > maxCursorPosition) {
+            const constrainedPosition = Math.min(start, end, maxCursorPosition);
+            setSelection({
+                start: constrainedPosition,
+                end: constrainedPosition,
+            });
+        } else {
+            setSelection({start, end});
+        }
+    }, [maxCursorPosition]);
+
+    const inviteUser = useCallback(() => {
+        // invite logic
+    }, []);
 
     const isButtonDisabled = !email || email === domainSuffix || !email.includes('@');
 
@@ -68,9 +92,11 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
             <View style={[styles.flex1, styles.p5]}>
                 <TextInput
                     accessibilityLabel="Text input field"
-                    label={translate('selectionList.nameEmailOrPhoneNumber')}
+                    label={`${translate('domain.members.email')} at domain ${domainName}`}
                     value={email}
                     onChangeText={handleInputChange}
+                    selection={selection}
+                    onSelectionChange={handleSelectionChange}
                     placeholder={domainSuffix}
                     autoCapitalize="none"
                     spellCheck={false}
@@ -82,7 +108,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
             <FormAlertWithSubmitButton
                 isDisabled={isButtonDisabled}
                 isAlertVisible={false}
-                buttonText={translate('domain.members.invite')}
+                buttonText={translate('common.invite')}
                 onSubmit={inviteUser}
                 containerStyles={[styles.p5]}
                 enabledWhenOffline

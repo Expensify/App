@@ -416,6 +416,87 @@ function clearSetPrimaryContactError(domainAccountID: number) {
     });
 }
 
+function addMemberToDomain(domainAccountID: number, accountID: number, targetEmail: string, domainName: string) {
+    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}${1}`;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [PERMISSION_KEY]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [PERMISSION_KEY]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                admin: {
+                    [accountID]: null,
+                },
+            },
+        },
+    ];
+
+    // Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    //     [PERMISSION_KEY]: accountID,
+    // });
+    //
+    // Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+    //     adminErrors: {
+    //         [accountID]: {
+    //             12334: 'Adding admin ends with failure, great success!',
+    //         },
+    //     },
+    // });
+    //
+    // Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+    //     admin: {
+    //         [accountID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    //     },
+    // });
+
+    const authToken = NetworkStore.getAuthToken();
+    const params: AddAdminToDomainParams = {
+        authToken,
+        domainName,
+        targetEmail,
+    };
+
+    API.write(WRITE_COMMANDS.ADD_DOMAIN_ADMIN, params, {optimisticData, successData, failureData});
+}
+
 export {
     getDomainValidationCode,
     validateDomain,

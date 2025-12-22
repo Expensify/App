@@ -1343,7 +1343,7 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
     };
     [SCREENS.DOMAIN.ADD_MEMBER]: {
-        accountID: number;
+        domainAccountID: number;
     };
 } & ReimbursementAccountNavigatorParamList;
 
