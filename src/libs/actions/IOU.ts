@@ -4606,14 +4606,21 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 [updatedReportAction.reportActionID]: {pendingAction: null},
             },
         });
+
+        // Don't push error to failureData when updating distance requests
+        // The error will be handled by API response for distance requests
+        const isDistanceTransaction = transaction && isDistanceRequestTransactionUtils(transaction);
+
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
             value: {
-                [updatedReportAction.reportActionID]: {
-                    ...(updatedReportAction as OnyxTypes.ReportAction),
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
-                },
+                [updatedReportAction.reportActionID]: isDistanceTransaction
+                    ? null
+                    : {
+                          ...(updatedReportAction as OnyxTypes.ReportAction),
+                          errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
+                      },
             },
         });
     }

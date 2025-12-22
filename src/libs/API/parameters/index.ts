@@ -450,6 +450,7 @@ export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
+export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleConsolidatedDomainBillingParams';
 export type {default as RegisterBiometricsParams} from './RegisterBiometricsParams';
 export type {default as AuthorizeTransactionParams} from './AuthorizeTransactionParams';
 export type {default as BiometricsTestParams} from './BiometricsTestParams';
