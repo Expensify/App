@@ -242,6 +242,7 @@ function MoneyReportHeader({
         'CheckmarkCircle',
         'ReceiptMultiple',
         'ReceiptPlus',
+        'DocumentCheck',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
@@ -1088,6 +1089,7 @@ function MoneyReportHeader({
               onPartialApprove: () => onApprove(false),
               onFullApprove: () => onApprove(true),
               translate,
+              illustrations: expensifyIcons,
           })
         : [];
 
