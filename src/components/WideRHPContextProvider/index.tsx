@@ -112,6 +112,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         return !!focusedRoute?.key && allWideRHPRouteKeys.includes(focusedRoute.key);
     }, [focusedRoute?.key, allWideRHPRouteKeys]);
 
+    const isSuperWideRHPFocused = useMemo(() => {
+        return !!focusedRoute?.key && allSuperWideRHPRouteKeys.includes(focusedRoute.key);
+    }, [focusedRoute?.key, allSuperWideRHPRouteKeys]);
+
     const isRHPFocused = focusedNavigator === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 
     // Whether Wide RHP is displayed below the currently displayed screen
@@ -322,6 +326,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
+            isSuperWideRHPFocused,
             syncRHPKeys,
             clearWideRHPKeys,
         }),
@@ -342,6 +347,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
             isReportIDMarkedAsExpense,
             isReportIDMarkedAsMultiTransactionExpense,
             isWideRHPFocused,
+            isSuperWideRHPFocused,
             syncRHPKeys,
             clearWideRHPKeys,
         ],
