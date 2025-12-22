@@ -2024,10 +2024,12 @@ describe('OptionsListUtils', () => {
 
         it('should not return userToInvite for plain text name when shouldAcceptName is false', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, {includeUserToInvite: true});
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
+                includeUserToInvite: true,
+            });
 
             // When we call filterAndOrderOptions with a plain text name (not email or phone) without shouldAcceptName
-            const filteredOptions = filterAndOrderOptions(options, 'Jeff Amazon', COUNTRY_CODE, {shouldAcceptName: false});
+            const filteredOptions = filterAndOrderOptions(options, 'Jeff Amazon', jest.fn(), COUNTRY_CODE, {shouldAcceptName: false});
 
             // Then userToInvite should be null since plain names are not accepted by default
             expect(filteredOptions?.userToInvite).toBe(null);
@@ -2035,10 +2037,12 @@ describe('OptionsListUtils', () => {
 
         it('should return userToInvite for plain text name when shouldAcceptName is true', () => {
             // Given a set of options
-            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, {includeUserToInvite: true});
+            const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
+                includeUserToInvite: true,
+            });
 
             // When we call filterAndOrderOptions with a plain text name (not email or phone) with shouldAcceptName
-            const filteredOptions = filterAndOrderOptions(options, 'Jeff', COUNTRY_CODE, {shouldAcceptName: true});
+            const filteredOptions = filterAndOrderOptions(options, 'Jeff', jest.fn(), COUNTRY_CODE, {shouldAcceptName: true});
 
             // Then userToInvite should be returned for the plain name
             expect(filteredOptions?.userToInvite?.text).toBe('jeff');
@@ -2911,7 +2915,7 @@ describe('OptionsListUtils', () => {
             });
 
             // When getting the last message text for the report
-            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false, policyTags: undefined, translate: jest.fn()});
 
             // Then it should return the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED message
             expect(lastMessage).toBe(Parser.htmlToText(getDynamicExternalWorkflowRoutedMessage(action, translateLocal)));
