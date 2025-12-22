@@ -212,8 +212,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                                     <ErrorMessageRow
                                         errors={sharedBankAccountData?.errors}
                                         errorRowStyles={[styles.mv3]}
-                                        onClose={clearShareBankAccountErrors}
-                                        canDismissError
+                                        onDismiss={clearShareBankAccountErrors}
                                     />
                                 }
                                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
