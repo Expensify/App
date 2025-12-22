@@ -1,6 +1,6 @@
 /* eslint-disable rulesdir/no-negated-variables */
 import type {ComponentType} from 'react';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
@@ -48,7 +48,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
         const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
         const parentReportAction = useParentReportAction(report);
-        const linkedReportAction = useMemo(() => {
+        const linkedReportAction = (() => {
             let reportAction: OnyxEntry<OnyxTypes.ReportAction> = reportActions?.[`${props.route.params.reportActionID}`];
 
             // Handle threads if needed
@@ -57,7 +57,7 @@ export default function <TProps extends WithReportAndReportActionOrNotFoundProps
             }
 
             return reportAction;
-        }, [reportActions, props.route.params.reportActionID, parentReportAction]);
+        })();
 
         const {shouldUseNarrowLayout} = useResponsiveLayout();
 

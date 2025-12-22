@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import AutoUpdateTime from '@components/AutoUpdateTime';
@@ -77,14 +77,14 @@ function ProfilePage({route}: ProfilePageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bug', 'Pencil', 'Phone']);
     const accountID = Number(route.params?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isCurrentUser = session?.accountID === accountID;
-    const reportKey = useMemo(() => {
+    const reportKey = (() => {
         const reportID = isCurrentUser ? findSelfDMReportID() : getChatByParticipants(session?.accountID ? [accountID, session.accountID] : [], reports)?.reportID;
 
         if (isAnonymousUserSession() || !reportID) {
             return `${ONYXKEYS.COLLECTION.REPORT}0` as const;
         }
         return `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
-    }, [accountID, isCurrentUser, reports, session?.accountID]);
+    })();
 
     const [report] = useOnyx(reportKey, {canBeMissing: true});
 
@@ -94,7 +94,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const isValidAccountID = isValidAccountRoute(accountID);
     const loginParams = route.params?.login;
 
-    const details = useMemo((): OnyxEntry<PersonalDetails> => {
+    const details = ((): OnyxEntry<PersonalDetails> => {
         // Check if we have the personal details already in Onyx
         if (personalDetails?.[accountID]) {
             return personalDetails?.[accountID] ?? undefined;
@@ -111,7 +111,7 @@ function ProfilePage({route}: ProfilePageProps) {
         // If we don't have the personal details in Onyx, we can create an optimistic account
         const optimisticAccountID = generateAccountID(loginParams);
         return {accountID: optimisticAccountID, login: loginParams, displayName: loginParams};
-    }, [personalDetails, accountID, loginParams, isValidAccountID]);
+    })();
 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(details, undefined, undefined, isCurrentUser, translate('common.you').toLowerCase()));
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -160,7 +160,7 @@ function ProfilePage({route}: ProfilePageProps) {
         }
     }, [accountID, loginParams, isConcierge]);
 
-    const promotedActions = useMemo(() => {
+    const promotedActions = (() => {
         const result: PromotedAction[] = [];
         if (report) {
             result.push(PromotedActions.pin(report));
@@ -171,7 +171,7 @@ function ProfilePage({route}: ProfilePageProps) {
             result.push(PromotedActions.message({reportID: report?.reportID, accountID, login: loginParams, personalDetails}));
         }
         return result;
-    }, [accountID, isCurrentUser, loginParams, report, personalDetails]);
+    })();
 
     return (
         <ScreenWrapper testID="ProfilePage">

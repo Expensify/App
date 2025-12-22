@@ -3,7 +3,7 @@ import reportsSelector from '@selectors/Attributes';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
 import type {Ref} from 'react';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -122,15 +122,13 @@ function useOptions() {
         selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
     );
 
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => {
-                setDidScreenTransitionEnd(true);
-            }, CONST.ANIMATED_TRANSITION);
+    useFocusEffect(() => {
+        focusTimeoutRef.current = setTimeout(() => {
+            setDidScreenTransitionEnd(true);
+        }, CONST.ANIMATED_TRANSITION);
 
-            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, []),
-    );
+        return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+    });
 
     useEffect(() => {
         if (!debouncedSearchTerm.length) {
@@ -249,7 +247,7 @@ function NewChatPage({ref}: NewChatPageProps) {
         areOptionsInitialized,
     } = useOptions();
 
-    const [sections, firstKeyForList] = useMemo(() => {
+    const [sections, firstKeyForList] = (() => {
         const sectionsList: Section[] = [];
         let firstKey = '';
 
@@ -299,112 +297,103 @@ function NewChatPage({ref}: NewChatPageProps) {
         }
 
         return [sectionsList, firstKey];
-    }, [debouncedSearchTerm, selectedOptions, recentReports, personalDetails, reportAttributesDerived, translate, userToInvite]);
+    })();
 
     /**
      * Removes a selected option from list if already selected. If not already selected add this option to the list.
      */
-    const toggleOption = useCallback(
-        (option: ListItem & Partial<OptionData>) => {
-            const isOptionInList = !!option.isSelected;
+    const toggleOption = (option: ListItem & Partial<OptionData>) => {
+        const isOptionInList = !!option.isSelected;
 
-            let newSelectedOptions: SelectedOption[];
+        let newSelectedOptions: SelectedOption[];
 
-            if (isOptionInList) {
-                newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
-            } else {
-                newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID}];
-                selectionListRef?.current?.scrollToIndex(0, true);
-            }
+        if (isOptionInList) {
+            newSelectedOptions = reject(selectedOptions, (selectedOption) => selectedOption.login === option.login);
+        } else {
+            newSelectedOptions = [...selectedOptions, {...option, isSelected: true, selected: true, reportID: option.reportID}];
+            selectionListRef?.current?.scrollToIndex(0, true);
+        }
 
-            selectionListRef?.current?.clearInputAfterSelect?.();
-            if (!canUseTouchScreen()) {
-                selectionListRef.current?.focusTextInput();
-            }
-            setSelectedOptions(newSelectedOptions);
-        },
-        [selectedOptions, setSelectedOptions],
-    );
+        selectionListRef?.current?.clearInputAfterSelect?.();
+        if (!canUseTouchScreen()) {
+            selectionListRef.current?.focusTextInput();
+        }
+        setSelectedOptions(newSelectedOptions);
+    };
 
     /**
      * If there are selected options already then it will toggle the option otherwise
      * creates a new 1:1 chat with the option and the current user,
      * or navigates to the existing chat if one with those participants already exists.
      */
-    const selectOption = useCallback(
-        (option?: Option) => {
-            if (option?.isSelfDM) {
-                if (!option.reportID) {
-                    Navigation.dismissModal();
-                    return;
-                }
-                Navigation.dismissModalWithReport({reportID: option.reportID});
+    const selectOption = (option?: Option) => {
+        if (option?.isSelfDM) {
+            if (!option.reportID) {
+                Navigation.dismissModal();
                 return;
             }
-            if (selectedOptions.length && option) {
-                // Prevent excluded emails from being added to groups
-                if (option?.login && excludedGroupEmails.has(option.login)) {
-                    return;
-                }
-                toggleOption(option);
+            Navigation.dismissModalWithReport({reportID: option.reportID});
+            return;
+        }
+        if (selectedOptions.length && option) {
+            // Prevent excluded emails from being added to groups
+            if (option?.login && excludedGroupEmails.has(option.login)) {
                 return;
             }
+            toggleOption(option);
+            return;
+        }
 
-            let login = '';
+        let login = '';
 
-            if (option?.login) {
-                login = option.login;
-            } else if (selectedOptions.length === 1) {
-                login = selectedOptions.at(0)?.login ?? '';
-            }
-            if (!login) {
-                Log.warn('Tried to create chat with empty login');
-                return;
-            }
-            KeyboardUtils.dismiss().then(() => {
-                singleExecution(() => navigateToAndOpenReport([login], allPersonalDetails))();
-            });
-        },
-        [selectedOptions, toggleOption, singleExecution, allPersonalDetails],
-    );
+        if (option?.login) {
+            login = option.login;
+        } else if (selectedOptions.length === 1) {
+            login = selectedOptions.at(0)?.login ?? '';
+        }
+        if (!login) {
+            Log.warn('Tried to create chat with empty login');
+            return;
+        }
+        KeyboardUtils.dismiss().then(() => {
+            singleExecution(() => navigateToAndOpenReport([login], allPersonalDetails))();
+        });
+    };
 
-    const itemRightSideComponent = useCallback(
-        (item: ListItem & Option, isFocused?: boolean) => {
-            if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login))) {
-                return null;
-            }
+    const itemRightSideComponent = (item: ListItem & Option, isFocused?: boolean) => {
+        if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login))) {
+            return null;
+        }
 
-            if (item.isSelected) {
-                return (
-                    <PressableWithFeedback
-                        onPress={() => toggleOption(item)}
-                        disabled={item.isDisabled}
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={CONST.ROLE.BUTTON}
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
-                    >
-                        <SelectCircle
-                            isChecked={item.isSelected}
-                            selectCircleStyles={styles.ml0}
-                        />
-                    </PressableWithFeedback>
-                );
-            }
-            const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
+        if (item.isSelected) {
             return (
-                <Button
+                <PressableWithFeedback
                     onPress={() => toggleOption(item)}
-                    style={[styles.pl2]}
-                    text={translate('newChatPage.addToGroup')}
-                    innerStyles={buttonInnerStyles}
-                    small
-                />
+                    disabled={item.isDisabled}
+                    role={CONST.ROLE.BUTTON}
+                    accessibilityLabel={CONST.ROLE.BUTTON}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.ml5, styles.optionSelectCircle]}
+                >
+                    <SelectCircle
+                        isChecked={item.isSelected}
+                        selectCircleStyles={styles.ml0}
+                    />
+                </PressableWithFeedback>
             );
-        },
-        [toggleOption, styles.alignItemsCenter, styles.buttonDefaultHovered, styles.flexRow, styles.ml0, styles.ml5, styles.optionSelectCircle, styles.pl2, translate],
-    );
+        }
+        const buttonInnerStyles = isFocused ? styles.buttonDefaultHovered : {};
+        return (
+            <Button
+                onPress={() => toggleOption(item)}
+                style={[styles.pl2]}
+                text={translate('newChatPage.addToGroup')}
+                innerStyles={buttonInnerStyles}
+                small
+            />
+        );
+    };
 
-    const createGroup = useCallback(() => {
+    const createGroup = () => {
         if (!personalData || !personalData.login || !personalData.accountID) {
             return;
         }
@@ -416,30 +405,26 @@ function NewChatPage({ref}: NewChatPageProps) {
         setGroupDraft({participants: logins});
         Keyboard.dismiss();
         Navigation.navigate(ROUTES.NEW_CHAT_CONFIRM);
-    }, [selectedOptions, personalData]);
+    };
     const {isDismissed} = useDismissedReferralBanners({referralContentType: CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT});
 
-    const footerContent = useMemo(
-        () =>
-            (!isDismissed || selectedOptions.length > 0) && (
-                <>
-                    <ReferralProgramCTA
-                        referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
-                        style={selectedOptions.length ? styles.mb5 : undefined}
-                    />
+    const footerContent = (!isDismissed || selectedOptions.length > 0) && (
+        <>
+            <ReferralProgramCTA
+                referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.START_CHAT}
+                style={selectedOptions.length ? styles.mb5 : undefined}
+            />
 
-                    {!!selectedOptions.length && (
-                        <Button
-                            success
-                            large
-                            text={translate('common.next')}
-                            onPress={createGroup}
-                            pressOnEnter
-                        />
-                    )}
-                </>
-            ),
-        [createGroup, selectedOptions.length, styles.mb5, translate, isDismissed],
+            {!!selectedOptions.length && (
+                <Button
+                    success
+                    large
+                    text={translate('common.next')}
+                    onPress={createGroup}
+                    pressOnEnter
+                />
+            )}
+        </>
     );
 
     return (
