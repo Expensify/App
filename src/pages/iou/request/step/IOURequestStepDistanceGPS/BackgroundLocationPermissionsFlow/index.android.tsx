@@ -1,5 +1,5 @@
 import {getBackgroundPermissionsAsync, getForegroundPermissionsAsync, PermissionStatus, requestBackgroundPermissionsAsync, requestForegroundPermissionsAsync} from 'expo-location';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Linking} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -85,7 +85,7 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const {translate} = useLocalize();
 
-    const onError = useCallback(() => setShouldShowPermissionsError(true), [setShouldShowPermissionsError]);
+    const onError = () => setShouldShowPermissionsError(true);
 
     const onForegroundPermissionsGranted = async () => {
         const {granted} = await getBackgroundPermissionsAsync();

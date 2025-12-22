@@ -1,5 +1,5 @@
 import {getBackgroundPermissionsAsync, getForegroundPermissionsAsync, PermissionStatus, requestBackgroundPermissionsAsync, requestForegroundPermissionsAsync} from 'expo-location';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {Linking} from 'react-native';
 import {checkLocationAccuracy} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
@@ -85,7 +85,7 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
 
     const onModalHide = useRef<(() => void) | null>(null);
 
-    const onError = useCallback(() => setShouldShowPermissionsError(true), [setShouldShowPermissionsError]);
+    const onError = () => setShouldShowPermissionsError(true);
 
     useEffect(() => {
         if (!startPermissionsFlow) {
