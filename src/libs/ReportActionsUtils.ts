@@ -153,7 +153,10 @@ function isDeletedAction(reportAction: OnyxInputOrEntry<ReportAction | Optimisti
     }
 
     // for report actions with this type we get an empty array as message by design
-    if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED) {
+    if (
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED ||
+        reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATEDREPORTFORUNAPPROVEDTRANSACTIONS
+    ) {
         return false;
     }
 
@@ -3291,6 +3294,11 @@ function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, rep
     return translate('reportAction.harvestCreatedExpenseReport', {reportUrl, reportName});
 }
 
+function getCreatedReportForUnapprovedTransactionsMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate): string {
+    const reportUrl = getReportURLForCurrentContext(reportID);
+    return translate('reportAction.createdReportForUnapprovedTransactions', {reportUrl, reportName});
+}
+
 function isCardIssuedAction(
     reportAction: OnyxEntry<ReportAction>,
 ): reportAction is ReportAction<
@@ -3689,6 +3697,7 @@ export {
     filterOutDeprecatedReportActions,
     getActionableCardFraudAlertMessage,
     getHarvestCreatedExpenseReportMessage,
+    getCreatedReportForUnapprovedTransactionsMessage,
     isSystemUserMentioned,
 };
 
