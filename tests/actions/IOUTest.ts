@@ -9126,12 +9126,8 @@ describe('actions/IOU', () => {
                 // When splitting a held expense, new hold report actions should be created for each split
                 if (split1ThreadReportID) {
                     const split1ReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${split1ThreadReportID}`);
-                    const split1HoldActions = Object.values(split1ReportActions ?? {}).filter(
-                        (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD,
-                    );
-                    const split1CommentActions = Object.values(split1ReportActions ?? {}).filter(
-                        (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    );
+                    const split1HoldActions = Object.values(split1ReportActions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD);
+                    const split1CommentActions = Object.values(split1ReportActions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
 
                     // Should have at least one HOLD action and one ADD_COMMENT action (the hold comment)
                     // The hold actions are created optimistically with pendingAction: ADD, but this
@@ -9142,12 +9138,8 @@ describe('actions/IOU', () => {
 
                 if (split2ThreadReportID) {
                     const split2ReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${split2ThreadReportID}`);
-                    const split2HoldActions = Object.values(split2ReportActions ?? {}).filter(
-                        (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD,
-                    );
-                    const split2CommentActions = Object.values(split2ReportActions ?? {}).filter(
-                        (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    );
+                    const split2HoldActions = Object.values(split2ReportActions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD);
+                    const split2CommentActions = Object.values(split2ReportActions ?? {}).filter((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
 
                     // Should have at least one HOLD action and one ADD_COMMENT action (the hold comment)
                     expect(split2HoldActions.length).toBeGreaterThanOrEqual(1);
