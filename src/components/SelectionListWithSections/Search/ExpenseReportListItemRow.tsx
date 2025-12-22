@@ -14,6 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {isScanning as isTransactionScanning} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -68,6 +69,7 @@ function ExpenseReportListItemRow({
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(item);
+    const isScanning = item.transactions?.some((transaction) => isTransactionScanning(transaction));
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
@@ -149,6 +151,7 @@ function ExpenseReportListItemRow({
                 <TotalCell
                     total={reimbursableSpend}
                     currency={currency}
+                    isScanning={isScanning}
                 />
             </View>
         ),
@@ -157,6 +160,7 @@ function ExpenseReportListItemRow({
                 <TotalCell
                     total={nonReimbursableSpend}
                     currency={currency}
+                    isScanning={isScanning}
                 />
             </View>
         ),
@@ -165,6 +169,7 @@ function ExpenseReportListItemRow({
                 <TotalCell
                     total={totalDisplaySpend}
                     currency={currency}
+                    isScanning={isScanning}
                 />
             </View>
         ),
@@ -252,6 +257,7 @@ function ExpenseReportListItemRow({
                         <TotalCell
                             total={totalDisplaySpend}
                             currency={currency}
+                            isScanning={isScanning}
                         />
                     </View>
                 </View>
