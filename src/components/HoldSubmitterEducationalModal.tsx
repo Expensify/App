@@ -45,6 +45,4 @@ function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducat
     );
 }
 
-HoldSubmitterEducationalModal.displayName = 'HoldSubmitterEducationalModal';
-
 export default HoldSubmitterEducationalModal;
