@@ -3871,7 +3871,6 @@ ${
                 monthly: '毎月',
             },
             planType: 'プランの種類',
-            submitExpense: '経費を以下から提出してください。',
             defaultCategory: 'デフォルトのカテゴリ',
             viewTransactions: '取引を表示',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName} の経費`,

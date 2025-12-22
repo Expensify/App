@@ -3903,7 +3903,6 @@ ${
                 monthly: 'Mensuel',
             },
             planType: 'Type d’abonnement',
-            submitExpense: 'Soumettez vos notes de frais ci-dessous :',
             defaultCategory: 'Catégorie par défaut',
             viewTransactions: 'Afficher les transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Notes de frais de ${displayName}`,

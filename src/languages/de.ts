@@ -3897,7 +3897,6 @@ ${
                 monthly: 'Monatlich',
             },
             planType: 'Tarifart',
-            submitExpense: 'Reiche deine Ausgaben unten ein:',
             defaultCategory: 'Standardkategorie',
             viewTransactions: 'Transaktionen anzeigen',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Spesen von ${displayName}`,
