@@ -3521,7 +3521,7 @@ ${amount} para ${merchant} - ${date}`,
             },
             planType: 'Tipo de plan',
             youCantDowngradeInvoicing:
-                'No puedes bajar de categoría tu plan en una suscripción facturada. Para hablar o realizar cambios en tu suscripción, ponte en contacto con tu gestor de cuenta o con Concierge para obtener ayuda.',
+                'No es posible cambiar a un plan inferior en una suscripción facturada. Para hablar sobre tu suscripción o realizar cambios en ella, ponte en contacto con tu gestor de cuentas o con Concierge para obtener ayuda.',
             submitExpense: 'Envía tus gastos a continuación:',
             defaultCategory: 'Categoría predeterminada',
             viewTransactions: 'Ver transacciones',
