@@ -60,17 +60,17 @@
 - E/App issue: 🛑
 - PR introducing patch: 
 
-### [react-native-web+0.21.2+006+remove-focus-trap-from-modal.patch](react-native-web+0.21.2+006+remove-focus-trap-from-modal.patch)
+### [react-native-web+0.21.2+006+modal.patch](react-native-web+0.21.2+006+modal.patch)
 
 - Reason:
   
     ```
-    Removes the library's focus trap implementation so the App can have its own, allowing it to have custom implementation and fixes.
+    Removes the library's focus trap implementation and allows customizing zIndex of the modal. App can handle focus trapping and zIndex management on its own, allowing it to have custom implementation and fixes.
     ```
   
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
-- PR introducing patch: https://github.com/Expensify/App/pull/39520
+- PR introducing patch: https://github.com/Expensify/App/pull/39520 and https://github.com/Expensify/App/pull/76277
 
 ### [react-native-web+0.21.2+007+fix-scrollable-overflown-text.patch](react-native-web+0.21.2+007+fix-scrollable-overflown-text.patch)
 
