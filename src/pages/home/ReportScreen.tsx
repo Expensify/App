@@ -598,7 +598,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
     useEffect(() => {
-        if (!!prevTransactionThreadReportID || !transactionThreadReportID) {
+        if ((!!prevTransactionThreadReportID && prevTransactionThreadReportID !== CONST.FAKE_REPORT_ID) || !transactionThreadReportID || transactionThreadReportID === CONST.FAKE_REPORT_ID) {
             return;
         }
 
