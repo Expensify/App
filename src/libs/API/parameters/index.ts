@@ -219,6 +219,7 @@ export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCatego
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
 export type {default as TogglePolicyReceiptPartnersParams} from './TogglePolicyReceiptPartnersParams';
 export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';
+export type {default as EnablePolicyTravelParams} from './EnablePolicyTravelParams';
 export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
 export type {default as SetPolicyTagsEnabled} from './SetPolicyTagsEnabled';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';
@@ -343,7 +344,6 @@ export type {default as AddDelegateParams} from './AddDelegateParams';
 export type {default as UpdateDelegateRoleParams} from './UpdateDelegateRoleParams';
 export type {default as OpenCardDetailsPageParams} from './OpenCardDetailsPageParams';
 export type {default as SetPolicyCategoryDescriptionRequiredParams} from './SetPolicyCategoryDescriptionRequiredParams';
-export type {default as SetPolicyCategoryAttendeesRequiredParams} from './SetPolicyCategoryAttendeesRequiredParams';
 export type {default as SetPolicyCategoryApproverParams} from './SetPolicyCategoryApproverParams';
 export type {default as SetWorkspaceCategoryDescriptionHintParams} from './SetWorkspaceCategoryDescriptionHintParams';
 export type {default as SetPolicyCategoryTaxParams} from './SetPolicyCategoryTaxParams';
@@ -450,3 +450,4 @@ export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
+export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleConsolidatedDomainBillingParams';

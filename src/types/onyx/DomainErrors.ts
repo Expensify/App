@@ -25,6 +25,11 @@ type DomainErrors = {
     technicalContactEmailErrors?: OnyxCommon.Errors;
 
     /**
+     * Errors related to the "use technical contact billing card" setting
+     */
+    useTechnicalContactBillingCardErrors?: OnyxCommon.Errors;
+
+    /**
      * Errors returned when attempting to remove the domain
      */
     removeDomainError?: OnyxCommon.Errors;

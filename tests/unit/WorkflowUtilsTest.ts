@@ -194,6 +194,49 @@ describe('WorkflowUtils', () => {
                 buildApprover(1, {forwardsTo: '1@example.com', isCircularReference: true}),
             ]);
         });
+
+        it('Should include approvalLimit and overLimitForwardsTo in approver objects', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: '2@example.com',
+                    approvalLimit: 50000,
+                    overLimitForwardsTo: '3@example.com',
+                },
+                '2@example.com': {
+                    email: '2@example.com',
+                    forwardsTo: undefined,
+                    approvalLimit: 100000,
+                    overLimitForwardsTo: '3@example.com',
+                },
+                '3@example.com': {
+                    email: '3@example.com',
+                    forwardsTo: undefined,
+                },
+            };
+
+            const approvers = WorkflowUtils.calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
+
+            expect(approvers).toEqual([
+                buildApprover(1, {forwardsTo: '2@example.com', approvalLimit: 50000, overLimitForwardsTo: '3@example.com'}),
+                buildApprover(2, {approvalLimit: 100000, overLimitForwardsTo: '3@example.com'}),
+            ]);
+        });
+
+        it('Should handle null approvalLimit correctly', () => {
+            const employees: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: undefined,
+                    approvalLimit: null,
+                    overLimitForwardsTo: '',
+                },
+            };
+
+            const approvers = WorkflowUtils.calculateApprovers({employees, firstEmail: '1@example.com', personalDetailsByEmail});
+
+            expect(approvers).toEqual([buildApprover(1, {approvalLimit: null, overLimitForwardsTo: ''})]);
+        });
     });
 
     describe('convertPolicyEmployeesToApprovalWorkflows', () => {
@@ -431,7 +474,7 @@ describe('WorkflowUtils', () => {
             const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', overLimitForwardsTo: '', submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
                 '2@example.com': buildPolicyEmployee(2, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
             });
         });
@@ -446,9 +489,9 @@ describe('WorkflowUtils', () => {
             const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '2@example.com', pendingFields: {forwardsTo: 'add'}}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '3@example.com', pendingFields: {forwardsTo: 'add'}}),
-                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', pendingFields: {forwardsTo: 'add'}}),
+                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '2@example.com', overLimitForwardsTo: '', pendingFields: {forwardsTo: 'add', overLimitForwardsTo: 'add'}}),
+                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '3@example.com', overLimitForwardsTo: '', pendingFields: {forwardsTo: 'add', overLimitForwardsTo: 'add'}}),
+                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', overLimitForwardsTo: '', pendingFields: {forwardsTo: 'add', overLimitForwardsTo: 'add'}}),
                 '4@example.com': buildPolicyEmployee(4, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
                 '5@example.com': buildPolicyEmployee(5, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
                 '6@example.com': buildPolicyEmployee(6, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
@@ -465,12 +508,121 @@ describe('WorkflowUtils', () => {
             const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'remove'});
 
             expect(convertedEmployees).toEqual({
-                '1@example.com': buildPolicyEmployee(1, {forwardsTo: '', pendingAction: 'update', pendingFields: {forwardsTo: 'update'}}),
-                '2@example.com': buildPolicyEmployee(2, {forwardsTo: '', pendingAction: 'update', pendingFields: {forwardsTo: 'update'}}),
-                '3@example.com': buildPolicyEmployee(3, {forwardsTo: '', pendingAction: 'update', pendingFields: {forwardsTo: 'update'}}),
+                '1@example.com': buildPolicyEmployee(1, {
+                    forwardsTo: '',
+                    approvalLimit: null,
+                    overLimitForwardsTo: '',
+                    pendingAction: 'update',
+                    pendingFields: {forwardsTo: 'update', approvalLimit: 'update', overLimitForwardsTo: 'update'},
+                }),
+                '2@example.com': buildPolicyEmployee(2, {
+                    forwardsTo: '',
+                    approvalLimit: null,
+                    overLimitForwardsTo: '',
+                    pendingAction: 'update',
+                    pendingFields: {forwardsTo: 'update', approvalLimit: 'update', overLimitForwardsTo: 'update'},
+                }),
+                '3@example.com': buildPolicyEmployee(3, {
+                    forwardsTo: '',
+                    approvalLimit: null,
+                    overLimitForwardsTo: '',
+                    pendingAction: 'update',
+                    pendingFields: {forwardsTo: 'update', approvalLimit: 'update', overLimitForwardsTo: 'update'},
+                }),
                 '4@example.com': buildPolicyEmployee(4, {submitsTo: '', pendingAction: 'update', pendingFields: {submitsTo: 'update'}}),
                 '5@example.com': buildPolicyEmployee(5, {submitsTo: '', pendingAction: 'update', pendingFields: {submitsTo: 'update'}}),
                 '6@example.com': buildPolicyEmployee(6, {submitsTo: '', pendingAction: 'update', pendingFields: {submitsTo: 'update'}}),
+            });
+        });
+
+        it('Should include approvalLimit and overLimitForwardsTo when creating workflow with limits', () => {
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [buildMember(2)],
+                approvers: [buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '3@example.com'})],
+                isDefault: false,
+            };
+
+            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList: {}, approvalWorkflow, type: 'create'});
+
+            expect(convertedEmployees).toEqual({
+                '1@example.com': buildPolicyEmployee(1, {
+                    forwardsTo: '',
+                    approvalLimit: 50000,
+                    overLimitForwardsTo: '3@example.com',
+                    pendingFields: {forwardsTo: 'add', approvalLimit: 'add', overLimitForwardsTo: 'add'},
+                }),
+                '2@example.com': buildPolicyEmployee(2, {submitsTo: '1@example.com', pendingFields: {submitsTo: 'add'}}),
+            });
+        });
+
+        it('Should set approvalLimit to null when removing workflow (not undefined)', () => {
+            const previousEmployeeList: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: '2@example.com',
+                    approvalLimit: 50000,
+                    overLimitForwardsTo: '3@example.com',
+                },
+            };
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [],
+                approvers: [buildApprover(1, {forwardsTo: '2@example.com', approvalLimit: 50000, overLimitForwardsTo: '3@example.com'})],
+                isDefault: false,
+            };
+
+            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'remove'});
+
+            // approvalLimit should be null (not undefined) so it gets sent to the API and clears the field
+            expect(convertedEmployees['1@example.com']?.approvalLimit).toBeNull();
+            expect(convertedEmployees['1@example.com']?.overLimitForwardsTo).toBe('');
+        });
+
+        it('Should include pendingFields for approvalLimit and overLimitForwardsTo when they change', () => {
+            const previousEmployeeList: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: '',
+                    approvalLimit: 50000,
+                    overLimitForwardsTo: '3@example.com',
+                },
+            };
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [],
+                approvers: [buildApprover(1, {approvalLimit: 100000, overLimitForwardsTo: '4@example.com'})],
+                isDefault: false,
+            };
+
+            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'update'});
+
+            // pendingFields should include the fields that changed (forwardsTo didn't change since it's '' -> '')
+            expect(convertedEmployees['1@example.com']?.pendingFields).toEqual({
+                approvalLimit: 'update',
+                overLimitForwardsTo: 'update',
+            });
+            expect(convertedEmployees['1@example.com']?.approvalLimit).toBe(100000);
+            expect(convertedEmployees['1@example.com']?.overLimitForwardsTo).toBe('4@example.com');
+        });
+
+        it('Should not include unchanged fields in pendingFields', () => {
+            const previousEmployeeList: PolicyEmployeeList = {
+                '1@example.com': {
+                    email: '1@example.com',
+                    forwardsTo: '',
+                    approvalLimit: 50000,
+                    overLimitForwardsTo: '3@example.com',
+                },
+            };
+            const approvalWorkflow: ApprovalWorkflow = {
+                members: [],
+                approvers: [buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '4@example.com'})],
+                isDefault: false,
+            };
+
+            const convertedEmployees = WorkflowUtils.convertApprovalWorkflowToPolicyEmployees({previousEmployeeList, approvalWorkflow, type: 'update'});
+
+            // Only overLimitForwardsTo changed, so only that should be in pendingFields
+            expect(convertedEmployees['1@example.com']?.pendingFields).toEqual({
+                overLimitForwardsTo: 'update',
             });
         });
     });
@@ -640,6 +792,98 @@ describe('WorkflowUtils', () => {
             });
 
             expect(updateWorkflowDataOnApproverRemoval).toEqual([approvalWorkflow1, {...approvalWorkflow2, removeApprovalWorkflow: true}]);
+        });
+    });
+
+    describe('getApprovalLimitDescription', () => {
+        const mockTranslate = jest.fn((key: string, params?: Record<string, string>) => {
+            if (key === 'workflowsApprovalLimitPage.forwardLimitDescription') {
+                return `Reports above ${params?.approvalLimit} forward to ${params?.approverName}`;
+            }
+            return key;
+        });
+
+        beforeEach(() => {
+            mockTranslate.mockClear();
+        });
+
+        it('Should return undefined when approver is undefined', () => {
+            const result = WorkflowUtils.getApprovalLimitDescription({
+                approver: undefined,
+                currency: 'USD',
+                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                personalDetailsByEmail: {},
+            });
+
+            expect(result).toBeUndefined();
+        });
+
+        it('Should return undefined when approvalLimit is null', () => {
+            const approver = buildApprover(1, {approvalLimit: null, overLimitForwardsTo: '2@example.com'});
+
+            const result = WorkflowUtils.getApprovalLimitDescription({
+                approver,
+                currency: 'USD',
+                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                personalDetailsByEmail: {},
+            });
+
+            expect(result).toBeUndefined();
+        });
+
+        it('Should return undefined when approvalLimit is undefined', () => {
+            const approver = buildApprover(1, {approvalLimit: undefined, overLimitForwardsTo: '2@example.com'});
+
+            const result = WorkflowUtils.getApprovalLimitDescription({
+                approver,
+                currency: 'USD',
+                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                personalDetailsByEmail: {},
+            });
+
+            expect(result).toBeUndefined();
+        });
+
+        it('Should return undefined when overLimitForwardsTo is missing', () => {
+            const approver = buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: undefined});
+
+            const result = WorkflowUtils.getApprovalLimitDescription({
+                approver,
+                currency: 'USD',
+                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                personalDetailsByEmail: {},
+            });
+
+            expect(result).toBeUndefined();
+        });
+
+        it('Should return description when approvalLimit and overLimitForwardsTo are set', () => {
+            const approver = buildApprover(1, {approvalLimit: 50000, overLimitForwardsTo: '2@example.com'});
+
+            const result = WorkflowUtils.getApprovalLimitDescription({
+                approver,
+                currency: 'USD',
+                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                personalDetailsByEmail: {},
+            });
+
+            expect(result).toBe('Reports above $500.00 forward to 2@example.com');
+        });
+
+        it('Should use display name from personalDetails when available', () => {
+            const approver = buildApprover(1, {approvalLimit: 100000, overLimitForwardsTo: '2@example.com'});
+            const personalDetailsWithEmail: PersonalDetailsList = {
+                '2@example.com': {accountID: 2, displayName: 'John Doe'},
+            };
+
+            const result = WorkflowUtils.getApprovalLimitDescription({
+                approver,
+                currency: 'USD',
+                translate: mockTranslate as unknown as Parameters<typeof WorkflowUtils.getApprovalLimitDescription>[0]['translate'],
+                personalDetailsByEmail: personalDetailsWithEmail,
+            });
+
+            expect(result).toBe('Reports above $1,000.00 forward to John Doe');
         });
     });
 });
