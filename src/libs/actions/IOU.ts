@@ -4166,7 +4166,20 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * it creates optimistic versions of them and uses those instead
  */
 function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): TrackExpenseInformation | null {
-    const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams, isASAPSubmitBetaEnabled, currentUserAccountIDParam, currentUserEmailParam, introSelected, activePolicyID} = params;
+    const {
+        parentChatReport,
+        moneyRequestReportID = '',
+        existingTransactionID,
+        participantParams,
+        policyParams,
+        transactionParams,
+        retryParams,
+        isASAPSubmitBetaEnabled,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        introSelected,
+        activePolicyID,
+    } = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {comment, amount, currency, created, distance, merchant, receipt, category, tag, taxCode, taxAmount, billable, reimbursable, linkedTrackedExpenseReportAction, attendees} =
@@ -4280,8 +4293,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
             currentUserAccountIDParam,
             currentUserEmailParam,
-            introSelectedParam: introSelected,
-            activePolicyIDParam: activePolicyID,
+            introSelected,
+            activePolicyID,
         });
         createdWorkspaceParams = workspaceData.params;
         optimisticData.push(...workspaceData.optimisticData);
@@ -7074,6 +7087,8 @@ function duplicateExpenseTransaction(
     optimisticChatReportID: string,
     optimisticIOUReportID: string,
     isASAPSubmitBetaEnabled: boolean,
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    activePolicyID: string | undefined,
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>,
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     targetReport?: OnyxTypes.Report,
@@ -7135,6 +7150,8 @@ function duplicateExpenseTransaction(
             },
             report: undefined,
             isDraftPolicy: false,
+            introSelected,
+            activePolicyID,
         };
         return trackExpense(trackExpenseParams);
     }
@@ -10362,7 +10379,7 @@ function getPayMoneyRequestParams({
     bankAccountID,
     currentUserAccountIDParam,
     currentUserEmailParam,
-    introSelectedParam,
+    introSelected,
     paymentPolicyID,
     lastUsedPaymentMethod,
     existingB2BInvoiceReport,
@@ -10381,7 +10398,7 @@ function getPayMoneyRequestParams({
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     currentUserAccountIDParam?: number;
     currentUserEmailParam?: string;
-    introSelectedParam?: OnyxEntry<OnyxTypes.IntroSelected>;
+    introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -10403,10 +10420,10 @@ function getPayMoneyRequestParams({
             policyOwnerEmail: currentUserEmail,
             makeMeAdmin: true,
             policyID: payerPolicyID,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            introSelectedParam,
-            activePolicyIDParam: activePolicy?.id,
+            currentUserAccountIDParam: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
+            currentUserEmailParam: currentUserEmailParam ?? '',
+            introSelected,
+            activePolicyID: activePolicy?.id ?? '',
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
@@ -12182,7 +12199,7 @@ function payInvoice({
         activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        introSelectedParam: introSelected,
+        introSelected,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;

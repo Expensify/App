@@ -3728,6 +3728,9 @@ describe('actions/IOU', () => {
                         policyOwnerEmail: CARLOS_EMAIL,
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
+                        introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                        currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                        currentUserEmailParam: CARLOS_EMAIL,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -3865,6 +3868,9 @@ describe('actions/IOU', () => {
                         policyOwnerEmail: CARLOS_EMAIL,
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
+                        introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                        currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                        currentUserEmailParam: CARLOS_EMAIL,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -4102,6 +4108,9 @@ describe('actions/IOU', () => {
                         policyOwnerEmail: CARLOS_EMAIL,
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
+                        introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                        currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                        currentUserEmailParam: CARLOS_EMAIL,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -5338,6 +5347,9 @@ describe('actions/IOU', () => {
                         makeMeAdmin: true,
                         policyName: "Carlos's Workspace",
                         policyID,
+                        introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                        currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                        currentUserEmailParam: CARLOS_EMAIL,
                     });
 
                     // Change the approval mode for the policy since default is Submit and Close
@@ -5462,6 +5474,9 @@ describe('actions/IOU', () => {
                         policyName: "Carlos's Workspace",
                         policyID: undefined,
                         engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                        introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                        currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                        currentUserEmailParam: CARLOS_EMAIL,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -5652,6 +5667,9 @@ describe('actions/IOU', () => {
                         policyName: "Carlos's Workspace",
                         policyID: undefined,
                         engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                        introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                        currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                        currentUserEmailParam: CARLOS_EMAIL,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -7512,6 +7530,9 @@ describe('actions/IOU', () => {
                 policyOwnerEmail: CARLOS_EMAIL,
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -7601,6 +7622,10 @@ describe('actions/IOU', () => {
                 policyOwnerEmail: CARLOS_EMAIL,
                 makeMeAdmin: true,
                 policyName: "Carlos's Workspace",
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                activePolicyID: '123',
             });
             await waitForBatchedUpdates();
 
@@ -8356,6 +8381,9 @@ describe('actions/IOU', () => {
                 policyName: "Carlos's Workspace",
                 policyID,
                 currency: CONST.CURRENCY.USD,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
             });
 
             await waitForBatchedUpdates();
@@ -8497,6 +8525,9 @@ describe('actions/IOU', () => {
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace",
                     policyID,
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                    currentUserEmailParam: CARLOS_EMAIL,
                 });
 
                 // Change the approval mode for the policy since default is Submit and Close
@@ -8647,6 +8678,9 @@ describe('actions/IOU', () => {
                     makeMeAdmin: true,
                     policyName: "Rory's Workspace",
                     policyID,
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                    currentUserEmailParam: RORY_EMAIL,
                 });
 
                 // Change the approval mode for the policy since default is Submit and Close
@@ -8801,6 +8835,9 @@ describe('actions/IOU', () => {
                     makeMeAdmin: true,
                     policyName: "Carlos's Workspace",
                     policyID,
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                    currentUserEmailParam: CARLOS_EMAIL,
                 });
 
                 setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
@@ -10978,6 +11015,8 @@ describe('actions/IOU', () => {
                 mockOptimisticChatReportID,
                 mockOptimisticIOUReportID,
                 mockIsASAPSubmitBetaEnabled,
+                undefined,
+                undefined,
                 mockPolicy,
                 fakePolicyCategories,
                 policyExpenseChat,
