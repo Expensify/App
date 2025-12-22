@@ -1,4 +1,4 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env ts-node
 
 /**
  * Check React Compiler optimization status for a file and its imported components.
