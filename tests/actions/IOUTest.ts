@@ -8986,7 +8986,9 @@ describe('actions/IOU', () => {
                 });
 
                 // Put the expense on hold
-                putOnHold(originalTransactionID ?? '', 'Test hold reason', transactionThreadReportID);
+                if (originalTransactionID && transactionThreadReportID) {
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID);
+                }
                 await waitForBatchedUpdates();
 
                 // Verify the transaction is on hold
