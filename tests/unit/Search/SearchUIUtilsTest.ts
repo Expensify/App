@@ -22,8 +22,6 @@ import {createTransactionThreadReport} from '@userActions/Report';
 // eslint-disable-next-line no-restricted-syntax
 import type * as SearchUtils from '@userActions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@userActions/Search';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
@@ -1867,6 +1865,7 @@ describe('SearchUIUtils', () => {
                 data: searchResults.data,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             });
             expect(filteredReportActions).toStrictEqual(reportActionListItems);
@@ -1880,6 +1879,7 @@ describe('SearchUIUtils', () => {
                     data: searchResults.data,
                     currentAccountID: 20745,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                 })[0],
             ).toEqual(transactionsListItems);
@@ -1904,6 +1904,7 @@ describe('SearchUIUtils', () => {
                 data: testSearchResults.data,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             })[0] as TransactionListItemType[];
 
@@ -1935,6 +1936,7 @@ describe('SearchUIUtils', () => {
                 data: testSearchResults.data,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             })[0] as TransactionGroupListItemType[];
 
@@ -1956,6 +1958,7 @@ describe('SearchUIUtils', () => {
                     data: searchResults.data,
                     currentAccountID: 2074551,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                 })[0],
             ).toStrictEqual(transactionReportGroupListItems);
@@ -1995,6 +1998,7 @@ describe('SearchUIUtils', () => {
                 data: testDataTransactionFirst,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             })[0];
             const resultReportFirst = SearchUIUtils.getSections({
@@ -2002,6 +2006,7 @@ describe('SearchUIUtils', () => {
                 data: testDataReportFirst,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             })[0];
 
@@ -2022,6 +2027,7 @@ describe('SearchUIUtils', () => {
                     data: searchResultsGroupByFrom.data,
                     currentAccountID: 2074551,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 })[0],
@@ -2035,6 +2041,7 @@ describe('SearchUIUtils', () => {
                     data: searchResultsGroupByCard.data,
                     currentAccountID: 2074551,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                 })[0],
@@ -2048,6 +2055,7 @@ describe('SearchUIUtils', () => {
                     data: searchResultsGroupByWithdrawalID.data,
                     currentAccountID: 2074551,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 })[0],
@@ -2070,6 +2078,7 @@ describe('SearchUIUtils', () => {
                 data: staleCacheData,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
                 groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
             }) as [TransactionWithdrawalIDGroupListItemType[], number];
@@ -2167,7 +2176,7 @@ describe('SearchUIUtils', () => {
                     expect.objectContaining({
                         translationPath: 'common.expenses',
                         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                        icon: Expensicons.Receipt,
+                        icon: 'Receipt',
                     }),
                     expect.objectContaining({
                         translationPath: 'common.reports',
@@ -2177,7 +2186,7 @@ describe('SearchUIUtils', () => {
                     expect.objectContaining({
                         translationPath: 'common.chats',
                         type: CONST.SEARCH.DATA_TYPES.CHAT,
-                        icon: Expensicons.ChatBubbles,
+                        icon: 'ChatBubbles',
                     }),
                 ]),
             );
@@ -2798,49 +2807,29 @@ describe('SearchUIUtils', () => {
 
     describe('Test getColumnsToShow', () => {
         test('Should show all default columns when no custom columns are saved & viewing expense reports', () => {
-            expect(SearchUIUtils.getColumnsToShow(1, [], [], false, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual({
-                [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.FROM]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.TO]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.ACTION]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
-            });
+            expect(SearchUIUtils.getColumnsToShow(1, [], [], false, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual([
+                CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.STATUS,
+                CONST.SEARCH.TABLE_COLUMNS.TITLE,
+                CONST.SEARCH.TABLE_COLUMNS.FROM,
+                CONST.SEARCH.TABLE_COLUMNS.TO,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+                CONST.SEARCH.TABLE_COLUMNS.ACTION,
+            ]);
         });
 
         test('Should show specific columns when custom columns are saved & viewing expense reports', () => {
-            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.STATUS, CONST.SEARCH.TABLE_COLUMNS.TITLE];
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.STATUS, CONST.SEARCH.TABLE_COLUMNS.TITLE, CONST.SEARCH.TABLE_COLUMNS.TOTAL];
 
-            expect(SearchUIUtils.getColumnsToShow(1, [], visibleColumns, false, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual({
+            expect(SearchUIUtils.getColumnsToShow(1, [], visibleColumns, false, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)).toEqual([
                 // Avatar should always be visible
-                [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.DATE]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.STATUS]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.TITLE]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.FROM]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.POLICY_NAME]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.TO]: false,
-                // Total should always be visible
-                [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: true,
-                [CONST.SEARCH.TABLE_COLUMNS.ACTION]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE_TOTAL]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID]: false,
-                [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: false,
-            });
+                CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.STATUS,
+                CONST.SEARCH.TABLE_COLUMNS.TITLE,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+            ]);
         });
 
         test('Should only show columns when at least one transaction has a value for them', () => {
@@ -2927,32 +2916,32 @@ describe('SearchUIUtils', () => {
 
             // Test 1: No optional fields should be shown when all transactions are empty
             let columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, emptyTransaction], [], false);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(false);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]).toBe(false);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBe(false);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBe(false);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.FROM);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
 
             // Test 2: Merchant column should show when at least one transaction has merchant
             columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, merchantTransaction], [], false);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
 
             // Test 3: Category column should show when at least one transaction has category
             columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, categoryTransaction], [], false);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(true);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
 
             // Test 4: Tag column should show when at least one transaction has tag
             columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, tagTransaction], [], false);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(true);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
 
             // Test 5: Description column should show when at least one transaction has description
             columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [emptyTransaction, descriptionTransaction], [], false);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]).toBe(true);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(false);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
 
             // Test 6: From/To columns should show when at least one transaction has different users
             // @ts-expect-error -- no need to construct all data again, the function below only needs the report and transactions
@@ -2964,15 +2953,15 @@ describe('SearchUIUtils', () => {
                 personalDetailsList: searchResults.data.personalDetailsList,
             };
             columns = SearchUIUtils.getColumnsToShow(submitterAccountID, data, [], false);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBe(true);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBe(true);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.FROM);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
 
             // Test 7: Multiple columns should show when transactions have different fields
             columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [merchantTransaction, categoryTransaction, tagTransaction], [], false);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(true);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(true);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]).toBe(false);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
         });
 
         test('Should respect isExpenseReportView flag and not show From/To columns', () => {
@@ -2994,14 +2983,14 @@ describe('SearchUIUtils', () => {
             const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], [], true);
 
             // These columns should be shown based on data
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(true);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(true);
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]).toBe(true);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION);
 
             // From/To columns should not exist in expense report view
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.FROM]).toBeUndefined();
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TO]).toBeUndefined();
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.FROM);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TO);
         });
 
         test('Should handle modifiedMerchant and empty category/tag values correctly', () => {
@@ -3021,13 +3010,13 @@ describe('SearchUIUtils', () => {
             const columns = SearchUIUtils.getColumnsToShow(submitterAccountID, [testTransaction], [], false);
 
             // Should show merchant column because modifiedMerchant has value
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT]).toBe(true);
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.MERCHANT);
 
             // Should not show category column because 'Uncategorized' is an empty value
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.CATEGORY]).toBe(false);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.CATEGORY);
 
             // Should not show tag column because it's the empty tag value
-            expect(columns[CONST.SEARCH.TABLE_COLUMNS.TAG]).toBe(false);
+            expect(columns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.TAG);
         });
     });
 

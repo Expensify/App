@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OptionsPicker from '@components/OptionsPicker';
@@ -15,7 +14,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -44,6 +43,7 @@ import ROUTES from '@src/ROUTES';
 
 function SubscriptionSettings() {
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Coins']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {environmentURL} = useEnvironment();
@@ -257,7 +257,7 @@ function SubscriptionSettings() {
                         requestTaxExempt();
                         navigateToConciergeChat();
                     }}
-                    icon={Expensicons.Coins}
+                    icon={icons.Coins}
                     wrapperStyle={styles.sectionMenuItemTopDescription}
                     style={styles.mv5}
                     titleStyle={privateTaxExempt ? undefined : styles.textBold}
