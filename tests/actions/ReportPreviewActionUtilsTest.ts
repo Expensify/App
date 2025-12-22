@@ -206,7 +206,7 @@ describe('getReportPreviewAction', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(
-            getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, undefined, undefined, undefined, {
+            getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, undefined, undefined, undefined, undefined, {
                 currentUserEmail: CURRENT_USER_EMAIL,
                 violations,
             }),
@@ -535,5 +535,99 @@ describe('getReportPreviewAction', () => {
         const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
         await waitForBatchedUpdatesWithAct();
         expect(getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction])).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING);
+    });
+
+    describe('DEW (Dynamic External Workflow) submit pending', () => {
+        it('should return VIEW action when DEW submit is pending and report is OPEN', async () => {
+            // Given an open expense report with a corporate policy where DEW submit is pending
+            const report: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+
+            // When getReportPreviewAction is called with isDEWSubmitPending = true
+            const result = getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, true);
+
+            // Then it should return VIEW because DEW submission is pending offline
+            expect(result).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
+
+        it('should return SUBMIT action when DEW submit has failed (not pending) and report is OPEN', async () => {
+            // Given an open expense report where DEW submit has failed (returned from backend, not pending offline)
+            const report: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+            if (policy.harvesting) {
+                policy.harvesting.enabled = false;
+            }
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+
+            // When getReportPreviewAction is called with isDEWSubmitPending = false (failed, not pending)
+            const result = getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, false);
+
+            // Then it should allow SUBMIT because failed submissions can be retried (not VIEW)
+            expect(result).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
+
+        it('should return SUBMIT action when DEW submit has not failed and report is OPEN', async () => {
+            // Given an open expense report where DEW submit has not failed
+            const report: Report = {
+                ...createRandomReport(REPORT_ID, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                isWaitingOnBankAccount: false,
+            };
+
+            const policy = createRandomPolicy(0);
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.autoReportingFrequency = CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE;
+            if (policy.harvesting) {
+                policy.harvesting.enabled = false;
+            }
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+            const transaction = {
+                reportID: `${REPORT_ID}`,
+            } as unknown as Transaction;
+
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+
+            // When getReportPreviewAction is called with isDEWSubmitPending = false
+            const result = getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, false);
+
+            // Then it should not return VIEW because DEW submit did not fail and regular logic applies
+            expect(result).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        });
     });
 });

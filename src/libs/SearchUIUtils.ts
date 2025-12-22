@@ -1210,6 +1210,7 @@ function getTransactionsSections(
     currentUserEmail: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     isActionLoadingSet: ReadonlySet<string> | undefined,
+    reportActions: Record<string, OnyxTypes.ReportAction[]> = {},
 ): [TransactionListItemType[], number] {
     const shouldShowMerchant = getShouldShowMerchant(data);
     const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYear(data);
@@ -1271,7 +1272,8 @@ function getTransactionsSections(
                 formatPhoneNumber,
                 report,
             );
-            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail);
+            const actions = reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? [];
+            const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions);
             const transactionSection: TransactionListItemType = {
                 ...transactionItem,
                 keyForList: transactionItem.transactionID,
@@ -2058,7 +2060,7 @@ function getSections({
         }
     }
 
-    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet);
+    return getTransactionsSections(data, currentSearch, currentAccountID, currentUserEmail, formatPhoneNumber, isActionLoadingSet, reportActions);
 }
 
 /**

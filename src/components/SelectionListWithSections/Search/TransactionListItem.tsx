@@ -45,6 +45,7 @@ function TransactionListItem<TItem extends ListItem>({
     isLoading,
     violations,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -134,8 +135,21 @@ function TransactionListItem<TItem extends ListItem>({
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDEWBetaEnabled,
         );
-    }, [currentSearchHash, transactionItem, transactionPreviewData, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onSelectRow, item, onDEWModalOpen]);
+    }, [
+        currentSearchHash,
+        transactionItem,
+        transactionPreviewData,
+        snapshotReport,
+        snapshotPolicy,
+        lastPaymentMethod,
+        currentSearchKey,
+        onSelectRow,
+        item,
+        onDEWModalOpen,
+        isDEWBetaEnabled,
+    ]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(item);

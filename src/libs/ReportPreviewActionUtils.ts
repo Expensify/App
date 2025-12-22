@@ -166,6 +166,7 @@ function canExport(report: Report, policy?: Policy) {
     return isApproved || isReimbursed || isClosed;
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params
 function getReportPreviewAction(
     isReportArchived: boolean,
     currentUserAccountID: number,
@@ -176,6 +177,7 @@ function getReportPreviewAction(
     isPaidAnimationRunning?: boolean,
     isApprovedAnimationRunning?: boolean,
     isSubmittingAnimationRunning?: boolean,
+    isDEWSubmitPending?: boolean,
     violationsData?: {currentUserEmail?: string; violations?: OnyxCollection<TransactionViolation[]>},
 ): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
@@ -193,6 +195,10 @@ function getReportPreviewAction(
     }
     if (isAddExpenseAction(report, transactions ?? [], isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
+    }
+
+    if (isDEWSubmitPending && isOpenReport(report)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
     if (canSubmit(report, isReportArchived, currentUserAccountID, violationsData?.currentUserEmail ?? '', violationsData?.violations, policy, transactions)) {

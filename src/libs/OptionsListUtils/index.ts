@@ -30,6 +30,7 @@ import {
     getCountOfEnabledTagsOfList,
     getCountOfRequiredTagLists,
     getSubmitToAccountID,
+    hasDynamicExternalWorkflow,
     isCurrentUserMemberOfAnyPolicy,
 } from '@libs/PolicyUtils';
 import {
@@ -57,6 +58,7 @@ import {
     getSortedReportActions,
     getTravelUpdateMessage,
     getUpdateRoomDescriptionMessage,
+    hasPendingDEWSubmit,
     isActionableAddPaymentCard,
     isActionableJoinRequest,
     isActionableMentionWhisper,
@@ -65,6 +67,7 @@ import {
     isClosedAction,
     isCreatedTaskReportAction,
     isDeletedParentAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
     isInviteOrRemovedAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
@@ -159,6 +162,7 @@ import type {
     ReportAction,
     ReportActions,
     ReportAttributesDerivedValue,
+    ReportMetadata,
     ReportNameValuePairs,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -603,6 +607,8 @@ function getLastMessageTextForReport({
     policy,
     isReportArchived = false,
     policyForMovingExpensesID,
+    reportMetadata,
+    isOffline,
 }: {
     report: OnyxEntry<Report>;
     lastActorDetails: Partial<PersonalDetails> | null;
@@ -611,6 +617,8 @@ function getLastMessageTextForReport({
     policy?: OnyxEntry<Policy>;
     isReportArchived?: boolean;
     policyForMovingExpensesID?: string;
+    reportMetadata?: OnyxEntry<ReportMetadata>;
+    isOffline?: boolean;
 }): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
@@ -710,9 +718,16 @@ function getLastMessageTextForReport({
         isMarkAsClosedAction(lastReportAction)
     ) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? (getOriginalMessage(lastReportAction)?.harvesting ?? false) : false;
+        const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+        const isPendingAdd = lastReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
         if (wasSubmittedViaHarvesting) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = Parser.htmlToText(translateLocal('iou.automaticallySubmitted'));
+        } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd && isOffline) {
+            // When DEW submit is pending offline, show "queued" message. When online, fall through to show normal "submitted" message.
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            lastMessageTextFromReport = translateLocal('iou.queuedToSubmitViaDEW');
         } else {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.submitted', {memo: getOriginalMessage(lastReportAction)?.message});
@@ -726,6 +741,9 @@ function getLastMessageTextForReport({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.approvedMessage');
         }
+    } else if (isDynamicExternalWorkflowSubmitFailedAction(lastReportAction)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        lastMessageTextFromReport = getOriginalMessage(lastReportAction)?.message ?? translateLocal('iou.error.genericCreateFailureMessage');
     } else if (isUnapprovedAction(lastReportAction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('iou.unapproved');

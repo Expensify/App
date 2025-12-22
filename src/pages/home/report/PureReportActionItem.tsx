@@ -59,7 +59,7 @@ import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
+import {getCleanedTagName, getPersonalPolicy, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
     getActionableCardFraudAlertMessage,
@@ -114,6 +114,7 @@ import {
     getWorkspaceTagUpdateMessage,
     getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    hasPendingDEWSubmit,
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
     isActionableJoinRequest,
@@ -129,6 +130,7 @@ import {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
+    isDynamicExternalWorkflowSubmitFailedAction,
     isIOURequestReportAction,
     isMarkAsClosedAction,
     isMessageDeleted,
@@ -417,6 +419,12 @@ type PureReportActionItemProps = {
 
     /** Report name value pairs originalID */
     reportNameValuePairsOriginalID?: string;
+
+    /** Report metadata for the report */
+    reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
+
+    /** Whether the network is offline */
+    isOffline?: boolean;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -487,6 +495,8 @@ function PureReportActionItem({
     bankAccountList,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
+    reportMetadata,
+    isOffline,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
@@ -1197,12 +1207,19 @@ function PureReportActionItem({
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
             const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
+            const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+
+            const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage>
                         <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallySubmitted')}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
+            } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd && isOffline) {
+                // When DEW submit is pending offline, show "queued" message. When online, show submitted
+                children = <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.submitted', {memo: getOriginalMessage(action)?.message})} />;
             }
@@ -1217,6 +1234,9 @@ function PureReportActionItem({
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
             }
+        } else if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
+            const errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
+            children = <ReportActionItemBasicMessage message={errorMessage} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
             const paymentType = getOriginalMessage(action)?.paymentType;
@@ -1965,6 +1985,8 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
         deepEqual(prevProps.bankAccountList, nextProps.bankAccountList) &&
         prevProps.reportNameValuePairsOrigin === nextProps.reportNameValuePairsOrigin &&
-        prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID
+        prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID &&
+        prevProps.reportMetadata?.pendingExpenseAction === nextProps.reportMetadata?.pendingExpenseAction &&
+        prevProps.isOffline === nextProps.isOffline
     );
 });
