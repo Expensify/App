@@ -667,7 +667,7 @@ function SearchPage({route}: SearchPageProps) {
         if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
             const {transactions, reports, policies: transactionPolicies} = getTransactionsAndReportsFromSearch(searchResults, selectedTransactionsKeys);
 
-            if (isMergeActionForSelectedTransactions(transactions, reports, transactionPolicies, allCards)) {
+            if (isMergeActionForSelectedTransactions(transactions, reports, transactionPolicies)) {
                 const transactionID = transactions.at(0)?.transactionID;
                 if (transactionID) {
                     options.push({
@@ -818,7 +818,6 @@ function SearchPage({route}: SearchPageProps) {
         dismissedHoldUseExplanation,
         dismissedRejectUseExplanation,
         areAllTransactionsFromSubmitter,
-        allCards,
     ]);
 
     const handleDeleteExpenses = () => {

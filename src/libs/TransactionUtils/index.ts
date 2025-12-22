@@ -1129,8 +1129,19 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
 /**
  * Determine whether a transaction is made with a centrally managed card (Expensify or Company Card).
  */
-function isManagedCardTransaction(transaction: OnyxEntry<Transaction>, cardList?: CardList): boolean {
-    return !!transaction?.managedCard || !!(transaction?.cardID && !!cardList?.[transaction.cardID]);
+function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return !!transaction?.managedCard;
+}
+
+/**
+ * Determins whether the transaction is coming from any card (Expensify/Corporate/personal cards)
+ */
+function isCardTransaction(transaction: OnyxEntry<Transaction>, cardList?: CardList): boolean {
+    if (transaction?.managedCard) {
+        return true;
+    }
+    const transactionType = transaction?.transactionType ?? getTransactionType(transaction, cardList);
+    return transactionType === CONST.SEARCH.TRANSACTION_TYPE.CARD;
 }
 
 function getCardName(transaction: OnyxEntry<Transaction>): string {
@@ -2399,6 +2410,7 @@ export {
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
+    isCardTransaction,
     isDuplicate,
     isPending,
     isPosted,

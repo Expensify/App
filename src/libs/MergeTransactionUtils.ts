@@ -22,10 +22,10 @@ import {
     getCurrency,
     getReimbursable,
     getWaypoints,
+    isCardTransaction,
     isDistanceRequest,
     isExpenseSplit,
     isFetchingWaypointsFromServer,
-    isManagedCardTransaction,
     isMerchantMissing,
     isPerDiemRequest,
     isScanning,
@@ -221,7 +221,7 @@ function getMergeableDataAndConflictFields(
             // Card takes precedence over split expense
             // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
             const isTargetExpenseSplit = isExpenseSplit(targetTransaction);
-            if (isManagedCardTransaction(targetTransaction, cardList) || isTargetExpenseSplit) {
+            if (isCardTransaction(targetTransaction, cardList) || isTargetExpenseSplit) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
                 if (isTargetExpenseSplit) {
@@ -264,7 +264,7 @@ function getMergeableDataAndConflictFields(
 
         // Use the reimbursable flag coming from card transactions automatically
         // See https://github.com/Expensify/App/issues/69598
-        if (field === 'reimbursable' && isManagedCardTransaction(targetTransaction, cardList)) {
+        if (field === 'reimbursable' && isCardTransaction(targetTransaction, cardList)) {
             mergeableData[field] = targetValue;
             continue;
         }
@@ -362,7 +362,7 @@ function buildMergedTransactionData(targetTransaction: OnyxEntry<Transaction>, m
 /**
  * Determines whether two transactions can be merged together.
  */
-function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, transaction2: OnyxEntry<Transaction>, cardList?: CardList) {
+function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, transaction2: OnyxEntry<Transaction>) {
     // Both transactions are required
     if (!transaction1 || !transaction2) {
         return false;
@@ -382,7 +382,7 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
     }
 
     // Do not allow merging two card transactions
-    if (isManagedCardTransaction(transaction1, cardList) && isManagedCardTransaction(transaction2, cardList)) {
+    if (isCardTransaction(transaction1) && isCardTransaction(transaction2)) {
         return false;
     }
 
@@ -397,7 +397,7 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
     }
 
     // Do not allow merging a per diem and a card transaction
-    if ((isPerDiemRequest(transaction1) && isManagedCardTransaction(transaction2, cardList)) || (isPerDiemRequest(transaction2) && isManagedCardTransaction(transaction1, cardList))) {
+    if ((isPerDiemRequest(transaction1) && isCardTransaction(transaction2)) || (isPerDiemRequest(transaction2) && isCardTransaction(transaction1))) {
         return false;
     }
 
@@ -428,7 +428,7 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
 function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, cardList?: CardList) {
     // If target transaction is a card or split expense, always preserve the target transaction
     // Card takes precedence over split expense
-    if (isManagedCardTransaction(sourceTransaction, cardList) || (isExpenseSplit(sourceTransaction) && !isManagedCardTransaction(targetTransaction, cardList))) {
+    if (isCardTransaction(sourceTransaction, cardList) || (isExpenseSplit(sourceTransaction) && !isCardTransaction(targetTransaction, cardList))) {
         return {targetTransaction: sourceTransaction, sourceTransaction: targetTransaction};
     }
 
