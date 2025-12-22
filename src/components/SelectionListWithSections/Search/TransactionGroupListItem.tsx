@@ -59,7 +59,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
     searchType,
     accountID,
     isOffline,
-    areAllOptionalColumnsHidden,
     newTransactionID,
     violations,
     onDEWModalOpen,
@@ -67,7 +66,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -109,6 +108,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             data: transactionsSnapshot?.data,
             currentAccountID: accountID,
             currentUserEmail: currentUserDetails.email ?? '',
+            translate,
             formatPhoneNumber,
             isActionLoadingSet,
         }) as [TransactionListItemType[], number];
@@ -116,7 +116,17 @@ function TransactionGroupListItem<TItem extends ListItem>({
             ...transactionItem,
             isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
         }));
-    }, [isExpenseReportType, transactionsSnapshot?.data, accountID, formatPhoneNumber, groupItem.transactions, selectedTransactionIDsSet, currentUserDetails.email, isActionLoadingSet]);
+    }, [
+        isExpenseReportType,
+        transactionsSnapshot?.data,
+        accountID,
+        translate,
+        formatPhoneNumber,
+        groupItem.transactions,
+        selectedTransactionIDsSet,
+        currentUserDetails.email,
+        isActionLoadingSet,
+    ]);
 
     const selectedItemsLength = useMemo(() => {
         return transactions.reduce((acc, transaction) => {
@@ -229,6 +239,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         member={groupItem as TransactionMemberGroupListItemType}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
+                        columns={columns}
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
@@ -241,6 +252,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         card={groupItem as TransactionCardGroupListItemType}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
+                        columns={columns}
                         isFocused={isFocused}
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
@@ -254,6 +266,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         withdrawalID={groupItem as TransactionWithdrawalIDGroupListItemType}
                         onCheckboxPress={onCheckboxPress}
                         isDisabled={isDisabledOrEmpty}
+                        columns={columns}
                         canSelectMultiple={canSelectMultiple}
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={isIndeterminate}
@@ -292,6 +305,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
             groupItem,
             onCheckboxPress,
             isDisabledOrEmpty,
+            columns,
             canSelectMultiple,
             isSelectAllChecked,
             isIndeterminate,
@@ -353,7 +367,6 @@ function TransactionGroupListItem<TItem extends ListItem>({
                                 groupBy={groupBy}
                                 accountID={accountID}
                                 isOffline={isOffline}
-                                areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                                 violations={violations}
                                 transactions={transactions}
                                 transactionsVisibleLimit={transactionsVisibleLimit}

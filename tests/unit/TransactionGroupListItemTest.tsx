@@ -61,6 +61,9 @@ const mockEmptyReport: TransactionReportGroupListItemType = {
     groupedBy: 'expense-report',
     keyForList: '515146912679679',
     shouldShowYear: false,
+    shouldShowYearSubmitted: false,
+    shouldShowYearApproved: false,
+    shouldShowYearExported: false,
     action: CONST.SEARCH.ACTION_TYPES.VIEW,
 };
 
@@ -177,6 +180,9 @@ const mockNonEmptyReport: TransactionReportGroupListItemType = {
     groupedBy: 'expense-report',
     keyForList: '515146912679680',
     shouldShowYear: false,
+    shouldShowYearSubmitted: false,
+    shouldShowYearApproved: false,
+    shouldShowYearExported: false,
     action: CONST.SEARCH.ACTION_TYPES.VIEW,
 };
 

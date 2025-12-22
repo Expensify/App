@@ -28,6 +28,7 @@ describe('bulkDeleteReports', () => {
             const hash = 12345;
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
                 report_123: {
+                    canDelete: true,
                     reportID: 'report_123',
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -43,6 +44,7 @@ describe('bulkDeleteReports', () => {
                     currency: 'USD',
                 },
                 report_456: {
+                    canDelete: true,
                     reportID: 'report_456',
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -72,6 +74,7 @@ describe('bulkDeleteReports', () => {
             const hash = 12345;
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
                 report_123: {
+                    canDelete: true,
                     reportID: 'report_123',
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -87,6 +90,7 @@ describe('bulkDeleteReports', () => {
                     currency: 'USD',
                 },
                 transaction_789: {
+                    canDelete: true,
                     reportID: 'report_456',
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -102,6 +106,7 @@ describe('bulkDeleteReports', () => {
                     currency: 'USD',
                 },
                 transaction_101: {
+                    canDelete: true,
                     reportID: 'report_456',
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -130,6 +135,7 @@ describe('bulkDeleteReports', () => {
             const hash = 12345;
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
                 transaction_789: {
+                    canDelete: true,
                     reportID: 'report_456',
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -145,6 +151,7 @@ describe('bulkDeleteReports', () => {
                     currency: 'USD',
                 },
                 transaction_101: {
+                    canDelete: true,
                     reportID: 'report_456',
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -181,6 +188,7 @@ describe('bulkDeleteReports', () => {
             const hash = 12345;
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
                 report_123: {
+                    canDelete: true,
                     reportID: 'report_123',
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -196,6 +204,7 @@ describe('bulkDeleteReports', () => {
                     currency: 'USD',
                 },
                 different_key: {
+                    canDelete: true,
                     reportID: 'report_456',
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -227,6 +236,7 @@ describe('bulkDeleteReports', () => {
             const hash = 12345;
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {
                 transaction_789: {
+                    canDelete: true,
                     reportID: 'report_456',
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,
@@ -242,6 +252,7 @@ describe('bulkDeleteReports', () => {
                     currency: 'USD',
                 },
                 transaction_101: {
+                    canDelete: true,
                     reportID: 'report_456',
                     action: CONST.SEARCH.ACTION_TYPES.VIEW,
                     isSelected: true,

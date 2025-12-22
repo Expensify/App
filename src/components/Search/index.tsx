@@ -8,7 +8,7 @@ import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming}
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
-import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
+import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
 import type {
     ReportActionListItemType,
     SearchListItem,
@@ -41,7 +41,14 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {canDeleteMoneyRequestReport, canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {
+    canDeleteMoneyRequestReport,
+    canEditFieldOfMoneyRequest,
+    canHoldUnholdReportAction,
+    canRejectReportAction,
+    isOneTransactionReport,
+    selectFilteredReportActions,
+} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -98,8 +105,6 @@ type SearchProps = {
     searchRequestResponseStatusCode?: number | null;
     onDEWModalOpen?: () => void;
 };
-
-const expenseHeaders = getExpenseHeaders();
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
@@ -462,6 +467,7 @@ function Search({
             data: searchResults.data,
             currentAccountID: accountID,
             currentUserEmail: email ?? '',
+            translate,
             formatPhoneNumber,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
@@ -480,6 +486,7 @@ function Search({
         searchResults,
         type,
         archivedReportsIdSet,
+        translate,
         formatPhoneNumber,
         accountID,
         queryJSON,
@@ -802,7 +809,17 @@ function Search({
             setSelectedTransactions(updatedTransactions, filteredData);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [selectedTransactions, setSelectedTransactions, filteredData, updateSelectAllMatchingItemsState, transactions, email, outstandingReportsByPolicyID, searchResults?.data, reportActions],
+        [
+            selectedTransactions,
+            setSelectedTransactions,
+            filteredData,
+            updateSelectAllMatchingItemsState,
+            transactions,
+            email,
+            outstandingReportsByPolicyID,
+            searchResults?.data,
+            reportActions,
+        ],
     );
 
     const onSelectRow = useCallback(
@@ -1061,11 +1078,6 @@ function Search({
         handleSelectionListScroll(sortedSelectedData, searchListRef.current);
     }, [handleSelectionListScroll, sortedSelectedData]);
 
-    const areAllOptionalColumnsHidden = useMemo(() => {
-        const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
-        return canBeMissingColumns.every((column) => !columnsToShow.includes(column));
-    }, [columnsToShow]);
-
     const onLayoutSkeleton = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS);
     }, []);
@@ -1170,7 +1182,6 @@ function Search({
                                     isAmountColumnWide={shouldShowAmountInWideColumn}
                                     isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                                     shouldShowSorting
-                                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                                     groupBy={validGroupBy}
                                 />
                             </View>
@@ -1192,7 +1203,6 @@ function Search({
                     }
                     queryJSON={queryJSON}
                     columns={columnsToShow}
-                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     violations={filteredViolations}
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
