@@ -46,16 +46,17 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     }, [validateLoginError]);
     useEffect(() => {
         return () => {
-            if (loginList) {
-                const removedLogin: string[] = [];
-                Object.keys(loginList).forEach((login) => {
-                    const error = getLatestErrorField(loginList?.[login], 'addedLogin');
-                    if (!isEmptyObject(error)) {
-                        removedLogin.push(login);
-                    }
-                });
-                clearContactMethod(removedLogin);
+            if (!loginList) {
+                return;
             }
+            const removedLogin: string[] = [];
+            for (const login of Object.keys(loginList)) {
+                const error = getLatestErrorField(loginList?.[login], 'addedLogin');
+                if (!isEmptyObject(error)) {
+                    removedLogin.push(login);
+                }
+            }
+            clearContactMethod(removedLogin);
         };
     }, [loginList]);
 
