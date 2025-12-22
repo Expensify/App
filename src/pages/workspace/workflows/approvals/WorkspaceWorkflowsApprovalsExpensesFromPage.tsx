@@ -282,7 +282,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 // If accountID is missing, skip this user (shouldn't happen as it comes from selection)
             }
 
-            // Set draft BEFORE navigating, just like card flows do
             setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
 
             // Navigate to invite message page with backTo to continue workflow after invite
