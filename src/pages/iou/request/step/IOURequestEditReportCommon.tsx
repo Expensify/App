@@ -248,7 +248,11 @@ function IOURequestEditReportCommon({
     );
 
     const handleSelectReport = (item: TransactionGroupListItem) => {
-        if (!validatePerDiemMove(item.policyID)) {
+        if (item.value === selectedReportID) {
+            navigateBack();
+            return;
+        }
+        if (validatePerDiemMove(item.policyID) ) {
             return;
         }
         selectReport(item);
