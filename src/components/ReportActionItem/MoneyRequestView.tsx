@@ -428,6 +428,20 @@ function MoneyRequestView({
         [transaction, report?.reportID, policy, policyTagList, policyCategories, currentUserAccountIDParam, currentUserEmailParam, isASAPSubmitBetaEnabled],
     );
 
+    // Display Expense type in Amount row description
+    amountDescription += ` ${CONST.DOT_SEPARATOR} `;
+    if (isTimeRequest) {
+        amountDescription += translate('iou.time');
+    } else if (isDistanceRequest) {
+        amountDescription += translate('common.distance');
+    } else if (isPerDiemRequest) {
+        amountDescription += translate('common.perDiem');
+    } else if (isCardTransaction) {
+        amountDescription += translate('iou.card');
+    } else {
+        amountDescription += translate('iou.cash');
+    }
+
     if (isCardTransaction) {
         if (transactionPostedDate) {
             dateDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.posted')} ${transactionPostedDate}`;
@@ -438,26 +452,12 @@ function MoneyRequestView({
         if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         }
-    } else {
-        if (isTimeRequest) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.time')}`;
-        } else if (isDistanceRequest) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.distance')}`;
-        } else if (isPerDiemRequest) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.perDiem')}`;
-        } else if (isCardTransaction) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.card')}`;
-        } else {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
-        }
-
-        if (isCancelled) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
-        } else if (isApproved) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
-        } else if (shouldShowPaid) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
-        }
+    } else if (isCancelled) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
+    } else if (isApproved) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
+    } else if (shouldShowPaid) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
     }
     if (isExpenseSplit) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
