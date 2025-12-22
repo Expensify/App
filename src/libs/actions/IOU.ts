@@ -11769,27 +11769,15 @@ function submitReport(
             },
         });
     }
-    if (isDEWPolicy) {
-        // For DEW policies, delete the optimistic action on success because the backend
-        // provides its own SUBMITTED action with the DEW workflow info
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-            value: {
-                [optimisticSubmittedReportAction.reportActionID]: null,
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+        value: {
+            [optimisticSubmittedReportAction.reportActionID]: {
+                pendingAction: null,
             },
-        });
-    } else {
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-            value: {
-                [optimisticSubmittedReportAction.reportActionID]: {
-                    pendingAction: null,
-                },
-            },
-        });
-    }
+        },
+    });
 
     if (isDEWPolicy) {
         successData.push({
@@ -11819,15 +11807,26 @@ function submitReport(
             },
         },
     ];
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-        value: {
-            [optimisticSubmittedReportAction.reportActionID]: {
-                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+    if (isDEWPolicy) {
+        // delete the optimistic SUBMITTED action as The backend creates a DEW_SUBMIT_FAILED action instead.
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticSubmittedReportAction.reportActionID]: null,
             },
-        },
-    });
+        });
+    } else {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticSubmittedReportAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                },
+            },
+        });
+    }
 
     if (isDEWPolicy) {
         failureData.push({
