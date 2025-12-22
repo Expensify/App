@@ -844,6 +844,29 @@ function getOriginalAmount(transaction: Transaction): number {
 }
 
 /**
+ * Return the original amount for display/sorting purposes.
+ * For expense reports, returns the negated value of (originalAmount || amount || modifiedAmount).
+ * For non-expense reports, returns getOriginalAmount() or Math.abs(amount) or Math.abs(modifiedAmount).
+ */
+function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmount' | 'amount' | 'modifiedAmount'>, isExpenseReport: boolean): number {
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    if (isExpenseReport) {
+        return -((transaction.originalAmount || transaction.amount || transaction.modifiedAmount) ?? 0);
+    }
+    return getOriginalAmount(transaction as Transaction) || Math.abs(transaction.amount ?? 0) || Math.abs(transaction.modifiedAmount ?? 0);
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+}
+
+/**
+ * Return the original currency for display/sorting purposes.
+ * Falls back to originalCurrency, then currency, then modifiedCurrency.
+ */
+function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalCurrency' | 'currency' | 'modifiedCurrency' | 'amount'>): string {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return transaction.originalCurrency || (transaction.amount === 0 ? transaction.modifiedCurrency : transaction.currency) || CONST.CURRENCY.USD;
+}
+
+/**
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
 function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction>): boolean {
@@ -1321,7 +1344,6 @@ function shouldShowViolation(
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
     const isReportOpen = isOpenExpenseReport(iouReport);
     const isOpenOrProcessingReport = isReportOpen || isProcessingReport(iouReport);
-    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? false;
 
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
         return isSubmitter || isPolicyAdmin(policy);
@@ -1337,10 +1359,6 @@ function shouldShowViolation(
 
     if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
         return isPolicyMember && !isSubmitter && !isReportOpen;
-    }
-
-    if (violationName === CONST.VIOLATIONS.MISSING_ATTENDEES) {
-        return isAttendeeTrackingEnabled;
     }
 
     return true;
@@ -1489,11 +1507,18 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * Check if transaction has duplicatedTransaction violation.
  * @param transactionID - the transaction to check
  */
-function isDuplicate(transaction: OnyxEntry<Transaction>, currentUserEmail: string, currentUserAccountID: number, iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function isDuplicate(
+    transaction: OnyxEntry<Transaction>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    transactionViolation?: OnyxEntry<TransactionViolations>,
+): boolean {
     if (!transaction) {
         return false;
     }
-    const duplicatedTransactionViolation = deprecatedAllTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]?.find(
+    const duplicatedTransactionViolation = (transactionViolation ?? deprecatedAllTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`])?.find(
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
     const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
@@ -1603,13 +1628,24 @@ function hasDuplicateTransactions(
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    allReportTransactions?: SearchTransaction[],
+    allTransactionViolations: OnyxCollection<TransactionViolation[]>,
 ): boolean {
     const transactionsByIouReportID = getReportTransactions(iouReport?.reportID);
-    const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
+    const reportTransactions = transactionsByIouReportID;
 
-    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail, currentUserAccountID, iouReport, policy));
+    return (
+        reportTransactions.length > 0 &&
+        reportTransactions.some((transaction) =>
+            isDuplicate(
+                transaction,
+                currentUserEmail,
+                currentUserAccountID,
+                iouReport,
+                policy,
+                allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
+            ),
+        )
+    );
 }
 
 /**
@@ -2428,6 +2464,8 @@ export {
     getReportOwnerAsAttendee,
     getExchangeRate,
     shouldReuseInitialTransaction,
+    getOriginalAmountForDisplay,
+    getOriginalCurrencyForDisplay,
 };
 
 export type {TransactionChanges};
