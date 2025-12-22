@@ -485,6 +485,4 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     );
 }
 
-PopoverReportActionContextMenu.displayName = 'PopoverReportActionContextMenu';
-
 export default PopoverReportActionContextMenu;
