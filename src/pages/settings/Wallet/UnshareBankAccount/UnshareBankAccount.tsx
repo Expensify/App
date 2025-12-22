@@ -150,8 +150,7 @@ function UnshareBankAccount({route}: ShareBankAccountProps) {
                         <ErrorMessageRow
                             errors={unsharedBankAccountData?.errors}
                             errorRowStyles={[styles.mv3]}
-                            onClose={clearUnshareBankAccountErrors}
-                            canDismissError
+                            onDismiss={clearUnshareBankAccountErrors}
                         />
                     }
                     onSelectRow={() => {}}
