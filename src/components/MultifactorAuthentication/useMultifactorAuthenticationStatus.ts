@@ -3,8 +3,8 @@ import useLocalize from '@hooks/useLocalize';
 import type {MultifactorAuthenticationPartialStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
 import type {MultifactorAuthenticationTranslationParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
-import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI} from './config';
-import {getAuthTypeName, Status} from './helpers';
+import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI, MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP} from './config';
+import {getAuthTypeName, getNotificationPaths, isValidScenario, shouldClearScenario, Status} from './helpers';
 import type {SetMultifactorAuthenticationStatus, UseMultifactorAuthenticationStatus} from './types';
 
 type MultifactorAuthenticationTranslate = <TPath extends TranslationPaths>(path: TPath, params: MultifactorAuthenticationTranslationParams) => string;
@@ -58,18 +58,28 @@ export default function useMultifactorAuthenticationStatus<T>(
      * or a function to transform the existing status. Returns the newly set status
      * for immediate use, though the status value from the hook can be used for reactive updates.
      */
-    const setStatus: SetMultifactorAuthenticationStatus<T> = (partialStatus) => {
+    const setStatus: SetMultifactorAuthenticationStatus<T> = (partialStatus, potentialScenario, customNotificationPaths) => {
         const state = typeof partialStatus === 'function' ? partialStatus(previousStatus.current) : partialStatus;
 
         const success = successSource.current ? successSource.current(state) : !!state.step.wasRecentStepSuccessful;
 
         const typeName = getAuthTypeName(state);
-        const statusType = success ? 'success' : 'failure';
+        const previousScenario = previousStatus.current.scenario;
 
-        // TODO: MFA/Dev here the title and message should be retrieved from the UI config, but we do not know the scenario
-        // const {headerTitle: headerTitleTPath, title: titleTPath, description: descriptionTPah} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[SCENARIO]
+        const newScenario = isValidScenario(potentialScenario) ? potentialScenario : undefined;
+        const scenario = newScenario ?? (shouldClearScenario(potentialScenario) ? undefined : previousScenario);
+        const defaultNotificationPaths = getNotificationPaths(scenario);
 
-        const {headerTitle: headerTitleTPath, title: titleTPath, description: descriptionTPath} = MULTIFACTOR_AUTHENTICATION_DEFAULT_UI.NOTIFICATIONS[statusType];
+        const {successNotification: customSuccessNotification, failureNotification: customFailureNotification} = customNotificationPaths ?? {};
+
+        const notificationPaths = {
+            successNotification: customSuccessNotification ?? defaultNotificationPaths.successNotification,
+            failureNotification: customFailureNotification ?? defaultNotificationPaths.failureNotification,
+        };
+
+        const notificationType = success ? 'successNotification' : 'failureNotification';
+
+        const {headerTitle: headerTitleTPath, title: titleTPath, description: descriptionTPath} = MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP[notificationPaths[notificationType]];
 
         const translateMFA = translate as MultifactorAuthenticationTranslate;
         const translationParameters = {
@@ -82,10 +92,12 @@ export default function useMultifactorAuthenticationStatus<T>(
 
         const createdStatus = {
             ...state,
+            scenario,
             typeName,
             headerTitle,
             title,
             description,
+            notificationPaths,
         };
 
         setStatusSource(createdStatus);

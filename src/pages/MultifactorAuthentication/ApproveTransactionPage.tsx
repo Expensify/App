@@ -19,7 +19,7 @@ type MultifactorAuthenticationApproveTransactionPageProps = PlatformStackScreenP
 function MultifactorAuthenticationScenarioApproveTransactionPage({route}: MultifactorAuthenticationApproveTransactionPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {process, trigger, info} = useMultifactorAuthenticationContext();
+    const {process, trigger} = useMultifactorAuthenticationContext();
 
     const transactionID = route.params.transactionID;
     const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
@@ -42,8 +42,7 @@ function MultifactorAuthenticationScenarioApproveTransactionPage({route}: Multif
         if (isConfirmModalVisible) {
             hideConfirmModal();
         }
-        // TODO: MFA/Dev should not be done here
-        trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE, 'authorize-transaction-failure');
+        trigger(CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE, CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION);
     };
 
     return (
@@ -61,7 +60,7 @@ function MultifactorAuthenticationScenarioApproveTransactionPage({route}: Multif
                         onDeny={showConfirmModal}
                     />
                     <MultifactorAuthenticationTriggerCancelConfirmModal
-                        scenario={info.scenario}
+                        scenario={CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION}
                         isVisible={isConfirmModalVisible}
                         onConfirm={denyTransaction}
                         onCancel={hideConfirmModal}

@@ -1,5 +1,6 @@
 import type {EmptyObject, ValueOf} from 'type-fest';
-import type {AllMultifactorAuthenticationNotificationType} from '@components/MultifactorAuthentication/config/types';
+import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenario} from '@components/MultifactorAuthentication/config/types';
+import type {NotificationPaths} from '@components/MultifactorAuthentication/types';
 import type {SignedChallenge} from './ED25519/types';
 import type {SECURE_STORE_VALUES} from './SecureStore';
 import type VALUES from './VALUES';
@@ -19,8 +20,8 @@ type MultifactorAuthenticationPartialStatusConditional<OmitStep> = OmitStep exte
 type MultifactorAuthenticationTrigger = ValueOf<typeof VALUES.TRIGGER>;
 
 type MultifactorAuthenticationTriggerArgument = {
-    [VALUES.TRIGGER.FAILURE]: AllMultifactorAuthenticationNotificationType;
-    [VALUES.TRIGGER.FULFILL]: AllMultifactorAuthenticationNotificationType;
+    [VALUES.TRIGGER.FAILURE]: AllMultifactorAuthenticationNotificationType | MultifactorAuthenticationScenario;
+    [VALUES.TRIGGER.FULFILL]: AllMultifactorAuthenticationNotificationType | MultifactorAuthenticationScenario;
 };
 
 type MultifactorAuthenticationReason = ValueOf<{
@@ -74,6 +75,10 @@ type MultifactorAuthenticationStatus<T, OmitStep = false> = MultifactorAuthentic
     title: string;
 
     description: string;
+
+    scenario: MultifactorAuthenticationScenario | undefined;
+
+    notificationPaths: NotificationPaths;
 };
 
 type Simplify<T> = T extends Record<string, unknown> ? {[K in keyof T]: Simplify<T[K]>} : T;

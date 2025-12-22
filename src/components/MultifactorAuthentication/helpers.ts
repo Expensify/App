@@ -7,13 +7,14 @@ import {requestBiometricChallenge} from '@userActions/MultifactorAuthentication'
 import CONST from '@src/CONST';
 import ROUTES, {MULTIFACTOR_AUTHENTICATION_PROTECTED_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+import {MULTIFACTOR_AUTHENTICATION_DEFAULT_UI, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
 import type {
     AllMultifactorAuthenticationNotificationType,
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioParams,
 } from './config/types';
-import type {AuthTypeName, BiometricsStatus, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType, NotificationPaths} from './types';
+import type {AuthTypeName, BiometricsStatus, MultifactorAuthenticationScenarioStatus, MultifactorAuthenticationStatusKeyType, NoScenarioForStatusReason, NotificationPaths} from './types';
 
 const failedStep = {
     wasRecentStepSuccessful: false,
@@ -22,9 +23,12 @@ const failedStep = {
 };
 
 const EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus> = {
-    value: {
-        scenario: undefined,
+    value: {},
+    notificationPaths: {
+        successNotification: 'biometrics-test-success',
+        failureNotification: 'biometrics-test-failure',
     },
+    scenario: undefined,
     reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.NO_ACTION_MADE_YET,
     headerTitle: 'Biometrics authentication',
     title: 'You couldn’t be authenticated',
@@ -201,25 +205,17 @@ const shouldAllowBiometrics = (allowedAuthentication: ValueOf<typeof CONST.MULTI
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const createBiometricsNotAllowedStatus = <T extends MultifactorAuthenticationScenario>(
-    scenario: T,
     params: MultifactorAuthenticationScenarioParams<T> & Record<string, unknown>,
-    authorization?: boolean,
-    notificationPaths?: NotificationPaths,
-): [MultifactorAuthenticationPartialStatus<MultifactorAuthenticationScenarioStatus>, MultifactorAuthenticationStatusKeyType] => {
-    return [
-        {
-            step: {
-                ...failedStep,
-            },
-            value: {
-                ...notificationPaths,
-                scenario,
-                payload: extractAdditionalParameters<T>(params),
-            },
-            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BIOMETRICS_NOT_ALLOWED,
+): MultifactorAuthenticationPartialStatus<MultifactorAuthenticationScenarioStatus> => {
+    return {
+        step: {
+            ...failedStep,
         },
-        authorization ? CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION : CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION,
-    ];
+        value: {
+            payload: extractAdditionalParameters<T>(params),
+        },
+        reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.GENERIC.BIOMETRICS_NOT_ALLOWED,
+    };
 };
 
 const createEmptyStatus = <T>(initialValue: T, {headerTitle, title, description}: {headerTitle: string; title: string; description: string}): MultifactorAuthenticationStatus<T> => ({
@@ -227,6 +223,11 @@ const createEmptyStatus = <T>(initialValue: T, {headerTitle, title, description}
     headerTitle,
     title,
     description,
+    notificationPaths: {
+        successNotification: 'biometrics-test-success',
+        failureNotification: 'biometrics-test-failure',
+    },
+    scenario: undefined,
     value: initialValue,
     step: {
         wasRecentStepSuccessful: undefined,
@@ -239,18 +240,8 @@ const isProtectedRoute = (route: string) => Object.values(MULTIFACTOR_AUTHENTICA
 
 const isOnProtectedRoute = () => isProtectedRoute(Navigation.getActiveRouteWithoutParams());
 
-const getNotificationPath = (
-    overriddenPath: AllMultifactorAuthenticationNotificationType | undefined,
-    scenarioPrefix: Lowercase<MultifactorAuthenticationScenario> | undefined,
-    suffix: string,
-): AllMultifactorAuthenticationNotificationType | undefined => {
-    if (overriddenPath) {
-        return overriddenPath;
-    }
-    if (scenarioPrefix) {
-        return `${scenarioPrefix}-${suffix}` as AllMultifactorAuthenticationNotificationType;
-    }
-    return undefined;
+const getNotificationPath = (scenarioPrefix: Lowercase<MultifactorAuthenticationScenario> | undefined, suffix: string): AllMultifactorAuthenticationNotificationType => {
+    return `${scenarioPrefix ?? 'biometrics-test'}-${suffix}` as AllMultifactorAuthenticationNotificationType;
 };
 
 const getNotificationRoute = (path: AllMultifactorAuthenticationNotificationType | undefined): Route => {
@@ -265,7 +256,7 @@ const getCancelStatus = (
     wasRecentStepSuccessful: boolean | undefined,
     nativeBiometricsCancel: (wasRecentStepSuccessful?: boolean) => MultifactorAuthenticationStatus<boolean>,
     setupCancel: (wasRecentStepSuccessful?: boolean) => MultifactorAuthenticationStatus<BiometricsStatus>,
-) => {
+): MultifactorAuthenticationStatus<boolean | BiometricsStatus> => {
     if (type === CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION) {
         return nativeBiometricsCancel(wasRecentStepSuccessful);
     }
@@ -277,47 +268,63 @@ function convertResultIntoMultifactorAuthenticationStatus<T extends MultifactorA
     scenario: T | undefined,
     type: MultifactorAuthenticationStatusKeyType,
     params: MultifactorAuthenticationScenarioParams<T> | false,
-    notificationPaths?: NotificationPaths,
 ): MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>;
 function convertResultIntoMultifactorAuthenticationStatus<T extends MultifactorAuthenticationScenario>(
     status: MultifactorAuthenticationPartialStatus<unknown>,
     scenario: T | undefined,
     type: MultifactorAuthenticationStatusKeyType,
     params: MultifactorAuthenticationScenarioParams<T> | false,
-    notificationPaths?: NotificationPaths,
 ): MultifactorAuthenticationPartialStatus<MultifactorAuthenticationScenarioStatus>;
 function convertResultIntoMultifactorAuthenticationStatus<T extends MultifactorAuthenticationScenario>(
     status: MultifactorAuthenticationStatus<unknown> | MultifactorAuthenticationPartialStatus<unknown>,
-    scenario: T | undefined,
     type: MultifactorAuthenticationStatusKeyType,
     params: MultifactorAuthenticationScenarioParams<T> | false,
-    notificationPaths?: NotificationPaths,
 ): MultifactorAuthenticationPartialStatus<MultifactorAuthenticationScenarioStatus> | MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus> {
     return {
         ...status,
         value: {
-            ...notificationPaths,
-            scenario,
             payload: params ? extractAdditionalParameters<T>(params) : undefined,
             type,
         },
     };
 }
 
+const getMultifactorCancelConfirmModalConfig = (scenario?: MultifactorAuthenticationScenario) => {
+    return (scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] : MULTIFACTOR_AUTHENTICATION_DEFAULT_UI).MODALS.cancelConfirmation;
+};
+
 const badRequestStatus = (
     currentStatus: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>,
-    notificationPaths?: NotificationPaths,
 ): MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus> => {
     return {
         ...currentStatus,
         value: {
             ...currentStatus.value,
-            ...notificationPaths,
         },
         reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.BAD_REQUEST,
         step: {
             ...failedStep,
         },
+    };
+};
+
+const isValidScenario = (scenario: string): scenario is MultifactorAuthenticationScenario => {
+    const scenarios = Object.values(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO);
+    return !!scenarios.find((sc) => sc === scenario);
+};
+
+const shouldClearScenario = (scenario: MultifactorAuthenticationScenario | NoScenarioForStatusReason) => {
+    return scenario === CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.FULFILL || scenario === CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.CANCEL;
+};
+
+const getNotificationPaths = (scenario: MultifactorAuthenticationScenario | undefined): NotificationPaths => {
+    const scenarioPrefix = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
+    const successNotification = getNotificationPath(scenarioPrefix, 'success');
+    const failureNotification = getNotificationPath(scenarioPrefix, 'failure');
+
+    return {
+        successNotification,
+        failureNotification,
     };
 };
 
@@ -353,6 +360,9 @@ export {
     getAuthTypeName,
     doesDeviceSupportBiometrics,
     isBiometryConfigured,
+    isValidScenario,
+    shouldClearScenario,
+    getNotificationPaths,
     createAuthorizeErrorStatus,
     shouldAllowBiometrics,
     convertResultIntoMultifactorAuthenticationStatus,
@@ -360,6 +370,7 @@ export {
     getNotificationPath,
     resetKeys,
     isOnProtectedRoute,
+    getMultifactorCancelConfirmModalConfig,
     isProtectedRoute,
     getCancelStatus,
     EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS,

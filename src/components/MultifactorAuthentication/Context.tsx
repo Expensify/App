@@ -17,15 +17,16 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import {MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP, MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
+import {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './config';
 import type {MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioParams} from './config/types';
 import {
     convertResultIntoMultifactorAuthenticationStatus,
     EMPTY_MULTIFACTOR_AUTHENTICATION_STATUS,
     getCancelStatus,
-    getNotificationPath,
+    getNotificationPaths,
     getNotificationRoute,
     isOnProtectedRoute,
+    isValidScenario,
     MergedHooksStatus,
     resetKeys,
     shouldAllowBiometrics,
@@ -64,22 +65,19 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     const NativeBiometrics = useNativeBiometrics();
     const [mergedStatus, setMergedStatus] = useMultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>({
-        scenario: undefined,
         type: CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.NONE,
-        successNotification: undefined,
-        failureNotification: undefined,
     });
     const {translate} = useLocalize();
 
     useEffect(() => {
         Navigation.isNavigationReady().then(() => {
-            const shouldRedirect = !mergedStatus.value.scenario && isOnProtectedRoute();
+            const shouldRedirect = !mergedStatus.scenario && isOnProtectedRoute();
 
             if (shouldRedirect) {
                 Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_NOT_FOUND, {forceReplace: true});
             }
         });
-    }, [mergedStatus.value.scenario]);
+    }, [mergedStatus.scenario]);
 
     const softStorePromptAccepted = useRef<boolean | undefined>(undefined);
 
@@ -87,24 +85,8 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     const {accountID} = useCurrentUserPersonalDetails();
 
-    const getNotificationPaths = (scenario: MultifactorAuthenticationScenario | undefined, customNotificationPaths?: NotificationPaths) => {
-        const scenarioPrefix = scenario?.toLowerCase() as Lowercase<MultifactorAuthenticationScenario> | undefined;
-        const successPath = getNotificationPath(customNotificationPaths?.successNotification, scenarioPrefix, 'success');
-        const failurePath = getNotificationPath(customNotificationPaths?.failureNotification, scenarioPrefix, 'failure');
-
-        return {
-            success: getNotificationRoute(successPath),
-            failure: getNotificationRoute(failurePath),
-            successPath,
-            failurePath,
-        };
-    };
-
     const navigate = (status: MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>, softPrompt?: boolean, revokeAction?: boolean) => {
-        const {
-            step,
-            value: {scenario, successNotification, failureNotification},
-        } = status;
+        const {step, scenario, notificationPaths} = status;
 
         const {requiredFactorForNextStep, isRequestFulfilled, wasRecentStepSuccessful} = step;
 
@@ -136,16 +118,18 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         const {screen} = scenario ? MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario] : {};
 
         // Navigate based on step result
-        const notificationPaths = getNotificationPaths(scenario, {successNotification, failureNotification});
+        const successRoute = getNotificationRoute(notificationPaths.successNotification);
+        const failureRoute = getNotificationRoute(notificationPaths.failureNotification);
+
         const scenarioRoute: Route = screen ? (normalizedConfigs[screen].path as Route) : ROUTES.MULTIFACTOR_AUTHENTICATION_NOT_FOUND;
 
-        if (wasRecentStepSuccessful === true && !Navigation.isActiveRoute(notificationPaths.success)) {
-            Navigation.navigate(notificationPaths.success);
+        if (wasRecentStepSuccessful === true && !Navigation.isActiveRoute(successRoute)) {
+            Navigation.navigate(successRoute);
             return;
         }
 
-        if (wasRecentStepSuccessful === false && !Navigation.isActiveRoute(notificationPaths.failure)) {
-            Navigation.navigate(notificationPaths.failure);
+        if (wasRecentStepSuccessful === false && !Navigation.isActiveRoute(failureRoute)) {
+            Navigation.navigate(failureRoute);
             return;
         }
 
@@ -163,13 +147,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             },
         ]
     ) => {
-        const [status, typeOverride, rest] = args;
+        const [status, scenario, notificationPaths, rest] = args;
         const {softPrompt, revoke} = rest ?? {};
-        let type = typeOverride;
-        if (!type && typeof status !== 'function') {
-            type = status?.value.type;
-        }
-        const merged = setMergedStatus(status, type);
+        const merged = setMergedStatus(status, scenario, notificationPaths);
 
         navigate(merged, softPrompt, revoke);
         return merged;
@@ -191,20 +171,20 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             chainedWithAuthorization?: boolean;
         },
         scenario: T,
-        notificationPaths?: NotificationPaths,
+        notificationPaths?: Partial<NotificationPaths>,
         softPromptAccepted?: boolean,
     ) => {
         if (!allowedMethods(scenario, softPromptAccepted).biometrics) {
-            return setStatus(...MergedHooksStatus.createBiometricsNotAllowedStatus(scenario, params));
+            return setStatus(MergedHooksStatus.createBiometricsNotAllowedStatus<T>(params), scenario, notificationPaths);
         }
 
         const {nativePromptTitle: nativePromptTitleTPath} = MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG[scenario];
 
         const nativePromptTitle = translate(nativePromptTitleTPath);
 
-        const result = await NativeBiometrics.setup.register({...params, nativePromptTitle});
-        const status = convertResultIntoMultifactorAuthenticationStatus(result, scenario, CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION, params, notificationPaths);
-        const mergedResult = setStatus(status);
+        const result = await NativeBiometrics.setup.register({...params, nativePromptTitle}, scenario);
+        const status = convertResultIntoMultifactorAuthenticationStatus(result, scenario, CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION, params);
+        const mergedResult = setStatus(status, scenario, notificationPaths);
 
         if (params.chainedWithAuthorization) {
             return {...mergedResult, value: result.value} as MultifactorAuthenticationStatus<string>;
@@ -217,11 +197,11 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         params: MultifactorAuthenticationScenarioParams<T> & {
             chainedPrivateKeyStatus?: MultifactorAuthenticationPartialStatus<string | null> | undefined;
         },
-        notificationPaths?: NotificationPaths,
+        notificationPaths?: Partial<NotificationPaths>,
         softPromptAccepted?: boolean,
     ) => {
         if (!allowedMethods(scenario, softPromptAccepted).biometrics) {
-            return setStatus(...MergedHooksStatus.createBiometricsNotAllowedStatus(scenario, params, true, notificationPaths));
+            return setStatus(MergedHooksStatus.createBiometricsNotAllowedStatus<T>(params), scenario, notificationPaths);
         }
         return setStatus(
             convertResultIntoMultifactorAuthenticationStatus(
@@ -229,20 +209,22 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                 scenario,
                 CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION,
                 params,
-                notificationPaths,
             ),
-            undefined,
+            scenario,
+            notificationPaths,
         );
     };
 
     const cancel = (
         args?: {
             wasRecentStepSuccessful?: boolean;
-        } & NotificationPaths,
+        } & Partial<NotificationPaths>,
     ) => {
         const {successNotification, failureNotification, wasRecentStepSuccessful} = args ?? {};
 
-        const {scenario, type} = mergedStatus.value;
+        const {type} = mergedStatus.value;
+        const {scenario} = mergedStatus;
+
         softStorePromptAccepted.current = undefined;
         storedValidateCode.current = undefined;
 
@@ -250,16 +232,18 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         const scenarioType = type ?? CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION;
 
         return setStatus(
-            convertResultIntoMultifactorAuthenticationStatus(cancelStatus, scenario, scenarioType, false, {
+            convertResultIntoMultifactorAuthenticationStatus(cancelStatus, scenario, scenarioType, false),
+            scenario ?? CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.CANCEL,
+            {
                 successNotification,
                 failureNotification,
-            }),
+            },
         );
     };
 
     const process = async <T extends MultifactorAuthenticationScenario>(
         scenario: T,
-        params?: MultifactorAuthenticationScenarioParams<T> & NotificationPaths,
+        params?: MultifactorAuthenticationScenarioParams<T> & Partial<NotificationPaths>,
     ): Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>> => {
         const {successNotification, failureNotification} = params ?? {};
         const softPromptAccepted = softStorePromptAccepted.current;
@@ -296,9 +280,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
                         scenario,
                         CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.NONE,
                         params ?? false,
-                        notificationPaths,
                     ),
-                undefined,
+                scenario,
+                notificationPaths,
                 {
                     softPrompt: !!validateCode,
                 },
@@ -309,14 +293,16 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             /** Multifactor authentication is not configured, let's do that first */
             /** Run the setup method */
             if (!params) {
-                return setStatus((prevStatus) => MergedHooksStatus.badRequestStatus(prevStatus, notificationPaths));
+                return setStatus((prevStatus) => MergedHooksStatus.badRequestStatus(prevStatus), scenario, notificationPaths);
             }
 
             const requestStatus = await register({...params, chainedWithAuthorization: true}, scenario, notificationPaths, softPromptAccepted);
 
             if (!requestStatus.step.wasRecentStepSuccessful) {
                 return setStatus(
-                    convertResultIntoMultifactorAuthenticationStatus(requestStatus, scenario, CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION, params, notificationPaths),
+                    convertResultIntoMultifactorAuthenticationStatus(requestStatus, scenario, CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHORIZATION, params),
+                    scenario,
+                    notificationPaths,
                 );
             }
 
@@ -327,7 +313,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // If the scenario is pure, the payload is not needed hence for the process call the params can be empty
         if (!params && !('pure' in config)) {
-            return setStatus((prevStatus) => MergedHooksStatus.badRequestStatus(prevStatus, notificationPaths));
+            return setStatus((prevStatus) => MergedHooksStatus.badRequestStatus(prevStatus), scenario, notificationPaths);
         }
 
         /** Multifactor authentication is configured already, let's do the challenge logic */
@@ -345,11 +331,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             softPromptDecision?: boolean;
         },
     ) => {
-        const {scenario, payload} = mergedStatus.value;
+        const {payload} = mergedStatus.value;
         const {isRequestFulfilled} = mergedStatus.step;
+        const {scenario} = mergedStatus;
 
         if (!scenario || isRequestFulfilled) {
-            return setStatus(MergedHooksStatus.badRequestStatus(mergedStatus));
+            return setStatus(MergedHooksStatus.badRequestStatus(mergedStatus), scenario ?? CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.UPDATE);
         }
 
         const validateCode = params.validateCode ?? storedValidateCode.current;
@@ -368,12 +355,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             (prevStatus) =>
                 convertResultIntoMultifactorAuthenticationStatus(
                     revokeStatus,
-                    prevStatus.value.scenario,
+                    prevStatus.scenario,
                     prevStatus.value.type ?? CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.AUTHENTICATION,
                     false,
-                    {successNotification: prevStatus.value.successNotification, failureNotification: prevStatus.value.failureNotification},
                 ),
-            CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.NONE,
+            CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.REVOKE,
+            undefined,
             {
                 softPrompt: false,
                 revoke: true,
@@ -382,42 +369,27 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     };
 
     const trigger = async <T extends MultifactorAuthenticationTrigger>(triggerType: T, argument?: MultifactorTriggerArgument<T>) => {
+        const isScenarioArgument = argument && isValidScenario(argument);
+        const scenarioNotificationPaths = isScenarioArgument ? getNotificationPaths(argument) : {};
+
         switch (triggerType) {
             case CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.REVOKE:
                 return revoke();
             case CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FULFILL:
-                return cancel({wasRecentStepSuccessful: true, ...(argument ? {successNotification: argument} : {})});
+                return cancel({wasRecentStepSuccessful: true, ...(isScenarioArgument ? scenarioNotificationPaths : {successNotification: argument ?? undefined})});
             case CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.CANCEL:
-                return cancel();
+                return cancel(isScenarioArgument ? scenarioNotificationPaths : {successNotification: argument ?? undefined});
             case CONST.MULTIFACTOR_AUTHENTICATION.TRIGGER.FAILURE:
-                return cancel({wasRecentStepSuccessful: false, ...(argument ? {failureNotification: argument} : {})});
+                return cancel({wasRecentStepSuccessful: false, ...(isScenarioArgument ? scenarioNotificationPaths : {failureNotification: argument ?? undefined})});
             default:
                 return mergedStatus;
         }
     };
 
     const {isLocalPublicKeyInAuth, isBiometryRegisteredLocally, isAnyDeviceRegistered, deviceSupportBiometrics} = NativeBiometrics.setup;
-    const {scenario, successNotification, failureNotification} = mergedStatus.value;
+    const {scenario} = mergedStatus;
 
     const {wasRecentStepSuccessful, requiredFactorForNextStep, isRequestFulfilled} = mergedStatus.step;
-    const {successPath, failurePath} = getNotificationPaths(scenario, {
-        successNotification,
-        failureNotification,
-    });
-
-    const pathToUse = wasRecentStepSuccessful ? successPath : failurePath;
-    const notificationConfig = pathToUse ? MULTIFACTOR_AUTHENTICATION_NOTIFICATION_MAP[pathToUse] : undefined;
-
-    const defaultTitle = mergedStatus.title;
-    let headerTitle = defaultTitle;
-    let title = defaultTitle;
-
-    if (notificationConfig?.headerTitle) {
-        headerTitle = translate(notificationConfig.headerTitle);
-    }
-    if (notificationConfig?.title) {
-        title = translate(notificationConfig.title);
-    }
 
     let success;
 
@@ -427,10 +399,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         success = wasRecentStepSuccessful;
     }
 
+    const {title, headerTitle, description} = mergedStatus;
+
     const info = {
         title,
         headerTitle,
-        description: mergedStatus.description,
+        description,
         success,
         deviceSupportBiometrics,
         isLocalPublicKeyInAuth,

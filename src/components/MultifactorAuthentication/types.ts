@@ -35,8 +35,8 @@ type MultifactorAuthorization<T extends MultifactorAuthenticationScenario> = (
  */
 type RegisterFunction<T, Q> = (
     params: {validateCode?: number} & MultifactorKeyStoreOptions & T,
-    scenario?: unknown,
-    notificationPaths?: NotificationPaths,
+    scenario?: MultifactorAuthenticationScenario,
+    notificationPaths?: Partial<NotificationPaths>,
     softPromptAccepted?: boolean,
 ) => Promise<Q>;
 
@@ -109,7 +109,7 @@ type UseMultifactorAuthentication = {
         };
     process: <T extends MultifactorAuthenticationScenario>(
         scenario: T,
-        params?: MultifactorAuthenticationScenarioParams<T> & NotificationPaths,
+        params?: MultifactorAuthenticationScenarioParams<T> & Partial<NotificationPaths>,
     ) => Promise<MultifactorAuthenticationStatus<MultifactorAuthenticationScenarioStatus>>;
     update: (
         params: Partial<AllMultifactorAuthenticationFactors> & {
@@ -123,16 +123,17 @@ type UseMultifactorAuthentication = {
 };
 
 type MultifactorAuthenticationScenarioStatus = {
-    scenario: MultifactorAuthenticationScenario | undefined;
     payload?: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario>;
     type?: MultifactorAuthenticationStatusKeyType;
-} & NotificationPaths;
+};
 
 /** Valid multifactorial authentication scenario types as defined in constants */
 type MultifactorAuthenticationStatusKeyType = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE>;
 
 /** Names of supported authentication types */
 type AuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['NAME'];
+
+type NoScenarioForStatusReason = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON>;
 
 /**
  * Function to update the multifactorial authentication status.
@@ -141,15 +142,16 @@ type AuthTypeName = ValueOf<typeof SECURE_STORE_VALUES.AUTH_TYPE>['NAME'];
  */
 type SetMultifactorAuthenticationStatus<T> = (
     partialStatus: MultifactorAuthenticationPartialStatus<T> | ((prevStatus: MultifactorAuthenticationStatus<T>) => MultifactorAuthenticationStatus<T>),
-    overwriteType?: MultifactorAuthenticationStatusKeyType,
+    scenario: MultifactorAuthenticationScenario | NoScenarioForStatusReason,
+    customNotificationPaths?: Partial<NotificationPaths>,
 ) => MultifactorAuthenticationStatus<T>;
 
 /** Valid type for the useMultifactorAuthenticationStatus hook */
 type UseMultifactorAuthenticationStatus<T> = [MultifactorAuthenticationStatus<T>, SetMultifactorAuthenticationStatus<T>];
 
 type NotificationPaths = {
-    successNotification?: AllMultifactorAuthenticationNotificationType;
-    failureNotification?: AllMultifactorAuthenticationNotificationType;
+    successNotification: AllMultifactorAuthenticationNotificationType;
+    failureNotification: AllMultifactorAuthenticationNotificationType;
 };
 
 export type {
@@ -167,4 +169,5 @@ export type {
     BiometricsStatus,
     MultifactorTriggerArgument,
     NotificationPaths,
+    NoScenarioForStatusReason,
 };

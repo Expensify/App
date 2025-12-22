@@ -6,6 +6,7 @@ import useMultifactorAuthenticationStatus from '@components/MultifactorAuthentic
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import MultifactorAuthenticationChallenge from '@libs/MultifactorAuthentication/Biometrics/Challenge';
+import CONST from '@src/CONST';
 import useNativeBiometricsSetup from './useNativeBiometricsSetup';
 
 /**
@@ -45,24 +46,27 @@ function useNativeBiometrics() {
 
         const requestStatus = await challenge.request();
         if (!requestStatus.value) {
-            return setStatus(createAuthorizeErrorStatus(requestStatus));
+            return setStatus(createAuthorizeErrorStatus(requestStatus), scenario);
         }
 
         const signature = await challenge.sign(accountID, chainedPrivateKeyStatus);
         if (!signature.value) {
-            return setStatus(createAuthorizeErrorStatus(signature));
+            return setStatus(createAuthorizeErrorStatus(signature), scenario);
         }
 
         const result = await challenge.send();
 
-        return setStatus({
-            ...result,
-            step: {
-                wasRecentStepSuccessful: result.value,
-                isRequestFulfilled: true,
-                requiredFactorForNextStep: undefined,
+        return setStatus(
+            {
+                ...result,
+                step: {
+                    wasRecentStepSuccessful: result.value,
+                    isRequestFulfilled: true,
+                    requiredFactorForNextStep: undefined,
+                },
             },
-        });
+            scenario,
+        );
     };
 
     /**
@@ -70,14 +74,17 @@ function useNativeBiometrics() {
      * Preserves the success/failure state while clearing any pending requirements.
      */
     const cancel = (wasRecentStepSuccessful?: boolean) => {
-        return setStatus((prevStatus) => ({
-            ...prevStatus,
-            step: {
-                isRequestFulfilled: true,
-                requiredFactorForNextStep: undefined,
-                wasRecentStepSuccessful,
-            },
-        }));
+        return setStatus(
+            (prevStatus) => ({
+                ...prevStatus,
+                step: {
+                    isRequestFulfilled: true,
+                    requiredFactorForNextStep: undefined,
+                    wasRecentStepSuccessful,
+                },
+            }),
+            CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.CANCEL,
+        );
     };
 
     return {status, authorize, cancel, setup: BiometricsSetup};

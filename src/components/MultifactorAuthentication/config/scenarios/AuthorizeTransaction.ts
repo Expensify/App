@@ -22,6 +22,7 @@ export default {
             padding: spacing.p0,
             headerTitle: 'multifactorAuthentication.reviewTransaction.reviewTransaction',
             title: 'multifactorAuthentication.reviewTransaction.transactionApproved',
+            description: 'multifactorAuthentication.reviewTransaction.goBackToTheMerchant',
         },
         failure: {
             illustration: 'DeniedTransactionHand',
@@ -30,6 +31,7 @@ export default {
             padding: spacing.p0,
             headerTitle: 'multifactorAuthentication.reviewTransaction.reviewTransaction',
             title: 'multifactorAuthentication.reviewTransaction.transactionDenied',
+            description: 'multifactorAuthentication.reviewTransaction.youCanTryAgainAtMerchantOrReachOut',
         },
         outOfTime: {
             headerTitle: 'multifactorAuthentication.reviewTransaction.reviewTransaction',

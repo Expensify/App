@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import {doesDeviceSupportBiometrics, isBiometryConfigured, resetKeys, Status} from '@components/MultifactorAuthentication/helpers';
-import type {BiometricsStatus, MultifactorAuthenticationStatusKeyType, Register, UseBiometricsSetup} from '@components/MultifactorAuthentication/types';
+import type {BiometricsStatus, Register, UseBiometricsSetup} from '@components/MultifactorAuthentication/types';
 import useMultifactorAuthenticationStatus from '@components/MultifactorAuthentication/useMultifactorAuthenticationStatus';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {generateKeyPair} from '@libs/MultifactorAuthentication/Biometrics/ED25519';
@@ -34,7 +34,8 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
      * Marks the current authentication request as complete.
      * Clears any pending requirements while preserving success/failure state.
      */
-    const cancel = (wasRecentStepSuccessful?: boolean) => setStatus(Status.createCancelStatus(wasRecentStepSuccessful));
+    const cancel = (wasRecentStepSuccessful?: boolean) =>
+        setStatus(Status.createCancelStatus(wasRecentStepSuccessful), CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.CANCEL);
 
     /** Memoized check for device biometric capability */
     const deviceSupportBiometrics = doesDeviceSupportBiometrics();
@@ -43,7 +44,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
      * Updates the biometric configuration status by checking for stored public key.
      * Safe to call frequently as it doesn't trigger authentication prompts.
      */
-    const refreshStatus = async (overwriteStatus?: Partial<MultifactorAuthenticationStatus<BiometricsStatus>>, overwriteType?: MultifactorAuthenticationStatusKeyType) => {
+    const refreshStatus = async (overwriteStatus?: Partial<MultifactorAuthenticationStatus<BiometricsStatus>>) => {
         const setupStatus = await isBiometryConfigured(accountID);
 
         const {isLocalPublicKeyInAuth, isAnyDeviceRegistered, isBiometryRegisteredLocally} = setupStatus;
@@ -57,7 +58,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
                 },
                 overwriteStatus,
             ),
-            overwriteType,
+            CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.UPDATE,
         );
     };
 
@@ -73,17 +74,14 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
     const revoke = async () => {
         await resetKeys(accountID);
         await revokePublicKeys();
-        return refreshStatus(
-            {
-                reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_DELETED,
-                step: {
-                    wasRecentStepSuccessful: true,
-                    isRequestFulfilled: true,
-                    requiredFactorForNextStep: undefined,
-                },
+        return refreshStatus({
+            reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.KEYSTORE.KEY_DELETED,
+            step: {
+                wasRecentStepSuccessful: true,
+                isRequestFulfilled: true,
+                requiredFactorForNextStep: undefined,
             },
-            CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO_TYPE.NONE,
-        );
+        });
     };
 
     /**
@@ -100,15 +98,17 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
      *
      * Note: Will trigger system biometric prompt during key storage.
      */
-    const register = (async ({validateCode, chainedWithAuthorization, nativePromptTitle}) => {
+    const register = (async ({validateCode, chainedWithAuthorization, nativePromptTitle}, scenario) => {
+        const statusReason = scenario ?? CONST.MULTIFACTOR_AUTHENTICATION.NO_SCENARIO_FOR_STATUS_REASON.REGISTER;
+
         /** Guard unsupported device */
         if (!doesDeviceSupportBiometrics()) {
-            return setStatus(Status.createUnsupportedDeviceStatus);
+            return setStatus(Status.createUnsupportedDeviceStatus, statusReason);
         }
 
         /** Guard missing validation code and request it */
         if (!validateCode) {
-            return setStatus(Status.createValidateCodeMissingStatus);
+            return setStatus(Status.createValidateCodeMissingStatus, statusReason);
         }
 
         /** Generate a new ED25519 key pair */
@@ -127,13 +127,13 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
                  */
                 await PrivateKeyStore.delete(accountID);
             }
-            return setStatus(Status.createKeyErrorStatus(privateKeyResult));
+            return setStatus(Status.createKeyErrorStatus(privateKeyResult), statusReason);
         }
 
         /** Save public key */
         const publicKeyResult = await PublicKeyStore.set(accountID, publicKey);
         if (!publicKeyResult.value) {
-            return setStatus(Status.createKeyErrorStatus(publicKeyResult));
+            return setStatus(Status.createKeyErrorStatus(publicKeyResult), statusReason);
         }
 
         /** Call backend to register the public key */
@@ -165,7 +165,7 @@ function useNativeBiometricsSetup(): UseBiometricsSetup {
         };
 
         /** Persist and return the status */
-        const statusResult = setStatus(Status.createRegistrationResultStatus(builtStatus));
+        const statusResult = setStatus(Status.createRegistrationResultStatus(builtStatus), statusReason);
 
         await refreshStatus();
 

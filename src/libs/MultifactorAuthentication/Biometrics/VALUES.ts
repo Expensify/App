@@ -168,6 +168,13 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
         FULFILL: 'FULFILL',
         FAILURE: 'FAILURE',
     },
+    NO_SCENARIO_FOR_STATUS_REASON: {
+        REGISTER: 'REGISTER',
+        REVOKE: 'REVOKE',
+        CANCEL: 'CANCEL',
+        UPDATE: 'UPDATE',
+        FULFILL: 'FULFILL',
+    },
     /**
      * Used to obtain the reason for the error from its message,
      * enabling it to be mapped into our text for translation.
