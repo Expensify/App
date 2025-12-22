@@ -59,6 +59,7 @@ import {
     getDisplayNamesWithTooltips,
     getHarvestOriginalReportID,
     getIconsForParticipants,
+    getIndicatedMissingPaymentMethod,
     getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
@@ -3395,6 +3396,13 @@ describe('ReportUtils', () => {
             // Then the thread should be disabled
             // This ensures "Reply in thread" and "Join thread" context menu options won't be shown
             expect(isThreadDisabled).toBeTruthy();
+        });
+
+        it('should disable on a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+            } as ReportAction;
+            expect(shouldDisableThread(reportAction, false, false)).toBeTruthy();
         });
 
         describe('deleted threads', () => {
@@ -10470,6 +10478,293 @@ describe('ReportUtils', () => {
                 disabledOptions: [true, true, true],
             } as PolicyReportField;
             expect(shouldHideSingleReportField(reportField)).toBe(true);
+        });
+    });
+
+    describe('P2P Wallet Activation - GBR and Wallet Indicator', () => {
+        const friendAccountID = 42;
+
+        /**
+         * Tests the complete P2P wallet activation scenario:
+         * - Friend sends P2P payment to user with SILVER wallet
+         * - Backend sets hasOutstandingChildRequest: true (payment pending wallet setup)
+         * - GBR shows in LHN
+         * - "Enable your wallet" button shows (getIndicatedMissingPaymentMethod returns 'wallet')
+         */
+        it('should show GBR and wallet indicator for SILVER tier user receiving P2P payment', async () => {
+            await Onyx.clear();
+
+            const iouReportID = '10000';
+
+            // Chat report - hasOutstandingChildRequest set by backend when P2P payment pending wallet
+            const chatReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                hasOutstandingChildRequest: true,
+                iouReportID,
+            };
+
+            // IOU report - P2P payment from friend to current user
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                reportID: iouReportID,
+                chatReportID: chatReport.reportID,
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: currentUserAccountID,
+                managerID: friendAccountID,
+                currency: CONST.CURRENCY.USD,
+                total: 10000,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: true,
+            };
+
+            // REIMBURSEMENT_QUEUED with EXPENSIFY payment type = P2P wallet payment
+            const reimbursementQueuedAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                originalMessage: {
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                    [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                }),
+            ]);
+            await waitForBatchedUpdates();
+
+            // Verify GBR shows in LHN
+            const reason = reasonForReportToBeInOptionList({
+                report: chatReport,
+                chatReport,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                isReportArchived: false,
+                draftComment: '',
+            });
+            expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+
+            // Verify "Enable your wallet" indicator for SILVER tier
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.SILVER, iouReportID, reimbursementQueuedAction, {});
+            expect(missingPaymentMethod).toBe('wallet');
+
+            await Onyx.clear();
+        });
+
+        /**
+         * Same scenario but user has no wallet tier set (new user)
+         */
+        it('should show GBR and wallet indicator for user with no wallet tier (undefined)', async () => {
+            await Onyx.clear();
+
+            const iouReportID = '10001';
+
+            const chatReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                hasOutstandingChildRequest: true,
+                iouReportID,
+            };
+
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                reportID: iouReportID,
+                chatReportID: chatReport.reportID,
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: currentUserAccountID,
+                managerID: friendAccountID,
+                currency: CONST.CURRENCY.USD,
+                total: 5000,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: true,
+            };
+
+            const reimbursementQueuedAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                originalMessage: {
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                    [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                }),
+            ]);
+            await waitForBatchedUpdates();
+
+            // Verify GBR shows
+            const reason = reasonForReportToBeInOptionList({
+                report: chatReport,
+                chatReport,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                isReportArchived: false,
+                draftComment: '',
+            });
+            expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+
+            // Verify wallet indicator for undefined tier
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(undefined, iouReportID, reimbursementQueuedAction, {});
+            expect(missingPaymentMethod).toBe('wallet');
+
+            await Onyx.clear();
+        });
+
+        /**
+         * When user has GOLD wallet (already enabled):
+         * - Payment goes through, no pending state
+         * - hasOutstandingChildRequest would be false (set by backend)
+         * - No GBR needed, no wallet button needed
+         */
+        it('should NOT show GBR or wallet indicator when user has GOLD tier (wallet already enabled)', async () => {
+            await Onyx.clear();
+
+            const iouReportID = '10002';
+
+            // No outstanding request - GOLD wallet means payment processes normally
+            const chatReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                hasOutstandingChildRequest: false,
+                iouReportID,
+            };
+
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                reportID: iouReportID,
+                chatReportID: chatReport.reportID,
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: currentUserAccountID,
+                managerID: friendAccountID,
+                currency: CONST.CURRENCY.USD,
+                total: 10000,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: false,
+            };
+
+            const reimbursementQueuedAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                originalMessage: {
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                    [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                }),
+            ]);
+            await waitForBatchedUpdates();
+
+            // Verify GBR does NOT show (no outstanding request for GOLD user)
+            const reason = reasonForReportToBeInOptionList({
+                report: chatReport,
+                chatReport,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                isReportArchived: false,
+                draftComment: '',
+            });
+            expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+
+            // Verify NO wallet indicator for GOLD tier
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.GOLD, iouReportID, reimbursementQueuedAction, {});
+            expect(missingPaymentMethod).toBeUndefined();
+
+            await Onyx.clear();
+        });
+
+        /**
+         * For non-EXPENSIFY payment types (e.g., ELSEWHERE):
+         * - This is not a P2P wallet scenario
+         * - Wallet indicator should not return 'wallet'
+         */
+        it('should NOT show wallet indicator for non-EXPENSIFY payment type', async () => {
+            await Onyx.clear();
+
+            const iouReportID = '10003';
+
+            const chatReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                hasOutstandingChildRequest: true,
+                iouReportID,
+            };
+
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                reportID: iouReportID,
+                chatReportID: chatReport.reportID,
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: currentUserAccountID,
+                managerID: friendAccountID,
+                currency: CONST.CURRENCY.USD,
+                total: 10000,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: true,
+            };
+
+            // Non-P2P payment type (ELSEWHERE = external/manual payment)
+            const reimbursementQueuedAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                originalMessage: {
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                    [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                }),
+            ]);
+            await waitForBatchedUpdates();
+
+            // GBR may still show (hasOutstandingChildRequest: true) but for different reason
+            const reason = reasonForReportToBeInOptionList({
+                report: chatReport,
+                chatReport,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                isReportArchived: false,
+                draftComment: '',
+            });
+            expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+
+            // But wallet indicator should NOT be 'wallet' for non-EXPENSIFY payment
+            // (would be 'bankAccount' or undefined depending on bank account status)
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.SILVER, iouReportID, reimbursementQueuedAction, {});
+            expect(missingPaymentMethod).not.toBe('wallet');
+
+            await Onyx.clear();
         });
     });
 });

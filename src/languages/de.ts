@@ -139,6 +139,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -1513,6 +1514,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: 'Datumsangaben aufteilen',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} bis ${endDate} (${count} Tage)`,
         splitByDate: 'Nach Datum aufteilen',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `bericht aufgrund eines benutzerdefinierten Genehmigungsworkflows an ${to} weitergeleitet`,
     },
     transactionMerge: {
         listPage: {
@@ -2306,7 +2308,25 @@ ${amount} für ${merchant} – ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Der Genehmiger konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
-        header: 'Zur Genehmigung an dieses Mitglied senden:',
+        title: 'Zur Genehmigung an dieses Mitglied senden:',
+        description: 'Diese Person wird die Ausgaben genehmigen.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Genehmiger',
+        header: '(Optional) Möchten Sie ein Genehmigungslimit hinzufügen?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Fügen Sie einen weiteren Genehmiger hinzu, wenn <strong>${approverName}</strong> Genehmiger ist und der Bericht den folgenden Betrag überschreitet:`
+                : 'Fügen Sie einen weiteren Genehmiger hinzu, wenn der Bericht den folgenden Betrag überschreitet:',
+        reportAmountLabel: 'Berichtsbetrag',
+        additionalApproverLabel: 'Zusätzlicher Genehmiger',
+        skip: 'Überspringen',
+        next: 'Weiter',
+        removeLimit: 'Limit entfernen',
+        enterAmountError: 'Bitte geben Sie einen gültigen Betrag ein',
+        enterApproverError: 'Ein Genehmiger ist erforderlich, wenn Sie ein Berichtslimit festlegen',
+        enterBothError: 'Geben Sie einen Berichtsbetrag und einen zusätzlichen Genehmiger ein',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Berichte über ${approvalLimit} werden an ${approverName} weitergeleitet`,
     },
     workflowsPayerPage: {
         title: 'Autorisierter Zahler',
@@ -7982,7 +8002,17 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             subtitle: 'Erzwingen Sie für Mitglieder Ihrer Domain die Anmeldung per Single Sign-On, schränken Sie die Erstellung von Workspaces ein und vieles mehr.',
             enable: 'Aktivieren',
         },
-        admins: {title: 'Admins', findAdmin: 'Admin finden', primaryContact: 'Hauptansprechpartner', addPrimaryContact: 'Primären Kontakt hinzufügen', settings: 'Einstellungen'},
+        admins: {
+            title: 'Admins',
+            findAdmin: 'Admin finden',
+            primaryContact: 'Hauptansprechpartner',
+            addPrimaryContact: 'Primären Kontakt hinzufügen',
+            settings: 'Einstellungen',
+            consolidatedDomainBilling: 'Konsolidierte Domain-Abrechnung',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>Wenn diese Option aktiviert ist, bezahlt der Hauptansprechpartner für alle Workspaces, die Mitgliedern von <strong>${domainName}</strong> gehören, und erhält alle Rechnungsbelege.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'Die konsolidierte Domain-Abrechnung konnte nicht geändert werden. Bitte versuche es später erneut.',
+        },
     },
     desktopAppRetiredPage: {
         title: 'Desktop-App wurde eingestellt',

@@ -271,7 +271,6 @@ function useSearchSelectorBase({
                     searchString: computedSearchTerm,
                     includeUserToInvite,
                     includeCurrentUser,
-                    shouldAcceptName: true,
                 });
             default:
                 return getEmptyOptions();
