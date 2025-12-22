@@ -976,7 +976,7 @@ function MenuItem({
                                                     >
                                                         <Icon
                                                             src={iconRight}
-                                                            fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
+                                                            fill={theme.icon}
                                                             width={variables.iconSizeSmall}
                                                             height={variables.iconSizeSmall}
                                                         />
