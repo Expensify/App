@@ -5,7 +5,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {SelectedTransactions} from '@components/Search/types';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
-import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -34,7 +34,7 @@ jest.mock('@libs/actions/IOU', () => ({
 }));
 
 jest.mock('@libs/actions/MergeTransaction', () => ({
-    setupMergeTransactionDataAndNavigate: jest.fn(),
+    setupMergeTransactionData: jest.fn(),
 }));
 
 jest.mock('@libs/actions/Report', () => ({
@@ -44,13 +44,11 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 
 const mockTranslate = jest.fn((key: string) => key);
-const mockLocalCompare = jest.fn((a: string, b: string) => a && b);
 
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
         translate: mockTranslate,
-        localeCompare: mockLocalCompare,
     }),
 }));
 
@@ -614,8 +612,6 @@ describe('useSelectedTransactionsActions', () => {
         const transactionID = '123';
         const report = createRandomReport(1, undefined);
         report.type = CONST.REPORT.TYPE.EXPENSE;
-        report.statusNum = 0;
-        report.stateNum = 0;
         const policy = createRandomPolicy(1);
         const reportActions: ReportAction[] = [];
         const transaction = createRandomTransaction(1);
@@ -627,7 +623,6 @@ describe('useSelectedTransactionsActions', () => {
 
         jest.spyOn(require('@libs/ReportSecondaryActionUtils'), 'isMergeAction').mockReturnValue(true);
 
-        await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1});
         const {result} = renderHook(() =>
             useSelectedTransactionsActions({
                 report,
@@ -648,6 +643,7 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith([transaction], mockLocalCompare);
+        expect(setupMergeTransactionData).toHaveBeenCalledWith(transactionID, {targetTransactionID: transactionID});
+        expect(Navigation.navigate).toHaveBeenCalled();
     });
 });
