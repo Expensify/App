@@ -6,10 +6,10 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useLocalize from '@hooks/useLocalize';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
+import saveLastRoute from '@libs/saveLastRoute';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnfidoError, OnfidoProps} from './types';
-import saveLastRoute from '@libs/saveLastRoute';
 
 const {AppStateTracker} = NativeModules;
 
