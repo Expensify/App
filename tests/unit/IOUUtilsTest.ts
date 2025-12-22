@@ -1,9 +1,12 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
+import {OnyxEntry} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import {canSubmitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
@@ -14,8 +17,8 @@ import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
-import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import type {Policy, QuickAction, Report, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {SplitShares, TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
@@ -37,6 +40,7 @@ function initCurrencyList() {
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    goBack: jest.fn(),
 }));
 
 describe('IOUUtils', () => {
@@ -863,5 +867,320 @@ describe('createTransaction', () => {
                 currentUserEmailParam: '',
             }),
         );
+    });
+});
+
+describe('handleMoneyRequestStepDistanceNavigation', () => {
+    const fakeReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+    const fakeTransaction = createRandomTransaction(1);
+    const fakePolicy = createRandomPolicy(1);
+    const fakeParticipants = [{accountID: 1, login: 'test@test.com'}];
+    const fakeQuickAction: OnyxEntry<QuickAction> = {
+        action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
+        chatReportID: 'quick_action_chat_123',
+        targetAccountID: 789,
+    };
+    const backTo = ROUTES.REPORT_WITH_ID.getRoute('123');
+
+    const baseParams = {
+        iouType: CONST.IOU.TYPE.CREATE,
+        report: fakeReport,
+        policy: fakePolicy,
+        transaction: fakeTransaction,
+        reportID: '1',
+        transactionID: 'tx1',
+        reportAttributesDerived: {},
+        personalDetails: {},
+        waypoints: {},
+        customUnitRateID: 'rate1',
+        currentUserLogin: 'test@test.com',
+        currentUserAccountID: 1,
+        backToReport: undefined,
+        shouldSkipConfirmation: false,
+        defaultExpensePolicy: undefined,
+        isArchivedExpenseReport: false,
+        isAutoReporting: false,
+        isASAPSubmitBetaEnabled: false,
+        transactionViolations: {},
+        lastSelectedDistanceRates: {},
+        setDistanceRequestData: jest.fn(),
+        translate: jest.fn().mockReturnValue('Pending...'),
+        quickAction: fakeQuickAction,
+    };
+    const splitShares: SplitShares = {
+        100: {
+            amount: 10,
+        },
+        101: {
+            amount: 10,
+        },
+    };
+
+    function getParticipantsForTest() {
+        const selectedParticipants = IOU.getMoneyRequestParticipantsFromReport(baseParams.report, currentUserAccountID);
+        return selectedParticipants.map((participant) => {
+            const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+            return participantAccountID ? getParticipantsOption(participant, baseParams.personalDetails) : getReportOption(participant, baseParams.reportAttributesDerived);
+        });
+    }
+
+    beforeEach(() => {
+        jest.spyOn(IOU, 'trackExpense').mockImplementation(jest.fn());
+        jest.spyOn(IOU, 'createDistanceRequest').mockImplementation(jest.fn());
+        jest.spyOn(IOU, 'resetSplitShares').mockImplementation(jest.fn());
+        jest.spyOn(IOU, 'setMoneyRequestPendingFields').mockImplementation(jest.fn());
+        jest.spyOn(IOU, 'setMoneyRequestMerchant').mockImplementation(jest.fn());
+        jest.spyOn(IOU, 'setCustomUnitRateID').mockImplementation(jest.fn());
+        jest.spyOn(IOU, 'getMoneyRequestParticipantsFromReport').mockReturnValue(fakeParticipants);
+        jest.spyOn(IOU, 'setMoneyRequestParticipantsFromReport').mockReturnValue(Promise.resolve());
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('should go back when backTo is provided', () => {
+        IOUUtils.handleMoneyRequestStepDistanceNavigation({
+            ...baseParams,
+            backTo,
+        });
+
+        expect(Navigation.goBack).toHaveBeenCalledWith(backTo);
+    });
+
+    it('should call resetSplitShares when splitShares exists for transaction and not from manual distance step', () => {
+        const splitTransaction = {
+            ...fakeTransaction,
+            splitShares,
+        };
+
+        IOUUtils.handleMoneyRequestStepDistanceNavigation({
+            ...baseParams,
+            transaction: splitTransaction,
+            manualDistance: undefined,
+            shouldSkipConfirmation: true,
+            iouType: CONST.IOU.TYPE.TRACK,
+        });
+
+        expect(IOU.resetSplitShares).toHaveBeenCalledWith(splitTransaction);
+    });
+
+    it('call trackExpense for TRACK iouType when from manual distance step and skipping confirmation', async () => {
+        IOUUtils.handleMoneyRequestStepDistanceNavigation({
+            ...baseParams,
+            manualDistance: 20,
+            shouldSkipConfirmation: true,
+            iouType: CONST.IOU.TYPE.TRACK,
+        });
+
+        expect(IOU.resetSplitShares).not.toHaveBeenCalled();
+        expect(IOU.getMoneyRequestParticipantsFromReport).toHaveBeenCalledWith(baseParams.report, baseParams.currentUserAccountID);
+        expect(IOU.setMoneyRequestPendingFields).toHaveBeenCalledWith(baseParams.transactionID, {
+            waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        });
+        expect(IOU.setMoneyRequestMerchant).toHaveBeenCalledWith(baseParams.transactionID, 'Pending...', false);
+
+        expect(IOU.trackExpense).toHaveBeenCalledWith({
+            report: baseParams.report,
+            isDraftPolicy: false,
+            participantParams: {
+                payeeEmail: baseParams.currentUserLogin,
+                payeeAccountID: baseParams.currentUserAccountID,
+                participant: getParticipantsForTest().at(0),
+            },
+            policyParams: {
+                policy: baseParams.policy,
+            },
+            transactionParams: {
+                amount: 0,
+                distance: 20,
+                currency: fakeTransaction?.currency ?? 'USD',
+                created: fakeTransaction?.created ?? '',
+                merchant: 'Pending...',
+                receipt: {},
+                billable: false,
+                reimbursable: undefined,
+                validWaypoints: undefined,
+                customUnitRateID: baseParams.customUnitRateID,
+                attendees: fakeTransaction?.comment?.attendees,
+            },
+            isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
+        });
+
+        // The function must return after trackExpense and not call createDistanceRequest
+        expect(IOU.createDistanceRequest).not.toHaveBeenCalled();
+    });
+
+    it('should call trackExpense for TRACK iouType with valid waypoints when not from manual distance step and skipping confirmation', async () => {
+        IOUUtils.handleMoneyRequestStepDistanceNavigation({
+            ...baseParams,
+            manualDistance: undefined,
+            shouldSkipConfirmation: true,
+            iouType: CONST.IOU.TYPE.TRACK,
+        });
+
+        expect(IOU.resetSplitShares).not.toHaveBeenCalled();
+        expect(IOU.getMoneyRequestParticipantsFromReport).toHaveBeenCalledWith(baseParams.report, baseParams.currentUserAccountID);
+        expect(IOU.setMoneyRequestPendingFields).toHaveBeenCalledWith(baseParams.transactionID, {
+            waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        });
+        expect(IOU.setMoneyRequestMerchant).toHaveBeenCalledWith(baseParams.transactionID, 'Pending...', false);
+
+        const validWaypoints = TransactionUtils.getValidWaypoints(baseParams.waypoints, true);
+
+        expect(IOU.trackExpense).toHaveBeenCalledWith({
+            report: baseParams.report,
+            isDraftPolicy: false,
+            participantParams: {
+                payeeEmail: baseParams.currentUserLogin,
+                payeeAccountID: baseParams.currentUserAccountID,
+                participant: getParticipantsForTest().at(0),
+            },
+            policyParams: {
+                policy: baseParams.policy,
+            },
+            transactionParams: {
+                amount: 0,
+                distance: undefined,
+                currency: fakeTransaction?.currency ?? 'USD',
+                created: fakeTransaction?.created ?? '',
+                merchant: 'Pending...',
+                receipt: {},
+                billable: false,
+                reimbursable: true,
+                validWaypoints: validWaypoints,
+                customUnitRateID: baseParams.customUnitRateID,
+                attendees: fakeTransaction?.comment?.attendees,
+            },
+            isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
+        });
+    });
+
+    it('should call createDistanceRequest for non-TRACK iouType when from manual distance step and skipping confirmation', () => {
+        IOUUtils.handleMoneyRequestStepDistanceNavigation({
+            ...baseParams,
+            shouldSkipConfirmation: true,
+            manualDistance: 20,
+            iouType: CONST.IOU.TYPE.SUBMIT,
+        });
+
+        expect(IOU.getMoneyRequestParticipantsFromReport).toHaveBeenCalledWith(baseParams.report, baseParams.currentUserAccountID);
+        expect(IOU.setMoneyRequestPendingFields).toHaveBeenCalledWith(baseParams.transactionID, {
+            waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        });
+        expect(IOU.setMoneyRequestMerchant).toHaveBeenCalledWith(baseParams.transactionID, 'Pending...', false);
+
+        const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({
+            reportID: fakeReport.reportID,
+            isPolicyExpenseChat: true,
+            policy: fakePolicy,
+            lastSelectedDistanceRates: baseParams.lastSelectedDistanceRates,
+        });
+
+        expect(IOU.createDistanceRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                report: baseParams.report,
+                participants: getParticipantsForTest(),
+                currentUserLogin: baseParams.currentUserLogin,
+                currentUserAccountID: baseParams.currentUserAccountID,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                transactionParams: expect.objectContaining({
+                    amount: 0,
+                    distance: 20,
+                    comment: '',
+                    created: fakeTransaction?.created ?? '',
+                    currency: fakeTransaction?.currency ?? 'USD',
+                    merchant: 'Pending...',
+                    billable: !!fakePolicy.defaultBillable,
+                    reimbursable: undefined,
+                    validWaypoints: undefined,
+                    customUnitRateID,
+                    splitShares: fakeTransaction?.splitShares,
+                    attendees: fakeTransaction?.comment?.attendees,
+                }),
+                backToReport: baseParams.backToReport,
+                isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
+                transactionViolations: baseParams.transactionViolations,
+                quickAction: baseParams.quickAction,
+                policyRecentlyUsedCurrencies: [],
+            }),
+        );
+    });
+
+    it('should call createDistanceRequest for non-TRACK iouType when not from manual distance step and skipping confirmation', () => {
+        IOUUtils.handleMoneyRequestStepDistanceNavigation({
+            ...baseParams,
+            shouldSkipConfirmation: true,
+            manualDistance: undefined,
+            iouType: CONST.IOU.TYPE.SUBMIT,
+        });
+
+        expect(IOU.getMoneyRequestParticipantsFromReport).toHaveBeenCalledWith(baseParams.report, baseParams.currentUserAccountID);
+        expect(IOU.setMoneyRequestPendingFields).toHaveBeenCalledWith(baseParams.transactionID, {
+            waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        });
+        expect(IOU.setMoneyRequestMerchant).toHaveBeenCalledWith(baseParams.transactionID, 'Pending...', false);
+
+        const validWaypoints = TransactionUtils.getValidWaypoints(baseParams.waypoints, true);
+        const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({
+            reportID: fakeReport.reportID,
+            isPolicyExpenseChat: true,
+            policy: fakePolicy,
+            lastSelectedDistanceRates: baseParams.lastSelectedDistanceRates,
+        });
+
+        expect(IOU.createDistanceRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                report: baseParams.report,
+                participants: getParticipantsForTest(),
+                currentUserLogin: baseParams.currentUserLogin,
+                currentUserAccountID: baseParams.currentUserAccountID,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                transactionParams: expect.objectContaining({
+                    amount: 0,
+                    distance: undefined,
+                    comment: '',
+                    created: fakeTransaction?.created ?? '',
+                    currency: fakeTransaction?.currency ?? 'USD',
+                    merchant: 'Pending...',
+                    billable: !!fakePolicy.defaultBillable,
+                    reimbursable: !!fakePolicy?.defaultReimbursable,
+                    validWaypoints: validWaypoints,
+                    customUnitRateID,
+                    splitShares: fakeTransaction?.splitShares,
+                    attendees: fakeTransaction?.comment?.attendees,
+                }),
+                backToReport: baseParams.backToReport,
+                isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
+                transactionViolations: baseParams.transactionViolations,
+                quickAction: baseParams.quickAction,
+                policyRecentlyUsedCurrencies: [],
+            }),
+        );
+    });
+
+    it('should navigate to confirmation page when not skipping confirmation', async () => {
+        IOUUtils.handleMoneyRequestStepDistanceNavigation({
+            ...baseParams,
+            shouldSkipConfirmation: false,
+            iouType: CONST.IOU.TYPE.SUBMIT,
+        });
+
+        expect(IOU.setMoneyRequestParticipantsFromReport).toHaveBeenCalledWith(baseParams.transactionID, baseParams.report, baseParams.currentUserAccountID);
+
+        await waitForBatchedUpdates();
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, baseParams.transactionID, baseParams.reportID, baseParams.backToReport),
+        );
+    });
+
+    it('should navigate to participant page when no other condition matches', () => {
+        IOUUtils.handleMoneyRequestStepDistanceNavigation({
+            ...baseParams,
+            iouType: CONST.IOU.TYPE.CREATE,
+        });
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.CREATE, baseParams.transactionID, baseParams.reportID));
     });
 });

@@ -108,7 +108,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     manualDistance?: number;
     currentUserLogin?: string;
     currentUserAccountID: number;
-    backTo: Route;
+    backTo?: Route;
     backToReport?: string;
     shouldSkipConfirmation: boolean;
     defaultExpensePolicy?: OnyxEntry<Policy> | null;
