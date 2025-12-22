@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {SetTechnicalContactEmailParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -416,6 +416,83 @@ function clearSetPrimaryContactError(domainAccountID: number) {
     });
 }
 
+/** Sends a request to remove user from a domain and close their account */
+function closeUserAccount(domainAccountID: number, securityGroupIDs: number[], accountID: number, force = false) {
+    const optimisticValue: OnyxMergeInput<`domain_${string}`> = {};
+    for (const groupID of securityGroupIDs) {
+        // @ts-expect-error
+        optimisticValue[`${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP}_${groupID}`] = {
+            shared: {
+                [accountID]: null,
+            },
+        };
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: optimisticValue,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                members: {[accountID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                members: {[accountID]: null},
+            },
+        },
+    ];
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                members: {[accountID]: null},
+            },
+        },
+        // DEV
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [accountID]: {errors: {[Date.now()]: 'Unable to remove this user. Please try again.'}},
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                expensify_securityGroup_1: {
+                    shared: {
+                        [accountID]: 'read',
+                    },
+                },
+            },
+        },
+    ];
+    API.write('', {force}, {optimisticData, successData, failureData});
+}
+
+function clearDomainMemberError(domainAccountID: number, accountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        memberErrors: {
+            [accountID]: null,
+        },
+    });
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -432,4 +509,6 @@ export {
     resetCreateDomainForm,
     setPrimaryContact,
     clearSetPrimaryContactError,
+    closeUserAccount,
+    clearDomainMemberError,
 };

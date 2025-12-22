@@ -8,6 +8,11 @@ type DomainPendingAction = {
      * Pending action for the technical contact email
      */
     technicalContactEmail?: OnyxCommon.PendingAction;
+
+    /**
+     * Pending action for members
+     */
+    members?: Record<number, OnyxCommon.PendingAction>;
 };
 
 export default DomainPendingAction;

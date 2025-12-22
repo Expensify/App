@@ -29,6 +29,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
 
     return (
         <BaseDomainMembersPage
+            domainAccountID={domainAccountID}
             accountIDs={memberIDs ?? []}
             headerTitle={translate('domain.members.title')}
             searchPlaceholder={translate('domain.members.findMember')}

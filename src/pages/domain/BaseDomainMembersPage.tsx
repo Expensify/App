@@ -14,12 +14,15 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearDomainMemberError} from '@libs/actions/Domain';
+import {getLatestError} from '@libs/ErrorUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {memberPendingActionSelector} from '@src/selectors/Domain';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
@@ -28,6 +31,9 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 };
 
 type BaseDomainMembersPageProps = {
+    /** The accountID for the domain */
+    domainAccountID: number;
+
     /** The list of accountIDs to display */
     accountIDs: number[];
 
@@ -46,13 +52,22 @@ type BaseDomainMembersPageProps = {
     hederIcon: IconAsset;
 };
 
-function BaseDomainMembersPage({accountIDs, headerTitle, searchPlaceholder, headerContent, onSelectRow, hederIcon}: BaseDomainMembersPageProps) {
+function BaseDomainMembersPage({domainAccountID, accountIDs, headerTitle, searchPlaceholder, headerContent, onSelectRow, hederIcon}: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        canBeMissing: true,
+    });
+
+    const [domainPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: memberPendingActionSelector,
+    });
 
     const data: MemberOption[] = useMemo(() => {
         const options: MemberOption[] = [];
@@ -72,10 +87,12 @@ function BaseDomainMembersPage({accountIDs, headerTitle, searchPlaceholder, head
                         id: accountID,
                     },
                 ],
+                errors: getLatestError(domainErrors?.memberErrors?.[accountID]?.errors),
+                pendingAction: domainPendingAction?.[accountID],
             });
         }
         return options;
-    }, [accountIDs, personalDetails, formatPhoneNumber, icons.FallbackAvatar]);
+    }, [accountIDs, personalDetails, formatPhoneNumber, icons.FallbackAvatar, domainErrors?.memberErrors, domainPendingAction]);
 
     const filterMember = useCallback((option: MemberOption, searchQuery: string) => {
         const results = tokenizedSearch([option], searchQuery, (item) => [item.text ?? '', item.alternateText ?? '']);
@@ -140,6 +157,7 @@ function BaseDomainMembersPage({accountIDs, headerTitle, searchPlaceholder, head
                 addBottomSafeAreaPadding
                 customListHeader={getCustomListHeader()}
                 containerStyle={styles.flex1}
+                onDismissError={(item: MemberOption) => clearDomainMemberError(domainAccountID, item.accountID)}
             />
         </ScreenWrapper>
     );

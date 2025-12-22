@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, selectSecurityGroupIDsForAccount} from '@selectors/Domain';
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -20,6 +20,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {closeUserAccount} from '@libs/actions/Domain';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -28,7 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {Domain, PersonalDetailsList} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainMemberDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_DETAILS>;
@@ -48,6 +49,12 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     });
 
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const [securityGroupIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: (domain: OnyxEntry<Domain>) => selectSecurityGroupIDsForAccount(domain, accountID),
+    });
+
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         canBeMissing: true,
         selector: (personalDetailsList: OnyxEntry<PersonalDetailsList>) => personalDetailsList?.[accountID],
@@ -64,11 +71,13 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
     }
 
     const handleForceCloseAccount = () => {
+        closeUserAccount(domainAccountID, securityGroupIDs ?? [], accountID, true);
         setIsModalVisible(false);
         Navigation.dismissModal();
     };
 
     const handleSafeCloseAccount = () => {
+        closeUserAccount(domainAccountID, securityGroupIDs ?? [], accountID);
         setIsModalVisible(false);
         Navigation.dismissModal();
     };

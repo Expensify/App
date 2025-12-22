@@ -7844,14 +7844,15 @@ const translations = {
             addPrimaryContact: 'Add primary contact',
             settings: 'Settings',
         },
-        members:{
+        members: {
             title: 'Members',
             findMember: 'Find member',
             closeAccount: 'Close account',
             forceCloseAccount: 'Force close account',
             safeCloseAccount: 'Close account safely',
-            closeAccountInfo: 'We recommend closing the account safely to skip closing it in case there are: <ul><li>Pending approvals</li><li>Active reimbursements</li><li>No alternative login methods</li></ul> Otherwise, you can ignore the safety precautions above and force close the selected account.'
-        }
+            closeAccountInfo:
+                'We recommend closing the account safely to skip closing it in case there are: <ul><li>Pending approvals</li><li>Active reimbursements</li><li>No alternative login methods</li></ul> Otherwise, you can ignore the safety precautions above and force close the selected account.',
+        },
     },
 };
 

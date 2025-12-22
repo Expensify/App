@@ -1148,7 +1148,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX]: number;
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
-    [ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP] : OnyxTypes.DomainSecurityGroup;
+    [ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP]: OnyxTypes.DomainSecurityGroup;
 };
 
 type OnyxValuesMapping = {

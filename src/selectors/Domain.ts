@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, Domain, SamlMetadata} from '@src/types/onyx';
+import type {CardFeeds, Domain, DomainPendingActions, SamlMetadata} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
@@ -75,4 +75,44 @@ function selectMemberIDs(domain: Domain | undefined): number[] {
     return [...new Set(memberIDs)];
 }
 
-export {domainMemberSamlSettingsSelector, domainSamlSettingsStateSelector, domainNameSelector, metaIdentitySelector, adminAccountIDsSelector, technicalContactEmailSelector, selectMemberIDs};
+/**
+ * Gets all security group IDs for a given account ID.
+ * It searches through all security groups in the domain and returns the group IDs
+ * where the account ID appears in the 'shared' property.
+ *
+ * @param domain - The domain object from Onyx
+ * @param accountID - The account ID to search for
+ * @returns An array of security group IDs (as strings) that the account belongs to
+ */
+function selectSecurityGroupIDsForAccount(domain: Domain | undefined, accountID: number): number[] {
+    if (!domain) {
+        return [];
+    }
+
+    const accountIDStr = String(accountID);
+
+    return Object.entries(domain)
+        .filter(([key]) => key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP))
+        .filter(([, value]) => {
+            const groupData = value as {shared?: Record<string, string>};
+            return groupData?.shared && accountIDStr in groupData.shared;
+        })
+        .map(([key]) => {
+            // Extract the group ID from the key: "expensify_securityGroup_<groupID>" -> "<groupID>"
+            return parseInt(key.replace(`${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP}_`, ''), 10);
+        });
+}
+
+const memberPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.members ?? {};
+
+export {
+    domainMemberSamlSettingsSelector,
+    domainSamlSettingsStateSelector,
+    domainNameSelector,
+    metaIdentitySelector,
+    adminAccountIDsSelector,
+    technicalContactEmailSelector,
+    selectMemberIDs,
+    selectSecurityGroupIDsForAccount,
+    memberPendingActionSelector,
+};
