@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {hasIssuedExpensifyCard} from '@libs/CardUtils';
@@ -16,22 +17,23 @@ import {clearAddNewCardFlow} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy} from '@src/types/onyx';
 import WorkspaceCompanyCardExpensifyCardPromotionBanner from './WorkspaceCompanyCardExpensifyCardPromotionBanner';
 
 type WorkspaceCompanyCardPageEmptyStateProps = {
-    policy: Policy | undefined;
+    policyID: string;
     shouldShowGBDisclaimer?: boolean;
 };
 
-function WorkspaceCompanyCardPageEmptyState({policy, shouldShowGBDisclaimer}: WorkspaceCompanyCardPageEmptyStateProps) {
+function WorkspaceCompanyCardPageEmptyState({policyID, shouldShowGBDisclaimer}: WorkspaceCompanyCardPageEmptyStateProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [allWorkspaceCards] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID, allWorkspaceCards);
+
+    const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const shouldShowExpensifyCardPromotionBanner = !hasIssuedExpensifyCard(workspaceAccountID, allWorkspaceCards);
 
     const illustrations = useMemoizedLazyIllustrations(['CreditCardsNew', 'HandCard', 'MagnifyingGlassMoney', 'CompanyCardsEmptyState']);
 
