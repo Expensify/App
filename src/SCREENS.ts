@@ -825,6 +825,7 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO: 'Reimbursement_Account_Signer_Info',
     REFERRAL_DETAILS: 'Referral_Details',
     REPORT_VERIFY_ACCOUNT: 'Report_Verify_Account',
+    EXPENSE_REPORT_VERIFY_ACCOUNT: 'Expense_Report_Verify_Account',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
     SHARE: {
         ROOT: 'Share_Root',

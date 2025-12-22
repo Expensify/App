@@ -68,7 +68,7 @@ const getRouteMappings = (chatReportID: string, reportID?: string): RouteMapping
         },
         {
             check: (activeRoute: string) => activeRoute.includes(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID})),
-            navigate: () => Navigation.navigate(ROUTES.REPORT_VERIFY_ACCOUNT.getRoute(reportID)),
+            navigate: () => Navigation.navigate(ROUTES.EXPENSE_REPORT_VERIFY_ACCOUNT.getRoute(reportID)),
         },
     ];
 

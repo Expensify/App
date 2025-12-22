@@ -88,6 +88,9 @@ type ReportVerifyAccountNavigatorParamList = {
     [SCREENS.REPORT_VERIFY_ACCOUNT]: {
         reportID: string;
     };
+    [SCREENS.EXPENSE_REPORT_VERIFY_ACCOUNT]: {
+        reportID: string;
+    };
 };
 
 type SettingsNavigatorParamList = {
