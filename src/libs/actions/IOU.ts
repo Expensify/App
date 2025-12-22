@@ -63,7 +63,7 @@ import {
     updateIOUOwnerAndTotal,
 } from '@libs/IOUUtils';
 import isFileUploadable from '@libs/isFileUploadable';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
 import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
@@ -2234,6 +2234,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 currentUserEmailParam,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                formatPhoneNumber: formatPhoneNumberPhoneUtils,
             }),
         });
         optimisticData.push({
@@ -3436,7 +3437,7 @@ function getSendInvoiceInformation(
         const receiverLogin = receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '';
         receiver = {
             accountID: receiverAccountID,
-            displayName: formatPhoneNumber(receiverLogin),
+            displayName: formatPhoneNumberPhoneUtils(receiverLogin),
             login: receiverLogin,
             isOptimisticPersonalDetail: true,
         };
@@ -3744,7 +3745,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   accountID: payerAccountID,
                   // Disabling this line since participant.displayName can be an empty string
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  displayName: formatPhoneNumber(participant.displayName || payerEmail),
+                  displayName: formatPhoneNumberPhoneUtils(participant.displayName || payerEmail),
                   login: participant.login,
                   isOptimisticPersonalDetail: true,
               },
@@ -4061,7 +4062,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
                   accountID: payerAccountID,
                   // Disabling this line since participant.displayName can be an empty string
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  displayName: formatPhoneNumber(participant.displayName || payerEmail),
+                  displayName: formatPhoneNumberPhoneUtils(participant.displayName || payerEmail),
                   login: participant.login,
                   isOptimisticPersonalDetail: true,
               },
@@ -6243,7 +6244,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: addAccountantToWorkspaceOptimisticData,
             successData: addAccountantToWorkspaceSuccessData,
             failureData: addAccountantToWorkspaceFailureData,
-        } = buildAddMembersToWorkspaceOnyxData({[accountantEmail]: accountantAccountID}, policyID, policyMemberAccountIDs, CONST.POLICY.ROLE.ADMIN, formatPhoneNumber);
+        } = buildAddMembersToWorkspaceOnyxData({[accountantEmail]: accountantAccountID}, policyID, policyMemberAccountIDs, CONST.POLICY.ROLE.ADMIN, formatPhoneNumberPhoneUtils);
         optimisticData?.push(...addAccountantToWorkspaceOptimisticData);
         successData?.push(...addAccountantToWorkspaceSuccessData);
         failureData?.push(...addAccountantToWorkspaceFailureData);
@@ -6264,7 +6265,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
             optimisticData: inviteAccountantToRoomOptimisticData,
             successData: inviteAccountantToRoomSuccessData,
             failureData: inviteAccountantToRoomFailureData,
-        } = buildInviteToRoomOnyxData(chatReportID, {[accountantEmail]: accountantAccountID}, formatPhoneNumber);
+        } = buildInviteToRoomOnyxData(chatReportID, {[accountantEmail]: accountantAccountID}, formatPhoneNumberPhoneUtils);
         optimisticData?.push(...inviteAccountantToRoomOptimisticData);
         successData?.push(...inviteAccountantToRoomSuccessData);
         failureData?.push(...inviteAccountantToRoomFailureData);
@@ -7560,7 +7561,7 @@ function createSplitsAndOnyxData({
                       accountID,
                       // Disabling this line since participant.displayName can be an empty string
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      displayName: formatPhoneNumber(participant.displayName || email),
+                      displayName: formatPhoneNumberPhoneUtils(participant.displayName || email),
                       login: participant.login,
                       isOptimisticPersonalDetail: true,
                   },
@@ -8137,7 +8138,7 @@ function startSplitBill({
                         accountID,
                         // Disabling this line since participant.displayName can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: formatPhoneNumber(participant.displayName || email),
+                        displayName: formatPhoneNumberPhoneUtils(participant.displayName || email),
                         // Disabling this line since participant.login can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         login: participant.login || participant.text,
