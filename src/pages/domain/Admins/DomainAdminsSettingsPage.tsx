@@ -6,6 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -21,6 +22,7 @@ type DomainAdminsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorP
 function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
     const {domainAccountID} = route.params;
 
+    const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
@@ -49,6 +51,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                     }}
                 />
                 <OfflineWithFeedback
+                    errorRowStyles={[styles.ph5]}
                     pendingAction={domainPendingActions?.technicalContactEmail}
                     errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
                     onClose={() => clearSetPrimaryContactError(domainAccountID)}
