@@ -139,6 +139,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -1507,6 +1508,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: 'Datums splitsen',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} tot ${endDate} (${count} dagen)`,
         splitByDate: 'Splitsen op datum',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapport doorgestuurd naar ${to} vanwege aangepaste goedkeuringsworkflow`,
     },
     transactionMerge: {
         listPage: {
@@ -2295,7 +2297,26 @@ ${amount} voor ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'De fiatteur kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
-        header: 'Naar dit lid sturen ter goedkeuring:',
+        title: 'Naar dit lid sturen ter goedkeuring:',
+        description: 'Deze persoon zal de uitgaven goedkeuren.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Goedkeurder',
+        header: '(Optioneel) Wilt u een goedkeuringslimiet toevoegen?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Voeg een andere goedkeurder toe wanneer <strong>${approverName}</strong> goedkeurder is en het rapport het onderstaande bedrag overschrijdt:`
+                : 'Voeg een andere goedkeurder toe wanneer het rapport het onderstaande bedrag overschrijdt:',
+        reportAmountLabel: 'Rapportbedrag',
+        additionalApproverLabel: 'Extra goedkeurder',
+        skip: 'Overslaan',
+        next: 'Volgende',
+        removeLimit: 'Limiet verwijderen',
+        enterAmountError: 'Voer een geldig bedrag in',
+        enterApproverError: 'Een goedkeurder is vereist wanneer u een rapportlimiet instelt',
+        enterBothError: 'Voer een rapportbedrag en een extra goedkeurder in',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
+            `Rapporten boven ${approvalLimit} worden doorgestuurd naar ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Geautoriseerde betaler',
@@ -3602,7 +3623,7 @@ ${
         subtitle: 'Gebruik Expensify Travel om de beste reisaanbiedingen te krijgen en al uw zakelijke uitgaven op één plek te beheren.',
         features: {
             saveMoney: 'Bespaar geld op je boekingen',
-            alerts: 'Ontvang realtime updates en meldingen',
+            alerts: 'Ontvang realtime meldingen als uw reisplannen veranderen',
         },
         bookTravel: 'Reis boeken',
         bookDemo: 'Demo boeken',
@@ -4816,6 +4837,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             feedName: (feedName: string) => `${feedName}-kaarten`,
             directFeed: 'Directe feed',
             whoNeedsCardAssigned: 'Wie heeft een kaart toegewezen nodig?',
+            chooseTheCardholder: 'Kies de kaarthouder',
             chooseCard: 'Kies een kaart',
             chooseCardFor: (assignee: string) =>
                 `Kies een kaart voor <strong>${assignee}</strong>. Kun je de kaart die je zoekt niet vinden? <concierge-link>Laat het ons weten.</concierge-link>`,
@@ -4838,6 +4860,8 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             chooseCardFeed: 'Kaartfeed kiezen',
             ukRegulation:
                 'Expensify Limited is een agent van Plaid Financial Ltd., een erkende betalingsinstelling die wordt gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid biedt u gereguleerde rekeninginformatiediensten via Expensify Limited als haar agent.',
+            assign: 'Toewijzen',
+            assignCardFailedError: 'Toewijzing van kaart mislukt.',
         },
         expensifyCard: {
             issueAndManageCards: 'Uw Expensify Cards uitgeven en beheren',
@@ -4993,6 +5017,25 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 title: 'Dagvergoeding',
                 subtitle: 'Stel dagvergoedingen in om de dagelijkse uitgaven van medewerkers te beheren.',
             },
+            travel: {
+                title: 'Reizen',
+                subtitle: 'Boek, beheer en verzoen al uw zakelijke reizen.',
+                getStarted: {
+                    title: 'Aan de slag met Expensify Travel',
+                    subtitle: 'We hebben nog een paar extra stukjes informatie over uw bedrijf nodig, dan bent u klaar voor vertrek.',
+                    ctaText: 'Laten we gaan',
+                },
+                reviewingRequest: {
+                    title: 'Pak uw koffers, we hebben uw verzoek...',
+                    subtitle: 'We bekijken momenteel uw verzoek om Expensify Travel in te schakelen. Maak u geen zorgen, we laten u weten wanneer het klaar is.',
+                    ctaText: 'Verzoek verzonden',
+                },
+                bookOrManageYourTrip: {
+                    title: 'Boek of beheer uw reis',
+                    subtitle: 'Gebruik Expensify Travel om de beste reisaanbiedingen te krijgen en beheer al uw zakelijke uitgaven op één plek.',
+                    ctaText: 'Boeken of beheren',
+                },
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: 'Krijg inzicht in en controle over uitgaven.',
@@ -5033,6 +5076,9 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 cardNumber: 'Kaartnummer',
                 cardholder: 'Kaarthouder',
                 cardName: 'Kaartnaam',
+                allCards: 'Alle kaarten',
+                assignedCards: 'Toegewezen',
+                unassignedCards: 'Niet toegewezen',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration}-export`),
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Kies de ${integration}-account waarnaar transacties moeten worden geëxporteerd.`,
                 integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
@@ -5070,6 +5116,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 pendingBankLink: 'klik hier alsjeblieft',
                 giveItNameInstruction: 'Geef de kaart een naam die haar onderscheidt van andere kaarten.',
                 updating: 'Bezig met bijwerken...',
+                neverUpdated: 'Nooit',
                 noAccountsFound: 'Geen accounts gevonden',
                 defaultCard: 'Standaardkaart',
                 downgradeTitle: `Kan werkruimte niet downgraden`,
@@ -6154,10 +6201,6 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 title: 'Categorisatieregels',
                 approver: 'Fiatteur',
                 requireDescription: 'Beschrijving vereist',
-                requireFields: 'Velden verplicht stellen',
-                requiredFieldsTitle: 'Verplichte velden',
-                requiredFieldsDescription: (categoryName: string) => `Dit is van toepassing op alle uitgaven die zijn gecategoriseerd als <strong>${categoryName}</strong>.`,
-                requireAttendees: 'Aanwezigen verplicht stellen',
                 descriptionHint: 'Beschrijvingstip',
                 descriptionHintDescription: (categoryName: string) =>
                     `Herinner medewerkers eraan om extra informatie te geven voor uitgaven in de categorie “${categoryName}”. Deze tip verschijnt in het omschrijvingsveld van uitgaven.`,
@@ -6674,7 +6717,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         },
         columns: 'Kolommen',
         resetColumns: 'Kolommen resetten',
-        noColumnsError: 'Selecteer minstens één kolom voordat je opslaat',
+        groupColumns: 'Kolommen groeperen',
+        expenseColumns: 'Uitgavekolommen',
         statements: 'Afschriften',
         unapprovedCash: 'Niet-goedgekeurde contanten',
         unapprovedCard: 'Niet-goedgekeurde kaart',
@@ -7208,7 +7252,6 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Datum ouder dan ${maxAge} dagen`,
         missingCategory: 'Ontbrekende categorie',
         missingComment: 'Beschrijving vereist voor geselecteerde categorie',
-        missingAttendees: 'Meerdere deelnemers vereist voor deze categorie',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Ontbreekt ${tagName ?? 'label'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7933,6 +7976,10 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             primaryContact: 'Primair contactpersoon',
             addPrimaryContact: 'Primair contactpersoon toevoegen',
             settings: 'Instellingen',
+            consolidatedDomainBilling: 'Geconsolideerde domeinfacturering',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>Indien ingeschakeld, betaalt de primaire contactpersoon voor alle werkruimten die eigendom zijn van leden van <strong>${domainName}</strong> en ontvangt hij/zij alle factuurbewijzen.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'Geconsolideerde domeinfacturering kon niet worden gewijzigd. Probeer het later opnieuw.',
         },
     },
     desktopAppRetiredPage: {
