@@ -2112,6 +2112,13 @@ const staticStyles = (theme: ThemeColors) =>
             flex: 1,
             maxHeight: '100%',
             verticalAlign: 'top',
+            ...(Platform.OS === 'android' && {
+                height: undefined,
+                lineHeight: undefined,
+                alignSelf: 'stretch',
+                flexGrow: 1,
+                flexShrink: 1,
+            }),
         },
 
         textInputCollapseCompose: {
