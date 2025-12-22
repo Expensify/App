@@ -958,6 +958,18 @@ function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ON
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
+/**
+ * Sets whether the search query should be displayed in the search input field
+ */
+function setSearchContext(shouldShowSearchQuery: boolean) {
+    Onyx.set(ONYXKEYS.SEARCH_CONTEXT, {shouldShowSearchQuery});
+}
+
+/**
+ * Clears all of the filters for a search
+ * NOTE: The source of truth for search filters is the 'q' param. You should never have to clear the form values when
+ * navigating to a new search url, they will get cleared on their own. You most likely do not need to use this method.
+ */
 function clearAdvancedFilters() {
     const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
     for (const key of Object.values(FILTER_KEYS)) {
@@ -1210,6 +1222,7 @@ export {
     queueExportSearchWithTemplate,
     updateAdvancedFilters,
     clearAdvancedFilters,
+    setSearchContext,
     deleteSavedSearch,
     payMoneyRequestOnSearch,
     approveMoneyRequestOnSearch,
