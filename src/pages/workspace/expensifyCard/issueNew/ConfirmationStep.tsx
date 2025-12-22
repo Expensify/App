@@ -68,7 +68,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
 
     return (
         <InteractiveStepWrapper
-            wrapperID={ConfirmationStep.displayName}
+            wrapperID="ConfirmationStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
@@ -137,7 +137,5 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
         </InteractiveStepWrapper>
     );
 }
-
-ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default ConfirmationStep;
