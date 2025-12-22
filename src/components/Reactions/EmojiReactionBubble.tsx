@@ -90,13 +90,12 @@ function EmojiReactionBubble({
             accessibilityLabel={emojiCodes.join('')}
             accessible
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            sentryLabel={CONST.SENTRY_LABEL.EMOJI_REACTIONS.REACTION_BUBBLE}
         >
             <Text style={[styles.emojiReactionBubbleText, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu)]}>{emojiCodes.join('')}</Text>
             {count > 0 && <Text style={[styles.reactionCounterText, StyleUtils.getEmojiReactionCounterTextStyle(hasUserReacted)]}>{count}</Text>}
         </PressableWithSecondaryInteraction>
     );
 }
-
-EmojiReactionBubble.displayName = 'EmojiReactionBubble';
 
 export default EmojiReactionBubble;

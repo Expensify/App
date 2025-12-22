@@ -1,8 +1,10 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {getAuthToken} from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
@@ -351,6 +353,154 @@ function resetCreateDomainForm() {
     Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
 }
 
+function setPrimaryContact(domainAccountID: number, newTechnicalContactAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    technicalContactEmail: newTechnicalContactEmail,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                technicalContactEmail: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                technicalContactEmail: null,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    technicalContactEmail: currentTechnicalContactEmail,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                technicalContactEmail: null,
+            },
+        },
+    ];
+
+    const authToken = getAuthToken();
+    const params: SetTechnicalContactEmailParams = {
+        authToken,
+        domainAccountID,
+        technicalContactAccountID: newTechnicalContactAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.SET_TECHNICAL_CONTACT_EMAIL, params, {optimisticData, successData, failureData});
+}
+
+function clearSetPrimaryContactError(domainAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        technicalContactEmailErrors: null,
+    });
+}
+
+function toggleConsolidatedDomainBilling(domainAccountID: number, domainName: string, useTechnicalContactBillingCard: boolean) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    useTechnicalContactBillingCard,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                useTechnicalContactBillingCard: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                useTechnicalContactBillingCardErrors: null,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                useTechnicalContactBillingCard: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                useTechnicalContactBillingCardErrors: null,
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    useTechnicalContactBillingCard: !useTechnicalContactBillingCard,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                useTechnicalContactBillingCardErrors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.consolidatedDomainBillingError'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            value: {
+                useTechnicalContactBillingCard: null,
+            },
+        },
+    ];
+
+    const authToken = getAuthToken();
+    const params: ToggleConsolidatedDomainBillingParams = {
+        authToken,
+        domainAccountID,
+        domainName,
+        enabled: useTechnicalContactBillingCard,
+    };
+
+    API.write(WRITE_COMMANDS.TOGGLE_CONSOLIDATED_DOMAIN_BILLING, params, {optimisticData, failureData, successData});
+}
+
+function clearToggleConsolidatedDomainBillingErrors(domainAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        useTechnicalContactBillingCardErrors: null,
+    });
+}
+
 export {
     getDomainValidationCode,
     validateDomain,
@@ -365,4 +515,8 @@ export {
     getScimToken,
     createDomain,
     resetCreateDomainForm,
+    setPrimaryContact,
+    clearSetPrimaryContactError,
+    toggleConsolidatedDomainBilling,
+    clearToggleConsolidatedDomainBillingErrors,
 };

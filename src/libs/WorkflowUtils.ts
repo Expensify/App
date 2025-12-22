@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import lodashMapKeys from 'lodash/mapKeys';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -11,6 +12,7 @@ import type PersonalDetails from '@src/types/onyx/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
+import {convertToDisplayString} from './CurrencyUtils';
 import {getDefaultApprover} from './PolicyUtils';
 
 const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
@@ -21,6 +23,7 @@ const INITIAL_APPROVAL_WORKFLOW: ApprovalWorkflowOnyx = {
     isDefault: false,
     action: CONST.APPROVAL_WORKFLOW.ACTION.CREATE,
     originalApprovers: [],
+    isInitialFlow: true,
 };
 
 type GetApproversParams = {
@@ -53,12 +56,15 @@ function calculateApprovers({employees, firstEmail, personalDetailsByEmail}: Get
         }
 
         const isCircularReference = currentApproverEmails.has(nextEmail);
+        const employee = employees[nextEmail];
         approvers.push({
             email: nextEmail,
-            forwardsTo: employees[nextEmail].forwardsTo,
+            forwardsTo: employee.forwardsTo,
             avatar: personalDetailsByEmail[nextEmail]?.avatar,
             displayName: personalDetailsByEmail[nextEmail]?.displayName ?? nextEmail,
             isCircularReference,
+            approvalLimit: employee.approvalLimit,
+            overLimitForwardsTo: employee.overLimitForwardsTo,
         });
 
         // If we've already seen this approver, break to prevent infinite loop
@@ -256,19 +262,30 @@ function convertApprovalWorkflowToPolicyEmployees({
     for (const [index, approver] of approvalWorkflow.approvers.entries()) {
         const nextApprover = approvalWorkflow.approvers.at(index + 1);
         const forwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (nextApprover?.email ?? '');
+        const approvalLimit = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? null : approver.approvalLimit;
+        const overLimitForwardsTo = type === CONST.APPROVAL_WORKFLOW.TYPE.REMOVE ? '' : (approver.overLimitForwardsTo ?? '');
 
-        // For every approver, we check if the forwardsTo field has changed.
-        // If it has, we update the employee list with the new forwardsTo value.
-        if (previousEmployeeList[approver.email]?.forwardsTo === forwardsTo) {
+        // For every approver, we check if the forwardsTo, approvalLimit, or overLimitForwardsTo fields have changed.
+        const previousEmployee = previousEmployeeList[approver.email];
+        const forwardsToChanged = previousEmployee?.forwardsTo !== forwardsTo;
+        const approvalLimitChanged = previousEmployee?.approvalLimit !== approvalLimit;
+        const overLimitForwardsToChanged = previousEmployee?.overLimitForwardsTo !== overLimitForwardsTo;
+
+        if (!forwardsToChanged && !approvalLimitChanged && !overLimitForwardsToChanged) {
             continue;
         }
 
+        const previousPendingAction = previousEmployee?.pendingAction;
         updatedEmployeeList[approver.email] = {
             email: approver.email,
             forwardsTo,
-            pendingAction,
+            ...(approvalLimitChanged ? {approvalLimit} : {}),
+            ...(overLimitForwardsToChanged ? {overLimitForwardsTo} : {}),
+            pendingAction: previousPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? previousPendingAction : pendingAction,
             pendingFields: {
-                forwardsTo: pendingAction,
+                ...(forwardsToChanged ? {forwardsTo: pendingAction} : {}),
+                ...(approvalLimitChanged ? {approvalLimit: pendingAction} : {}),
+                ...(overLimitForwardsToChanged ? {overLimitForwardsTo: pendingAction} : {}),
             },
         };
     }
@@ -446,28 +463,28 @@ function getEligibleExistingBusinessBankAccounts(bankAccountList: BankAccountLis
     });
 }
 
+type GetApprovalLimitDescriptionParams = {
+    approver: Approver | undefined;
+    currency: string;
+    translate: LocaleContextProps['translate'];
+    personalDetailsByEmail: PersonalDetailsList | undefined;
+};
+
 /**
- * Returns business bank accounts that are:
- * - It has the same currency as the policy (`bankCurrency === policy.outputCurrency`),
- * - Its state is `OPEN`
- * - Its type is `BUSINESS`,
- * - It's linked to the policy's ACH account.
- *
- * @param bankAccountList - list of bank accounts
- * @param policy - given policy
+ * Get the approval limit description for an approver (e.g., "Reports above $1,000 forward to John Doe")
  */
-function getOpenConnectedToPolicyBusinessBankAccounts(bankAccountList: BankAccountList | undefined, policy: OnyxEntry<Policy> | undefined) {
-    if (!bankAccountList || policy === undefined) {
-        return [];
+function getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail}: GetApprovalLimitDescriptionParams): string | undefined {
+    if (approver?.approvalLimit == null || !approver?.overLimitForwardsTo) {
+        return undefined;
     }
 
-    return Object.values(bankAccountList).filter((account) => {
-        return (
-            account.bankCurrency === policy?.outputCurrency &&
-            account.accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN &&
-            account.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
-            account?.accountData?.bankAccountID === policy?.achAccount?.bankAccountID
-        );
+    const formattedAmount = convertToDisplayString(approver.approvalLimit, currency);
+    const overLimitApproverDetails = personalDetailsByEmail?.[approver.overLimitForwardsTo];
+    const approverDisplayName = Str.removeSMSDomain(overLimitApproverDetails?.displayName ?? approver.overLimitForwardsTo);
+
+    return translate('workflowsApprovalLimitPage.forwardLimitDescription', {
+        approvalLimit: formattedAmount,
+        approverName: approverDisplayName,
     });
 }
 
@@ -475,8 +492,8 @@ export {
     calculateApprovers,
     convertPolicyEmployeesToApprovalWorkflows,
     convertApprovalWorkflowToPolicyEmployees,
+    getApprovalLimitDescription,
     getEligibleExistingBusinessBankAccounts,
-    getOpenConnectedToPolicyBusinessBankAccounts,
     INITIAL_APPROVAL_WORKFLOW,
     updateWorkflowDataOnApproverRemoval,
 };

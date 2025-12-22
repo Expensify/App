@@ -117,6 +117,4 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
     );
 }
 
-BankAccountDetails.displayName = 'BankAccountDetails';
-
 export default BankAccountDetails;

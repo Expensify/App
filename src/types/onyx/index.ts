@@ -4,7 +4,7 @@ import type Account from './Account';
 import type AccountData from './AccountData';
 import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
-import type {AssignCard} from './AssignCard';
+import type {AssignCard, AssignCardData} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
@@ -15,7 +15,7 @@ import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
-import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
+import type {CardList, FailedCompanyCardAssignment, FailedCompanyCardAssignments, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID, DomainSettings, FundID} from './CardFeeds';
@@ -32,6 +32,8 @@ import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Domain from './Domain';
 import type {SamlMetadata} from './Domain';
+import type DomainErrors from './DomainErrors';
+import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
@@ -107,6 +109,7 @@ import type ReviewDuplicates from './ReviewDuplicates';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
+import type SearchContext from './SearchContext';
 import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
@@ -160,6 +163,8 @@ export type {
     Download,
     DuplicateWorkspace,
     WorkspaceCardsList,
+    FailedCompanyCardAssignment,
+    FailedCompanyCardAssignments,
     ExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
@@ -169,6 +174,7 @@ export type {
     GpsDraftDetails,
     IntroSelected,
     IssueNewCard,
+    AssignCardData,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
     CardContinuousReconciliation,
@@ -273,6 +279,7 @@ export type {
     DomainSettings,
     SaveSearch,
     RecentSearchItem,
+    SearchContext,
     ImportedSpreadsheet,
     ImportedSpreadsheetMemberData,
     Onboarding,
@@ -298,4 +305,6 @@ export type {
     HybridApp,
     AppReview,
     SamlMetadata,
+    DomainErrors,
+    DomainPendingActions,
 };

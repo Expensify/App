@@ -7,7 +7,7 @@ import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, O
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as API from '@libs/API';
@@ -78,6 +78,7 @@ import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import NetworkConnection from '@libs/NetworkConnection';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -321,14 +322,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
-    },
-});
-
-let isNetworkOffline = false;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: (value) => {
-        isNetworkOffline = value?.isOffline ?? false;
     },
 });
 
@@ -1069,7 +1062,6 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
         transactionID: transaction?.transactionID,
-        includePartiallySetupBankAccounts: true,
     };
 
     // This is a legacy transactions that doesn't have either a transaction thread or a money request preview
@@ -1282,7 +1274,6 @@ function openReport(
         // Add optimistic personal details for new participants
         const optimisticPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
         const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
-        const redundantParticipants: Record<number, null> = {};
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         for (const [index, login] of participantLoginList.entries()) {
             const accountID = participantAccountIDs.at(index) ?? -1;
@@ -1299,9 +1290,6 @@ function openReport(
                 isOptimisticPersonalDetail: true,
             };
             settledPersonalDetails[accountID] = null;
-
-            // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
-            redundantParticipants[accountID] = null;
         }
 
         successData.push(
@@ -1309,7 +1297,6 @@ function openReport(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    participants: redundantParticipants,
                     pendingFields: {
                         createChat: null,
                         reportName: null,
@@ -1332,11 +1319,6 @@ function openReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: optimisticPersonalDetails,
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: settledPersonalDetails,
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1383,6 +1365,25 @@ function openReport(
             checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters),
         });
     }
+}
+
+function prepareOnyxDataForCleanUpOptimisticParticipants(
+    reportID: string,
+): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined {
+    const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if (!existingReport?.participants) {
+        return undefined;
+    }
+    const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+    const redundantParticipants: Record<number, null> = {};
+    for (const accountID in existingReport.participants) {
+        if (!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+            continue;
+        }
+        settledPersonalDetails[accountID] = null;
+        redundantParticipants[accountID] = null;
+    }
+    return {settledPersonalDetails, redundantParticipants};
 }
 
 /**
@@ -4457,9 +4458,9 @@ function savePrivateNotesDraft(reportID: string, note: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${reportID}`, note);
 }
 
-function searchForReports(searchInput: string, policyID?: string) {
+function searchForReports(isOffline: boolean, searchInput: string, policyID?: string) {
     // We do not try to make this request while offline because it sets a loading indicator optimistically
-    if (isNetworkOffline) {
+    if (isOffline) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }
@@ -4495,7 +4496,9 @@ function searchForReports(searchInput: string, policyID?: string) {
 }
 
 function searchInServer(searchInput: string, policyID?: string) {
-    if (isNetworkOffline || !searchInput.trim().length) {
+    // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
+    const isOffline = NetworkStore.isOffline();
+    if (isOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }
@@ -4504,7 +4507,7 @@ function searchInServer(searchInput: string, policyID?: string) {
     // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
     // tell the user there are no options, then we start searching, and tell them there are no options again.
     Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
-    searchForReports(searchInput, policyID);
+    searchForReports(isOffline, searchInput, policyID);
 }
 
 function updateLastVisitTime(reportID: string) {
@@ -4849,7 +4852,7 @@ function markAsManuallyExported(reportID: string, connectionName: ConnectionName
     API.write(WRITE_COMMANDS.MARK_AS_EXPORTED, params, {optimisticData, successData, failureData});
 }
 
-function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void) {
+function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     let reportIDParam = reportID;
     const allReportTransactions = getReportTransactions(reportID).filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const allTransactionIDs = allReportTransactions.map((transaction) => transaction.transactionID);
@@ -4870,7 +4873,7 @@ function exportReportToCSV({reportID, transactionIDList}: ExportReportCSVParams,
         }
     }
 
-    fileDownload(ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, ApiUtils.getCommandURL({command: WRITE_COMMANDS.EXPORT_REPORT_TO_CSV}), 'Expensify.csv', '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function exportReportToPDF({reportID}: ExportReportPDFParams) {
@@ -4896,14 +4899,14 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
     API.write(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, params, {optimisticData, failureData});
 }
 
-function downloadReportPDF(fileName: string, reportName: string) {
+function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate) {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `${reportName}.pdf`;
     setDownload(fileName, true);
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
         currentUserEmail ?? '',
     )}`;
-    fileDownload(addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
+    fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
 }
 
 function setDeleteTransactionNavigateBackUrl(url: string) {
@@ -6362,4 +6365,5 @@ export {
     openUnreportedExpense,
     optimisticReportLastData,
     setOptimisticTransactionThread,
+    prepareOnyxDataForCleanUpOptimisticParticipants,
 };
