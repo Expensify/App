@@ -20,8 +20,9 @@ function ExportedIconCell({reportID, hash}: ExportedIconCellProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
-    // We need to subscribe to the snapshot to get the actions because this can render in a group item list, where
-    // the main query hash is the group hash, rather than the individual transaction hash
+    // We need to subscribe directly to the snapshot to get the report actions because this can be rendered in either a group
+    // list (which has a separate hash than the current top-level search query) or in the top-level search query.
+    // This selector is specific to this edge-case (and thus is not in the selectors folder) and should be used in other places where the snapshot needs to be accessed
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const reportActions = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
         canBeMissing: true,
