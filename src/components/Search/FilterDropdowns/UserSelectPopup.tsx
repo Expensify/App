@@ -191,5 +191,4 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     );
 }
 
-UserSelectPopup.displayName = 'UserSelectPopup';
 export default memo(UserSelectPopup);

@@ -70,6 +70,4 @@ function ConstantSelector(
     );
 }
 
-ConstantSelector.displayName = 'ConstantSelector';
-
 export default ConstantSelector;

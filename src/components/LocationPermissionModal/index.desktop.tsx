@@ -147,6 +147,4 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     );
 }
 
-LocationPermissionModal.displayName = 'LocationPermissionModal';
-
 export default LocationPermissionModal;

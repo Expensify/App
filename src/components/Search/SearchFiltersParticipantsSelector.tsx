@@ -1,6 +1,7 @@
 import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import UserSelectionListItem from '@components/SelectionListWithSections/Search/UserSelectionListItem';
 import type {Sections} from '@components/SelectionListWithSections/types';
@@ -197,7 +198,5 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         />
     );
 }
-
-SearchFiltersParticipantsSelector.displayName = 'SearchFiltersParticipantsSelector';
 
 export default SearchFiltersParticipantsSelector;
