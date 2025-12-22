@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -55,6 +56,7 @@ type MenuItemListProps = {
 function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapperStyle = {}, icon = undefined, iconWidth = undefined, iconHeight = undefined}: MenuItemListProps) {
     const popoverAnchor = useRef<View>(null);
     const {isExecuting, singleExecution} = useSingleExecution();
+    const isFocused = useIsFocused();
 
     /**
      * Handle the secondary interaction for a menu item.
@@ -106,13 +108,12 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
                     {...menuItemProps}
                     disabled={!!menuItemProps.disabled || isExecuting}
                     onPress={shouldUseSingleExecution ? singleExecution(menuItemProps.onPress) : menuItemProps.onPress}
+                    isFocused={isFocused}
                 />
             </OfflineWithFeedback>
         ))
     );
 }
-
-MenuItemList.displayName = 'MenuItemList';
 
 export type {MenuItemWithLink};
 export default MenuItemList;

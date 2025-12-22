@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -64,8 +65,9 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage']);
 
-    const reservationIcon = getTripReservationIcon(reservation.type);
+    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type);
     const title = reservation.type === CONST.RESERVATION_TYPE.CAR ? reservation.carInfo?.name : Str.recapitalize(reservation.start.longName ?? '');
 
     let titleComponent = (
@@ -206,7 +208,5 @@ function TripRoomPreview({
         </OfflineWithFeedback>
     );
 }
-
-TripRoomPreview.displayName = 'TripRoomPreview';
 
 export default TripRoomPreview;

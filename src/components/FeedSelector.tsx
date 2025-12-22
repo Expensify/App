@@ -1,14 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import type IconAsset from '@src/types/utils/IconAsset';
 import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import PlaidCardFeedIcon from './PlaidCardFeedIcon';
 import {PressableWithFeedback} from './Pressable';
+import SearchInputSelectionSkeleton from './Skeletons/SearchInputSelectionSkeleton';
 import Text from './Text';
 
 type Props = {
@@ -16,10 +14,7 @@ type Props = {
     onFeedSelect: () => void;
 
     /** Icon for the card */
-    cardIcon: IconAsset;
-
-    /** Whether to show assign card button */
-    shouldChangeLayout?: boolean;
+    CardFeedIcon: React.ReactNode;
 
     /** Feed name */
     feedName?: string;
@@ -30,43 +25,51 @@ type Props = {
     /** Whether the RBR indicator should be shown */
     shouldShowRBR?: boolean;
 
-    /** Image url for plaid bank account */
-    plaidUrl?: string | null;
+    /** Whether the feed selector should render a loading skeleton */
+    isLoading?: boolean;
 };
 
-function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, supportingText, shouldShowRBR = false, plaidUrl = null}: Props) {
+function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, shouldShowRBR = false, isLoading = false}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+
+    if (isLoading) {
+        return <SearchInputSelectionSkeleton />;
+    }
 
     return (
         <PressableWithFeedback
             onPress={onFeedSelect}
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldChangeLayout && styles.mb3]}
+            wrapperStyle={styles.flexShrink1}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
             accessibilityLabel={feedName ?? ''}
         >
-            {plaidUrl ? (
-                <PlaidCardFeedIcon plaidUrl={plaidUrl} />
-            ) : (
-                <Icon
-                    src={cardIcon}
-                    height={variables.cardIconHeight}
-                    width={variables.cardIconWidth}
-                    additionalStyles={styles.cardIcon}
-                />
-            )}
+            {CardFeedIcon}
+
             <View style={styles.flex1}>
                 <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
-                    <CaretWrapper style={styles.flex1}>
-                        <Text style={[styles.textStrong, styles.flexShrink1]}>{feedName}</Text>
+                    <CaretWrapper>
+                        <Text
+                            numberOfLines={1}
+                            style={[styles.textStrong, styles.flexShrink1]}
+                        >
+                            {feedName}
+                        </Text>
                     </CaretWrapper>
                     {shouldShowRBR && (
                         <Icon
-                            src={Expensicons.DotIndicator}
+                            src={expensifyIcons.DotIndicator}
                             fill={theme.danger}
                         />
                     )}
                 </View>
-                <Text style={styles.textLabelSupporting}>{supportingText}</Text>
+                <Text
+                    numberOfLines={1}
+                    style={styles.textLabelSupporting}
+                >
+                    {supportingText}
+                </Text>
             </View>
         </PressableWithFeedback>
     );

@@ -21,7 +21,7 @@ import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, RootNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -50,7 +50,10 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
          *
          * This is required because transitionEnd event doesn't trigger in the testing environment.
          */
-        navigation?: PlatformStackNavigationProp<RootNavigatorParamList> | PlatformStackNavigationProp<ReportsSplitNavigatorParamList> | PlatformStackNavigationProp<SearchReportParamList>;
+        navigation?:
+            | PlatformStackNavigationProp<RootNavigatorParamList>
+            | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>
+            | PlatformStackNavigationProp<RightModalNavigatorParamList>;
 
         /** A unique ID to find the screen wrapper in tests */
         testID: string;
@@ -190,7 +193,7 @@ function ScreenWrapper({
             DeviceEventEmitter.emit(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER);
         }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
 
-        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', (event) => {
+        const unsubscribeTransitionEnd = navigation.addListener?.('transitionEnd', (event) => {
             // Prevent firing the prop callback when user is exiting the page.
             if (event?.data?.closing) {
                 return;
@@ -270,7 +273,6 @@ function ScreenWrapper({
         </FocusTrapForScreen>
     );
 }
-ScreenWrapper.displayName = 'ScreenWrapper';
 
 export default withNavigationFallback(ScreenWrapper);
 export type {ScreenWrapperProps, ScreenWrapperChildrenProps};

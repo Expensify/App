@@ -1,23 +1,23 @@
+import {format} from 'date-fns';
+import {Str} from 'expensify-common';
 import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
-import useCardFeeds from '@hooks/useCardFeeds';
-import useCardsList from '@hooks/useCardsList';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftInviteAccountID} from '@libs/actions/Card';
 import {searchInServer} from '@libs/actions/Report';
-import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDefaultCardName} from '@libs/CardUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
@@ -27,32 +27,24 @@ import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
-import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+import type {AssignCardData} from '@src/types/onyx/AssignCard';
 
-type AssigneeStepProps = {
-    /** The policy that the card will be issued under */
-    policy: OnyxEntry<OnyxTypes.Policy>;
+type AssigneeStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE>;
 
-    /** Selected feed */
-    feed: OnyxTypes.CompanyCardFeed;
-
-    /** Route params */
-    route: PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD>;
-};
-
-function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
+function AssigneeStep({route}: AssigneeStepProps) {
     const policyID = route.params.policyID;
+    const feed = route.params.feed;
+    const cardID = route.params.cardID;
+    const backTo = route.params?.backTo;
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const policy = usePolicy(policyID);
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [list] = useCardsList(policyID, feed);
-    const [cardFeeds] = useCardFeeds(policyID);
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
 
@@ -79,55 +71,82 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
     const isEditing = assignCard?.isEditing;
 
     const submit = (assignee: ListItem) => {
-        let nextStep: AssignCardStep = CONST.COMPANY_CARD.STEP.CARD;
         const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
-        const memberName = personalDetail?.firstName ? personalDetail.firstName : personalDetail?.login;
-        const data: Partial<AssignCardData> = {
+        const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
+        const cardToAssign: Partial<AssignCardData> = {
             email: assignee?.login ?? '',
             cardName: getDefaultCardName(memberName),
         };
 
         Keyboard.dismiss();
-        if (assignee?.login === assignCard?.data?.email) {
+
+        const routeParams = {policyID, feed, cardID};
+
+        if (assignee?.login === assignCard?.cardToAssign?.email) {
+            if (assignCard?.cardToAssign?.encryptedCardNumber) {
+                cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
+                cardToAssign.cardNumber = assignCard.cardToAssign.cardNumber;
+                cardToAssign.startDate = !isEditing
+                    ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)
+                    : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+                cardToAssign.dateOption = !isEditing
+                    ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM
+                    : (assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+                setAssignCardStepAndData({
+                    cardToAssign,
+                    isEditing: false,
+                });
+                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams, backTo));
+                return;
+            }
             setAssignCardStepAndData({
-                currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
+                cardToAssign,
                 isEditing: false,
             });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
             return;
         }
 
         if (!policy?.employeeList?.[assignee?.login ?? '']) {
             setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.INVITE_NEW_MEMBER,
-                data: {
+                cardToAssign: {
                     invitingMemberEmail: assignee?.login ?? '',
                     invitingMemberAccountID: assignee?.accountID ?? undefined,
                 },
             });
             setDraftInviteAccountID(assignee?.login ?? '', assignee?.accountID ?? undefined, policyID);
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER.getRoute(routeParams));
             return;
         }
 
-        if (hasOnlyOneCardToAssign(filteredCardList)) {
-            nextStep = CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE;
-            data.cardNumber = Object.keys(filteredCardList).at(0);
-            data.encryptedCardNumber = Object.values(filteredCardList).at(0);
+        if (assignCard?.cardToAssign?.encryptedCardNumber) {
+            cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
+            cardToAssign.cardNumber = assignCard.cardToAssign.cardNumber;
+            cardToAssign.startDate = !isEditing
+                ? format(new Date(), CONST.DATE.FNS_FORMAT_STRING)
+                : (assignCard?.cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+            cardToAssign.dateOption = !isEditing
+                ? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM
+                : (assignCard?.cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
+            setAssignCardStepAndData({
+                cardToAssign,
+                isEditing: false,
+            });
+            Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.getRoute(routeParams, backTo));
+            return;
         }
-
         setAssignCardStepAndData({
-            currentStep: isEditing ? CONST.COMPANY_CARD.STEP.CONFIRMATION : nextStep,
-            data,
+            cardToAssign,
             isEditing: false,
         });
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.getRoute(routeParams));
     };
 
     const handleBackButtonPress = () => {
         if (isEditing) {
             setAssignCardStepAndData({
-                currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
             });
-            return;
         }
         Navigation.goBack();
     };
@@ -150,10 +169,10 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
                 alternateText: email,
                 login: email,
                 accountID: personalDetail?.accountID,
-                isSelected: assignCard?.data?.email === email,
+                isSelected: assignCard?.cardToAssign?.email === email,
                 icons: [
                     {
-                        source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                        source: personalDetail?.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(email),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
@@ -165,19 +184,12 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, assignCard?.data?.email, formatPhoneNumber, localeCompare]);
+    }, [isOffline, policy?.employeeList, assignCard?.cardToAssign?.email, formatPhoneNumber, localeCompare, icons.FallbackAvatar]);
 
-    const sections = useMemo(() => {
+    const assignees = useMemo(() => {
         if (!debouncedSearchTerm) {
-            return [
-                {
-                    data: membersDetails,
-                    shouldShow: true,
-                },
-            ];
+            return membersDetails;
         }
-
-        const sectionsArr = [];
 
         if (!areOptionsInitialized) {
             return [];
@@ -186,54 +198,27 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
         const filteredOptions = tokenizedSearch(membersDetails, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
-        sectionsArr.push({
-            title: undefined,
-            data: filteredOptions,
-            shouldShow: true,
-        });
+        const options = [
+            ...filteredOptions,
+            ...selectedOptionsForDisplay,
+            ...availableOptions.recentReports,
+            ...availableOptions.personalDetails,
+            ...(availableOptions.userToInvite ? [availableOptions.userToInvite] : []),
+        ];
 
-        // Selected options section
-        if (selectedOptionsForDisplay.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: selectedOptionsForDisplay,
-            });
-        }
-
-        // Recent reports section
-        if (availableOptions.recentReports.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: availableOptions.recentReports,
-            });
-        }
-
-        // Contacts section
-        if (availableOptions.personalDetails.length > 0) {
-            sectionsArr.push({
-                title: undefined,
-                data: availableOptions.personalDetails,
-            });
-        }
-
-        // User to invite section
-        if (availableOptions.userToInvite) {
-            sectionsArr.push({
-                title: undefined,
-                data: [availableOptions.userToInvite],
-            });
-        }
-
-        return sectionsArr;
+        return options.map((option) => ({
+            ...option,
+            keyForList: option.keyForList ?? option.login ?? '',
+        }));
     }, [
-        debouncedSearchTerm,
         areOptionsInitialized,
+        availableOptions.personalDetails,
+        availableOptions.recentReports,
+        availableOptions.userToInvite,
         countryCode,
+        debouncedSearchTerm,
         membersDetails,
         selectedOptionsForDisplay,
-        availableOptions.recentReports,
-        availableOptions.personalDetails,
-        availableOptions.userToInvite,
     ]);
 
     useEffect(() => {
@@ -245,44 +230,42 @@ function AssigneeStep({policy, feed, route}: AssigneeStepProps) {
         if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
-        return getHeaderMessage(
-            sections.some((section) => section.data.length > 0),
-            !!availableOptions.userToInvite,
-            searchValue,
-            countryCode,
-            false,
-        );
-    }, [searchTerm, availableOptions.userToInvite, sections, countryCode, translate]);
+        return getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
+    }, [searchTerm, availableOptions.userToInvite, assignees?.length, countryCode, translate]);
+
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('selectionList.nameEmailOrPhoneNumber'),
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage,
+        }),
+        [headerMessage, searchTerm, setSearchTerm, translate],
+    );
 
     return (
         <InteractiveStepWrapper
-            wrapperID={AssigneeStep.displayName}
+            wrapperID="AssigneeStep"
             handleBackButtonPress={handleBackButtonPress}
-            startStepIndex={0}
-            stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
             enableEdgeToEdgeBottomSafeAreaPadding
             onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.chooseTheCardholder')}</Text>
             <SelectionList
-                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                textInputValue={searchTerm}
-                onChangeText={setSearchTerm}
-                sections={sections}
-                headerMessage={headerMessage}
-                ListItem={UserListItem}
+                data={assignees}
                 onSelectRow={submit}
-                shouldUpdateFocusedIndex
-                initiallyFocusedOptionKey={assignCard?.data?.email}
-                addBottomSafeAreaPadding
+                ListItem={UserListItem}
+                textInputOptions={textInputOptions}
+                initiallyFocusedItemKey={assignCard?.cardToAssign?.email}
                 showLoadingPlaceholder={!areOptionsInitialized}
                 isLoadingNewOptions={!!isSearchingForReports}
+                disableMaintainingScrollPosition
+                shouldUpdateFocusedIndex
+                addBottomSafeAreaPadding
             />
         </InteractiveStepWrapper>
     );
 }
-
-AssigneeStep.displayName = 'AssigneeStep';
 
 export default AssigneeStep;

@@ -8,7 +8,6 @@ import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -18,7 +17,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import WorkspacesListRowDisplayName from '@components/WorkspacesListRowDisplayName';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -128,20 +127,21 @@ function WorkspacesListRow({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
-    const illustrations = useMemoizedLazyIllustrations(['Mailbox'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass']);
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
 
     const workspaceTypeIcon = useCallback(
         (type: WorkspacesListRowProps['workspaceType']): IconAsset => {
             switch (type) {
                 case CONST.POLICY.TYPE.CORPORATE:
-                    return Illustrations.ShieldYellow;
+                    return illustrations.ShieldYellow;
                 case CONST.POLICY.TYPE.TEAM:
                     return illustrations.Mailbox;
                 default:
                     return illustrations.Mailbox;
             }
         },
-        [illustrations.Mailbox],
+        [illustrations.Mailbox, illustrations.ShieldYellow],
     );
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
@@ -183,7 +183,7 @@ function WorkspacesListRow({
                         text={translate('workspace.common.requested')}
                         textStyles={styles.textStrong}
                         badgeStyles={[styles.alignSelfCenter, styles.badgeBordered]}
-                        icon={Expensicons.Hourglass}
+                        icon={icons.Hourglass}
                     />
                 </View>
             )}
@@ -313,7 +313,5 @@ function WorkspacesListRow({
         </View>
     );
 }
-
-WorkspacesListRow.displayName = 'WorkspacesListRow';
 
 export default withCurrentUserPersonalDetails(WorkspacesListRow);

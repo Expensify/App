@@ -85,7 +85,11 @@ function prepareRequest<TCommand extends ApiCommand>(
         shouldApplyOptimisticData = conflictAction.type !== 'noAction';
     }
 
-    const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
+    const {optimisticData, successData, failureData, ...onyxDataWithoutOptimisticData} = onyxData;
+
+    let processedSuccessData = successData;
+    let processedFailureData = failureData;
+
     if (optimisticData && shouldApplyOptimisticData) {
         Log.info('[API] Applying optimistic data', false, {command, type});
 
@@ -96,8 +100,11 @@ function prepareRequest<TCommand extends ApiCommand>(
         } else {
             try {
                 const context = getUpdateContext();
-                const processedOptimisticData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context);
-                Onyx.update(processedOptimisticData);
+                const processedData = OptimisticReportNames.updateOptimisticReportNamesFromUpdates(optimisticData, context, successData, failureData);
+
+                Onyx.update(processedData.optimisticData);
+                processedSuccessData = processedData.successData;
+                processedFailureData = processedData.failureData;
             } catch (error) {
                 Log.hmmm('[API] Failed to process optimistic report names', {error});
                 // Fallback to original optimistic data if processing fails
@@ -130,6 +137,8 @@ function prepareRequest<TCommand extends ApiCommand>(
         initiatedOffline: isOffline(),
         requestID: requestIndex++,
         ...onyxDataWithoutOptimisticData,
+        successData: processedSuccessData,
+        failureData: processedFailureData,
         ...conflictResolver,
     };
 
@@ -146,19 +155,23 @@ function prepareRequest<TCommand extends ApiCommand>(
  * Process a prepared request according to its type.
  */
 function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<void | Response> {
+    Log.info('[API] Processing request', false, {command: request.command, type});
     // Write commands can be saved and retried, so push it to the SequentialQueue
     if (type === CONST.API_REQUEST_TYPE.WRITE) {
+        Log.info('[API] Write command. Pushing to SequentialQueue', false, {command: request.command});
         pushToSequentialQueue(request);
         return Promise.resolve();
     }
 
     // Read requests are processed right away, but don't return the response to the caller
     if (type === CONST.API_REQUEST_TYPE.READ) {
+        Log.info('[API] Read command. Processing request with middleware', false, {command: request.command});
         processWithMiddleware(request);
         return Promise.resolve();
     }
 
     // Requests with side effects process right away, and return the response to the caller
+    Log.info('[API] Side effect command. Processing request with middleware', false, {command: request.command});
     return processWithMiddleware(request);
 }
 

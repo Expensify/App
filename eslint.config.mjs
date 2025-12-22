@@ -125,6 +125,14 @@ const restrictedImportPaths = [
         name: '@src/utils/findNodeHandle',
         message: "Do not use 'findNodeHandle' as it is no longer supported on web.",
     },
+    {
+        name: './SelectionListWithSections',
+        message: 'Use `SelectionList` for flat data. Only use `SelectionListWithSection` when data is actually sectioned. See contributingGuides/SELECTION_LIST.md for details',
+    },
+    {
+        name: '@components/SelectionListWithSections',
+        message: 'Use `SelectionList` for flat data. Only use `SelectionListWithSection` when data is actually sectioned. See contributingGuides/SELECTION_LIST.md for details',
+    },
 ];
 
 const restrictedImportPatterns = [
@@ -272,6 +280,17 @@ const config = defineConfig([
             'rulesdir/prefer-underscore-method': 'off',
             'rulesdir/prefer-import-module-contents': 'off',
             'rulesdir/no-beta-handler': 'error',
+            'rulesdir/prefer-narrow-hook-dependencies': [
+                'error',
+                {
+                    stableObjectPatterns: [
+                        // cSpell:ignore tyles
+                        '[Ss]tyles?$', // Excludes 'style', 'styles', 'themeStyles', etc.
+                        '^theme', // Excludes 'theme', 'themeStyles', 'themeIllustrations', etc.
+                        '[Ii]cons?$', // Excludes 'icon', 'icons', 'expensifyIcons', etc.
+                    ],
+                },
+            ],
 
             // React and React Native specific rules
             'react-native-a11y/has-accessibility-hint': ['off'],

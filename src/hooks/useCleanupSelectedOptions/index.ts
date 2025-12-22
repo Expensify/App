@@ -1,21 +1,24 @@
-import {NavigationContainerRefContext, useIsFocused} from '@react-navigation/native';
-import {useContext, useEffect} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect} from 'react';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import NAVIGATORS from '@src/NAVIGATORS';
 
 const useCleanupSelectedOptions = (cleanupFunction?: () => void) => {
-    const navigationContainerRef = useContext(NavigationContainerRefContext);
-    const state = navigationContainerRef?.getState();
-    const lastRoute = state?.routes.at(-1);
-    const isRightModalOpening = lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-
     const isFocused = useIsFocused();
 
     useEffect(() => {
-        if (isFocused || isRightModalOpening) {
+        if (!cleanupFunction || isFocused) {
             return;
         }
-        cleanupFunction?.();
-    }, [isFocused, cleanupFunction, isRightModalOpening]);
+        const state = navigationRef?.getRootState();
+        const lastRoute = state?.routes.at(-1);
+        const isRightModalOpening = lastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+
+        if (isRightModalOpening) {
+            return;
+        }
+        cleanupFunction();
+    }, [isFocused, cleanupFunction]);
 };
 
 export default useCleanupSelectedOptions;
