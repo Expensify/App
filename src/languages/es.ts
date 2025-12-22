@@ -8017,7 +8017,6 @@ ${amount} para ${merchant} - ${date}`,
             addAdmin: 'Añadir administrador',
             invite: 'Invitar',
             addAdminError: 'No se pudo añadir a este miembro como administrador. Por favor, inténtalo de nuevo.',
-
         },
     },
 };
