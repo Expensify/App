@@ -1,7 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
@@ -14,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
@@ -30,19 +30,14 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type Transaction from '@src/types/onyx/Transaction';
 import StepScreenWrapper from './StepScreenWrapper';
+import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_HOURS | typeof SCREENS.MONEY_REQUEST.CREATE> & {
-    /** The transaction object being modified in Onyx */
-    transaction: OnyxEntry<Transaction>;
-
-    /** Whether the user input should be kept or not */
-    shouldKeepUserInput?: boolean;
-};
+type IOURequestStepHoursProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_HOURS | typeof SCREENS.MONEY_REQUEST.CREATE> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_HOURS | typeof SCREENS.MONEY_REQUEST.CREATE>;
 
 function IOURequestStepTimeHours({
     report,
@@ -50,22 +45,27 @@ function IOURequestStepTimeHours({
         params: {iouType, reportID, transactionID = '-1', action, reportActionID},
     },
     transaction,
-    shouldKeepUserInput = false,
 }: IOURequestStepHoursProps) {
-    const {translate} = useLocalize();
-    const textInput = useRef<BaseTextInputRef | null>(null);
-    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const policyID = report?.policyID;
+    const isTransactionDraft = shouldUseTransactionDraft(action);
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const rate = policy ? (getDefaultTimeTrackingRate(policy) ?? 0) : 0;
+
+    const {translate} = useLocalize();
+    const styles = useThemeStyles();
+    const {isExtraSmallScreenHeight} = useResponsiveLayout();
+    const canUseTouchScreen = canUseTouchScreenUtil();
+    const textInputRef = useRef<BaseTextInputRef | null>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const moneyRequestTimeInputRef = useRef<NumberWithSymbolFormRef | null>(null);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     useFocusEffect(
         useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION);
+            focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
             return () => {
                 if (!focusTimeoutRef.current) {
                     return;
@@ -76,21 +76,16 @@ function IOURequestStepTimeHours({
     );
 
     const saveTime = (count: number) => {
-        setMoneyRequestAmount(transactionID, computeTimeAmount(rate, count), currency, shouldKeepUserInput);
-        setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate), shouldKeepUserInput);
-        setMoneyRequestTimeType(transactionID, shouldKeepUserInput);
-        setMoneyRequestTimeRate(transactionID, rate, shouldKeepUserInput);
-        setMoneyRequestTimeCount(transactionID, count, shouldKeepUserInput);
+        setMoneyRequestAmount(transactionID, computeTimeAmount(rate, count), currency);
+        setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate), isTransactionDraft);
+        setMoneyRequestTimeType(transactionID, isTransactionDraft);
+        setMoneyRequestTimeRate(transactionID, rate, isTransactionDraft);
+        setMoneyRequestTimeCount(transactionID, count, isTransactionDraft);
 
         setMoneyRequestParticipantsFromReport(transactionID, report, accountID).then(() => {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
         });
     };
-
-    const styles = useThemeStyles();
-    const {isExtraSmallScreenHeight} = useResponsiveLayout();
-    const canUseTouchScreen = canUseTouchScreenUtil();
-    const moneyRequestTimeInputRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     return (
         <StepScreenWrapper
@@ -105,10 +100,10 @@ function IOURequestStepTimeHours({
                 <NumberWithSymbolForm
                     symbol={translate('iou.hrs')}
                     symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
-                    decimals={2}
+                    decimals={CONST.HOURS_DECIMAL_PLACES}
                     autoGrowExtraSpace={variables.w80}
                     shouldShowBigNumberPad={canUseTouchScreen}
-                    ref={textInput}
+                    ref={textInputRef}
                     numberFormRef={moneyRequestTimeInputRef}
                     style={styles.iouAmountTextInput}
                     containerStyle={styles.iouAmountTextInputContainer}

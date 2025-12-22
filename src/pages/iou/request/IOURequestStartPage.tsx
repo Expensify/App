@@ -356,7 +356,6 @@ function IOURequestStartPage({
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>
                                                 <IOURequestStepHours
-                                                    shouldKeepUserInput
                                                     route={route}
                                                     navigation={navigation}
                                                 />
