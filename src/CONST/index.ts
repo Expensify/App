@@ -212,6 +212,7 @@ const CONST = {
     ANIMATED_HIGHLIGHT_END_DELAY: 800,
     ANIMATED_HIGHLIGHT_END_DURATION: 2000,
     ANIMATED_TRANSITION: 300,
+    SIDE_PANEL_ANIMATED_TRANSITION: 300,
     ANIMATED_TRANSITION_FROM_VALUE: 100,
     ANIMATED_PROGRESS_BAR_DELAY: 300,
     ANIMATED_PROGRESS_BAR_OPACITY_DURATION: 300,
@@ -388,6 +389,18 @@ const CONST = {
 
     REQUEST_PREVIEW: {
         MAX_LENGTH: 83,
+    },
+
+    EXPORT_LABELS: {
+        NETSUITE: 'NetSuite',
+        QBO: 'QuickBooks Online',
+        QBD: 'QuickBooks Desktop',
+        XERO: 'Xero',
+        INTACCT: 'Intacct',
+        SAGE_INTACCT: 'Sage Intacct',
+        CERTINIA: 'FinancialForce',
+        BILLCOM: 'Bill.com',
+        ZENEFITS: 'Zenefits',
     },
 
     REVERSED_TRANSACTION_ATTRIBUTE: 'is-reversed-transaction',
@@ -671,6 +684,15 @@ const CONST = {
             },
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
+        STATE: {
+            VERIFYING: 'VERIFYING',
+            VALIDATING: 'VALIDATING',
+            SETUP: 'SETUP',
+            PENDING: 'PENDING',
+            OPEN: 'OPEN',
+            DELETED: 'DELETED',
+            LOCKED: 'LOCKED',
+        },
     },
     ENABLE_GLOBAL_REIMBURSEMENTS: {
         STEP_NAMES: ['1', '2', '3'],
@@ -703,7 +725,6 @@ const CONST = {
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
         PER_DIEM: 'newDotPerDiem',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
-        NEWDOT_REJECT: 'newDotReject',
         CUSTOM_RULES: 'customRules',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
@@ -1219,6 +1240,7 @@ const CONST = {
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
+                DYNAMIC_EXTERNAL_WORKFLOW_ROUTED: 'DYNAMICEXTERNALWORKFLOWROUTED',
                 EXPENSIFY_CARD_SYSTEM_MESSAGE: 'EXPENSIFYCARDSYSTEMMESSAGE',
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
@@ -1671,6 +1693,9 @@ const CONST = {
         CONTEXT_POLICIES: 'Policies',
         TAG_ACTIVE_POLICY: 'active_policy_id',
         TAG_NUDGE_MIGRATION_COHORT: 'nudge_migration_cohort',
+        TAG_AUTHENTICATION_FUNCTION: 'authentication_function',
+        TAG_AUTHENTICATION_ERROR_TYPE: 'authentication_error_type',
+        TAG_AUTHENTICATION_JSON_CODE: 'authentication_json_code',
         // Span names
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
@@ -1748,6 +1773,7 @@ const CONST = {
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {
             CUSTOM_UNIT: 'customUnit',
+            TIME: 'time',
         },
         STATUS: {
             PENDING: 'Pending',
@@ -1763,7 +1789,11 @@ const CONST = {
             ALLOW: 'personal',
         },
     },
-
+    TIME_TRACKING: {
+        UNIT: {
+            HOUR: 'h',
+        },
+    },
     MCC_GROUPS: {
         AIRLINES: 'Airlines',
         COMMUTER: 'Commuter',
@@ -1823,6 +1853,8 @@ const CONST = {
         // The "Upgrade" is intentional as the 426 HTTP code means "Upgrade Required" and sent by the API. We use the "Update" language everywhere else in the front end when this gets returned.
         UPDATE_REQUIRED: 'Upgrade Required',
         INTEGRATION_MESSAGE_INVALID_CREDENTIALS: 'Invalid credentials',
+
+        DESKTOP_APP_RETIRED: 'Desktop app retired',
         BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR: 'The deposit and withdrawal accounts are the same.',
     },
     ERROR_TYPE: {
@@ -3105,6 +3137,7 @@ const CONST = {
             ARE_RULES_ENABLED: 'areRulesEnabled',
             ARE_PER_DIEM_RATES_ENABLED: 'arePerDiemRatesEnabled',
             IS_ATTENDEE_TRACKING_ENABLED: 'isAttendeeTrackingEnabled',
+            IS_TRAVEL_ENABLED: 'isTravelEnabled',
             REQUIRE_COMPANY_CARDS_ENABLED: 'requireCompanyCardsEnabled',
         },
         DEFAULT_CATEGORIES: {
@@ -3406,6 +3439,7 @@ const CONST = {
             CSV: 'ccupload',
         },
         FEED_KEY_SEPARATOR: '#',
+        CARD_NUMBER_MASK_CHAR: 'X',
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             BANK_CONNECTION: 'BankConnection',
@@ -5441,6 +5475,12 @@ const CONST = {
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
         DISTANCE_REQUEST_TYPE: 'distanceRequestType',
+        SPLIT_EXPENSE_TAB_TYPE: 'splitExpenseTabType',
+        SPLIT: {
+            AMOUNT: 'amount',
+            PERCENTAGE: 'percentage',
+            DATE: 'date',
+        },
         SHARE: {
             NAVIGATOR_ID: 'ShareNavigatorID',
             SHARE: 'ShareTab',
@@ -5720,7 +5760,6 @@ const CONST = {
         HOLD: 'hold',
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
-        MISSING_ATTENDEES: 'missingAttendees',
         COMPANY_CARD_REQUIRED: 'companyCardRequired',
     },
     RTER_VIOLATION_TYPES: {
@@ -6691,7 +6730,7 @@ const CONST = {
             CARD: 'card',
             WITHDRAWAL_ID: 'withdrawal-id',
         },
-        get CUSTOM_COLUMNS() {
+        get TYPE_CUSTOM_COLUMNS() {
             return {
                 EXPENSE: {
                     RECEIPT: this.TABLE_COLUMNS.RECEIPT,
@@ -6708,6 +6747,7 @@ const CONST = {
                     CARD: this.TABLE_COLUMNS.CARD,
                     CATEGORY: this.TABLE_COLUMNS.CATEGORY,
                     TAG: this.TABLE_COLUMNS.TAG,
+                    EXCHANGE_RATE: this.TABLE_COLUMNS.EXCHANGE_RATE,
                     ORIGINAL_AMOUNT: this.TABLE_COLUMNS.ORIGINAL_AMOUNT,
                     REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
                     BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
@@ -6717,6 +6757,8 @@ const CONST = {
                     TAX_AMOUNT: this.TABLE_COLUMNS.TAX_AMOUNT,
                     STATUS: this.TABLE_COLUMNS.STATUS,
                     TITLE: this.TABLE_COLUMNS.TITLE,
+                    AMOUNT: this.TABLE_COLUMNS.TOTAL_AMOUNT,
+                    EXPORTED_TO: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 EXPENSE_REPORT: {
@@ -6733,6 +6775,8 @@ const CONST = {
                     NON_REIMBURSABLE_TOTAL: this.TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
                     REPORT_ID: this.TABLE_COLUMNS.REPORT_ID,
                     BASE_62_REPORT_ID: this.TABLE_COLUMNS.BASE_62_REPORT_ID,
+                    AMOUNT: this.TABLE_COLUMNS.TOTAL,
+                    EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
                 INVOICE: {},
@@ -6741,7 +6785,29 @@ const CONST = {
                 CHAT: {},
             };
         },
-        get DEFAULT_COLUMNS() {
+        get GROUP_CUSTOM_COLUMNS() {
+            return {
+                FROM: {
+                    FROM: this.TABLE_COLUMNS.GROUP_FROM,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+                CARD: {
+                    CARD: this.TABLE_COLUMNS.GROUP_CARD,
+                    FEED: this.TABLE_COLUMNS.GROUP_FEED,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+                WITHDRAWAL_ID: {
+                    BANK_ACCOUNT: this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
+                    WITHDRAWN: this.TABLE_COLUMNS.GROUP_WITHDRAWN,
+                    WITHDRAWAL_ID: this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
+            };
+        },
+        get TYPE_DEFAULT_COLUMNS() {
             return {
                 EXPENSE: [
                     this.TABLE_COLUMNS.RECEIPT,
@@ -6751,13 +6817,35 @@ const CONST = {
                     this.TABLE_COLUMNS.TO,
                     this.TABLE_COLUMNS.CATEGORY,
                     this.TABLE_COLUMNS.TAG,
+                    this.TABLE_COLUMNS.TOTAL_AMOUNT,
                     this.TABLE_COLUMNS.ACTION,
                 ],
-                EXPENSE_REPORT: [this.TABLE_COLUMNS.DATE, this.TABLE_COLUMNS.STATUS, this.TABLE_COLUMNS.TITLE, this.TABLE_COLUMNS.FROM, this.TABLE_COLUMNS.TO, this.TABLE_COLUMNS.ACTION],
+                EXPENSE_REPORT: [
+                    this.TABLE_COLUMNS.DATE,
+                    this.TABLE_COLUMNS.STATUS,
+                    this.TABLE_COLUMNS.TITLE,
+                    this.TABLE_COLUMNS.FROM,
+                    this.TABLE_COLUMNS.TO,
+                    this.TABLE_COLUMNS.TOTAL,
+                    this.TABLE_COLUMNS.ACTION,
+                ],
                 INVOICE: [],
                 TASK: [],
                 TRIP: [],
                 CHAT: [],
+            };
+        },
+        get GROUP_DEFAULT_COLUMNS() {
+            return {
+                FROM: [this.TABLE_COLUMNS.GROUP_FROM, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                CARD: [this.TABLE_COLUMNS.GROUP_CARD, this.TABLE_COLUMNS.GROUP_FEED, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                WITHDRAWAL_ID: [
+                    this.TABLE_COLUMNS.GROUP_BANK_ACCOUNT,
+                    this.TABLE_COLUMNS.GROUP_WITHDRAWN,
+                    this.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+                    this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    this.TABLE_COLUMNS.GROUP_TOTAL,
+                ],
             };
         },
         BOOLEAN: {
@@ -6803,6 +6891,7 @@ const CONST = {
                 COMPLETED: 'completed',
             },
         },
+        GROUP_COLUMN_PREFIX: 'group',
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
             DATE: 'date',
@@ -6834,11 +6923,25 @@ const CONST = {
             WITHDRAWAL_ID: 'withdrawalID',
             AVATAR: 'avatar',
             STATUS: 'status',
+            EXPENSES: 'expenses',
+            FEED: 'feed',
+            WITHDRAWN: 'withdrawn',
+            BANK_ACCOUNT: 'bankAccount',
             REPORT_ID: 'reportID',
             BASE_62_REPORT_ID: 'base62ReportID',
             TAX: 'tax',
+            EXPORTED_TO: 'exportedto',
+            EXCHANGE_RATE: 'exchangeRate',
             REIMBURSABLE_TOTAL: 'reimbursableTotal',
             NON_REIMBURSABLE_TOTAL: 'nonReimbursableTotal',
+            GROUP_FROM: 'groupFrom',
+            GROUP_EXPENSES: 'groupExpenses',
+            GROUP_TOTAL: 'groupTotal',
+            GROUP_CARD: 'groupCard',
+            GROUP_FEED: 'groupFeed',
+            GROUP_BANK_ACCOUNT: 'groupBankAccount',
+            GROUP_WITHDRAWN: 'groupWithdrawn',
+            GROUP_WITHDRAWAL_ID: 'groupWithdrawalID',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -7506,6 +7609,11 @@ const CONST = {
 
     TRAVEL: {
         DEFAULT_DOMAIN: 'domain',
+        STEPS: {
+            GET_STARTED_TRAVEL: 'GetStartedTravel',
+            BOOK_OR_MANAGE_YOUR_TRIP: 'BookOrManageYourTrip',
+            REVIEWING_REQUEST: 'ReviewingRequest',
+        },
         PROVISIONING: {
             ERROR_PERMISSION_DENIED: 'permissionDenied',
             ERROR_ADDITIONAL_VERIFICATION_REQUIRED: 'additionalVerificationRequired',

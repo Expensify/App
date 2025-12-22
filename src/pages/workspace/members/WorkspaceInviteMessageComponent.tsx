@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -24,7 +25,8 @@ import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/action
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import variables from '@styles/variables';
@@ -205,6 +207,10 @@ function WorkspaceInviteMessageComponent({
         return errorFields;
     };
 
+    const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
+    const invitingMemberDetails = getPersonalDetailByEmail(invitingMemberEmail);
+    const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
+
     useEffect(() => {
         return () => {
             clearWorkspaceInviteRoleDraft(policyID);
@@ -260,7 +266,14 @@ function WorkspaceInviteMessageComponent({
                     </View>
                     <View style={[styles.mb3]}>
                         <View style={[styles.mhn5, styles.mb3]}>
-                            {shouldShowMemberNames && (
+                            {isInviteNewMemberStep && (
+                                <MenuItemWithTopDescription
+                                    title={invitingMemberName && invitingMemberName !== invitingMemberEmail ? invitingMemberName : invitingMemberEmail}
+                                    description={translate('common.member')}
+                                    interactive={false}
+                                />
+                            )}
+                            {shouldShowMemberNames && !isInviteNewMemberStep && (
                                 <MenuItemWithTopDescription
                                     title={memberNames}
                                     description={translate('common.members')}
