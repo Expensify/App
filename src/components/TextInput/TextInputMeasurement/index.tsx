@@ -88,6 +88,4 @@ function TextInputMeasurement({
     );
 }
 
-TextInputMeasurement.displayName = 'TextInputMeasurement';
-
 export default TextInputMeasurement;

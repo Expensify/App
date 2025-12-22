@@ -155,7 +155,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan']);
     const backTo = route.params.backTo;
 
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`, {canBeMissing: true});
@@ -932,7 +932,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const mentionReportContextValue = useMemo(() => ({currentReportID: report.reportID, exactlyMatch: true}), [report.reportID]);
 
     return (
-        <ScreenWrapper testID={ReportDetailsPage.displayName}>
+        <ScreenWrapper testID="ReportDetailsPage">
             <FullPageNotFoundView shouldShow={isEmptyObject(report)}>
                 <HeaderWithBackButton
                     title={translate('common.details')}
@@ -978,7 +978,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             />
                             <MenuItemWithTopDescription
                                 title={report.reportID}
-                                description={translate('common.longID')}
+                                description={translate('common.longReportID')}
                                 copyValue={report.reportID}
                                 interactive={false}
                                 shouldBlockSelection
@@ -1045,7 +1045,5 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         </ScreenWrapper>
     );
 }
-
-ReportDetailsPage.displayName = 'ReportDetailsPage';
 
 export default withReportOrNotFound()(ReportDetailsPage);

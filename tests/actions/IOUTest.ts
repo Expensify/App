@@ -6468,13 +6468,13 @@ describe('actions/IOU', () => {
             });
         });
 
-        it('should remove all existing category violations when the transaction "Category" is unset', async () => {
+        it('should remove all existing category violations when the transaction Category is unset', async () => {
             const transactionID = '1';
             const policyID = '2';
             const transactionThreadReportID = '3';
             const category = '';
             const fakePolicy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
                 requiresCategory: true,
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
