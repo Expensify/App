@@ -780,7 +780,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
         setShouldShowComposeInput(true);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
-        route,
+        route.name,
         report,
         prevReport?.reportID,
         prevUserLeavingStatus,
