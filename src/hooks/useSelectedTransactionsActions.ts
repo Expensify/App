@@ -220,7 +220,7 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id]));
+        const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? []));
         const canRejectTransactions =
             selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report, policy) && hasNoRejectedTransaction;
         if (canRejectTransactions) {
@@ -392,6 +392,8 @@ function useSelectedTransactionsActions({
         session?.accountID,
         showDeleteModal,
         expensifyIcons,
+        allTransactionViolations,
+        session?.email,
     ]);
 
     return {

@@ -778,6 +778,7 @@ function SearchPage({route}: SearchPageProps) {
         expensifyIcons,
         dismissedHoldUseExplanation,
         areAllTransactionsFromSubmitter,
+        allTransactionViolations,
     ]);
 
     const handleDeleteExpenses = () => {
