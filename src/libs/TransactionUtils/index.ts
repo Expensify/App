@@ -885,7 +885,7 @@ function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmo
     if (isExpenseReport) {
         return -((transaction.originalAmount || transaction.amount || transaction.modifiedAmount) ?? 0);
     }
-    return getOriginalAmount(transaction as Transaction) || Math.abs(transaction.amount ?? 0) || Math.abs(transaction.modifiedAmount ?? 0);
+    return getOriginalAmount(transaction as Transaction) || Math.abs(transaction.amount ?? 0) || Math.abs(Number(transaction.modifiedAmount ?? 0));
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 }
 
