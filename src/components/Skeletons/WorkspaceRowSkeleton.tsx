@@ -81,5 +81,5 @@ function WorkspaceRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpac
         />
     );
 }
-WorkspaceRowSkeleton.displayName = 'WorkspaceRowSkeleton';
+
 export default WorkspaceRowSkeleton;

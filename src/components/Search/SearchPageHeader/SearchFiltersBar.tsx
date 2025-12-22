@@ -1,8 +1,7 @@
-import {useIsFocused} from '@react-navigation/native';
 import {isUserValidatedSelector} from '@selectors/Account';
 import {emailSelector} from '@selectors/Session';
 import {searchResultsErrorSelector} from '@selectors/Snapshot';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {ReactNode} from 'react';
 import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
@@ -36,14 +35,14 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {close} from '@libs/actions/Modal';
-import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
+import {handleBulkPayItemSelected} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getActiveAdminWorkspaces, getAllTaxRates, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
-import {buildFilterFormValuesFromQuery, buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, isFilterSupported, isSearchDatePreset} from '@libs/SearchQueryUtils';
 import {getDatePresets, getFeedOptions, getGroupByOptions, getGroupCurrencyOptions, getHasOptions, getStatusOptions, getTypeOptions, getWithdrawalTypeOptions} from '@libs/SearchUIUtils';
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
 import CONST from '@src/CONST';
@@ -84,10 +83,10 @@ function SearchFiltersBar({
     confirmPayment,
     latestBankItems,
 }: SearchFiltersBarProps) {
-    const isFocused = useIsFocused();
     const scrollRef = useRef<FlatList<FilterItem>>(null);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
+    const [filterFormValues = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
     const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
@@ -104,18 +103,13 @@ function SearchFiltersBar({
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const [policyTagsLists] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
+    const [currencyList = getEmptyObject<CurrencyList>()] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: searchResultsErrorSelector});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns'] as const);
-
-    const taxRates = getAllTaxRates(allPolicies);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
 
     // Get workspace data for the filter
     const {sections: workspaces, shouldShowSearchInput: shouldShowWorkspaceSearchInput} = useWorkspaceList({
@@ -147,10 +141,6 @@ function SearchFiltersBar({
         const outputCurrency = policies.at(0)?.outputCurrency;
         return policies.some((policy) => policy.outputCurrency !== outputCurrency);
     }, [allPolicies]);
-
-    const filterFormValues = useMemo(() => {
-        return buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, reports, taxRates);
-    }, [allCards, currencyList, personalDetails, policyCategories, policyTagsLists, queryJSON, reports, taxRates]);
 
     // Get selected workspace options from filterFormValues or queryJSON
     const selectedWorkspaceOptions = useMemo(() => {
@@ -310,6 +300,10 @@ function SearchFiltersBar({
                 updatedFilterFormValues.columns = [];
             }
 
+            if (updatedFilterFormValues.groupBy !== filterFormValues.groupBy) {
+                updatedFilterFormValues.columns = [];
+            }
+
             const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
 
             close(() => {
@@ -321,27 +315,12 @@ function SearchFiltersBar({
     );
 
     const openAdvancedFilters = useCallback(() => {
-        updateAdvancedFilters(filterFormValues, true);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, [filterFormValues]);
+    }, []);
 
     const openSearchColumns = () => {
         Navigation.navigate(ROUTES.SEARCH_COLUMNS);
     };
-
-    const isFormInitializedRef = useRef(false);
-
-    useEffect(() => {
-        if (isFormInitializedRef.current) {
-            return;
-        }
-        if (filterFormValues && Object.keys(filterFormValues).length > 0) {
-            if (isFocused) {
-                updateAdvancedFilters(filterFormValues, true);
-            }
-            isFormInitializedRef.current = true;
-        }
-    }, [queryJSON, filterFormValues, isFocused]);
 
     const typeComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
@@ -916,7 +895,5 @@ function SearchFiltersBar({
         </View>
     );
 }
-
-SearchFiltersBar.displayName = 'SearchFiltersBar';
 
 export default SearchFiltersBar;

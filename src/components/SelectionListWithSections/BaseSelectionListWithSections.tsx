@@ -144,6 +144,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
+    isPercentageMode,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -354,7 +355,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
 
-            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea});
+            let viewOffset = variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea;
+            // Remove contentHeaderHeight from viewOffset calculation if isPercentageMode (for scroll offset calculation on native)
+            if (isPercentageMode) {
+                viewOffset = viewOffsetToKeepFocusedItemAtTopOfViewableArea;
+            }
+            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset});
             pendingScrollIndexRef.current = null;
         },
 
@@ -1112,7 +1118,5 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </View>
     );
 }
-
-BaseSelectionListWithSections.displayName = 'BaseSelectionListWithSections';
 
 export default BaseSelectionListWithSections;

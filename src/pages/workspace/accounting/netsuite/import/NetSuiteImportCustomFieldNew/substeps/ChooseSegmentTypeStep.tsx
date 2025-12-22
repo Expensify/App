@@ -70,5 +70,4 @@ function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuit
     );
 }
 
-ChooseSegmentTypeStep.displayName = 'ChooseSegmentTypeStep';
 export default ChooseSegmentTypeStep;
