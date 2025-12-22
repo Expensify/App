@@ -1496,7 +1496,7 @@ function PureReportActionItem({
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATEDREPORTFORUNAPPROVEDTRANSACTIONS)) {
-            const {originalID} = getOriginalMessage(action);
+            const {originalID} = getOriginalMessage(action) ?? {};
             const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
             const reportName = getReportName(originalReport);
             children = (

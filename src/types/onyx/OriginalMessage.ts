@@ -243,6 +243,12 @@ type OriginalMessageCreated = {
     submittedTo?: number;
 };
 
+/** Model of `createdreportforunapprovedtransactions` report action */
+type OriginalMessageCreatedReportForUnapprovedTransactions = {
+    /** The original report ID that the held expenses were moved from */
+    originalID?: string;
+};
+
 /** Model of `closed` report action */
 type OriginalMessageClosed = {
     /** Name of the policy */
@@ -1063,6 +1069,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST]: OriginalMessageChronosOOOList;
     [CONST.REPORT.ACTIONS.TYPE.CLOSED]: OriginalMessageClosed;
     [CONST.REPORT.ACTIONS.TYPE.CREATED]: OriginalMessageCreated;
+    [CONST.REPORT.ACTIONS.TYPE.CREATEDREPORTFORUNAPPROVEDTRANSACTIONS]: OriginalMessageCreatedReportForUnapprovedTransactions;
     [CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION]: OriginalMessageDismissedViolation;
     [CONST.REPORT.ACTIONS.TYPE.EXPENSIFY_CARD_SYSTEM_MESSAGE]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: never;
