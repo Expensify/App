@@ -86,10 +86,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 let accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
                 const isPolicyMember = !!policy?.employeeList?.[member.email];
 
-                // Get personal details for invited members who might not be in policy yet
                 const personalDetail = getPersonalDetailByEmail(member.email);
 
-                // If not a policy member, get accountID from draft (set when user was selected, like card flow)
                 if (!isPolicyMember) {
                     const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];
                     if (draftAccountID) {
@@ -120,7 +118,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 };
             }),
         );
-    }, [approvalWorkflow.members, icons.FallbackAvatar, invitedEmailsToAccountIDsDraft, personalDetailLogins, policy?.employeeList, policy?.owner, selectedMembers.length]);
+    }, [approvalWorkflow?.members, icons.FallbackAvatar, invitedEmailsToAccountIDsDraft, personalDetailLogins, policy?.employeeList, policy?.owner, selectedMembers.length]);
 
     const allApprovers = useMemo(() => {
         const members: SelectionListApprover[] = [...selectedMembers];
@@ -157,9 +155,7 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
         members.push(...availableMembers);
 
-        // Add search results for inviting non-members
         if (debouncedSearchTerm && areOptionsInitialized) {
-            // Add user to invite option if available
             if (availableOptions.userToInvite) {
                 const userToInvite = availableOptions.userToInvite;
                 const isAlreadySelected = selectedMembers.some((selectedOption) => selectedOption.login === userToInvite.login);
@@ -175,7 +171,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 }
             }
 
-            // Add recent reports and personal details that aren't already members
             const searchResults = [...availableOptions.recentReports, ...availableOptions.personalDetails].filter((option) => {
                 const isMember = policy?.employeeList?.[option.login ?? ''];
                 const isAlreadyInList = members.some((m) => m.login === option.login);
@@ -222,7 +217,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
     }, [isInitialCreationFlow, route.params.policyID, firstApprover, approvalWorkflow?.action]);
 
     const nextStep = useCallback(() => {
-        // Separate members into existing members and non-members (users to invite)
         const existingMembers: Member[] = [];
         const usersToInvite: Array<{email: string; accountID?: number}> = [];
 
@@ -247,14 +241,11 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             }
         }
 
-        // Ensure avatars are only strings (URLs) or undefined, never React components
         const normalizedExistingMembers: Member[] = existingMembers.map((member) => ({
             ...member,
             avatar: typeof member.avatar === 'string' ? member.avatar : undefined,
         }));
 
-        // Store all members (existing + users to invite) in workflow
-        // This follows the card assignment pattern where step data always contains the current state
         const allMembers: Member[] = [
             ...normalizedExistingMembers,
             ...usersToInvite.map((user) => ({
@@ -265,17 +256,12 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         ];
         setApprovalWorkflowMembers(allMembers);
 
-        // If there are users to invite, set draft and navigate to invite flow
-        // Following card assignment pattern: set draft BEFORE navigating, based on current selections
         if (usersToInvite.length > 0) {
             const invitedEmailsToAccountIDs: Record<string, number> = {};
             for (const user of usersToInvite) {
                 if (!user.email) {
                     continue;
                 }
-                // Use the accountID from the user object (which comes from selectedMembers icon)
-                // This accountID was set when the user was selected from the search list
-                // It will be a real accountID if user exists, or generated accountID for new users
                 if (user.accountID) {
                     invitedEmailsToAccountIDs[user.email] = user.accountID;
                 }
@@ -283,7 +269,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
             setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
 
-            // Navigate to invite message page with backTo to continue workflow after invite
             const backToRoute = isInitialCreationFlow
                 ? ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID)
                 : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(route.params.policyID, route.params.backTo);
