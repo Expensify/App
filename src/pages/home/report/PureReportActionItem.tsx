@@ -76,6 +76,7 @@ import {
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
+    getMarkedReimbursedComment,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -1262,13 +1263,13 @@ function PureReportActionItem({
                 }
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-            const originalMessage = getOriginalMessage(action);
+            const originalMessage = getOriginalMessage(action) as OriginalMessageMarkedReimbursed;
             const isFromNewDot = originalMessage?.isNewDot ?? false;
 
             if (isFromNewDot) {
                 children = emptyHTML;
             } else {
-                const comment = (originalMessage as OriginalMessageMarkedReimbursed)?.message?.trim();
+                const comment = getMarkedReimbursedComment(action);
                 children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere', {comment})} />;
             }
         } else if (isUnapprovedAction(action)) {

@@ -13,7 +13,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Card, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
-import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration, OriginalMessageMarkedReimbursed} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -302,6 +302,14 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     return reportAction.originalMessage;
+}
+
+function getMarkedReimbursedComment(reportAction: OnyxInputOrEntry<ReportAction>): string | undefined {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+        return undefined;
+    }
+    const originalMessage = getOriginalMessage(reportAction) as OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED>;
+    return originalMessage?.message?.trim();
 }
 
 function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
@@ -3576,6 +3584,7 @@ export {
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    getMarkedReimbursedComment,
     getMemberChangeMessageFragment,
     getUpdateRoomDescriptionFragment,
     getReportActionMessageFragments,
