@@ -1263,7 +1263,6 @@ function PureReportActionItem({
                 }
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-            const originalMessage = getOriginalMessage(action) as OriginalMessageMarkedReimbursed;
             const isFromNewDot = originalMessage?.isNewDot ?? false;
 
             if (isFromNewDot) {
