@@ -8,7 +8,6 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {IOURequestType} from '@libs/actions/IOU';
 import Tab from '@userActions/Tab';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTabRequest} from '@src/types/onyx';
@@ -16,15 +15,15 @@ import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {defaultScreenOptions} from './OnyxTabNavigatorConfig';
 
-type OnyxTabNavigatorProps = ChildrenProps & {
+type OnyxTabNavigatorProps<TTabName extends string = SelectedTabRequest> = ChildrenProps & {
     /** ID of the tab component to be saved in onyx */
     id: string;
 
     /** Name of the selected tab */
-    defaultSelectedTab?: SelectedTabRequest;
+    defaultSelectedTab?: TTabName;
 
     /** A function triggered when a tab has been selected */
-    onTabSelected?: (newIouType: IOURequestType) => void;
+    onTabSelected?: (newTabName: TTabName) => void;
 
     tabBar: (props: TabSelectorProps) => React.ReactNode;
 
@@ -89,7 +88,7 @@ const getTabNames = (children: React.ReactNode): string[] => {
 // This takes all the same props as MaterialTopTabsNavigator: https://reactnavigation.org/docs/material-top-tab-navigator/#props,
 // except ID is now required, and it gets a `selectedTab` from Onyx
 // It also takes 2 more optional callbacks to manage the focus trap container elements of the tab bar and the active tab
-function OnyxTabNavigator({
+function OnyxTabNavigator<TTabName extends string = SelectedTabRequest>({
     id,
     defaultSelectedTab,
     tabBar: TabBar,
@@ -105,7 +104,7 @@ function OnyxTabNavigator({
     onTabSelect,
     equalWidth = false,
     ...rest
-}: OnyxTabNavigatorProps) {
+}: OnyxTabNavigatorProps<TTabName>) {
     // Mapping of tab name to focus trap container element
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`, {canBeMissing: true});
@@ -182,8 +181,10 @@ function OnyxTabNavigator({
                         if (selectedTab === newSelectedTab) {
                             return;
                         }
-                        Tab.setSelectedTab(id, newSelectedTab as SelectedTabRequest);
-                        onTabSelected(newSelectedTab as IOURequestType);
+                        if (newSelectedTab) {
+                            Tab.setSelectedTab<TTabName>(id, newSelectedTab as TTabName);
+                        }
+                        onTabSelected(newSelectedTab as TTabName);
                     },
                     ...(screenListeners ?? {}),
                 }}
