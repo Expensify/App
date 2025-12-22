@@ -86,14 +86,34 @@ function save(requestToPersist: Request) {
 
     // If the command is not in the keepLastInstance array, add the new request as usual
     const requests = [...persistedRequests, requestToPersist];
-    persistedRequests = requests;
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests)
-        .then(() => {
-            Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
-        })
-        .catch(() => {
-            Log.info('[SequentialQueue] Error saving request to queue', false, {command: requestToPersist.command});
-        });
+
+    const persistRequest = (retryCount = 0): Promise<void> => {
+        const MAX_RETRIES = 3;
+
+        return Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests)
+            .then(() => {
+                persistedRequests = requests;
+                Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
+            })
+            .catch(() => {
+                Log.info('[SequentialQueue] Error saving request to queue', false, {
+                    command: requestToPersist.command,
+                });
+                if (retryCount < MAX_RETRIES) {
+                    Log.info(`[PersistedRequests] Retrying persistence (attempt ${retryCount + 1}/${MAX_RETRIES})`, false, {
+                        command: requestToPersist.command,
+                    });
+                    return persistRequest(retryCount + 1);
+                }
+
+                persistedRequests = requests;
+                Log.info('[SequentialQueue] Error saving request to queue after retries', false, {
+                    command: requestToPersist.command,
+                });
+                return Promise.resolve();
+            });
+    };
+    persistRequest();
 }
 
 function endRequestAndRemoveFromQueue(requestToRemove: Request) {
