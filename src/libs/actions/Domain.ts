@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {SetConsolidatedDomainBillingEnabledParams, SetTechnicalContactEmailParams} from '@libs/API/parameters';
+import type {SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getAuthToken} from '@libs/Network/NetworkStore';
@@ -485,14 +485,14 @@ function toggleConsolidatedDomainBilling(domainAccountID: number, domainName: st
     ];
 
     const authToken = getAuthToken();
-    const params: SetConsolidatedDomainBillingEnabledParams = {
+    const params: ToggleConsolidatedDomainBillingParams = {
         authToken,
         domainAccountID,
         domainName,
         enabled: useTechnicalContactBillingCard,
     };
 
-    API.write(WRITE_COMMANDS.SET_CONSOLIDATED_DOMAIN_BILLING_ENABLED, params, {optimisticData, failureData, successData});
+    API.write(WRITE_COMMANDS.TOGGLE_CONSOLIDATED_DOMAIN_BILLING, params, {optimisticData, failureData, successData});
 }
 
 function clearToggleConsolidatedDomainBillingErrors(domainAccountID: number) {

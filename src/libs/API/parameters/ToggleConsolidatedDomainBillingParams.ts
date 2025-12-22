@@ -1,8 +1,8 @@
-type SetConsolidatedDomainBillingEnabledParams = {
+type ToggleConsolidatedDomainBillingParams = {
     authToken?: string | null;
     domainAccountID: number;
     domainName: string;
     enabled: boolean;
 };
 
-export default SetConsolidatedDomainBillingEnabledParams;
+export default ToggleConsolidatedDomainBillingParams;
