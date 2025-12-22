@@ -26,6 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewContactMethodForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import { isEmptyObject } from '@src/types/utils/EmptyObject';
 
 type NewContactMethodPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
@@ -44,7 +45,7 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     }, [validateLoginError]);
     useEffect(() => {
         return () => {
-            if (!pendingContactAction?.contactMethod) {
+            if (!pendingContactAction?.contactMethod || isEmptyObject(validateLoginError)) {
                 return;
             }
             clearContactMethod(pendingContactAction?.contactMethod);
