@@ -189,7 +189,7 @@ function ScreenWrapper({
             onEntryTransitionEnd?.();
         }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
 
-        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', (event) => {
+        const unsubscribeTransitionEnd = navigation.addListener?.('transitionEnd', (event) => {
             // Prevent firing the prop callback when user is exiting the page.
             if (event?.data?.closing) {
                 return;
