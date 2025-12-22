@@ -25,7 +25,7 @@ function PopoverWithoutOverlay({
     onModalHide = () => {},
     children,
     ref,
-    shouldDisplayUnderSidePanel = false,
+    shouldDisplayBelowModals = false,
 }: PopoverWithoutOverlayProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -43,7 +43,7 @@ function PopoverWithoutOverlay({
             anchorPosition,
             innerContainerStyle,
             outerStyle,
-            shouldDisplayUnderSidePanel,
+            shouldDisplayBelowModals,
         );
 
     useEffect(() => {

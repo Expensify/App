@@ -123,7 +123,7 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
         /**
          * Whether the modal should display under the side panel.
          */
-        shouldDisplayUnderSidePanel?: boolean;
+        shouldDisplayBelowModals?: boolean;
     };
 
 export default BaseModalProps;
