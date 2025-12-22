@@ -502,7 +502,19 @@ function MoneyReportHeader({
                 }
             } else if (isInvoiceReport) {
                 startAnimation();
-                payInvoice(type, chatReport, moneyRequestReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod, activePolicy);
+                payInvoice({
+                    paymentMethodType: type,
+                    chatReport,
+                    invoiceReport: moneyRequestReport,
+                    introSelected,
+                    currentUserAccountIDParam: accountID,
+                    currentUserEmailParam: email ?? '',
+                    payAsBusiness,
+                    existingB2BInvoiceReport,
+                    methodID,
+                    paymentMethod,
+                    activePolicy,
+                });
             } else {
                 startAnimation();
                 payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy);
@@ -534,6 +546,8 @@ function MoneyReportHeader({
             currentSearchKey,
             isOffline,
             currentSearchResults?.search?.isLoading,
+            accountID,
+            email,
         ],
     );
 
