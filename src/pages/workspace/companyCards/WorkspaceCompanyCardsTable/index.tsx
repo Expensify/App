@@ -6,21 +6,21 @@ import ScrollView from '@components/ScrollView';
 import TableRowSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Table from '@components/Table';
 import type {ActiveSorting, CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
-import useCompanyCards from '@hooks/useCompanyCards';
+import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDomainOrWorkspaceAccountID, isMaskedCardNumberEqual} from '@libs/CardUtils';
+import {isMaskedCardNumberEqual} from '@libs/CardUtils';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, Policy} from '@src/types/onyx';
+import type {Card} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import WorkspaceCompanyCardsTableHeaderButtons from './WorkspaceCompanyCardsTableHeaderButtons';
 import WorkspaceCompanyCardTableItem from './WorkspaceCompanyCardsTableItem';
@@ -29,8 +29,14 @@ import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTab
 type CompanyCardsTableColumnKey = 'member' | 'card' | 'customCardName';
 
 type WorkspaceCompanyCardsTableProps = {
-    /** Current policy */
-    policy: Policy | undefined;
+    /** Policy ID */
+    policyID: string;
+
+    /** Domain or workspace account ID */
+    domainOrWorkspaceAccountID: number;
+
+    /** Company cards */
+    companyCards: UseCompanyCardsResult;
 
     /** On assign card callback */
     onAssignCard: (cardID: string) => void;
@@ -39,7 +45,7 @@ type WorkspaceCompanyCardsTableProps = {
     isAssigningCardDisabled: boolean;
 };
 
-function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabled}: WorkspaceCompanyCardsTableProps) {
+function WorkspaceCompanyCardsTable({policyID, domainOrWorkspaceAccountID, companyCards, onAssignCard, isAssigningCardDisabled}: WorkspaceCompanyCardsTableProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
@@ -53,27 +59,22 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         cardNames,
         cardFeedType,
         selectedFeed,
-        onyxMetadata: {cardListMetadata, lastSelectedFeedMetadata, allCardFeedsMetadata},
-    } = useCompanyCards({policyID: policy?.id});
+        isInitiallyLoadingFeeds,
+        isNoFeed,
+        isFeedPending,
+        onyxMetadata: {cardListMetadata, lastSelectedFeedMetadata},
+    } = companyCards;
     const isDirectCardFeed = cardFeedType === 'directFeed';
 
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY, {canBeMissing: false});
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const [failedCompanyCardAssignments] = useOnyx(`${ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS}${domainOrWorkspaceAccountID}_${feedName ?? ''}`, {canBeMissing: true});
 
     const hasNoAssignedCard = Object.keys(assignedCards ?? {}).length === 0;
-    const isInitiallyLoadingFeeds = isLoadingOnyxValue(allCardFeedsMetadata);
-
-    const isNoFeed = !selectedFeed && !isInitiallyLoadingFeeds;
-    const isFeedPending = !!selectedFeed?.pending;
-    const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || policy?.id === undefined || isLoadingOnyxValue(lastSelectedFeedMetadata);
-
+    const isLoadingFeed = (!feedName && isInitiallyLoadingFeeds) || isLoadingOnyxValue(lastSelectedFeedMetadata);
     const isLoadingCards = cardFeedType === 'directFeed' ? selectedFeed?.accountList === undefined : isLoadingOnyxValue(cardListMetadata) || cardList === undefined;
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata));
-
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed;
     const showTableControls = showCards && !!selectedFeed && !isFeedPending;
 
@@ -224,7 +225,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         <WorkspaceCompanyCardTableItem
             key={`${item.cardName}_${index}`}
             item={item}
-            policyID={policy?.id ?? String(CONST.DEFAULT_NUMBER_ID)}
+            policyID={policyID ?? String(CONST.DEFAULT_NUMBER_ID)}
             feed={feedName}
             domainOrWorkspaceAccountID={domainOrWorkspaceAccountID}
             CardFeedIcon={cardFeedIcon}
@@ -279,7 +280,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                 <View style={shouldUseNarrowTableLayout && styles.mb5}>
                     <WorkspaceCompanyCardsTableHeaderButtons
                         isLoading={isLoadingPage}
-                        policyID={policy?.id}
+                        policyID={policyID}
                         feedName={feedName}
                         showTableControls={showTableControls}
                         CardFeedIcon={cardFeedIcon}
@@ -300,7 +301,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                     {isNoFeed && (
                         <View style={styles.flex1}>
                             <WorkspaceCompanyCardPageEmptyState
-                                policy={policy}
+                                policyID={policyID}
                                 shouldShowGBDisclaimer={shouldShowGBDisclaimer}
                             />
                         </View>

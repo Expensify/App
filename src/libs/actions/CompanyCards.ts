@@ -774,17 +774,7 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
         },
     ];
 
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
+    const finallyData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainOrWorkspaceAccountID}`,
@@ -799,17 +789,35 @@ function openPolicyCompanyCardsPage(policyID: string, domainOrWorkspaceAccountID
         authToken,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE, params, {optimisticData, successData, failureData});
+    API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE, params, {optimisticData, finallyData});
 }
 
-function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, feed: CompanyCardFeed) {
+function openPolicyCompanyCardsFeed(domainAccountID: number, policyID: string, bankName: CompanyCardFeed) {
     const parameters: OpenPolicyCompanyCardsFeedParams = {
         domainAccountID,
         policyID,
-        feed,
+        feed: bankName,
     };
 
-    API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters);
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`,
+            value: {
+                settings: {
+                    companyCards: {
+                        [bankName]: {
+                            errors: {
+                                'Card feed fetch error': 'Could not fetch card feed due to an error',
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED, parameters, {failureData});
 }
 
 function openAssignFeedCardPage(policyID: string, feed: CompanyCardFeed, domainOrWorkspaceAccountID: number) {
