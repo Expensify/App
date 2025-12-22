@@ -516,19 +516,19 @@ function MoneyRequestReportPreviewContent({
     }, [iouReportID]);
 
     const reportPreviewAction = useMemo(() => {
-        return getReportPreviewAction(
-            isIouReportArchived || isChatReportArchived,
-            currentUserDetails.accountID,
-            currentUserDetails.email ?? '',
-            iouReport,
+        return getReportPreviewAction({
+            isReportArchived: isIouReportArchived || isChatReportArchived,
+            currentUserAccountID: currentUserDetails.accountID,
+            currentUserEmail: currentUserDetails.email ?? '',
+            report: iouReport,
             policy,
             transactions,
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
-            {currentUserEmail, violations: transactionViolations},
-        );
+            violationsData: {currentUserEmail, violations: transactionViolations},
+        });
     }, [
         isIouReportArchived,
         isChatReportArchived,

@@ -165,19 +165,31 @@ function canExport(report: Report, policy?: Policy) {
     return isApproved || isReimbursed || isClosed;
 }
 
-function getReportPreviewAction(
-    isReportArchived: boolean,
-    currentUserAccountID: number,
-    currentUserEmail: string,
-    report: Report | undefined,
-    policy: Policy | undefined,
-    transactions: Transaction[],
-    invoiceReceiverPolicy?: Policy,
-    isPaidAnimationRunning?: boolean,
-    isApprovedAnimationRunning?: boolean,
-    isSubmittingAnimationRunning?: boolean,
-    violationsData?: {currentUserEmail?: string; violations?: OnyxCollection<TransactionViolation[]>},
-): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
+function getReportPreviewAction({
+    isReportArchived,
+    currentUserAccountID,
+    currentUserEmail,
+    report,
+    policy,
+    transactions,
+    invoiceReceiverPolicy,
+    isPaidAnimationRunning,
+    isApprovedAnimationRunning,
+    isSubmittingAnimationRunning,
+    violationsData,
+}: {
+    isReportArchived: boolean;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+    report: Report | undefined;
+    policy: Policy | undefined;
+    transactions: Transaction[];
+    invoiceReceiverPolicy?: Policy;
+    isPaidAnimationRunning?: boolean;
+    isApprovedAnimationRunning?: boolean;
+    isSubmittingAnimationRunning?: boolean;
+    violationsData?: {currentUserEmail?: string; violations?: OnyxCollection<TransactionViolation[]>};
+}): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
