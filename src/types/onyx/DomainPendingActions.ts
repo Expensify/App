@@ -10,6 +10,11 @@ type DomainPendingAction = {
     technicalContactEmail?: OnyxCommon.PendingAction;
 
     /**
+     * Pending action for the "use technical contact billing card" setting
+     */
+    useTechnicalContactBillingCard?: OnyxCommon.PendingAction;
+
+    /**
      * Pending action for members
      */
     members?: Record<number, OnyxCommon.PendingAction>;

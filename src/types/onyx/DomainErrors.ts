@@ -10,6 +10,11 @@ type DomainErrors = {
     technicalContactEmailErrors?: OnyxCommon.Errors;
 
     /**
+     * Errors related to the "use technical contact billing card" setting
+     */
+    useTechnicalContactBillingCardErrors?: OnyxCommon.Errors;
+
+    /**
      * Errors for members
      */
     memberErrors?: Record<
