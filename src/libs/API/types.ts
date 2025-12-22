@@ -527,7 +527,9 @@ const WRITE_COMMANDS = {
     UPDATE_SAML_ENABLED: 'UpdateSAMLEnabled',
     UPDATE_SAML_REQUIRED: 'UpdateSAMLRequired',
     CREATE_DOMAIN: 'CreateDomain',
+    ADD_DOMAIN_MEMBER: 'AddDomainMember',
     SET_TECHNICAL_CONTACT_EMAIL: 'SetTechnicalContactEmail',
+
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -1077,6 +1079,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_SAML_REQUIRED]: Parameters.UpdateSamlRequiredParams;
     [WRITE_COMMANDS.CREATE_DOMAIN]: Parameters.DomainParams;
     [WRITE_COMMANDS.SET_TECHNICAL_CONTACT_EMAIL]: Parameters.SetTechnicalContactEmailParams;
+    [WRITE_COMMANDS.ADD_DOMAIN_MEMBER]: Parameters.AddMemberToDomainParams;
 };
 
 const READ_COMMANDS = {

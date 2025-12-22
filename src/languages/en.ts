@@ -7828,6 +7828,8 @@ const translations = {
         members:{
             title: 'Members',
             findMember: 'Find member',
+            addMember: 'Add member',
+            invite: 'Invite',
         }
     },
 };
