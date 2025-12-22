@@ -354,7 +354,7 @@ function clearPendingContactActionErrors() {
  * So we add the temporary contact method to Onyx to use it later, after user verified magic code.
  */
 function addPendingContactMethod(contactMethod: string) {
-    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
+    Onyx.set(ONYXKEYS.PENDING_CONTACT_ACTION, {
         contactMethod,
     });
 }
