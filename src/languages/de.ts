@@ -1635,11 +1635,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten auf <strong>dich</strong>, um das/die Problem(e) zu beheben.`;
+                        return `Warte darauf, dass <strong>du</strong> die Probleme behebst.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warte auf <strong>${actor}</strong>, um die(n) Fehler zu beheben.`;
+                        return `Warten auf <strong>${actor}</strong>, um die Probleme zu beheben.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf einen Admin zur Behebung des/der Problem(e).`;
+                        return `Warten auf einen Admin, um die Probleme zu beheben.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
