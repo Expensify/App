@@ -5,7 +5,6 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import DebugTabView from '@components/Navigation/DebugTabView';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -102,7 +101,7 @@ describe('NavigationTabBar', () => {
 
                     renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
             describe('Has RBR', () => {
@@ -122,7 +121,7 @@ describe('NavigationTabBar', () => {
 
                     renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
         });
@@ -149,7 +148,7 @@ describe('NavigationTabBar', () => {
 
                     renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
             describe('Has RBR', () => {
@@ -168,7 +167,7 @@ describe('NavigationTabBar', () => {
 
                     renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
         });

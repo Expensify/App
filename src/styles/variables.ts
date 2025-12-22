@@ -102,6 +102,7 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    sidePanelWidth: 375,
     receiptPaneRHPMaxWidth: 465,
     superWideRHPMaxWidth: 1260,
     minScanTooltipWidth: 320,
@@ -109,7 +110,6 @@ export default {
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
     navigationTabBarSize: 72,
-    popoverMargin: 18,
     pdfPageMaxWidth: 992,
     tooltipZIndex: 10050,
     gutterWidth: 12,
@@ -223,6 +223,9 @@ export default {
     reportActionImagesDoubleImageHeight: 138,
     reportActionImagesMultipleImageHeight: 110,
     reportActionItemImagesMoreCornerTriangleWidth: 40,
+    modalBaseZIndex: 9999,
+    sidePanelZIndex: 9998,
+    modalRightDockedZIndex: 9997,
     popoverZIndex: 10000,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,
@@ -277,6 +280,10 @@ export default {
     updateAnimationH: 240,
     updateTextViewContainerWidth: 310,
     updateViewHeaderHeight: 70,
+
+    desktopAppRetiredIllustrationW: 264,
+    desktopAppRetiredIllustrationH: 230,
+    desktopAppRetiredViewContainerWidth: 310,
 
     mushroomTopHatWidth: 138,
     mushroomTopHatHeight: 128,
@@ -342,6 +349,7 @@ export default {
     w130: 130,
     w184: 184,
     w191: 191,
+    w200: 200,
     // Transaction item row heights based on layout types
     // Wide screen (desktop) layout
     optionRowWideItemHeight: 64,
@@ -386,4 +394,9 @@ export default {
 
     // Report search header max width
     reportSearchHeaderMaxWidth: 700,
+
+    // Split expense tabs
+    splitExpenseAmountMobileWidth: 82,
+    splitExpensePercentageWidth: 42,
+    splitExpensePercentageMobileWidth: 62,
 } as const;
