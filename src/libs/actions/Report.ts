@@ -78,6 +78,7 @@ import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import type {LinkToOptions} from '@libs/Navigation/helpers/linkTo/types';
 import Navigation from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import NetworkConnection from '@libs/NetworkConnection';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
@@ -321,14 +322,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
-    },
-});
-
-let isNetworkOffline = false;
-Onyx.connect({
-    key: ONYXKEYS.NETWORK,
-    callback: (value) => {
-        isNetworkOffline = value?.isOffline ?? false;
     },
 });
 
@@ -4456,9 +4449,9 @@ function savePrivateNotesDraft(reportID: string, note: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${reportID}`, note);
 }
 
-function searchForReports(searchInput: string, policyID?: string) {
+function searchForReports(isOffline: boolean, searchInput: string, policyID?: string) {
     // We do not try to make this request while offline because it sets a loading indicator optimistically
-    if (isNetworkOffline) {
+    if (isOffline) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }
@@ -4494,7 +4487,9 @@ function searchForReports(searchInput: string, policyID?: string) {
 }
 
 function searchInServer(searchInput: string, policyID?: string) {
-    if (isNetworkOffline || !searchInput.trim().length) {
+    // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
+    const isOffline = NetworkStore.isOffline();
+    if (isOffline || !searchInput.trim().length) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
         return;
     }
@@ -4503,7 +4498,7 @@ function searchInServer(searchInput: string, policyID?: string) {
     // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
     // tell the user there are no options, then we start searching, and tell them there are no options again.
     Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
-    searchForReports(searchInput, policyID);
+    searchForReports(isOffline, searchInput, policyID);
 }
 
 function updateLastVisitTime(reportID: string) {

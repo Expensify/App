@@ -1865,6 +1865,7 @@ describe('SearchUIUtils', () => {
                 data: searchResults.data,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             });
             expect(filteredReportActions).toStrictEqual(reportActionListItems);
@@ -1878,6 +1879,7 @@ describe('SearchUIUtils', () => {
                     data: searchResults.data,
                     currentAccountID: 20745,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                 })[0],
             ).toEqual(transactionsListItems);
@@ -1902,6 +1904,7 @@ describe('SearchUIUtils', () => {
                 data: testSearchResults.data,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             })[0] as TransactionListItemType[];
 
@@ -1933,6 +1936,7 @@ describe('SearchUIUtils', () => {
                 data: testSearchResults.data,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             })[0] as TransactionGroupListItemType[];
 
@@ -1954,6 +1958,7 @@ describe('SearchUIUtils', () => {
                     data: searchResults.data,
                     currentAccountID: 2074551,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                 })[0],
             ).toStrictEqual(transactionReportGroupListItems);
@@ -1993,6 +1998,7 @@ describe('SearchUIUtils', () => {
                 data: testDataTransactionFirst,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             })[0];
             const resultReportFirst = SearchUIUtils.getSections({
@@ -2000,6 +2006,7 @@ describe('SearchUIUtils', () => {
                 data: testDataReportFirst,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             })[0];
 
@@ -2020,6 +2027,7 @@ describe('SearchUIUtils', () => {
                     data: searchResultsGroupByFrom.data,
                     currentAccountID: 2074551,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 })[0],
@@ -2033,6 +2041,7 @@ describe('SearchUIUtils', () => {
                     data: searchResultsGroupByCard.data,
                     currentAccountID: 2074551,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                 })[0],
@@ -2046,6 +2055,7 @@ describe('SearchUIUtils', () => {
                     data: searchResultsGroupByWithdrawalID.data,
                     currentAccountID: 2074551,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 })[0],
@@ -2068,6 +2078,7 @@ describe('SearchUIUtils', () => {
                 data: staleCacheData,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
                 groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
             }) as [TransactionWithdrawalIDGroupListItemType[], number];
