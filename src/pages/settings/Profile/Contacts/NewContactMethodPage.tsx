@@ -26,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/NewContactMethodForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import { isEmptyObject } from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type NewContactMethodPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.NEW_CONTACT_METHOD>;
 
@@ -40,17 +40,24 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const navigateBackTo = route?.params?.backTo;
     const loginData = pendingContactAction?.contactMethod ? loginList?.[pendingContactAction?.contactMethod] : undefined;
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
+
     useEffect(() => {
         setServerErrorsOnForm(validateLoginError);
     }, [validateLoginError]);
     useEffect(() => {
         return () => {
-            if (!pendingContactAction?.contactMethod || isEmptyObject(validateLoginError)) {
-                return;
+            if (loginList) {
+                const removedLogin: string[] = [];
+                Object.keys(loginList).forEach((login) => {
+                    const error = getLatestErrorField(loginList?.[login], 'addedLogin');
+                    if (!isEmptyObject(error)) {
+                        removedLogin.push(login);
+                    }
+                });
+                clearContactMethod(removedLogin);
             }
-            clearContactMethod(pendingContactAction?.contactMethod);
         };
-    }, [pendingContactAction?.contactMethod]);
+    }, [loginList]);
 
     const handleAddSecondaryLogin = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM>) => {
