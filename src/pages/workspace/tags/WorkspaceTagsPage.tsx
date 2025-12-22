@@ -22,6 +22,7 @@ import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -299,13 +300,25 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     );
     const [inputValue, setInputValue, filteredTagList] = useSearchResults(tagList, filterTag, sortTags);
 
+    // Debounce the filtered data to prevent rapid updates that cause FlashList layout errors
+    // This gives FlashList time to properly update its layout cache when filtering/searching
+    const [filteredTagListState, debouncedFilteredTagList, setFilteredTagListState] = useDebouncedState<TagListItem[]>(filteredTagList, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+
+    // sync debouncedState when filteredTagList changes
+    useEffect(() => {
+        if (filteredTagListState === filteredTagList) {
+            return;
+        }
+        setFilteredTagListState(filteredTagList);
+    }, [filteredTagList, filteredTagListState, setFilteredTagListState]);
+
     const filteredTagListKeyedByName = useMemo(
         () =>
-            filteredTagList.reduce<Record<string, TagListItem>>((acc, tag) => {
+            debouncedFilteredTagList.reduce<Record<string, TagListItem>>((acc, tag) => {
                 acc[tag.value] = tag;
                 return acc;
             }, {}),
-        [filteredTagList],
+        [debouncedFilteredTagList],
     );
 
     const toggleTag = (tag: TagListItem) => {
@@ -707,13 +720,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     )}
                     {hasVisibleTags && !isLoading && (
                         <SelectionListWithModal
-                            data={filteredTagList}
+                            data={debouncedFilteredTagList}
                             ListItem={TableListItem}
                             selectedItems={selectedTags}
                             onSelectRow={navigateToTagSettings}
                             canSelectMultiple={canSelectMultiple}
-                            onSelectAll={filteredTagList.length > 0 ? toggleAllTags : undefined}
-                            customListHeader={filteredTagList.length > 0 ? getCustomListHeader() : undefined}
+                            onSelectAll={debouncedFilteredTagList.length > 0 ? toggleAllTags : undefined}
+                            customListHeader={debouncedFilteredTagList.length > 0 ? getCustomListHeader() : undefined}
                             onDismissError={(item) => !hasDependentTags && clearPolicyTagErrors({policyID, tagName: item.value, tagListIndex: 0, policyTags})}
                             style={{listHeaderWrapperStyle: [styles.ph9, styles.pv3, styles.pb5]}}
                             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
