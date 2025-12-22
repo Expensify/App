@@ -1316,7 +1316,7 @@ function PureReportActionItem({
             const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
             const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport;
-            const htmlContent = true
+            const htmlContent = isPendingDelete
                 ? `<del><comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment></del>`
                 : `<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`;
             // When expenses are merged multiple times, the previous fromReportID may reference a deleted report,
