@@ -401,7 +401,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[reportAction.reportActionID]: reportAction});
 
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
-            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', {amount: '', last4Digits});
+            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
             expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
         });
@@ -3018,7 +3018,7 @@ describe('ReportUtils', () => {
                     type: CONST.POLICY.TYPE.TEAM,
                     name: '',
                     role: 'user',
-                    owner: '',
+                    owner: currentUserEmail,
                     outputCurrency: '',
                     isPolicyExpenseChatEnabled: false,
                 };
@@ -3038,6 +3038,7 @@ describe('ReportUtils', () => {
                         parentReportID: '101',
                         policyID: paidPolicy.id,
                         ownerAccountID: currentUserAccountID,
+                        managerID: currentUserAccountID,
                     };
                     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, paidPolicy, [currentUserAccountID, participantsAccountIDs.at(0) ?? CONST.DEFAULT_NUMBER_ID]);
                     expect(moneyRequestOptions.length).toBe(2);
@@ -3341,7 +3342,7 @@ describe('ReportUtils', () => {
 
         it('should disable on thread-disabled actions', () => {
             const reportAction = buildOptimisticCreatedReportAction('email1@test.com');
-            expect(shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
+            expect(shouldDisableThread(reportAction, false)).toBeTruthy();
         });
 
         it('should disable thread on split expense actions', () => {
@@ -3353,7 +3354,7 @@ describe('ReportUtils', () => {
                 participants: [{login: 'email1@test.com'}, {login: 'email2@test.com'}],
                 transactionID: NumberUtils.rand64(),
             }) as ReportAction;
-            expect(shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
+            expect(shouldDisableThread(reportAction, false)).toBeTruthy();
         });
 
         it("should disable on a whisper action and it's neither a report preview nor IOU action", () => {
@@ -3363,14 +3364,44 @@ describe('ReportUtils', () => {
                     whisperedTo: [123456],
                 },
             } as ReportAction;
-            expect(shouldDisableThread(reportAction, reportID, false)).toBeTruthy();
+            expect(shouldDisableThread(reportAction, false)).toBeTruthy();
         });
 
         it('should disable on thread first chat', () => {
             const reportAction = {
                 childReportID: reportID,
             } as ReportAction;
-            expect(shouldDisableThread(reportAction, reportID, true)).toBeTruthy();
+            expect(shouldDisableThread(reportAction, true)).toBeTruthy();
+        });
+
+        it('should disable thread for messages sent by MANAGER_MCTEST', () => {
+            // Given a report action from MANAGER_MCTEST
+            const reportAction = {
+                actorAccountID: CONST.ACCOUNT_ID.MANAGER_MCTEST,
+                message: [
+                    {
+                        translationKey: '',
+                        type: 'COMMENT',
+                        html: 'Test message from Manager McTest',
+                        text: 'Test message from Manager McTest',
+                    },
+                ],
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            } as ReportAction;
+
+            // When it's checked to see if the thread should be disabled
+            const isThreadDisabled = shouldDisableThread(reportAction, false);
+
+            // Then the thread should be disabled
+            // This ensures "Reply in thread" and "Join thread" context menu options won't be shown
+            expect(isThreadDisabled).toBeTruthy();
+        });
+
+        it('should disable on a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+            } as ReportAction;
+            expect(shouldDisableThread(reportAction, false, false)).toBeTruthy();
         });
 
         describe('deleted threads', () => {
@@ -3389,7 +3420,7 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false);
+                const isThreadDisabled = shouldDisableThread(reportAction, false);
 
                 // Then the thread should be enabled
                 expect(isThreadDisabled).toBeFalsy();
@@ -3410,7 +3441,7 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false);
+                const isThreadDisabled = shouldDisableThread(reportAction, false);
 
                 // Then the thread should be enabled
                 expect(isThreadDisabled).toBeFalsy();
@@ -3430,7 +3461,7 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false);
+                const isThreadDisabled = shouldDisableThread(reportAction, false);
 
                 // Then the thread should be enabled
                 expect(isThreadDisabled).toBeFalsy();
@@ -3451,7 +3482,7 @@ describe('ReportUtils', () => {
                 } as ReportAction;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false);
+                const isThreadDisabled = shouldDisableThread(reportAction, false);
 
                 // Then the thread should be disabled
                 expect(isThreadDisabled).toBeTruthy();
@@ -3477,7 +3508,7 @@ describe('ReportUtils', () => {
                 const isReportArchived = false;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false, isReportArchived);
+                const isThreadDisabled = shouldDisableThread(reportAction, false, isReportArchived);
 
                 // Then the thread should be enabled
                 expect(isThreadDisabled).toBeFalsy();
@@ -3500,7 +3531,7 @@ describe('ReportUtils', () => {
                 const isReportArchived = false;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false, isReportArchived);
+                const isThreadDisabled = shouldDisableThread(reportAction, false, isReportArchived);
 
                 // Then the thread should be enabled
                 expect(isThreadDisabled).toBeFalsy();
@@ -3523,7 +3554,7 @@ describe('ReportUtils', () => {
                 const isReportArchived = true;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false, isReportArchived);
+                const isThreadDisabled = shouldDisableThread(reportAction, false, isReportArchived);
 
                 // Then the thread should be enabled
                 expect(isThreadDisabled).toBeFalsy();
@@ -3546,7 +3577,7 @@ describe('ReportUtils', () => {
                 const isReportArchived = true;
 
                 // When it's checked to see if the thread should be disabled
-                const isThreadDisabled = shouldDisableThread(reportAction, reportID, false, isReportArchived);
+                const isThreadDisabled = shouldDisableThread(reportAction, false, isReportArchived);
 
                 // Then the thread should be disabled
                 expect(isThreadDisabled).toBeTruthy();
@@ -3752,13 +3783,26 @@ describe('ReportUtils', () => {
                 reportID: '1',
                 type: CONST.REPORT.TYPE.EXPENSE,
                 ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
                 stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
                 participants: {
                     [currentUserAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
                 },
+                policyID: '11',
             };
-            // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport,
+
+            const expenseReportPolicy = {
+                id: '11',
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        submitsTo: currentUserEmail,
+                    },
+                },
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}11`, expenseReportPolicy); // Wait for Onyx to load session data before calling canDeleteMoneyRequestReport,
             // since it relies on the session subscription for currentUserAccountID.
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connectWithoutView({
@@ -3769,6 +3813,7 @@ describe('ReportUtils', () => {
                     },
                 });
             });
+
             expect(canDeleteMoneyRequestReport(expenseReport, [], [])).toBe(true);
         });
     });
@@ -6830,7 +6875,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(canJoinChat(report, parentReportAction, undefined)).toBe(false);
+            expect(canJoinChat(report, parentReportAction, undefined, undefined)).toBe(false);
         });
 
         it('should return false if the report is not hidden for the current user', async () => {
@@ -6842,7 +6887,7 @@ describe('ReportUtils', () => {
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
-            expect(canJoinChat(report, undefined, undefined)).toBe(false);
+            expect(canJoinChat(report, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should return false if the report is one of these types: group chat, selfDM, invoice room, system chat, expense chat', () => {
@@ -6851,7 +6896,7 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
 
-            expect(canJoinChat(report, undefined, undefined)).toBe(false);
+            expect(canJoinChat(report, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should return false if the report is archived', () => {
@@ -6859,7 +6904,7 @@ describe('ReportUtils', () => {
                 ...createRandomReport(1, undefined),
             };
 
-            expect(canJoinChat(report, undefined, undefined, true)).toBe(false);
+            expect(canJoinChat(report, undefined, undefined, undefined, true)).toBe(false);
         });
 
         it('should return true if the report is chat thread', async () => {
@@ -6878,7 +6923,7 @@ describe('ReportUtils', () => {
 
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
 
-            expect(canJoinChat(report, undefined, undefined)).toBe(true);
+            expect(canJoinChat(report, undefined, undefined, undefined)).toBe(true);
         });
 
         it('should respect workspace membership for restricted visibility rooms', async () => {
@@ -6926,9 +6971,9 @@ describe('ReportUtils', () => {
                 visibility: CONST.REPORT.VISIBILITY.PUBLIC,
             };
 
-            expect(canJoinChat(restrictedReport, undefined, policyWithoutCurrentUser)).toBe(false);
-            expect(canJoinChat(restrictedReport, undefined, policyWithCurrentUser)).toBe(true);
-            expect(canJoinChat(publicReport, undefined, policyWithoutCurrentUser)).toBe(true);
+            expect(canJoinChat(restrictedReport, undefined, policyWithoutCurrentUser, undefined)).toBe(false);
+            expect(canJoinChat(restrictedReport, undefined, policyWithCurrentUser, undefined)).toBe(true);
+            expect(canJoinChat(publicReport, undefined, policyWithoutCurrentUser, undefined)).toBe(true);
         });
     });
 
@@ -8969,7 +9014,6 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {
                 accountID: 2,
             });
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.NEWDOT_REJECT]);
             expect(canRejectReportAction(approver, expenseReport, reportPolicy)).toBe(false);
         });
     });

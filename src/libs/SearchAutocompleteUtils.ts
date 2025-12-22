@@ -1,6 +1,7 @@
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
+import type {ValueOf} from 'type-fest';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchAutocompleteQueryRange, SearchAutocompleteResult} from '@components/Search/types';
 import CONST from '@src/CONST';
@@ -227,6 +228,8 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
             // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
             return /^-?(?!.*[.,].*[.,])\d{0,8}(?:[.,]\d{0,2})?$/.test(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS).includes(range.value as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS>);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
             return isList.includes(range.value);
         default:
