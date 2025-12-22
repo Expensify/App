@@ -169,6 +169,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
                     if (Platform.OS === 'android') {
                         Linking.sendIntent('android.settings.SETTINGS');
                     } else {
+                        // cspell:disable-next-line
                         Linking.openURL('App-Prefs:General');
                     }
                 }}
