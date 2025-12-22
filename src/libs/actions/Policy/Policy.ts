@@ -183,13 +183,9 @@ type BuildPolicyDataOptions = {
     lastUsedPaymentMethod?: LastPaymentMethodType;
     adminParticipant?: Participant;
     hasOutstandingChildRequest?: boolean;
-    // Note: Mark this param as required after migrating completely
-    introSelectedParam?: OnyxEntry<IntroSelected>;
-    // Note: Mark this param as required after migrating completely
-    activePolicyIDParam?: string | undefined;
-    // Note: Mark this param as required after migrating completely
+    introSelectedParam: OnyxEntry<IntroSelected>;
+    activePolicyIDParam: string | undefined;
     currentUserAccountIDParam?: number;
-    // Note: Mark this param as required after migrating completely
     currentUserEmailParam?: string;
     allReportsParam?: OnyxCollection<Report>;
     onboardingPurposeSelected?: OnboardingPurpose;
@@ -260,18 +256,6 @@ let deprecatedAllRecentlyUsedCurrencies: string[];
 Onyx.connect({
     key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
     callback: (val) => (deprecatedAllRecentlyUsedCurrencies = val ?? []),
-});
-
-let deprecatedActivePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (value) => (deprecatedActivePolicyID = value),
-});
-
-let deprecatedIntroSelected: OnyxEntry<IntroSelected>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => (deprecatedIntroSelected = value),
 });
 
 /**
@@ -2111,10 +2095,10 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
         shouldAddGuideWelcomeMessage = true,
         onboardingPurposeSelected,
     } = options;
-    const introSelected = introSelectedParam ?? deprecatedIntroSelected;
-    const activePolicyID = activePolicyIDParam ?? deprecatedActivePolicyID;
-    const currentUserAccountID = currentUserAccountIDParam ?? deprecatedSessionAccountID;
-    const currentUserEmail = currentUserEmailParam ?? deprecatedSessionEmail;
+    const introSelected = introSelectedParam;
+    const activePolicyID = activePolicyIDParam;
+    const currentUserAccountID = currentUserAccountIDParam;
+    const currentUserEmail = currentUserEmailParam;
 
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 

@@ -192,6 +192,10 @@ describe('GoogleTagManagerTest', () => {
                 linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
             },
             isASAPSubmitBetaEnabled: false,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: 'test@test.com',
+            introSelected: undefined,
+            activePolicyID: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();

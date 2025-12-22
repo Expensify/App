@@ -517,6 +517,10 @@ describe('actions/IOU', () => {
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -610,6 +614,10 @@ describe('actions/IOU', () => {
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -688,6 +696,10 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -735,6 +747,10 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -808,6 +824,10 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -855,6 +875,10 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1958,6 +1982,10 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
             });
 
             mockFetch?.resume?.();
@@ -2018,6 +2046,10 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -6737,6 +6769,10 @@ describe('actions/IOU', () => {
                 },
                 accountantParams: action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}} : undefined,
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -8351,6 +8387,10 @@ describe('actions/IOU', () => {
                     reimbursable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                currentUserEmailParam: RORY_EMAIL,
+                introSelected: undefined,
+                activePolicyID: undefined,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,

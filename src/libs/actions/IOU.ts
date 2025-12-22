@@ -676,6 +676,10 @@ type CreateTrackExpenseParams = {
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
     isASAPSubmitBetaEnabled: boolean;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicyID: string | undefined;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -740,6 +744,10 @@ type GetTrackExpenseInformationParams = {
     transactionParams: GetTrackExpenseInformationTransactionParams;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     isASAPSubmitBetaEnabled: boolean;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicyID: string | undefined;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -4144,7 +4152,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * it creates optimistic versions of them and uses those instead
  */
 function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): TrackExpenseInformation | null {
-    const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams, isASAPSubmitBetaEnabled} = params;
+    const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams, isASAPSubmitBetaEnabled, currentUserAccountIDParam, currentUserEmailParam, introSelected, activePolicyID} = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {comment, amount, currency, created, distance, merchant, receipt, category, tag, taxCode, taxAmount, billable, reimbursable, linkedTrackedExpenseReportAction, attendees} =
@@ -4256,6 +4264,10 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             policyID: policy?.id,
             expenseReportId: chatReport?.reportID,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            introSelectedParam: introSelected,
+            activePolicyIDParam: activePolicyID,
         });
         createdWorkspaceParams = workspaceData.params;
         optimisticData.push(...workspaceData.optimisticData);
@@ -6734,6 +6746,10 @@ function trackExpense(params: CreateTrackExpenseParams) {
         shouldHandleNavigation = true,
         shouldPlaySound = true,
         isASAPSubmitBetaEnabled,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        introSelected,
+        activePolicyID,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
     const {policy, policyCategories, policyTagList} = policyData;
@@ -6855,6 +6871,10 @@ function trackExpense(params: CreateTrackExpenseParams) {
             },
             retryParams,
             isASAPSubmitBetaEnabled,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            introSelected,
+            activePolicyID,
         }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
 
