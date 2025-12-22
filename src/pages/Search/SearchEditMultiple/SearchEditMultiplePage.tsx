@@ -18,7 +18,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
-import {getTaxName} from '@libs/TransactionUtils';
+import {getTaxName, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,6 +34,33 @@ function SearchEditMultiplePage() {
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+
+    const hasCustomUnitExpense = selectedTransactionIDs.some((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        return isDistanceRequest(transaction) || isPerDiemRequest(transaction);
+    });
+
+    const canBillableBeEnabled = selectedTransactionIDs.every((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction) {
+            return false;
+        }
+
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const transactionPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        return transactionPolicy?.disabledFields?.defaultBillable === false;
+    });
+
+    const canReimbursableBeEnabled = selectedTransactionIDs.every((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction) {
+            return false;
+        }
+
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const transactionPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+        return !!transactionPolicy && transactionPolicy.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction);
+    });
 
     // Determine policyID based on context:
     // - If all selected transactions belong to the same policy, use that policy
@@ -96,7 +123,7 @@ function SearchEditMultiplePage() {
             return;
         }
 
-        const transactionChanges: TransactionChanges = {};
+        const transactionIDToChanges: Record<string, TransactionChanges> = {};
 
         for (const transactionID of selectedTransactionIDs) {
             const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -115,39 +142,45 @@ function SearchEditMultiplePage() {
                 return canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, iouReport, policy);
             };
 
+            const currentTransactionChanges: TransactionChanges = {};
+
             if (changes.merchant && canEditField(CONST.EDIT_REQUEST_FIELD.MERCHANT)) {
-                transactionChanges.merchant = changes.merchant;
+                currentTransactionChanges.merchant = changes.merchant;
             }
             if (changes.created && canEditField(CONST.EDIT_REQUEST_FIELD.DATE)) {
-                transactionChanges.created = changes.created;
+                currentTransactionChanges.created = changes.created;
             }
             if (changes.amount && canEditField(CONST.EDIT_REQUEST_FIELD.AMOUNT)) {
-                transactionChanges.amount = changes.amount;
+                currentTransactionChanges.amount = changes.amount;
             }
             if (changes.currency && canEditField(CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
-                transactionChanges.currency = changes.currency;
+                currentTransactionChanges.currency = changes.currency;
             }
             if (changes.category && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
-                transactionChanges.category = changes.category;
+                currentTransactionChanges.category = changes.category;
             }
             if (changes.tag && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
-                transactionChanges.tag = changes.tag;
+                currentTransactionChanges.tag = changes.tag;
             }
             if (changes.comment && canEditField(CONST.EDIT_REQUEST_FIELD.DESCRIPTION)) {
-                transactionChanges.comment = changes.comment;
+                currentTransactionChanges.comment = changes.comment;
             }
             if (changes.taxCode && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
-                transactionChanges.taxCode = changes.taxCode;
+                currentTransactionChanges.taxCode = changes.taxCode;
             }
             if (changes.billable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
-                transactionChanges.billable = changes.billable;
+                currentTransactionChanges.billable = changes.billable;
             }
             if (changes.reimbursable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
-                transactionChanges.reimbursable = changes.reimbursable;
+                currentTransactionChanges.reimbursable = changes.reimbursable;
+            }
+
+            if (Object.keys(currentTransactionChanges).length > 0) {
+                transactionIDToChanges[transactionID] = currentTransactionChanges;
             }
         }
 
-        updateMultipleMoneyRequests(selectedTransactionIDs, transactionChanges, policy, allReports, allTransactions);
+        updateMultipleMoneyRequests(transactionIDToChanges, policy, allReports, allTransactions);
 
         Navigation.dismissModal();
     };
@@ -167,6 +200,7 @@ function SearchEditMultiplePage() {
             description: translate('iou.amount'),
             title: draftTransaction?.amount ? convertToDisplayString(Math.abs(draftTransaction.amount), displayCurrency) : '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP,
+            disabled: hasCustomUnitExpense,
         },
         {
             description: translate('common.description'),
@@ -177,6 +211,7 @@ function SearchEditMultiplePage() {
             description: translate('common.merchant'),
             title: draftTransaction?.merchant ?? '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_MERCHANT_RHP,
+            disabled: hasCustomUnitExpense,
         },
         {
             description: translate('common.date'),
@@ -197,6 +232,7 @@ function SearchEditMultiplePage() {
             description: translate('iou.taxRate'),
             title: draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP,
+            disabled: hasCustomUnitExpense,
         },
     ];
 
@@ -215,25 +251,31 @@ function SearchEditMultiplePage() {
                             title={field.title}
                             description={field.description}
                             onPress={() => Navigation.navigate(field.route)}
-                            shouldShowRightIcon
+                            shouldShowRightIcon={!field.disabled}
+                            disabled={field.disabled}
+                            interactive={!field.disabled}
                         />
                     ))}
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
-                        <Text>{translate('common.billable')}</Text>
-                        <Switch
-                            isOn={!!draftTransaction?.billable}
-                            onToggle={updateBillable}
-                            accessibilityLabel={translate('common.billable')}
-                        />
-                    </View>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
-                        <Text>{translate('iou.reimbursable')}</Text>
-                        <Switch
-                            isOn={!!draftTransaction?.reimbursable}
-                            onToggle={updateReimbursable}
-                            accessibilityLabel={translate('iou.reimbursable')}
-                        />
-                    </View>
+                    {canBillableBeEnabled && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
+                            <Text>{translate('common.billable')}</Text>
+                            <Switch
+                                isOn={!!draftTransaction?.billable}
+                                onToggle={updateBillable}
+                                accessibilityLabel={translate('common.billable')}
+                            />
+                        </View>
+                    )}
+                    {canReimbursableBeEnabled && (
+                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
+                            <Text>{translate('iou.reimbursable')}</Text>
+                            <Switch
+                                isOn={!!draftTransaction?.reimbursable}
+                                onToggle={updateReimbursable}
+                                accessibilityLabel={translate('iou.reimbursable')}
+                            />
+                        </View>
+                    )}
                 </ScrollView>
                 <Button
                     success

@@ -15179,13 +15179,12 @@ function addReportApprover(
 }
 
 function updateMultipleMoneyRequests(
-    transactionIDs: string[],
-    transactionChanges: TransactionChanges,
+    transactionChangesMap: Record<string, TransactionChanges>,
     policy: OnyxEntry<OnyxTypes.Policy>,
     reports: OnyxCollection<OnyxTypes.Report>,
     transactions: OnyxCollection<OnyxTypes.Transaction>,
 ) {
-    for (const transactionID of transactionIDs) {
+    for (const [transactionID, transactionChanges] of Object.entries(transactionChangesMap)) {
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
             continue;
@@ -15221,10 +15220,10 @@ function updateMultipleMoneyRequests(
         if (transactionChanges.amount) {
             updates.amount = isFromExpenseReport ? -Math.abs(transactionChanges.amount) : transactionChanges.amount;
         }
-        if (transactionChanges.billable) {
+        if (transactionChanges.billable !== undefined) {
             updates.state = transactionChanges.billable ? 3 : 4;
         }
-        if (transactionChanges.reimbursable) {
+        if (transactionChanges.reimbursable !== undefined) {
             updates.state = transactionChanges.reimbursable ? 4 : 3;
         }
 
