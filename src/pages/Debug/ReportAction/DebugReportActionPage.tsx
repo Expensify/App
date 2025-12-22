@@ -14,7 +14,7 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {getLinkedTransactionID} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, withDEWRoutedActionsObject} from '@libs/ReportActionsUtils';
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
 import Debug from '@userActions/Debug';
@@ -37,7 +37,7 @@ function DebugReportActionPage({
 
     const getReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
-            return reportActions?.[reportActionID];
+            return withDEWRoutedActionsObject(reportActions)?.[reportActionID];
         },
         [reportActionID],
     );
