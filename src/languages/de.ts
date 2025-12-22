@@ -109,6 +109,7 @@ import type {
     PayAndDowngradeDescriptionParams,
     PayerOwesParams,
     PayerPaidParams,
+    PaidElsewhereParams,
     PaySomeoneParams,
     PhoneErrorRouteParams,
     PolicyAddedReportFieldOptionParams,
@@ -1307,7 +1308,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `hat die Zahlung über ${amount} storniert, weil ${submitterDisplayName} seine Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} hat ein Bankkonto hinzugefügt. Die Zahlung über ${amount} wurde durchgeführt.`,
-        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}als bezahlt markiert`,
+        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}als bezahlt markiert${comment ? `, mit dem Kommentar "${comment}"` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}mit Wallet bezahlt`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}mit Expensify über <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a> bezahlt`,
