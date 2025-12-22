@@ -78,4 +78,13 @@ function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
 
 const technicalContactEmailSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => domainMemberSharedNVP?.settings?.technicalContactEmail;
 
-export {domainMemberSettingsSelector, domainSamlSettingsStateSelector, domainNameSelector, metaIdentitySelector, adminAccountIDsSelector, technicalContactEmailSelector, selectMemberIDs,technicalContactSettingsSelector};
+export {
+    domainMemberSettingsSelector,
+    domainSamlSettingsStateSelector,
+    domainNameSelector,
+    metaIdentitySelector,
+    adminAccountIDsSelector,
+    technicalContactEmailSelector,
+    selectMemberIDs,
+    technicalContactSettingsSelector,
+};

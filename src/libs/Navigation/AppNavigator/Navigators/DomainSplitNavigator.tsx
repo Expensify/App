@@ -16,7 +16,6 @@ const loadDomainSamlPage = () => require<ReactComponentModule>('../../../../page
 const loadDomainAdminsPage = () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAdminsPage').default;
 const loadDomainMembersPage = () => require<ReactComponentModule>('../../../../pages/domain/Members/DomainMembersPage').default;
 
-
 const Split = createSplitNavigator<DomainSplitNavigatorParamList>();
 
 function DomainSplitNavigator({route, navigation}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR>) {
