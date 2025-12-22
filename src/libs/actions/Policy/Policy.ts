@@ -2395,7 +2395,6 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
     ];
 
     if (shouldSetCreatedPolicyAsActive && activePolicyID) {
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
