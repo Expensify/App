@@ -793,7 +793,8 @@ function getTopmostReportIDInSearchRHP(state = navigationRef.getRootState()): st
     const nestedRoutes = lastRoute.state?.routes ?? [];
     const lastSearchReport = [...nestedRoutes].reverse().find((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
 
-    const reportID = lastSearchReport?.params && 'reportID' in lastSearchReport?.params ? lastSearchReport?.params?.reportID : undefined;
+    const params = lastSearchReport?.params;
+    const reportID = params && 'reportID' in params ? params.reportID : undefined;
 
     return typeof reportID === 'string' ? reportID : undefined;
 }
