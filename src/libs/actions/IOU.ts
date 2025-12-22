@@ -3764,6 +3764,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
 
     const optimisticNextStep = buildOptimisticNextStep({
@@ -4080,6 +4081,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         isASAPSubmitBetaEnabled,
         policy,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: iouReport,
@@ -4966,6 +4968,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                     hasViolations,
                     isASAPSubmitBetaEnabled,
                     policy,
+                    formatPhoneNumber: formatPhoneNumberPhoneUtils,
                 }),
             });
             optimisticData.push({
@@ -10452,7 +10455,7 @@ function getPayMoneyRequestParams({
         currentNextStepDeprecated = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? null;
         // buildOptimisticNextStep is used in parallel
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        optimisticNextStepDeprecated = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+        optimisticNextStepDeprecated = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, formatPhoneNumber: formatPhoneNumberPhoneUtils});
         optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
     }
 
@@ -10964,6 +10967,7 @@ function approveMoneyRequest(
         hasViolations,
         isASAPSubmitBetaEnabled,
         predictedNextStatus,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -11189,6 +11193,7 @@ function reopenReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
         isReopen: true,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -11349,6 +11354,7 @@ function retractReport(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -11523,6 +11529,7 @@ function unapproveExpenseReport(
         isASAPSubmitBetaEnabled,
         shouldFixViolations: false,
         isUnapprove: true,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -11695,6 +11702,7 @@ function submitReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
         isUnapprove: true,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -11873,6 +11881,7 @@ function cancelPayment(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -12031,6 +12040,7 @@ function cancelPayment(
         value: buildNextStepNew({
             report: expenseReport,
             predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
         }),
     });
 
@@ -15220,6 +15230,7 @@ function assignReportToMe(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: accountID,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: accountID},
@@ -15336,6 +15347,7 @@ function addReportApprover(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: newApproverAccountID,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: {...report, managerID: newApproverAccountID},
