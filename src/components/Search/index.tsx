@@ -8,7 +8,7 @@ import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming}
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
-import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
+import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
@@ -91,8 +91,6 @@ type SearchProps = {
     searchRequestResponseStatusCode?: number | null;
     onDEWModalOpen?: () => void;
 };
-
-const expenseHeaders = getExpenseHeaders();
 
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
@@ -457,6 +455,7 @@ function Search({
             data: searchResults.data,
             currentAccountID: accountID,
             currentUserEmail: email ?? '',
+            translate,
             formatPhoneNumber,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
@@ -475,6 +474,7 @@ function Search({
         searchResults,
         type,
         archivedReportsIdSet,
+        translate,
         formatPhoneNumber,
         accountID,
         queryJSON,
@@ -1040,11 +1040,6 @@ function Search({
         handleSelectionListScroll(sortedSelectedData, searchListRef.current);
     }, [handleSelectionListScroll, sortedSelectedData]);
 
-    const areAllOptionalColumnsHidden = useMemo(() => {
-        const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
-        return canBeMissingColumns.every((column) => !columnsToShow.includes(column));
-    }, [columnsToShow]);
-
     const onLayoutSkeleton = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS);
     }, []);
@@ -1149,7 +1144,6 @@ function Search({
                                     isAmountColumnWide={shouldShowAmountInWideColumn}
                                     isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
                                     shouldShowSorting
-                                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                                     groupBy={validGroupBy}
                                 />
                             </View>
@@ -1171,7 +1165,6 @@ function Search({
                     }
                     queryJSON={queryJSON}
                     columns={columnsToShow}
-                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     violations={filteredViolations}
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
