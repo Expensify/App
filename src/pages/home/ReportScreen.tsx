@@ -730,11 +730,10 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             (prevDeletedParentAction && !deletedParentAction)
         ) {
             const currentRoute = navigationRef.getCurrentRoute();
+            const topmostReportIDInSearchRHP = Navigation.getTopmostReportIDInSearchRHP();
+            const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
             const isHoldScreenOpenInRHP =
-                currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD &&
-                typeof currentRoute?.params === 'object' &&
-                'transactionID' in currentRoute.params &&
-                reportTransactionIDs.includes(currentRoute.params.transactionID);
+                currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
             const isReportDetailOpenInRHP =
                 isTopMostReportId &&
                 reportDetailScreens.find((r) => r === currentRoute?.name) &&
@@ -744,7 +743,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 reportIDFromRoute === currentRoute.params.reportID;
             // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
             // Prevent auto navigation for report in RHP
-            if ((!isFocused && !isHoldScreenOpenInRHP && !isReportDetailOpenInRHP) || isInNarrowPaneModal) {
+            if ((!isFocused && !isHoldScreenOpenInRHP && !isReportDetailOpenInRHP) || (!isHoldScreenOpenInRHP && isInNarrowPaneModal)) {
                 return;
             }
             Navigation.dismissModal();
