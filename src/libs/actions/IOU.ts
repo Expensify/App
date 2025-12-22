@@ -320,6 +320,20 @@ type MoneyRequestInformation = {
     reimbursable?: boolean;
 };
 
+type PayInvoiceArgs = {
+    paymentMethodType: PaymentMethodType;
+    chatReport: OnyxTypes.Report;
+    invoiceReport: OnyxEntry<OnyxTypes.Report>;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    payAsBusiness?: boolean;
+    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
+    methodID?: number;
+    paymentMethod?: PaymentMethod;
+    activePolicy?: OnyxTypes.Policy;
+};
+
 type RejectMoneyRequestData = {
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
@@ -10327,6 +10341,9 @@ function getPayMoneyRequestParams({
     full,
     payAsBusiness,
     bankAccountID,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    introSelectedParam,
     paymentPolicyID,
     lastUsedPaymentMethod,
     existingB2BInvoiceReport,
@@ -10343,6 +10360,9 @@ function getPayMoneyRequestParams({
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
     existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>;
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountIDParam?: number;
+    currentUserEmailParam?: string;
+    introSelectedParam?: OnyxEntry<OnyxTypes.IntroSelected>;
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -10364,6 +10384,10 @@ function getPayMoneyRequestParams({
             policyOwnerEmail: currentUserEmail,
             makeMeAdmin: true,
             policyID: payerPolicyID,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            introSelectedParam,
+            activePolicyIDParam: activePolicy?.id,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
@@ -11645,7 +11669,13 @@ function submitReport(
     const isCurrentUserManager = currentUserAccountIDParam === expenseReport.managerID;
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
-    const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
+    const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
+        expenseReport?.total ?? 0,
+        expenseReport.currency ?? '',
+        expenseReport.reportID,
+        adminAccountID,
+        policy?.approvalMode,
+    );
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
     // buildOptimisticNextStep is used in parallel
@@ -12159,17 +12189,19 @@ function payMoneyRequest(
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, userAccountID);
 }
 
-function payInvoice(
-    paymentMethodType: PaymentMethodType,
-    chatReport: OnyxTypes.Report,
-    invoiceReport: OnyxEntry<OnyxTypes.Report>,
-    introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+function payInvoice({
+    paymentMethodType,
+    chatReport,
+    invoiceReport,
+    introSelected,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
     payAsBusiness = false,
-    existingB2BInvoiceReport?: OnyxEntry<OnyxTypes.Report>,
-    methodID?: number,
-    paymentMethod?: PaymentMethod,
-    activePolicy?: OnyxTypes.Policy,
-) {
+    existingB2BInvoiceReport,
+    methodID,
+    paymentMethod,
+    activePolicy,
+}: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
         optimisticData,
@@ -12197,6 +12229,9 @@ function payInvoice(
         bankAccountID: methodID,
         existingB2BInvoiceReport,
         activePolicy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        introSelectedParam: introSelected,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
