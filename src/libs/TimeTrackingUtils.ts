@@ -6,7 +6,7 @@ function computeTimeAmount(rateInCents: number, count: number): number {
 }
 
 function formatTimeMerchant(hours: number, rate: number, currency: string, translate: LocalizedTranslate): string {
-    return translate('iou.hoursAt', hours, convertToDisplayString(rate, currency));
+    return translate('iou.timeTracking.hoursAt', hours, convertToDisplayString(rate, currency));
 }
 
 export {computeTimeAmount, formatTimeMerchant};

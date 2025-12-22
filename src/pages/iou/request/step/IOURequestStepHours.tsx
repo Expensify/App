@@ -98,7 +98,7 @@ function IOURequestStepTimeHours({
         >
             <ScrollView contentContainerStyle={styles.flexGrow1}>
                 <NumberWithSymbolForm
-                    symbol={translate('iou.hrs')}
+                    symbol={translate('iou.timeTracking.hrs')}
                     symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
                     decimals={CONST.HOURS_DECIMAL_PLACES}
                     autoGrowExtraSpace={variables.w80}

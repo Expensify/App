@@ -1484,8 +1484,10 @@ const translations = {
             },
         },
         chooseWorkspace: 'Choose a workspace',
-        hoursAt: (hours: number, rate: string) => `${hours} hours @ ${rate} / hour`,
-        hrs: 'hrs',
+        timeTracking: {
+            hoursAt: (hours: number, rate: string) => `${hours} hours @ ${rate} / hour`,
+            hrs: 'hrs',
+        },
     },
     transactionMerge: {
         listPage: {
