@@ -89,6 +89,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import type {CurrencyList, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import useFilterFormValues from '../../hooks/useFilterFormValues';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
 
@@ -194,9 +195,7 @@ function SearchPage({route}: SearchPageProps) {
         formattedAmount: totalFormattedAmount,
     });
 
-    const formValues = queryJSON
-        ? buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTagsLists, currencyList, personalDetails, allCards, allReports, taxRates)
-        : getEmptyObject<Partial<SearchAdvancedFiltersForm>>();
+    const formValues = useFilterFormValues(queryJSON);
 
     // Sync the advanced filters form with the current query when it changes
     useEffect(() => {
