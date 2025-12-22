@@ -1,5 +1,6 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
@@ -60,6 +61,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return isEmpty ?? reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
     }, [reportItem.isDisabled, reportItem.isDisabledCheckbox, reportItem.transactions.length]);
 
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress(
             currentSearchHash,
@@ -70,8 +73,21 @@ function ExpenseReportListItem<TItem extends ListItem>({
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
         );
-    }, [currentSearchHash, reportItem, onSelectRow, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onDEWModalOpen]);
+    }, [
+        currentSearchHash,
+        reportItem,
+        onSelectRow,
+        snapshotReport,
+        snapshotPolicy,
+        lastPaymentMethod,
+        currentSearchKey,
+        onDEWModalOpen,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+    ]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(reportItem as unknown as TItem);
