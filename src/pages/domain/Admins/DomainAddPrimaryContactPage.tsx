@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, technicalContactEmailSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -54,20 +54,20 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
     });
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const [technicalContactEmail] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+    const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
-        selector: technicalContactEmailSelector,
+        selector: technicalContactSettingsSelector,
     });
 
     let technicalContactEmailKey: string | undefined;
     const data: AdminOption[] = [];
     for (const accountID of adminAccountIDs ?? []) {
         const details = personalDetails?.[accountID];
-        if (details?.login === technicalContactEmail) {
+        if (details?.login === technicalContactSettings?.technicalContactEmail) {
             technicalContactEmailKey = String(accountID);
         }
         data.push({
-            isSelected: details?.login === technicalContactEmail,
+            isSelected: details?.login === technicalContactSettings?.technicalContactEmail,
             keyForList: String(accountID),
             accountID,
             login: details?.login ?? '',
@@ -104,8 +104,8 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
                         if (!option.login || !option.accountID) {
                             return;
                         }
-                        if (option.login !== technicalContactEmail) {
-                            setPrimaryContact(domainAccountID, option.accountID, option.login, technicalContactEmail);
+                        if (option.login !== technicalContactSettings?.technicalContactEmail) {
+                            setPrimaryContact(domainAccountID, option.accountID, option.login, technicalContactSettings?.technicalContactEmail);
                         }
                         Navigation.goBack(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID));
                     }}
