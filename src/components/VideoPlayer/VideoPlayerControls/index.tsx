@@ -113,6 +113,7 @@ function VideoPlayerControls({
                             onPress={togglePlayCurrentVideo}
                             style={styles.mr2}
                             small={small}
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.PLAY_PAUSE_BUTTON}
                         />
                         {shouldShowTime && (
                             <View style={[styles.videoPlayerControlsRow]}>
@@ -130,12 +131,14 @@ function VideoPlayerControls({
                             onPress={enterFullScreenMode}
                             style={iconSpacing}
                             small={small}
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.FULLSCREEN_BUTTON}
                         />
                         <IconButton
                             src={Expensicons.ThreeDots}
                             tooltipText={translate('common.more')}
                             onPress={showPopoverMenu}
                             small={small}
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.MORE_BUTTON}
                         />
                     </View>
                 </View>
@@ -153,7 +156,5 @@ function VideoPlayerControls({
         </Animated.View>
     );
 }
-
-VideoPlayerControls.displayName = 'VideoPlayerControls';
 
 export default VideoPlayerControls;

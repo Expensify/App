@@ -151,6 +151,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                             tooltipText={translate('videoPlayer.expand')}
                             onPress={onShowModalPress}
                             small
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.EXPAND_BUTTON}
                         />
                     </View>
                 </View>
@@ -158,7 +159,5 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
         </View>
     );
 }
-
-VideoPlayerPreview.displayName = 'VideoPlayerPreview';
 
 export default VideoPlayerPreview;

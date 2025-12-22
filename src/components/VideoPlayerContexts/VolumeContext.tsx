@@ -66,6 +66,4 @@ function useVolumeContext() {
     return volumeContext;
 }
 
-VolumeContextProvider.displayName = 'VolumeContextProvider';
-
 export {VolumeContextProvider, useVolumeContext};

@@ -189,6 +189,10 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                           project: 'app',
                           release: {
                               name: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
+                              create: true,
+                              setCommits: {
+                                  auto: true,
+                              },
                           },
                           sourcemaps: {
                               // Use relative path from project root - works for both web (dist/) and desktop (desktop/dist/www/)

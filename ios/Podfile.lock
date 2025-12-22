@@ -2711,7 +2711,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-safe-area-context (5.4.0):
+  - react-native-safe-area-context (5.6.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -2729,8 +2729,8 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-safe-area-context/common (= 5.4.0)
-    - react-native-safe-area-context/fabric (= 5.4.0)
+    - react-native-safe-area-context/common (= 5.6.2)
+    - react-native-safe-area-context/fabric (= 5.6.2)
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -2741,7 +2741,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-safe-area-context/common (5.4.0):
+  - react-native-safe-area-context/common (5.6.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -2769,7 +2769,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - react-native-safe-area-context/fabric (5.4.0):
+  - react-native-safe-area-context/fabric (5.6.2):
     - boost
     - DoubleConversion
     - fast_float
@@ -4747,7 +4747,7 @@ SPEC CHECKSUMS:
   react-native-performance: a7a65d0b0f3055c5db33e1433e4345143ef6a100
   react-native-plaid-link-sdk: 425c0a3a923310fcd8489142209ff1508372a7bf
   react-native-release-profiler: 6c3ed1765fee48e869170e4af339c838a747eaee
-  react-native-safe-area-context: 138d5c5f300c6568f2a64a7c01906ae3fcce0330
+  react-native-safe-area-context: 0a3b034bb63a5b684dd2f5fffd3c90ef6ed41ee8
   react-native-view-shot: 28aca10c6c6e5331959ba4b6cb2fced572f88af3
   react-native-wallet: 4e3cc1f48ca653ad4a96df8da7e6bd9c8987b3e3
   react-native-webview: cdce419e8022d0ef6f07db21890631258e7a9e6e

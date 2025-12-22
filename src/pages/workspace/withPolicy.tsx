@@ -32,8 +32,8 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY
     | typeof SCREENS.WORKSPACE.MEMBER_DETAILS
+    | typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE
     | typeof SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD
-    | typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD
     | typeof SCREENS.WORKSPACE.INVOICES
     | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
     | typeof SCREENS.WORKSPACE.TAX_EDIT
@@ -49,7 +49,7 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION
     | typeof SCREENS.WORKSPACE.RULES
     | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW
-    | typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD;
+    | typeof SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION;
 
 type PolicyRoute = PlatformStackRouteProp<NavigatorsParamList, PolicyRouteName>;
 
@@ -99,8 +99,6 @@ export default function <TProps extends WithPolicyProps>(WrappedComponent: Compo
             />
         );
     }
-
-    WithPolicy.displayName = `WithPolicy`;
 
     return WithPolicy;
 }

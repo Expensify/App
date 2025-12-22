@@ -13,13 +13,14 @@ import {
     canDeleteTransaction,
     canEditFieldOfMoneyRequest,
     canHoldUnholdReportAction,
+    canRejectReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getReportOrDraftReport,
     isInvoiceReport,
     isMoneyRequestReport as isMoneyRequestReportUtils,
     isTrackExpenseReport,
 } from '@libs/ReportUtils';
-import {getOriginalTransactionWithSplitInfo} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -69,7 +70,7 @@ function useSelectedTransactionsActions({
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit', 'ThumbsDown']);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
@@ -129,6 +130,7 @@ function useSelectedTransactionsActions({
 
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    // eslint-disable-next-line  @typescript-eslint/no-deprecated
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
 
@@ -217,6 +219,20 @@ function useSelectedTransactionsActions({
             });
         }
 
+        const hasNoRejectedTransaction = selectedTransactionIDs.every((id) => !hasTransactionBeenRejected(id));
+        const canRejectTransactions =
+            selectedTransactionsList.length > 0 && isMoneyRequestReport && !!session?.email && !!report && canRejectReportAction(session.email, report, policy) && hasNoRejectedTransaction;
+        if (canRejectTransactions) {
+            options.push({
+                text: translate('search.bulkActions.reject'),
+                icon: expensifyIcons.ThumbsDown,
+                value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
+                onSelected: () => {
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS.getRoute({reportID: report.reportID}));
+                },
+            });
+        }
+
         // Gets the list of options for the export sub-menu
         const getExportOptions = (): PopoverMenuItem[] => {
             // We provide the basic and expense level export options by default
@@ -232,9 +248,13 @@ function useSelectedTransactionsActions({
                             onExportOffline?.();
                             return;
                         }
-                        exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
-                            onExportFailed?.();
-                        });
+                        exportReportToCSV(
+                            {reportID: report.reportID, transactionIDList: selectedTransactionIDs},
+                            () => {
+                                onExportFailed?.();
+                            },
+                            translate,
+                        );
                         clearSelectedTransactions(true);
                     },
                 },

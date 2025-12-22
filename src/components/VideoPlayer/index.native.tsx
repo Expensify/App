@@ -20,6 +20,4 @@ function VideoPlayer({videoControlsStyle, shouldUseControlsBottomMargin = true, 
     );
 }
 
-VideoPlayer.displayName = 'VideoPlayer';
-
 export default VideoPlayer;
