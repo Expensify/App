@@ -1,5 +1,5 @@
-import {adminAccountIDsSelector, technicalContactEmailSelector} from '@selectors/Domain';
 import React, {useCallback} from 'react';
+import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -34,23 +34,25 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
-    const [technicalContactEmail] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+    const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
-        selector: technicalContactEmailSelector,
+        selector: technicalContactSettingsSelector,
     });
 
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
-
     const getCustomRightElement = useCallback(
         (accountID: number) => {
             const login = personalDetails?.[accountID]?.login;
-            if (technicalContactEmail !== login) {
+            const primaryEmail = technicalContactSettings?.technicalContactEmail;
+
+            if (!login || login !== primaryEmail) {
                 return null;
             }
+
             return <Badge text={translate('domain.admins.primaryContact')} />;
         },
-        [personalDetails, technicalContactEmail, translate],
+        [personalDetails, technicalContactSettings?.technicalContactEmail, translate],
     );
 
     const headerContent = isAdmin ? (

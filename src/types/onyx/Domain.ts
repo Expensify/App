@@ -20,7 +20,7 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     email: string;
 
     /** Validation code for the domain */
-    validateCode: string;
+    validateCode?: string;
 
     /** Whether domain validation is pending */
     isValidationPending?: boolean;

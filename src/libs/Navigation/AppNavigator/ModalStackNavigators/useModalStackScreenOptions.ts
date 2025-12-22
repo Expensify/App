@@ -8,7 +8,7 @@ import enhanceCardStyleInterpolator from '@libs/Navigation/AppNavigator/enhanceC
 import hideKeyboardOnSwipe from '@libs/Navigation/AppNavigator/hideKeyboardOnSwipe';
 import type {PlatformStackNavigationOptions, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 
-function useModalStackScreenOptions() {
+function useWideModalStackScreenOptions() {
     const styles = useThemeStyles();
 
     // We have to use isSmallScreenWidth, otherwise the content of RHP 'jumps' on Safari - its width is set to size of screen and only after rerender it is set to the correct value
@@ -20,20 +20,23 @@ function useModalStackScreenOptions() {
 
     return useCallback<({route}: {route: PlatformStackRouteProp<ParamListBase, string>}) => PlatformStackNavigationOptions>(
         ({route}) => {
-            let cardStyleInterpolator;
+            let cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
 
-            if (superWideRHPRouteKeys.includes(route.key) && !isSmallScreenWidth) {
-                cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
-                    cardStyle: styles.superWideRHPExtendedCardInterpolatorStyles,
-                });
-            } else if (wideRHPRouteKeys.includes(route.key) && !isSmallScreenWidth) {
-                // We need to use interpolator styles instead of regular card styles so we can use animated value for width.
-                // It is necessary to have responsive width of the wide RHP for range 800px to 840px.
-                cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
-                    cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
-                });
-            } else {
-                cardStyleInterpolator = CardStyleInterpolators.forHorizontalIOS;
+            if (!isSmallScreenWidth) {
+                if (superWideRHPRouteKeys.includes(route.key)) {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                        cardStyle: styles.superWideRHPExtendedCardInterpolatorStyles,
+                    });
+                } else if (wideRHPRouteKeys.includes(route.key)) {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                        cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
+                    });
+                    // single RHPs displayed above the wide RHP need to be positioned
+                } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
+                    cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
+                        cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
+                    });
+                }
             }
 
             return {
@@ -53,4 +56,4 @@ function useModalStackScreenOptions() {
     );
 }
 
-export default useModalStackScreenOptions;
+export default useWideModalStackScreenOptions;
