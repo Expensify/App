@@ -94,7 +94,6 @@ const handleUnusedOptimisticID: Middleware = (requestResponse, request, isFromSe
                         value: redundantParticipants,
                     },
                 );
-                return Promise.resolve(response);
             }
         }
         return response;
