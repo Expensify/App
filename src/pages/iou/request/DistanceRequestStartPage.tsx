@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Keyboard, Platform, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -60,7 +60,7 @@ function DistanceRequestStartPage({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
-    const showGPSTab = isBetaEnabled(CONST.BETAS.GPS_MILEAGE) && (Platform.OS === 'android' || Platform.OS === 'ios');
+    const showGPSTab = isBetaEnabled(CONST.BETAS.GPS_MILEAGE);
 
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();

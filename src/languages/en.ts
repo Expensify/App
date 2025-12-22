@@ -7845,6 +7845,13 @@ const translations = {
             settings: 'Settings',
         },
     },
+    gps: {
+        desktop: {
+            title: 'Track distance on your phone',
+            subtitle: 'Log miles or kilometers automatically with GPS and turn trips into expenses instantly.',
+            button: 'Download the app',
+        },
+    },
 };
 
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
