@@ -51,11 +51,11 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const authToken = session?.authToken ?? null;
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const selectedBank = addNewCard?.data?.selectedBank;
-    const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
+    const {feed: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
     const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
     const {isBetaEnabled} = usePermissions();
-    const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
+    const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
     const isPlaid = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !!plaidToken;
 
     const url = getCompanyCardBankConnection(policyID, bankName);
@@ -121,7 +121,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                 return;
             }
             setAssignCardStepAndData({
-                currentStep: assignCard?.data?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                 isEditing: false,
             });
             return;
@@ -153,7 +153,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         url,
         feed,
         isFeedExpired,
-        assignCard?.data?.dateOption,
+        assignCard?.cardToAssign?.dateOption,
         isPlaid,
         onImportPlaidAccounts,
         isFeedConnectionBroken,
