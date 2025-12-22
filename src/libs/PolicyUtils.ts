@@ -213,34 +213,29 @@ function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRate
     return distanceUnit?.rates[customUnitRateID];
 }
 
-/** Return admins from active policies */
+/**
+ * Return admins from active policies
+ */
 function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): MemberForList[] {
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
     const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin);
-
     if (!activePolicies) {
         return [];
     }
-
     const adminMap = new Map<string, MemberForList>();
-
     // O(1) checks for already-shared emails
     const shareesSet = new Set(currentBankAccount?.accountData?.sharees ?? []);
-
     for (const policy of Object.values(activePolicies)) {
         for (const admin of getAdminEmployees(policy)) {
             const email = admin?.email;
-
-            // Cheap skips first
+            // Check if the email is for the active user or an existing user in the sharees array or admins list to avoid extra iterations
             if (!email || email === currentUserLogin || adminMap.has(email) || shareesSet.has(email)) {
                 continue;
             }
-
             const personalDetails = getPersonalDetailByEmail(email);
             if (!personalDetails) {
                 continue;
             }
-
             adminMap.set(
                 email,
                 formatMemberForList({
@@ -259,24 +254,21 @@ function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> 
     return Array.from(adminMap.values());
 }
 
-/** Return true if there is at least one eligible admin in active policies */
+/**
+ * Return true if there is at least one eligible admin in active policies
+ */
 function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
     const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
     const activePolicies = getActivePolicies(policies, currentUserLogin);
-
     if (!activePolicies) {
         return false;
     }
-
     // Normalize sharees to a Set for O(1) lookups
     const alreadySharedSharees = new Set(currentBankAccount?.accountData?.sharees ?? []);
-
     for (const policy of Object.values(activePolicies)) {
         const admins = getAdminEmployees(policy);
         for (const admin of admins) {
             const email = admin?.email;
-
-            // same skips as original
             if (!email || email === currentUserLogin || alreadySharedSharees.has(email)) {
                 continue;
             }
