@@ -10,24 +10,25 @@ import pkg from '../../../package.json';
 import makeDebugTransport from './debugTransport';
 
 export default function (): void {
-    const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, browserTracingIntegration].filter((integration) => !!integration);
 
-    Sentry.init({
-        dsn: CONFIG.SENTRY_DSN,
-        transport: isDevelopment() ? makeDebugTransport : undefined,
-        tracesSampleRate: 1.0,
-        profilesSampleRate: Platform.OS === 'android' ? 0 : 1.0,
-        enableAutoPerformanceTracing: true,
-        enableUserInteractionTracing: true,
-        integrations,
-        environment: CONFIG.ENVIRONMENT,
-        release: `${pkg.name}@${pkg.version}`,
-        beforeSendTransaction: processBeforeSendTransactions,
-        enableLogs: true,
-    });
+    // const integrations = [navigationIntegration, tracingIntegration, browserProfilingIntegration, browserTracingIntegration].filter((integration) => !!integration);
 
-    startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
-        name: CONST.TELEMETRY.SPAN_APP_STARTUP,
-        op: CONST.TELEMETRY.SPAN_APP_STARTUP,
-    });
+    // Sentry.init({
+    //     dsn: CONFIG.SENTRY_DSN,
+    //     transport: isDevelopment() ? makeDebugTransport : undefined,
+    //     tracesSampleRate: 1.0,
+    //     profilesSampleRate: Platform.OS === 'android' ? 0 : 1.0,
+    //     enableAutoPerformanceTracing: true,
+    //     enableUserInteractionTracing: true,
+    //     integrations,
+    //     environment: CONFIG.ENVIRONMENT,
+    //     release: `${pkg.name}@${pkg.version}`,
+    //     beforeSendTransaction: processBeforeSendTransactions,
+    //     enableLogs: true,
+    // });
+
+    // startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
+    //     name: CONST.TELEMETRY.SPAN_APP_STARTUP,
+    //     op: CONST.TELEMETRY.SPAN_APP_STARTUP,
+    // });
 }

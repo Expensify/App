@@ -41,13 +41,13 @@ const config = {
             },
         }),
     },
-    serializer: !isDev
-        ? {
-              customSerializer: createSentryMetroSerializer(),
-          }
-        : {},
+    // serializer: !isDev
+    //     ? {
+    //           customSerializer: createSentryMetroSerializer(),
+    //       }
+    //     : {},
 };
 
 const mergedConfig = wrapWithReanimatedMetroConfig(mergeConfig(defaultConfig, expoConfig, config));
 
-module.exports = isDev ? mergedConfig : withSentryConfig(mergedConfig);
+module.exports = mergedConfig;
