@@ -1,5 +1,4 @@
 import {Str} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
@@ -76,44 +75,9 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
 
     const personalDetailLogins = useDeepCompareRef(Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])));
 
-    // Sync draft from approvalWorkflow.members when component mounts or members change
-    // This follows the card assignment pattern where draft is always synced from step data
-    // We merge with existing draft to preserve accountIDs that were already set (important for avatars)
+    // Initialize selectedMembers from approvalWorkflow.members on mount (like card flow uses step data)
     useEffect(() => {
-        if (!approvalWorkflow?.members || !policy?.employeeList) {
-            return;
-        }
-
-        // Build draft from non-members in approvalWorkflow.members
-        // Merge with existing draft to preserve accountIDs that were already set
-        const draftFromWorkflow: Record<string, number> = {...(invitedEmailsToAccountIDsDraft ?? {})};
-        for (const member of approvalWorkflow.members) {
-            const isPolicyMember = !!policy.employeeList?.[member.email];
-            if (!isPolicyMember && member.email) {
-                // Preserve existing accountID from draft if it exists and is valid
-                const existingAccountID = draftFromWorkflow[member.email];
-                if (existingAccountID && existingAccountID !== CONST.DEFAULT_NUMBER_ID) {
-                    // Keep the existing accountID (it's already correct)
-                    continue;
-                }
-
-                // Try to get accountID from personal details
-                const personalDetail = getPersonalDetailByEmail(member.email);
-                const accountID = personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                draftFromWorkflow[member.email] = accountID;
-            }
-        }
-
-        // Only update draft if there are non-members and draft has changed
-        if (Object.keys(draftFromWorkflow).length > 0) {
-            if (!deepEqual(invitedEmailsToAccountIDsDraft ?? {}, draftFromWorkflow)) {
-                setWorkspaceInviteMembersDraft(route.params.policyID, draftFromWorkflow);
-            }
-        }
-    }, [approvalWorkflow?.members, policy?.employeeList, route.params.policyID, invitedEmailsToAccountIDsDraft]);
-
-    useEffect(() => {
-        if (!approvalWorkflow?.members) {
+        if (!approvalWorkflow?.members || selectedMembers.length > 0) {
             return;
         }
 
@@ -126,19 +90,13 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 // Get personal details for invited members who might not be in policy yet
                 const personalDetail = getPersonalDetailByEmail(member.email);
 
-                // If not a policy member yet (invited), try to get accountID from:
-                // 1. Existing draft (preserves accountIDs that were already set)
-                // 2. Personal details
-                // 3. DEFAULT_NUMBER_ID as fallback
+                // If not a policy member, get accountID from draft (set when user was selected, like card flow)
                 if (!isPolicyMember) {
-                    // First check if we have an accountID in the draft (preserves previously set accountIDs)
                     const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];
-                    if (draftAccountID && draftAccountID !== CONST.DEFAULT_NUMBER_ID) {
+                    if (draftAccountID) {
                         accountID = draftAccountID;
                     } else if (personalDetail?.accountID) {
                         accountID = personalDetail.accountID;
-                    } else if (!accountID) {
-                        accountID = CONST.DEFAULT_NUMBER_ID;
                     }
                 }
 
@@ -163,7 +121,8 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 };
             }),
         );
-    }, [approvalWorkflow?.members, policy?.employeeList, policy?.owner, personalDetailLogins, translate, icons.FallbackAvatar, invitedEmailsToAccountIDsDraft]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
 
     const allApprovers = useMemo(() => {
         const members: SelectionListApprover[] = [...selectedMembers];
@@ -313,12 +272,16 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
         if (usersToInvite.length > 0) {
             const invitedEmailsToAccountIDs: Record<string, number> = {};
             for (const user of usersToInvite) {
-                if (user.email && user.accountID) {
-                    invitedEmailsToAccountIDs[user.email] = user.accountID;
-                } else if (user.email) {
-                    // If no accountID, use default (for new users)
-                    invitedEmailsToAccountIDs[user.email] = CONST.DEFAULT_NUMBER_ID;
+                if (!user.email) {
+                    continue;
                 }
+                // Use the accountID from the user object (which comes from selectedMembers icon)
+                // This accountID was set when the user was selected from the search list
+                // It will be a real accountID if user exists, or generated accountID for new users
+                if (user.accountID) {
+                    invitedEmailsToAccountIDs[user.email] = user.accountID;
+                }
+                // If accountID is missing, skip this user (shouldn't happen as it comes from selection)
             }
 
             // Set draft BEFORE navigating, just like card flows do
