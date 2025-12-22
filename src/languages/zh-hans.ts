@@ -139,6 +139,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -1482,6 +1483,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: '拆分日期',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} 至 ${endDate}（${count} 天）`,
         splitByDate: '按日期拆分',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `报告因自定义审批工作流而转发至 ${to}`,
     },
     transactionMerge: {
         listPage: {
@@ -3548,7 +3550,7 @@ ${
         subtitle: '使用 Expensify Travel 获取最优惠的旅行方案，并在一个地方管理您所有的商务报销。',
         features: {
             saveMoney: '在预订时省钱',
-            alerts: '获取实时更新和提醒',
+            alerts: '如果您的旅行计划发生变化，获取实时提醒',
         },
         bookTravel: '预订出行',
         bookDemo: '预订演示',
@@ -4725,6 +4727,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             feedName: (feedName: string) => `${feedName} 卡片`,
             directFeed: '直接数据馈送',
             whoNeedsCardAssigned: '谁需要被分配一张卡？',
+            chooseTheCardholder: '选择持卡人',
             chooseCard: '选择一张卡片',
             chooseCardFor: (assignee: string) => `为 <strong>${assignee}</strong> 选择一张卡片。找不到您要找的卡片？<concierge-link>请告诉我们。</concierge-link>`,
             noActiveCards: '此信息流中没有有效的卡片',
@@ -4746,6 +4749,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             chooseCardFeed: '选择卡片流水来源',
             ukRegulation:
                 'Expensify Limited 是 Plaid Financial Ltd. 的代理机构，Plaid Financial Ltd. 是一家在《2017 年支付服务条例》下受金融行为监管局（Financial Conduct Authority）监管并获授权的支付机构（公司参考编号：804718）。Plaid 通过其代理 Expensify Limited 向您提供受监管的账户信息服务。',
+            assign: '分配',
+            assignCardFailedError: '卡片分配失败。',
         },
         expensifyCard: {
             issueAndManageCards: '发放和管理您的 Expensify 卡',
@@ -4896,6 +4901,25 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '每日津贴',
                 subtitle: '设置每日津贴标准以控制员工日常支出。',
             },
+            travel: {
+                title: '旅行',
+                subtitle: '预订、管理和核对您的所有商务旅行。',
+                getStarted: {
+                    title: '开始使用 Expensify Travel',
+                    subtitle: '我们只需要您企业的更多信息，然后您就可以准备出发了。',
+                    ctaText: '开始吧',
+                },
+                reviewingRequest: {
+                    title: '收拾行李，我们已收到您的请求...',
+                    subtitle: '我们正在审查您启用 Expensify Travel 的请求。别担心，准备就绪时我们会通知您。',
+                    ctaText: '请求已发送',
+                },
+                bookOrManageYourTrip: {
+                    title: '预订或管理您的旅行',
+                    subtitle: '使用 Expensify Travel 获得最佳旅行优惠，并在一个地方管理所有商务费用。',
+                    ctaText: '预订或管理',
+                },
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: '获取支出洞察并实现有效管控。',
@@ -4932,6 +4956,9 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 cardNumber: '卡号',
                 cardholder: '持卡人',
                 cardName: '卡片名称',
+                allCards: '所有卡片',
+                assignedCards: '已分配',
+                unassignedCards: '未分配',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} 导出` : `${integration} 导出`),
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `选择要导出交易记录的 ${integration} 账户。`,
                 integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
@@ -4969,6 +4996,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 pendingBankLink: '请点击此处',
                 giveItNameInstruction: '为此卡片起一个与众不同的名称。',
                 updating: '正在更新…',
+                neverUpdated: '从不',
                 noAccountsFound: '未找到账户',
                 defaultCard: '默认卡片',
                 downgradeTitle: `无法降级工作区`,

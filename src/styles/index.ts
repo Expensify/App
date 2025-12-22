@@ -32,7 +32,6 @@ import editedLabelStyles from './utils/editedLabelStyles';
 import emojiDefaultStyles from './utils/emojiDefaultStyles';
 import flex from './utils/flex';
 import FontUtils from './utils/FontUtils';
-import getPopOverVerticalOffset from './utils/getPopOverVerticalOffset';
 import objectFit from './utils/objectFit';
 import optionAlternateTextPlatformStyles from './utils/optionAlternateTextPlatformStyles';
 import overflow from './utils/overflow';
@@ -359,7 +358,7 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: variables.componentBorderRadiusSmall,
-            minHeight: 16,
+            height: 16,
         },
 
         reportStatusText: {
@@ -502,6 +501,13 @@ const staticStyles = (theme: ThemeColors) =>
 
         textMicroBold: {
             color: theme.text,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightNormal,
+        },
+
+        textMicroBoldSupporting: {
+            color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             fontSize: variables.fontSizeSmall,
             lineHeight: variables.lineHeightNormal,
@@ -929,6 +935,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         activeComponentBG: {
             backgroundColor: theme.activeComponentBG,
+        },
+
+        messagesRowHeight: {
+            height: variables.componentSizeXSmall,
         },
 
         touchableButtonImage: {
@@ -1469,10 +1479,6 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
-        lhUndefined: {
-            lineHeight: undefined,
-        },
-
         lh14: {
             lineHeight: variables.lineHeightSmall,
         },
@@ -1924,7 +1930,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.contentHeaderHeight,
             justifyContent: 'center',
             paddingRight: 10,
-            paddingLeft: 20,
         },
 
         chatContentScrollView: {
@@ -4136,12 +4141,8 @@ const staticStyles = (theme: ThemeColors) =>
             height: 450,
         },
 
-        textMicroSupportingPadding: {
-            padding: variables.paddingSmall,
-        },
-
         tabSelectorButton: {
-            minHeight: variables.tabSelectorButtonHeight,
+            height: variables.tabSelectorButtonHeight,
             padding: variables.tabSelectorButtonPadding,
             flexDirection: 'row',
             alignItems: 'center',
@@ -4588,6 +4589,12 @@ const staticStyles = (theme: ThemeColors) =>
         listTableHeader: {
             paddingVertical: 12,
             paddingHorizontal: 32,
+        },
+
+        tableHeaderIconSpacing: {
+            marginRight: variables.iconSizeExtraSmall,
+            marginBottom: 1,
+            marginTop: 1,
         },
 
         cardItemSecondaryIconStyle: {
@@ -5097,6 +5104,11 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 12,
         },
 
+        travelCardIllustration: {
+            width: 191,
+            height: 170,
+        },
+
         emptyStateMoneyRequestReport: {
             maxHeight: 85,
             minHeight: 85,
@@ -5301,8 +5313,8 @@ const staticStyles = (theme: ThemeColors) =>
             padding: 16,
         },
 
-        // We have to use 10000 here as sidePanel has to be displayed on top of modals which have z-index of 9999
-        sidePanelContainer: {zIndex: 10000},
+        // We have to use 9998 here as sidePanel has to be displayed right under popovers which have z-index of 9999
+        sidePanelContainer: {zIndex: variables.sidePanelZIndex},
 
         reportPreviewArrowButton: {
             borderRadius: 50,
@@ -5720,20 +5732,14 @@ const dynamicStyles = (theme: ThemeColors) =>
                 vertical: windowHeight - (variables.fabBottom + variables.componentSizeNormal + 12),
             }) satisfies AnchorPosition,
 
-        createAccountMenuPositionProfile: () =>
-            ({
-                horizontal: 18,
-                ...getPopOverVerticalOffset(202 + 40),
-            }) satisfies AnchorPosition,
-
         overlayStyles: ({
             progress,
             positionLeftValue,
             positionRightValue,
         }: {
             progress: OverlayStylesParams;
-            positionLeftValue: number | Animated.Value;
-            positionRightValue: number | Animated.Value;
+            positionLeftValue: number | Animated.Value | Animated.AnimatedAddition<number>;
+            positionRightValue: number | Animated.Value | Animated.AnimatedAddition<number>;
         }) =>
             ({
                 // We need to stretch the overlay to cover the sidebar and the translate animation distance.
@@ -5908,10 +5914,10 @@ const dynamicStyles = (theme: ThemeColors) =>
             }) satisfies ViewStyle,
 
         sidePanelOverlayOpacity: (isOverlayVisible: boolean) => ({
-            opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
+            opacity: isOverlayVisible ? variables.overlayOpacity : 0,
         }),
         sidePanelContentWidth: (shouldUseNarrowLayout: boolean): ViewStyle => ({
-            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            width: shouldUseNarrowLayout ? '100%' : variables.sidePanelWidth,
         }),
         sidePanelContentBorderWidth: (isExtraLargeScreenWidth: boolean): ViewStyle => ({
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
