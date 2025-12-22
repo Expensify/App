@@ -127,6 +127,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -1484,6 +1485,7 @@ const translations = {
             },
         },
         chooseWorkspace: 'Choose a workspace',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `report routed to ${to} due to custom approval workflow`,
     },
     transactionMerge: {
         listPage: {

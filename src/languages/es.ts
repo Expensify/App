@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {HarvestCreatedExpenseReportParams, SplitDateRangeParams, ViolationsRterParams} from './params';
+import type {HarvestCreatedExpenseReportParams, RoutedDueToDEWParams, SplitDateRangeParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -1186,6 +1186,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Elige un espacio de trabajo',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `informe enviado a ${to} debido a un flujo de aprobación personalizado`,
     },
     transactionMerge: {
         listPage: {
