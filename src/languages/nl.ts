@@ -6562,7 +6562,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         useInviteButton: 'Om een nieuw lid aan de chat toe te voegen, gebruik de uitnodigingsknop hierboven.',
         notAuthorized: `Je hebt geen toegang tot deze pagina. Als je deze ruimte probeert te joinen, vraag dan gewoon een lid van de ruimte om je toe te voegen. Iets anders aan de hand? Neem contact op met ${CONST.EMAIL.CONCIERGE}`,
         roomArchived: `Het lijkt erop dat deze room is gearchiveerd. Voor vragen kun je contact opnemen met ${CONST.EMAIL.CONCIERGE}.`,
-        removeMembersPrompt: (memberName: string) => ({
+        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `Weet je zeker dat je ${memberName} uit de ruimte wilt verwijderen?`,
             other: 'Weet je zeker dat je de geselecteerde leden uit de ruimte wilt verwijderen?',
         }),

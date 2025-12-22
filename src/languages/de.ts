@@ -6593,7 +6593,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         useInviteButton: 'Um ein neues Mitglied zum Chat einzuladen, verwende bitte die Einladungsschaltfläche oben.',
         notAuthorized: `Du hast keinen Zugriff auf diese Seite. Wenn du versuchst, diesem Raum beizutreten, bitte einfach ein Raummitglied, dich hinzuzufügen. Etwas anderes? Wende dich an ${CONST.EMAIL.CONCIERGE}`,
         roomArchived: `Es sieht so aus, als wäre dieser Raum archiviert worden. Bei Fragen wende dich an ${CONST.EMAIL.CONCIERGE}.`,
-        removeMembersPrompt: (memberName: string) => ({
+        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `Sind Sie sicher, dass Sie ${memberName} aus dem Raum entfernen möchten?`,
             other: 'Bist du sicher, dass du die ausgewählten Mitglieder aus dem Raum entfernen möchtest?',
         }),

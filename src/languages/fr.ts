@@ -6604,7 +6604,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         useInviteButton: 'Pour inviter un nouveau membre dans le chat, veuillez utiliser le bouton d’invitation ci-dessus.',
         notAuthorized: `Vous n’avez pas accès à cette page. Si vous essayez de rejoindre cette salle, demandez simplement à un membre de la salle de vous ajouter. Autre chose ? Contactez ${CONST.EMAIL.CONCIERGE}`,
         roomArchived: `Il semble que cette salle ait été archivée. Pour toute question, contactez ${CONST.EMAIL.CONCIERGE}.`,
-        removeMembersPrompt: (memberName: string) => ({
+        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `Êtes-vous sûr de vouloir retirer ${memberName} de la salle ?`,
             other: 'Voulez-vous vraiment supprimer les membres sélectionnés de la salle ?',
         }),

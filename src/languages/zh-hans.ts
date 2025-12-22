@@ -6420,7 +6420,7 @@ ${reportName}
         useInviteButton: '要邀请新成员加入聊天，请使用上方的邀请按钮。',
         notAuthorized: `您无权访问此页面。如果您正尝试加入此聊天室，请让聊天室成员将您加入。还有其他问题？请联系 ${CONST.EMAIL.CONCIERGE}`,
         roomArchived: `此房间似乎已被归档。如有问题，请联系 ${CONST.EMAIL.CONCIERGE}。`,
-        removeMembersPrompt: (memberName: string) => ({
+        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `您确定要将 ${memberName} 从此房间中移除吗？`,
             other: '您确定要将选中的成员从此聊天室中移除吗？',
         }),

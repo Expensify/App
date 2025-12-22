@@ -6557,7 +6557,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         useInviteButton: 'Para convidar um novo membro para o chat, use o botão de convite acima.',
         notAuthorized: `Você não tem acesso a esta página. Se estiver tentando entrar nesta sala, peça a um membro da sala para adicioná-lo. Alguma outra coisa? Entre em contato com ${CONST.EMAIL.CONCIERGE}`,
         roomArchived: `Parece que esta sala foi arquivada. Em caso de dúvidas, entre em contato com ${CONST.EMAIL.CONCIERGE}.`,
-        removeMembersPrompt: (memberName: string) => ({
+        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `Tem certeza de que deseja remover ${memberName} da sala?`,
             other: 'Tem certeza de que deseja remover os membros selecionados da sala?',
         }),

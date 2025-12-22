@@ -6523,7 +6523,7 @@ ${reportName}
         useInviteButton: '新しいメンバーをチャットに招待するには、上の招待ボタンを使用してください。',
         notAuthorized: `このページへのアクセス権がありません。このルームに参加しようとしている場合は、ルームのメンバーに追加してもらってください。その他のお困りごとについては、${CONST.EMAIL.CONCIERGE} までご連絡ください。`,
         roomArchived: `このルームはアーカイブされたようです。ご不明な点がありましたら、${CONST.EMAIL.CONCIERGE} までお問い合わせください。`,
-        removeMembersPrompt: (memberName: string) => ({
+        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
             one: `本当に、このルームから${memberName}さんを削除しますか？`,
             other: '選択したメンバーをルームから削除してもよろしいですか？',
         }),
