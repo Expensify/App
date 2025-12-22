@@ -1262,9 +1262,16 @@ function PureReportActionItem({
                 }
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-            const isFromNewDot = getOriginalMessage(action)?.isNewDot ?? false;
+            const originalMessage = getOriginalMessage(action);
+            const isFromNewDot = originalMessage?.isNewDot ?? false;
 
-            children = isFromNewDot ? emptyHTML : <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
+            if (isFromNewDot) {
+                children = emptyHTML;
+            } else {
+                // Extract comment from originalMessage.message
+                const comment = (originalMessage as {message?: string})?.message?.trim();
+                children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere', {comment})} />;
+            }
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
