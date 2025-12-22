@@ -34,6 +34,4 @@ function AgentZeroProcessingRequestIndicator({reportID}: AgentZeroProcessingRequ
     );
 }
 
-AgentZeroProcessingRequestIndicator.displayName = 'AgentZeroProcessingRequestIndicator';
-
 export default memo(AgentZeroProcessingRequestIndicator);
