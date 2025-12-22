@@ -48,7 +48,7 @@ type ProcessMoneyReportHoldMenuProps = {
     /** Callback for displaying payment animation on IOU preview component */
     startAnimation?: () => void;
 
-    /** Whether the report has non held expenses*/
+    /** Whether the report has non held expenses */
     hasNonHeldExpenses?: boolean;
 };
 

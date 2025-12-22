@@ -412,7 +412,7 @@ function IOURequestStepParticipants({
     }, [isFocused, action]);
 
     const isWorkspacesOnly = useMemo(() => {
-        return (initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0);
+        return initialTransaction?.amount !== undefined && initialTransaction?.amount !== null && initialTransaction?.amount <= 0;
     }, [initialTransaction?.amount]);
 
     return (
