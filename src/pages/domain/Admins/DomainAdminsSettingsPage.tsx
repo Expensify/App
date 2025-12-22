@@ -1,20 +1,18 @@
 import {technicalContactEmailSelector} from '@selectors/Domain';
 import React from 'react';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import {clearSetPrimaryContactError} from '@userActions/Domain';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import BaseDomainSettingsPage from '@pages/domain/BaseDomainSettingsPage';
 
 type DomainAdminsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS_SETTINGS>;
 
@@ -35,33 +33,20 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
     });
 
     return (
-        <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
-            <ScreenWrapper
-                shouldEnableMaxHeight
-                shouldUseCachedViewportHeight
-                testID={DomainAdminsSettingsPage.displayName}
-                enableEdgeToEdgeBottomSafeAreaPadding
+        <BaseDomainSettingsPage domainAccountID={domainAccountID}>
+            <OfflineWithFeedback
+                pendingAction={domainPendingActions?.technicalContactEmail}
+                errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
+                onClose={() => clearSetPrimaryContactError(domainAccountID)}
             >
-                <HeaderWithBackButton
-                    title={translate('domain.admins.settings')}
-                    onBackButtonPress={() => {
-                        Navigation.dismissModal();
-                    }}
+                <MenuItemWithTopDescription
+                    description={translate('domain.admins.primaryContact')}
+                    title={technicalContactEmail}
+                    shouldShowRightIcon
+                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
                 />
-                <OfflineWithFeedback
-                    pendingAction={domainPendingActions?.technicalContactEmail}
-                    errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
-                    onClose={() => clearSetPrimaryContactError(domainAccountID)}
-                >
-                    <MenuItemWithTopDescription
-                        description={translate('domain.admins.primaryContact')}
-                        title={technicalContactEmail}
-                        shouldShowRightIcon
-                        onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_PRIMARY_CONTACT.getRoute(domainAccountID))}
-                    />
-                </OfflineWithFeedback>
-            </ScreenWrapper>
-        </DomainNotFoundPageWrapper>
+            </OfflineWithFeedback>
+        </BaseDomainSettingsPage>
     );
 }
 

@@ -166,6 +166,9 @@ type CardFeeds = {
 
         /** Email address of the technical contact for the domain */
         technicalContactEmail?: string;
+
+        /** Whether 2FA is required for all members */
+        twoFactorAuthRequired?: boolean;
     };
 
     /** Whether we are loading the data via the API */
