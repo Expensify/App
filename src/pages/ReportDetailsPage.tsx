@@ -323,7 +323,9 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         getReportPrivateNote(report?.reportID);
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
-    const leaveChat = useCallback(() => {
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const leaveChat = () => {
         if (isChatThread && report.parentReportID) {
             // For threads, navigate to parent report first to avoid white screen,
             // then call leaveRoom with skipNavigation=true since we've already handled navigation
@@ -344,7 +346,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
             leaveRoom(report.reportID, isWorkspaceMemberLeavingWorkspaceRoom);
         });
-    }, [isRootGroupChat, isPolicyEmployee, isPolicyAdmin, quickAction?.chatReportID, report, isChatThread]);
+    };
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
