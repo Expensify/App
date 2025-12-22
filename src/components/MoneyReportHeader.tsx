@@ -608,6 +608,8 @@ function MoneyReportHeader({
                     optimisticChatReportID,
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
+                    introSelected,
+                    activePolicyID,
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,
                     activePolicyExpenseChat,
