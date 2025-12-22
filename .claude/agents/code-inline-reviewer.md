@@ -157,10 +157,10 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 #### Before flagging: Run optimization check
 
-**YOU MUST call `checkReactCompilerOptimization.sh` on EVERY .tsx file from the diff.**
+**YOU MUST call `checkReactCompilerOptimization.ts` on EVERY .tsx file from the diff.**
 
 ```bash
-checkReactCompilerOptimization.sh <file-path>
+checkReactCompilerOptimization.ts <file-path>
 ```
 
 **"File not found"** → Assume parent is optimized and skip PERF-4.
