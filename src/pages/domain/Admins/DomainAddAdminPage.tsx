@@ -1,6 +1,6 @@
 import {adminAccountIDsSelector, domainEmailSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import type {SectionListData} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -50,12 +50,14 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
 
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const [currentlySelectedUser, setCurrentlySelectedUser] = useState<OptionData | null>(null);
+    const didInvite = useRef<boolean>(false);
 
     const domainName = domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
     const {searchTerm, setSearchTerm, availableOptions, toggleSelection, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
         includeRecentReports: false,
+        excludeLogins: Object.fromEntries(CONST.EXPENSIFY_EMAILS.map((email) => [email, true])),
         shouldInitialize: didScreenTransitionEnd,
         onSingleSelect: (option) => setCurrentlySelectedUser({...option, isSelected: true}),
     });
@@ -65,9 +67,10 @@ function DomainAddAdminPage({route}: DomainAddAdminProps) {
     }, [searchTerm]);
 
     const inviteUser = () => {
-        if (!currentlySelectedUser || !currentlySelectedUser.accountID || !currentlySelectedUser.login || !domainName) {
+        if (didInvite.current || !currentlySelectedUser || !currentlySelectedUser.accountID || !currentlySelectedUser.login || !domainName) {
             return;
         }
+        didInvite.current = true;
 
         addAdminToDomain(domainAccountID, currentlySelectedUser.accountID, currentlySelectedUser.login, domainName);
         Navigation.dismissModal();
