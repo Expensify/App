@@ -401,7 +401,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[reportAction.reportActionID]: reportAction});
 
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
-            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
+            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', {amount: '', last4Digits});
 
             expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
         });

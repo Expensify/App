@@ -1090,9 +1090,17 @@ function getIOUReportName(translate: LocalizedTranslate, data: OnyxTypes.SearchR
     const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? getDisplayNameOrDefault(getPersonalDetailsForAccountID(reportItem.managerID));
     const formattedAmount = convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAID) {
-        return translate('iou.payerPaidAmount', formattedAmount, payerName);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('iou.payerPaidAmount', {
+            payer: payerName,
+            amount: formattedAmount,
+        });
     }
-    return translate('iou.payerOwesAmount', formattedAmount, payerName);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('iou.payerOwesAmount', {
+        payer: payerName,
+        amount: formattedAmount,
+    });
 }
 
 function getTransactionViolations(

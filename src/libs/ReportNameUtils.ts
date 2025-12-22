@@ -321,7 +321,10 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', formattedAmount, payerOrApproverName);
+    const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', {
+        payer: payerOrApproverName,
+        amount: formattedAmount,
+    });
 
     if (isReportApproved({report})) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -339,12 +342,12 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
+        return translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
     if (isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerOwesAmount', formattedAmount, payerOrApproverName);
+        return translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
     }
 
     return payerPaidAmountMessage;
@@ -473,10 +476,10 @@ function computeReportNameBasedOnReportAction(parentReportAction?: ReportAction,
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
                 if (originalMessage.automaticAction) {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    return translateLocal('iou.automaticallyPaidWithBusinessBankAccount', undefined, last4Digits);
+                    return translateLocal('iou.automaticallyPaidWithBusinessBankAccount', {last4Digits});
                 }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('iou.businessBankAccount', undefined, last4Digits);
+                return translateLocal('iou.businessBankAccount', {last4Digits});
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 if (originalMessage.automaticAction) {

@@ -82,8 +82,12 @@ function getBillingStatus({
                 title: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.title'),
                 subtitle: translate(
                     'subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle',
-                    isBillingFailed ? purchaseDateFormatted : undefined,
-                    isBillingFailed ? purchaseAmountWithCurrency : undefined,
+                    isBillingFailed
+                        ? {
+                              date: purchaseDateFormatted,
+                              purchaseAmountOwed: purchaseAmountWithCurrency,
+                          }
+                        : {},
                 ),
                 isError: true,
                 isRetryAvailable: !isEmptyObject(accountData) ? true : undefined,
@@ -108,7 +112,7 @@ function getBillingStatus({
         case PAYMENT_STATUS.BILLING_DISPUTE_PENDING:
             return {
                 title: translate('subscription.billingBanner.billingDisputePending.title'),
-                subtitle: translate('subscription.billingBanner.billingDisputePending.subtitle', amountOwed, cardEnding),
+                subtitle: translate('subscription.billingBanner.billingDisputePending.subtitle', {amountOwed, cardEnding}),
                 isError: true,
                 isRetryAvailable: false,
             };
