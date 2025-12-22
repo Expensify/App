@@ -191,6 +191,7 @@ function SearchAutocompleteList({
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -199,6 +200,7 @@ function SearchAutocompleteList({
             return defaultListOptions;
         }
         return getSearchOptions({
+            translate,
             options,
             draftComments,
             nvpDismissedProductTraining,
@@ -212,9 +214,10 @@ function SearchAutocompleteList({
             includeCurrentUser: true,
             countryCode,
             shouldShowGBR: false,
+            policyTags,
             shouldUnreadBeBold: true,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode]);
+    }, [areOptionsInitialized, translate, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, policyTags]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -409,6 +412,7 @@ function SearchAutocompleteList({
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
                 const participants = getSearchOptions({
+                    translate,
                     options,
                     draftComments,
                     nvpDismissedProductTraining,
@@ -422,6 +426,7 @@ function SearchAutocompleteList({
                     includeCurrentUser: true,
                     countryCode,
                     shouldShowGBR: true,
+                    policyTags,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
                 return participants.map((participant) => ({
@@ -433,6 +438,7 @@ function SearchAutocompleteList({
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
                 const filteredReports = getSearchOptions({
+                    translate,
                     options,
                     draftComments,
                     nvpDismissedProductTraining,
@@ -446,6 +452,7 @@ function SearchAutocompleteList({
                     includeCurrentUser: false,
                     countryCode,
                     shouldShowGBR: true,
+                    policyTags,
                 }).recentReports;
 
                 return filteredReports.map((chat) => ({
@@ -604,11 +611,13 @@ function SearchAutocompleteList({
         currencyAutocompleteList,
         recentCurrencyAutocompleteList,
         taxAutocompleteList,
+        translate,
         options,
         draftComments,
         nvpDismissedProductTraining,
         betas,
         countryCode,
+        policyTags,
         currentUserLogin,
         groupByAutocompleteList,
         statusAutocompleteList,

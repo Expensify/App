@@ -5,6 +5,7 @@ import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Beta from '@src/types/onyx/Beta';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 type UseFilteredOptionsConfig = {
@@ -76,12 +77,14 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
         canBeMissing: true,
         selector: reportsSelector,
     });
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
+    const {translate} = useLocalize();
 
     const totalReports = allReports ? Object.keys(allReports).length : 0;
 
     const options: OptionList | null =
         enabled && allReports && allPersonalDetails
-            ? createFilteredOptionList(allPersonalDetails, allReports, reportAttributesDerived, {
+            ? createFilteredOptionList(allPersonalDetails, allReports, policyTags, translate, reportAttributesDerived, {
                   maxRecentReports: reportsLimit,
                   includeP2P,
                   searchTerm,

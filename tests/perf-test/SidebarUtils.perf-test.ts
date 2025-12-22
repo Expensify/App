@@ -89,6 +89,8 @@ describe('SidebarUtils', () => {
                 localeCompare,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                policyTags: undefined,
+                translate: jest.fn(),
             }),
         );
     });

@@ -56,6 +56,7 @@ type SelectedOption = ListItem &
     };
 
 function useOptions() {
+    const {translate} = useLocalize();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
@@ -66,6 +67,7 @@ function useOptions() {
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
 
     const {
         options: listOptions,
@@ -95,6 +97,8 @@ function useOptions() {
         },
         draftComments,
         nvpDismissedProductTraining,
+        policyTags,
+        translate,
         {
             betas: betas ?? [],
             includeSelfDM: true,
@@ -106,7 +110,7 @@ function useOptions() {
 
     const areOptionsInitialized = !isLoading;
 
-    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, {
+    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, translate, countryCode, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     });
@@ -151,6 +155,7 @@ function useOptions() {
                       personalDetails.find((option) => option.accountID === participant.accountID) ??
                       getUserToInviteOption({
                           searchValue: participant?.login,
+                          translate,
                       });
                   if (participantOption) {
                       result.push({
@@ -256,6 +261,8 @@ function NewChatPage({ref}: NewChatPageProps) {
             selectedOptions as OptionData[],
             recentReports,
             personalDetails,
+            undefined,
+            translate,
             undefined,
             undefined,
             undefined,

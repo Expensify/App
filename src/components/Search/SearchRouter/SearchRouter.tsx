@@ -110,6 +110,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const listRef = useRef<SelectionListHandle>(null);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     // The actual input text that the user sees
@@ -154,8 +155,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 if (!report) {
                     return undefined;
                 }
-
-                const option = createOptionFromReport(report, personalDetails, undefined, {showPersonalDetails: true});
+                const reportPolicyTags = report.policyID ? policyTags?.[report.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
+                const option = createOptionFromReport(report, personalDetails, reportPolicyTags, translate, undefined, {showPersonalDetails: true});
                 reportForContextualSearch = option;
             }
 
@@ -200,7 +201,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 },
             ];
         },
-        [contextualReportID, styles.activeComponentBG, textInputValue, translate, isSearchRouterDisplayed, reports, personalDetails, expensifyIcons.MagnifyingGlass],
+        [contextualReportID, textInputValue, isSearchRouterDisplayed, translate, expensifyIcons.MagnifyingGlass, styles.activeComponentBG, reports, policyTags, personalDetails],
     );
 
     const searchQueryItem = textInputValue

@@ -49,7 +49,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
     }));
@@ -66,6 +66,7 @@ function ShareTab({ref}: ShareTabProps) {
             return defaultListOptions;
         }
         return getSearchOptions({
+            translate,
             options,
             draftComments,
             nvpDismissedProductTraining,
@@ -76,8 +77,9 @@ function ShareTab({ref}: ShareTabProps) {
             maxResults: 20,
             includeUserToInvite: true,
             countryCode,
+            policyTags,
         });
-    }, [areOptionsInitialized, betas, draftComments, nvpDismissedProductTraining, options, textInputValue, countryCode]);
+    }, [areOptionsInitialized, translate, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, policyTags]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {

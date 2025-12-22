@@ -1,10 +1,12 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import {createOptionFromReport, createOptionList, processReport, shallowOptionsListCompare} from '@libs/OptionsListUtils';
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Report} from '@src/types/onyx';
 import {usePersonalDetails} from './OnyxListItemProvider';
@@ -55,14 +57,16 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
+    const {translate} = useLocalize();
 
     const loadOptions = useCallback(() => {
-        const optionLists = createOptionList(personalDetails, reports, reportAttributes?.reports);
+        const optionLists = createOptionList(personalDetails, policyTags, translate, reports, reportAttributes?.reports);
         setOptions({
             reports: optionLists.reports,
             personalDetails: optionLists.personalDetails,
         });
-    }, [personalDetails, reports, reportAttributes?.reports]);
+    }, [personalDetails, reports, reportAttributes?.reports, policyTags, translate]);
 
     /**
      * This effect is responsible for generating the options list when their data is not yet initialized
@@ -118,7 +122,8 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
             for (const reportKey of changedReportKeys) {
                 const report = changedReportsEntries[reportKey];
                 const reportID = reportKey.replace(ONYXKEYS.COLLECTION.REPORT, '');
-                const {reportOption} = processReport(report, personalDetails, reportAttributes?.reports);
+                const reportPolicyTags = report?.policyID ? policyTags?.[report?.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
+                const {reportOption} = processReport(report, personalDetails, translate, reportPolicyTags, reportAttributes?.reports);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
@@ -132,7 +137,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportsEntries, personalDetails, reportAttributes?.reports]);
+    }, [changedReportsEntries, personalDetails, reportAttributes?.reports, translate, policyTags]);
 
     useEffect(() => {
         if (!changedReportActions || !areOptionsInitialized.current) {
@@ -152,7 +157,9 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 }
 
                 const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-                const {reportOption} = processReport(updatedReportsMap.get(reportID)?.item, personalDetails, reportAttributes?.reports);
+                const report = updatedReportsMap.get(reportID)?.item;
+                const reportPolicyTags = report?.policyID ? policyTags?.[report?.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
+                const {reportOption} = processReport(updatedReportsMap.get(reportID)?.item, personalDetails, translate, reportPolicyTags, reportAttributes?.reports);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
@@ -164,7 +171,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-    }, [changedReportActions, personalDetails, reportAttributes?.reports]);
+    }, [changedReportActions, personalDetails, policyTags, reportAttributes?.reports, translate]);
 
     /**
      * This effect is used to update the options list when personal details change.
@@ -182,7 +189,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         // Handle initial personal details load. This initialization is required here specifically to prevent
         // UI freezing that occurs when resetting the app from the troubleshooting page.
         if (!prevPersonalDetails) {
-            const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(personalDetails, reports, reportAttributes?.reports);
+            const {personalDetails: newPersonalDetailsOptions, reports: newReports} = createOptionList(personalDetails, policyTags, translate, reports, reportAttributes?.reports);
             setOptions((prevOptions) => ({
                 ...prevOptions,
                 personalDetails: newPersonalDetailsOptions,
@@ -215,7 +222,8 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                     continue;
                 }
 
-                const newReportOption = createOptionFromReport(report, personalDetails, reportAttributes?.reports, {showPersonalDetails: true});
+                const reportPolicyTags = report.policyID ? policyTags?.[report.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
+                const newReportOption = createOptionFromReport(report, personalDetails, reportPolicyTags, translate, reportAttributes?.reports, {showPersonalDetails: true});
                 const replaceIndex = options.reports.findIndex((option) => option.reportID === report.reportID);
                 newReportOptions.push({
                     newReportOption,
@@ -225,7 +233,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         }
 
         // since personal details are not a collection, we need to recreate the whole list from scratch
-        const newPersonalDetailsOptions = createOptionList(personalDetails, reports, reportAttributes?.reports).personalDetails;
+        const newPersonalDetailsOptions = createOptionList(personalDetails, policyTags, translate, reports, reportAttributes?.reports).personalDetails;
 
         setOptions((prevOptions) => {
             const newOptions = {...prevOptions};
