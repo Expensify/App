@@ -18,17 +18,9 @@ import {
     isReportManager,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import {
-    getAmount,
-    getTransactionViolationsOfTransaction,
-    isDistanceRequest,
-    isExpenseSplit,
-    isManagedCardTransaction,
-    isPerDiemRequest,
-    isTransactionPendingDelete,
-} from '@src/libs/TransactionUtils';
+import {getAmount, isDistanceRequest, isExpenseSplit, isManagedCardTransaction, isPerDiemRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
+import type {MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU';
 import type {UpdateMoneyRequestData} from './IOU';
 
@@ -173,6 +165,7 @@ function getTransactionsForMerging({
 
 function getOnyxTargetTransactionData(
     targetTransaction: Transaction,
+    targetTransactionViolations: OnyxEntry<TransactionViolations>,
     mergeTransaction: MergeTransaction,
     policy: OnyxEntry<Policy>,
     policyTags: OnyxEntry<PolicyTagLists>,
@@ -184,7 +177,6 @@ function getOnyxTargetTransactionData(
     let data: UpdateMoneyRequestData;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const transactionThreadReportID = getTransactionThreadReportID(targetTransaction);
-    const violations = getTransactionViolationsOfTransaction(targetTransaction.transactionID);
 
     // Compare mergeTransaction with targetTransaction and remove fields with same values
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
@@ -212,7 +204,7 @@ function getOnyxTargetTransactionData(
             policy,
             policyTagList: policyTags,
             policyCategories,
-            violations,
+            violations: targetTransactionViolations,
             shouldBuildOptimisticModifiedExpenseReportAction,
             currentUserAccountIDParam,
             currentUserEmailParam,
@@ -254,6 +246,7 @@ type MergeTransactionRequestParams = {
     mergeTransactionID: string;
     mergeTransaction: MergeTransaction;
     targetTransaction: Transaction;
+    allTransactionViolations: OnyxCollection<TransactionViolations>;
     sourceTransaction: Transaction;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
@@ -270,6 +263,7 @@ function mergeTransactionRequest({
     mergeTransaction,
     targetTransaction,
     sourceTransaction,
+    allTransactionViolations,
     policy,
     policyTags,
     policyCategories,
@@ -307,6 +301,7 @@ function mergeTransactionRequest({
 
     const onyxTargetTransactionData = getOnyxTargetTransactionData(
         targetTransaction,
+        allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + targetTransaction.transactionID],
         mergeTransaction,
         policy,
         policyTags,
@@ -401,7 +396,7 @@ function mergeTransactionRequest({
 
     // Optimistic delete duplicated transaction violations
     const optimisticTransactionViolations: OnyxUpdate[] = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
-        const violations = getTransactionViolationsOfTransaction(id);
+        const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id];
 
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -411,11 +406,12 @@ function mergeTransactionRequest({
         };
     });
     const failureTransactionViolations: OnyxUpdate[] = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
-        const violations = getTransactionViolationsOfTransaction(id);
+        const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id];
 
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: violations,
         };
     });

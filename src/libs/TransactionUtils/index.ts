@@ -1208,9 +1208,8 @@ function getTransactionViolationsOfTransaction(transactionID: string) {
 /**
  * Check if a transaction has been rejected
  */
-function hasTransactionBeenRejected(transactionID: string): boolean {
-    const transactionViolations = getTransactionViolationsOfTransaction(transactionID);
-    return transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+function hasTransactionBeenRejected(transactionViolations: OnyxEntry<TransactionViolations>): boolean {
+    return !!transactionViolations && transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
 }
 
 /**
@@ -1513,14 +1512,12 @@ function isDuplicate(
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
-    transactionViolation?: OnyxEntry<TransactionViolations>,
+    transactionViolation: OnyxEntry<TransactionViolations>,
 ): boolean {
     if (!transaction) {
         return false;
     }
-    const duplicatedTransactionViolation = (transactionViolation ?? deprecatedAllTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`])?.find(
-        (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
-    );
+    const duplicatedTransactionViolation = transactionViolation?.find((violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
     const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
     const isDuplicatedTransactionViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, currentUserEmail, currentUserAccountID, iouReport, policy);
 

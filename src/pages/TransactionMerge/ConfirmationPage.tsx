@@ -45,6 +45,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
         canBeMissing: true,
     });
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        canBeMissing: false,
+    });
     const targetTransactionThreadReportIDSelector = useCallback(
         (reportActionsList: OnyxEntry<ReportActions>) => {
             const reportActions = Object.values(reportActionsList ?? {});
@@ -97,6 +100,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             mergeTransactionID: transactionID,
             mergeTransaction,
             targetTransaction,
+            allTransactionViolations,
             sourceTransaction,
             policy,
             policyTags,
@@ -124,6 +128,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
+        allTransactionViolations,
     ]);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionThreadReport?.reportID) {
