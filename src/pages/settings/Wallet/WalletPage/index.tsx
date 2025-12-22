@@ -20,6 +20,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -58,6 +59,7 @@ function WalletPage() {
         canBeMissing: true,
         selector: fundListSelector,
     });
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
@@ -67,7 +69,7 @@ function WalletPage() {
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe']);
+    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserMinus']);
     const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet']);
     const walletIllustration = useWalletSectionIllustration();
 
@@ -80,6 +82,7 @@ function WalletPage() {
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+    const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
     const kycWallRef = useContext(KYCWallContext);
 
     const hasWallet = !isEmpty(userWallet);
@@ -124,6 +127,10 @@ function WalletPage() {
                     description: description ?? getPaymentMethodDescription(accountType, accountData, translate),
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
+            }
+            if (accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !!accountData?.sharees?.length) {
+                const isOnlyCurrentUserInSharees = accountData.sharees.length === 1 && accountData.sharees.at(0) === currentUserPersonalDetails?.email;
+                setShouldShowUnshareButton(accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isOnlyCurrentUserInSharees);
             }
             setPaymentMethod({
                 isSelectedPaymentMethodDefault: !!isDefault,
@@ -314,6 +321,21 @@ function WalletPage() {
                       },
                   ]
                 : []),
+            ...(shouldShowUnshareButton
+                ? [
+                      {
+                          text: translate('common.unshare'),
+                          icon: icons.UserMinus,
+                          onSelected: () => {
+                              if (isAccountLocked) {
+                                  closeModal(() => showLockedAccountModal());
+                                  return;
+                              }
+                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_UNSHARE_BANK_ACCOUNT.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                          },
+                      },
+                  ]
+                : []),
             {
                 text: translate('common.delete'),
                 icon: icons.Trashcan,
@@ -342,11 +364,15 @@ function WalletPage() {
                 : []),
         ],
         [
-            icons,
             shouldUseNarrowLayout,
             bottomMountItem,
             shouldShowMakeDefaultButton,
             translate,
+            icons.Star,
+            icons.UserMinus,
+            icons.Trashcan,
+            icons.Globe,
+            shouldShowUnshareButton,
             shouldShowEnableGlobalReimbursementsButton,
             isAccountLocked,
             makeDefaultPaymentMethod,
