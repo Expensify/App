@@ -5316,7 +5316,6 @@ function getReportPreviewMessage(
             return translateLocal(translatePhraseKey, payerDisplayName ?? '');
         }
         if (translatePhraseKey === 'iou.payerPaidAmount') {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal(translatePhraseKey, '', payerDisplayName ?? '');
         }
     }
@@ -10529,7 +10528,6 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
 
                 if (automaticAction) {
                     if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
-                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         return translateLocal('iou.automaticallyPaidWithExpensify', '');
                     }
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -10537,7 +10535,6 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
                 }
                 break;
             default:
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return translateLocal('iou.payerPaidAmount', '', '');
         }
         if (translationKey === 'iou.businessBankAccount') {
