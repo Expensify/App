@@ -3862,7 +3862,6 @@ ${
                 monthly: 'Maandelijks',
             },
             planType: 'Abonnementstype',
-            submitExpense: 'Dien hieronder je declaraties in:',
             defaultCategory: 'Standaardcategorie',
             viewTransactions: 'Transacties weergeven',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Declaraties van ${displayName}`,

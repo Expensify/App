@@ -3801,7 +3801,6 @@ ${
                 monthly: '每月',
             },
             planType: '计划类型',
-            submitExpense: '请在下方提交您的报销：',
             defaultCategory: '默认类别',
             viewTransactions: '查看交易',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName} 的报销`,

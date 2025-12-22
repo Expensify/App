@@ -11,7 +11,6 @@ import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';

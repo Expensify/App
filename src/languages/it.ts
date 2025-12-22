@@ -3863,7 +3863,6 @@ ${
                 monthly: 'Mensile',
             },
             planType: 'Tipo di piano',
-            submitExpense: 'Invia le tue spese qui sotto:',
             defaultCategory: 'Categoria predefinita',
             viewTransactions: 'Visualizza transazioni',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Spese di ${displayName}`,

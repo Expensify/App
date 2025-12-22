@@ -3832,7 +3832,6 @@ const translations = {
                 monthly: 'Monthly',
             },
             planType: 'Plan type',
-            submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expenses`,
