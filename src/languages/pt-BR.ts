@@ -6809,6 +6809,11 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         },
         refresh: 'Atualizar',
     },
+    desktopAppRetiredPage: {
+        title: 'O app para desktop foi descontinuado',
+        body: 'O novo aplicativo desktop Expensify para Mac foi descontinuado. De agora em diante, use o aplicativo web para acessar sua conta.',
+        goToWeb: 'Ir para a web',
+    },
     fileDownload: {
         success: {
             title: 'Baixado!',
@@ -7950,10 +7955,41 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             settings: 'Configurações',
         },
     },
-    desktopAppRetiredPage: {
-        title: 'O app para desktop foi descontinuado',
-        body: 'O novo aplicativo desktop Expensify para Mac foi descontinuado. De agora em diante, use o aplicativo web para acessar sua conta.',
-        goToWeb: 'Ir para a web',
+    gps: {
+        tooltip: 'Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.',
+        disclaimer: 'Use o GPS para criar uma despesa a partir da sua viagem. Toque em Iniciar abaixo para começar o rastreamento.',
+        error: {failedToStart: 'Falha ao iniciar o rastreamento de localização.', failedToGetPermissions: 'Falha ao obter as permissões de localização necessárias.'},
+        trackingDistance: 'Acompanhando a distância...',
+        stopped: 'Parado',
+        start: 'Iniciar',
+        stop: 'Parar',
+        discard: 'Descartar',
+        stopGpsTrackingModal: {
+            title: 'Parar rastreamento por GPS',
+            prompt: 'Tem certeza? Isso encerrará sua jornada atual.',
+            cancel: 'Retomar rastreamento',
+            confirm: 'Parar rastreamento por GPS',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Descartar rastreamento de distância',
+            prompt: 'Tem certeza? Isso descartará sua jornada atual e não poderá ser desfeito.',
+            confirm: 'Descartar rastreamento de distância',
+        },
+        zeroDistanceTripModal: {title: 'Não é possível criar a despesa', prompt: 'Você não pode criar uma despesa com o mesmo local de partida e de chegada.'},
+
+        locationRequiredModal: {
+            title: 'Acesso à localização necessário',
+            prompt: 'Permita o acesso à localização nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
+            allow: 'Permitir',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Acesso à localização em segundo plano necessário',
+            prompt: 'Permita o acesso à localização em segundo plano nas configurações do seu dispositivo (opção "Permitir o tempo todo") para iniciar o rastreamento de distância por GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Localização precisa obrigatória',
+            prompt: 'Ative a opção "localização precisa" nas configurações do seu dispositivo para iniciar o rastreamento de distância por GPS.',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
