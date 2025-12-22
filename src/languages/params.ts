@@ -1023,6 +1023,7 @@ export type {
     SignerInfoMessageParams,
     PayAndDowngradeDescriptionParams,
     WalletAgreementParams,
+    SubscriptionSettingsLearnMoreParams,
     ErrorODIntegrationParams,
     MergeAccountIntoParams,
     NextStepParams,
