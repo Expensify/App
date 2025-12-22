@@ -1,14 +1,14 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -20,8 +20,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import IconAsset from '@src/types/utils/IconAsset';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
     accountID: number;
@@ -50,6 +49,8 @@ type BaseDomainMembersPageProps = {
 function BaseDomainMembersPage({accountIDs, headerTitle, searchPlaceholder, headerContent, onSelectRow, hederIcon}: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
@@ -65,7 +66,7 @@ function BaseDomainMembersPage({accountIDs, headerTitle, searchPlaceholder, head
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 icons: [
                     {
-                        source: details?.avatar ?? FallbackAvatar,
+                        source: details?.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -74,7 +75,7 @@ function BaseDomainMembersPage({accountIDs, headerTitle, searchPlaceholder, head
             });
         }
         return options;
-    }, [accountIDs, personalDetails, formatPhoneNumber]);
+    }, [accountIDs, personalDetails, formatPhoneNumber, icons.FallbackAvatar]);
 
     const filterMember = useCallback((option: MemberOption, searchQuery: string) => {
         const results = tokenizedSearch([option], searchQuery, (item) => [item.text ?? '', item.alternateText ?? '']);

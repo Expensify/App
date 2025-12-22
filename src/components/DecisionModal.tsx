@@ -21,16 +21,16 @@ type DecisionModalProps = {
     /** Text content used in second button */
     secondOptionText: string;
 
-    /** TODO */
+    /** Weather first option should use a success themed button */
     firstOptionSuccess?: boolean;
 
-    /** TODO */
+    /** Weather second option should use a success themed button  */
     secondOptionSuccess?: boolean;
 
-    /** TODO */
+    /** Weather first option should use a danger themed button  */
     firstOptionDanger?: boolean;
 
-    /** TODO */
+    /** Weather second option should use a danger themed button  */
     secondOptionDanger?: boolean;
 
     /** onSubmit callback fired after clicking on first button */
