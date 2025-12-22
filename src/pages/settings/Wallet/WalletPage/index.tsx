@@ -250,12 +250,15 @@ function WalletPage() {
         } else if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.DEBIT_CARD && fundID) {
             deletePaymentCard(fundID);
         }
+        setShowConfirmDeleteModal(false);
+        resetSelectedPaymentMethodData();
     }, [
         paymentMethod.selectedPaymentMethod.bankAccountID,
         paymentMethod.selectedPaymentMethod.fundID,
-        paymentMethod.selectedPaymentMethodType,
         paymentMethod.isSelectedPaymentMethodDefault,
+        paymentMethod.selectedPaymentMethodType,
         paymentMethod.methodID,
+        resetSelectedPaymentMethodData,
         fundList,
         bankAccountList,
         styles,
