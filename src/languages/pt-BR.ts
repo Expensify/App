@@ -7948,6 +7948,10 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             primaryContact: 'Contato principal',
             addPrimaryContact: 'Adicionar contato principal',
             settings: 'Configurações',
+            consolidatedDomainBilling: 'Cobrança consolidada de domínio',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>Quando ativado, o contato principal pagará por todos os espaços de trabalho pertencentes aos membros de <strong>${domainName}</strong> e receberá todos os recibos de cobrança.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'A cobrança de domínio consolidada não pôde ser alterada. Tente novamente mais tarde.',
         },
     },
     desktopAppRetiredPage: {

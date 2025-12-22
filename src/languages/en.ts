@@ -7843,6 +7843,10 @@ const translations = {
             primaryContact: 'Primary contact',
             addPrimaryContact: 'Add primary contact',
             settings: 'Settings',
+            consolidatedDomainBilling: 'Consolidated domain billing',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>When enabled, the primary contact will pay for all workspaces owned by <strong>${domainName}</strong> members and receive all billing receipts.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: "Consolidated domain billing couldn't be changed. Please try again later.",
         },
     },
 };

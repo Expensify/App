@@ -7903,7 +7903,17 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須化し、ワークスペースの作成を制限するなど、さらに多くのことができます。',
             enable: '有効にする',
         },
-        admins: {title: '管理者', findAdmin: '管理者を検索', primaryContact: '主要連絡先', addPrimaryContact: '主要連絡先を追加', settings: '設定'},
+        admins: {
+            title: '管理者',
+            findAdmin: '管理者を検索',
+            primaryContact: '主要連絡先',
+            addPrimaryContact: '主要連絡先を追加',
+            settings: '設定',
+            consolidatedDomainBilling: '統合ドメイン請求',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>有効にすると、<strong>${domainName}</strong> メンバーが所有するすべてのワークスペースの支払いを代表連絡先が行い、すべての請求書の領収書を受け取ります。</muted-text-label></comment>`,
+            consolidatedDomainBillingError: '統合ドメイン請求を変更できませんでした。後でもう一度お試しください。',
+        },
     },
     desktopAppRetiredPage: {
         title: 'デスクトップアプリは廃止されました',

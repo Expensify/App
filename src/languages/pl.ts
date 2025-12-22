@@ -7936,7 +7936,17 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             subtitle: 'Wymagaj, aby członkowie Twojej domeny logowali się przez Single Sign-On (SSO), ograniczaj tworzenie obszarów roboczych i nie tylko.',
             enable: 'Włącz',
         },
-        admins: {title: 'Administratorzy', findAdmin: 'Znajdź administratora', primaryContact: 'Główny kontakt', addPrimaryContact: 'Dodaj główny kontakt', settings: 'Ustawienia'},
+        admins: {
+            title: 'Administratorzy',
+            findAdmin: 'Znajdź administratora',
+            primaryContact: 'Główny kontakt',
+            addPrimaryContact: 'Dodaj główny kontakt',
+            settings: 'Ustawienia',
+            consolidatedDomainBilling: 'Skonsolidowane rozliczanie domen',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>Gdy ta opcja jest włączona, główny kontakt będzie opłacać wszystkie przestrzenie robocze należące do członków <strong>${domainName}</strong> i otrzymywać wszystkie potwierdzenia rozliczeń.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'Nie udało się zmienić zbiorczego rozliczania domeny. Spróbuj ponownie później.',
+        },
     },
     desktopAppRetiredPage: {
         title: 'Aplikacja desktopowa została wycofana',

@@ -7988,7 +7988,17 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             subtitle: "Exiger que les membres de votre domaine se connectent via l'authentification unique, restreindre la création d'espaces de travail, et plus encore.",
             enable: 'Activer',
         },
-        admins: {title: 'Admins', findAdmin: 'Trouver un admin', primaryContact: 'Contact principal', addPrimaryContact: 'Ajouter un contact principal', settings: 'Paramètres'},
+        admins: {
+            title: 'Admins',
+            findAdmin: 'Trouver un admin',
+            primaryContact: 'Contact principal',
+            addPrimaryContact: 'Ajouter un contact principal',
+            settings: 'Paramètres',
+            consolidatedDomainBilling: 'Facturation consolidée du domaine',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>Lorsque cette option est activée, le contact principal paiera pour tous les espaces de travail appartenant aux membres de <strong>${domainName}</strong> et recevra tous les reçus de facturation.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'La facturation de domaine consolidée n’a pas pu être modifiée. Veuillez réessayer plus tard.',
+        },
     },
     desktopAppRetiredPage: {
         title: 'L’application de bureau a été retirée',
