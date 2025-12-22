@@ -356,7 +356,7 @@ function handlePreventSearchAPI(hash: number | undefined) {
     if (typeof hash === 'undefined') {
         return {};
     }
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash, undefined, undefined, false, true);
     return {
         enableSearchAPIPrevention: () => {
             shouldPreventSearchAPI = true;
