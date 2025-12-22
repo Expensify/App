@@ -4,7 +4,6 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
-import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
@@ -32,15 +31,13 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialPara
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
-                    <HTMLEngineProvider>
-                        <Stack.Navigator initialRouteName={initialRouteName}>
-                            <Stack.Screen
-                                name={SCREENS.WORKSPACE.TAGS}
-                                component={WorkspaceTagsPage}
-                                initialParams={initialParams}
-                            />
-                        </Stack.Navigator>
-                    </HTMLEngineProvider>
+                    <Stack.Navigator initialRouteName={initialRouteName}>
+                        <Stack.Screen
+                            name={SCREENS.WORKSPACE.TAGS}
+                            component={WorkspaceTagsPage}
+                            initialParams={initialParams}
+                        />
+                    </Stack.Navigator>
                 </NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,
