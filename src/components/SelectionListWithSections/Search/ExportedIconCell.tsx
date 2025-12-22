@@ -9,18 +9,32 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getOriginalMessage, isExportedToIntegrationAction} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ReportAction} from '@src/types/onyx';
 
 type ExportedIconCellProps = {
     reportID?: string;
+    hash?: number;
 };
 
-function ExportedIconCell({reportID}: ExportedIconCellProps) {
+function ExportedIconCell({reportID, hash}: ExportedIconCellProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const reportActions = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
-    const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table', 'ZenefitsSquare', 'BillComSquare', 'CertiniaSquare']);
+
+    // We need to subscribe to the snapshot to get the actions because this can render in a group item list, where
+    // the main query hash is the group hash, rather than the individual transaction hash
+    // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
+    const reportActions = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {
+        canBeMissing: true,
+        selector: (snapshot) => {
+            return Object.entries(snapshot?.data ?? {})
+                .filter(([key]) => key === `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)
+                .map(([, value]) => Object.values(value ?? {}) as ReportAction[])
+                .flat();
+        },
+    });
 
     const actions = Object.values(reportActions[0] ?? {});
+    const icons = useMemoizedLazyExpensifyIcons(['NetSuiteSquare', 'XeroSquare', 'IntacctSquare', 'QBOSquare', 'Table', 'ZenefitsSquare', 'BillComSquare', 'CertiniaSquare']);
 
     let isExportedToCsv = false;
     let isExportedToNetsuite = false;
