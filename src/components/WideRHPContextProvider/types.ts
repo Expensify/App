@@ -49,6 +49,9 @@ type WideRHPContextType = {
     // Whether the currently focused route is inside the wide RHP set
     isWideRHPFocused: boolean;
 
+    // Whether the currently focused route is inside the super wide RHP set
+    isSuperWideRHPFocused: boolean;
+
     // Sync super wide and wide RHP keys with the visible RHP screens
     syncRHPKeys: () => void;
 

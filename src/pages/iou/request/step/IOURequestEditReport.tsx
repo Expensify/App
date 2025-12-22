@@ -54,7 +54,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
 
     const selectReport = (item: TransactionGroupListItem, report?: OnyxEntry<Report>) => {
         if (selectedTransactionIDs.length === 0 || item.value === reportID) {
-            Navigation.dismissModal();
+            Navigation.dismissToSuperWideRHP();
             return;
         }
 
@@ -75,7 +75,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             clearSelectedTransactions(true);
         });
 
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
     };
 
     const removeFromReport = () => {
@@ -87,7 +87,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
             turnOffMobileSelectionMode();
         }
         clearSelectedTransactions(true);
-        Navigation.dismissModal();
+        Navigation.dismissToSuperWideRHP();
     };
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
