@@ -1,5 +1,5 @@
 import {getBackgroundPermissionsAsync, getForegroundPermissionsAsync, PermissionStatus, requestBackgroundPermissionsAsync, requestForegroundPermissionsAsync} from 'expo-location';
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Linking} from 'react-native';
 import {checkLocationAccuracy} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
@@ -8,7 +8,11 @@ import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import type BackgroundLocationPermissionsFlowProps from './types';
 
-async function requestPermissions({onSuccess, onError, onPreciseLocationNotGranted}: {onSuccess: () => void; onPreciseLocationNotGranted: () => void; onError: () => void}) {
+async function requestPermissions({
+    onGrant,
+    onError,
+    onPreciseLocationNotGranted,
+}: Pick<BackgroundLocationPermissionsFlowProps, 'onGrant'> & {onPreciseLocationNotGranted: () => void; onError: () => void}) {
     try {
         const {status: fgStatus} = await requestForegroundPermissionsAsync();
 
@@ -25,7 +29,7 @@ async function requestPermissions({onSuccess, onError, onPreciseLocationNotGrant
         const accuracy = await checkLocationAccuracy();
 
         if (accuracy === 'full') {
-            onSuccess();
+            onGrant();
             return;
         }
 
@@ -79,6 +83,8 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const {translate} = useLocalize();
 
+    const onModalHide = useRef<(() => void) | null>(null);
+
     const onError = useCallback(() => setShouldShowPermissionsError(true), [setShouldShowPermissionsError]);
 
     useEffect(() => {
@@ -90,15 +96,25 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
         setStartPermissionsFlow(false);
     }, [startPermissionsFlow, onDeny, onGrant, setStartPermissionsFlow, onError]);
 
+    const requestPermissionsFirstAsk = () => {
+        setShowFirstAskModal(false);
+        requestPermissions({
+            onGrant,
+            onError,
+            onPreciseLocationNotGranted: () => {
+                // can't trigger Precise Location modal before First Ask modal hides
+                // as the animations clash and Precise Location modal doesn't show on iOS
+                onModalHide.current = () => setShowPreciseLocationModal(true);
+            },
+        });
+    };
+
     return (
         <>
             <ConfirmModal
                 title={translate('gps.locationRequiredModal.title')}
                 isVisible={showFirstAskModal}
-                onConfirm={() => {
-                    setShowFirstAskModal(false);
-                    requestPermissions({onSuccess: onGrant, onError, onPreciseLocationNotGranted: () => setShowPreciseLocationModal(true)});
-                }}
+                onConfirm={requestPermissionsFirstAsk}
                 onCancel={() => {
                     setShowFirstAskModal(false);
                 }}
@@ -111,6 +127,10 @@ function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermis
                 iconHeight={120}
                 shouldCenterIcon
                 shouldReverseStackedButtons
+                onModalHide={() => {
+                    onModalHide.current?.();
+                    onModalHide.current = null;
+                }}
             />
             <ConfirmModal
                 title={translate('gps.preciseLocationRequiredModal.title')}

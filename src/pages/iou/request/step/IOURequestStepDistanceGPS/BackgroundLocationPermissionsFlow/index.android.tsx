@@ -32,12 +32,12 @@ async function requestForegroundPermissions({
     }
 }
 
-async function requestBackgroundPermissions(onSuccess: () => void, onError: () => void) {
+async function requestBackgroundPermissions(onGrant: () => void, onError: () => void) {
     try {
         const {status} = await requestBackgroundPermissionsAsync();
 
         if (status === PermissionStatus.GRANTED) {
-            onSuccess();
+            onGrant();
         }
     } catch (e) {
         console.error('[GPS distance request] Failed to request background location permissions: ', e);
