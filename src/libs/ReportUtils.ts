@@ -5311,9 +5311,13 @@ function getReportPreviewMessage(
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal(translatePhraseKey, '', reportPolicy?.achAccount?.accountNumber?.slice(-4) ?? '');
         }
-        if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify' || translatePhraseKey === 'iou.paidWithExpensify' || translatePhraseKey === 'iou.paidElsewhere') {
+        if (translatePhraseKey === 'iou.automaticallyPaidWithExpensify' || translatePhraseKey === 'iou.paidWithExpensify') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal(translatePhraseKey, payerDisplayName ?? '');
+        }
+        if (translatePhraseKey === 'iou.paidElsewhere') {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            return translateLocal(translatePhraseKey, {payer: payerDisplayName ?? undefined});
         }
         if (translatePhraseKey === 'iou.payerPaidAmount') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -10546,7 +10550,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
         }
         if (translationKey === 'iou.paidElsewhere') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal(translationKey, '');
+            return translateLocal(translationKey);
         }
         if (translationKey === 'iou.payerSettledWithMissingBankAccount') {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
