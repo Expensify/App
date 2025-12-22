@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
+import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getReportAction, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction as canUserPerformWriteActionReportUtils, isMoneyRequestReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -117,32 +118,19 @@ function ParentNavigationSubtitle({
         const parentAction = getReportAction(parentReportID, parentReportActionID);
         const isVisibleAction = shouldReportActionBeVisible(parentAction, parentAction?.reportActionID ?? CONST.DEFAULT_NUMBER_ID, canUserPerformWriteAction);
 
+        const focusedNavigatorState = currentFocusedNavigator?.state;
+        const currentReportIndex = focusedNavigatorState?.index;
+
         if (openParentReportInCurrentTab && isReportInRHP) {
             // If the report is displayed in RHP in Reports tab, we want to stay in the current tab after opening the parent report
             if (currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR && isMoneyRequestReport(report)) {
-                const lastRoute = currentFullScreenRoute?.state?.routes.at(-1);
-                if (lastRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
-                    // @TODO: Fix this case
-                    const moneyRequestReportID = lastRoute?.params?.reportID;
-                    // If the parent report is already displayed underneath RHP, simply dismiss the modal
-                    if (moneyRequestReportID === parentReportID) {
-                        Navigation.dismissModal();
-                        return;
-                    }
-                }
-
-                const focusedNavigatorState = currentFocusedNavigator?.state;
-                const currentReportIndex = focusedNavigatorState?.index;
                 // Dismiss wide RHP and go back to already opened super wide RHP if the parent report is already opened there
                 if (currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR && currentReportIndex && currentReportIndex > 0) {
                     const previousRoute = focusedNavigatorState.routes[currentReportIndex - 1];
 
                     if (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT) {
-                        const lastPreviousRoute = previousRoute.state?.routes.at(-1);
-                        // @TODO: Fix this case
-                        const moneyRequestReportID = lastPreviousRoute?.params?.reportID;
-
-                        if (moneyRequestReportID === parentReportID && lastPreviousRoute?.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT) {
+                        const moneyRequestReportID = (previousRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT])?.reportID;
+                        if (moneyRequestReportID === parentReportID) {
                             Navigation.goBack();
                             return;
                         }
