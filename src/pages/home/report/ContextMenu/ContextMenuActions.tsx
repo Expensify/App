@@ -29,6 +29,7 @@ import {
     getAddedConnectionMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getCreatedReportForUnapprovedTransactionsMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
     getExportIntegrationMessageHTML,
@@ -124,6 +125,7 @@ import {
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
     getReportName as getReportNameDeprecated,
+    getReportOrDraftReport,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
@@ -870,6 +872,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const harvestReportName = getReportName(harvestReport);
                     const displayMessage = getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate);
                     setClipboardMessage(displayMessage);
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATEDREPORTFORUNAPPROVEDTRANSACTIONS)) {
+                    const {originalID} = getOriginalMessage(reportAction);
+                    const reportName = getReportName(getReportOrDraftReport(originalID));
+                    const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translate);
+                    Clipboard.setString(displayMessage);
                 } else if (content) {
                     setClipboardMessage(
                         content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {

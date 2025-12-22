@@ -93,6 +93,11 @@ type HarvestCreatedExpenseReportParams = {
     reportName: string;
 };
 
+type CreatedReportForUnapprovedTransactionsParams = {
+    reportUrl: string;
+    reportName: string;
+};
+
 type RequestCountParams = {
     scanningReceipts: number;
     pendingReceipts: number;
@@ -865,6 +870,7 @@ export type {
     ReportPolicyNameParams,
     ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams,
     HarvestCreatedExpenseReportParams,
+    CreatedReportForUnapprovedTransactionsParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
     RequestCountParams,

@@ -16,6 +16,7 @@ import type {
     ChangeTypeParams,
     CharacterLengthLimitParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -938,6 +939,8 @@ const translations = {
         asCopilot: 'as copilot for',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `created this report to hold all expenses from <a href="${reportUrl}">${reportName}</a> that couldn't be submitted on your chosen frequency`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `created this report for any held expenses from <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notify everyone in this conversation',
