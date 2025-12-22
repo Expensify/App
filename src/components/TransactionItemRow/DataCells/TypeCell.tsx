@@ -42,15 +42,6 @@ const getTypeText = (type?: string): TranslationPaths => {
     }
 };
 
-const getTypeIconSize = (type?: string) => {
-    switch (type) {
-        case CONST.SEARCH.TRANSACTION_TYPE.TIME:
-            return variables.iconSizeSmall;
-        default:
-            return variables.iconSizeNormal;
-    }
-};
-
 function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: TransactionDataCellProps) {
     const {translate} = useLocalize();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
@@ -60,7 +51,6 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
     const isPendingExpensifyCardTransaction = isExpensifyCardTransaction(transactionItem) && isPending(transactionItem);
     const typeIcon = isPendingExpensifyCardTransaction ? expensifyIcons.CreditCardHourglass : getTypeIcon(expensifyIcons, type);
     const typeText = isPendingExpensifyCardTransaction ? 'iou.pending' : getTypeText(type);
-    const typeIconSize = getTypeIconSize(type);
     const styles = useThemeStyles();
 
     return shouldUseNarrowLayout ? (
@@ -73,8 +63,8 @@ function TypeCell({transactionItem, shouldUseNarrowLayout, shouldShowTooltip}: T
         <Icon
             src={typeIcon}
             fill={theme.icon}
-            height={typeIconSize}
-            width={typeIconSize}
+            height={variables.iconSizeNormal}
+            width={variables.iconSizeNormal}
         />
     );
 }
