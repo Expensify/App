@@ -398,29 +398,19 @@ function deletePolicyDistanceRates(
     transactionViolations: OnyxCollection<TransactionViolation[]>,
 ) {
     const currentRates = customUnit.rates;
-    const optimisticRates: Record<string, Rate> = {};
-    const successRates: Record<string, Rate> = {};
-    const failureRates: Record<string, Rate> = {};
+    const optimisticRates: Record<string, Partial<Rate>> = {};
+    const failureRates: Record<string, Partial<Rate>> = {};
 
-    for (const rateID of Object.keys(currentRates)) {
-        if (rateIDsToDelete.includes(rateID)) {
-            optimisticRates[rateID] = {
-                ...currentRates[rateID],
-                enabled: false,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            };
-            failureRates[rateID] = {
-                ...currentRates[rateID],
-                pendingAction: null,
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-            };
-        } else {
-            optimisticRates[rateID] = currentRates[rateID];
-            successRates[rateID] = {
-                ...currentRates[rateID],
-                pendingAction: null,
-            };
-        }
+    for (const rateID of rateIDsToDelete) {
+        optimisticRates[rateID] = {
+            enabled: false,
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        };
+        failureRates[rateID] = {
+            enabled: currentRates[rateID].enabled,
+            pendingAction: null,
+            errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+        };
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -431,20 +421,6 @@ function deletePolicyDistanceRates(
                 customUnits: {
                     [customUnit.customUnitID]: {
                         rates: optimisticRates,
-                    },
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-            value: {
-                customUnits: {
-                    [customUnit.customUnitID]: {
-                        rates: successRates,
                     },
                 },
             },
@@ -503,7 +479,7 @@ function deletePolicyDistanceRates(
         customUnitRateID: rateIDsToDelete,
     };
 
-    API.write(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_POLICY_DISTANCE_RATES, params, {optimisticData, failureData});
 }
 
 function updateDistanceTaxClaimableValue(policyID: string, customUnit: CustomUnit, customUnitRates: Rate[]) {

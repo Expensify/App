@@ -65,7 +65,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     return (
         <ConnectionLayout
             policyID={policyID}
-            displayName={QuickbooksDesktopCompanyCardExpenseAccountPage.displayName}
+            displayName="QuickbooksDesktopCompanyCardExpenseAccountPage"
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.qbd.exportCompanyCardsDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -146,7 +146,5 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
         </ConnectionLayout>
     );
 }
-
-QuickbooksDesktopCompanyCardExpenseAccountPage.displayName = 'QuickbooksDesktopCompanyCardExpenseAccountPage';
 
 export default withPolicyConnections(QuickbooksDesktopCompanyCardExpenseAccountPage);
