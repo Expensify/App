@@ -10,7 +10,7 @@ import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 import useOnyx from './useOnyx';
 
-const useFilterFormValues = (queryJSON: SearchQueryJSON) => {
+const useFilterFormValues = (queryJSON?: SearchQueryJSON) => {
     const personalDetails = usePersonalDetails();
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
