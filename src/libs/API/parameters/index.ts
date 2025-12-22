@@ -219,6 +219,7 @@ export type {default as EnablePolicyCategoriesParams} from './EnablePolicyCatego
 export type {default as EnablePolicyConnectionsParams} from './EnablePolicyConnectionsParams';
 export type {default as TogglePolicyReceiptPartnersParams} from './TogglePolicyReceiptPartnersParams';
 export type {default as EnablePolicyDistanceRatesParams} from './EnablePolicyDistanceRatesParams';
+export type {default as EnablePolicyTravelParams} from './EnablePolicyTravelParams';
 export type {default as EnablePolicyTagsParams} from './EnablePolicyTagsParams';
 export type {default as SetPolicyTagsEnabled} from './SetPolicyTagsEnabled';
 export type {default as EnablePolicyWorkflowsParams} from './EnablePolicyWorkflowsParams';
@@ -430,6 +431,7 @@ export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishC
 export type {default as RejectMoneyRequestParams} from './RejectMoneyRequestParams';
 export type {default as MarkTransactionViolationAsResolvedParams} from './MarkTransactionViolationAsResolvedParams';
 export type {default as LockAccountParams} from './LockAccountParams';
+export type {default as RespondToProactiveAppReviewParams} from './RespondToProactiveAppReviewParams';
 export type {default as SetVacationDelegateParams} from './SetVacationDelegateParams';
 export type {default as ExportMultiLevelTagsSpreadSheetParams} from './ExportMultiLevelTagsSpreadSheetParams';
 export type {default as ReopenReportParams} from './ReopenReportParams';
@@ -446,3 +448,6 @@ export type {default as GetScimTokenParams} from './GetScimTokenParams';
 export type {default as SetSamlIdentityParams} from './SetSamlIdentityParams';
 export type {default as UpdateSamlEnabledParams} from './UpdateSamlEnabledParams';
 export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredParams';
+export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
+export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
+export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleConsolidatedDomainBillingParams';

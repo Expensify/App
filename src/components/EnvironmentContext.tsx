@@ -88,7 +88,5 @@ function EnvironmentProvider({children}: EnvironmentProviderProps): ReactElement
     return <EnvironmentContext.Provider value={contextValue}>{children}</EnvironmentContext.Provider>;
 }
 
-EnvironmentProvider.displayName = 'EnvironmentProvider';
-
 export {EnvironmentContext, EnvironmentProvider};
 export type {EnvironmentContextValue};

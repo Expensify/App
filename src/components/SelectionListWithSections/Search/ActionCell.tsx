@@ -72,7 +72,7 @@ function ActionCell({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Checkbox'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Checkbox']);
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`, {canBeMissing: true});
@@ -127,7 +127,7 @@ function ActionCell({
 
         return isLargeScreenWidth ? (
             <Button
-                testID={ActionCell.displayName}
+                testID="ActionCell"
                 text={text}
                 onPress={goToItem}
                 small={!extraSmall}
@@ -184,7 +184,5 @@ function ActionCell({
         />
     );
 }
-
-ActionCell.displayName = 'ActionCell';
 
 export default ActionCell;

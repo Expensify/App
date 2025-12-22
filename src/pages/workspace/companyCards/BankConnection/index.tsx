@@ -51,11 +51,11 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
     const {translate} = useLocalize();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
-    const {bankName: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
+    const {feed: bankNameFromRoute, backTo, policyID: policyIDFromRoute} = route?.params ?? {};
     const policyID = policyIDFromProps ?? policyIDFromRoute;
     const [cardFeeds] = useCardFeeds(policyID);
     const prevFeedsData = usePrevious(cardFeeds);
-    const illustrations = useMemoizedLazyIllustrations(['PendingBank'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
     const [shouldBlockWindowOpen, setShouldBlockWindowOpen] = useState(false);
     const selectedBank = addNewCard?.data?.selectedBank;
     const bankName = feed ? getBankName(getCompanyCardFeed(feed)) : (bankNameFromRoute ?? addNewCard?.data?.plaidConnectedFeed ?? selectedBank);
@@ -64,7 +64,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         [addNewCard?.data?.plaidConnectedFeed, cardFeeds, prevFeedsData],
     );
     const {isOffline} = useNetwork();
-    const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.data?.plaidAccessToken;
+    const plaidToken = addNewCard?.data?.publicToken ?? assignCard?.cardToAssign?.plaidAccessToken;
     const {updateBrokenConnection, isFeedConnectionBroken} = useUpdateFeedBrokenConnection({policyID, feed});
     const {isBetaEnabled} = usePermissions();
     const isPlaid = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !!plaidToken;
@@ -124,10 +124,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
 
     const CustomSubtitle = (
         <Text style={[styles.textAlignCenter, styles.textSupporting]}>
-            {bankName &&
-                translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, {
-                    bankName: addNewCard?.data?.plaidConnectedFeedName ?? bankName,
-                })}
+            {bankName && translate(`workspace.moreFeatures.companyCards.pendingBankDescription`, addNewCard?.data?.plaidConnectedFeedName ?? bankName)}
             <TextLink onPress={onOpenBankConnectionFlow}>{translate('workspace.moreFeatures.companyCards.pendingBankLink')}</TextLink>.
         </Text>
     );
@@ -147,7 +144,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
                     return;
                 }
                 setAssignCardStepAndData({
-                    currentStep: assignCard?.data?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
+                    currentStep: assignCard?.cardToAssign?.dateOption ? CONST.COMPANY_CARD.STEP.CONFIRMATION : CONST.COMPANY_CARD.STEP.ASSIGNEE,
                     isEditing: false,
                 });
                 return;
@@ -201,7 +198,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         feed,
         isFeedExpired,
         isOffline,
-        assignCard?.data?.dateOption,
+        assignCard?.cardToAssign?.dateOption,
         isPlaid,
         onImportPlaidAccounts,
         isFeedConnectionBroken,
@@ -241,7 +238,7 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
 
     return (
         <ScreenWrapper
-            testID={BankConnection.displayName}
+            testID="BankConnection"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -252,7 +249,5 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         </ScreenWrapper>
     );
 }
-
-BankConnection.displayName = 'BankConnection';
 
 export default BankConnection;

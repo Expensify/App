@@ -60,14 +60,7 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
 
             const quickActionReportID = policyChatForActivePolicy?.reportID ?? reportID;
             Tab.setSelectedTab(CONST.TAB.IOU_REQUEST_TYPE, CONST.IOU.REQUEST_TYPE.SCAN);
-            startMoneyRequest(
-                policyChatForActivePolicy?.reportID ? CONST.IOU.TYPE.SUBMIT : CONST.IOU.TYPE.CREATE,
-                quickActionReportID,
-                CONST.IOU.REQUEST_TYPE.SCAN,
-                !!policyChatForActivePolicy?.reportID,
-                undefined,
-                allTransactionDrafts,
-            );
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, quickActionReportID, CONST.IOU.REQUEST_TYPE.SCAN, !!policyChatForActivePolicy?.reportID, undefined, allTransactionDrafts);
         });
     };
 
@@ -99,7 +92,5 @@ function BaseFloatingCameraButton({icon}: BaseFloatingCameraButtonProps) {
         </PressableWithoutFeedback>
     );
 }
-
-BaseFloatingCameraButton.displayName = 'BaseFloatingCameraButton';
 
 export default BaseFloatingCameraButton;

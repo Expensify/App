@@ -29,11 +29,12 @@ import {
     canRejectReportAction,
     doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
+    hasExportError as hasExportErrorUtils,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
     hasReportBeenRetracted as hasReportBeenRetractedUtils,
-    isArchivedReport, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    isArchivedReport,
     isAwaitingFirstLevelApproval,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -57,10 +58,15 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
+    hasSmartScanFailedViolation,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
+    isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned,
+    isScanning as isScanningTransactionUtils,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
 
@@ -125,7 +131,6 @@ function isSplitAction(report: OnyxEntry<Report>, reportTransactions: Array<Onyx
     }
 
     // Hide split option for the submitter if the report is forwarded
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return (isSubmitter && isAwaitingFirstLevelApproval(report)) || isAdmin || isManager;
 }
 
@@ -137,6 +142,9 @@ function isSubmitAction(
     reportActions?: ReportAction[],
     isChatReportArchived = false,
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
+    violations?: OnyxCollection<TransactionViolation[]>,
+    currentUserEmail?: string,
+    currentUserAccountID?: number,
 ): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -146,6 +154,18 @@ function isSubmitAction(
 
     if (!transactionAreComplete) {
         return false;
+    }
+
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    if (violations && currentUserEmail && currentUserAccountID !== undefined) {
+        if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+            return false;
+        }
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED) {
@@ -226,7 +246,9 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, policy));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) =>
+        isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
+    );
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -625,6 +647,34 @@ function isReportLayoutAction(report: Report, reportTransactions: Transaction[])
     return reportTransactions.length >= 2;
 }
 
+function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
+    // Only single transactions are supported for now
+    if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    const reportTransaction = reportTransactions.at(0);
+
+    // Per diem and distance requests will be handled separately in a follow-up
+    if (isPerDiemRequestTransactionUtils(reportTransaction) || isDistanceRequestTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    if (isScanningTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    if (!isCurrentUserSubmitter(report)) {
+        return false;
+    }
+
+    if (isManagedCardTransactionTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    return true;
+}
+
 function getSecondaryReportActions({
     currentUserEmail,
     currentUserAccountID,
@@ -655,7 +705,11 @@ function getSecondaryReportActions({
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    if (isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID)) {
+    const isExported = isExportedUtils(reportActions);
+    const hasExportError = hasExportErrorUtils(reportActions, report);
+    const didExportFail = !isExported && hasExportError;
+
+    if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions, true) && (hasOnlyHeldExpenses(report?.reportID) || didExportFail)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
@@ -676,7 +730,7 @@ function getSecondaryReportActions({
         isChatReportArchived,
     });
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction, violations, currentUserEmail, currentUserAccountID)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
@@ -718,6 +772,10 @@ function getSecondaryReportActions({
 
     if (isMergeAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
+    }
+
+    if (isDuplicateAction(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
     }
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
@@ -794,6 +852,10 @@ function getSecondaryTransactionThreadActions(
 
     if (isMergeAction(parentReport, [reportTransaction], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
+    }
+
+    if (isDuplicateAction(parentReport, [reportTransaction])) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);

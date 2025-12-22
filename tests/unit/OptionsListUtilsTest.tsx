@@ -36,7 +36,7 @@ import {
     sortAlphabetically,
 } from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
-import {getChangedApproverActionMessage} from '@libs/ReportActionsUtils';
+import {getChangedApproverActionMessage, getDynamicExternalWorkflowRoutedMessage} from '@libs/ReportActionsUtils';
 import {
     canCreateTaskInReport,
     canUserPerformWriteAction,
@@ -57,7 +57,7 @@ import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport, createRegularChat} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
-import {getNvpDismissedProductTraining, localeCompare} from '../utils/TestHelper';
+import {getNvpDismissedProductTraining, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@rnmapbox/maps', () => {
@@ -67,10 +67,6 @@ jest.mock('@rnmapbox/maps', () => {
         setAccessToken: jest.fn(),
     };
 });
-
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -2788,6 +2784,48 @@ describe('OptionsListUtils', () => {
             });
             const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
             expect(lastMessage).toBe(Parser.htmlToText(getMovedActionMessage(movedAction, report)));
+        });
+        it('DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', async () => {
+            // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED as the last action
+            const report: Report = createRandomReport(0, undefined);
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> = {
+                reportActionID: '1',
+                created: '',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+                message: [{type: 'COMMENT', text: ''}],
+                originalMessage: {to: 'example@gmail.com'},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [action.reportActionID]: action,
+            });
+
+            // When getting the last message text for the report
+            const lastMessage = getLastMessageTextForReport({report, lastActorDetails: null, isReportArchived: false});
+
+            // Then it should return the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED message
+            expect(lastMessage).toBe(Parser.htmlToText(getDynamicExternalWorkflowRoutedMessage(action, translateLocal)));
+        });
+        it('should return last visible message text when last action is hidden (e.g. whisper)', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                lastMessageText: 'joined the chat',
+            };
+            const whisperAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [whisperAction.reportActionID]: whisperAction,
+            });
+            await waitForBatchedUpdates();
+
+            const expectedVisibleText = '';
+            const result = getLastMessageTextForReport({
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+            });
+            expect(result).toBe(expectedVisibleText);
         });
     });
 

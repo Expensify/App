@@ -8,7 +8,7 @@ import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming}
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import ConfirmModal from '@components/ConfirmModal';
-import SearchTableHeader, {getExpenseHeaders} from '@components/SelectionListWithSections/SearchTableHeader';
+import SearchTableHeader from '@components/SelectionListWithSections/SearchTableHeader';
 import type {ReportActionListItemType, SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
@@ -34,7 +34,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {canAddOrDeleteTransactions, canEditFieldOfMoneyRequest, canHoldUnholdReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -66,6 +66,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
 import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -90,20 +91,22 @@ type SearchProps = {
     onDEWModalOpen?: () => void;
 };
 
-const expenseHeaders = getExpenseHeaders();
-
 function mapTransactionItemToSelectedEntry(
     item: TransactionListItemType,
     itemTransaction: OnyxEntry<Transaction>,
     originalItemTransaction: OnyxEntry<Transaction>,
+    currentUserLogin: string,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+    const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
+
     return [
         item.keyForList,
         {
             isSelected: true,
-            canDelete: canAddOrDeleteTransactions(item.report, item.policy),
+            canDelete: item.canDelete,
+            canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
@@ -121,6 +124,7 @@ function mapTransactionItemToSelectedEntry(
             ),
             action: item.action,
             groupCurrency: item.groupCurrency,
+            groupExchangeRate: item.groupExchangeRate,
             reportID: item.reportID,
             policyID: item.report?.policyID,
             amount: item.modifiedAmount ?? item.amount,
@@ -179,6 +183,7 @@ function prepareTransactionsList(
     itemTransaction: OnyxEntry<Transaction>,
     originalItemTransaction: OnyxEntry<Transaction>,
     selectedTransactions: SelectedTransactions,
+    currentUserLogin: string,
     outstandingReportsByPolicyID?: OutstandingReportsByPolicyIDDerivedValue,
 ) {
     if (selectedTransactions[item.keyForList]?.isSelected) {
@@ -188,12 +193,14 @@ function prepareTransactionsList(
     }
 
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
+    const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
 
     return {
         ...selectedTransactions,
         [item.keyForList]: {
             isSelected: true,
-            canDelete: canAddOrDeleteTransactions(item.report, item.policy),
+            canDelete: item.canDelete,
+            canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
             canUnhold: canUnholdRequest,
@@ -215,6 +222,7 @@ function prepareTransactionsList(
             amount: Math.abs(item.modifiedAmount || item.amount),
             groupAmount: item.groupAmount,
             groupCurrency: item.groupCurrency,
+            groupExchangeRate: item.groupExchangeRate,
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
@@ -278,6 +286,8 @@ function Search({
     const [violations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
+    const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
+
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     // Filter violations based on user visibility
@@ -324,6 +334,8 @@ function Search({
         canBeMissing: true,
         selector: selectFilteredReportActions,
     });
+
+    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
 
     const {defaultCardFeed} = useCardFeedsForDisplay();
     const suggestedSearches = useMemo(() => getSuggestedSearches(accountID, defaultCardFeed?.id), [defaultCardFeed?.id, accountID]);
@@ -442,6 +454,7 @@ function Search({
             data: searchResults.data,
             currentAccountID: accountID,
             currentUserEmail: email ?? '',
+            translate,
             formatPhoneNumber,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
@@ -449,9 +462,25 @@ function Search({
             archivedReportsIDList: archivedReportsIdSet,
             queryJSON,
             isActionLoadingSet,
+            cardFeeds,
         });
         return [filteredData1, filteredData1.length, allLength];
-    }, [searchKey, exportReportActions, validGroupBy, isDataLoaded, searchResults, type, archivedReportsIdSet, formatPhoneNumber, accountID, queryJSON, email, isActionLoadingSet]);
+    }, [
+        searchKey,
+        exportReportActions,
+        validGroupBy,
+        isDataLoaded,
+        searchResults,
+        type,
+        archivedReportsIdSet,
+        translate,
+        formatPhoneNumber,
+        accountID,
+        queryJSON,
+        email,
+        isActionLoadingSet,
+        cardFeeds,
+    ]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -462,7 +491,7 @@ function Search({
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         const isMigratedModalDisplayed = focusedRoute?.name === NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR || focusedRoute?.name === SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT;
 
-        const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && searchResults === undefined;
+        const comingBackOnlineWithNoResults = prevIsOffline && !isOffline && isEmptyObject(searchResults?.data);
         if (!comingBackOnlineWithNoResults && ((!isFocused && !isMigratedModalDisplayed) || isOffline)) {
             return;
         }
@@ -512,6 +541,7 @@ function Search({
                         transactionItem,
                         transactionItem.policy,
                     );
+                    const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report, transactionItem.policy) : false;
 
                     const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                     const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
@@ -535,13 +565,14 @@ function Search({
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
-                        canDelete: canAddOrDeleteTransactions(transactionItem.report, transactionItem.policy),
-
+                        canDelete: transactionItem.canDelete,
+                        canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
                         amount: transactionItem.modifiedAmount ?? transactionItem.amount,
                         groupAmount: transactionItem.groupAmount,
                         groupCurrency: transactionItem.groupCurrency,
+                        groupExchangeRate: transactionItem.groupExchangeRate,
                         currency: transactionItem.currency,
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
                     };
@@ -563,6 +594,7 @@ function Search({
                     transactionItem,
                     transactionItem.policy,
                 );
+                const canRejectRequest = email && transactionItem.report ? canRejectReportAction(email, transactionItem.report, transactionItem.policy) : false;
 
                 const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
@@ -586,13 +618,14 @@ function Search({
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
-                    canDelete: canAddOrDeleteTransactions(transactionItem.report, transactionItem.policy),
-
+                    canDelete: transactionItem.canDelete,
+                    canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
                     amount: transactionItem.modifiedAmount ?? transactionItem.amount,
                     groupAmount: transactionItem.groupAmount,
                     groupCurrency: transactionItem.groupCurrency,
+                    groupExchangeRate: transactionItem.groupExchangeRate,
                     currency: transactionItem.currency,
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
                 };
@@ -668,7 +701,10 @@ function Search({
                 }
                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] as OnyxEntry<Transaction>;
                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                setSelectedTransactions(prepareTransactionsList(item, itemTransaction, originalItemTransaction, selectedTransactions, outstandingReportsByPolicyID), filteredData);
+                setSelectedTransactions(
+                    prepareTransactionsList(item, itemTransaction, originalItemTransaction, selectedTransactions, email ?? '', outstandingReportsByPolicyID),
+                    filteredData,
+                );
                 return;
             }
 
@@ -693,14 +729,14 @@ function Search({
                             .map((transactionItem) => {
                                 const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                                 const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, outstandingReportsByPolicyID);
+                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID);
                             }),
                     ),
                 },
                 filteredData,
             );
         },
-        [setSelectedTransactions, selectedTransactions, filteredData, transactions, outstandingReportsByPolicyID, searchResults?.data],
+        [setSelectedTransactions, selectedTransactions, filteredData, transactions, outstandingReportsByPolicyID, searchResults?.data, email],
     );
 
     const onSelectRow = useCallback(
@@ -816,10 +852,8 @@ function Search({
         if (!searchResults?.data) {
             return [];
         }
-        const columns = getColumnsToShow(accountID, searchResults?.data, false, searchResults?.search?.type);
-
-        return (Object.keys(columns) as SearchColumnType[]).filter((col) => columns[col]);
-    }, [accountID, searchResults?.data, searchResults?.search?.type]);
+        return getColumnsToShow(accountID, searchResults?.data, visibleColumns, false, searchResults?.search?.type, validGroupBy);
+    }, [accountID, searchResults?.data, searchResults?.search?.type, visibleColumns, validGroupBy]);
 
     const opacity = useSharedValue(1);
     const animatedStyle = useAnimatedStyle(() => ({
@@ -847,12 +881,12 @@ function Search({
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled) && validGroupBy !== CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID;
+    const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
     const ListItem = getListItem(type, status, validGroupBy);
 
     const sortedSelectedData = useMemo(
         () =>
-            getSortedSections(type, status, filteredData, localeCompare, sortBy, sortOrder, validGroupBy).map((item) => {
+            getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy).map((item) => {
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
@@ -873,7 +907,7 @@ function Search({
 
                 return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
             }),
-        [type, status, filteredData, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, selectedTransactions, canSelectMultiple, localeCompare, hash],
+        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, selectedTransactions, canSelectMultiple, hash],
     );
 
     useEffect(() => {
@@ -917,7 +951,7 @@ function Search({
                             .map((transactionItem) => {
                                 const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                                 const originalItemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, outstandingReportsByPolicyID);
+                                return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID);
                             }),
                     ),
                 ),
@@ -934,7 +968,7 @@ function Search({
                     .map((transactionItem) => {
                         const itemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
                         const originalItemTransaction = searchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, outstandingReportsByPolicyID);
+                        return mapTransactionItemToSelectedEntry(transactionItem, itemTransaction, originalItemTransaction, email ?? '', outstandingReportsByPolicyID);
                     }),
             ),
             filteredData,
@@ -949,17 +983,13 @@ function Search({
         transactions,
         outstandingReportsByPolicyID,
         searchResults?.data,
+        email,
     ]);
 
     const onLayout = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
         handleSelectionListScroll(sortedSelectedData, searchListRef.current);
     }, [handleSelectionListScroll, sortedSelectedData]);
-
-    const areAllOptionalColumnsHidden = useMemo(() => {
-        const canBeMissingColumns = expenseHeaders.filter((header) => header.canBeMissing).map((header) => header.columnName);
-        return canBeMissingColumns.every((column) => !columnsToShow.includes(column));
-    }, [columnsToShow]);
 
     const onLayoutSkeleton = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS);
@@ -1025,11 +1055,13 @@ function Search({
         navigation.setParams({q: newQuery, rawQuery: undefined});
     };
 
-    const shouldShowYear = shouldShowYearUtil(searchResults?.data, isExpenseReportType ?? false);
+    const {shouldShowYearCreated, shouldShowYearSubmitted, shouldShowYearApproved, shouldShowYearPosted, shouldShowYearExported} = shouldShowYearUtil(
+        searchResults?.data,
+        isExpenseReportType ?? false,
+    );
     const {shouldShowAmountInWideColumn, shouldShowTaxAmountInWideColumn} = getWideAmountIndicators(searchResults?.data);
-    const shouldShowSorting = !validGroupBy;
-    const shouldShowTableHeader = isLargeScreenWidth && !isChat && !validGroupBy;
-    const tableHeaderVisible = (canSelectMultiple || shouldShowTableHeader) && (!validGroupBy || isExpenseReportType);
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat;
+    const tableHeaderVisible = canSelectMultiple || shouldShowTableHeader;
 
     return (
         <SearchScopeProvider>
@@ -1055,11 +1087,14 @@ function Search({
                                     onSortPress={onSortPress}
                                     sortOrder={sortOrder}
                                     sortBy={sortBy}
-                                    shouldShowYear={shouldShowYear}
+                                    shouldShowYear={shouldShowYearCreated}
+                                    shouldShowYearSubmitted={shouldShowYearSubmitted}
+                                    shouldShowYearApproved={shouldShowYearApproved}
+                                    shouldShowYearPosted={shouldShowYearPosted}
+                                    shouldShowYearExported={shouldShowYearExported}
                                     isAmountColumnWide={shouldShowAmountInWideColumn}
                                     isTaxAmountColumnWide={shouldShowTaxAmountInWideColumn}
-                                    shouldShowSorting={shouldShowSorting}
-                                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
+                                    shouldShowSorting
                                     groupBy={validGroupBy}
                                 />
                             </View>
@@ -1081,7 +1116,6 @@ function Search({
                     }
                     queryJSON={queryJSON}
                     columns={columnsToShow}
-                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     violations={filteredViolations}
                     onLayout={onLayout}
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
@@ -1110,4 +1144,5 @@ Search.displayName = 'Search';
 export type {SearchProps};
 const WrappedSearch = Sentry.withProfiler(Search) as typeof Search;
 WrappedSearch.displayName = 'Search';
+
 export default WrappedSearch;
