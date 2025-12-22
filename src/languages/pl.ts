@@ -139,6 +139,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -1505,6 +1506,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: 'Podziel daty',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} do ${endDate} (${count} dni)`,
         splitByDate: 'Podziel według daty',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `raport przekazany do ${to} z powodu niestandardowego procesu zatwierdzania`,
     },
     transactionMerge: {
         listPage: {
@@ -4808,6 +4810,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             feedName: (feedName: string) => `Karty ${feedName}`,
             directFeed: 'Bezpośredni kanał',
             whoNeedsCardAssigned: 'Kto potrzebuje przypisanej karty?',
+            chooseTheCardholder: 'Wybierz posiadacza karty',
             chooseCard: 'Wybierz kartę',
             chooseCardFor: (assignee: string) => `Wybierz kartę dla <strong>${assignee}</strong>. Nie możesz znaleźć karty, której szukasz? <concierge-link>Daj nam znać.</concierge-link>`,
             noActiveCards: 'Brak aktywnych kart w tym kanale',
@@ -4829,6 +4832,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             chooseCardFeed: 'Wybierz źródło kart',
             ukRegulation:
                 'Expensify Limited jest agentem Plaid Financial Ltd., autoryzowanej instytucji płatniczej regulowanej przez Financial Conduct Authority na mocy Payment Services Regulations 2017 (Numer Referencyjny Firmy: 804718). Plaid świadczy Ci regulowane usługi informacji o rachunku za pośrednictwem Expensify Limited jako swojego agenta.',
+            assign: 'Przypisz',
+            assignCardFailedError: 'Przypisanie karty nie powiodło się.',
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj swoimi kartami Expensify',
@@ -5042,6 +5047,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 cardNumber: 'Numer karty',
                 cardholder: 'Posiadacz karty',
                 cardName: 'Nazwa karty',
+                allCards: 'Wszystkie karty',
+                assignedCards: 'Przypisano',
+                unassignedCards: 'Nieprzypisane',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} eksport` : `Eksport ${integration}`),
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Wybierz konto ${integration}, do którego mają być eksportowane transakcje.`,
                 integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
@@ -5079,6 +5087,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 pendingBankLink: 'kliknij tutaj',
                 giveItNameInstruction: 'Nadaj karcie nazwę, która wyróżni ją spośród innych.',
                 updating: 'Aktualizowanie...',
+                neverUpdated: 'Nigdy',
                 noAccountsFound: 'Nie znaleziono kont',
                 defaultCard: 'Domyślna karta',
                 downgradeTitle: `Nie można obniżyć poziomu miejsca pracy`,

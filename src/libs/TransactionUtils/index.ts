@@ -1507,11 +1507,18 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * Check if transaction has duplicatedTransaction violation.
  * @param transactionID - the transaction to check
  */
-function isDuplicate(transaction: OnyxEntry<Transaction>, currentUserEmail: string, currentUserAccountID: number, iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function isDuplicate(
+    transaction: OnyxEntry<Transaction>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    transactionViolation?: OnyxEntry<TransactionViolations>,
+): boolean {
     if (!transaction) {
         return false;
     }
-    const duplicatedTransactionViolation = deprecatedAllTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]?.find(
+    const duplicatedTransactionViolation = (transactionViolation ?? deprecatedAllTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`])?.find(
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
     const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
@@ -1621,13 +1628,24 @@ function hasDuplicateTransactions(
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    allReportTransactions?: SearchTransaction[],
+    allTransactionViolations: OnyxCollection<TransactionViolation[]>,
 ): boolean {
     const transactionsByIouReportID = getReportTransactions(iouReport?.reportID);
-    const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
+    const reportTransactions = transactionsByIouReportID;
 
-    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail, currentUserAccountID, iouReport, policy));
+    return (
+        reportTransactions.length > 0 &&
+        reportTransactions.some((transaction) =>
+            isDuplicate(
+                transaction,
+                currentUserEmail,
+                currentUserAccountID,
+                iouReport,
+                policy,
+                allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
+            ),
+        )
+    );
 }
 
 /**

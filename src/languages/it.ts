@@ -139,6 +139,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -1508,6 +1509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: 'Dividi date',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} giorni)`,
         splitByDate: 'Dividi per data',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapporto inoltrato a ${to} a causa del flusso di lavoro di approvazione personalizzato`,
     },
     transactionMerge: {
         listPage: {
@@ -4821,6 +4823,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             feedName: (feedName: string) => `Carte ${feedName}`,
             directFeed: 'Feed diretto',
             whoNeedsCardAssigned: 'Chi ha bisogno di una carta assegnata?',
+            chooseTheCardholder: 'Scegli il titolare della carta',
             chooseCard: 'Scegli una carta',
             chooseCardFor: (assignee: string) =>
                 `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <concierge-link>Facci sapere.</concierge-link>`,
@@ -4843,6 +4846,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             chooseCardFeed: 'Scegli flusso carta',
             ukRegulation:
                 'Expensify Limited è un agente di Plaid Financial Ltd., un istituto di pagamento autorizzato e regolamentato dalla Financial Conduct Authority ai sensi delle Payment Services Regulations 2017 (Numero di riferimento dell’impresa: 804718). Plaid ti fornisce servizi regolamentati di informazione sui conti tramite Expensify Limited in qualità di suo agente.',
+            assign: 'Assegna',
+            assignCardFailedError: 'Assegnazione della carta non riuscita.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Expensify Card',
@@ -5058,6 +5063,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 cardNumber: 'Numero carta',
                 cardholder: 'Titolare della carta',
                 cardName: 'Nome carta',
+                allCards: 'Tutte le carte',
+                assignedCards: 'Assegnato',
+                unassignedCards: 'Non assegnato',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `esportazione ${integration} ${type.toLowerCase()}` : `Esportazione ${integration}`,
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Scegli l'account ${integration} in cui esportare le transazioni.`,
@@ -5096,6 +5104,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 pendingBankLink: 'fai clic qui',
                 giveItNameInstruction: 'Dai alla carta un nome che la distingua dalle altre.',
                 updating: 'Aggiornamento in corso...',
+                neverUpdated: 'Mai',
                 noAccountsFound: 'Nessun account trovato',
                 defaultCard: 'Carta predefinita',
                 downgradeTitle: `Impossibile effettuare il downgrade dello spazio di lavoro`,
