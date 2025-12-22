@@ -583,7 +583,6 @@ function SearchPage({route}: SearchPageProps) {
                         return;
                     }
 
-
                     if (dismissedRejectUseExplanation) {
                         Navigation.navigate(ROUTES.SEARCH_REJECT_REASON_RHP);
                     } else {
