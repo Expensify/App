@@ -58,7 +58,17 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
         !!typeMenuSections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle') && isFocused,
     );
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Bookmark',
+        'Pencil',
+        'Receipt',
+        'ChatBubbles',
+        'MoneyBag',
+        'CreditCard',
+        'MoneyHourglass',
+        'CreditCardHourglass',
+        'Bank',
+    ] as const);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -82,8 +92,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     });
 
     const getOverflowMenu = useCallback(
-        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, showDeleteModal),
-        [showDeleteModal, expensifyIcons],
+        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal),
+        [translate, showDeleteModal, expensifyIcons],
     );
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, index: number) => {
@@ -241,6 +251,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                             const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
                                             const flattenedIndex = previousItemCount + itemIndex;
                                             const focused = activeItemIndex === flattenedIndex;
+                                            const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
                                             const onPress = singleExecution(() => {
                                                 clearSelectedTransactions();
@@ -253,7 +264,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                     disabled={false}
                                                     interactive
                                                     title={translate(item.translationPath)}
-                                                    icon={item.icon}
+                                                    icon={icon}
                                                     iconWidth={variables.iconSizeNormal}
                                                     iconHeight={variables.iconSizeNormal}
                                                     wrapperStyle={styles.sectionMenuItem}
