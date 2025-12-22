@@ -252,7 +252,7 @@ function IOURequestEditReportCommon({
             navigateBack();
             return;
         }
-        if (validatePerDiemMove(item.policyID) ) {
+        if (!validatePerDiemMove(item.policyID) ) {
             return;
         }
         selectReport(item);
