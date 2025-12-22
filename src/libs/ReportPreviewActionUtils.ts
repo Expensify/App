@@ -207,7 +207,7 @@ function getReportPreviewAction({
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
-    if (canSubmit(report, isReportArchived, currentUserAccountID, violationsData?.currentUserEmail ?? '', violationsData?.violations, policy, transactions)) {
+    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserEmail, violationsData, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, policy, transactions)) {
