@@ -353,12 +353,7 @@ function AuthScreens() {
                     return;
                 }
 
-                if (shouldRenderSecondaryOverlayForRHPOnWideRHP) {
-                    Navigation.dismissToPreviousRHP();
-                    return;
-                }
-
-                if (shouldRenderTertiaryOverlay) {
+                if (shouldRenderSecondaryOverlayForRHPOnWideRHP || shouldRenderTertiaryOverlay) {
                     Navigation.dismissToPreviousRHP();
                     return;
                 }
