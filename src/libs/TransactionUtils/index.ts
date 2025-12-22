@@ -113,6 +113,8 @@ type TransactionParams = {
     splitsStartDate?: string;
     splitsEndDate?: string;
     distance?: number;
+    count?: number;
+    rate?: number;
 };
 
 type BuildOptimisticTransactionParams = {
@@ -366,6 +368,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         splitExpensesTotal,
         participants,
         pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        count,
+        rate,
     } = transactionParams;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
@@ -406,6 +410,16 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     if (isPerDiemTransaction) {
         // Set the custom unit, which comes from the policy per diem rate data
         lodashSet(commentJSON, 'customUnit', customUnit);
+    }
+
+    const isTimeTransaction = count !== undefined && rate !== undefined;
+    if (isTimeTransaction) {
+        commentJSON.units = {
+            count,
+            rate,
+            unit: 'h',
+        };
+        commentJSON.type = 'time';
     }
 
     return {

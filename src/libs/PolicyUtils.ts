@@ -1592,12 +1592,10 @@ function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | un
 }
 
 function isTimeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
-    return true;
     return !!policy?.units?.time?.enabled;
 }
 
 function getDefaultTimeTrackingRate(policy: Policy): number | undefined {
-    return 20;
     return policy.units?.time?.rate;
 }
 

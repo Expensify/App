@@ -233,6 +233,7 @@ import {
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
+    isTimeRequest,
     removeTransactionFromDuplicateTransactionViolation,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -449,6 +450,8 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     pendingFields?: PendingFields<string>;
     distance?: number;
     isLinkedTrackedExpenseReportArchived?: boolean;
+    count?: number;
+    rate?: number;
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
@@ -3552,6 +3555,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         linkedTrackedExpenseReportAction,
         pendingAction,
         pendingFields = {},
+        count,
+        rate,
     } = transactionParams;
 
     const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
@@ -3665,6 +3670,8 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             pendingAction,
             pendingFields: isDistanceRequest && !isManualDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, ...pendingFields} : pendingFields,
             reimbursable: isPolicyExpenseChat ? reimbursable : true,
+            count,
+            rate,
         },
         isDemoTransactionParam: isSelectedManagerMcTest(participant.login) || transactionParams.receipt?.isTestDriveReceipt,
     });
@@ -6339,6 +6346,8 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         customUnitRateID,
         isTestDrive,
         isLinkedTrackedExpenseReportArchived,
+        count,
+        rate,
     } = transactionParams;
 
     const testDriveCommentReportActionID = isTestDrive ? NumberUtils.rand64() : undefined;
@@ -6483,6 +6492,15 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                   })?.guidedSetupData
                 : undefined;
 
+            const timeTrackingParams = isTimeRequest(transaction)
+                ? ({
+                      count,
+                      rate,
+                      type: 'time',
+                      unit: 'h',
+                  } as const)
+                : {};
+
             const parameters: RequestMoneyParams = {
                 debtorEmail: payerEmail,
                 debtorAccountID: payerAccountID,
@@ -6515,6 +6533,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 isTestDrive,
                 guidedSetupData: guidedSetupData ? JSON.stringify(guidedSetupData) : undefined,
                 testDriveCommentReportActionID,
+                ...timeTrackingParams,
             };
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
