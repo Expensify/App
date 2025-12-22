@@ -78,6 +78,4 @@ function ReportsSplitNavigator({route}: PlatformStackScreenProps<AuthScreensPara
     );
 }
 
-ReportsSplitNavigator.displayName = 'ReportsSplitNavigator';
-
 export default ReportsSplitNavigator;

@@ -49,6 +49,4 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
     );
 }
 
-NewContactMethodConfirmMagicCodePage.displayName = 'NewContactMethodConfirmMagicCodePage';
-
 export default NewContactMethodConfirmMagicCodePage;
