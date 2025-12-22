@@ -66,24 +66,9 @@ import type {
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
     FeatureNameParams,
-    FileLimitParams,
-    FileTypeParams,
-    FiltersAmountBetweenParams,
-    FlightLayoverParams,
-    FlightParams,
-    FocusModeUpdateParams,
-    FormattedMaxLengthParams,
-    GoBackMessageParams,
-    HarvestCreatedExpenseReportParams,
-    ImportedTagsMessageParams,
-    ImportedTypesParams,
-    ImportFieldParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
-    IncorrectZipFormatParams,
-    IndividualExpenseRulesSubtitleParams,
-    InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
     IntegrationSyncFailedParams,
@@ -747,12 +732,12 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'パスワードで保護されたPDFはサポートされていません',
         attachmentImageResized: 'この画像はプレビュー用にサイズが変更されています。フル解像度で表示するにはダウンロードしてください。',
         attachmentImageTooLarge: 'この画像はアップロード前にプレビューするには大きすぎます。',
-        tooManyFiles: ({fileLimit}: FileLimitParams) => `一度にアップロードできるファイルは${fileLimit}件までです。`,
+        tooManyFiles: (fileLimit: number) => `一度にアップロードできるファイルは${fileLimit}件までです。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルが ${maxUploadSizeInMB} MB を超えています。もう一度お試しください。`,
         someFilesCantBeUploaded: '一部のファイルはアップロードできません',
         sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルは${maxUploadSizeInMB}MB未満である必要があります。これより大きいファイルはアップロードされません。`,
         maxFileLimitExceeded: '一度にアップロードできる領収書は最大30枚です。それを超えた分はアップロードされません。',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} ファイルはサポートされていません。サポートされているファイル形式のみアップロードされます。`,
+        unsupportedFileType: (fileType: string) => `${fileType} ファイルはサポートされていません。サポートされているファイル形式のみアップロードされます。`,
         learnMoreAboutSupportedFiles: 'サポートされている形式の詳細はこちらをご覧ください。',
         passwordProtected: 'パスワード保護されたPDFはサポートされていません。サポートされているファイルのみがアップロードされます。',
     },
@@ -777,8 +762,8 @@ const translations: TranslationDeepObject<typeof en> = {
     composer: {
         noExtensionFoundForMimeType: 'この MIME タイプに対応する拡張子が見つかりません',
         problemGettingImageYouPasted: '貼り付けた画像の取得中に問題が発生しました',
-        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `コメントの最大文字数は${formattedMaxLength}文字です。`,
-        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `タスクタイトルの最大長は${formattedMaxLength}文字です。`,
+        commentExceededMaxLength: (formattedMaxLength: string) => `コメントの最大文字数は${formattedMaxLength}文字です。`,
+        taskTitleExceededMaxLength: (formattedMaxLength: string) => `タスクタイトルの最大長は${formattedMaxLength}文字です。`,
     },
     baseUpdateAppModal: {
         updateApp: 'アプリを更新',
@@ -872,7 +857,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     thirdPartySignIn: {
         alreadySignedIn: (email: string) => `すでに ${email} としてサインインしています。`,
-        goBackMessage: ({provider}: GoBackMessageParams) => `${provider}でサインインしたくありませんか？`,
+        goBackMessage: (provider: string) => `${provider}でサインインしたくありませんか？`,
         continueWithMyCurrentSession: '現在のセッションを続行',
         redirectToDesktopMessage: 'サインインが完了すると、デスクトップアプリにリダイレクトします。',
     },
@@ -972,7 +957,7 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'このルームでメッセージを送信できるのは管理者のみです。',
     reportAction: {
         asCopilot: 'のコパイロットとして',
-        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+        harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `選択した頻度では提出できなかった <a href="${reportUrl}">${reportName}</a> のすべての経費をまとめるためにこのレポートを作成しました`,
     },
     mentionSuggestions: {
@@ -2365,7 +2350,7 @@ ${merchant} への ${amount}（${date}）`,
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `振替${amount ? ` ${amount}` : ''}`,
         instant: '即時（デビットカード）',
-        instantSummary: ({rate, minAmount}: InstantSummaryParams) => `${rate}% の手数料（最低 ${minAmount}）`,
+        instantSummary: (rate: string, minAmount: string) => `${rate}% の手数料（最低 ${minAmount}）`,
         ach: '1～3 営業日（銀行口座）',
         achSummary: '手数料なし',
         whichAccount: 'どのアカウントですか？',
@@ -2884,7 +2869,7 @@ ${
             dateShouldBeBefore: (dateString: string) => `日付は${dateString}より前でなければなりません`,
             dateShouldBeAfter: (dateString: string) => `日付は${dateString}より後である必要があります`,
             hasInvalidCharacter: '名前にはラテン文字のみ使用できます',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `郵便番号の形式が正しくありません${zipFormat ? `許容される形式：${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `郵便番号の形式が正しくありません${zipFormat ? `許容される形式：${zipFormat}` : ''}`,
             invalidPhoneNumber: `電話番号が有効であることを確認してください（例：${CONST.EXAMPLE_PHONE_NUMBER}）`,
         },
     },
@@ -2967,7 +2952,7 @@ ${
     },
     focusModeUpdateModal: {
         title: '#focus モードへようこそ！',
-        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+        prompt: (priorityModePageUrl: string) =>
             `未読のチャットや、対応が必要なチャットだけを表示して、常に状況を把握しましょう。心配はいりません。これはいつでも<a href="${priorityModePageUrl}">設定</a>で変更できます。`,
     },
     notFound: {
@@ -3634,7 +3619,7 @@ ${
         flight: 'フライト',
         flightDetails: {
             passenger: '乗客',
-            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>このフライトの前に<strong>${layover} の乗り継ぎ時間</strong>があります</muted-text-label>`,
+            layover: (layover: string) => `<muted-text-label>このフライトの前に<strong>${layover} の乗り継ぎ時間</strong>があります</muted-text-label>`,
             takeOff: '離陸',
             landing: 'ランディング',
             seat: '席',
@@ -3724,17 +3709,18 @@ ${
             conciergeMessage: ({domain}: {domain: string}) => `ドメイン ${domain} の出張機能の有効化に失敗しました。このドメインの出張機能を確認して有効にしてください。`,
         },
         updates: {
-            bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
+            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = ' ') =>
                 `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）が予約されました。確認コード：${confirmationID}`,
-            ticketVoided: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）のチケットは無効になりました。`,
-            ticketRefunded: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            ticketRefunded: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）の航空券は、払い戻しまたは変更されています。`,
-            flightCancelled: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            flightCancelled: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `${startDate}} のフライト ${airlineCode}（${origin} → ${destination}）は、航空会社によりキャンセルされました。`,
             flightScheduleChangePending: ({airlineCode}: AirlineParams) => `航空会社が便名 ${airlineCode} のスケジュール変更を提案しており、現在確認待ちです。`,
             flightScheduleChangeClosed: ({airlineCode, startDate}: AirlineParams) => `スケジュール変更が確認されました：フライト ${airlineCode} の出発時刻は ${startDate} になりました。`,
-            flightUpdated: ({airlineCode, origin, destination, startDate}: FlightParams) => `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）が更新されました。`,
+            flightUpdated: (airlineCode: string, origin: string, destination: string, startDate: string) =>
+                `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）が更新されました。`,
             flightCabinChanged: ({airlineCode, cabinClass}: AirlineParams) => `ご搭乗クラスは、${airlineCode} 便で ${cabinClass} に更新されました。`,
             flightSeatConfirmed: ({airlineCode}: AirlineParams) => `${airlineCode}便の座席指定が確定しました。`,
             flightSeatChanged: ({airlineCode}: AirlineParams) => `ご搭乗便 ${airlineCode} の座席指定が変更されました。`,
@@ -4538,7 +4524,7 @@ ${
                 importTaxDescription: 'NetSuite から税グループをインポートします。',
                 importCustomFields: {
                     chooseOptionBelow: '以下からオプションを選択してください：',
-                    label: ({importedTypes}: ImportedTypesParams) => `${importedTypes.join('と')} としてインポートされました`,
+                    label: (importedTypes: string[]) => `${importedTypes.join('と')} としてインポートされました`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `${fieldName}を入力してください`,
                     customSegments: {
                         title: 'カスタムセグメント／レコード',
@@ -4653,18 +4639,18 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'NetSuite 従業員のデフォルト',
                         description: 'Expensify にインポートされず、エクスポート時に適用されます',
-                        footerContent: ({importField}: ImportFieldParams) =>
+                        footerContent: (importField: string) =>
                             `NetSuite で ${importField} を使用する場合、Expense Report または Journal Entry へエクスポートする際に、従業員レコードに設定されているデフォルトを適用します。`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'タグ',
                         description: '明細行レベル',
-                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} は、従業員のレポート上の各経費ごとに個別に選択できるようになります。`,
+                        footerContent: (importField: string) => `${startCase(importField)} は、従業員のレポート上の各経費ごとに個別に選択できるようになります。`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'レポート項目',
                         description: 'レポートレベル',
-                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} の選択は、従業員のレポート上のすべての経費に適用されます。`,
+                        footerContent: (importField: string) => `${startCase(importField)} の選択は、従業員のレポート上のすべての経費に適用されます。`,
                     },
                 },
             },
@@ -4741,7 +4727,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 commercialFeedPlaidDetails: `銀行での設定が必要ですが、設定手順はご案内します。通常は大企業に限られます。`,
                 directFeedDetails: '最も簡単な方法です。マスター認証情報を使用して、すぐに接続します。この方法が最も一般的です。',
                 enableFeed: {
-                    title: ({provider}: GoBackMessageParams) => `${provider} フィードを有効にする`,
+                    title: (provider: string) => `${provider} フィードを有効にする`,
                     heading: 'お使いのカード発行会社と直接連携しており、取引データを迅速かつ正確に Expensify に取り込むことができます。\n\n開始するには、次の手順に従ってください。',
                     visa: '私たちはVisaとグローバル連携していますが、対象となるかどうかは銀行やカードプログラムによって異なります。\n\nご利用を開始するには、次のステップに従ってください。',
                     mastercard:
@@ -5271,7 +5257,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 prompt3: 'バックアップをダウンロード',
                 prompt4: '最初。',
             },
-            importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
+            importedTagsMessage: (columnCounts: number) =>
                 `スプレッドシート内に *${columnCounts} 列* 見つかりました。タグ名が含まれている列の横で *Name* を選択してください。タグのステータスを設定する列の横で *Enabled* を選択することもできます。`,
             cannotDeleteOrDisableAllTags: {
                 title: 'すべてのタグを削除または無効にすることはできません',
@@ -6074,7 +6060,7 @@ ${reportName}
         rules: {
             individualExpenseRules: {
                 title: '経費',
-                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
                     `<muted-text>個々の経費に対して支出コントロールとデフォルトを設定します。<a href="${categoriesPageLink}">カテゴリ</a>や<a href="${tagsPageLink}">タグ</a>のルールを作成することもできます。</muted-text>`,
                 receiptRequiredAmount: '領収書が必要な金額',
                 receiptRequiredAmountDescription: 'カテゴリルールで上書きされない限り、支出がこの金額を超えた場合に領収書を必須にする。',
@@ -6537,7 +6523,7 @@ ${reportName}
         useInviteButton: '新しいメンバーをチャットに招待するには、上の招待ボタンを使用してください。',
         notAuthorized: `このページへのアクセス権がありません。このルームに参加しようとしている場合は、ルームのメンバーに追加してもらってください。その他のお困りごとについては、${CONST.EMAIL.CONCIERGE} までご連絡ください。`,
         roomArchived: `このルームはアーカイブされたようです。ご不明な点がありましたら、${CONST.EMAIL.CONCIERGE} までお問い合わせください。`,
-        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+        removeMembersPrompt: (memberName: string) => ({
             one: `本当に、このルームから${memberName}さんを削除しますか？`,
             other: '選択したメンバーをルームから削除してもよろしいですか？',
         }),
@@ -6695,7 +6681,7 @@ ${reportName}
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''} 未満`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''}より大きい`,
-                between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `${greaterThan} から ${lessThan} まで`,
+                between: (greaterThan: string, lessThan: string) => `${greaterThan} から ${lessThan} まで`,
                 equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''} と等しい`,
             },
             card: {

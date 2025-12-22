@@ -66,24 +66,9 @@ import type {
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
     FeatureNameParams,
-    FileLimitParams,
-    FileTypeParams,
-    FiltersAmountBetweenParams,
-    FlightLayoverParams,
-    FlightParams,
-    FocusModeUpdateParams,
-    FormattedMaxLengthParams,
-    GoBackMessageParams,
-    HarvestCreatedExpenseReportParams,
-    ImportedTagsMessageParams,
-    ImportedTypesParams,
-    ImportFieldParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
-    IncorrectZipFormatParams,
-    IndividualExpenseRulesSubtitleParams,
-    InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
     IntegrationSyncFailedParams,
@@ -743,12 +728,12 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: '不支持受密码保护的 PDF',
         attachmentImageResized: '此图片已调整大小以供预览。下载以查看完整分辨率。',
         attachmentImageTooLarge: '此图片过大，无法在上传前预览。',
-        tooManyFiles: ({fileLimit}: FileLimitParams) => `一次最多只能上传 ${fileLimit} 个文件。`,
+        tooManyFiles: (fileLimit: number) => `一次最多只能上传 ${fileLimit} 个文件。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `文件超过 ${maxUploadSizeInMB} MB。请重试。`,
         someFilesCantBeUploaded: '某些文件无法上传',
         sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `文件大小必须小于 ${maxUploadSizeInMB} MB。更大的文件将不会被上传。`,
         maxFileLimitExceeded: '您一次最多可以上传 30 张收据。超出部分将不会被上传。',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `不支持 ${fileType} 文件。只有支持的文件类型会被上传。`,
+        unsupportedFileType: (fileType: string) => `不支持 ${fileType} 文件。只有支持的文件类型会被上传。`,
         learnMoreAboutSupportedFiles: '了解支持的格式详情。',
         passwordProtected: '不支持受密码保护的 PDF 文件。只有受支持的文件会被上传。',
     },
@@ -773,8 +758,8 @@ const translations: TranslationDeepObject<typeof en> = {
     composer: {
         noExtensionFoundForMimeType: '未找到与该 MIME 类型对应的扩展名',
         problemGettingImageYouPasted: '获取您粘贴的图片时出现问题',
-        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `最大评论长度为 ${formattedMaxLength} 个字符。`,
-        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `任务标题的最大长度为 ${formattedMaxLength} 个字符。`,
+        commentExceededMaxLength: (formattedMaxLength: string) => `最大评论长度为 ${formattedMaxLength} 个字符。`,
+        taskTitleExceededMaxLength: (formattedMaxLength: string) => `任务标题的最大长度为 ${formattedMaxLength} 个字符。`,
     },
     baseUpdateAppModal: {
         updateApp: '更新应用程序',
@@ -866,7 +851,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     thirdPartySignIn: {
         alreadySignedIn: (email: string) => `您已经以 ${email} 的身份登录。`,
-        goBackMessage: ({provider}: GoBackMessageParams) => `不想使用 ${provider} 登录？`,
+        goBackMessage: (provider: string) => `不想使用 ${provider} 登录？`,
         continueWithMyCurrentSession: '继续当前会话',
         redirectToDesktopMessage: '完成登录后，我们会将您重定向到桌面应用程序。',
     },
@@ -964,8 +949,7 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: '只有管理员可以在此房间发送消息。',
     reportAction: {
         asCopilot: '作为副驾驶用于',
-        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
-            `创建了此报表以汇总 <a href="${reportUrl}">${reportName}</a> 中无法按您选择的频率提交的所有费用`,
+        harvestCreatedExpenseReport: (reportUrl: string, reportName: string) => `创建了此报表以汇总 <a href="${reportUrl}">${reportName}</a> 中无法按您选择的频率提交的所有费用`,
     },
     mentionSuggestions: {
         hereAlternateText: '通知此对话中的所有人',
@@ -2335,7 +2319,7 @@ ${amount}，商户：${merchant} - ${date}`,
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `转账${amount ? ` ${amount}` : ''}`,
         instant: '即时（借记卡）',
-        instantSummary: ({rate, minAmount}: InstantSummaryParams) => `${rate}% 费用（最低 ${minAmount}）`,
+        instantSummary: (rate: string, minAmount: string) => `${rate}% 费用（最低 ${minAmount}）`,
         ach: '1–3 个工作日（银行账户）',
         achSummary: '无手续费',
         whichAccount: '哪个账户？',
@@ -2849,7 +2833,7 @@ ${
             dateShouldBeBefore: (dateString: string) => `日期应早于 ${dateString}`,
             dateShouldBeAfter: (dateString: string) => `日期应晚于 ${dateString}`,
             hasInvalidCharacter: '名称只能包含拉丁字符',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `邮政编码格式不正确${zipFormat ? `可接受的格式：${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `邮政编码格式不正确${zipFormat ? `可接受的格式：${zipFormat}` : ''}`,
             invalidPhoneNumber: `请确保电话号码有效（例如：${CONST.EXAMPLE_PHONE_NUMBER}）`,
         },
     },
@@ -2929,8 +2913,7 @@ ${
     },
     focusModeUpdateModal: {
         title: '欢迎使用 #focus 模式！',
-        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
-            `通过仅查看未读聊天或需要你关注的聊天，随时掌握一切动态。别担心，你可以随时在<a href="${priorityModePageUrl}">设置</a>中更改此选项。`,
+        prompt: (priorityModePageUrl: string) => `通过仅查看未读聊天或需要你关注的聊天，随时掌握一切动态。别担心，你可以随时在<a href="${priorityModePageUrl}">设置</a>中更改此选项。`,
     },
     notFound: {
         chatYouLookingForCannotBeFound: '找不到您要查找的聊天记录。',
@@ -3587,7 +3570,7 @@ ${
         flight: '航班',
         flightDetails: {
             passenger: '乘客',
-            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>在此航班前，你有一段<strong>${layover}的中转停留时间</strong></muted-text-label>`,
+            layover: (layover: string) => `<muted-text-label>在此航班前，你有一段<strong>${layover}的中转停留时间</strong></muted-text-label>`,
             takeOff: '起飞',
             landing: '登录页',
             seat: '座位',
@@ -3675,15 +3658,17 @@ ${
             conciergeMessage: ({domain}: {domain: string}) => `为域名：${domain} 启用差旅失败。请检查并为此域名启用差旅。`,
         },
         updates: {
-            bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
+            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = ' ') =>
                 `您于${startDate}的航班 ${airlineCode}（${origin} → ${destination}）已预订成功。确认代码：${confirmationID}`,
-            ticketVoided: ({airlineCode, origin, destination, startDate}: FlightParams) => `您在${startDate}乘坐的航班${airlineCode}（${origin} → ${destination}）的机票已作废。`,
-            ticketRefunded: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
+                `您在${startDate}乘坐的航班${airlineCode}（${origin} → ${destination}）的机票已作废。`,
+            ticketRefunded: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `您于 ${startDate} 搭乘的航班 ${airlineCode}（${origin} → ${destination}）的机票已被退款或改签。`,
-            flightCancelled: ({airlineCode, origin, destination, startDate}: FlightParams) => `您在 ${startDate}} 搭乘的航班 ${airlineCode}（${origin} → ${destination}）已被航空公司取消。`,
+            flightCancelled: (airlineCode: string, origin: string, destination: string, startDate: string) =>
+                `您在 ${startDate}} 搭乘的航班 ${airlineCode}（${origin} → ${destination}）已被航空公司取消。`,
             flightScheduleChangePending: ({airlineCode}: AirlineParams) => `航空公司已对航班 ${airlineCode} 提出行程变更，我们正在等待确认。`,
             flightScheduleChangeClosed: ({airlineCode, startDate}: AirlineParams) => `行程变更已确认：航班 ${airlineCode} 现在将于 ${startDate} 起飞。`,
-            flightUpdated: ({airlineCode, origin, destination, startDate}: FlightParams) => `您在${startDate}的航班 ${airlineCode}（${origin} → ${destination}）已更新。`,
+            flightUpdated: (airlineCode: string, origin: string, destination: string, startDate: string) => `您在${startDate}的航班 ${airlineCode}（${origin} → ${destination}）已更新。`,
             flightCabinChanged: ({airlineCode, cabinClass}: AirlineParams) => `您在航班 ${airlineCode} 上的舱位等级已更新为 ${cabinClass}。`,
             flightSeatConfirmed: ({airlineCode}: AirlineParams) => `您在航班 ${airlineCode} 上的座位分配已确认。`,
             flightSeatChanged: ({airlineCode}: AirlineParams) => `您在航班 ${airlineCode} 上的座位分配已被更改。`,
@@ -4469,7 +4454,7 @@ ${
                 importTaxDescription: '从 NetSuite 导入税务组。',
                 importCustomFields: {
                     chooseOptionBelow: '请选择下面的一个选项：',
-                    label: ({importedTypes}: ImportedTypesParams) => `已作为 ${importedTypes.join('和')} 导入`,
+                    label: (importedTypes: string[]) => `已作为 ${importedTypes.join('和')} 导入`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `请输入${fieldName}`,
                     customSegments: {
                         title: '自定义分段/记录',
@@ -4584,18 +4569,17 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'NetSuite 员工默认值',
                         description: '未导入到 Expensify，在导出时应用',
-                        footerContent: ({importField}: ImportFieldParams) =>
-                            `如果您在 NetSuite 中使用 ${importField}，我们将在导出至 Expense Report 或 Journal Entry 时应用员工记录中设置的默认值。`,
+                        footerContent: (importField: string) => `如果您在 NetSuite 中使用 ${importField}，我们将在导出至 Expense Report 或 Journal Entry 时应用员工记录中设置的默认值。`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: '标签',
                         description: '逐项级别',
-                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} 将可在员工报表中的每一笔单独费用上进行选择。`,
+                        footerContent: (importField: string) => `${startCase(importField)} 将可在员工报表中的每一笔单独费用上进行选择。`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: '报表字段',
                         description: '报表级别',
-                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} 选择将应用于员工报表上的所有报销费用。`,
+                        footerContent: (importField: string) => `${startCase(importField)} 选择将应用于员工报表上的所有报销费用。`,
                     },
                 },
             },
@@ -4672,7 +4656,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 commercialFeedPlaidDetails: `需要与你的银行进行设置，但我们会指导你完成。此功能通常仅限较大规模的公司使用。`,
                 directFeedDetails: '最简单的方法。立即使用您的主凭证进行连接。此方法最为常见。',
                 enableFeed: {
-                    title: ({provider}: GoBackMessageParams) => `启用您的 ${provider} 订阅源`,
+                    title: (provider: string) => `启用您的 ${provider} 订阅源`,
                     heading: '我们已与您的发卡机构进行了直接集成，可以快速且准确地将您的交易数据导入 Expensify。\n\n要开始使用，只需：',
                     visa: '我们与 Visa 有全球集成，但资格取决于发卡银行和卡片项目。\n\n要开始使用，只需：',
                     mastercard: '我们与 Mastercard 建立了全球集成，但可用性会因银行和卡片计划而异。\n\n要开始使用，只需：',
@@ -5193,7 +5177,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 prompt3: '下载备份',
                 prompt4: '第一。',
             },
-            importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
+            importedTagsMessage: (columnCounts: number) =>
                 `我们在您的电子表格中找到了 *${columnCounts} 列*。请在包含标签名称的列旁边选择 *Name*。您也可以在设置标签状态的列旁边选择 *Enabled*。`,
             cannotDeleteOrDisableAllTags: {
                 title: '无法删除或禁用所有标签',
@@ -5985,7 +5969,7 @@ ${reportName}
         rules: {
             individualExpenseRules: {
                 title: '报销',
-                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
                     `<muted-text>为单笔报销设置支出控制和默认值。您还可以为<a href="${categoriesPageLink}">类别</a>和<a href="${tagsPageLink}">标签</a>创建规则。</muted-text>`,
                 receiptRequiredAmount: '所需收据金额',
                 receiptRequiredAmountDescription: '当支出超过此金额时要求提供收据，除非被类别规则覆盖。',
@@ -6436,7 +6420,7 @@ ${reportName}
         useInviteButton: '要邀请新成员加入聊天，请使用上方的邀请按钮。',
         notAuthorized: `您无权访问此页面。如果您正尝试加入此聊天室，请让聊天室成员将您加入。还有其他问题？请联系 ${CONST.EMAIL.CONCIERGE}`,
         roomArchived: `此房间似乎已被归档。如有问题，请联系 ${CONST.EMAIL.CONCIERGE}。`,
-        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+        removeMembersPrompt: (memberName: string) => ({
             one: `您确定要将 ${memberName} 从此房间中移除吗？`,
             other: '您确定要将选中的成员从此聊天室中移除吗？',
         }),
@@ -6595,7 +6579,7 @@ ${reportName}
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `少于 ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `大于 ${amount ?? ''}`,
-                between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `介于 ${greaterThan} 和 ${lessThan} 之间`,
+                between: (greaterThan: string, lessThan: string) => `介于 ${greaterThan} 和 ${lessThan} 之间`,
                 equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `等于 ${amount ?? ''}`,
             },
             card: {

@@ -66,24 +66,9 @@ import type {
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
     FeatureNameParams,
-    FileLimitParams,
-    FileTypeParams,
-    FiltersAmountBetweenParams,
-    FlightLayoverParams,
-    FlightParams,
-    FocusModeUpdateParams,
-    FormattedMaxLengthParams,
-    GoBackMessageParams,
-    HarvestCreatedExpenseReportParams,
-    ImportedTagsMessageParams,
-    ImportedTypesParams,
-    ImportFieldParams,
     ImportMembersSuccessfulDescriptionParams,
     ImportPerDiemRatesSuccessfulDescriptionParams,
     ImportTagsSuccessfulDescriptionParams,
-    IncorrectZipFormatParams,
-    IndividualExpenseRulesSubtitleParams,
-    InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
     IntegrationSyncFailedParams,
@@ -748,12 +733,12 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'Met wachtwoord beveiligde PDF wordt niet ondersteund',
         attachmentImageResized: 'Deze afbeelding is verkleind voor voorbeeldweergave. Download om de volledige resolutie te zien.',
         attachmentImageTooLarge: 'Deze afbeelding is te groot om een voorbeeld te tonen voordat je deze uploadt.',
-        tooManyFiles: ({fileLimit}: FileLimitParams) => `Je kunt maximaal ${fileLimit} bestanden tegelijk uploaden.`,
+        tooManyFiles: (fileLimit: number) => `Je kunt maximaal ${fileLimit} bestanden tegelijk uploaden.`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `Bestanden zijn groter dan ${maxUploadSizeInMB} MB. Probeer het opnieuw.`,
         someFilesCantBeUploaded: 'Sommige bestanden kunnen niet worden geüpload',
         sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `Bestanden moeten kleiner zijn dan ${maxUploadSizeInMB} MB. Grotere bestanden worden niet geüpload.`,
         maxFileLimitExceeded: 'Je kunt maximaal 30 bonnetjes tegelijk uploaden. Eventuele extra’s worden niet geüpload.',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType}-bestanden worden niet ondersteund. Alleen ondersteunde bestandstypen worden geüpload.`,
+        unsupportedFileType: (fileType: string) => `${fileType}-bestanden worden niet ondersteund. Alleen ondersteunde bestandstypen worden geüpload.`,
         learnMoreAboutSupportedFiles: 'Meer informatie over ondersteunde indelingen.',
         passwordProtected: 'Met wachtwoord beveiligde pdf’s worden niet ondersteund. Alleen ondersteunde bestanden worden geüpload.',
     },
@@ -778,8 +763,8 @@ const translations: TranslationDeepObject<typeof en> = {
     composer: {
         noExtensionFoundForMimeType: 'Geen extensie gevonden voor mimetype',
         problemGettingImageYouPasted: 'Er is een probleem opgetreden bij het ophalen van de afbeelding die je hebt geplakt',
-        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `De maximale lengte van opmerkingen is ${formattedMaxLength} tekens.`,
-        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `De maximale lengte van de taaknaam is ${formattedMaxLength} tekens.`,
+        commentExceededMaxLength: (formattedMaxLength: string) => `De maximale lengte van opmerkingen is ${formattedMaxLength} tekens.`,
+        taskTitleExceededMaxLength: (formattedMaxLength: string) => `De maximale lengte van de taaknaam is ${formattedMaxLength} tekens.`,
     },
     baseUpdateAppModal: {
         updateApp: 'App bijwerken',
@@ -873,7 +858,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     thirdPartySignIn: {
         alreadySignedIn: (email: string) => `Je bent al aangemeld als ${email}.`,
-        goBackMessage: ({provider}: GoBackMessageParams) => `Wil je niet inloggen met ${provider}?`,
+        goBackMessage: (provider: string) => `Wil je niet inloggen met ${provider}?`,
         continueWithMyCurrentSession: 'Doorgaan met mijn huidige sessie',
         redirectToDesktopMessage: 'We leiden je door naar de desktop-app zodra je klaar bent met inloggen.',
     },
@@ -973,7 +958,7 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'Alleen beheerders kunnen berichten sturen in deze ruimte.',
     reportAction: {
         asCopilot: 'als copiloot voor',
-        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+        harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `heeft dit rapport aangemaakt om alle uitgaven van <a href="${reportUrl}">${reportName}</a> op te nemen die niet konden worden ingediend met de door jou gekozen frequentie`,
     },
     mentionSuggestions: {
@@ -2371,7 +2356,7 @@ ${amount} voor ${merchant} - ${date}`,
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `Overboeking${amount ? ` ${amount}` : ''}`,
         instant: 'Direct (debitkaart)',
-        instantSummary: ({rate, minAmount}: InstantSummaryParams) => `${rate}% vergoeding (${minAmount} minimum)`,
+        instantSummary: (rate: string, minAmount: string) => `${rate}% vergoeding (${minAmount} minimum)`,
         ach: '1-3 werkdagen (bankrekening)',
         achSummary: 'Geen kosten',
         whichAccount: 'Welk account?',
@@ -2887,7 +2872,7 @@ ${
             dateShouldBeBefore: (dateString: string) => `Datum moet vóór ${dateString} zijn`,
             dateShouldBeAfter: (dateString: string) => `Datum moet na ${dateString} zijn`,
             hasInvalidCharacter: 'Naam mag alleen Latijnse tekens bevatten',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `Ongeldig postcodeformaat${zipFormat ? `Acceptabel formaat: ${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `Ongeldig postcodeformaat${zipFormat ? `Acceptabel formaat: ${zipFormat}` : ''}`,
             invalidPhoneNumber: `Zorg ervoor dat het telefoonnummer geldig is (bijv. ${CONST.EXAMPLE_PHONE_NUMBER})`,
         },
     },
@@ -2970,7 +2955,7 @@ ${
     },
     focusModeUpdateModal: {
         title: 'Welkom bij de #focus-modus!',
-        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+        prompt: (priorityModePageUrl: string) =>
             `Blijf het overzicht houden door alleen ongelezen chats of chats die je aandacht nodig hebben te zien. Maak je geen zorgen, je kunt dit op elk moment wijzigen in de <a href="${priorityModePageUrl}">instellingen</a>.`,
     },
     notFound: {
@@ -3641,7 +3626,7 @@ ${
         flight: 'Vlucht',
         flightDetails: {
             passenger: 'Passagier',
-            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>Je hebt een <strong>${layover} tussenstop</strong> vóór deze vlucht</muted-text-label>`,
+            layover: (layover: string) => `<muted-text-label>Je hebt een <strong>${layover} tussenstop</strong> vóór deze vlucht</muted-text-label>`,
             takeOff: 'Vertrek',
             landing: 'Landingspagina',
             seat: 'Licentie',
@@ -3731,18 +3716,19 @@ ${
             conciergeMessage: ({domain}: {domain: string}) => `Reizen inschakelen is mislukt voor domein: ${domain}. Controleer dit domein en schakel reizen in.`,
         },
         updates: {
-            bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
+            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = ' ') =>
                 `Je vlucht ${airlineCode} (${origin} → ${destination}) op ${startDate} is geboekt. Bevestigingscode: ${confirmationID}`,
-            ticketVoided: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `Je ticket voor vlucht ${airlineCode} (${origin} → ${destination}) op ${startDate} is geannuleerd.`,
-            ticketRefunded: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            ticketRefunded: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `Je ticket voor vlucht ${airlineCode} (${origin} → ${destination}) op ${startDate} is terugbetaald of gewijzigd.`,
-            flightCancelled: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            flightCancelled: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `Je vlucht ${airlineCode} (${origin} → ${destination}) op ${startDate}} is door de luchtvaartmaatschappij geannuleerd.`,
             flightScheduleChangePending: ({airlineCode}: AirlineParams) =>
                 `De luchtvaartmaatschappij heeft een wijziging in het schema voorgesteld voor vlucht ${airlineCode}; we wachten op bevestiging.`,
             flightScheduleChangeClosed: ({airlineCode, startDate}: AirlineParams) => `Wijziging van schema bevestigd: vlucht ${airlineCode} vertrekt nu om ${startDate}.`,
-            flightUpdated: ({airlineCode, origin, destination, startDate}: FlightParams) => `Je vlucht ${airlineCode} (${origin} → ${destination}) op ${startDate} is bijgewerkt.`,
+            flightUpdated: (airlineCode: string, origin: string, destination: string, startDate: string) =>
+                `Je vlucht ${airlineCode} (${origin} → ${destination}) op ${startDate} is bijgewerkt.`,
             flightCabinChanged: ({airlineCode, cabinClass}: AirlineParams) => `Uw cabineklasse is bijgewerkt naar ${cabinClass} op vlucht ${airlineCode}.`,
             flightSeatConfirmed: ({airlineCode}: AirlineParams) => `Je stoeltoewijzing op vlucht ${airlineCode} is bevestigd.`,
             flightSeatChanged: ({airlineCode}: AirlineParams) => `Je stoeltoewijzing op vlucht ${airlineCode} is gewijzigd.`,
@@ -4557,7 +4543,7 @@ ${
                 importTaxDescription: 'Belastinggroepen uit NetSuite importeren.',
                 importCustomFields: {
                     chooseOptionBelow: 'Kies een optie hieronder:',
-                    label: ({importedTypes}: ImportedTypesParams) => `Geïmporteerd als ${importedTypes.join('en')}`,
+                    label: (importedTypes: string[]) => `Geïmporteerd als ${importedTypes.join('en')}`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `Voer de ${fieldName} in`,
                     customSegments: {
                         title: 'Aangepaste segmenten/records',
@@ -4672,19 +4658,18 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'Standaard NetSuite-medewerker',
                         description: 'Niet in Expensify geïmporteerd, toegepast bij export',
-                        footerContent: ({importField}: ImportFieldParams) =>
+                        footerContent: (importField: string) =>
                             `Als je ${importField} in NetSuite gebruikt, passen we de standaardwaarde die is ingesteld op de werknemerskaart toe bij het exporteren naar Expense Report of Journal Entry.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'Labels',
                         description: 'Niveau van regelitems',
-                        footerContent: ({importField}: ImportFieldParams) =>
-                            `${startCase(importField)} zal selecteerbaar zijn voor elke afzonderlijke onkost in het rapport van een werknemer.`,
+                        footerContent: (importField: string) => `${startCase(importField)} zal selecteerbaar zijn voor elke afzonderlijke onkost in het rapport van een werknemer.`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'Rapportvelden',
                         description: 'Rapportniveau',
-                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)}-selectie is van toepassing op alle onkosten op het rapport van een werknemer.`,
+                        footerContent: (importField: string) => `${startCase(importField)}-selectie is van toepassing op alle onkosten op het rapport van een werknemer.`,
                     },
                 },
             },
@@ -4761,7 +4746,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 commercialFeedPlaidDetails: `Vereist een koppeling met je bank, maar wij begeleiden je daarbij. Dit is meestal beperkt tot grotere bedrijven.`,
                 directFeedDetails: 'De eenvoudigste aanpak. Maak direct verbinding met behulp van je hoofdreferenties. Deze methode komt het meest voor.',
                 enableFeed: {
-                    title: ({provider}: GoBackMessageParams) => `Schakel je ${provider}-feed in`,
+                    title: (provider: string) => `Schakel je ${provider}-feed in`,
                     heading:
                         'We hebben een directe integratie met uw kaartuitgever en kunnen uw transactiegegevens snel en nauwkeurig in Expensify importeren.\n\nOm te beginnen hoeft u alleen maar:',
                     visa: 'We hebben wereldwijde integraties met Visa, al verschilt de geschiktheid per bank en kaartprogramma.\n\nOm te beginnen, hoeft u alleen maar:',
@@ -5295,7 +5280,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 prompt3: 'een back-up downloaden',
                 prompt4: 'eerst.',
             },
-            importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
+            importedTagsMessage: (columnCounts: number) =>
                 `We hebben *${columnCounts} kolommen* in je spreadsheet gevonden. Selecteer *Naam* naast de kolom die de tagnamen bevat. Je kunt ook *Ingeschakeld* selecteren naast de kolom die de tagstatus instelt.`,
             cannotDeleteOrDisableAllTags: {
                 title: 'Kan niet alle labels verwijderen of uitschakelen',
@@ -6104,7 +6089,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         rules: {
             individualExpenseRules: {
                 title: 'Declaraties',
-                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
                     `<muted-text>Stel uitgavenlimieten en standaardwaarden in voor afzonderlijke uitgaven. Je kunt ook regels maken voor <a href="${categoriesPageLink}">categorieën</a> en <a href="${tagsPageLink}">tags</a>.</muted-text>`,
                 receiptRequiredAmount: 'Vereist bedrag voor bon',
                 receiptRequiredAmountDescription: 'Bonnen verplicht stellen wanneer de uitgaven dit bedrag overschrijden, tenzij dit wordt overschreven door een categoriewaarde.',
@@ -6577,7 +6562,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         useInviteButton: 'Om een nieuw lid aan de chat toe te voegen, gebruik de uitnodigingsknop hierboven.',
         notAuthorized: `Je hebt geen toegang tot deze pagina. Als je deze ruimte probeert te joinen, vraag dan gewoon een lid van de ruimte om je toe te voegen. Iets anders aan de hand? Neem contact op met ${CONST.EMAIL.CONCIERGE}`,
         roomArchived: `Het lijkt erop dat deze room is gearchiveerd. Voor vragen kun je contact opnemen met ${CONST.EMAIL.CONCIERGE}.`,
-        removeMembersPrompt: ({memberName}: {memberName: string}) => ({
+        removeMembersPrompt: (memberName: string) => ({
             one: `Weet je zeker dat je ${memberName} uit de ruimte wilt verwijderen?`,
             other: 'Weet je zeker dat je de geselecteerde leden uit de ruimte wilt verwijderen?',
         }),
@@ -6736,7 +6721,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Minder dan ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Groter dan ${amount ?? ''}`,
-                between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `Tussen ${greaterThan} en ${lessThan}`,
+                between: (greaterThan: string, lessThan: string) => `Tussen ${greaterThan} en ${lessThan}`,
                 equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Gelijk aan ${amount ?? ''}`,
             },
             card: {
