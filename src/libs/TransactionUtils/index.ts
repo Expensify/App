@@ -883,7 +883,7 @@ function getOriginalAmount(transaction: Transaction): number {
 function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmount' | 'amount' | 'modifiedAmount'>, isExpenseReport: boolean): number {
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     if (isExpenseReport) {
-        return -((transaction.originalAmount || transaction.amount || transaction.modifiedAmount) ?? 0);
+        return -((transaction.originalAmount || transaction.amount || Number(transaction.modifiedAmount)) ?? 0);
     }
     return getOriginalAmount(transaction as Transaction) || Math.abs(transaction.amount ?? 0) || Math.abs(Number(transaction.modifiedAmount ?? 0));
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
