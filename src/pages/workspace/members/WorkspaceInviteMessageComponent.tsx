@@ -25,6 +25,7 @@ import {addMembersToWorkspace, clearWorkspaceInviteRoleDraft} from '@libs/action
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
+import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
@@ -68,7 +69,11 @@ function WorkspaceInviteMessageComponent({
     const policyName = policy?.name;
 
     const isExpensesFromRoute = useMemo(() => {
-        return typeof backTo === 'string' && (backTo as string).includes(CONST.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM_ROUTE);
+        if (!backTo || typeof backTo !== 'string') {
+            return false;
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        return (backTo as string).includes(CONST.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM_ROUTE);
     }, [backTo]);
 
     const headerTitle = useMemo(() => {
@@ -102,23 +107,23 @@ function WorkspaceInviteMessageComponent({
     const [workspaceInviteRoleDraft = CONST.POLICY.ROLE.USER] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_ROLE_DRAFT}${policyID}`, {canBeMissing: true});
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
 
-    // Build member names from all emails in the draft, including those with accountID 0 (DEFAULT_NUMBER_ID)
-    // which are filtered out by getPersonalDetailsForAccountIDs
     const memberNames = useMemo(() => {
-        if (!invitedEmailsToAccountIDsDraft) {
-            return '';
-        }
+        const personalDetailsOfInvitedEmails = getPersonalDetailsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {});
+        return Object.values(personalDetailsOfInvitedEmails)
+            .map((personalDetail) => {
+                const displayName = getDisplayNameOrDefault(personalDetail, '', false);
+                if (displayName) {
+                    return displayName;
+                }
 
-        const names: string[] = [];
-        for (const [email, accountID] of Object.entries(invitedEmailsToAccountIDsDraft)) {
-            // Try to get personal detail for this accountID (if it's not DEFAULT_NUMBER_ID)
-            const personalDetail = accountID && accountID !== CONST.DEFAULT_NUMBER_ID ? allPersonalDetails?.[accountID] : undefined;
-            const displayName = personalDetail ? getDisplayNameOrDefault(personalDetail, '', false) : null;
+                // We don't have login details for users who are not in the database yet
+                // So we need to fallback to their login from the invitedEmailsToAccountIDsDraft
+                const accountID = personalDetail.accountID;
+                const loginFromInviteMap = Object.entries(invitedEmailsToAccountIDsDraft ?? {}).find(([, id]) => id === accountID)?.[0];
 
-            // Use display name if available, otherwise use email
-            names.push(displayName ?? email);
-        }
-        return names.join(', ');
+                return loginFromInviteMap;
+            })
+            .join(', ');
     }, [invitedEmailsToAccountIDsDraft, allPersonalDetails]);
 
     const welcomeNoteSubject = useMemo(
@@ -169,11 +174,18 @@ function WorkspaceInviteMessageComponent({
             return;
         }
 
-        // If backTo is provided and it's the expenses-from route, navigate back to it
+        // If backTo is provided and it's the expenses-from route, navigate to approver screen
         if (isExpensesFromRoute) {
-            // Just go back in the navigation stack instead of dismissing and navigating
-            // This preserves the RHP and keeps the members selected
-            Navigation.goBack();
+            // Check if it's initial creation flow (backTo doesn't have a nested backTo param)
+            const backToStr = typeof backTo === 'string' ? backTo : '';
+            const isInitialCreationFlow = !backToStr.includes('/expenses-from/');
+            if (isInitialCreationFlow) {
+                // Navigate to approver screen for initial creation flow
+                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, 0));
+            } else {
+                // For edit flow, just go back
+                Navigation.goBack();
+            }
             return;
         }
 
@@ -253,7 +265,7 @@ function WorkspaceInviteMessageComponent({
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <ReportActionAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
-                            accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {}).filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID)}
+                            accountIDs={Object.values(invitedEmailsToAccountIDsDraft ?? {})}
                             horizontalStacking={{
                                 displayInRows: true,
                             }}
