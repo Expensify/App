@@ -201,7 +201,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {JoinWorkspaceResolution, OriginalMessageMarkedReimbursed, OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -1263,7 +1263,7 @@ function PureReportActionItem({
                 }
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-            const isFromNewDot = originalMessage?.isNewDot ?? false;
+            const isFromNewDot = getOriginalMessage(action)?.isNewDot ?? false;
 
             if (isFromNewDot) {
                 children = emptyHTML;
