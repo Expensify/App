@@ -1,11 +1,11 @@
 import React from 'react';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Button from './Button';
 import ButtonWithDropdownMenu from './ButtonWithDropdownMenu';
-import * as Expensicons from './Icon/Expensicons';
 import type {LocaleContextProps} from './LocaleContextProvider';
 
 type ExpenseHeaderApprovalButtonProps = {
@@ -46,6 +46,7 @@ type ApprovalDropdownOptionProps = {
     onPartialApprove: () => void;
     onFullApprove: () => void;
     translate: LocaleContextProps['translate'];
+    illustrations: Record<string, IconAsset>;
 };
 
 /**
@@ -59,6 +60,7 @@ function getApprovalDropdownOptions({
     onPartialApprove,
     onFullApprove,
     translate,
+    illustrations,
 }: ApprovalDropdownOptionProps): ApprovalOption[] {
     const APPROVE_PARTIAL = 'approve_partial';
     const APPROVE_FULL = 'approve_full';
@@ -68,7 +70,7 @@ function getApprovalDropdownOptions({
         options.push({
             value: APPROVE_PARTIAL,
             text: `${translate('iou.approveOnly')} ${nonHeldAmount}`,
-            icon: Expensicons.ThumbsUp,
+            icon: illustrations.ThumbsUp,
             onSelected: onPartialApprove,
         });
     }
@@ -76,7 +78,7 @@ function getApprovalDropdownOptions({
     options.push({
         value: APPROVE_FULL,
         text: `${translate('iou.approve')} ${fullAmount}`,
-        icon: Expensicons.DocumentCheck,
+        icon: illustrations.DocumentCheck,
         onSelected: onFullApprove,
     });
 
@@ -94,6 +96,7 @@ function ExpenseHeaderApprovalButton({
 }: ExpenseHeaderApprovalButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'DocumentCheck']);
 
     const shouldShowDropdown = isAnyTransactionOnHold && !isDelegateAccessRestricted;
 
@@ -106,6 +109,7 @@ function ExpenseHeaderApprovalButton({
             onPartialApprove: () => onApprove(false),
             onFullApprove: () => onApprove(true),
             translate,
+            illustrations,
         });
 
         if (approvalOptions.length > 1) {
