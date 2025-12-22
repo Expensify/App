@@ -1,5 +1,5 @@
-import React from 'react';
 import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import React from 'react';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -41,17 +41,16 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
-    const getCustomRightElement =
-        (accountID: number) => {
-            const login = personalDetails?.[accountID]?.login;
-            const primaryEmail = technicalContactSettings?.technicalContactEmail;
+    const getCustomRightElement = (accountID: number) => {
+        const login = personalDetails?.[accountID]?.login;
+        const primaryEmail = technicalContactSettings?.technicalContactEmail;
 
-            if (!login || login !== primaryEmail) {
-                return null;
-            }
-
-            return <Badge text={translate('domain.admins.primaryContact')} />;
+        if (!login || login !== primaryEmail) {
+            return null;
         }
+
+        return <Badge text={translate('domain.admins.primaryContact')} />;
+    };
 
     const headerContent = isAdmin ? (
         <Button
