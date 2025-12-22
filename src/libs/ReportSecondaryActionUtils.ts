@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
+import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
@@ -253,7 +254,9 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, policy));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) =>
+        isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
+    );
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -556,13 +559,12 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
  * Checks whether the supplied report supports merging transactions from it.
  */
 function isMergeAction(parentReport: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
-    // Do not show merge action if there are multiple transactions
-    if (reportTransactions.length !== 1) {
+    // Do not show merge action if there are more than 2 transactions
+    if (reportTransactions.length > 2) {
         return false;
     }
 
-    // Temporary disable merge action for IOU reports
-    // See: https://github.com/Expensify/App/issues/70329#issuecomment-3277062003
+    // Merging IOUs is currently not planned
     if (isIOUReportUtils(parentReport)) {
         return false;
     }
@@ -593,6 +595,28 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
+}
+
+function isMergeActionForSelectedTransactions(transactions: Transaction[], reports: Report[], policies: Policy[]) {
+    if ([transactions, reports, policies].some((collection) => collection?.length > 2)) {
+        return false;
+    }
+
+    // All reports must be in an editable state by the current user to allow merging
+    const allReportsEligible = reports.every((report) => {
+        // Transaction could be unreported
+        if (!report) {
+            return true;
+        }
+        const policy = policies.find((p) => p?.id === report?.policyID);
+        if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
+            return false;
+        }
+
+        return isMoneyRequestReportEligibleForMerge(report, policy?.role === CONST.POLICY.ROLE.ADMIN);
+    });
+
+    return allReportsEligible && (transactions.length === 1 || areTransactionsEligibleForMerge(transactions.at(0), transactions.at(1)));
 }
 
 function isRemoveHoldAction(
@@ -792,7 +816,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
-    if (isMergeAction(report, reportTransactions, policy)) {
+    if (reportTransactions?.length === 1 && isMergeAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
@@ -888,4 +912,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, getSecondaryExportReportActions, isSplitAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, isMergeActionForSelectedTransactions, getSecondaryExportReportActions, isSplitAction};

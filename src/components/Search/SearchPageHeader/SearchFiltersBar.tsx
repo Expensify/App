@@ -300,6 +300,10 @@ function SearchFiltersBar({
                 updatedFilterFormValues.columns = [];
             }
 
+            if (updatedFilterFormValues.groupBy !== filterFormValues.groupBy) {
+                updatedFilterFormValues.columns = [];
+            }
+
             const queryString = buildQueryStringFromFilterFormValues(updatedFilterFormValues);
 
             close(() => {

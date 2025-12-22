@@ -82,7 +82,7 @@ function SplitListItem<TItem extends ListItem>({
         inputRef.current = ref;
     };
 
-    const isPercentageMode = splitItem.mode === CONST.IOU.SPLIT_TYPE.PERCENTAGE;
+    const isPercentageMode = splitItem.mode === CONST.TAB.SPLIT.PERCENTAGE;
 
     return (
         <BaseListItem

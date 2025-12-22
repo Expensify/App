@@ -1,5 +1,5 @@
 import mapValues from 'lodash/mapValues';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -27,7 +27,7 @@ import {
     getCreationReportErrors,
     isInvoiceReport,
     isPaidGroupPolicy,
-    isTrackExpenseReport,
+    isTrackExpenseReportNew,
 } from '@libs/ReportUtils';
 import {
     didReceiptScanSucceed as didReceiptScanSucceedTransactionUtils,
@@ -112,7 +112,7 @@ function MoneyRequestReceiptView({
     const [isLoading, setIsLoading] = useState(true);
     const parentReportAction = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
-    const isTrackExpense = isTrackExpenseReport(report);
+    const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(report, parentReport, parentReportAction);
     const moneyRequestReport = parentReport;
     const linkedTransactionID = useMemo(() => {
         if (!parentReportAction) {
@@ -163,7 +163,7 @@ function MoneyRequestReceiptView({
 
     const transactionToCheck = updatedTransaction ?? transaction;
     const doesTransactionHaveReceipt = !!transactionToCheck?.receipt && !isEmptyObject(transactionToCheck?.receipt);
-    const shouldShowReceiptEmptyState = !isInvoice && !hasReceipt && !!transaction && !doesTransactionHaveReceipt;
+    const shouldShowReceiptEmptyState = !isInvoice && !hasReceipt && !!transactionToCheck && !doesTransactionHaveReceipt;
 
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
@@ -213,7 +213,7 @@ function MoneyRequestReceiptView({
         [transaction?.errors, parentReportAction?.errors],
     );
 
-    const dismissReceiptError = useCallback(() => {
+    const dismissReceiptError = () => {
         if (!report?.reportID) {
             return;
         }
@@ -248,19 +248,7 @@ function MoneyRequestReceiptView({
             }
             navigateToConciergeChatAndDeleteReport(report.reportID, true, true);
         }
-    }, [
-        transaction,
-        chatReport,
-        parentReportAction,
-        linkedTransactionID,
-        report?.reportID,
-        iouReport,
-        chatIOUReport,
-        isChatIOUReportArchived,
-        errorsWithoutReportCreation,
-        reportCreationError,
-        isInNarrowPaneModal,
-    ]);
+    };
 
     let receiptStyle: StyleProp<ViewStyle>;
 

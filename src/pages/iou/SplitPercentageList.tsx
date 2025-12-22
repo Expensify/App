@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
 import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUnderKeyboard';
@@ -30,7 +31,7 @@ function SplitPercentageList({sections, initiallyFocusedOptionKey, onSelectRow, 
             ...section,
             data: section.data.map((item) => ({
                 ...item,
-                mode: CONST.IOU.SPLIT_TYPE.PERCENTAGE,
+                mode: CONST.TAB.SPLIT.PERCENTAGE,
             })),
         }));
     }, [sections]);

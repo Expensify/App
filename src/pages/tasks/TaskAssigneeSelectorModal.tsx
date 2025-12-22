@@ -7,6 +7,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';

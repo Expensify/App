@@ -97,13 +97,18 @@ function calculateAmount(numberOfSplits: number, total: number, currency: string
  * Calculate a split amount in backend cents from a percentage of the original amount.
  * - Clamps percentage to [0, 100]
  * - Preserves decimal precision in percentage (supports 0.1 precision)
- * - Uses absolute value of the total amount (cents)
+ * - Preserves the sign of the original amount (negative amounts stay negative)
  */
 function calculateSplitAmountFromPercentage(totalInCents: number, percentage: number): number {
     const totalAbs = Math.abs(totalInCents);
     // Clamp percentage to [0, 100] without rounding to preserve decimal precision
     const clamped = Math.min(100, Math.max(0, percentage));
-    return Math.round((totalAbs * clamped) / 100);
+    const amount = Math.round((totalAbs * clamped) / 100);
+    // Return 0 for zero amounts to avoid -0
+    if (amount === 0) {
+        return 0;
+    }
+    return totalInCents < 0 ? -amount : amount;
 }
 
 /**

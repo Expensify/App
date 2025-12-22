@@ -1,8 +1,6 @@
 import truncate from 'lodash/truncate';
 import {useCallback, useMemo} from 'react';
 import type {TupleToUnion} from 'type-fest';
-// eslint-disable-next-line no-restricted-imports
-import {Bank, Cash, Wallet} from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
@@ -55,7 +53,7 @@ function useBulkPayOptions({
     currency,
     formattedAmount,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User']);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {accountID} = useCurrentUserPersonalDetails();
@@ -92,7 +90,7 @@ function useBulkPayOptions({
             return {
                 text: title ?? '',
                 description: description ?? '',
-                icon: typeof icon === 'number' ? Bank : icon,
+                icon: typeof icon === 'number' ? icons.Bank : icon,
                 methodID,
                 value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             };
@@ -146,7 +144,7 @@ function useBulkPayOptions({
                 buttonOptions.push({
                     text: translate('iou.settleWallet', {formattedAmount: ''}),
                     key: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-                    icon: Wallet,
+                    icon: icons.Wallet,
                 });
             } else if (canUsePersonalBankAccount) {
                 buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]);
@@ -178,7 +176,7 @@ function useBulkPayOptions({
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),
-                    icon: Bank,
+                    icon: icons.Bank,
                     onSelected: () => {
                         const bankAccountRoute = getBankAccountRoute(chatReport);
                         Navigation.navigate(bankAccountRoute);
@@ -189,7 +187,7 @@ function useBulkPayOptions({
                     ...(isCurrencySupported ? [addBankAccountItem] : []),
                     {
                         text: translate('iou.payElsewhere', {formattedAmount: ''}),
-                        icon: Cash,
+                        icon: icons.Cash,
                         key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                         additionalData: {
                             payAsBusiness,

@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
@@ -14,21 +14,22 @@ const anchorAlignment = {
 
 function CardSectionActions() {
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCard', 'MoneyCircle']);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
             {
-                icon: Expensicons.CreditCard,
+                icon: icons.CreditCard,
                 text: translate('subscription.cardSection.changeCard'),
                 onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD),
             },
             {
-                icon: Expensicons.MoneyCircle,
+                icon: icons.MoneyCircle,
                 text: translate('subscription.cardSection.changeCurrency'),
                 onSelected: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY),
             },
         ],
-        [translate],
+        [translate, icons.CreditCard, icons.MoneyCircle],
     );
 
     return (

@@ -10,6 +10,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectCircle from '@components/SelectCircle';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';

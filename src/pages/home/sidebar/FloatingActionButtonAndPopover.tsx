@@ -11,8 +11,6 @@ import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FloatingActionButton from '@components/FloatingActionButton';
 import FloatingReceiptButton from '@components/FloatingReceiptButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
@@ -117,7 +115,25 @@ const accountPrimaryLoginSelector = (account: OnyxEntry<OnyxTypes.Account>) => a
  * FAB that can open or close the menu.
  */
 function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref}: FloatingActionButtonAndPopoverProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Document', 'NewWorkspace', 'NewWindow', 'Binoculars', 'Car', 'Location', 'Suitcase', 'Task']);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'CalendarSolid',
+        'Document',
+        'NewWorkspace',
+        'NewWindow',
+        'Binoculars',
+        'Car',
+        'Location',
+        'Suitcase',
+        'Task',
+        'InvoiceGeneric',
+        'ReceiptScan',
+        'ChatBubble',
+        'Coins',
+        'Receipt',
+        'Cash',
+        'Transfer',
+        'MoneyCircle',
+    ] as const);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -394,7 +410,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const expenseMenuItems = useMemo((): PopoverMenuItem[] => {
         return [
             {
-                icon: getIconForAction(CONST.IOU.TYPE.CREATE),
+                icon: getIconForAction(CONST.IOU.TYPE.CREATE, icons),
                 text: translate('iou.createExpense'),
                 testID: 'create-expense',
                 shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout,
@@ -409,7 +425,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.CREATE_EXPENSE,
             },
         ];
-    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID]);
+    }, [translate, shouldRedirectToExpensifyClassic, shouldUseNarrowLayout, allTransactionDrafts, reportID, icons]);
 
     const quickActionMenuItems = useMemo(() => {
         // Define common properties in baseQuickAction
@@ -480,7 +496,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             return [
                 {
                     ...baseQuickAction,
-                    icon: Expensicons.ReceiptScan,
+                    icon: icons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
                     description: getReportName(policyChatForActivePolicy),
@@ -534,7 +550,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             openTravelDotLink(activePolicy?.id);
             return;
         }
-        Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS);
+        Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
     }, [activePolicy?.id, isTravelEnabled]);
 
     const menuItems = [
@@ -594,7 +610,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
               ]
             : []),
         {
-            icon: Expensicons.ChatBubble,
+            icon: icons.ChatBubble,
             text: translate('sidebarScreen.fabNewChat'),
             shouldCallAfterModalHide: shouldUseNarrowLayout,
             onSelected: () => interceptAnonymousUser(startNewChat),
@@ -603,7 +619,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         ...(canSendInvoice
             ? [
                   {
-                      icon: Expensicons.InvoiceGeneric,
+                      icon: icons.InvoiceGeneric,
                       text: translate('workspace.invoices.sendInvoice'),
                       shouldCallAfterModalHide: shouldRedirectToExpensifyClassic || shouldUseNarrowLayout,
                       onSelected: () =>
@@ -619,15 +635,17 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                   },
               ]
             : []),
-        ...[
-            {
-                icon: icons.Suitcase,
-                text: translate('travel.bookTravel'),
-                rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? icons.NewWindow : undefined,
-                onSelected: () => interceptAnonymousUser(() => openTravel()),
-                sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.BOOK_TRAVEL,
-            },
-        ],
+        ...(activePolicy?.isTravelEnabled
+            ? [
+                  {
+                      icon: icons.Suitcase,
+                      text: translate('travel.bookTravel'),
+                      rightIcon: isTravelEnabled && shouldOpenTravelDotLinkWeb() ? icons.NewWindow : undefined,
+                      onSelected: () => interceptAnonymousUser(() => openTravel()),
+                      sentryLabel: CONST.SENTRY_LABEL.FAB_MENU.BOOK_TRAVEL,
+                  },
+              ]
+            : []),
         ...(!hasSeenTour
             ? [
                   {

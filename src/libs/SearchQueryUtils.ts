@@ -1325,7 +1325,7 @@ function buildCannedSearchQuery({
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     const selectedColumns = queryJSON.columns ?? [];
-    const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
+    const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
     const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
     return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !hasCustomColumns;
 }

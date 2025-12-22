@@ -138,6 +138,7 @@ import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
+import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Luggage from '@assets/images/luggage.svg';
 import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-mouth-closed.svg';
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
@@ -465,6 +466,7 @@ const Expensicons = {
     SageIntacctExport,
     XeroExport,
     ArrowCircleClockwise,
+    LuggageWithLines,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

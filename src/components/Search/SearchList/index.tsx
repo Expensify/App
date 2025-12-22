@@ -115,8 +115,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Whether mobile selection mode is enabled */
     isMobileSelectionModeEnabled: boolean;
 
-    areAllOptionalColumnsHidden: boolean;
-
     newTransactions?: Transaction[];
 
     /** Violations indexed by transaction ID */
@@ -175,7 +173,6 @@ function SearchList({
     onLayout,
     shouldAnimate,
     isMobileSelectionModeEnabled,
-    areAllOptionalColumnsHidden,
     newTransactions = [],
     violations,
     onDEWModalOpen,
@@ -350,7 +347,6 @@ function SearchList({
                         shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                         queryJSONHash={hash}
                         columns={columns}
-                        areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                         policies={policies}
                         isDisabled={isDisabled}
                         allReports={allReports}
@@ -396,7 +392,6 @@ function SearchList({
             userBillingFundID,
             accountID,
             isOffline,
-            areAllOptionalColumnsHidden,
             violations,
             onDEWModalOpen,
             isDEWBetaEnabled,

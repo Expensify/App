@@ -113,6 +113,7 @@ import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
 import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
+import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Mail from '@assets/images/mail.svg';
 import MakeAdmin from '@assets/images/make-admin.svg';
 import Minus from '@assets/images/minus.svg';
@@ -361,6 +362,7 @@ export {
     QBOExport,
     SageIntacctExport,
     XeroExport,
+    LuggageWithLines,
     ArrowCircleClockwise,
     PlusCircle,
     BillComSquare,
