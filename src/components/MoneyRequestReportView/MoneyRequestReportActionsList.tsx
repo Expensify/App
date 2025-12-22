@@ -34,7 +34,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {queueExportSearchWithTemplate} from '@libs/actions/Search';
+import {handlePreventSearchAPI, queueExportSearchWithTemplate} from '@libs/actions/Search';
 import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
@@ -54,6 +54,7 @@ import {
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getOriginalReportID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread} from '@libs/ReportUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import Visibility from '@libs/Visibility';
@@ -725,9 +726,21 @@ function MoneyRequestReportActionsList({
                             if (shouldNavigateBack) {
                                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
                                 Navigation.goBack(backToRoute);
+
+                                // When deleting IOUs on the search route, as soon as Navigation.goBack returns to the search route,
+                                // the search API may be triggered.
+                                // At this point, the transaction has not yet been deleted on the server, which causes the report
+                                // to disappear > reappear > and then disappear again.
+                                // Since the search API above will return data where the transaction has not yet been deleted,
+                                // we temporarily prevent the search API from being triggered until handleDeleteTransactions is completed.
+                                const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+                                const {enableSearchAPIPrevention, disableSearchAPIPrevention} = handlePreventSearchAPI(currentSearchQueryJSON?.hash);
+                                enableSearchAPIPrevention?.();
+
                                 const listener = DeviceEventEmitter.addListener(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER, () => {
                                     handleDeleteTransactions();
                                     listener.remove();
+                                    disableSearchAPIPrevention?.();
                                 });
                             } else {
                                 handleDeleteTransactions();

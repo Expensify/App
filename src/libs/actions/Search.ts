@@ -351,6 +351,17 @@ function openSearchPage() {
     API.read(READ_COMMANDS.OPEN_SEARCH_PAGE, null);
 }
 
+let shouldPreventSearchAPI = false;
+function handlePreventSearchAPI(hash: number | undefined) {
+    if (typeof hash === 'undefined') {
+        return {};
+    }
+    return {
+        enableSearchAPIPrevention: () => (shouldPreventSearchAPI = true),
+        disableSearchAPIPrevention: () => (shouldPreventSearchAPI = false),
+    };
+}
+
 function search({
     queryJSON,
     searchKey,
@@ -368,7 +379,7 @@ function search({
     isOffline?: boolean;
     isLoading: boolean;
 }) {
-    if (isLoading) {
+    if (isLoading || shouldPreventSearchAPI) {
         return;
     }
 
@@ -1233,5 +1244,6 @@ export {
     getTotalFormattedAmount,
     setOptimisticDataForTransactionThreadPreview,
     getPayMoneyOnSearchInvoiceParams,
+    handlePreventSearchAPI,
 };
 export type {TransactionPreviewData};

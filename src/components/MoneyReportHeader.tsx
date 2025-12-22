@@ -36,7 +36,7 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
-import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
+import {getExportTemplates, handlePreventSearchAPI, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
@@ -1490,9 +1490,20 @@ function MoneyReportHeader({
             if (shouldNavigateBack) {
                 const backToRoute = route.params?.backTo ?? (chatReport?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID) : undefined);
                 Navigation.goBack(backToRoute);
+
+                // When deleting IOUs on the search route, as soon as Navigation.goBack returns to the search route,
+                // the search API may be triggered.
+                // At this point, the transaction has not yet been deleted on the server, which causes the report
+                // to disappear > reappear > and then disappear again.
+                // Since the search API above will return data where the transaction has not yet been deleted,
+                // we temporarily prevent the search API from being triggered until handleDeleteTransactions is completed.
+                const {enableSearchAPIPrevention, disableSearchAPIPrevention} = handlePreventSearchAPI(currentSearchQueryJSON?.hash);
+                enableSearchAPIPrevention?.();
+
                 const listener = DeviceEventEmitter.addListener(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER, () => {
                     handleDeleteTransactions();
                     listener.remove();
+                    disableSearchAPIPrevention?.();
                 });
             } else {
                 handleDeleteTransactions();
