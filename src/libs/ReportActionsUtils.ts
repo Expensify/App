@@ -23,6 +23,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
@@ -224,6 +225,10 @@ function isSubmittedAndClosedAction(reportAction: OnyxInputOrEntry<ReportAction>
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED);
 }
 
+function isDynamicExternalWorkflowSubmitAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) && getOriginalMessage(reportAction)?.workflow === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
+}
+
 function isMarkAsClosedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CLOSED) && !!getOriginalMessage(reportAction)?.amount;
 }
@@ -288,6 +293,10 @@ function hasPendingDEWSubmit(reportMetadata: OnyxEntry<ReportMetadata>, isDEWPol
         return false;
     }
     return reportMetadata?.pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.SUBMIT;
+}
+
+function isDynamicExternalWorkflowForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED) && getOriginalMessage(reportAction)?.workflow === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
 }
 
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
@@ -1154,6 +1163,43 @@ function getFilteredReportActionsForReportView(actions: ReportAction[]) {
     return actions.filter(isVisiblePreviewOrMoneyRequest);
 }
 
+function getDynamicExternalWorkflowRoutedAction(
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>,
+): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> {
+    return {
+        reportActionID: `${reportAction.reportActionID}DEW`,
+        created: DateUtils.addMillisecondsFromDateTime(reportAction.created, 1),
+        actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        message: [{html: 'DYNAMIC_EXTERNAL_WORKFLOW', type: 'COMMENT', text: ''}],
+        originalMessage: {
+            to: getOriginalMessage(reportAction)?.to ?? '',
+        },
+    };
+}
+
+function withDEWRoutedActionsArray(reportActions: ReportAction[]): ReportAction[] {
+    return reportActions.flatMap((reportAction) => {
+        if ((isDynamicExternalWorkflowSubmitAction(reportAction) || isDynamicExternalWorkflowForwardedAction(reportAction)) && getOriginalMessage(reportAction)?.to) {
+            return [reportAction, getDynamicExternalWorkflowRoutedAction(reportAction)];
+        }
+        return reportAction;
+    });
+}
+
+function withDEWRoutedActionsObject(reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportActions> {
+    return Object.entries(reportActions ?? {}).reduce((acc, value) => {
+        const [reportActionID, reportAction] = value;
+        acc[reportActionID] = reportAction;
+
+        if ((isDynamicExternalWorkflowSubmitAction(reportAction) || isDynamicExternalWorkflowForwardedAction(reportAction)) && getOriginalMessage(reportAction)?.to) {
+            const dynamicExternalWorkflowRoutedAction = getDynamicExternalWorkflowRoutedAction(reportAction);
+            acc[dynamicExternalWorkflowRoutedAction.reportActionID] = dynamicExternalWorkflowRoutedAction;
+        }
+        return acc;
+    }, {} as ReportActions);
+}
+
 /**
  * This method returns the report actions that are ready for display in the ReportActionsView.
  * The report actions need to be sorted by created timestamp first, and reportActionID second
@@ -1179,7 +1225,7 @@ function getSortedReportActionsForDisplay(
     }
 
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
-    return getSortedReportActions(baseURLAdjustedReportActions, true);
+    return getSortedReportActions(withDEWRoutedActionsArray(baseURLAdjustedReportActions), true);
 }
 
 /**
@@ -1994,6 +2040,12 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
     if (isConciergeCategoryOptions(action) || isConciergeDescriptionOptions(action)) {
         const message = getReportActionMessageText(action);
         return [{text: message, html: message, type: 'COMMENT'}];
+    }
+
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const message = getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
     }
 
     const actionMessage = action.previousMessage ?? action.message;
@@ -3341,6 +3393,13 @@ function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, rep
     return translate('reportAction.harvestCreatedExpenseReport', {reportUrl, reportName});
 }
 
+function getDynamicExternalWorkflowRoutedMessage(
+    action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED>>,
+    translate: LocaleContextProps['translate'],
+) {
+    return translate('iou.routedDueToDEW', {to: getOriginalMessage(action)?.to ?? ''});
+}
+
 function isCardIssuedAction(
     reportAction: OnyxEntry<ReportAction>,
 ): reportAction is ReportAction<
@@ -3581,6 +3640,7 @@ export {
     getUpdatedApprovalRuleMessage,
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
+    getDynamicExternalWorkflowRoutedMessage,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage,
@@ -3654,8 +3714,10 @@ export {
     isWhisperAction,
     isSubmittedAction,
     isSubmittedAndClosedAction,
+    isDynamicExternalWorkflowSubmitAction,
     isMarkAsClosedAction,
     isApprovedAction,
+    isDynamicExternalWorkflowForwardedAction,
     isUnapprovedAction,
     isForwardedAction,
     isDynamicExternalWorkflowSubmitFailedAction,
@@ -3743,6 +3805,8 @@ export {
     getActionableCardFraudAlertMessage,
     getHarvestCreatedExpenseReportMessage,
     isSystemUserMentioned,
+    withDEWRoutedActionsArray,
+    withDEWRoutedActionsObject,
 };
 
 export type {LastVisibleMessage};
