@@ -135,6 +135,8 @@ function IOURequestStepScan({
     const {shouldStartLocationPermissionFlow} = useIOUUtils();
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     const defaultTaxCode = getDefaultTaxCode(policy, initialTransaction);
     const transactionTaxCode = (initialTransaction?.taxCode ? initialTransaction?.taxCode : defaultTaxCode) ?? '';
@@ -338,6 +340,10 @@ function IOURequestStepScan({
                         ...(policyParams ?? {}),
                         shouldHandleNavigation: index === files.length - 1,
                         isASAPSubmitBetaEnabled,
+                        currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                        currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                        introSelected,
+                        activePolicyID,
                     });
                 } else {
                     requestMoney({
@@ -379,6 +385,8 @@ function IOURequestStepScan({
             shouldGenerateTransactionThreadReport,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            introSelected,
+            activePolicyID,
         ],
     );
 
