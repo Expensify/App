@@ -185,10 +185,20 @@ describe('IOUUtils', () => {
             expect(IOUUtils.calculateSplitAmountFromPercentage(8900, 7.7)).toBe(685);
         });
 
-        test('Clamps percentage between 0 and 100 and uses absolute total', () => {
+        test('Clamps percentage between 0 and 100', () => {
             expect(IOUUtils.calculateSplitAmountFromPercentage(20000, -10)).toBe(0);
             expect(IOUUtils.calculateSplitAmountFromPercentage(20000, 150)).toBe(20000);
-            expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 25)).toBe(5000);
+        });
+
+        test('Preserves negative sign for negative amounts (negative expense splits)', () => {
+            // When the original transaction is negative, split amounts should also be negative
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 25)).toBe(-5000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 50)).toBe(-10000);
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-10000, 33.3)).toBe(-3330);
+            // Edge case: 0% results in 0 amount (not -0)
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 0)).toBe(0);
+            // Full amount should also be negative
+            expect(IOUUtils.calculateSplitAmountFromPercentage(-20000, 100)).toBe(-20000);
         });
     });
 

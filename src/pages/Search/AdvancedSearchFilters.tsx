@@ -241,11 +241,6 @@ const baseFilterConfig = {
         description: 'search.filters.purchaseCurrency' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PURCHASE_CURRENCY),
     },
-    action: {
-        getTitle: getFilterDisplayTitle,
-        description: 'common.action' as const,
-        route: ROUTES.SEARCH_ADVANCED_FILTERS.getRoute(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.ACTION),
-    },
     reportField: {
         getTitle: getFilterDisplayTitle,
         description: 'workspace.common.reportField' as const,
