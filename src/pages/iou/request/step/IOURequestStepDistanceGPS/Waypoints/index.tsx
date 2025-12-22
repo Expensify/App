@@ -74,7 +74,7 @@ function GPSTooltip({children}: React.PropsWithChildren) {
     const {windowWidth} = useWindowDimensions();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb']);
 
     const showEducationalTooltip = !hasUserClosedTooltip && !firstCreatedGPSExpenseDate && gpsDraftDetails?.isTracking;
 
