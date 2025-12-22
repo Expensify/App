@@ -745,6 +745,9 @@ function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFe
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED) {
         return policy?.receiptPartners?.enabled ?? false;
     }
+    if (featureName === CONST.POLICY.MORE_FEATURES.IS_TIME_TRACKING_ENABLED) {
+        return isTimeTrackingEnabled(policy);
+    }
 
     return !!policy?.[featureName];
 }
@@ -1588,9 +1591,9 @@ function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | un
     return admins.some((admin) => admin.email === memberEmail);
 }
 
-function isTimeTrackingEnabled(policy: Policy): boolean {
+function isTimeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
     return true;
-    return !!policy.units?.time?.enabled;
+    return !!policy?.units?.time?.enabled;
 }
 
 function getDefaultTimeTrackingRate(policy: Policy): number | undefined {
