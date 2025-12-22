@@ -110,7 +110,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
 
     return (
         <OfflineWithFeedback
-            onClose={() => dismissError(item)}
+            onClose={item.canDismissError ? () => dismissError(item) : undefined}
             pendingAction={item.pendingAction}
             errors={item.errors}
             errorRowStyles={styles.ph6}
