@@ -76,6 +76,7 @@ function DatePickerModal({
             shouldMeasureAnchorPositionFromTop={shouldPositionFromTop}
             shouldSkipRemeasurement
             forwardedFSClass={forwardedFSClass}
+            shouldDisplayUnderSidePanel
         >
             <CalendarPicker
                 minDate={minDate}

@@ -226,6 +226,7 @@ export default {
     modalBaseZIndex: 9999,
     sidePanelZIndex: 9998,
     modalRightDockedZIndex: 9997,
+    popoverUnderSidePanelZIndex: 9996,
     popoverZIndex: 10000,
     workspaceTypeIconWidth: 34,
     sectionMargin: 16,

@@ -35,6 +35,9 @@ type PopoverProps = BaseModalProps &
 
         /** Whether we should close when browser navigation change. This doesn't affect native platform */
         shouldCloseWhenBrowserNavigationChanged?: boolean;
+
+        /** Whether we should display the popover under the side panel */
+        shouldDisplayUnderSidePanel?: boolean;
     };
 
 export default PopoverProps;

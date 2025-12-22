@@ -28,6 +28,9 @@ type PopoverWithoutOverlayProps = ChildrenProps &
 
         /** Reference to the outer element */
         ref?: ForwardedRef<View>;
+
+        /** Whether we should display the popover under the side panel */
+        shouldDisplayUnderSidePanel?: boolean;
     };
 
 export default PopoverWithoutOverlayProps;
