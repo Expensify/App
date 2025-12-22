@@ -160,6 +160,7 @@ import type {
     ReportNameValuePairs,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {OriginalMessageMarkedReimbursed} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {
     FilterUserToInviteConfig,
@@ -683,7 +684,7 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = translateLocal('parentReportAction.hiddenMessage');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         const originalMessage = getOriginalMessage(lastReportAction);
-        const comment = (originalMessage as {message?: string})?.message?.trim();
+        const comment = (originalMessage as OriginalMessageMarkedReimbursed)?.message?.trim();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('iou.paidElsewhere', {comment});
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {

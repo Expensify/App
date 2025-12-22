@@ -200,7 +200,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {JoinWorkspaceResolution, OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
+import type {JoinWorkspaceResolution, OriginalMessageMarkedReimbursed, OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -1268,8 +1268,7 @@ function PureReportActionItem({
             if (isFromNewDot) {
                 children = emptyHTML;
             } else {
-                // Extract comment from originalMessage.message
-                const comment = (originalMessage as {message?: string})?.message?.trim();
+                const comment = (originalMessage as OriginalMessageMarkedReimbursed)?.message?.trim();
                 children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere', {comment})} />;
             }
         } else if (isUnapprovedAction(action)) {

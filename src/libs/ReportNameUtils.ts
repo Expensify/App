@@ -20,6 +20,7 @@ import type {
     Transaction,
 } from '@src/types/onyx';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
+import type {OriginalMessageMarkedReimbursed} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString} from './CurrencyUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
@@ -442,7 +443,7 @@ function computeReportNameBasedOnReportAction(parentReportAction?: ReportAction,
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         const originalMessage = getOriginalMessage(parentReportAction);
-        const comment = (originalMessage as {message?: string})?.message?.trim();
+        const comment = (originalMessage as OriginalMessageMarkedReimbursed)?.message?.trim();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.paidElsewhere', {comment});
     }

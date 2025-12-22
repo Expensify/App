@@ -149,6 +149,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
+import type {OriginalMessageMarkedReimbursed} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -748,7 +749,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUnreportedTransactionMessage(reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     const originalMessage = getOriginalMessage(reportAction);
-                    const comment = (originalMessage as {message?: string})?.message?.trim();
+                    const comment = (originalMessage as OriginalMessageMarkedReimbursed)?.message?.trim();
                     Clipboard.setString(translate('iou.paidElsewhere', {comment}));
                 } else if (isReimbursementQueuedAction(reportAction)) {
                     Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, reportOrID: reportID, shouldUseShortDisplayName: false}));
