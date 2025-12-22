@@ -121,7 +121,6 @@ function ReportActionItemContentCreated({
                         <MoneyRequestView
                             allReports={allReports}
                             report={report}
-                            parentReportID={report?.parentReportID}
                             expensePolicy={policy}
                             shouldShowAnimatedBackground
                         />
@@ -184,7 +183,6 @@ function ReportActionItemContentCreated({
                                 <MoneyRequestView
                                     allReports={allReports}
                                     report={transactionThreadReport}
-                                    parentReportID={transactionThreadReport?.parentReportID}
                                     expensePolicy={policy}
                                     shouldShowAnimatedBackground={false}
                                 />

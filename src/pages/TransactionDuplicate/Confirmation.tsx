@@ -143,7 +143,6 @@ function Confirmation() {
                             <MoneyRequestView
                                 allReports={allReports}
                                 report={report}
-                                parentReportID={report?.parentReportID}
                                 expensePolicy={policy}
                                 shouldShowAnimatedBackground={false}
                                 readonly
