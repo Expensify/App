@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactEmailSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
@@ -8,6 +8,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -64,9 +65,9 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     });
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
-    const [technicalContactEmail] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+    const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
-        selector: technicalContactEmailSelector,
+        selector: technicalContactSettingsSelector,
     });
 
     const currentUserAccountID = getCurrentUserAccountID();
@@ -75,6 +76,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const data: AdminOption[] = [];
     for (const accountID of adminAccountIDs ?? []) {
         const details = personalDetails?.[accountID];
+        const isPrimaryContact = technicalContactSettings?.technicalContactEmail === details?.login;
         data.push({
             keyForList: String(accountID),
             accountID,
@@ -89,7 +91,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     id: accountID,
                 },
             ],
-            rightElement: technicalContactEmail === details?.login && <Badge text={translate('domain.admins.primaryContact')} />,
+            rightElement: isPrimaryContact && <Badge text={translate('domain.admins.primaryContact')} />,
             errors: getLatestError(domainErrors?.adminErrors?.[accountID]?.errors),
             pendingAction: domainPendingAction?.[accountID]?.pendingAction,
         });

@@ -1721,50 +1721,49 @@ describe('getSecondaryAction', () => {
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 
-    // Will be re-enabled in https://github.com/Expensify/App/pull/77343
-    // it('include DUPLICATE option for single-transaction expense report', () => {
-    //     const report = {
-    //         reportID: REPORT_ID,
-    //         type: CONST.REPORT.TYPE.EXPENSE,
-    //         ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-    //         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-    //         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-    //     } as unknown as Report;
+    it('include DUPLICATE option for single-transaction expense report', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        } as unknown as Report;
 
-    //     const TRANSACTION_ID = 'TRANSACTION_ID';
+        const TRANSACTION_ID = 'TRANSACTION_ID';
 
-    //     const transaction1 = {
-    //         transactionID: TRANSACTION_ID,
-    //         reportID: REPORT_ID,
-    //     } as unknown as Transaction;
+        const transaction1 = {
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+        } as unknown as Transaction;
 
-    //     const reportActions = [
-    //         {
-    //             reportActionID: '1',
-    //             actorAccountID: EMPLOYEE_ACCOUNT_ID,
-    //             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-    //             originalMessage: {
-    //                 IOUTransactionID: TRANSACTION_ID,
-    //                 IOUReportID: REPORT_ID,
-    //             },
-    //         },
-    //     ] as unknown as ReportAction[];
+        const reportActions = [
+            {
+                reportActionID: '1',
+                actorAccountID: EMPLOYEE_ACCOUNT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: TRANSACTION_ID,
+                    IOUReportID: REPORT_ID,
+                },
+            },
+        ] as unknown as ReportAction[];
 
-    //     const policy = {} as unknown as Policy;
+        const policy = {} as unknown as Policy;
 
-    //     const result = getSecondaryReportActions({
-    //         currentUserEmail: EMPLOYEE_EMAIL,
-    //         currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-    //         report,
-    //         chatReport,
-    //         reportTransactions: [transaction1],
-    //         originalTransaction: {} as Transaction,
-    //         violations: {},
-    //         policy,
-    //         reportActions,
-    //     });
-    //     expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(true);
-    // });
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction1],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+            reportActions,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(true);
+    });
 
     it('does not include DUPLICATE option if there are no transactions', async () => {
         const report = {

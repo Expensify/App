@@ -48,7 +48,12 @@ function adminAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
     );
 }
 
-const technicalContactEmailSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => domainMemberSharedNVP?.settings?.technicalContactEmail;
+const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => {
+    return {
+        technicalContactEmail: domainMemberSharedNVP?.settings?.technicalContactEmail,
+        useTechnicalContactBillingCard: domainMemberSharedNVP?.settings?.useTechnicalContactBillingCard,
+    };
+};
 
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
 
@@ -59,6 +64,6 @@ export {
     domainNameSelector,
     metaIdentitySelector,
     adminAccountIDsSelector,
-    technicalContactEmailSelector,
+    technicalContactSettingsSelector,
     adminPendingActionSelector,
 };
