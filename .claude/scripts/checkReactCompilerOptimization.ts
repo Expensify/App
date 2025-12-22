@@ -6,7 +6,6 @@
  * Usage: ts-node checkReactCompilerOptimization.ts <file-path>
  * Output: JSON with optimization status for parent and all imported children
  */
-
 import {execSync} from 'child_process';
 import fs from 'fs';
 import path from 'path';

@@ -159,9 +159,18 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 **YOU MUST call `checkReactCompilerOptimization.ts` (available in PATH from `.claude/scripts/`) on EVERY .tsx file from the diff.**
 
+**Call the script ONCE per file, separately. DO NOT use loops or batch processing.**
+
+Example usage:
 ```bash
-checkReactCompilerOptimization.ts <file-path>
+checkReactCompilerOptimization.ts src/components/File1.tsx
+checkReactCompilerOptimization.ts src/components/File2.tsx
 ```
+
+**NEVER use absolute or relative paths for this script. Call it by name only:**
+- ✅ `checkReactCompilerOptimization.ts src/components/Example.tsx`
+- ❌ `/home/runner/work/App/App/.claude/scripts/checkReactCompilerOptimization.ts ...`
+- ❌ `./.claude/scripts/checkReactCompilerOptimization.ts ...`
 
 **"File not found"** → Assume parent is optimized and skip PERF-4.
 
