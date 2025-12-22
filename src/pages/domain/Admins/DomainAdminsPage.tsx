@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
@@ -41,7 +41,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
-    const getCustomRightElement = useCallback(
+    const getCustomRightElement =
         (accountID: number) => {
             const login = personalDetails?.[accountID]?.login;
             const primaryEmail = technicalContactSettings?.technicalContactEmail;
@@ -51,9 +51,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             }
 
             return <Badge text={translate('domain.admins.primaryContact')} />;
-        },
-        [personalDetails, technicalContactSettings?.technicalContactEmail, translate],
-    );
+        }
 
     const headerContent = isAdmin ? (
         <Button
