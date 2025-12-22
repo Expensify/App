@@ -562,15 +562,6 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
         return false;
     }
 
-    // Do not show merge action for transactions with negative amounts
-    const transactionDetails = getTransactionDetails(reportTransactions.at(0));
-    if (transactionDetails) {
-        const transactionAmount = transactionDetails?.amount;
-        if (transactionAmount < 0) {
-            return false;
-        }
-    }
-
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
 
     if (isAnyReceiptBeingScanned) {
