@@ -1,5 +1,5 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -69,8 +69,7 @@ function IOURequestStepDescription({
         return isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
     }, [isTransactionDraft, iouType, isEditingSplit, splitDraftTransaction, transaction?.comment?.comment]);
 
-    const descriptionRef = useRef(currentDescriptionInMarkdown);
-    const isSavedRef = useRef(false);
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -120,16 +119,23 @@ function IOURequestStepDescription({
         Navigation.goBack(backTo);
     };
 
-    const updateDescriptionRef = (value: string) => {
-        descriptionRef.current = value;
-    };
+    const updateHasUnsavedChanges = useCallback(
+        (value: string) => {
+            if (value === currentDescriptionInMarkdown) {
+                setHasUnsavedChanges(false);
+                return;
+            }
+            setHasUnsavedChanges(true);
+        },
+        [currentDescriptionInMarkdown],
+    );
 
     const updateComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
         if (!transaction?.transactionID) {
             return;
         }
 
-        isSavedRef.current = true;
+        setHasUnsavedChanges(false);
         const newComment = value.moneyRequestComment.trim();
 
         // Only update comment if it has changed
@@ -196,7 +202,7 @@ function IOURequestStepDescription({
                         inputID={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         name={INPUT_IDS.MONEY_REQUEST_COMMENT}
                         defaultValue={currentDescriptionInMarkdown}
-                        onValueChange={updateDescriptionRef}
+                        onValueChange={updateHasUnsavedChanges}
                         label={translate('moneyRequestConfirmationList.whatsItFor')}
                         accessibilityLabel={translate('moneyRequestConfirmationList.whatsItFor')}
                         role={CONST.ROLE.PRESENTATION}
@@ -217,12 +223,7 @@ function IOURequestStepDescription({
                         inputRef.current?.focus();
                     });
                 }}
-                getHasUnsavedChanges={() => {
-                    if (isSavedRef.current) {
-                        return false;
-                    }
-                    return descriptionRef.current !== currentDescriptionInMarkdown;
-                }}
+                hasUnsavedChanges={hasUnsavedChanges}
             />
         </StepScreenWrapper>
     );
