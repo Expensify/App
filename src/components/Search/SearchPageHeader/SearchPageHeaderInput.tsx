@@ -18,14 +18,13 @@ import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types'
 import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
-import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
-import {clearAllFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -57,7 +56,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -214,7 +213,6 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             hideSearchRouterList?.();
             setIsAutocompleteListVisible(false);
             if (updatedQuery !== originalInputQuery) {
-                clearAllFilters();
                 setTextInputValue('');
                 setAutocompleteQueryValue('');
             }
@@ -481,11 +479,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     )}
                 </View>
             </View>
-            <HelpButton style={[styles.mt1Half]} />
+            <SidePanelButton style={styles.mt1Half} />
         </View>
     );
 }
-
-SearchPageHeaderInput.displayName = 'SearchPageHeaderInput';
 
 export default SearchPageHeaderInput;
