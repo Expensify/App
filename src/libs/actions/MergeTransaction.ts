@@ -204,7 +204,7 @@ function getOnyxTargetTransactionData(
             policy,
             policyTagList: policyTags,
             policyCategories,
-            violations: targetTransactionViolations,
+            violations: targetTransactionViolations ?? [],
             shouldBuildOptimisticModifiedExpenseReportAction,
             currentUserAccountIDParam,
             currentUserEmailParam,
@@ -301,7 +301,7 @@ function mergeTransactionRequest({
 
     const onyxTargetTransactionData = getOnyxTargetTransactionData(
         targetTransaction,
-        allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + targetTransaction.transactionID],
+        allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + targetTransaction.transactionID] ?? [],
         mergeTransaction,
         policy,
         policyTags,
@@ -396,7 +396,7 @@ function mergeTransactionRequest({
 
     // Optimistic delete duplicated transaction violations
     const optimisticTransactionViolations: OnyxUpdate[] = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
-        const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id];
+        const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? [];
 
         return {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -406,12 +406,11 @@ function mergeTransactionRequest({
         };
     });
     const failureTransactionViolations: OnyxUpdate[] = [targetTransaction.transactionID, sourceTransaction.transactionID].map((id) => {
-        const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id];
+        const violations = allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? [];
 
         return {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
-            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             value: violations,
         };
     });

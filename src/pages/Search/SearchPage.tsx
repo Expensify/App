@@ -522,7 +522,9 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         // Check if all selected transactions can be rejected
-        const hasNoRejectedTransaction = selectedTransactionsKeys.every((id) => !hasTransactionBeenRejected(allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id]));
+        const hasNoRejectedTransaction = selectedTransactionsKeys.every(
+            (id) => !hasTransactionBeenRejected(allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + id] ?? []),
+        );
 
         const shouldShowRejectOption =
             queryJSON?.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
