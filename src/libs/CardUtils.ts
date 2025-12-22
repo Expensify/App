@@ -572,17 +572,9 @@ function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.C
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeedWithDomainID>, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithDomainID | undefined {
     const availableFeeds = getCompanyFeeds(cardFeeds, true);
     const defaultFeed = Object.keys(availableFeeds).at(0) as CompanyCardFeedWithDomainID | undefined;
-    if (!lastSelectedFeed?.includes(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR)) {
-        return defaultFeed;
-    }
+    const isValidLastFeed = !!lastSelectedFeed && lastSelectedFeed.includes(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR) && availableFeeds[lastSelectedFeed];
 
-    // Check if the last selected feed still exists and is not marked for deletion
-    if (availableFeeds[lastSelectedFeed]) {
-        return lastSelectedFeed;
-    }
-
-    // If the last selected feed was deleted, fall back to the default feed
-    return defaultFeed;
+    return isValidLastFeed ? lastSelectedFeed : defaultFeed;
 }
 
 function getCompanyCardFeedWithDomainID(feedName: CompanyCardFeed, domainID: number | string): CompanyCardFeedWithDomainID {
