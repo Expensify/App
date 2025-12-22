@@ -143,7 +143,5 @@ function Avatar({
     );
 }
 
-Avatar.displayName = 'Avatar';
-
 export type {AvatarProps};
 export default Avatar;

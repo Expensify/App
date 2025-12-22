@@ -2,6 +2,7 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -15,8 +16,6 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
 import type {ThreeDotsMenuItem} from './HeaderWithBackButton/types';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 
 type PromotedAction = {
     key: string;
@@ -30,6 +29,14 @@ type PromotedActionsType = Record<BasePromotedActions, (report: OnyxReport) => P
     [CONST.PROMOTED_ACTIONS.MESSAGE]: (params: {reportID?: string; accountID?: number; login?: string; personalDetails: OnyxEntry<PersonalDetailsList>}) => PromotedAction;
 };
 
+type PromotedActionsBarProps = {
+    /** The list of actions to show */
+    promotedActions: PromotedAction[];
+
+    /** The style of the container */
+    containerStyle?: StyleProp<ViewStyle>;
+};
+
 const PromotedActions = {
     pin: (report) => ({
         key: CONST.PROMOTED_ACTIONS.PIN,
@@ -41,7 +48,7 @@ const PromotedActions = {
     }),
     join: (report) => ({
         key: CONST.PROMOTED_ACTIONS.JOIN,
-        icon: Expensicons.ChatBubbles,
+        icon: 'ChatBubbles',
         translationKey: 'common.join',
         onSelected: callFunctionIfActionIsAllowed(() => {
             Navigation.dismissModal();
@@ -50,7 +57,7 @@ const PromotedActions = {
     }),
     message: ({reportID, accountID, login, personalDetails}) => ({
         key: CONST.PROMOTED_ACTIONS.MESSAGE,
-        icon: Expensicons.CommentBubbles,
+        icon: 'CommentBubbles',
         translationKey: 'common.message',
         onSelected: () => {
             if (reportID) {
@@ -69,19 +76,11 @@ const PromotedActions = {
         },
     }),
 } satisfies PromotedActionsType;
-
-type PromotedActionsBarProps = {
-    /** The list of actions to show */
-    promotedActions: PromotedAction[];
-
-    /** The style of the container */
-    containerStyle?: StyleProp<ViewStyle>;
-};
-
 function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ChatBubbles', 'CommentBubbles']);
 
     if (promotedActions.length === 0) {
         return null;
@@ -89,7 +88,7 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
 
     return (
         <View style={[styles.flexRow, styles.ph5, styles.mb5, styles.gap2, styles.mw100, styles.w100, styles.justifyContentCenter, containerStyle]}>
-            {promotedActions.map(({key, onSelected, translationKey, ...props}) => (
+            {promotedActions.map(({key, onSelected, translationKey, icon}) => (
                 <View
                     style={[styles.flex1, styles.mw50]}
                     key={key}
@@ -98,16 +97,14 @@ function PromotedActionsBar({promotedActions, containerStyle}: PromotedActionsBa
                         onPress={onSelected}
                         iconFill={theme.icon}
                         text={translate(translationKey)}
+                        icon={typeof icon === 'string' ? icons[icon] : icon}
                         // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
                     />
                 </View>
             ))}
         </View>
     );
 }
-
-PromotedActionsBar.displayName = 'PromotedActionsBar';
 
 export default PromotedActionsBar;
 

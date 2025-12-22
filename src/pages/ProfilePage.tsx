@@ -174,7 +174,7 @@ function ProfilePage({route}: ProfilePageProps) {
     }, [accountID, isCurrentUser, loginParams, report, personalDetails]);
 
     return (
-        <ScreenWrapper testID={ProfilePage.displayName}>
+        <ScreenWrapper testID="ProfilePage">
             <FullPageNotFoundView shouldShow={shouldShowBlockingView}>
                 <HeaderWithBackButton
                     title={translate('common.profile')}
@@ -302,7 +302,5 @@ function ProfilePage({route}: ProfilePageProps) {
         </ScreenWrapper>
     );
 }
-
-ProfilePage.displayName = 'ProfilePage';
 
 export default ProfilePage;
