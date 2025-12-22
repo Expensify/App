@@ -9,6 +9,7 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnfidoError, OnfidoProps} from './types';
+import saveLastRoute from '@libs/saveLastRoute';
 
 const {AppStateTracker} = NativeModules;
 
@@ -80,8 +81,10 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                                         {
                                             text: translate('common.settings'),
                                             onPress: () => {
-                                                onUserExit(true);
+                                                onUserExit(false);
                                                 Linking.openSettings();
+                                                // Save last route before so navigation can be restored.
+                                                saveLastRoute();
                                             },
                                         },
                                     ],
