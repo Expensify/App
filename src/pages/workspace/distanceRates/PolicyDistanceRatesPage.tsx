@@ -514,6 +514,7 @@ function PolicyDistanceRatesPage({
                         showListEmptyContent={false}
                         showScrollIndicator={false}
                         turnOnSelectionModeOnLongPress
+                        shouldHeaderBeInsideList
                         shouldShowRightCaret
                     />
                 )}
