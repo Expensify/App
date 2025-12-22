@@ -188,7 +188,7 @@ function getReportPreviewAction({
     isPaidAnimationRunning?: boolean;
     isApprovedAnimationRunning?: boolean;
     isSubmittingAnimationRunning?: boolean;
-    violationsData?: {currentUserEmail?: string; violations?: OnyxCollection<TransactionViolation[]>};
+    violationsData?: OnyxCollection<TransactionViolation[]>;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;

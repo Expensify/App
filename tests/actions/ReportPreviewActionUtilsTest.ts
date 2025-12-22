@@ -246,10 +246,7 @@ describe('getReportPreviewAction', () => {
                 isPaidAnimationRunning: undefined,
                 isApprovedAnimationRunning: undefined,
                 isSubmittingAnimationRunning: undefined,
-                violationsData: {
-                    currentUserEmail: CURRENT_USER_EMAIL,
-                    violations,
-                },
+                violationsData: violations,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
     });

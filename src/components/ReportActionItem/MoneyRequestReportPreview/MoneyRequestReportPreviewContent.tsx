@@ -527,7 +527,7 @@ function MoneyRequestReportPreviewContent({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
-            violationsData: {currentUserEmail, violations: transactionViolations},
+            violationsData: transactionViolations,
         });
     }, [
         isIouReportArchived,
@@ -541,7 +541,6 @@ function MoneyRequestReportPreviewContent({
         isPaidAnimationRunning,
         isApprovedAnimationRunning,
         isSubmittingAnimationRunning,
-        currentUserEmail,
         transactionViolations,
     ]);
 
