@@ -10,6 +10,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectCircle from '@components/SelectCircle';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
@@ -449,7 +450,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
-            testID={NewChatPage.displayName}
+            testID="NewChatPage"
         >
             <SelectionList<Option & ListItem>
                 ref={selectionListRef}
@@ -478,7 +479,5 @@ function NewChatPage({ref}: NewChatPageProps) {
         </ScreenWrapper>
     );
 }
-
-NewChatPage.displayName = 'NewChatPage';
 
 export default NewChatPage;

@@ -80,6 +80,4 @@ function MoneyReportHeaderKYCDropdown({
     );
 }
 
-MoneyReportHeaderKYCDropdown.displayName = 'MoneyReportHeaderKYCDropdown';
-
 export default memo(MoneyReportHeaderKYCDropdown);

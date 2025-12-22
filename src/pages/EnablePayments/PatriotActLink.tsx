@@ -38,6 +38,4 @@ function PatriotActLink({containerStyles}: PatriotActLinkProps) {
     );
 }
 
-PatriotActLink.displayName = 'PatriotActLink';
-
 export default PatriotActLink;

@@ -11,6 +11,9 @@ type SelectedTransactionInfo = {
     /** Whether the transaction is selected */
     isSelected: boolean;
 
+    /** If the transaction can be deleted */
+    canDelete: boolean;
+
     /** If the transaction can be rejected */
     canReject: boolean;
 
@@ -52,6 +55,9 @@ type SelectedTransactionInfo = {
 
     /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
     groupCurrency?: string;
+
+    /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
+    groupExchangeRate?: number;
 
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport?: boolean;
@@ -107,7 +113,13 @@ type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 type SearchAction = ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
-type SearchCustomColumnIds = ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE> | ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT>;
+
+type SearchCustomColumnIds =
+    | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>
+    | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>;
 
 type SearchContextData = {
     currentSearchHash: number;
