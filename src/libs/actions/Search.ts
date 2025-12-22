@@ -356,9 +356,16 @@ function handlePreventSearchAPI(hash: number | undefined) {
     if (typeof hash === 'undefined') {
         return {};
     }
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash);
     return {
-        enableSearchAPIPrevention: () => (shouldPreventSearchAPI = true),
-        disableSearchAPIPrevention: () => (shouldPreventSearchAPI = false),
+        enableSearchAPIPrevention: () => {
+            shouldPreventSearchAPI = true;
+            Onyx.update(optimisticData);
+        },
+        disableSearchAPIPrevention: () => {
+            shouldPreventSearchAPI = false;
+            Onyx.update(finallyData);
+        },
     };
 }
 
