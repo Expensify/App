@@ -78,14 +78,12 @@ async function checkPermissions({
     }
 }
 
-function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermissionsFlow, onGrant, onDeny, setShouldShowPermissionsError}: BackgroundLocationPermissionsFlowProps) {
+function BackgroundLocationPermissionsFlow({startPermissionsFlow, setStartPermissionsFlow, onGrant, onDeny, onError}: BackgroundLocationPermissionsFlowProps) {
     const [showFirstAskModal, setShowFirstAskModal] = useState(false);
     const [showBgPermissionsModal, setShowBgPermissionsModal] = useState(false);
     const [showPreciseLocationModal, setShowPreciseLocationModal] = useState(false);
     const {asset: ReceiptLocationMarker} = useMemoizedLazyAsset(() => loadIllustration('ReceiptLocationMarker'));
     const {translate} = useLocalize();
-
-    const onError = () => setShouldShowPermissionsError(true);
 
     const onForegroundPermissionsGranted = async () => {
         const {granted} = await getBackgroundPermissionsAsync();

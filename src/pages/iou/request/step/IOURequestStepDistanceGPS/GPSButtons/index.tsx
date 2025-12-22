@@ -101,7 +101,7 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
             )}
 
             <BackgroundLocationPermissionsFlow
-                setShouldShowPermissionsError={setShouldShowPermissionsError}
+                onError={() => setShouldShowPermissionsError(true)}
                 startPermissionsFlow={startPermissionsFlow}
                 setStartPermissionsFlow={setStartPermissionsFlow}
                 // eslint-disable-next-line @typescript-eslint/no-misused-promises
