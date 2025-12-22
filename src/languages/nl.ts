@@ -7950,6 +7950,38 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             settings: 'Instellingen',
         },
     },
+    gps: {
+        tooltip: 'GPS-tracking bezig! Als je klaar bent, stop dan hieronder met tracken.',
+        disclaimer: 'Gebruik GPS om een uitgave van je reis te maken. Tik hieronder op Start om het volgen te beginnen.',
+        error: {failedToStart: 'Locatiebijhouding starten is mislukt.', failedToGetPermissions: 'Verkrijgen van vereiste locatierechten mislukt.'},
+        trackingDistance: 'Afstand bijhouden...',
+        stopped: 'Gestopt',
+        start: 'Start',
+        stop: 'Stoppen',
+        discard: 'Verwerpen',
+        stopGpsTrackingModal: {
+            title: 'GPS-tracking stoppen',
+            prompt: 'Weet je het zeker? Hiermee beëindig je je huidige flow.',
+            cancel: 'Hervatten met volgen',
+            confirm: 'GPS-tracking stoppen',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Afstandstracking negeren',
+            prompt: 'Weet je het zeker? Dit verwijdert je huidige traject en kan niet ongedaan worden gemaakt.',
+            confirm: 'Afstandstracking negeren',
+        },
+        zeroDistanceTripModal: {title: 'Kan geen uitgave aanmaken', prompt: 'Je kunt geen uitgave aanmaken met dezelfde begin- en eindlocatie.'},
+        locationRequiredModal: {
+            title: 'Locatietoegang vereist',
+            prompt: 'Sta locatietoegang toe in de instellingen van je apparaat om GPS-afstandsregistratie te starten.',
+            allow: 'Toestaan',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Toegang tot locatie op de achtergrond vereist',
+            prompt: 'Sta achtergrondlocatietoegang toe in de instellingen van je apparaat (de optie “Altijd toestaan”) om het bijhouden van de GPS-afstand te starten.',
+        },
+        preciseLocationRequiredModal: {title: 'Precieze locatie vereist', prompt: 'Schakel "precieze locatie" in de instellingen van je apparaat in om GPS-afstandsregistratie te starten.'},
+    },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
 // so if you change it here, please update it there as well.
