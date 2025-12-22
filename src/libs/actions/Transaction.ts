@@ -251,9 +251,6 @@ function getOnyxDataForRouteRequest(transactionID: string, transactionState: Tra
                     comment: {
                         isLoading: true,
                     },
-                    errorFields: {
-                        route: null,
-                    },
                 },
             },
         ],

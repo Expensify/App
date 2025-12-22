@@ -1627,11 +1627,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Oczekiwanie, aż <strong>Ty</strong> naprawisz problem(y).`;
+                        return `Oczekiwanie, aż <strong>Ty</strong> naprawisz problemy.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Oczekiwanie, aż <strong>${actor}</strong> naprawi problem(y).`;
+                        return `Oczekiwanie, aż <strong>${actor}</strong> naprawi problemy.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie na rozwiązanie problemu(-ów) przez administratora.`;
+                        return `Oczekiwanie na administratora, aby naprawił problemy.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2294,7 +2294,25 @@ ${amount} dla ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Nie można było zmienić osoby zatwierdzającej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
-        header: 'Wyślij do tego członka do zatwierdzenia:',
+        title: 'Wyślij do tego członka do zatwierdzenia:',
+        description: 'Ta osoba zatwierdzi wydatki.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Zatwierdzający',
+        header: '(Opcjonalnie) Czy chcesz dodać limit zatwierdzenia?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Dodaj innego zatwierdzającego, gdy <strong>${approverName}</strong> jest zatwierdzającym, a raport przekracza poniższą kwotę:`
+                : 'Dodaj innego zatwierdzającego, gdy raport przekracza poniższą kwotę:',
+        reportAmountLabel: 'Kwota raportu',
+        additionalApproverLabel: 'Dodatkowy zatwierdzający',
+        skip: 'Pomiń',
+        next: 'Dalej',
+        removeLimit: 'Usuń limit',
+        enterAmountError: 'Wprowadź prawidłową kwotę',
+        enterApproverError: 'Zatwierdzający jest wymagany, gdy ustawisz limit raportu',
+        enterBothError: 'Wprowadź kwotę raportu i dodatkowego zatwierdzającego',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Raporty powyżej ${approvalLimit} są przekazywane do ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Upoważniony płatnik',
@@ -7936,7 +7954,17 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             subtitle: 'Wymagaj, aby członkowie Twojej domeny logowali się przez Single Sign-On (SSO), ograniczaj tworzenie obszarów roboczych i nie tylko.',
             enable: 'Włącz',
         },
-        admins: {title: 'Administratorzy', findAdmin: 'Znajdź administratora', primaryContact: 'Główny kontakt', addPrimaryContact: 'Dodaj główny kontakt', settings: 'Ustawienia'},
+        admins: {
+            title: 'Administratorzy',
+            findAdmin: 'Znajdź administratora',
+            primaryContact: 'Główny kontakt',
+            addPrimaryContact: 'Dodaj główny kontakt',
+            settings: 'Ustawienia',
+            consolidatedDomainBilling: 'Skonsolidowane rozliczanie domen',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>Gdy ta opcja jest włączona, główny kontakt będzie opłacać wszystkie przestrzenie robocze należące do członków <strong>${domainName}</strong> i otrzymywać wszystkie potwierdzenia rozliczeń.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'Nie udało się zmienić zbiorczego rozliczania domeny. Spróbuj ponownie później.',
+        },
     },
     desktopAppRetiredPage: {
         title: 'Aplikacja desktopowa została wycofana',
