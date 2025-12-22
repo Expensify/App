@@ -279,7 +279,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
                 if (user.accountID) {
                     invitedEmailsToAccountIDs[user.email] = user.accountID;
                 }
-                // If accountID is missing, skip this user (shouldn't happen as it comes from selection)
             }
 
             setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
