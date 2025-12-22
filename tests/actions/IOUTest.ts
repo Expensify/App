@@ -8909,6 +8909,251 @@ describe('actions/IOU', () => {
                 expect(split1).toBeDefined();
                 expect(split2).toBeDefined();
             });
+
+            it('should create hold report actions for split transactions when original transaction is on hold', async () => {
+                // Given an expense that is on hold
+                const amount = 10000;
+                let expenseReport: OnyxEntry<Report>;
+                let chatReport: OnyxEntry<Report>;
+                let originalTransactionID: string | undefined;
+                let transactionThreadReportID: string | undefined;
+
+                const policyID = generatePolicyID();
+                createWorkspace({
+                    policyOwnerEmail: CARLOS_EMAIL,
+                    makeMeAdmin: true,
+                    policyName: "Carlos's Workspace for Hold Test",
+                    policyID,
+                });
+
+                // Change the approval mode for the policy since default is Submit and Close
+                setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                await waitForBatchedUpdates();
+
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (allReports) => {
+                        chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+                    },
+                });
+
+                // Create the initial expense
+                requestMoney({
+                    report: chatReport,
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport?.reportID},
+                    },
+                    transactionParams: {
+                        amount,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: '',
+                        merchant: 'Test Merchant',
+                        comment: 'Original expense',
+                    },
+                    shouldGenerateTransactionThreadReport: true,
+                    isASAPSubmitBetaEnabled: false,
+                    currentUserAccountIDParam: RORY_ACCOUNT_ID,
+                    currentUserEmailParam: RORY_EMAIL,
+                    transactionViolations: {},
+                });
+                await waitForBatchedUpdates();
+
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (allReports) => {
+                        expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.EXPENSE);
+                    },
+                });
+
+                // Get the original transaction ID and transaction thread report ID
+                await getOnyxData({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (allReportsAction) => {
+                        const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                            isMoneyRequestAction(reportAction),
+                        );
+                        const iouAction = iouActions?.at(0);
+                        const originalMessage = isMoneyRequestAction(iouAction) ? getOriginalMessage(iouAction) : undefined;
+                        originalTransactionID = originalMessage?.IOUTransactionID;
+                        transactionThreadReportID = iouAction?.childReportID;
+                    },
+                });
+
+                // Put the expense on hold
+                putOnHold(originalTransactionID ?? '', 'Test hold reason', transactionThreadReportID);
+                await waitForBatchedUpdates();
+
+                // Verify the transaction is on hold
+                const originalTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`);
+                expect(originalTransaction?.comment?.hold).toBeDefined();
+
+                // Get the first IOU action for the split flow
+                let firstIOU: ReportAction | undefined;
+                await getOnyxData({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (allReportsAction) => {
+                        const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                            isMoneyRequestAction(reportAction),
+                        );
+                        firstIOU = iouActions?.at(0);
+                    },
+                });
+
+                // Create the draft transaction with split expenses
+                const draftTransaction: Transaction = {
+                    reportID: originalTransaction?.reportID ?? '456',
+                    transactionID: originalTransaction?.transactionID ?? '234',
+                    amount,
+                    created: originalTransaction?.created ?? DateUtils.getDBTime(),
+                    currency: CONST.CURRENCY.USD,
+                    merchant: originalTransaction?.merchant ?? '',
+                    comment: {
+                        originalTransactionID,
+                        comment: originalTransaction?.comment?.comment ?? '',
+                        hold: originalTransaction?.comment?.hold,
+                        splitExpenses: [
+                            {
+                                transactionID: 'split-held-tx-1',
+                                amount: amount / 2,
+                                description: 'Split 1',
+                                created: DateUtils.getDBTime(),
+                            },
+                            {
+                                transactionID: 'split-held-tx-2',
+                                amount: amount / 2,
+                                description: 'Split 2',
+                                created: DateUtils.getDBTime(),
+                            },
+                        ],
+                        attendees: [],
+                        type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    },
+                };
+
+                let allTransactions: OnyxCollection<Transaction>;
+                let allReports: OnyxCollection<Report>;
+                let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (value) => {
+                        allTransactions = value;
+                    },
+                });
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    waitForCollectionCallback: true,
+                    callback: (value) => {
+                        allReports = value;
+                    },
+                });
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+                    waitForCollectionCallback: true,
+                    callback: (value) => {
+                        allReportNameValuePairs = value;
+                    },
+                });
+
+                // When splitting the held expense
+                updateSplitTransactionsFromSplitExpensesFlow({
+                    allTransactionsList: allTransactions,
+                    allReportsList: allReports,
+                    allReportNameValuePairsList: allReportNameValuePairs,
+                    transactionData: {
+                        reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
+                        originalTransactionID: draftTransaction?.comment?.originalTransactionID ?? String(CONST.DEFAULT_NUMBER_ID),
+                        splitExpenses: draftTransaction?.comment?.splitExpenses ?? [],
+                        splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal,
+                    },
+                    searchContext: {
+                        currentSearchHash: -2,
+                    },
+                    policyCategories: undefined,
+                    policy: undefined,
+                    policyRecentlyUsedCategories: [],
+                    iouReport: expenseReport,
+                    firstIOU,
+                    isASAPSubmitBetaEnabled: false,
+                    currentUserPersonalDetails,
+                    transactionViolations: {},
+                });
+
+                await waitForBatchedUpdates();
+
+                // Then verify the split transactions were created
+                const split1 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}split-held-tx-1`);
+                const split2 = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}split-held-tx-2`);
+
+                expect(split1).toBeDefined();
+                expect(split2).toBeDefined();
+
+                // Find the transaction thread reports for each split by looking at the IOU actions
+                let split1ThreadReportID: string | undefined;
+                let split2ThreadReportID: string | undefined;
+
+                await getOnyxData({
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+                    waitForCollectionCallback: false,
+                    callback: (allReportsAction) => {
+                        const iouActions = Object.values(allReportsAction ?? {}).filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
+                            isMoneyRequestAction(reportAction),
+                        );
+                        for (const action of iouActions) {
+                            const message = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
+                            if (message?.IOUTransactionID === 'split-held-tx-1') {
+                                split1ThreadReportID = action.childReportID;
+                            } else if (message?.IOUTransactionID === 'split-held-tx-2') {
+                                split2ThreadReportID = action.childReportID;
+                            }
+                        }
+                    },
+                });
+
+                // Verify that split transaction thread IDs exist
+                expect(split1ThreadReportID).toBeDefined();
+                expect(split2ThreadReportID).toBeDefined();
+
+                // Verify each split transaction thread has hold report actions
+                // When splitting a held expense, new hold report actions should be created for each split
+                if (split1ThreadReportID) {
+                    const split1ReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${split1ThreadReportID}`);
+                    const split1HoldActions = Object.values(split1ReportActions ?? {}).filter(
+                        (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD,
+                    );
+                    const split1CommentActions = Object.values(split1ReportActions ?? {}).filter(
+                        (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    );
+
+                    // Should have at least one HOLD action and one ADD_COMMENT action (the hold comment)
+                    // The hold actions are created optimistically with pendingAction: ADD, but this
+                    // may be cleared to null after the API call succeeds
+                    expect(split1HoldActions.length).toBeGreaterThanOrEqual(1);
+                    expect(split1CommentActions.length).toBeGreaterThanOrEqual(1);
+                }
+
+                if (split2ThreadReportID) {
+                    const split2ReportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${split2ThreadReportID}`);
+                    const split2HoldActions = Object.values(split2ReportActions ?? {}).filter(
+                        (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD,
+                    );
+                    const split2CommentActions = Object.values(split2ReportActions ?? {}).filter(
+                        (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    );
+
+                    // Should have at least one HOLD action and one ADD_COMMENT action (the hold comment)
+                    expect(split2HoldActions.length).toBeGreaterThanOrEqual(1);
+                    expect(split2CommentActions.length).toBeGreaterThanOrEqual(1);
+                }
+            });
         });
     });
 
