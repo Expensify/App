@@ -37,6 +37,7 @@ import {
     getActionableMentionWhisperMessage,
     getChangedApproverActionMessage,
     getCombinedReportActions,
+    getDynamicExternalWorkflowRoutedMessage,
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
@@ -84,6 +85,7 @@ import {
     isUnapprovedAction,
     isWhisperAction,
     shouldReportActionBeVisible,
+    withDEWRoutedActionsArray,
 } from '@libs/ReportActionsUtils';
 import {computeReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -271,7 +273,7 @@ Onyx.connect({
             }
 
             const reportActionsArray = Object.values(reportActions[1] ?? {});
-            let sortedReportActions = getSortedReportActions(reportActionsArray, true);
+            let sortedReportActions = getSortedReportActions(withDEWRoutedActionsArray(reportActionsArray), true);
             allSortedReportActions[reportID] = sortedReportActions;
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
@@ -803,6 +805,9 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = Parser.htmlToText(getUnreportedTransactionMessage(lastReportAction));
     } else if (isActionableMentionWhisper(lastReportAction)) {
         lastMessageTextFromReport = Parser.htmlToText(getActionableMentionWhisperMessage(lastReportAction));
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        lastMessageTextFromReport = getDynamicExternalWorkflowRoutedMessage(lastReportAction, translateLocal);
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report

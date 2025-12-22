@@ -1240,8 +1240,8 @@ function getChatType(report: OnyxInputOrEntry<Report> | Participant): ValueOf<ty
 /**
  * Get the report or draft report given a reportID
  */
-function getReportOrDraftReport(reportID: string | undefined, searchReports?: Array<OnyxEntry<Report>>, fallbackReport?: Report, reportDrafts?: OnyxCollection<Report>): OnyxEntry<Report> {
-    const searchReport = searchReports?.find((report) => report?.reportID === reportID);
+function getReportOrDraftReport(reportID: string | undefined, searchReports?: Report[], fallbackReport?: Report, reportDrafts?: OnyxCollection<Report>): OnyxEntry<Report> {
+    const searchReport = searchReports?.find((report) => report.reportID === reportID);
     const onyxReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     return searchReport ?? onyxReport ?? (reportDrafts ?? allReportsDraft)?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`] ?? fallbackReport;
 }
@@ -2798,13 +2798,13 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
  * - **Submitters**: IOUs, unreported expenses, and expenses on Open or Processing reports at the first level of approval
  * - **Managers**: Expenses on Open or Processing reports
  *
- * @param reportOrReportID - The ID of the money request report to check for merge eligibility
+ * @param reportID - The ID of the money request report to check for merge eligibility
  * @param isAdmin - Whether the current user is an admin of the policy associated with the target report
  *
  * @returns True if the report is eligible for merging transactions, false otherwise
  */
-function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string, isAdmin: boolean): boolean {
-    const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport(reportOrReportID) : reportOrReportID;
+function isMoneyRequestReportEligibleForMerge(reportID: string, isAdmin: boolean): boolean {
+    const report = getReportOrDraftReport(reportID);
 
     if (!isMoneyRequestReport(report)) {
         return false;
@@ -4592,7 +4592,7 @@ function getTransactionCommentObject(transaction: OnyxEntry<Transaction>): Comme
  *    - the current user is the manager of the report
  *    - or the current user is an admin on the policy the expense report is tied to
  *
- *    This is used in conjunction with canEditMoneyRequest to control editing of specific fields like amount, currency, created, receipt, and distance.
+ *    This is used in conjunction with canEditRestrictedField to control editing of specific fields like amount, currency, created, receipt, and distance.
  *    On its own, it only controls allowing/disallowing navigating to the editing pages or showing/hiding the 'Edit' icon on report actions
  */
 function canEditMoneyRequest(
@@ -5096,17 +5096,17 @@ function getTransactionReportName({
     transactions?: Transaction[];
     reports?: Report[];
 }): string {
-    if (reportAction && isReversedTransaction(reportAction)) {
+    if (isReversedTransaction(reportAction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('parentReportAction.reversedTransaction');
     }
 
-    if (reportAction && isDeletedAction(reportAction)) {
+    if (isDeletedAction(reportAction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('parentReportAction.deletedExpense');
     }
 
-    const transaction = reportAction ? getLinkedTransaction(reportAction, transactions) : transactions?.at(0);
+    const transaction = getLinkedTransaction(reportAction, transactions);
 
     if (isEmptyObject(transaction)) {
         // Transaction data might be empty on app's first load, if so we fallback to Expense/Track Expense
@@ -7066,8 +7066,6 @@ function getMovedTransactionMessage(action: ReportAction) {
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
     const report = fromReport ?? toReport;
-
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(report) ?? report?.reportName ?? '';
     let reportUrl = getReportURLForCurrentContext(report?.reportID);
@@ -7098,7 +7096,6 @@ function getUnreportedTransactionMessage(action: ReportAction) {
 
     const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
 
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const reportName = getReportName(fromReport) ?? fromReport?.reportName ?? '';
 
@@ -7603,11 +7600,18 @@ function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: s
  * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
  *
  */
-function buildOptimisticSubmittedReportAction(amount: number, currency: string, expenseReportID: string, adminAccountID: number | undefined): OptimisticSubmittedReportAction {
+function buildOptimisticSubmittedReportAction(
+    amount: number,
+    currency: string,
+    expenseReportID: string,
+    adminAccountID: number | undefined,
+    workflow: ValueOf<typeof CONST.POLICY.APPROVAL_MODE> | undefined,
+): OptimisticSubmittedReportAction {
     const originalMessage = {
         amount,
         currency,
         expenseReportID,
+        workflow,
     };
 
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
@@ -10843,6 +10847,7 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, isThr
     const isReportPreviewActionLocal = isReportPreviewAction(reportAction);
     const isIOUAction = isMoneyRequestAction(reportAction);
     const isWhisperActionLocal = isWhisperAction(reportAction) || isActionableTrackExpense(reportAction);
+    const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
     const isActionDisabled = CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName);
     const isManagerMcTestOwner = reportAction?.actorAccountID === CONST.ACCOUNT_ID.MANAGER_MCTEST;
 
@@ -10853,7 +10858,8 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, isThr
         (isDeletedActionLocal && !reportAction?.childVisibleActionCount) ||
         (isReportArchived && !reportAction?.childVisibleActionCount) ||
         (isWhisperActionLocal && !isReportPreviewActionLocal && !isIOUAction) ||
-        isThreadReportParentAction
+        isThreadReportParentAction ||
+        isDynamicWorkflowRoutedAction
     );
 }
 
@@ -11047,7 +11053,7 @@ function canBeAutoReimbursed(report: OnyxInputOrEntry<Report>, policy: OnyxInput
 
 /** Check if the current user is an owner of the report */
 function isReportOwner(report: OnyxInputOrEntry<Report>): boolean {
-    return report?.ownerAccountID === currentUserAccountID;
+    return report?.ownerAccountID === currentUserPersonalDetails?.accountID;
 }
 
 function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAccountID?: number, reportPolicy?: OnyxEntry<Policy>): boolean {

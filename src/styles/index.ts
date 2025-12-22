@@ -506,6 +506,13 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
+        textMicroBoldSupporting: {
+            color: theme.textSupporting,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightNormal,
+        },
+
         textMicroSupporting: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -928,6 +935,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         activeComponentBG: {
             backgroundColor: theme.activeComponentBG,
+        },
+
+        messagesRowHeight: {
+            height: variables.componentSizeXSmall,
         },
 
         touchableButtonImage: {
@@ -4578,6 +4589,12 @@ const staticStyles = (theme: ThemeColors) =>
         listTableHeader: {
             paddingVertical: 12,
             paddingHorizontal: 32,
+        },
+
+        tableHeaderIconSpacing: {
+            marginRight: variables.iconSizeExtraSmall,
+            marginBottom: 1,
+            marginTop: 1,
         },
 
         cardItemSecondaryIconStyle: {

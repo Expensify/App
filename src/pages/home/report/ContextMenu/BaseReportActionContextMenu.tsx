@@ -25,7 +25,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
+import {getLinkedTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isDeletedAction, withDEWRoutedActionsObject} from '@libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     getHarvestOriginalReportID,
@@ -164,6 +164,7 @@ function BaseReportActionContextMenu({
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         canBeMissing: true,
         canEvict: false,
+        selector: withDEWRoutedActionsObject,
     });
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {

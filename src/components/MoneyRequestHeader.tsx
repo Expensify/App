@@ -21,7 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {deleteTrackExpense, initSplitExpense, markRejectViolationAsResolved} from '@libs/actions/IOU';
-import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
+import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
 import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
@@ -130,7 +130,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, localeCompare} = useLocalize();
+    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'ReceiptScan']);
     const {login: currentUserLogin, email, accountID} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -398,7 +398,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     return;
                 }
 
-                setupMergeTransactionDataAndNavigate([transaction], localeCompare);
+                setupMergeTransactionData(transaction.transactionID, {targetTransactionID: transaction.transactionID});
+                Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute()));
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {

@@ -139,6 +139,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -1508,6 +1509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: 'Datums splitsen',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} tot ${endDate} (${count} dagen)`,
         splitByDate: 'Splitsen op datum',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapport doorgestuurd naar ${to} vanwege aangepaste goedkeuringsworkflow`,
     },
     transactionMerge: {
         listPage: {
@@ -4817,6 +4819,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             feedName: (feedName: string) => `${feedName}-kaarten`,
             directFeed: 'Directe feed',
             whoNeedsCardAssigned: 'Wie heeft een kaart toegewezen nodig?',
+            chooseTheCardholder: 'Kies de kaarthouder',
             chooseCard: 'Kies een kaart',
             chooseCardFor: (assignee: string) =>
                 `Kies een kaart voor <strong>${assignee}</strong>. Kun je de kaart die je zoekt niet vinden? <concierge-link>Laat het ons weten.</concierge-link>`,
@@ -4839,6 +4842,8 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             chooseCardFeed: 'Kaartfeed kiezen',
             ukRegulation:
                 'Expensify Limited is een agent van Plaid Financial Ltd., een erkende betalingsinstelling die wordt gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid biedt u gereguleerde rekeninginformatiediensten via Expensify Limited als haar agent.',
+            assign: 'Toewijzen',
+            assignCardFailedError: 'Toewijzing van kaart mislukt.',
         },
         expensifyCard: {
             issueAndManageCards: 'Uw Expensify Cards uitgeven en beheren',
@@ -5053,6 +5058,9 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 cardNumber: 'Kaartnummer',
                 cardholder: 'Kaarthouder',
                 cardName: 'Kaartnaam',
+                allCards: 'Alle kaarten',
+                assignedCards: 'Toegewezen',
+                unassignedCards: 'Niet toegewezen',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration}-export`),
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Kies de ${integration}-account waarnaar transacties moeten worden geëxporteerd.`,
                 integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
@@ -5090,6 +5098,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 pendingBankLink: 'klik hier alsjeblieft',
                 giveItNameInstruction: 'Geef de kaart een naam die haar onderscheidt van andere kaarten.',
                 updating: 'Bezig met bijwerken...',
+                neverUpdated: 'Nooit',
                 noAccountsFound: 'Geen accounts gevonden',
                 defaultCard: 'Standaardkaart',
                 downgradeTitle: `Kan werkruimte niet downgraden`,
