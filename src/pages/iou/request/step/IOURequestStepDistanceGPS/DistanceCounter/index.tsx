@@ -28,7 +28,7 @@ function DistanceCounter({report, transaction}: DistanceCounterProps) {
     const tripInProgressOrStopped = (gpsDraftDetails?.gpsPoints?.length ?? 0) > 0 || gpsDraftDetails?.isTracking;
 
     return (
-        <View style={styles.flex1}>
+        <View style={[styles.flex1, styles.pb40]}>
             <View style={[styles.justifyContentCenter, styles.h100, styles.alignSelfCenter]}>
                 <View style={(styles.pRelative, styles.w100)}>
                     <TripStatusIndicator />
@@ -42,7 +42,5 @@ function DistanceCounter({report, transaction}: DistanceCounterProps) {
         </View>
     );
 }
-
-DistanceCounter.displayName = 'DistanceCounter';
 
 export default DistanceCounter;

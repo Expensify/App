@@ -50,7 +50,7 @@ function IOURequestStepDistanceGPS({
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
             onBackButtonPress={() => Navigation.goBack()}
-            testID={IOURequestStepDistanceGPS.displayName}
+            testID="IOURequestStepDistanceGPS"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
@@ -58,11 +58,11 @@ function IOURequestStepDistanceGPS({
                 report={report}
                 transaction={transaction}
             />
-            <View style={[styles.w100]}>
+            <View style={[styles.w100, styles.pAbsolute, styles.b0, styles.r0, styles.l0]}>
                 <Waypoints />
                 <Disclaimer />
                 <DotIndicatorMessage
-                    style={[styles.ph5, styles.pb3, styles.pt2]}
+                    style={[styles.ph5, styles.pb3]}
                     messages={getError()}
                     type="error"
                 />
@@ -76,8 +76,6 @@ function IOURequestStepDistanceGPS({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepDistanceGPS.displayName = 'IOURequestStepDistanceGPS';
 
 const IOURequestStepDistanceGPSWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceGPS);
 // eslint-disable-next-line rulesdir/no-negated-variables

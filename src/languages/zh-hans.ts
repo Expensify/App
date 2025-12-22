@@ -174,6 +174,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     SpreadCategoriesParams,
@@ -191,7 +192,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -596,7 +596,7 @@ const translations: TranslationDeepObject<typeof en> = {
         filterLogs: '筛选日志',
         network: '网络',
         reportID: '报告 ID',
-        longID: '长 ID',
+        longReportID: '长报表 ID',
         withdrawalID: '提款 ID',
         bankAccounts: '银行账户',
         chooseFile: '选择文件',
@@ -688,6 +688,9 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: '需要操作',
         duplicate: '复制',
         duplicated: '已重复',
+        exchangeRate: '汇率',
+        reimbursableTotal: '可报销总额',
+        nonReimbursableTotal: '不可报销总额',
         originalAmount: '原始金额',
     },
     supportalNoAccess: {
@@ -1115,6 +1118,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: '金额',
+        percent: '百分比',
         taxAmount: '税额',
         taxRate: '税率',
         approve: ({
@@ -1129,6 +1133,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: '拆分',
         splitExpense: '拆分报销',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `来自 ${merchant} 的 ${amount}`,
+        splitByPercentage: '按百分比拆分',
         addSplit: '添加拆分',
         makeSplitsEven: '平均分配',
         editSplits: '编辑拆分',
@@ -1319,12 +1324,6 @@ const translations: TranslationDeepObject<typeof en> = {
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `已发送 ${formattedAmount}${comment ? `为 ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `已将报销从个人空间移动到 ${workspaceName ?? `与 ${reportName} 聊天`}`,
         movedToPersonalSpace: '已将报销移动到个人空间',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? '一个' : 'a';
-            const tag = policyTagListName ?? '标签';
-            return `选择${article} ${tag}，以更好地整理您的支出。`;
-        },
-        categorySelection: '选择一个类别，以便更好地整理您的支出。',
         error: {
             invalidCategoryLength: '类别名称超过 255 个字符。请缩短名称或选择其他类别。',
             invalidTagLength: '标签名称超过了255个字符。请缩短它或选择其他标签。',
@@ -1356,6 +1355,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: '数量必须大于零',
             invalidSubrateLength: '必须至少有一个子费率',
             invalidRate: '此汇率对该工作区无效。请选择此工作区中的可用汇率。',
+            endDateBeforeStartDate: '结束日期不能早于开始日期',
+            endDateSameAsStartDate: '结束日期不能与开始日期相同',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒！关闭此错误会完全删除你上传的收据。确定要继续吗？',
@@ -1498,6 +1499,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: '选择一个工作区',
+        date: '日期',
+        splitDates: '拆分日期',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} 至 ${endDate}（${count} 天）`,
+        splitByDate: '按日期拆分',
     },
     transactionMerge: {
         listPage: {
@@ -6651,6 +6656,7 @@ ${reportName}
             title: '创建导出',
             description: '哇，项目真不少！我们会把它们打包好，Concierge 很快就会给你发送一个文件。',
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选择所有匹配的项目',
@@ -6665,6 +6671,7 @@ ${reportName}
         },
         refresh: '刷新',
     },
+    desktopAppRetiredPage: {title: '桌面应用程序已停用', body: '新的 Expensify Mac 桌面应用已停用。今后，请使用网页版应用访问您的账户。', goToWeb: '前往网页'},
     fileDownload: {
         success: {
             title: '已下载！',
@@ -7774,6 +7781,7 @@ ${reportName}
         stopGpsTrackingModal: {title: '停止 GPS 追踪', prompt: '你确定吗？这将结束你当前的旅程。', cancel: '恢复追踪', confirm: '停止 GPS 追踪'},
         discardDistanceTrackingModal: {title: '丢弃距离跟踪', prompt: '您确定吗？这将放弃您当前的流程，且无法撤销。', confirm: '丢弃距离跟踪'},
         zeroDistanceTripModal: {title: '无法创建报销', prompt: '你不能创建起点和终点相同的报销。'},
+
         locationRequiredModal: {title: '需要访问位置信息', prompt: '请在设备设置中允许位置访问以开始 GPS 距离跟踪。', allow: '允许'},
         androidBackgroundLocationRequiredModal: {title: '需要后台位置访问权限', prompt: '请在设备设置中允许应用使用“始终允许”位置访问权限，以开始 GPS 距离跟踪。'},
         preciseLocationRequiredModal: {title: '需要精确位置', prompt: '请在设备设置中启用“精确位置”以开始 GPS 距离跟踪。'},

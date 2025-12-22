@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -18,7 +19,7 @@ function Waypoints() {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
     const {translate} = useLocalize();
 
-    const icons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Location', 'DotIndicatorUnfilled']);
 
     if (!gpsDraftDetails?.startAddress?.value && !gpsDraftDetails?.endAddress?.value) {
         return null;
@@ -39,6 +40,7 @@ function Waypoints() {
                             title={gpsDraftDetails.startAddress.value}
                             icon={icons.DotIndicatorUnfilled}
                             style={styles.pv0}
+                            shouldIconUseAutoWidthStyle
                         />
                     </View>
                 </GPSTooltip>
@@ -51,15 +53,16 @@ function Waypoints() {
                     title={shouldShowLoadingEndAddress ? '...' : gpsDraftDetails.endAddress.value}
                     icon={icons.Location}
                     style={styles.pv0}
+                    shouldIconUseAutoWidthStyle
                 />
             ) : null}
         </View>
     );
 }
 
-Waypoints.displayName = 'Waypoints';
-
 export default Waypoints;
+
+const GPS_TOOLTIP_HORIZONTAL_PADDING = 40;
 
 function GPSTooltip({children}: React.PropsWithChildren) {
     const [hasUserClosedTooltip, setHasUserClosedTooltip] = useState(false);
@@ -68,20 +71,21 @@ function GPSTooltip({children}: React.PropsWithChildren) {
     const [firstCreatedGPSExpenseDate] = useOnyx(ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT, {canBeMissing: true});
 
     const styles = useThemeStyles();
+    const {windowWidth} = useWindowDimensions();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Close', 'Lightbulb']);
 
     const showEducationalTooltip = !hasUserClosedTooltip && !firstCreatedGPSExpenseDate && gpsDraftDetails?.isTracking;
 
     const renderTooltipContent = () => (
-        <View style={[styles.p3, styles.flexRow, styles.overflowHidden, styles.gap3, styles.alignItemsCenter]}>
+        <View style={[styles.ph1, styles.pv2, styles.flexRow, styles.overflowHidden, styles.gap3, styles.alignItemsCenter]}>
             <Icon
                 src={icons.Lightbulb}
                 fill={theme.tooltipHighlightText}
                 small
             />
-            <Text style={[styles.fontSizeLabel, styles.flexShrink1, styles.distanceLabelText, styles.fontWeightNormal]}>{translate('gps.tooltip')}</Text>
+            <Text style={[styles.fontSizeLabel, styles.flexShrink1, styles.productTrainingTooltipText, styles.fontWeightNormal]}>{translate('gps.tooltip')}</Text>
 
             <PressableWithoutFeedback
                 onPress={() => setHasUserClosedTooltip(true)}
@@ -99,6 +103,9 @@ function GPSTooltip({children}: React.PropsWithChildren) {
 
     return (
         <EducationalTooltip
+            wrapperStyle={styles.productTrainingTooltipWrapper}
+            shiftVertical={-12}
+            maxWidth={windowWidth - GPS_TOOLTIP_HORIZONTAL_PADDING}
             renderTooltipContent={renderTooltipContent}
             shouldRender={showEducationalTooltip}
         >

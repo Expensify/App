@@ -174,6 +174,7 @@ import type {
     SignUpNewFaceCodeParams,
     SizeExceededParams,
     SplitAmountParams,
+    SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
     SpreadCategoriesParams,
@@ -191,7 +192,6 @@ import type {
     SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
-    TagSelectionParams,
     TaskCreatedActionParams,
     TaxAmountParams,
     TermsParams,
@@ -596,7 +596,7 @@ const translations: TranslationDeepObject<typeof en> = {
         filterLogs: 'Filtrer les journaux',
         network: 'Réseau',
         reportID: 'ID du rapport',
-        longID: 'Identifiant long',
+        longReportID: 'ID de rapport long',
         withdrawalID: 'ID de retrait',
         bankAccounts: 'Comptes bancaires',
         chooseFile: 'Choisir un fichier',
@@ -693,6 +693,9 @@ const translations: TranslationDeepObject<typeof en> = {
         actionRequired: 'Action requise',
         duplicate: 'Dupliquer',
         duplicated: 'Dupliqué',
+        exchangeRate: 'Taux de change',
+        reimbursableTotal: 'Total remboursable',
+        nonReimbursableTotal: 'Total non remboursable',
         originalAmount: 'Montant d’origine',
     },
     supportalNoAccess: {
@@ -1135,6 +1138,7 @@ const translations: TranslationDeepObject<typeof en> = {
     },
     iou: {
         amount: 'Montant',
+        percent: 'Pourcentage',
         taxAmount: 'Montant de la taxe',
         taxRate: 'Taux de taxe',
         approve: ({
@@ -1149,6 +1153,7 @@ const translations: TranslationDeepObject<typeof en> = {
         split: 'Fractionner',
         splitExpense: 'Fractionner la dépense',
         splitExpenseSubtitle: ({amount, merchant}: SplitExpenseSubtitleParams) => `${amount} de ${merchant}`,
+        splitByPercentage: 'Répartir par pourcentage',
         addSplit: 'Ajouter une ventilation',
         makeSplitsEven: 'Rendre les répartitions égales',
         editSplits: 'Modifier les répartitions',
@@ -1348,12 +1353,6 @@ const translations: TranslationDeepObject<typeof en> = {
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) =>
             `dépense déplacée de l’espace personnel vers ${workspaceName ?? `discuter avec ${reportName}`}`,
         movedToPersonalSpace: 'dépense déplacée vers l’espace personnel',
-        tagSelection: ({policyTagListName}: TagSelectionParams = {}) => {
-            const article = policyTagListName && StringUtils.startsWithVowel(policyTagListName) ? 'un' : 'a';
-            const tag = policyTagListName ?? 'étiquette';
-            return `Sélectionnez ${article} ${tag} pour mieux organiser vos dépenses.`;
-        },
-        categorySelection: 'Sélectionnez une catégorie pour mieux organiser vos dépenses.',
         error: {
             invalidCategoryLength: 'Le nom de la catégorie dépasse 255 caractères. Veuillez le raccourcir ou choisir une autre catégorie.',
             invalidTagLength: 'Le nom de l’étiquette dépasse 255 caractères. Veuillez le raccourcir ou choisir une autre étiquette.',
@@ -1386,6 +1385,8 @@ const translations: TranslationDeepObject<typeof en> = {
             quantityGreaterThanZero: 'La quantité doit être supérieure à zéro',
             invalidSubrateLength: 'Il doit y avoir au moins un sous-taux',
             invalidRate: 'Taux non valide pour cet espace de travail. Veuillez sélectionner un taux disponible dans l’espace de travail.',
+            endDateBeforeStartDate: 'La date de fin ne peut pas être antérieure à la date de début',
+            endDateSameAsStartDate: 'La date de fin ne peut pas être identique à la date de début',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera entièrement votre reçu téléchargé. Êtes-vous sûr ?',
@@ -1531,6 +1532,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
         },
         chooseWorkspace: 'Choisir un espace de travail',
+        date: 'Date',
+        splitDates: 'Diviser les dates',
+        splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `Du ${startDate} au ${endDate} (${count} jours)`,
+        splitByDate: 'Scinder par date',
     },
     transactionMerge: {
         listPage: {
@@ -6832,6 +6837,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             title: 'Créer une exportation',
             description: 'Ouah, ça fait beaucoup d’éléments ! Nous allons les regrouper, et Concierge vous enverra bientôt un fichier.',
         },
+        exportedTo: 'Exported to',
         exportAll: {
             selectAllMatchingItems: 'Sélectionner tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
@@ -6845,6 +6851,11 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             helpTextConcierge: 'Si le problème persiste, contactez',
         },
         refresh: 'Rafraîchir',
+    },
+    desktopAppRetiredPage: {
+        title: 'L’application de bureau a été retirée',
+        body: 'La nouvelle application de bureau Expensify pour Mac a été retirée. À l’avenir, veuillez utiliser l’application web pour accéder à votre compte.',
+        goToWeb: 'Aller sur le web',
     },
     fileDownload: {
         success: {
@@ -8005,7 +8016,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
         zeroDistanceTripModal: {title: 'Impossible de créer la dépense', prompt: 'Vous ne pouvez pas créer une dépense avec le même lieu de départ et d’arrivée.'},
         locationRequiredModal: {
             title: 'Accès à la localisation requis',
-            prompt: 'Veuillez autoriser l’accès à la localisation dans les paramètres de votre appareil pour lancer le suivi de distance GPS.', //_/\__/_/  \_,_/\__/\__/\_,_/
+            prompt: 'Veuillez autoriser l’accès à la localisation dans les paramètres de votre appareil pour lancer le suivi de distance GPS.',
             allow: 'Autoriser',
         },
         androidBackgroundLocationRequiredModal: {

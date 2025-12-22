@@ -165,6 +165,4 @@ function GPSButtons({navigateToNextStep, setShouldShowStartError, setShouldShowP
     );
 }
 
-GPSButtons.displayName = 'GPSButtons';
-
 export default GPSButtons;

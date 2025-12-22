@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function Disclaimer() {
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS, {canBeMissing: true});
-    const icons = useMemoizedLazyExpensifyIcons(['Crosshair'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Crosshair']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -31,7 +31,5 @@ function Disclaimer() {
         </View>
     );
 }
-
-Disclaimer.displayName = 'Disclaimer';
 
 export default Disclaimer;
