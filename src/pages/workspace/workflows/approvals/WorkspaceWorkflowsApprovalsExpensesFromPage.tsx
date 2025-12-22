@@ -292,7 +292,6 @@ function WorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportDat
             return;
         }
 
-        // All selected members are existing members, proceed normally
         if (isInitialCreationFlow) {
             Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
         } else {
