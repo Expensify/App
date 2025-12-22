@@ -9,7 +9,7 @@ import type {ChangeTransactionsReportParams, DismissViolationParams, GetRoutePar
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CollectionUtils from '@libs/CollectionUtils';
 import DateUtils from '@libs/DateUtils';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64} from '@libs/NumberUtils';
@@ -420,7 +420,7 @@ function dismissDuplicateTransactionViolation(
             currentUserEmailParam: dismissedPersonalDetails.login ?? '',
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
-            formatPhoneNumber,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: expenseReport,
@@ -431,6 +431,7 @@ function dismissDuplicateTransactionViolation(
             currentUserEmailParam: dismissedPersonalDetails.login ?? '',
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
         });
 
         optimisticData.push({
@@ -1341,7 +1342,7 @@ function changeTransactionsReport(
             isASAPSubmitBetaEnabled,
             predictedNextStatus,
             shouldFixViolations: shouldFixViolationsForReport,
-            formatPhoneNumber,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
         });
         const optimisticNextStepForReport = buildOptimisticNextStep({
             report: updatedReport,
@@ -1352,6 +1353,7 @@ function changeTransactionsReport(
             isASAPSubmitBetaEnabled,
             predictedNextStatus,
             shouldFixViolations: shouldFixViolationsForReport,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
         });
 
         optimisticData.push({

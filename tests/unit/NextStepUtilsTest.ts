@@ -667,6 +667,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        formatPhoneNumber,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -923,6 +924,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        formatPhoneNumber,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);
@@ -1016,6 +1018,7 @@ describe('libs/NextStepUtils', () => {
                         shouldFixViolations: false,
                         isUnapprove: false,
                         isReopen: false,
+                        formatPhoneNumber,
                     });
 
                     expect(result).toMatchObject(optimisticNextStep);

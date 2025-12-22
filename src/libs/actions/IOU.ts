@@ -2219,6 +2219,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             currentUserEmailParam,
             hasViolations,
             isASAPSubmitBetaEnabled,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
         });
         optimisticData.push(violationsOnyxData, {
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
@@ -3775,6 +3776,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
 
     // STEP 5: Build Onyx Data
@@ -4091,6 +4093,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         hasViolations,
         isASAPSubmitBetaEnabled,
         policy,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
 
     // STEP 5: Build Onyx Data
@@ -4952,6 +4955,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
                 currentUserEmailParam,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                formatPhoneNumber: formatPhoneNumberPhoneUtils,
                 policy,
             });
             optimisticData.push({
@@ -10456,7 +10460,7 @@ function getPayMoneyRequestParams({
         // buildOptimisticNextStep is used in parallel
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         optimisticNextStepDeprecated = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, formatPhoneNumber: formatPhoneNumberPhoneUtils});
-        optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
+        optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, formatPhoneNumber: formatPhoneNumberPhoneUtils});
     }
 
     const optimisticChatReport = {
@@ -10977,6 +10981,7 @@ function approveMoneyRequest(
         hasViolations,
         isASAPSubmitBetaEnabled,
         predictedNextStatus,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
@@ -11193,7 +11198,6 @@ function reopenReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
         isReopen: true,
-        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const optimisticNextStep = buildOptimisticNextStep({
         report: expenseReport,
@@ -11204,6 +11208,7 @@ function reopenReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
         isReopen: true,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -11364,6 +11369,7 @@ function retractReport(
         currentUserEmailParam,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -11983,6 +11989,7 @@ function cancelPayment(
                     buildOptimisticNextStep({
                         report: expenseReport,
                         predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                        formatPhoneNumber: formatPhoneNumberPhoneUtils,
                     }) ?? null,
                 pendingFields: {
                     nextStep: null,
@@ -15360,6 +15367,7 @@ function addReportApprover(
         hasViolations,
         isASAPSubmitBetaEnabled,
         bypassNextApproverID: newApproverAccountID,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
     });
     const onyxData: OnyxData = {
         optimisticData: [
