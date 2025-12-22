@@ -29,6 +29,7 @@ import {
     canRejectReportAction,
     doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
+    hasExportError as hasExportErrorUtils,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
@@ -245,7 +246,9 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, policy));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) =>
+        isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
+    );
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -702,7 +705,11 @@ function getSecondaryReportActions({
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    if (isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID)) {
+    const isExported = isExportedUtils(reportActions);
+    const hasExportError = hasExportErrorUtils(reportActions, report);
+    const didExportFail = !isExported && hasExportError;
+
+    if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions, true) && (hasOnlyHeldExpenses(report?.reportID) || didExportFail)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
