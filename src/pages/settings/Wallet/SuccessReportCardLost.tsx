@@ -11,7 +11,7 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['CardReplacementSuccess'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['CardReplacementSuccess']);
 
     return (
         <ConfirmationPage
@@ -20,7 +20,7 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
             illustration={illustrations.CardReplacementSuccess}
             shouldShowButton
             onButtonPress={() => {
-                Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
+                Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID), {forceReplace: true});
             }}
             buttonText={translate('common.buttonConfirm')}
             containerStyle={styles.h100}
@@ -31,5 +31,4 @@ function SuccessReportCardLost({cardID}: {cardID: string}) {
     );
 }
 
-SuccessReportCardLost.displayName = 'SuccessReportCardLost';
 export default SuccessReportCardLost;

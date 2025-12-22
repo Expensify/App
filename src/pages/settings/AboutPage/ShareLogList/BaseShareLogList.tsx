@@ -2,6 +2,7 @@ import React, {useEffect, useMemo} from 'react';
 import type {SectionListData} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {Section} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
@@ -18,6 +19,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
+import KeyboardUtils from '@src/utils/keyboard';
 import type {BaseShareLogListProps} from './types';
 
 type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
@@ -80,7 +82,9 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         }
         const filename = appendTimeToFileName('logs.txt');
 
-        onAttachLogToReport(option.reportID, filename);
+        KeyboardUtils.dismiss().then(() => {
+            onAttachLogToReport(option.reportID, filename);
+        });
     };
 
     useEffect(() => {
@@ -89,7 +93,7 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
 
     return (
         <ScreenWrapper
-            testID={BaseShareLogList.displayName}
+            testID="BaseShareLogList"
             includeSafeAreaPaddingBottom={false}
         >
             {({didScreenTransitionEnd}) => (
@@ -116,7 +120,5 @@ function BaseShareLogList({onAttachLogToReport}: BaseShareLogListProps) {
         </ScreenWrapper>
     );
 }
-
-BaseShareLogList.displayName = 'ShareLogPage';
 
 export default BaseShareLogList;

@@ -107,6 +107,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                 // disable dimming
                 pressDimmingValue={1}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                sentryLabel={CONST.SENTRY_LABEL.EMOJI_REACTIONS.ADD_REACTION_BUBBLE}
             >
                 {({hovered, pressed}) => (
                     <>
@@ -128,7 +129,5 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
         </Tooltip>
     );
 }
-
-AddReactionBubble.displayName = 'AddReactionBubble';
 
 export default AddReactionBubble;

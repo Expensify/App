@@ -37,7 +37,7 @@ function EmailDeliveryFailurePage() {
                 <View style={[styles.flex1]}>
                     <Text>{translate('emailDeliveryFailurePage.ourEmailProvider', {login})}</Text>
                     <View style={[styles.mt5, styles.renderHTML]}>
-                        <RenderHTML html={translate('emailDeliveryFailurePage.confirmThat', {login})} />
+                        <RenderHTML html={translate('emailDeliveryFailurePage.confirmThat', login)} />
                     </View>
                     <View style={[styles.mt5, styles.renderHTML]}>
                         <RenderHTML html={translate('emailDeliveryFailurePage.ensureYourEmailClient')} />
@@ -62,7 +62,5 @@ function EmailDeliveryFailurePage() {
         </>
     );
 }
-
-EmailDeliveryFailurePage.displayName = 'EmailDeliveryFailurePage';
 
 export default EmailDeliveryFailurePage;
