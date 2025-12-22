@@ -139,6 +139,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -1482,6 +1483,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: '拆分日期',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} 至 ${endDate}（${count} 天）`,
         splitByDate: '按日期拆分',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `报告因自定义审批工作流而转发至 ${to}`,
     },
     transactionMerge: {
         listPage: {
