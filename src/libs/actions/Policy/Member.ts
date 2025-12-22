@@ -182,10 +182,7 @@ function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersL
                     importFinalModal: {
                         titleKey: 'spreadsheet.importSuccessfulTitle',
                         promptKey: 'spreadsheet.importMembersSuccessfulDescription',
-                        promptKeyParams: {
-                            added: addedMembersLength,
-                            updated: updatedMembersLength,
-                        },
+                        promptKeyParams: [addedMembersLength, updatedMembersLength],
                     },
                 },
             },
