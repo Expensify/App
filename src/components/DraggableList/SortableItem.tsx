@@ -3,8 +3,8 @@ import {CSS} from '@dnd-kit/utilities';
 import React from 'react';
 import type {SortableItemProps} from './types';
 
-function SortableItem({id, children}: SortableItemProps) {
-    const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id});
+function SortableItem({id, children, disabled = false}: SortableItemProps) {
+    const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id, disabled});
 
     const style = {
         touchAction: 'none',
@@ -19,7 +19,7 @@ function SortableItem({id, children}: SortableItemProps) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...attributes}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...listeners}
+            {...(disabled ? {} : listeners)}
         >
             {children}
         </div>

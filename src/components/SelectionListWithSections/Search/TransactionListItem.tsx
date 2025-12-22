@@ -43,7 +43,6 @@ function TransactionListItem<TItem extends ListItem>({
     shouldSyncFocus,
     columns,
     isLoading,
-    areAllOptionalColumnsHidden,
     violations,
     onDEWModalOpen,
 }: TransactionListItemProps<TItem>) {
@@ -97,7 +96,7 @@ function TransactionListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const {amountColumnSize, dateColumnSize, taxAmountColumnSize, submittedColumnSize, approvedColumnSize, postedColumnSize} = useMemo(() => {
+    const {amountColumnSize, dateColumnSize, taxAmountColumnSize, submittedColumnSize, approvedColumnSize, postedColumnSize, exportedColumnSize} = useMemo(() => {
         return {
             amountColumnSize: transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             taxAmountColumnSize: transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
@@ -105,6 +104,7 @@ function TransactionListItem<TItem extends ListItem>({
             submittedColumnSize: transactionItem.shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             approvedColumnSize: transactionItem.shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             postedColumnSize: transactionItem.shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            exportedColumnSize: transactionItem.shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
     }, [
         transactionItem.isAmountColumnWide,
@@ -113,6 +113,7 @@ function TransactionListItem<TItem extends ListItem>({
         transactionItem.shouldShowYearSubmitted,
         transactionItem.shouldShowYearApproved,
         transactionItem.shouldShowYearPosted,
+        transactionItem.shouldShowYearExported,
     ]);
 
     const transactionViolations = useMemo(() => {
@@ -196,11 +197,11 @@ function TransactionListItem<TItem extends ListItem>({
                     submittedColumnSize={submittedColumnSize}
                     approvedColumnSize={approvedColumnSize}
                     postedColumnSize={postedColumnSize}
+                    exportedColumnSize={exportedColumnSize}
                     amountColumnSize={amountColumnSize}
                     taxAmountColumnSize={taxAmountColumnSize}
                     shouldShowCheckbox={!!canSelectMultiple}
                     style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
-                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     violations={transactionViolations}
                     onArrowRightPress={onPress}
                 />
