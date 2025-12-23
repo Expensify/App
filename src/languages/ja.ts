@@ -4831,7 +4831,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 'Expensify Limited は、Plaid Financial Ltd. の代理人であり、Payment Services Regulations 2017 に基づき Financial Conduct Authority によって規制されている認可支払機関です（企業登録番号：804718）。Plaid は、その代理人である Expensify Limited を通じて、規制対象の口座情報サービスをお客様に提供します。',
             assign: '割り当て',
             assignCardFailedError: 'カードの割り当てに失敗しました。',
-            cardAlreadyAssignedError: 'このカードは他のワークスペースのユーザーにすでに割り当てられています。',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードの発行と管理',

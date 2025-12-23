@@ -4875,7 +4875,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 'Expensify Limited ist als Vertreter von Plaid Financial Ltd. tätig, einem zugelassenen Zahlungsinstitut, das von der Financial Conduct Authority gemäß den Payment Services Regulations 2017 reguliert wird (Firm Reference Number: 804718). Plaid stellt Ihnen über Expensify Limited als dessen Vertreter regulierte Kontoinformationsdienste zur Verfügung.',
             assign: 'Zuweisen',
             assignCardFailedError: 'Kartenzuweisung fehlgeschlagen.',
-            cardAlreadyAssignedError: 'Diese Karte ist bereits einem Benutzer in einem anderen Arbeitsbereich zugewiesen.',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify Cards ausstellen und verwalten',
