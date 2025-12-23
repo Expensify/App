@@ -100,6 +100,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 };
 
 type TransactionItemRowProps = {
+    hash?: number;
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
     shouldUseNarrowLayout: boolean;
@@ -145,6 +146,7 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
 }
 
 function TransactionItemRow({
+    hash,
     transactionItem,
     report,
     shouldUseNarrowLayout,
@@ -538,7 +540,10 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
-                    <ExportedIconCell reportID={transactionItem.reportID} />
+                    <ExportedIconCell
+                        hash={hash}
+                        reportID={transactionItem.reportID}
+                    />
                 </View>
             ),
         }),

@@ -159,6 +159,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             {(hovered) => (
                 <View style={[styles.flex1]}>
                     <ExpenseReportListItemRow
+                        hash={currentSearchHash}
                         item={reportItem}
                         columns={columns}
                         policy={snapshotPolicy}

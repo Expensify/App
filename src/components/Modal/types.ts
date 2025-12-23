@@ -119,6 +119,11 @@ type BaseModalProps = Partial<ReanimatedModalProps> &
          * Reference to the outer element.
          */
         ref?: ForwardedRef<View>;
+
+        /**
+         * Whether the modal should display under the side panel.
+         */
+        shouldDisplayBelowModals?: boolean;
     };
 
 export default BaseModalProps;

@@ -198,12 +198,6 @@ Onyx.connect({
     },
 });
 
-let loginList: OnyxEntry<Login>;
-Onyx.connect({
-    key: ONYXKEYS.LOGIN_LIST,
-    callback: (value) => (loginList = isEmptyObject(value) ? {} : value),
-});
-
 let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -1074,7 +1068,7 @@ function getPolicyExpenseReportOption(participant: Participant | SearchOptionDat
  * Note: We can't migrate this off of using logins because this is used to check if you're trying to start a chat with
  * yourself or a different user, and people won't be starting new chats via accountID usually.
  */
-function isCurrentUser(userDetails: PersonalDetails): boolean {
+function isCurrentUser(userDetails: PersonalDetails, loginList: OnyxEntry<Login>): boolean {
     if (!userDetails) {
         return false;
     }
@@ -1643,13 +1637,14 @@ function getUserToInviteOption({
     showChatPreviewLine = false,
     shouldAcceptName = false,
     countryCode = CONST.DEFAULT_COUNTRY_CODE,
+    loginList = {},
 }: GetUserToInviteConfig): SearchOptionData | null {
     if (!searchValue) {
         return null;
     }
 
     const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchValue), countryCode));
-    const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails);
+    const isCurrentUserLogin = isCurrentUser({login: searchValue} as PersonalDetails, loginList);
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === searchValue);
     const isValidEmail = Str.isValidEmail(searchValue) && !Str.isDomainEmail(searchValue) && !Str.endsWith(searchValue, CONST.SMS.DOMAIN);
     const isValidPhoneNumber = parsedPhoneNumber.possible && Str.isValidE164Phone(getPhoneNumberWithoutSpecialChars(parsedPhoneNumber.number?.input ?? ''));
@@ -1701,6 +1696,7 @@ function getUserToInviteContactOption({
     phone = '',
     avatar = '',
     countryCode = CONST.DEFAULT_COUNTRY_CODE,
+    loginList = {},
 }: GetUserToInviteConfig): SearchOption<PersonalDetails> | null {
     // If email is provided, use it as the primary identifier
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -1721,7 +1717,7 @@ function getUserToInviteContactOption({
     const login = email ? effectiveSearchValue : (sanitizedPhoneLogin ?? searchValue);
     const normalizedLoginToExclude = addSMSDomainIfPhoneNumber(login).toLowerCase();
 
-    const isCurrentUserLogin = isCurrentUser({login} as PersonalDetails);
+    const isCurrentUserLogin = isCurrentUser({login} as PersonalDetails, loginList);
     const isInSelectedOption = selectedOptions.some((option) => 'login' in option && option.login === login);
 
     const isInOptionToExclude = optionsToExclude.findIndex((optionToExclude) => 'login' in optionToExclude && optionToExclude.login === normalizedLoginToExclude) !== -1;
@@ -2077,6 +2073,7 @@ function getValidOptions(
     options: OptionList,
     draftComments: OnyxCollection<string> | undefined,
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
+    loginList: OnyxEntry<Login>,
     {
         excludeLogins = {},
         includeSelectedOptions = false,
@@ -2273,6 +2270,7 @@ function getValidOptions(
         userToInvite = filterUserToInvite(
             {currentUserOption: currentUserRef.current, recentReports: recentReportOptions, personalDetails: personalDetailsOptions},
             searchString ?? '',
+            loginList,
             countryCode,
             {
                 excludeLogins: loginsToExclude,
@@ -2305,6 +2303,7 @@ type SearchOptionsConfig = {
     countryCode?: number;
     shouldShowGBR?: boolean;
     shouldUnreadBeBold?: boolean;
+    loginList: OnyxEntry<Login>;
 };
 
 /**
@@ -2325,6 +2324,7 @@ function getSearchOptions({
     countryCode = CONST.DEFAULT_COUNTRY_CODE,
     shouldShowGBR = false,
     shouldUnreadBeBold = false,
+    loginList,
 }: SearchOptionsConfig): Options {
     Timing.start(CONST.TIMING.LOAD_SEARCH_OPTIONS);
     Performance.markStart(CONST.TIMING.LOAD_SEARCH_OPTIONS);
@@ -2333,6 +2333,7 @@ function getSearchOptions({
         options,
         draftComments,
         nvpDismissedProductTraining,
+        loginList,
         {
             betas,
             includeRecentReports,
@@ -2447,6 +2448,7 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
 function getMemberInviteOptions(
     personalDetails: Array<SearchOption<PersonalDetails>>,
     nvpDismissedProductTraining: OnyxEntry<DismissedProductTraining>,
+    loginList: OnyxEntry<Login>,
     betas: Beta[] = [],
     excludeLogins: Record<string, boolean> = {},
     includeSelectedOptions = false,
@@ -2456,6 +2458,7 @@ function getMemberInviteOptions(
         {personalDetails, reports: []},
         undefined,
         nvpDismissedProductTraining,
+        loginList,
         {
             betas,
             includeP2P: true,
@@ -2694,6 +2697,7 @@ function filterCurrentUserOption(currentUserOption: SearchOptionData | null | un
 function filterUserToInvite(
     options: Omit<Options, 'userToInvite'>,
     searchValue: string,
+    loginList: OnyxEntry<Login>,
     countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
     config?: FilterUserToInviteConfig,
 ): SearchOptionData | null {
@@ -2721,6 +2725,7 @@ function filterUserToInvite(
         searchValue,
         loginsToExclude,
         countryCode,
+        loginList,
         ...config,
     });
 }
@@ -2755,7 +2760,7 @@ function filterSelfDMChat(report: SearchOptionData, searchTerms: string[]): Sear
     return isMatch ? report : undefined;
 }
 
-function filterOptions(options: Options, searchInputValue: string, countryCode: number, config?: FilterUserToInviteConfig): Options {
+function filterOptions(options: Options, searchInputValue: string, countryCode: number, loginList: OnyxEntry<Login>, config?: FilterUserToInviteConfig): Options {
     const trimmedSearchInput = searchInputValue.trim();
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -2773,6 +2778,7 @@ function filterOptions(options: Options, searchInputValue: string, countryCode: 
             currentUserOption,
         },
         searchValue,
+        loginList,
         countryCode,
         config,
     );
@@ -2828,10 +2834,10 @@ function combineOrderingOfReportsAndPersonalDetails(
  * Filters and orders the options based on the search input value.
  * Note that personal details that are part of the recent reports will always be shown as part of the recent reports (ie. DMs).
  */
-function filterAndOrderOptions(options: Options, searchInputValue: string, countryCode: number, config: FilterAndOrderConfig = {}): Options {
+function filterAndOrderOptions(options: Options, searchInputValue: string, countryCode: number, loginList: OnyxEntry<Login>, config: FilterAndOrderConfig = {}): Options {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {
-        filterResult = filterOptions(options, searchInputValue, countryCode, config);
+        filterResult = filterOptions(options, searchInputValue, countryCode, loginList, config);
     }
 
     const orderedOptions = combineOrderingOfReportsAndPersonalDetails(filterResult, searchInputValue, config);

@@ -35,7 +35,7 @@ function VacationDelegatePage() {
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const currentVacationDelegate = vacationDelegate?.delegate;
     const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const excludeLogins = useMemo(
         () => ({
@@ -45,7 +45,7 @@ function VacationDelegatePage() {
         [currentVacationDelegate],
     );
 
-    const {searchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
@@ -60,11 +60,11 @@ function VacationDelegatePage() {
         return getHeaderMessage(
             (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
             !!availableOptions.userToInvite,
-            searchTerm.trim(),
+            debouncedSearchTerm.trim(),
             countryCode,
             false,
         );
-    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, searchTerm, countryCode]);
+    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, debouncedSearchTerm, countryCode]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -161,8 +161,8 @@ function VacationDelegatePage() {
     );
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     return (
         <>

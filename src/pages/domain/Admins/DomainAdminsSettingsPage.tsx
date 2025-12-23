@@ -26,8 +26,8 @@ type DomainAdminsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorP
 function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
     const {domainAccountID} = route.params;
 
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
         canBeMissing: true,
@@ -56,6 +56,7 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                     }}
                 />
                 <OfflineWithFeedback
+                    errorRowStyles={[styles.ph5]}
                     pendingAction={domainPendingActions?.technicalContactEmail}
                     errors={getLatestError(domainErrors?.technicalContactEmailErrors)}
                     onClose={() => clearSetPrimaryContactError(domainAccountID)}
