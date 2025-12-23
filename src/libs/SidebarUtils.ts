@@ -761,7 +761,13 @@ function getOptionData({
     }
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, localeCompare, formatPhoneNumberPhoneUtils, isSelfDM(report));
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
+        (participantPersonalDetailList || []).slice(0, 10),
+        hasMultipleParticipants,
+        localeCompare,
+        formatPhoneNumberPhoneUtils,
+        isSelfDM(report),
+    );
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
