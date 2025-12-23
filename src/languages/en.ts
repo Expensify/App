@@ -7864,7 +7864,6 @@ const translations = {
         members: {
             title: 'Members',
             findMember: 'Find member',
-            closeAccount:'Close account',
         },
     },
 };
