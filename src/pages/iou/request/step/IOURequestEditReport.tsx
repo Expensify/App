@@ -44,6 +44,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const session = useSession();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionIDs);
 
