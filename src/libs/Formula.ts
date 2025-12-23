@@ -199,40 +199,6 @@ function parsePart(definition: string): FormulaPart {
 }
 
 /**
- * Check if a formula requires backend computation (e.g., currency conversion with exchange rates)
- * This is used by OptimisticReportNames to skip optimistic updates when online and backend is needed
- */
-function requiresBackendComputation(parts: FormulaPart[], context?: FormulaContext): boolean {
-    if (!context) {
-        return false;
-    }
-
-    const {report} = context;
-
-    for (const part of parts) {
-        if (part.type === FORMULA_PART_TYPES.REPORT) {
-            const [field, ...additionalPath] = part.fieldPath;
-            // Reconstruct format string by joining additional path elements with ':'
-            // This handles format strings with colons like 'HH:mm:ss'
-            const format = additionalPath.length > 0 ? additionalPath.join(':') : undefined;
-            const fieldName = field?.toLowerCase();
-
-            if (fieldName === 'total' || fieldName === 'reimbursable') {
-                // Use formatAmount to check whether a currency conversion is needed.
-                // A null return means the backend must handle the conversion.
-                // We rely on report.total because zero values can be computed optimistically.
-                const result = formatAmount(report.total, report.currency, format);
-                if (result === null) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    return false;
-}
-
-/**
  * Check if the report field formula value is containing circular references, e.g example:  A -> A,  A->B->A,  A->B->C->A, etc
  */
 function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?: FieldList): boolean {
@@ -292,61 +258,6 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
     };
 
     return hasCircularReferencesRecursive(fieldValue, fieldName);
-}
-
-/**
- * Check if a formula part is a submission info part (report:submit:*)
- */
-function isSubmissionInfoPart(part: FormulaPart): boolean {
-    return part.type === FORMULA_PART_TYPES.REPORT && part.fieldPath.at(0)?.toLowerCase() === 'submit';
-}
-
-/**
- * Compute the value of a formula given a context
- */
-function compute(formula?: string, context?: FormulaContext): string {
-    if (!formula || typeof formula !== 'string') {
-        return '';
-    }
-    if (!context) {
-        return '';
-    }
-
-    const parts = parse(formula);
-    let result = '';
-
-    for (const part of parts) {
-        let value = '';
-
-        switch (part.type) {
-            case FORMULA_PART_TYPES.REPORT:
-                value = computeReportPart(part, context);
-                // Apply fallback to formula definition for empty values, except for submission info
-                // Submission info explicitly returns empty strings when data is missing (matches backend)
-                if (value === '' && !isSubmissionInfoPart(part)) {
-                    value = part.definition;
-                }
-                break;
-            case FORMULA_PART_TYPES.FIELD:
-                value = computeFieldPart(part);
-                break;
-            case FORMULA_PART_TYPES.USER:
-                value = computeUserPart(part);
-                break;
-            case FORMULA_PART_TYPES.FREETEXT:
-                value = part.definition;
-                break;
-            default:
-                // If we don't recognize the part type, use the original definition
-                value = part.definition;
-        }
-
-        // Apply any functions to the computed value
-        value = applyFunctions(value, part.functions);
-        result += value;
-    }
-
-    return result;
 }
 
 /**
@@ -942,6 +853,6 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
     }
 }
 
-export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse, hasCircularReferences, requiresBackendComputation};
+export {FORMULA_PART_TYPES, parse, hasCircularReferences};
 
-export type {FormulaContext, FormulaPart, FieldList};
+export type {FieldList};
