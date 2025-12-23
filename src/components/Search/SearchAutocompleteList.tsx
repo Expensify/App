@@ -451,7 +451,12 @@ function SearchAutocompleteList({
                     includeCurrentUser: false,
                     countryCode,
                     shouldShowGBR: true,
-                }).recentReports.filter((chat) => !alreadyAutocompletedKeys.has((chat.text ?? '').toLowerCase()));
+                }).recentReports.filter((chat) => {
+                    if (!chat.text) {
+                        return false;
+                    }
+                    return !alreadyAutocompletedKeys.has(chat.text.toLowerCase());
+                });
 
                 return filteredReports.map((chat) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
