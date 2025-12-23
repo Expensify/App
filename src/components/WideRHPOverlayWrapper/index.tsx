@@ -1,5 +1,6 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import type {RouteProp} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect} from 'react';
 import {
     animatedReceiptPaneRHPWidth,
     modalStackOverlaySuperWideRHPPositionLeft,
@@ -12,13 +13,19 @@ import {
 } from '@components/WideRHPContextProvider';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import {navigationRef} from '@libs/Navigation/Navigation';
+import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
+import type SCREENS from '@src/SCREENS';
 
-function SecondaryOverlay() {
+type WideRHPRoute = RouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
+
+type OverlayProps = {
+    route: WideRHPRoute;
+};
+
+function SecondaryOverlay({route}: OverlayProps) {
     const {shouldRenderSecondaryOverlayForRHPOnSuperWideRHP, shouldRenderSecondaryOverlayForRHPOnWideRHP, shouldRenderSecondaryOverlayForWideRHP, superWideRHPRouteKeys, wideRHPRouteKeys} =
         useContext(WideRHPContext);
-
-    const route = useRoute();
 
     const isWide = !!route?.key && wideRHPRouteKeys.includes(route.key);
     const isSuperWide = !!route?.key && superWideRHPRouteKeys.includes(route.key);
@@ -70,9 +77,8 @@ function SecondaryOverlay() {
     return null;
 }
 
-function TertiaryOverlay() {
+function TertiaryOverlay({route}: OverlayProps) {
     const {shouldRenderTertiaryOverlay, wideRHPRouteKeys} = useContext(WideRHPContext);
-    const route = useRoute();
 
     const isWide = route?.key && wideRHPRouteKeys.includes(route.key);
 
@@ -92,43 +98,47 @@ function TertiaryOverlay() {
 
 type WideRHPOverlayWrapperProps = {
     children: React.ReactNode;
-    shouldWrap?: boolean;
+    wrappedRoute?: WideRHPRoute;
 };
 
 // This overlay is used to cover the space under the narrower RHP screen when more than one RHP width is displayed on the screen.
-export default function WideRHPOverlayWrapper({children, shouldWrap = true}: WideRHPOverlayWrapperProps) {
+export default function WideRHPOverlayWrapper({children, wrappedRoute = undefined}: WideRHPOverlayWrapperProps) {
     const {syncRHPKeys} = useContext(WideRHPContext);
 
     // This hook handles the case when a wider RHP is displayed above a narrower one.
     // In this situation, we need to synchronize the keys, as superWideRHPKeys and wideRHPKeys store the keys of the screens that are visible.
-    useFocusEffect(
-        useCallback(
-            () => () => {
-                if (!shouldWrap) {
-                    return;
-                }
+    const syncRHPKeysOnBlur = useCallback(() => {
+        if (!wrappedRoute?.key) {
+            return;
+        }
 
-                // Synchronization after RHP unmount is handled in RightModalNavigator.tsx.
-                const isRHPOpened = navigationRef?.getRootState()?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-                if (!isRHPOpened) {
-                    return;
-                }
+        const lastRoute = navigationRef?.getRootState()?.routes?.at(-1);
 
-                syncRHPKeys();
-            },
-            [shouldWrap, syncRHPKeys],
-        ),
-    );
+        if (lastRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+            return;
+        }
 
-    if (!shouldWrap) {
+        // If the wrapped route has been removed from the state, sync will be performed on unmount
+        if (!lastRoute?.state?.routes.some((rhpRoute) => rhpRoute.key === wrappedRoute.key)) {
+            return;
+        }
+
+        syncRHPKeys();
+    }, [syncRHPKeys, wrappedRoute?.key]);
+
+    useFocusEffect(useCallback(() => () => syncRHPKeysOnBlur(), [syncRHPKeysOnBlur]));
+
+    useEffect(() => () => syncRHPKeys(), [syncRHPKeys]);
+
+    if (!wrappedRoute) {
         return children;
     }
 
     return (
         <>
             {children}
-            <SecondaryOverlay />
-            <TertiaryOverlay />
+            <SecondaryOverlay route={wrappedRoute} />
+            <TertiaryOverlay route={wrappedRoute} />
         </>
     );
 }

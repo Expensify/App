@@ -343,6 +343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'Vorname',
         lastName: 'Nachname',
         scanning: 'Scannen',
+        analyzing: 'Analysiere…',
         addCardTermsOfService: 'Expensify-Nutzungsbedingungen',
         perPerson: 'pro Person',
         phone: 'Telefon',

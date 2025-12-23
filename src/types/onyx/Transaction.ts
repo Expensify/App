@@ -117,6 +117,9 @@ type Comment = {
     /** Defines the type of liability for the transaction */
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
 
+    /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
+    pendingAutoCategorizationTime?: string;
+
     /** Odometer start reading for distance expenses */
     odometerStart?: number | null;
 

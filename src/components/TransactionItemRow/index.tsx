@@ -129,6 +129,7 @@ type TransactionItemRowProps = {
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: () => void;
+    isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
 };
 
@@ -175,6 +176,7 @@ function TransactionItemRow({
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
+    isHover = false,
     shouldShowArrowRightOnNarrowLayout,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
@@ -747,16 +749,12 @@ function TransactionItemRow({
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
                         >
-                            {({hovered}) => {
-                                return (
-                                    <Icon
-                                        src={expensicons.ArrowRight}
-                                        fill={theme.icon}
-                                        additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                        small
-                                    />
-                                );
-                            }}
+                            <Icon
+                                src={expensicons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={!isHover && styles.opacitySemiTransparent}
+                                small
+                            />
                         </PressableWithFeedback>
                     )}
                 </View>
