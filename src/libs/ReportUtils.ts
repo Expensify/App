@@ -5160,7 +5160,7 @@ function getReportPreviewMessage(
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
     if (isCopyAction) {
-        return computeReportName(report as Report) || (originalReportAction?.childReportName ?? '');
+        return computeReportName(report!) || (originalReportAction?.childReportName ?? '');
     }
 
     if (isEmptyObject(report) || !report?.reportID) {
