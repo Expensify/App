@@ -1,7 +1,7 @@
-// eslint-disable-next-line no-restricted-syntax @typescript-eslint/consistent-type-imports -- disabled because we need CurrencyUtils to mock
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import {hasCircularReferences, parse} from '@libs/Formula';
-// eslint-disable-next-line no-restricted-syntax @typescript-eslint/consistent-type-imports -- disabled because we need ReportUtils to mock
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 import * as ReportUtils from '@libs/ReportUtils';
 
 jest.mock('@libs/ReportActionsUtils', () => ({
