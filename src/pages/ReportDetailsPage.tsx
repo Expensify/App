@@ -1,3 +1,4 @@
+import {StackActions} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -41,9 +42,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportDetailsNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
@@ -123,7 +124,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -906,6 +907,31 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
         // Only proceed with navigation logic if transaction was actually deleted
         if (!isEmptyObject(requestParentReportAction)) {
+            const rootState = navigationRef.getRootState();
+            const rhp = rootState.routes.at(-1);
+            const previousRoute = rhp?.state?.routes?.at(-2);
+            const secondToLast = rhp?.state?.routes?.at(-3);
+
+            if (
+                (previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || previousRoute?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) &&
+                (previousRoute.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT])?.reportID === route.params.reportID
+            ) {
+                Navigation.dismissModal();
+                return;
+            }
+
+            if (
+                previousRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT &&
+                (previousRoute.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT])?.reportID === route.params.reportID
+            ) {
+                if (secondToLast?.name === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || secondToLast?.name === SCREENS.RIGHT_MODAL.EXPENSE_REPORT) {
+                    navigationRef.dispatch({...StackActions.pop(2), target: rhp?.state?.key});
+                    return;
+                }
+                Navigation.dismissModal();
+                return;
+            }
+
             const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
             if (isTrackExpense) {
                 urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
@@ -936,7 +962,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
         }
-    }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, moneyRequestReport, isChatIOUReportArchived, iouReport, chatIOUReport]);
+    }, [requestParentReportAction, route.params.reportID, moneyRequestReport, iouTransactionID, iouReport, chatIOUReport, isChatIOUReportArchived, isSingleTransactionView]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
     const isTransactionDeleted = useRef<boolean>(false);
