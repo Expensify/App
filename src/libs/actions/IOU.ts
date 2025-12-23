@@ -10459,6 +10459,12 @@ function getReportFromHoldRequestsOnyxData(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: bringReportActionsBack,
         },
+        // remove hold report actions from the new iou report
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
+            value: null,
+        },
         // add hold transactions back to old iou report
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
