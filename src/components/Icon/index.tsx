@@ -188,3 +188,4 @@ function Icon({
 }
 
 export default Icon;
+export type {IconProps};
