@@ -1,6 +1,6 @@
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx/index';
-import SecurityGroup from '@src/types/onyx/SecurityGroup';
+import type SecurityGroup from '@src/types/onyx/SecurityGroup';
 import type * as OnyxCommon from './OnyxCommon';
 
 /**
