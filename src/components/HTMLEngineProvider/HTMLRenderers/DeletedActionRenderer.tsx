@@ -3,10 +3,8 @@ import {View} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -15,8 +13,6 @@ import CONST from '@src/CONST';
 function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight'] as const);
-
     const htmlAttribs = tnode.attributes;
 
     const reversedTransactionValue = htmlAttribs[CONST.REVERSED_TRANSACTION_ATTRIBUTE];
@@ -24,7 +20,7 @@ function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) 
 
     const getIcon = () => {
         if (reversedTransactionValue === 'true') {
-            return expensifyIcons.ArrowsLeftRight;
+            return Expensicons.ArrowsLeftRight;
         }
         if (hiddenMessageValue === 'true') {
             return Expensicons.EyeDisabled;
@@ -62,7 +58,5 @@ function DeletedActionRenderer({tnode}: CustomRendererProps<TText | TPhrasing>) 
         </View>
     );
 }
-
-DeletedActionRenderer.displayName = 'DeletedActionRenderer';
 
 export default DeletedActionRenderer;

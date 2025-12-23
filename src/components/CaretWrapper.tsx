@@ -10,9 +10,11 @@ import Icon from './Icon';
 
 type CaretWrapperProps = ChildrenProps & {
     style?: StyleProp<ViewStyle>;
+    caretWidth?: number;
+    caretHeight?: number;
 };
 
-function CaretWrapper({children, style}: CaretWrapperProps) {
+function CaretWrapper({children, style, caretWidth, caretHeight}: CaretWrapperProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow'] as const);
@@ -23,8 +25,8 @@ function CaretWrapper({children, style}: CaretWrapperProps) {
             <Icon
                 src={expensifyIcons.DownArrow}
                 fill={theme.icon}
-                width={variables.iconSizeExtraSmall}
-                height={variables.iconSizeExtraSmall}
+                width={caretWidth ?? variables.iconSizeExtraSmall}
+                height={caretHeight ?? variables.iconSizeExtraSmall}
             />
         </View>
     );

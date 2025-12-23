@@ -1,14 +1,10 @@
-import React from 'react';
-import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
+import React, {useMemo} from 'react';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
@@ -44,28 +40,29 @@ type DomainItem = {
 } & Pick<OfflineWithFeedbackProps, 'pendingAction'>;
 
 function DomainMenuItem({item, index}: DomainMenuItemProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Globe']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isAdmin, isValidated} = item;
-    const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
+    const {isAdmin, isValidated, action} = item;
 
-    const threeDotsMenuItems: PopoverMenuItem[] | undefined =
-        !isValidated && isAdmin
-            ? [
-                  {
-                      icon: Expensicons.Globe,
-                      text: translate('domain.goToDomain'),
-                      onSelected: item.action,
-                  },
-                  {
-                      icon: Expensicons.Globe,
-                      text: translate('domain.verifyDomain.title'),
-                      onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.accountID)),
-                  },
-              ]
-            : undefined;
+    const threeDotsMenuItems: PopoverMenuItem[] | undefined = useMemo(
+        () =>
+            isAdmin
+                ? [
+                      {
+                          icon: icons.Globe,
+                          text: translate('domain.goToDomain'),
+                          onSelected: action,
+                      },
+                      !isValidated && {
+                          icon: icons.Globe,
+                          text: translate('domain.verifyDomain.title'),
+                          onSelected: () => Navigation.navigate(ROUTES.WORKSPACES_VERIFY_DOMAIN.getRoute(item.accountID)),
+                      },
+                  ].filter((menuItem) => !!menuItem)
+                : undefined,
+        [isAdmin, icons.Globe, translate, action, isValidated, item.accountID],
+    );
 
     return (
         <OfflineWithFeedback
@@ -77,8 +74,7 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel="row"
                 style={styles.mh5}
-                onPress={item.action}
-                disabled={!isAdmin}
+                onPress={action}
             >
                 {({hovered}) => (
                     <DomainsListRow
@@ -86,31 +82,12 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
                         badgeText={isAdmin && !isValidated ? translate('domain.notVerified') : undefined}
                         isHovered={hovered}
                         menuItems={threeDotsMenuItems}
-                        rightIcon={
-                            isValidated ? (
-                                <Icon
-                                    src={icons.NewWindow}
-                                    fill={hovered ? theme.iconHovered : theme.icon}
-                                    isButtonIcon
-                                />
-                            ) : (
-                                <Icon
-                                    src={expensifyIcons.ArrowRight}
-                                    fill={theme.icon}
-                                    additionalStyles={[styles.alignSelfCenter, !hovered && styles.opacitySemiTransparent]}
-                                    isButtonIcon
-                                    medium
-                                />
-                            )
-                        }
                     />
                 )}
             </PressableWithoutFeedback>
         </OfflineWithFeedback>
     );
 }
-
-DomainMenuItem.displayName = 'DomainMenuItem';
 
 export type {DomainItem};
 export default DomainMenuItem;

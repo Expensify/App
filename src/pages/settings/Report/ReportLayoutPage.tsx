@@ -22,10 +22,11 @@ function ReportLayoutPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [reportLayoutGroupByNVP] = useOnyx(ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY, {canBeMissing: true});
+
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupByNVP);
 
     const goBack = useCallback(() => {
-        Navigation.dismissModal();
+        Navigation.goBack();
     }, []);
 
     const onSelectGroupBy = useCallback(
@@ -57,7 +58,7 @@ function ReportLayoutPage() {
 
     return (
         <ScreenWrapper
-            testID={ReportLayoutPage.displayName}
+            testID="ReportLayoutPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
         >
@@ -76,7 +77,5 @@ function ReportLayoutPage() {
         </ScreenWrapper>
     );
 }
-
-ReportLayoutPage.displayName = 'ReportLayoutPage';
 
 export default ReportLayoutPage;

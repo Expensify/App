@@ -1,4 +1,5 @@
 import {md5} from 'expensify-common';
+import {ConciergeAvatar, NotificationsAvatar} from '@components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {getAvatarLocal as avatarCatalogGetAvatarLocal, getAvatarURL as avatarCatalogGetAvatarURL, DEFAULT_AVATAR_PREFIX, PRESET_AVATAR_CATALOG} from './Avatars/PresetAvatarCatalog';
@@ -40,10 +41,6 @@ type GetAvatarArgsType = CommonAvatarArgsType & {
     avatarSource?: AvatarSource;
 };
 
-type DefaultAvatarsType = {
-    defaultAvatars: Record<'ConciergeAvatar' | 'NotificationsAvatar', IconAsset>;
-};
-
 /**
  * Calculates which avatar bucket an account belongs to based on accountID, email, or existing avatar URL.
  * There are 24 possible default avatars, distributed using modulo operation.
@@ -83,15 +80,14 @@ function getAccountIDHashBucket({accountID = CONST.DEFAULT_NUMBER_ID, accountEma
  * @param args.accountID - The user's account ID
  * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
  * @param args.avatarURL - Existing avatar URL (parsed to extract avatar number if available)
- * @param args.defaultAvatars - ConciergeAvatar | NotificationsAvatar | FallbackAvatar
  * @returns The avatar icon asset (SVG component), or undefined if no default avatar matches
  */
-function getDefaultAvatar({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL, defaultAvatars}: DefaultAvatarArgsType & DefaultAvatarsType): IconAsset | undefined {
+function getDefaultAvatar({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL}: DefaultAvatarArgsType): IconAsset | undefined {
     if (accountID === CONST.ACCOUNT_ID.CONCIERGE) {
-        return defaultAvatars.ConciergeAvatar;
+        return ConciergeAvatar;
     }
     if (accountID === CONST.ACCOUNT_ID.NOTIFICATIONS) {
-        return defaultAvatars.NotificationsAvatar;
+        return NotificationsAvatar;
     }
 
     return avatarCatalogGetAvatarLocal(getDefaultAvatarName({accountID, accountEmail, avatarURL}));
@@ -213,13 +209,12 @@ function isLetterAvatar(originalFileName?: string): boolean {
  * @param args.accountID - The user's account ID
  * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
  * @param args.avatarSource - The avatar source (URL or SVG component)
- * @param args.defaultAvatars - ConciergeAvatar | NotificationsAvatar | FallbackAvatar
  * @returns The avatar source ready for rendering (SVG component for defaults, URL string for uploads)
  *
  */
-function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, defaultAvatars}: GetAvatarArgsType & DefaultAvatarsType): AvatarSource | undefined {
+function getAvatar({avatarSource, accountID = CONST.DEFAULT_NUMBER_ID, accountEmail}: GetAvatarArgsType): AvatarSource | undefined {
     if (isDefaultAvatar(avatarSource)) {
-        return getDefaultAvatar({accountID, accountEmail, avatarURL: avatarSource, defaultAvatars});
+        return getDefaultAvatar({accountID, accountEmail, avatarURL: avatarSource});
     }
 
     const maybePresetAvatarName = getPresetAvatarNameFromURL(avatarSource);
@@ -263,7 +258,7 @@ function getAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, avatarSource, accoun
  * @param args.avatarSource - The avatar source (URL or SVG component)
  * @returns The full-size avatar source
  */
-function getFullSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): AvatarSource | undefined {
+function getFullSizeAvatar(args: GetAvatarArgsType): AvatarSource | undefined {
     const source = getAvatar(args);
     if (typeof source !== 'string') {
         return source;
@@ -282,7 +277,7 @@ function getFullSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): Avatar
  * @param args.avatarSource - The avatar source (URL or SVG component)
  * @returns The small-size avatar source with _128 suffix (if applicable)
  */
-function getSmallSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): AvatarSource | undefined {
+function getSmallSizeAvatar(args: GetAvatarArgsType): AvatarSource | undefined {
     const source = getAvatar(args);
     if (typeof source !== 'string') {
         return source;
@@ -303,6 +298,7 @@ function getSmallSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): Avata
 export {
     getAvatar,
     getAvatarURL,
+    getDefaultAvatar,
     getDefaultAvatarName,
     getDefaultAvatarURL,
     getPresetAvatarNameFromURL,

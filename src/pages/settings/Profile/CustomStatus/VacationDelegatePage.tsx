@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -29,12 +30,12 @@ function VacationDelegatePage() {
     const [newVacationDelegate, setNewVacationDelegate] = useState('');
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: false});
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
     const currentVacationDelegate = vacationDelegate?.delegate;
     const delegatePersonalDetails = getPersonalDetailByEmail(currentVacationDelegate ?? '');
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const excludeLogins = useMemo(
         () => ({
@@ -44,7 +45,7 @@ function VacationDelegatePage() {
         [currentVacationDelegate],
     );
 
-    const {searchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized, onListEndReached} = useSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
@@ -59,11 +60,11 @@ function VacationDelegatePage() {
         return getHeaderMessage(
             (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
             !!availableOptions.userToInvite,
-            searchTerm.trim(),
+            debouncedSearchTerm.trim(),
             countryCode,
             false,
         );
-    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, searchTerm, countryCode]);
+    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, debouncedSearchTerm, countryCode]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -83,7 +84,7 @@ function VacationDelegatePage() {
                         shouldShowSubscript: undefined,
                         icons: [
                             {
-                                source: delegatePersonalDetails?.avatar ?? expensifyIcons.FallbackAvatar,
+                                source: delegatePersonalDetails?.avatar ?? icons.FallbackAvatar,
                                 name: formatPhoneNumber(delegatePersonalDetails?.login ?? ''),
                                 type: CONST.ICON_TYPE_AVATAR,
                                 id: delegatePersonalDetails?.accountID,
@@ -128,15 +129,7 @@ function VacationDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [
-        vacationDelegate,
-        delegatePersonalDetails,
-        availableOptions.personalDetails,
-        availableOptions.recentReports,
-        translate,
-        availableOptions.userToInvite,
-        expensifyIcons.FallbackAvatar,
-    ]);
+    }, [vacationDelegate, delegatePersonalDetails, translate, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, icons.FallbackAvatar]);
 
     const onSelectRow = useCallback(
         (option: Participant) => {
@@ -168,14 +161,14 @@ function VacationDelegatePage() {
     );
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     return (
         <>
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
-                testID={VacationDelegatePage.displayName}
+                testID="VacationDelegatePage"
             >
                 <HeaderWithBackButton
                     title={translate('statusPage.vacationDelegate')}
@@ -215,7 +208,5 @@ function VacationDelegatePage() {
         </>
     );
 }
-
-VacationDelegatePage.displayName = 'VacationDelegatePage';
 
 export default VacationDelegatePage;

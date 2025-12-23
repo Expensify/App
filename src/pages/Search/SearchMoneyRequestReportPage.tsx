@@ -7,6 +7,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useSearchContext} from '@components/Search/SearchContext';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -19,7 +20,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
+import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
@@ -29,7 +30,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
 import {ActionListContext} from '@src/pages/home/ReportScreenContext';
 import type SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 type SearchMoneyRequestPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
@@ -49,7 +50,23 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {isOffline} = useNetwork();
 
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+    const {currentSearchHash} = useSearchContext();
+    const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
+
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
+
+    const snapshotReport = useMemo(() => {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`] ?? {}) as typeof report;
+    }, [snapshot, reportIDFromRoute]);
+
+    // Use snapshot report currency if main collection doesn't have it (for offline mode)
+    const reportToUse = useMemo(() => {
+        if (!report) {
+            return report;
+        }
+        return {...report, currency: report.currency ?? snapshotReport?.currency};
+    }, [report, snapshotReport?.currency]);
 
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true, allowStaleData: true});
     const [policies = getEmptyObject<NonNullable<OnyxCollection<Policy>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, canBeMissing: false});
@@ -65,7 +82,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`, {canBeMissing: true});
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(reportIDFromRoute);
-    const {transactions: allReportTransactions} = useTransactionsAndViolationsForReport(reportIDFromRoute);
+    const {transactions: allReportTransactions, violations: allReportViolations} = useTransactionsAndViolationsForReport(reportIDFromRoute);
     const reportActions = useMemo(() => getFilteredReportActionsForReportView(unfilteredReportActions), [unfilteredReportActions]);
     const reportTransactions = useMemo(() => getAllNonDeletedTransactions(allReportTransactions, reportActions), [allReportTransactions, reportActions]);
     const visibleTransactions = useMemo(
@@ -78,6 +95,28 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const reportID = report?.reportID;
 
+    // Prevents creating duplicate transaction threads for legacy transactions
+    const hasCreatedLegacyThreadRef = useRef(false);
+
+    // Get transaction from search snapshot if not available in main collections
+    const {snapshotTransaction, snapshotViolations} = useMemo(() => {
+        if (!snapshot?.data || Object.keys(allReportTransactions).length > 0) {
+            return {snapshotTransaction: undefined, snapshotViolations: undefined};
+        }
+
+        const transactionKey = Object.keys(snapshot.data).find((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
+        if (!transactionKey) {
+            return {snapshotTransaction: undefined, snapshotViolations: undefined};
+        }
+
+        const snapshotData = snapshot.data as Record<string, unknown>;
+        const transaction = snapshotData[transactionKey] as Transaction;
+        const violationKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`;
+        const violations = snapshotData[violationKey] as TransactionViolations | undefined;
+
+        return {snapshotTransaction: transaction, snapshotViolations: violations};
+    }, [snapshot?.data, allReportTransactions]);
+
     useEffect(() => {
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {
             const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
@@ -89,6 +128,56 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         // We don't want this hook to re-run on the every report change
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [reportIDFromRoute, transactionThreadReportID]);
+
+    useEffect(() => {
+        hasCreatedLegacyThreadRef.current = false;
+    }, [reportIDFromRoute]);
+
+    // Create transaction thread for legacy transactions that don't have one yet.
+    // Wait for all data to load to avoid duplicates or stale data when navigating between reports.
+    useEffect(() => {
+        if (hasCreatedLegacyThreadRef.current || transactionThreadReportID || (Object.keys(allReportTransactions).length !== 1 && !snapshotTransaction)) {
+            return;
+        }
+
+        // Use main collection transaction or fallback to snapshot
+        const transaction = Object.values(allReportTransactions).at(0) ?? snapshotTransaction;
+        if (!transaction || (transaction && transaction.reportID !== reportIDFromRoute)) {
+            return;
+        }
+
+        // Check that reportActions belong to the current report to avoid using stale data from the previous report
+        const hasMatchingReportActions = reportActions.some((action) => {
+            const iouReportID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUReportID : undefined;
+            return iouReportID?.toString() === reportIDFromRoute;
+        });
+
+        if (!hasMatchingReportActions && reportActions.length > 1) {
+            return;
+        }
+
+        const iouAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        if (iouAction || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || !!transaction.linkedTrackedExpenseReportAction?.childReportID) {
+            return;
+        }
+
+        hasCreatedLegacyThreadRef.current = true;
+
+        const violations = allReportViolations[transaction.transactionID] ?? snapshotViolations;
+        createTransactionThreadReport(report, undefined, transaction, violations);
+    }, [
+        allReportTransactions,
+        allReportViolations,
+        report,
+        reportActions,
+        reportIDFromRoute,
+        reportMetadata?.isLoadingInitialReportActions,
+        snapshot,
+        snapshotTransaction,
+        snapshotViolations,
+        transactionThreadReportID,
+        visibleTransactions,
+    ]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
@@ -114,7 +203,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             <ActionListContext.Provider value={actionListValue}>
                 <ReactionListWrapper>
                     <ScreenWrapper
-                        testID={SearchMoneyRequestReportPage.displayName}
+                        testID="SearchMoneyRequestReportPage"
                         shouldEnableMaxHeight
                         offlineIndicatorStyle={styles.mtAuto}
                         headerGapStyles={styles.searchHeaderGap}
@@ -129,7 +218,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         >
                             <DragAndDropProvider isDisabled={isEditingDisabled}>
                                 <MoneyRequestReportView
-                                    report={report}
+                                    report={reportToUse}
                                     reportMetadata={reportMetadata}
                                     policy={policy}
                                     shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
@@ -148,7 +237,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListWrapper>
                 <ScreenWrapper
-                    testID={SearchMoneyRequestReportPage.displayName}
+                    testID="SearchMoneyRequestReportPage"
                     shouldEnableMaxHeight
                     offlineIndicatorStyle={styles.mtAuto}
                     headerGapStyles={[styles.searchHeaderGap, styles.h0]}
@@ -165,7 +254,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                             <DragAndDropProvider isDisabled={isEditingDisabled}>
                                 <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
                                     <MoneyRequestReportView
-                                        report={report}
+                                        report={reportToUse}
                                         reportMetadata={reportMetadata}
                                         policy={policy}
                                         shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
@@ -182,7 +271,5 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         </ActionListContext.Provider>
     );
 }
-
-SearchMoneyRequestReportPage.displayName = 'SearchMoneyRequestReportPage';
 
 export default SearchMoneyRequestReportPage;

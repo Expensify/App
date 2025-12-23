@@ -1,12 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextStyle} from 'react-native';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 import Tooltip from './Tooltip';
@@ -29,8 +29,6 @@ function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, te
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow'] as const);
-
     return isSymbolPressable ? (
         <Tooltip text={translate('common.selectSymbolOrCurrency')}>
             <PressableWithoutFeedback
@@ -41,7 +39,7 @@ function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, te
             >
                 <Icon
                     small
-                    src={expensifyIcons.DownArrow}
+                    src={Expensicons.DownArrow}
                     fill={theme.icon}
                 />
                 <Text style={[styles.iouAmountText, styles.lineHeightUndefined, textStyle]}>{symbol}</Text>
@@ -53,7 +51,5 @@ function SymbolButton({onSymbolButtonPress, symbol, isSymbolPressable = true, te
         </View>
     );
 }
-
-SymbolButton.displayName = 'SymbolButton';
 
 export default SymbolButton;

@@ -3,7 +3,6 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
@@ -26,7 +25,6 @@ import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import Button from './Button';
 import FormHelpMessage from './FormHelpMessage';
-// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import ScrollView from './ScrollView';
 import TextInput from './TextInput';
@@ -80,6 +78,9 @@ type NumberWithSymbolFormProps = {
 
     /** Whether to allow flipping amount */
     allowFlippingAmount?: boolean;
+
+    /** Whether the input is disabled or not */
+    disabled?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
@@ -143,11 +144,11 @@ function NumberWithSymbolForm({
     toggleNegative,
     clearNegative,
     ref,
+    disabled,
     ...props
 }: NumberWithSymbolFormProps) {
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DownArrow'] as const);
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
@@ -306,7 +307,7 @@ function NumberWithSymbolForm({
             const newNumber = addLeadingZero(`${currentNumber.substring(0, selection.start)}${key}${currentNumber.substring(selection.end)}`);
             setNewNumber(newNumber);
         },
-        [currentNumber, selection, shouldUpdateSelection, setNewNumber],
+        [currentNumber, selection.start, selection.end, shouldUpdateSelection, setNewNumber],
     );
 
     /**
@@ -372,6 +373,7 @@ function NumberWithSymbolForm({
                         ref.current = newRef;
                     }
                 }}
+                disabled={disabled}
                 prefixCharacter={symbol}
                 prefixStyle={styles.colorMuted}
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -403,6 +405,7 @@ function NumberWithSymbolForm({
                 }
                 textInput.current = newRef;
             }}
+            disabled={disabled}
             symbol={symbol}
             hideSymbol={hideSymbol}
             symbolPosition={symbolPosition}
@@ -469,7 +472,7 @@ function NumberWithSymbolForm({
                             <Button
                                 shouldShowRightIcon
                                 small
-                                iconRight={expensifyIcons.DownArrow}
+                                iconRight={Expensicons.DownArrow}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
                                 isContentCentered
@@ -494,7 +497,7 @@ function NumberWithSymbolForm({
                     <Button
                         shouldShowRightIcon
                         small
-                        iconRight={expensifyIcons.DownArrow}
+                        iconRight={Expensicons.DownArrow}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
                         isContentCentered
@@ -533,8 +536,6 @@ function NumberWithSymbolForm({
         </ScrollView>
     );
 }
-
-NumberWithSymbolForm.displayName = 'NumberWithSymbolForm';
 
 export default NumberWithSymbolForm;
 export type {NumberWithSymbolFormProps, NumberWithSymbolFormRef};

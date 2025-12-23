@@ -89,6 +89,9 @@ type ValidateCodeFormProps = {
 
     /** Function to call when skip button is pressed */
     handleSkipButtonPress?: () => void;
+
+    /** Whether the modal is used as a page modal. Used to determine input auto focus timing. */
+    isInPageModal?: boolean;
 };
 
 function BaseValidateCodeForm({
@@ -107,6 +110,7 @@ function BaseValidateCodeForm({
     isLoading,
     shouldShowSkipButton = false,
     handleSkipButtonPress,
+    isInPageModal = false,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -198,16 +202,16 @@ function BaseValidateCodeForm({
         if (!validateCodeSent) {
             return;
         }
-        // Delay prevents the input from gaining focus before the RHP slide out animation finishes,
-        // which would cause the wide RHP to flicker in the background.
-        if (wideRHPRouteKeys.length > 0 && !isMobileSafari()) {
+        // Delay prevents the input from gaining focus before the RHP slide-out animation finishes,
+        // which would cause issues with the RHP sliding out smoothly and flickering of the wide RHP in the background.
+        if ((wideRHPRouteKeys.length > 0 && !isMobileSafari()) || isInPageModal) {
             focusTimeoutRef.current = setTimeout(() => {
                 inputValidateCodeRef.current?.clear();
             }, CONST.ANIMATED_TRANSITION);
         } else {
             inputValidateCodeRef.current?.clear();
         }
-    }, [validateCodeSent, wideRHPRouteKeys.length]);
+    }, [validateCodeSent, wideRHPRouteKeys.length, isInPageModal]);
 
     /**
      * Request a validate code / magic code be sent to verify this contact method
@@ -272,7 +276,7 @@ function BaseValidateCodeForm({
             return translate(formError?.validateCode);
         }
         return getLatestErrorMessage(account ?? {});
-    }, [canShowError, formError, account, translate]);
+    }, [canShowError, formError?.validateCode, account, translate]);
 
     const shouldShowTimer = isCountdownRunning && !isOffline;
 
@@ -374,8 +378,6 @@ function BaseValidateCodeForm({
         </>
     );
 }
-
-BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export type {ValidateCodeFormProps, ValidateCodeFormHandle};
 

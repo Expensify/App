@@ -9,8 +9,6 @@ import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -35,7 +33,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
-import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
+import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
+import {checkIfFeedConnectionIsBroken, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
@@ -87,7 +86,22 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'ExpensifyLogoNew', 'TreasureChest', 'Exit'] as const);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'Gear',
+        'Profile',
+        'NewWindow',
+        'Heart',
+        'Info',
+        'QuestionMark',
+        'ExpensifyLogoNew',
+        'TreasureChest',
+        'Exit',
+        'Lightbulb',
+        'Lock',
+        'Emoji',
+        'CreditCard',
+        'Wallet',
+    ] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -103,6 +117,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [retryBillingSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL, {canBeMissing: true});
     const [billingDisputePending] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING, {canBeMissing: true});
     const [retryBillingFailed] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED, {canBeMissing: true});
+    const [billingStatus] = useOnyx(ONYXKEYS.NVP_PRIVATE_BILLING_STATUS, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
     const theme = useTheme();
@@ -128,10 +143,19 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
-    const walletBrickRoadIndicator =
-        hasPaymentMethodError(bankAccountList, fundList, allCards) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection
-            ? 'error'
-            : undefined;
+    const hasPendingCardAction = hasPendingExpensifyCardAction(allCards, privatePersonalDetails);
+    const walletBrickRoadIndicator = useMemo(() => {
+        if (hasPaymentMethodError(bankAccountList, fundList, allCards) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+        if (hasPartiallySetupBankAccount(bankAccountList)) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        }
+        if (hasPendingCardAction) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        }
+        return undefined;
+    }, [allCards, bankAccountList, fundList, hasBrokenFeedConnection, hasPendingCardAction, userWallet?.errors, walletTerms?.errors]);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -194,7 +218,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             },
             {
                 translationKey: 'common.wallet',
-                icon: Expensicons.Wallet,
+                icon: icons.Wallet,
                 screenName: SCREENS.SETTINGS.WALLET.ROOT,
                 brickRoadIndicator: walletBrickRoadIndicator,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
@@ -208,7 +232,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             },
             {
                 translationKey: 'initialSettingsPage.security',
-                icon: Expensicons.Lock,
+                icon: icons.Lock,
                 screenName: SCREENS.SETTINGS.SECURITY,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
             },
@@ -217,10 +241,10 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         if (subscriptionPlan) {
             items.splice(1, 0, {
                 translationKey: 'allSettingsScreen.subscription',
-                icon: Expensicons.CreditCard,
+                icon: icons.CreditCard,
                 screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
                 brickRoadIndicator:
-                    !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed)
+                    !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)
                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                         : undefined,
                 badgeText: freeTrialText,
@@ -235,12 +259,15 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             items,
         };
     }, [
-        icons.Gear,
-        icons.Profile,
         loginList,
         privatePersonalDetails,
         vacationDelegate,
         session?.email,
+        icons.Profile,
+        icons.Gear,
+        icons.Lock,
+        icons.Wallet,
+        icons.CreditCard,
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
@@ -252,7 +279,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         retryBillingSuccessful,
         billingDisputePending,
         retryBillingFailed,
+        fundList,
         freeTrialText,
+        billingStatus,
     ]);
 
     const classicRedirectMenuItem: MenuData | null = useMemo(() => {
@@ -303,7 +332,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 ...(classicRedirectMenuItem && tryNewDot?.nudgeMigration ? [classicRedirectMenuItem] : []),
                 {
                     translationKey: 'initialSettingsPage.help',
-                    icon: Expensicons.QuestionMark,
+                    icon: icons.QuestionMark,
                     iconRight: icons.NewWindow,
                     shouldShowRightIcon: true,
                     link: CONST.NEWHELP_URL,
@@ -323,19 +352,19 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
                 {
                     translationKey: 'initialSettingsPage.about',
-                    icon: Expensicons.Info,
+                    icon: icons.Info,
                     screenName: SCREENS.SETTINGS.ABOUT,
                     action: () => Navigation.navigate(ROUTES.SETTINGS_ABOUT),
                 },
                 {
                     translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
-                    icon: Expensicons.Lightbulb,
+                    icon: icons.Lightbulb,
                     screenName: SCREENS.SETTINGS.TROUBLESHOOT,
                     action: () => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT),
                 },
                 {
                     translationKey: 'sidebarScreen.saveTheWorld',
-                    icon: Expensicons.Heart,
+                    icon: icons.Heart,
                     screenName: SCREENS.SETTINGS.SAVE_THE_WORLD,
                     action: () => Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD),
                 },
@@ -348,7 +377,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, icons.TreasureChest, icons.Exit, icons.NewWindow, signOut]);
+    }, [icons, styles.pt4, classicRedirectMenuItem, tryNewDot?.nudgeMigration, signOut]);
 
     /**
      * Return JSX.Element with menu items
@@ -442,7 +471,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                     <Text style={styles.primaryMediumText}>{emojiCode}</Text>
                                 ) : (
                                     <Icon
-                                        src={Expensicons.Emoji}
+                                        src={icons.Emoji}
                                         width={variables.iconSizeNormal}
                                         height={variables.iconSizeNormal}
                                         fill={theme.icon}
@@ -483,7 +512,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={InitialSettingsPage.displayName}
+            testID="InitialSettingsPage"
             bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
         >
@@ -521,7 +550,5 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         </ScreenWrapper>
     );
 }
-
-InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default withCurrentUserPersonalDetails(InitialSettingsPage);

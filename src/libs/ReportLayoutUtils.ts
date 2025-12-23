@@ -3,54 +3,15 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {GroupedTransactions} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
-import {getCategory, getTag} from './TransactionUtils';
+import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
+import isTagMissing from './TagUtils';
+import {getAmount, getCategory, getCurrency, getTag, isTransactionPendingDelete} from './TransactionUtils';
 
 /**
- * Groups transactions by category
- * @returns Array of grouped transactions with totals, sorted alphabetically (A→Z)
+ * Sorts groups alphabetically (A→Z) with empty keys at the end
  */
-function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
-    if (!report) {
-        return [];
-    }
-
-    const groups = new Map<string, Transaction[]>();
-
-    transactions.forEach((transaction) => {
-        const category = getCategory(transaction);
-        const categoryKey = category || '';
-
-        if (!groups.has(categoryKey)) {
-            groups.set(categoryKey, []);
-        }
-        groups.get(categoryKey)?.push(transaction);
-    });
-
-    const result: GroupedTransactions[] = [];
-    groups.forEach((transactionList, categoryKey) => {
-        // Translation handled at component level
-        const displayName = categoryKey;
-
-        const totalAmount = transactionList.reduce((sum, transaction) => {
-            // Only include transactions with convertedAmount (already converted to report currency)
-            // Skip transactions without convertedAmount to avoid mixing currencies (e.g., offline created expenses)
-            if (!transaction.convertedAmount) {
-                return sum;
-            }
-            return sum + transaction.convertedAmount;
-        }, 0);
-
-        result.push({
-            groupName: displayName,
-            groupKey: categoryKey,
-            transactions: transactionList,
-            totalAmount,
-            isExpanded: true,
-        });
-    });
-
-    // Sort alphabetically (A→Z), empty keys (uncategorized) at the end
-    return result.sort((a, b) => {
+function sortGroupedTransactions(groups: GroupedTransactions[], localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
+    return groups.sort((a, b) => {
         if (a.groupKey === '' && b.groupKey !== '') {
             return 1;
         }
@@ -62,59 +23,102 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
 }
 
 /**
+ * Returns convertedAmount with sign flipped for display (stored negative, displayed positive)
+ */
+function getConvertedAmount(transaction: Transaction): number {
+    const convertedAmount = transaction.convertedAmount ?? 0;
+    return convertedAmount ? -convertedAmount : 0;
+}
+
+/**
+ * Calculates group total using amount for same-currency transactions, falls back to convertedAmount for multi-currency
+ * Excludes transactions that are pending delete
+ */
+function calculateGroupTotal(transactionList: Transaction[], reportCurrency: string): number {
+    let total = 0;
+    for (const transaction of transactionList) {
+        if (isTransactionPendingDelete(transaction)) {
+            continue;
+        }
+
+        const transactionCurrency = getCurrency(transaction);
+        if (transactionCurrency === reportCurrency) {
+            total += getAmount(transaction, true, false, true);
+        } else if (transaction.convertedAmount) {
+            total += getConvertedAmount(transaction);
+        }
+    }
+    return total;
+}
+
+/**
+ * Groups transactions by category
+ */
+function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
+    if (!report) {
+        return [];
+    }
+
+    const reportCurrency = report.currency ?? '';
+    const groups = new Map<string, Transaction[]>();
+
+    for (const transaction of transactions) {
+        const category = getCategory(transaction);
+        const categoryKey = isCategoryMissing(category) ? '' : category;
+
+        if (!groups.has(categoryKey)) {
+            groups.set(categoryKey, []);
+        }
+        groups.get(categoryKey)?.push(transaction);
+    }
+
+    const result: GroupedTransactions[] = [];
+    for (const [categoryKey, transactionList] of groups) {
+        result.push({
+            groupName: categoryKey ? getDecodedCategoryName(categoryKey) : categoryKey,
+            groupKey: categoryKey,
+            transactions: transactionList,
+            subTotalAmount: calculateGroupTotal(transactionList, reportCurrency),
+            isExpanded: true,
+        });
+    }
+
+    return sortGroupedTransactions(result, localeCompare);
+}
+
+/**
  * Groups transactions by tag
- * @returns Array of grouped transactions with totals, sorted alphabetically (A→Z)
  */
 function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
     if (!report) {
         return [];
     }
 
+    const reportCurrency = report.currency ?? '';
     const groups = new Map<string, Transaction[]>();
 
-    transactions.forEach((transaction) => {
+    for (const transaction of transactions) {
         const tag = getTag(transaction);
-        const tagKey = tag || '';
+        const tagKey = isTagMissing(tag) ? '' : tag;
 
         if (!groups.has(tagKey)) {
             groups.set(tagKey, []);
         }
         groups.get(tagKey)?.push(transaction);
-    });
+    }
 
     const result: GroupedTransactions[] = [];
-    groups.forEach((transactionList, tagKey) => {
-        // Translation handled at component level
-        const displayName = tagKey;
-
-        const totalAmount = transactionList.reduce((sum, transaction) => {
-            // Only include transactions with convertedAmount (already converted to report currency)
-            // Skip transactions without convertedAmount to avoid mixing currencies (e.g., offline created expenses)
-            if (!transaction.convertedAmount) {
-                return sum;
-            }
-            return sum + transaction.convertedAmount;
-        }, 0);
-
+    for (const [tagKey, transactionList] of groups) {
         result.push({
-            groupName: displayName,
+            groupName: tagKey,
             groupKey: tagKey,
             transactions: transactionList,
-            totalAmount,
+            subTotalAmount: calculateGroupTotal(transactionList, reportCurrency),
             isExpanded: true,
         });
-    });
+    }
 
-    // Sort alphabetically (A→Z), empty keys (untagged) at the end
-    return result.sort((a, b) => {
-        if (a.groupKey === '' && b.groupKey !== '') {
-            return 1;
-        }
-        if (a.groupKey !== '' && b.groupKey === '') {
-            return -1;
-        }
-        return localeCompare(a.groupKey, b.groupKey);
-    });
+    return sortGroupedTransactions(result, localeCompare);
 }
 
 export {groupTransactionsByCategory, groupTransactionsByTag};

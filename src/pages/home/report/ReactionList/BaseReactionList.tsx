@@ -2,8 +2,8 @@ import {Str} from 'expensify-common';
 import React from 'react';
 import {FlatList} from 'react-native';
 import type {FlatListProps} from 'react-native';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import OptionRow from '@components/OptionRow';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -42,7 +42,6 @@ const getItemLayout = (data: ArrayLike<PersonalDetails> | null | undefined, inde
 function BaseReactionList({hasUserReacted = false, users, isVisible = false, emojiCodes, emojiCount, emojiName, onClose}: BaseReactionListProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {hoveredComponentBG, reactionListContainer, reactionListContainerFixedWidth, pv2} = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     if (!isVisible) {
         return null;
@@ -73,7 +72,7 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
                 icons: [
                     {
                         id: item.accountID,
-                        source: item.avatar ?? expensifyIcons.FallbackAvatar,
+                        source: item.avatar ?? FallbackAvatar,
                         name: item.login ?? '',
                         type: CONST.ICON_TYPE_AVATAR,
                     },
@@ -102,7 +101,5 @@ function BaseReactionList({hasUserReacted = false, users, isVisible = false, emo
         </>
     );
 }
-
-BaseReactionList.displayName = 'BaseReactionList';
 
 export default BaseReactionList;

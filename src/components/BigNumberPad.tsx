@@ -1,11 +1,11 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import Button from './Button';
+import * as Expensicons from './Icon/Expensicons';
 
 type BigNumberPadProps = {
     /** Callback to inform parent modal with key pressed */
@@ -30,7 +30,6 @@ const padNumbers = [
 
 function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, id = 'numPadView', isLongPressDisabled = false}: BigNumberPadProps) {
     const {toLocaleDigit} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow'] as const);
 
     const styles = useThemeStyles();
     const [timer, setTimer] = useState<NodeJS.Timeout | null>(null);
@@ -82,7 +81,7 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
                                 shouldEnableHapticFeedback
                                 style={[styles.flex1, marginLeft]}
                                 text={column === '<' ? undefined : toLocaleDigit(column)}
-                                icon={column === '<' ? expensifyIcons.BackArrow : undefined}
+                                icon={column === '<' ? Expensicons.BackArrow : undefined}
                                 onLongPress={() => handleLongPress(column)}
                                 onPress={() => numberPressed(column)}
                                 onPressIn={ControlSelection.block}
@@ -107,7 +106,5 @@ function BigNumberPad({numberPressed, longPressHandlerStateChanged = () => {}, i
         </View>
     );
 }
-
-BigNumberPad.displayName = 'BigNumberPad';
 
 export default BigNumberPad;

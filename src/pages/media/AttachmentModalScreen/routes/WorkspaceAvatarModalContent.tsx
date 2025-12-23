@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
@@ -12,15 +11,13 @@ import type SCREENS from '@src/SCREENS';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.WORKSPACE_AVATAR>) {
-    const defaultAvatars = useDefaultAvatars();
-
     const {policyID, letter: fallbackLetter} = route.params;
 
     const policy = usePolicy(policyID);
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true, initWithStoredValues: false});
 
     const avatarURL = policy?.avatarURL ?? getDefaultWorkspaceAvatar(policy?.name ?? fallbackLetter);
-    const source = getFullSizeAvatar({avatarSource: avatarURL, defaultAvatars});
+    const source = getFullSizeAvatar({avatarSource: avatarURL});
     const policyKeysLength = Object.keys(policy ?? {}).length;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -53,6 +50,5 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
         />
     );
 }
-WorkspaceAvatarModalContent.displayName = 'WorkspaceAvatarModalContent';
 
 export default WorkspaceAvatarModalContent;

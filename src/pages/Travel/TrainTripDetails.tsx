@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
@@ -20,7 +20,6 @@ type TrainTripDetailsProps = {
 function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const startDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date));
     const endDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date));
@@ -39,6 +38,8 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 description={`${translate('travel.train')} ${trainDuration ? `${CONST.DOT_SEPARATOR} ${trainDuration}` : ''}`}
                 title={reservation.route?.name}
                 copyValue={reservation.route?.name}
+                copyable
+                interactive={false}
             />
             <MenuItemWithTopDescription
                 description={translate('common.date')}
@@ -88,6 +89,8 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                     description={translate('travel.trainDetails.confirmation')}
                     title={reservation.confirmations?.at(0)?.value}
                     copyValue={reservation.confirmations?.at(0)?.value}
+                    interactive={false}
+                    copyable
                 />
             )}
 
@@ -95,7 +98,7 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
                 <MenuItem
                     label={translate('travel.trainDetails.passenger')}
                     title={displayName}
-                    icon={personalDetails?.avatar ?? expensifyIcons.FallbackAvatar}
+                    icon={personalDetails?.avatar ?? Expensicons.FallbackAvatar}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     description={personalDetails?.login ?? reservation.travelerPersonalInfo?.email}
                     interactive={false}
@@ -105,7 +108,5 @@ function TrainTripDetails({reservation, personalDetails}: TrainTripDetailsProps)
         </>
     );
 }
-
-TrainTripDetails.displayName = 'TrainTripDetails';
 
 export default TrainTripDetails;

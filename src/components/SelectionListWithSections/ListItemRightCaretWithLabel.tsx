@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +16,6 @@ function ListItemRightCaretWithLabel({labelText, shouldShowCaret = false}: ListI
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
 
     return (
         <View style={styles.flexRow}>
@@ -24,7 +23,7 @@ function ListItemRightCaretWithLabel({labelText, shouldShowCaret = false}: ListI
             {shouldShowCaret && (
                 <View style={[styles.pl2]}>
                     <Icon
-                        src={expensifyIcons.ArrowRight}
+                        src={Expensicons.ArrowRight}
                         fill={theme.icon}
                     />
                 </View>
@@ -32,7 +31,5 @@ function ListItemRightCaretWithLabel({labelText, shouldShowCaret = false}: ListI
         </View>
     );
 }
-
-ListItemRightCaretWithLabel.displayName = 'ListItemRightCaretWithLabel';
 
 export default ListItemRightCaretWithLabel;

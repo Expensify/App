@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
+import SelectionList from '@components/SelectionList';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -36,7 +36,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOption, setSelectedOption] = useState<string>('');
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const policyID = route.params?.policyID;
     const integration = route.params?.integration;
@@ -66,7 +66,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
                     accountID: personalDetail?.accountID,
                     icons: [
                         {
-                            source: personalDetail?.avatar ?? expensifyIcons.FallbackAvatar,
+                            source: personalDetail?.avatar ?? icons.FallbackAvatar,
                             name: formatPhoneNumber(email),
                             type: CONST.ICON_TYPE_AVATAR,
                             id: personalDetail?.accountID,
@@ -84,9 +84,9 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, localeCompare, selectedOption, expensifyIcons.FallbackAvatar]);
+    }, [policy?.employeeList, localeCompare, isOffline, icons.FallbackAvatar, selectedOption]);
 
-    const sections = useMemo(() => {
+    const data = useMemo(() => {
         if (workspaceMembers.length === 0) {
             return [];
         }
@@ -99,13 +99,7 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
             membersToDisplay = tokenizedSearch(workspaceMembers, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
         }
 
-        return [
-            {
-                title: undefined,
-                data: membersToDisplay,
-                shouldShow: true,
-            },
-        ];
+        return membersToDisplay;
     }, [workspaceMembers, countryCode, debouncedSearchTerm]);
 
     useEffect(() => {
@@ -131,8 +125,18 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
 
-        return getHeaderMessage(sections?.at(0)?.data.length !== 0, false, searchValue, countryCode);
-    }, [debouncedSearchTerm, sections, countryCode]);
+        return getHeaderMessage(data.length !== 0, false, searchValue, countryCode);
+    }, [debouncedSearchTerm, data.length, countryCode]);
+
+    const textInputOptions = useMemo(
+        () => ({
+            label: textInputLabel,
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage,
+        }),
+        [headerMessage, searchTerm, setSearchTerm, textInputLabel],
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -140,29 +144,25 @@ function ChangeReceiptBillingAccountPage({route}: ChangeReceiptBillingAccountPag
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
-            <ScreenWrapper testID={ChangeReceiptBillingAccountPage.displayName}>
+            <ScreenWrapper testID="ChangeReceiptBillingAccountPage">
                 <HeaderWithBackButton title={translate('workspace.receiptPartners.uber.centralBillingAccount')} />
                 <Text style={[styles.ph5, styles.pb3]}>{translate('workspace.receiptPartners.uber.centralBillingDescription')}</Text>
                 <SelectionList
-                    sections={sections}
-                    ListItem={InviteMemberListItem}
-                    textInputLabel={textInputLabel}
-                    textInputValue={searchTerm}
-                    onChangeText={setSearchTerm}
-                    headerMessage={headerMessage}
+                    data={data}
                     onSelectRow={toggleOption}
-                    showScrollIndicator
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    initiallyFocusedOptionKey={centralBillingAccountEmail}
-                    shouldUpdateFocusedIndex
+                    ListItem={InviteMemberListItem}
+                    textInputOptions={textInputOptions}
                     shouldShowTextInput={shouldShowTextInput}
+                    initiallyFocusedItemKey={centralBillingAccountEmail}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    disableMaintainingScrollPosition
+                    shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
+                    showScrollIndicator
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-ChangeReceiptBillingAccountPage.displayName = 'ChangeReceiptBillingAccountPage';
 
 export default ChangeReceiptBillingAccountPage;

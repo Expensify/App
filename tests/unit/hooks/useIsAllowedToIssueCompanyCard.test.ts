@@ -6,9 +6,30 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import createRandomPolicy from '../../utils/collections/policies';
 
+const domainID = 19475968;
 const mockPolicyID = '123456';
+const workspaceAccountID = 11111111;
 
-const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID};
+const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID, workspaceAccountID};
+
+const mockedFeeds = {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'vcf#19475968': {
+        liabilityType: 'personal',
+        pending: false,
+        domainID,
+        customFeedName: 'Custom feed name',
+        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+    },
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'vcf#11111111': {
+        liabilityType: 'personal',
+        pending: false,
+        domainID: workspaceAccountID,
+        customFeedName: 'Custom feed name 1',
+        feed: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+    },
+};
 
 jest.mock('@hooks/useCardFeeds', () => ({
     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -18,122 +39,37 @@ jest.mock('@hooks/useCardFeeds', () => ({
 describe('useIsAllowedToIssueCompanyCard', () => {
     beforeEach(async () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy?.policyID}`, mockPolicy);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicy?.policyID}`, 'vcf');
     });
     it('should return true if domain feed and access is granted', async () => {
-        const domainID = 19475968;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicy?.policyID}`, 'vcf#19475968');
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainID}`, true);
-        (useCardFeeds as jest.Mock).mockReturnValue([
-            {
-                settings: {
-                    companyCards: {
-                        vcf: {
-                            asrEnabled: false,
-                            country: 'US',
-                            domainID,
-                            forceReimbursable: 'force_no',
-                            liabilityType: 'corporate',
-                            preferredPolicy: '135CA2196CD21C88',
-                            reportTitleFormat: '',
-                            shouldApplyCashbackToBill: true,
-                            statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
-                            uploadLayoutSettings: [],
-                        },
-                    },
-                    companyCardNicknames: {},
-                    oAuthAccountDetails: {},
-                },
-            },
-            {status: 'loaded'},
-        ]);
+        (useCardFeeds as jest.Mock).mockReturnValue([mockedFeeds, {status: 'loaded'}]);
         const {result} = renderHook(() => useIsAllowedToIssueCompanyCard({policyID: mockPolicyID}));
         expect(result?.current).toBe(true);
     });
 
     it('should return false if domain feed and access is not granted', async () => {
-        const domainID = 19475968;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicy?.policyID}`, 'vcf#19475968');
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS}${domainID}`, false);
-        (useCardFeeds as jest.Mock).mockReturnValue([
-            {
-                settings: {
-                    companyCards: {
-                        vcf: {
-                            asrEnabled: false,
-                            country: 'US',
-                            domainID,
-                            forceReimbursable: 'force_no',
-                            liabilityType: 'corporate',
-                            preferredPolicy: '135CA2196CD21C88',
-                            reportTitleFormat: '',
-                            shouldApplyCashbackToBill: true,
-                            statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
-                            uploadLayoutSettings: [],
-                        },
-                    },
-                    companyCardNicknames: {},
-                    oAuthAccountDetails: {},
-                },
-            },
-            {status: 'loaded'},
-        ]);
+        (useCardFeeds as jest.Mock).mockReturnValue([mockedFeeds, {status: 'loaded'}]);
         const {result} = renderHook(() => useIsAllowedToIssueCompanyCard({policyID: mockPolicyID}));
         expect(result?.current).toBe(false);
     });
     it('should return true if workspace feed and user is admin', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicy?.policyID}`, 'vcf#11111111');
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy?.policyID}`, {
             role: CONST.POLICY.ROLE.ADMIN,
         });
-        (useCardFeeds as jest.Mock).mockReturnValue([
-            {
-                settings: {
-                    companyCards: {
-                        vcf: {
-                            asrEnabled: false,
-                            country: 'US',
-                            forceReimbursable: 'force_no',
-                            liabilityType: 'corporate',
-                            preferredPolicy: '135CA2196CD21C88',
-                            reportTitleFormat: '',
-                            shouldApplyCashbackToBill: true,
-                            statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
-                            uploadLayoutSettings: [],
-                        },
-                    },
-                    companyCardNicknames: {},
-                    oAuthAccountDetails: {},
-                },
-            },
-            {status: 'loaded'},
-        ]);
+        (useCardFeeds as jest.Mock).mockReturnValue([mockedFeeds, {status: 'loaded'}]);
         const {result} = renderHook(() => useIsAllowedToIssueCompanyCard({policyID: mockPolicyID}));
         expect(result?.current).toBe(true);
     });
     it('should return false if workspace feed and user is not an admin', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicy?.policyID}`, 'vcf#11111111');
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy?.policyID}`, {
             role: CONST.POLICY.ROLE.USER,
         });
-        (useCardFeeds as jest.Mock).mockReturnValue([
-            {
-                settings: {
-                    companyCards: {
-                        vcf: {
-                            asrEnabled: false,
-                            country: 'US',
-                            forceReimbursable: 'force_no',
-                            liabilityType: 'corporate',
-                            preferredPolicy: '135CA2196CD21C88',
-                            reportTitleFormat: '',
-                            shouldApplyCashbackToBill: true,
-                            statementPeriodEndDay: 'LAST_DAY_OF_MONTH',
-                            uploadLayoutSettings: [],
-                        },
-                    },
-                    companyCardNicknames: {},
-                    oAuthAccountDetails: {},
-                },
-            },
-            {status: 'loaded'},
-        ]);
+        (useCardFeeds as jest.Mock).mockReturnValue([mockedFeeds, {status: 'loaded'}]);
         const {result} = renderHook(() => useIsAllowedToIssueCompanyCard({policyID: mockPolicyID}));
         expect(result?.current).toBe(false);
     });

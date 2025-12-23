@@ -2,10 +2,10 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,7 +38,7 @@ type AddReactionBubbleProps = {
     /**
      * Called when the user selects an emoji.
      */
-    onSelectEmoji: (emoji: Emoji) => void;
+    onSelectEmoji: (emoji: Emoji, preferredSkinTone: number) => void;
 
     /**
      * ReportAction for EmojiPicker.
@@ -54,7 +54,6 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
     const StyleUtils = useStyleUtils();
     const ref = useRef<View | HTMLDivElement>(null);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['AddReaction'] as const);
 
     useEffect(() => resetEmojiPopoverAnchor, []);
 
@@ -64,8 +63,8 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                 onModalHide: () => {
                     setIsEmojiPickerActive?.(false);
                 },
-                onEmojiSelected: (emojiCode, emojiObject) => {
-                    onSelectEmoji(emojiObject);
+                onEmojiSelected: (emojiCode, emojiObject, preferredSkinTone) => {
+                    onSelectEmoji(emojiObject, preferredSkinTone);
                 },
                 emojiPopoverAnchor: refParam ?? ref,
                 anchorOrigin,
@@ -108,6 +107,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                 // disable dimming
                 pressDimmingValue={1}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                sentryLabel={CONST.SENTRY_LABEL.EMOJI_REACTIONS.ADD_REACTION_BUBBLE}
             >
                 {({hovered, pressed}) => (
                     <>
@@ -117,7 +117,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                         <Text style={[styles.opacity0, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu)]}>{'\u2800\u2800'}</Text>
                         <View style={styles.pAbsolute}>
                             <Icon
-                                src={expensifyIcons.AddReaction}
+                                src={Expensicons.AddReaction}
                                 width={isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
                                 height={isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
@@ -129,7 +129,5 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
         </Tooltip>
     );
 }
-
-AddReactionBubble.displayName = 'AddReactionBubble';
 
 export default AddReactionBubble;

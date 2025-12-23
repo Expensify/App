@@ -5,14 +5,12 @@ import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} fro
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
-// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {convertMillisecondsToTime} from '@components/VideoPlayer/utils';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -70,8 +68,6 @@ function VideoPlayerControls({
     const {updateCurrentURLAndReportID} = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const [shouldShowTime, setShouldShowTime] = useState(false);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
-
     const iconSpacing = small ? styles.mr3 : styles.mr4;
 
     const onLayout = (event: LayoutChangeEvent) => {
@@ -113,6 +109,7 @@ function VideoPlayerControls({
                             onPress={togglePlayCurrentVideo}
                             style={styles.mr2}
                             small={small}
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.PLAY_PAUSE_BUTTON}
                         />
                         {shouldShowTime && (
                             <View style={[styles.videoPlayerControlsRow]}>
@@ -130,12 +127,14 @@ function VideoPlayerControls({
                             onPress={enterFullScreenMode}
                             style={iconSpacing}
                             small={small}
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.FULLSCREEN_BUTTON}
                         />
                         <IconButton
-                            src={expensifyIcons.ThreeDots}
+                            src={Expensicons.ThreeDots}
                             tooltipText={translate('common.more')}
                             onPress={showPopoverMenu}
                             small={small}
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.MORE_BUTTON}
                         />
                     </View>
                 </View>
@@ -153,7 +152,5 @@ function VideoPlayerControls({
         </Animated.View>
     );
 }
-
-VideoPlayerControls.displayName = 'VideoPlayerControls';
 
 export default VideoPlayerControls;

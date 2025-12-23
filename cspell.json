@@ -1,5 +1,10 @@
 {
     "language": "en",
+    "enableGlobDot": false,
+    "cache": {
+        "useCache": true,
+        "cacheLocation": ".cspellcache"
+    },
     "words": [
         "--longpress",
         "Accelo",
@@ -16,8 +21,10 @@
         "Airplus",
         "airshipconfig",
         "airside",
+        "alrt",
         "Amal",
         "Amal's",
+        "americanexpress",
         "americanexpressfdx",
         "Amina",
         "androiddebugkey",
@@ -50,6 +57,7 @@
         "asar",
         "ASPAC",
         "assetlinks",
+        "accountid",
         "attributes.accountid",
         "attributes.reportid",
         "authorised",
@@ -92,8 +100,10 @@
         "Bronn",
         "BROWSABLE",
         "buildscript",
+        "shareeEmail",
         "Buildscript",
         "Bushwick",
+        "BYOC",
         "capitalone",
         "CAROOT",
         "Carta",
@@ -235,6 +245,7 @@
         "falso",
         "favicons",
         "Ferroalloy",
+        "FinancialForce",
         "firebaselogging",
         "firstname",
         "Fiscale",
@@ -490,6 +501,7 @@
         "pathspec",
         "Payoneer",
         "payrollcode",
+        "payrollid",
         "pbxproj",
         "pdfreport",
         "pdfs",
@@ -791,7 +803,8 @@
         "setuptools",
         "DYNAMICEXTERNAL",
         "RNCORE",
-        "Wooo"
+        "Wooo",
+        "Splittable"
     ],
     "ignorePaths": [
         "src/languages/de.ts",

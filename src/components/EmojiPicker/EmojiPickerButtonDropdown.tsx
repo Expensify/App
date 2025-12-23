@@ -42,7 +42,7 @@ function EmojiPickerButtonDropdown(
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Emoji']);
 
     useEffect(() => resetEmojiPopoverAnchor, []);
     const onPress = () => {
@@ -76,6 +76,7 @@ function EmojiPickerButtonDropdown(
                 id="emojiDropdownButton"
                 accessibilityLabel="statusEmoji"
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.BUTTON_DROPDOWN}
             >
                 {({hovered, pressed}) => (
                     <View style={styles.emojiPickerButtonDropdownContainer}>
@@ -87,7 +88,7 @@ function EmojiPickerButtonDropdown(
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 value || (
                                     <Icon
-                                        src={Expensicons.Emoji}
+                                        src={icons.Emoji}
                                         fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
                                     />
                                 )
@@ -95,7 +96,7 @@ function EmojiPickerButtonDropdown(
                         </Text>
                         <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, disabled && styles.cursorDisabled, styles.rotate90]}>
                             <Icon
-                                src={expensifyIcons.ArrowRight}
+                                src={Expensicons.ArrowRight}
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                             />
                         </View>
@@ -105,7 +106,5 @@ function EmojiPickerButtonDropdown(
         </Tooltip>
     );
 }
-
-EmojiPickerButtonDropdown.displayName = 'EmojiPickerButtonDropdown';
 
 export default EmojiPickerButtonDropdown;

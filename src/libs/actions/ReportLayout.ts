@@ -8,12 +8,9 @@ import type {ReportLayoutGroupBy} from '@src/types/onyx';
 
 /**
  * Set the user's report layout group-by preference
- * Uses existing SetNameValuePair API command for backward compatibility with OldDot
- * Implements Pattern A (Optimistic Without Feedback) - user gets instant visual feedback
- * via transaction regrouping, doesn't need to know about server sync status
  */
 function setReportLayoutGroupBy(groupBy: ReportLayoutGroupBy, previousValue?: string | null) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY,
@@ -21,7 +18,7 @@ function setReportLayoutGroupBy(groupBy: ReportLayoutGroupBy, previousValue?: st
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY,
@@ -38,8 +35,7 @@ function setReportLayoutGroupBy(groupBy: ReportLayoutGroupBy, previousValue?: st
 }
 
 /**
- * Get the current group-by preference, defaulting to 'mcc' (Category)
- * This matches OldDot behavior where no NVP set means Category grouping
+ * Get the current group-by preference, defaulting to category
  */
 function getReportLayoutGroupBy(storedValue: string | null | undefined): ReportLayoutGroupBy {
     if (!storedValue) {

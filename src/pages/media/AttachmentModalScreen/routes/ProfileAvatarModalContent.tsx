@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo} from 'react';
-import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {openPublicProfilePage} from '@libs/actions/PersonalDetails';
@@ -15,8 +14,6 @@ import type SCREENS from '@src/SCREENS';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.PROFILE_AVATAR>) {
-    const defaultAvatars = useDefaultAvatars();
-
     const {accountID = CONST.DEFAULT_NUMBER_ID, source: tempSource, originalFileName: tempOriginalFileName} = route.params;
 
     const {formatPhoneNumber} = useLocalize();
@@ -39,7 +36,7 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
 
     // Temp variables are coming as '' therefore || is needed
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const source = tempSource || getFullSizeAvatar({avatarSource: avatarURL, accountID, defaultAvatars});
+    const source = tempSource || getFullSizeAvatar({avatarSource: avatarURL, accountID});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalFileName = tempOriginalFileName || (personalDetail?.originalFileName ?? '');
     const headerTitle = formatPhoneNumber(displayName);
@@ -69,6 +66,5 @@ function ProfileAvatarModalContent({navigation, route}: AttachmentModalScreenPro
         />
     );
 }
-ProfileAvatarModalContent.displayName = 'ProfileAvatarModalContent';
 
 export default ProfileAvatarModalContent;

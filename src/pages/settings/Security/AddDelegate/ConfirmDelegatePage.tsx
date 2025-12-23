@@ -3,10 +3,10 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderPageLayout from '@components/HeaderPageLayout';
+import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,10 +27,9 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const login = route.params.login;
     const role = route.params.role as ValueOf<typeof CONST.DELEGATE_ROLE>;
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
 
     const personalDetails = getPersonalDetailByEmail(login);
-    const avatarIcon = personalDetails?.avatar ?? expensifyIcons.FallbackAvatar;
+    const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
     const formattedLogin = formatPhoneNumber(login ?? '');
     const displayName = personalDetails?.displayName ?? formattedLogin;
 
@@ -52,7 +51,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
         <HeaderPageLayout
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role))}
             title={translate('delegate.addCopilot')}
-            testID={ConfirmDelegatePage.displayName}
+            testID="ConfirmDelegatePage"
             footer={submitButton}
             childrenContainerStyles={[styles.pt3, styles.gap6]}
             keyboardShouldPersistTaps="handled"
@@ -79,7 +78,5 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
         </HeaderPageLayout>
     );
 }
-
-ConfirmDelegatePage.displayName = 'ConfirmDelegatePage';
 
 export default ConfirmDelegatePage;

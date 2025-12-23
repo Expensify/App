@@ -1,9 +1,10 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -31,19 +32,18 @@ type InviteReceiptPartnerPolicyPageProps = PlatformStackScreenProps<WorkspaceSpl
 
 function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['ToddInCar'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ToddInCar']);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<MemberForList[]>([]);
     const [isInvitationSent, setIsInvitationSent] = useState(false);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
 
     const policyID = route.params?.policyID;
     const policy = usePolicy(policyID);
     const shouldShowTextInput = policy?.employeeList && Object.keys(policy.employeeList).length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-    const textInputLabel = shouldShowTextInput ? translate('common.search') : undefined;
     const workspaceMembers = useMemo(() => {
         let membersList: MemberForList[] = [];
         if (!policy?.employeeList) {
@@ -77,7 +77,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
                     accountID: personalDetail?.accountID,
                     icons: [
                         {
-                            source: personalDetail?.avatar ?? expensifyIcons.FallbackAvatar,
+                            source: personalDetail?.avatar ?? icons.FallbackAvatar,
                             name: formatPhoneNumber(email),
                             type: CONST.ICON_TYPE_AVATAR,
                             id: personalDetail?.accountID,
@@ -95,9 +95,9 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [isOffline, policy?.employeeList, policy?.receiptPartners?.uber?.employees, localeCompare, expensifyIcons.FallbackAvatar]);
+    }, [policy?.employeeList, policy?.receiptPartners?.uber?.employees, localeCompare, isOffline, icons.FallbackAvatar]);
 
-    const sections = useMemo(() => {
+    const data = useMemo(() => {
         if (workspaceMembers.length === 0) {
             return [];
         }
@@ -132,13 +132,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
             allMembersWithState.push({...member, isSelected: false});
         }
 
-        return [
-            {
-                title: undefined,
-                data: allMembersWithState,
-                shouldShow: true,
-            },
-        ];
+        return allMembersWithState;
     }, [workspaceMembers, countryCode, debouncedSearchTerm, selectedOptions]);
 
     // Pre-select all members only once on first load.
@@ -175,8 +169,8 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
     const headerMessage = useMemo(() => {
         const searchValue = debouncedSearchTerm.trim().toLowerCase();
 
-        return getHeaderMessage(sections?.at(0)?.data.length !== 0, false, searchValue, countryCode, false);
-    }, [debouncedSearchTerm, sections, countryCode]);
+        return getHeaderMessage(data.length !== 0, false, searchValue, countryCode, false);
+    }, [debouncedSearchTerm, data.length, countryCode]);
 
     const handleConfirm = useCallback(() => {
         if (selectedOptions.length === 0) {
@@ -199,9 +193,30 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         return workspaceMembers.length === 0;
     }, [workspaceMembers.length]);
 
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            onConfirm: handleConfirm,
+            text: translate('workspace.receiptPartners.uber.confirm'),
+            isDisabled: selectedOptions.length === 0,
+        }),
+        [handleConfirm, selectedOptions.length, translate],
+    );
+
+    const textInputOptions = useMemo(
+        () => ({
+            headerMessage,
+            label: shouldShowTextInput ? translate('common.search') : undefined,
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            shouldBeInsideList: true,
+        }),
+        [headerMessage, searchTerm, setSearchTerm, shouldShowTextInput, translate],
+    );
+
     if (isInvitationSent || shouldSkipToAllSet) {
         return (
-            <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
+            <ScreenWrapper testID="InviteReceiptPartnerPolicyPage">
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.allSet')}
                     onBackButtonPress={() => Navigation.dismissModal()}
@@ -226,37 +241,27 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
-            <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
+            <ScreenWrapper testID="InviteReceiptPartnerPolicyPage">
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.sendInvites')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <SelectionList
-                    canSelectMultiple
-                    textInputLabel={textInputLabel}
-                    textInputValue={searchTerm}
-                    onChangeText={setSearchTerm}
-                    sections={sections}
-                    headerContent={<Text style={[styles.ph5, styles.pb3]}>{translate('workspace.receiptPartners.uber.sendInvitesDescription')}</Text>}
-                    shouldShowTextInputAfterHeader
-                    shouldShowListEmptyContent={false}
-                    shouldUpdateFocusedIndex
-                    shouldShowHeaderMessageAfterHeader
-                    headerMessage={headerMessage}
+                    data={data}
                     ListItem={UserListItem}
-                    shouldUseDefaultRightHandSideCheckmark
                     onSelectRow={toggleOption}
-                    showConfirmButton
-                    confirmButtonText={translate('workspace.receiptPartners.uber.confirm')}
-                    onConfirm={handleConfirm}
-                    isConfirmButtonDisabled={selectedOptions.length === 0}
+                    customListHeader={<Text style={[styles.ph5, styles.pb3]}>{translate('workspace.receiptPartners.uber.sendInvitesDescription')}</Text>}
+                    confirmButtonOptions={confirmButtonOptions}
+                    textInputOptions={textInputOptions}
+                    showListEmptyContent={false}
+                    shouldUseDefaultRightHandSideCheckmark
+                    disableMaintainingScrollPosition
                     addBottomSafeAreaPadding
+                    canSelectMultiple
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-InviteReceiptPartnerPolicyPage.displayName = 'InviteReceiptPartnerPolicyPage';
 
 export default InviteReceiptPartnerPolicyPage;

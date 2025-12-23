@@ -12,7 +12,6 @@ import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Avatar from './Avatar';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
@@ -80,18 +79,18 @@ function AvatarButtonWithIcon({
     onPress,
     source = '',
     avatarID,
-    fallbackIcon,
+    fallbackIcon = Expensicons.FallbackAvatar,
     size = CONST.AVATAR_SIZE.DEFAULT,
     type = CONST.ICON_TYPE_AVATAR,
     avatarStyle,
     disabled = false,
-    editIcon = Expensicons.Pencil,
+    editIcon,
     anchorRef,
     name = '',
 }: AvatarButtonWithIconProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Pencil']);
 
     return (
         <Tooltip
@@ -114,7 +113,7 @@ function AvatarButtonWithIcon({
                             imageStyles={[styles.alignSelfCenter, avatarStyle]}
                             source={source}
                             avatarID={avatarID}
-                            fallbackIcon={fallbackIcon ?? expensifyIcons.FallbackAvatar}
+                            fallbackIcon={fallbackIcon}
                             size={size}
                             type={type}
                             name={name}
@@ -127,7 +126,7 @@ function AvatarButtonWithIcon({
                     <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
                         <Icon
                             testID="avatar-button-edit-icon"
-                            src={editIcon}
+                            src={editIcon ?? expensifyIcons.Pencil}
                             width={variables.iconSizeSmall}
                             height={variables.iconSizeSmall}
                             fill={theme.icon}
@@ -138,8 +137,6 @@ function AvatarButtonWithIcon({
         </Tooltip>
     );
 }
-
-AvatarButtonWithIcon.displayName = 'AvatarButtonWithIcon';
 
 export default AvatarButtonWithIcon;
 export type {AvatarButtonWithIconProps};
