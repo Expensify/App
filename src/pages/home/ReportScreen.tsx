@@ -1051,7 +1051,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                     </View>
                                 </View>
                                 <PortalHost name="suggestions" />
-                                </ReportLevelActionsContextProvider>
                             </DragAndDropProvider>
                         </FullPageNotFoundView>
                     </ScreenWrapper>
