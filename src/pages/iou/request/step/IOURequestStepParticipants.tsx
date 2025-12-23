@@ -18,7 +18,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID, isSelfDM} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -358,7 +358,20 @@ function IOURequestStepParticipants({
                 });
             }
         });
-    }, [action, participants, iouType, initialTransaction, transactions, initialTransactionID, reportID, waitForKeyboardDismiss, isMovingTransactionFromTrackExpense, backTo, introSelected]);
+    }, [
+        action,
+        participants,
+        iouType,
+        initialTransaction,
+        transactions,
+        initialTransactionID,
+        reportID,
+        waitForKeyboardDismiss,
+        isMovingTransactionFromTrackExpense,
+        backTo,
+        introSelected,
+        selfDMReportID,
+    ]);
 
     const navigateBack = useCallback(() => {
         if (backTo) {
