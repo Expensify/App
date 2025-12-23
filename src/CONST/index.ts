@@ -2930,7 +2930,7 @@ const CONST = {
             DISTANCE_MAP: 'distance-map',
             DISTANCE_MANUAL: 'distance-manual',
             DISTANCE_GPS: 'distance-gps',
-            DISTANCE_ODOMETER: 'odometer',
+            DISTANCE_ODOMETER: 'distance-odometer',
         },
 
         REPORT_ACTION_TYPE: {

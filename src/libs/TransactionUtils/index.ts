@@ -272,7 +272,8 @@ function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CON
         return CONST.IOU.EXPENSE_TYPE.EXPENSIFY_CARD;
     }
 
-    return getRequestType(transaction);
+    const requestType = getRequestType(transaction);
+    return requestType as ValueOf<typeof CONST.IOU.EXPENSE_TYPE>;
 }
 
 /**
