@@ -76,12 +76,22 @@ const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardF
     };
 };
 
+const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
+
 export {
+    
     domainMemberSamlSettingsSelector,
+   
     domainSamlSettingsStateSelector,
+   
     domainNameSelector,
+   
     metaIdentitySelector,
+   
     adminAccountIDsSelector,
+   
     technicalContactSettingsSelector,
+    domainEmailSelector,
+,
     selectMemberIDs,
 };

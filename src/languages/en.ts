@@ -2269,25 +2269,7 @@ const translations = {
     },
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
-        title: 'Set approver',
-        description: 'This person will approve the expenses.',
-    },
-    workflowsApprovalLimitPage: {
-        title: 'Approver',
-        header: '(Optional) Want to add an approval limit?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Add another approver when <strong>${approverName}</strong> is approver and report exceeds the amount below:`
-                : 'Add another approver when a report exceeds the amount below:',
-        reportAmountLabel: 'Report amount',
-        additionalApproverLabel: 'Additional approver',
-        skip: 'Skip',
-        next: 'Next',
-        removeLimit: 'Remove limit',
-        enterAmountError: 'Please enter a valid amount',
-        enterApproverError: 'Approver is required when you set a report limit',
-        enterBothError: 'Enter a report amount and additional approver',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Reports above ${approvalLimit} forward to ${approverName}`,
+        header: 'Send to this member for approval:',
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -2851,6 +2833,7 @@ const translations = {
     },
     personalDetails: {
         error: {
+            cannotContainSpecialCharacters: 'Name cannot contain special characters',
             containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
             requiredFirstName: 'First name cannot be empty',
@@ -7868,11 +7851,15 @@ const translations = {
             findAdmin: 'Find admin',
             primaryContact: 'Primary contact',
             addPrimaryContact: 'Add primary contact',
+            setPrimaryContactError: 'Unable to set primary contact. Please try again later.',
             settings: 'Settings',
             consolidatedDomainBilling: 'Consolidated domain billing',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>When enabled, the primary contact will pay for all workspaces owned by <strong>${domainName}</strong> members and receive all billing receipts.</muted-text-label></comment>`,
             consolidatedDomainBillingError: "Consolidated domain billing couldn't be changed. Please try again later.",
+            addAdmin: 'Add admin',
+            invite: 'Invite',
+            addAdminError: 'Unable to add this member as an admin. Please try again.',
         },
         members: {
             title: 'Members',
