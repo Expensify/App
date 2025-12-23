@@ -72,7 +72,8 @@ Onyx.connect({
 });
 
 let policyOwnershipChecks: Record<string, PolicyOwnershipChangeChecks>;
-Onyx.connect({
+/** We use `connectWithoutView` here since this connection only stores non-reactive data that is needed across different pages */
+Onyx.connectWithoutView({
     key: ONYXKEYS.POLICY_OWNERSHIP_CHANGE_CHECKS,
     callback: (value) => {
         policyOwnershipChecks = value ?? {};

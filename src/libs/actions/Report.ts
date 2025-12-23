@@ -1274,7 +1274,6 @@ function openReport(
         // Add optimistic personal details for new participants
         const optimisticPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
         const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
-        const redundantParticipants: Record<number, null> = {};
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         for (const [index, login] of participantLoginList.entries()) {
             const accountID = participantAccountIDs.at(index) ?? -1;
@@ -1291,9 +1290,6 @@ function openReport(
                 isOptimisticPersonalDetail: true,
             };
             settledPersonalDetails[accountID] = null;
-
-            // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
-            redundantParticipants[accountID] = null;
         }
 
         successData.push(
@@ -1301,7 +1297,6 @@ function openReport(
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                 value: {
-                    participants: redundantParticipants,
                     pendingFields: {
                         createChat: null,
                         reportName: null,
@@ -1324,11 +1319,6 @@ function openReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: optimisticPersonalDetails,
-        });
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: settledPersonalDetails,
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1375,6 +1365,25 @@ function openReport(
             checkAndFixConflictingRequest: (persistedRequests) => resolveOpenReportDuplicationConflictAction(persistedRequests, parameters),
         });
     }
+}
+
+function prepareOnyxDataForCleanUpOptimisticParticipants(
+    reportID: string,
+): {settledPersonalDetails: OnyxEntry<PersonalDetailsList>; redundantParticipants: Record<number, null>} | undefined {
+    const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    if (!existingReport?.participants) {
+        return undefined;
+    }
+    const settledPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
+    const redundantParticipants: Record<number, null> = {};
+    for (const accountID in existingReport.participants) {
+        if (!allPersonalDetails?.[accountID]?.isOptimisticPersonalDetail) {
+            continue;
+        }
+        settledPersonalDetails[accountID] = null;
+        redundantParticipants[accountID] = null;
+    }
+    return {settledPersonalDetails, redundantParticipants};
 }
 
 /**
@@ -6380,4 +6389,5 @@ export {
     openUnreportedExpense,
     optimisticReportLastData,
     setOptimisticTransactionThread,
+    prepareOnyxDataForCleanUpOptimisticParticipants,
 };

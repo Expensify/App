@@ -354,7 +354,7 @@ function clearPendingContactActionErrors() {
  * So we add the temporary contact method to Onyx to use it later, after user verified magic code.
  */
 function addPendingContactMethod(contactMethod: string) {
-    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
+    Onyx.set(ONYXKEYS.PENDING_CONTACT_ACTION, {
         contactMethod,
     });
 }
@@ -662,7 +662,8 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
 
 const isChannelMuted = (reportId: string) =>
     new Promise((resolve) => {
-        const connection = Onyx.connect({
+        // We use `connectWithoutView` here since this connection is non-reactive in nature.
+        const connection = Onyx.connectWithoutView({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
                 Onyx.disconnect(connection);
