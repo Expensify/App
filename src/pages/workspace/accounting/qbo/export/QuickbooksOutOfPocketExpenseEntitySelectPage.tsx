@@ -128,7 +128,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
+            displayName="QuickbooksOutOfPocketExpenseEntitySelectPage"
             sections={sections}
             listItem={RadioListItem}
             onBackButtonPress={goBack}
@@ -151,7 +151,5 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
         />
     );
 }
-
-QuickbooksOutOfPocketExpenseEntitySelectPage.displayName = 'QuickbooksOutOfPocketExpenseEntitySelectPage';
 
 export default withPolicyConnections(QuickbooksOutOfPocketExpenseEntitySelectPage);

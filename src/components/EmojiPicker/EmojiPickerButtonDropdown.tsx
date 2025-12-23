@@ -3,11 +3,13 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -40,6 +42,7 @@ function EmojiPickerButtonDropdown(
     const StyleUtils = useStyleUtils();
     const emojiPopoverAnchor = useRef(null);
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Emoji']);
 
     useEffect(() => resetEmojiPopoverAnchor, []);
     const onPress = () => {
@@ -73,6 +76,7 @@ function EmojiPickerButtonDropdown(
                 id="emojiDropdownButton"
                 accessibilityLabel="statusEmoji"
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.BUTTON_DROPDOWN}
             >
                 {({hovered, pressed}) => (
                     <View style={styles.emojiPickerButtonDropdownContainer}>
@@ -84,7 +88,7 @@ function EmojiPickerButtonDropdown(
                                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                                 value || (
                                     <Icon
-                                        src={Expensicons.Emoji}
+                                        src={icons.Emoji}
                                         fill={StyleUtils.getIconFillColor(CONST.BUTTON_STATES.DISABLED)}
                                     />
                                 )
@@ -102,7 +106,5 @@ function EmojiPickerButtonDropdown(
         </Tooltip>
     );
 }
-
-EmojiPickerButtonDropdown.displayName = 'EmojiPickerButtonDropdown';
 
 export default EmojiPickerButtonDropdown;

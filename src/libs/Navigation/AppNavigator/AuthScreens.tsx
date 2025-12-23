@@ -303,7 +303,7 @@ function AuthScreens() {
                 if (Navigation.isOnboardingFlow()) {
                     return;
                 }
-                Modal.close(Session.callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.NEW)));
+                Session.callFunctionIfActionIsAllowed(() => Modal.close(() => Navigation.navigate(ROUTES.NEW)))();
             },
             chatShortcutConfig.descriptionKey,
             chatShortcutConfig.modifiers,
@@ -723,8 +723,6 @@ function AuthScreens() {
         </ComposeProviders>
     );
 }
-
-AuthScreens.displayName = 'AuthScreens';
 
 const AuthScreensMemoized = memo(AuthScreens, () => true);
 

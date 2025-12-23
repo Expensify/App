@@ -88,6 +88,7 @@ function IOURequestStepDistanceManual({
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
@@ -221,6 +222,7 @@ function IOURequestStepDistanceManual({
                                 attendees: transaction?.comment?.attendees,
                             },
                             isASAPSubmitBetaEnabled,
+                            quickAction,
                         });
                         return;
                     }
@@ -250,6 +252,7 @@ function IOURequestStepDistanceManual({
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
                         quickAction,
+                        policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     });
                     return;
                 }
@@ -340,7 +343,7 @@ function IOURequestStepDistanceManual({
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
-            testID={IOURequestStepDistanceManual.displayName}
+            testID="IOURequestStepDistanceManual"
             shouldShowNotFoundPage={false}
             shouldShowWrapper={!isCreatingNewRequest}
             includeSafeAreaPaddingBottom
@@ -382,8 +385,6 @@ function IOURequestStepDistanceManual({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepDistanceManual.displayName = 'IOURequestStepDistanceManual';
 
 const IOURequestStepDistanceManualWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceManual);
 // eslint-disable-next-line rulesdir/no-negated-variables

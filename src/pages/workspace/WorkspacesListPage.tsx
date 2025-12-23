@@ -22,7 +22,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
-import WorkspacesEmptyStateComponent from '@components/WorkspacesEmptyStateComponent';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleBackButton from '@hooks/useHandleBackButton';
@@ -72,6 +71,7 @@ import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import WorkspacesEmptyStateComponent from './WorkspacesEmptyStateComponent';
 import WorkspacesListPageHeaderButton from './WorkspacesListPageHeaderButton';
 import WorkspacesListRow from './WorkspacesListRow';
 
@@ -121,7 +121,7 @@ function isUserReimburserForPolicy(policies: Record<string, PolicyType | undefin
 }
 
 function WorkspacesListPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'FallbackWorkspaceAvatar']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Building', 'Exit', 'Copy', 'Star', 'Trashcan', 'Transfer', 'Plus', 'FallbackWorkspaceAvatar']);
@@ -217,6 +217,7 @@ function WorkspacesListPage() {
             reimbursementAccountError,
             bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
+            localeCompare,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
@@ -502,11 +503,11 @@ function WorkspacesListPage() {
         [shouldUseNarrowLayout],
     );
 
-    const navigateToDomain = useCallback(({accountID, isAdmin}: {accountID: number; isAdmin: boolean}) => {
+    const navigateToDomain = useCallback(({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
         if (!isAdmin) {
-            return Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.getRoute(accountID));
+            return Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ACCESS_RESTRICTED.getRoute(domainAccountID));
         }
-        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(accountID));
+        Navigation.navigate(ROUTES.DOMAIN_INITIAL.getRoute(domainAccountID));
     }, []);
 
     /**
@@ -584,7 +585,7 @@ function WorkspacesListPage() {
         }
 
         return Object.values(allDomains).reduce<DomainItem[]>((domainItems, domain) => {
-            if (!domain) {
+            if (!domain || !domain.accountID || !domain.email) {
                 return domainItems;
             }
 
@@ -593,7 +594,7 @@ function WorkspacesListPage() {
                 listItemType: 'domain',
                 accountID: domain.accountID,
                 title: Str.extractEmailDomain(domain.email),
-                action: () => navigateToDomain({accountID: domain.accountID, isAdmin}),
+                action: () => navigateToDomain({domainAccountID: domain.accountID, isAdmin}),
                 isAdmin,
                 isValidated: domain.validated,
                 pendingAction: domain.pendingAction,
@@ -729,7 +730,7 @@ function WorkspacesListPage() {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={WorkspacesListPage.displayName}
+            testID="WorkspacesListPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={
                 shouldUseNarrowLayout && (
@@ -808,7 +809,5 @@ function WorkspacesListPage() {
         </ScreenWrapper>
     );
 }
-
-WorkspacesListPage.displayName = 'WorkspacesListPage';
 
 export default WorkspacesListPage;
