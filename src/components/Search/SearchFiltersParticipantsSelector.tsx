@@ -2,6 +2,7 @@ import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import UserSelectionListItem from '@components/SelectionListWithSections/Search/UserSelectionListItem';
 import useLocalize from '@hooks/useLocalize';
@@ -252,7 +253,5 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         />
     );
 }
-
-SearchFiltersParticipantsSelector.displayName = 'SearchFiltersParticipantsSelector';
 
 export default SearchFiltersParticipantsSelector;
