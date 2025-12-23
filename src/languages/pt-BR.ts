@@ -1009,15 +1009,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: 'Assinatura',
         domains: 'Domínios',
     },
-    tabSelector: {
-        chat: 'Chat',
-        room: 'Sala',
-        distance: 'Distância',
-        manual: 'Manual',
-        scan: 'Escanear',
-        map: 'Mapa',
-        gps: 'GPS',
-    },
+    tabSelector: {chat: 'Chat', room: 'Sala', distance: 'Distância', manual: 'Manual', scan: 'Escanear', map: 'Mapa', gps: 'GPS', odometer: 'Hodômetro'},
     spreadsheet: {
         upload: 'Enviar uma planilha',
         import: 'Importar planilha',
@@ -1356,6 +1348,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Taxa inválida para este workspace. Selecione uma taxa disponível do workspace.',
             endDateBeforeStartDate: 'A data de término não pode ser anterior à data de início',
             endDateSameAsStartDate: 'A data de término não pode ser igual à data de início',
+            odometerReadingRequired: 'Insira as leituras de início e de fim',
+            negativeDistanceNotAllowed: 'A leitura final deve ser maior que a leitura inicial',
         },
         dismissReceiptError: 'Dispensar erro',
         dismissReceiptErrorConfirmation: 'Atenção! Ignorar este erro removerá completamente o seu recibo enviado. Tem certeza?',
@@ -7170,6 +7164,14 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         },
         error: {
             selectSuggestedAddress: 'Selecione um endereço sugerido ou use a localização atual',
+        },
+        odometer: {
+            startReading: 'Começar a ler',
+            endReading: 'Finalizar leitura',
+            saveForLater: 'Salvar para depois',
+            totalDistance: 'Distância total',
+            readingRequired: 'Leituras inicial e final são obrigatórias',
+            negativeDistanceNotAllowed: 'A leitura final deve ser maior que a leitura inicial',
         },
     },
     reportCardLostOrDamaged: {

@@ -998,15 +998,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: '订阅',
         domains: '域名',
     },
-    tabSelector: {
-        chat: '聊天',
-        room: '房间',
-        distance: '距离',
-        manual: '手动',
-        scan: '扫描',
-        map: '地图',
-        gps: 'GPS',
-    },
+    tabSelector: {chat: '聊天', room: '房间', distance: '距离', manual: '手动', scan: '扫描', map: '地图', gps: 'GPS', odometer: '里程表'},
     spreadsheet: {
         upload: '上传电子表格',
         import: '导入电子表格',
@@ -1336,6 +1328,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: '此汇率对该工作区无效。请选择此工作区中的可用汇率。',
             endDateBeforeStartDate: '结束日期不能早于开始日期',
             endDateSameAsStartDate: '结束日期不能与开始日期相同',
+            odometerReadingRequired: '请输入起始读数和结束读数',
+            negativeDistanceNotAllowed: '结束读数必须大于开始读数',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒！关闭此错误会完全删除你上传的收据。确定要继续吗？',
@@ -7026,6 +7020,14 @@ ${reportName}
         },
         error: {
             selectSuggestedAddress: '请选择一个建议地址或使用当前位置',
+        },
+        odometer: {
+            startReading: '开始阅读',
+            endReading: '结束阅读',
+            saveForLater: '稍后保存',
+            totalDistance: '总距离',
+            readingRequired: '必须提供起始读数和结束读数',
+            negativeDistanceNotAllowed: '结束读数必须大于开始读数',
         },
     },
     reportCardLostOrDamaged: {
