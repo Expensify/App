@@ -41,6 +41,14 @@ import LaptopOnDeskWithCoffeeAndKey from '@assets/images/laptop-on-desk-with-cof
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
+// Multifactor Authentication Illustrations
+import ApprovedTransactionHand from '@assets/images/multifactorAuthentication/approved-transaction-hand.svg';
+import DeniedTransactionHand from '@assets/images/multifactorAuthentication/denied-transaction-hand.svg';
+import EncryptionMan from '@assets/images/multifactorAuthentication/encryption-man.svg';
+import HumptyDumpty from '@assets/images/multifactorAuthentication/humpty-dumpty.svg';
+import OpenPadlock from '@assets/images/multifactorAuthentication/open-padlock.svg';
+import RunOutOfTime from '@assets/images/multifactorAuthentication/running-out-of-time.svg';
+import SmartScanStatic from '@assets/images/multifactorAuthentication/smart-scan-static.svg';
 import PendingTravel from '@assets/images/pending-travel.svg';
 // Product Illustrations
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
@@ -333,6 +341,15 @@ const Illustrations = {
     LaptopOnDeskDeprecated,
     Clock,
     Members,
+
+    // Multifactor Authentication Illustrations
+    OpenPadlock,
+    ApprovedTransactionHand,
+    DeniedTransactionHand,
+    RunOutOfTime,
+    HumptyDumpty,
+    EncryptionMan,
+    SmartScanStatic,
 };
 
 /**

@@ -1050,6 +1050,7 @@ function PureReportActionItem({
                     children = (
                         <View style={[styles.mt1, styles.w100]}>
                             <TransactionPreview
+                                displayTestMultifactorAuthenticationButton
                                 allReports={allReports}
                                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
                                 chatReportID={reportID}

@@ -1,10 +1,8 @@
 import truncate from 'lodash/truncate';
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import {DotIndicator} from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
@@ -34,6 +32,7 @@ import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUPayerAndReceiver, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
 import {isManagedCardTransaction as isCardTransactionUtils, isMapDistanceRequest, isScanning} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,8 +61,10 @@ function TransactionPreviewContent({
     shouldShowPayerAndReceiver,
     navigateToReviewFields,
     isReviewDuplicateTransactionPage = false,
+    // TODO: MFA/Release Remove this before the actual release
+    displayTestMultifactorAuthenticationButton = false,
 }: TransactionPreviewContentProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag']);
+    const icons = useMemoizedLazyExpensifyIcons(['Folder', 'Tag', 'DotIndicator']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -213,6 +214,16 @@ function TransactionPreviewContent({
         action,
         actorAccountID,
     ]);
+
+    const navigateToMultifactorAuthentication = useCallback(() => {
+        const {transactionID} = transaction ?? {};
+
+        if (!transactionID) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_APPROVE_TRANSACTION.getRoute(transactionID));
+    }, [transaction]);
 
     const shouldWrapDisplayAmount = !(isBillSplit || shouldShowMerchantOrDescription || isTransactionScanning);
     const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
@@ -371,7 +382,7 @@ function TransactionPreviewContent({
                                 {!isIOUSettled && shouldShowRBR && (
                                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                                         <Icon
-                                            src={DotIndicator}
+                                            src={icons.DotIndicator}
                                             fill={theme.danger}
                                             height={variables.iconSizeExtraSmall}
                                             width={variables.iconSizeExtraSmall}
@@ -393,6 +404,14 @@ function TransactionPreviewContent({
                             success
                             style={[styles.ph4, styles.pb4]}
                             onPress={navigateToReviewFields}
+                        />
+                    )}
+                    {displayTestMultifactorAuthenticationButton && (
+                        <Button
+                            text={translate('iou.approve', {formattedAmount: '(MultifactorAuthentication test)'})}
+                            success
+                            style={[styles.ph4, styles.pb4]}
+                            onPress={navigateToMultifactorAuthentication}
                         />
                     )}
                 </View>

@@ -58,7 +58,7 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus', 'Shield']);
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus', 'Shield', 'Fingerprint']);
     const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
@@ -89,6 +89,8 @@ function SecuritySettingsPage() {
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
+
+    const [userHasRegisteredOnAtLeastOneDevice] = useState(true);
 
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
@@ -171,6 +173,24 @@ function SecuritySettingsPage() {
             },
         ];
 
+        if (userHasRegisteredOnAtLeastOneDevice) {
+            baseMenuItems.splice(1, 0, {
+                translationKey: 'multifactorAuthentication.revokeAccess.faceOrFingerprintVerification',
+                icon: icons.Fingerprint,
+                action: () => {
+                    if (isDelegateAccessRestricted) {
+                        showDelegateNoAccessModal();
+                        return;
+                    }
+                    if (isAccountLocked) {
+                        showLockedAccountModal();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.MULTIFACTOR_AUTHENTICATION_REVOKE);
+                },
+            });
+        }
+
         if (isAccountLocked) {
             baseMenuItems.push({
                 translationKey: 'lockAccountPage.unlockAccount',
@@ -211,8 +231,10 @@ function SecuritySettingsPage() {
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
     }, [
+        icons.Fingerprint,
         icons.UserLock,
         icons.Shield,
+        userHasRegisteredOnAtLeastOneDevice,
         isAccountLocked,
         isDelegateAccessRestricted,
         isUserValidated,

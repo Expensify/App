@@ -271,6 +271,7 @@ const SCREENS = {
         MERGE_TRANSACTION: 'MergeTransaction',
         REPORT_CARD_ACTIVATE: 'Report_Card_Activate',
         DOMAIN: 'Domain',
+        MULTIFACTOR_AUTHENTICATION: 'MultifactorAuthentication',
     },
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
     PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
@@ -867,6 +868,15 @@ const SCREENS = {
         ADMINS_SETTINGS: 'Admins_Settings',
         ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
         ADD_ADMIN: 'Domain_Add_Admin',
+    },
+    MULTIFACTOR_AUTHENTICATION: {
+        MAGIC_CODE: 'Multifactor_Authentication_Magic_Code',
+        BIOMETRICS_TEST: 'Multifactor_Authentication_Biometrics_Test',
+        NOTIFICATION: 'Multifactor_Authentication_Notification',
+        APPROVE_TRANSACTION: 'Multifactor_Authentication_Approve_Transaction',
+        PROMPT: 'Multifactor_Authentication_Prompt',
+        REVOKE: 'Multifactor_Authentication_Revoke',
+        NOT_FOUND: 'Multifactor_Authentication_Not_Found',
     },
 } as const;
 
