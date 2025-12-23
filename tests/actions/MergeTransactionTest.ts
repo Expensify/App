@@ -604,11 +604,13 @@ describe('areTransactionsEligibleForMerge', () => {
             const distanceTransaction1 = {
                 ...createRandomDistanceRequestTransaction(0),
                 amount: 1000,
+                managedCard: false,
                 cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
             const distanceTransaction2 = {
                 ...createRandomDistanceRequestTransaction(1),
                 amount: 2000,
+                managedCard: false,
                 cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
 
