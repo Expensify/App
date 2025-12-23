@@ -25,6 +25,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     isLoading,
     isFocused,
     showTooltip,
+    columns,
     canSelectMultiple,
     onSelectRow,
     onFocus,
@@ -42,7 +43,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     const snapshotData = snapshot?.data;
 
@@ -158,7 +159,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
             {(hovered) => (
                 <View style={[styles.flex1]}>
                     <ExpenseReportListItemRow
+                        hash={currentSearchHash}
                         item={reportItem}
+                        columns={columns}
                         policy={snapshotPolicy}
                         isActionLoading={isActionLoading ?? isLoading}
                         showTooltip={showTooltip}
@@ -177,7 +180,5 @@ function ExpenseReportListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-ExpenseReportListItem.displayName = 'ExpenseReportListItem';
 
 export default ExpenseReportListItem;

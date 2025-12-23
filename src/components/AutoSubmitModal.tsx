@@ -21,7 +21,7 @@ function AutoSubmitModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['PaperAirplane', 'Pencil', 'ReceiptsStackedOnPin'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PaperAirplane', 'Pencil', 'ReceiptsStackedOnPin']);
     const menuSections = useMemo(
         () => [
             {
@@ -90,4 +90,3 @@ function AutoSubmitModal() {
 }
 
 export default AutoSubmitModal;
-AutoSubmitModal.displayName = 'AutoSubmitModal';
