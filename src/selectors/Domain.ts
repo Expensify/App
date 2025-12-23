@@ -53,6 +53,8 @@ const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardF
     };
 };
 
+const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
+
 /**
  * Extracts a list of member IDs (accountIDs) from the domain object.
  * * It iterates through the security groups in the domain, extracts account IDs from the 'shared' property,
@@ -120,4 +122,5 @@ export {
     selectMemberIDs,
     selectSecurityGroupIDsForAccount,
     memberPendingActionSelector,
+    domainEmailSelector,
 };
