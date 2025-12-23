@@ -1603,7 +1603,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Aucune autre action requise !`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Aucune autre action requise!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
@@ -1637,11 +1637,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente que <strong>vous</strong> corrigiez le(s) problème(s).`;
+                        return `En attente que <strong>vous</strong> corrigiez les problèmes.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `En attente que <strong>${actor}</strong> corrige le(s) problème(s).`;
+                        return `En attente que <strong>${actor}</strong> corrige les problèmes.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `En attente qu’un administrateur corrige le(s) problème(s).`;
+                        return `En attente qu’un administrateur corrige les problèmes.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2161,6 +2161,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Confirmez votre compte bancaire',
         personalBankAccounts: 'Comptes bancaires personnels',
         businessBankAccounts: 'Comptes bancaires professionnels',
+        shareBankAccount: 'Partager le compte bancaire',
+        bankAccountShared: 'Compte bancaire partagé',
+        shareBankAccountTitle: 'Sélectionnez les administrateurs avec lesquels partager ce compte bancaire:',
+        shareBankAccountSuccess: 'Compte bancaire partagé!',
+        shareBankAccountSuccessDescription: 'Les administrateurs sélectionnés recevront un message de confirmation de Concierge.',
+        shareBankAccountFailure: "Une erreur inattendue s'est produite lors de la tentative de partage du compte bancaire. Veuillez réessayer.",
+        shareBankAccountEmptyTitle: 'Aucun administrateur disponible',
+        shareBankAccountEmptyDescription: "Aucun administrateur d'espace de travail n'est disponible pour partager ce compte bancaire.",
+        shareBankAccountNoAdminsSelected: 'Veuillez sélectionner un administrateur avant de continuer',
     },
     cardPage: {
         expensifyCard: 'Carte Expensify',
@@ -2869,6 +2878,7 @@ ${
             containsReservedWord: 'Le nom ne peut pas contenir les mots Expensify ou Concierge',
             hasInvalidCharacter: 'Le nom ne peut pas contenir de virgule ou de point-virgule',
             requiredFirstName: 'Le prénom ne peut pas être vide',
+            cannotContainSpecialCharacters: 'Le nom ne peut pas contenir de caractères spéciaux',
         },
     },
     privatePersonalDetails: {
@@ -3884,7 +3894,6 @@ ${
                 monthly: 'Mensuel',
             },
             planType: 'Type d’abonnement',
-            submitExpense: 'Soumettez vos notes de frais ci-dessous :',
             defaultCategory: 'Catégorie par défaut',
             viewTransactions: 'Afficher les transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Notes de frais de ${displayName}`,
@@ -7988,7 +7997,21 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             subtitle: "Exiger que les membres de votre domaine se connectent via l'authentification unique, restreindre la création d'espaces de travail, et plus encore.",
             enable: 'Activer',
         },
-        admins: {title: 'Admins', findAdmin: 'Trouver un admin', primaryContact: 'Contact principal', addPrimaryContact: 'Ajouter un contact principal', settings: 'Paramètres'},
+        admins: {
+            title: 'Admins',
+            findAdmin: 'Trouver un admin',
+            primaryContact: 'Contact principal',
+            addPrimaryContact: 'Ajouter un contact principal',
+            setPrimaryContactError: 'Impossible de définir le contact principal. Veuillez réessayer plus tard.',
+            settings: 'Paramètres',
+            consolidatedDomainBilling: 'Facturation consolidée du domaine',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>Lorsque cette option est activée, le contact principal paiera pour tous les espaces de travail appartenant aux membres de <strong>${domainName}</strong> et recevra tous les reçus de facturation.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'La facturation de domaine consolidée n’a pas pu être modifiée. Veuillez réessayer plus tard.',
+            addAdmin: 'Ajouter un administrateur',
+            invite: 'Inviter',
+            addAdminError: 'Impossible d’ajouter ce membre en tant qu’administrateur. Veuillez réessayer.',
+        },
     },
     desktopAppRetiredPage: {
         title: 'L’application de bureau a été retirée',
