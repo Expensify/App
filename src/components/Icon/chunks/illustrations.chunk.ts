@@ -26,6 +26,7 @@ import VisaCompanyCardDetailLarge from '@assets/images/companyCards/large/card-v
 import WellsFargoCompanyCardDetailLarge from '@assets/images/companyCards/large/card-wellsfargo-large.svg';
 import PendingBank from '@assets/images/companyCards/pending-bank.svg';
 import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg';
+import Plus from '@assets/images/plus.svg';
 // Other assets
 import Computer from '@assets/images/computer.svg';
 // Educational Illustrations
@@ -333,6 +334,7 @@ const Illustrations = {
     LaptopOnDeskDeprecated,
     Clock,
     Members,
+    Plus
 };
 
 /**

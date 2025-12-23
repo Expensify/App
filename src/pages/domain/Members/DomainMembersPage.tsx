@@ -1,6 +1,6 @@
 import {selectMemberIDs} from '@selectors/Domain';
 import React from 'react';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyIllustrations, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import Navigation from '@navigation/Navigation';
@@ -20,7 +20,8 @@ type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParam
 function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Members','Plus'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Members']);
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
@@ -36,7 +37,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
                 Navigation.navigate(ROUTES.DOMAIN_ADD_MEMBER.getRoute(domainAccountID));
             }}
             text={translate('domain.members.addMember')}
-            icon={illustrations.Plus}
+            icon={icons.Plus}
             innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3, styles.alignItemsCenter]}
         />
