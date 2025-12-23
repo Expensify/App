@@ -127,14 +127,17 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     /**
      * Handle press link event on native apps.
      */
-    const handlePressLink = useCallback((url: string) => {
-        if (isTravelLink(url) && activePolicyID) {
-            const postLoginPath = getRelativeUrl(url);
-            openTravelDotLink(activePolicyID, postLoginPath);
-            return;
-        }
-        Linking.openURL(url);
-    }, []);
+    const handlePressLink = useCallback(
+        (url: string) => {
+            if (isTravelLink(url) && activePolicyID) {
+                const postLoginPath = getRelativeUrl(url);
+                openTravelDotLink(activePolicyID, postLoginPath);
+                return;
+            }
+            Linking.openURL(url);
+        },
+        [activePolicyID],
+    );
 
     function renderPDFView() {
         const pdfWidth = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth;
