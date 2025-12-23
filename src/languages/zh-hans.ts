@@ -1484,6 +1484,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} 至 ${endDate}（${count} 天）`,
         splitByDate: '按日期拆分',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `报告因自定义审批工作流而转发至 ${to}`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} 小时 @ ${rate} / 小时`, hrs: '小时'},
     },
     transactionMerge: {
         listPage: {

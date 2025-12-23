@@ -1509,6 +1509,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} tot ${endDate} (${count} dagen)`,
         splitByDate: 'Splitsen op datum',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapport doorgestuurd naar ${to} vanwege aangepaste goedkeuringsworkflow`,
+        timeTracking: {hoursAt: (hours: number, rate: string) => `${hours} uur @ ${rate} / uur`, hrs: 'uur'},
     },
     transactionMerge: {
         listPage: {
