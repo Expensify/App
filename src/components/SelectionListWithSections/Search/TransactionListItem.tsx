@@ -186,6 +186,7 @@ function TransactionListItem<TItem extends ListItem>({
                             />
                         )}
                         <TransactionItemRow
+                            hash={currentSearchHash}
                             transactionItem={transactionItem}
                             report={transactionItem.report}
                             shouldShowTooltip={showTooltip}
