@@ -518,6 +518,15 @@ function MoneyRequestConfirmationList({
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
     }, [transactionID, taxAmountInSmallestCurrencyUnits, isMovingTransactionFromTrackExpense, isReadOnly, shouldShowTax]);
 
+    useEffect(() => {
+        if (!transactionID || !isMovingTransactionFromTrackExpense || isReadOnly || !shouldShowTax) {
+            return;
+        }
+        setMoneyRequestTaxRate(transactionID, defaultTaxCode);
+        setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
+        // we want this effect to run when the transaction currency changes when moving from track expense
+    }, [transactionID, transaction?.currency, defaultTaxCode, taxAmountInSmallestCurrencyUnits, isMovingTransactionFromTrackExpense, isReadOnly, shouldShowTax]);
+
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
         setDidConfirm(false);
