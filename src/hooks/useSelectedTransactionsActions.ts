@@ -314,7 +314,7 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const canMergeTransaction = selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy], allCards);
+        const canMergeTransaction = selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy]);
         if (canMergeTransaction) {
             const transactionID = selectedTransactionsList.at(0)?.transactionID;
             if (transactionID) {

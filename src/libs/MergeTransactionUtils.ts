@@ -201,7 +201,6 @@ function getMergeableDataAndConflictFields(
     sourceTransaction: OnyxEntry<Transaction>,
     localeCompare: LocaleContextProps['localeCompare'],
     searchReports: Array<OnyxEntry<Report>> = [],
-    cardList?: CardList,
 ) {
     const conflictFields: string[] = [];
     const mergeableData: Record<string, unknown> = {};
@@ -221,7 +220,7 @@ function getMergeableDataAndConflictFields(
             // Card takes precedence over split expense
             // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
             const isTargetExpenseSplit = isExpenseSplit(targetTransaction);
-            if (isCardTransaction(targetTransaction, cardList) || isTargetExpenseSplit) {
+            if (isCardTransaction(targetTransaction) || isTargetExpenseSplit) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
                 if (isTargetExpenseSplit) {
@@ -264,7 +263,7 @@ function getMergeableDataAndConflictFields(
 
         // Use the reimbursable flag coming from card transactions automatically
         // See https://github.com/Expensify/App/issues/69598
-        if (field === 'reimbursable' && isCardTransaction(targetTransaction, cardList)) {
+        if (field === 'reimbursable' && isCardTransaction(targetTransaction)) {
             mergeableData[field] = targetValue;
             continue;
         }
@@ -425,10 +424,10 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
  * @param sourceTransaction - The selected transaction to be merged with the target transaction
  * @returns An object containing the determined targetTransaction and sourceTransaction
  */
-function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>, cardList?: CardList) {
+function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>) {
     // If target transaction is a card or split expense, always preserve the target transaction
     // Card takes precedence over split expense
-    if (isCardTransaction(sourceTransaction, cardList) || (isExpenseSplit(sourceTransaction) && !isCardTransaction(targetTransaction, cardList))) {
+    if (isCardTransaction(sourceTransaction) || (isExpenseSplit(sourceTransaction) && !isCardTransaction(targetTransaction))) {
         return {targetTransaction: sourceTransaction, sourceTransaction: targetTransaction};
     }
 

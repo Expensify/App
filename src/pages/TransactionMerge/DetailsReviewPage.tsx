@@ -14,7 +14,6 @@ import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {
     buildMergeFieldsData,
     getMergeableDataAndConflictFields,
@@ -28,7 +27,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -49,26 +47,20 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
-    const allCards = mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList);
 
     useEffect(() => {
         if (!transactionID || !targetTransaction || !sourceTransaction) {
             return;
         }
 
-        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(
-            targetTransaction,
-            sourceTransaction,
-            localeCompare,
-            [targetTransactionReport, sourceTransactionReport],
-            allCards,
-        );
+        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare, [
+            targetTransactionReport,
+            sourceTransactionReport,
+        ]);
 
         setMergeTransactionKey(transactionID, mergeableData);
         setConflictFields(detectedConflictFields as MergeFieldKey[]);
-    }, [targetTransaction, sourceTransaction, transactionID, localeCompare, sourceTransactionReport, targetTransactionReport, allCards]);
+    }, [targetTransaction, sourceTransaction, transactionID, localeCompare, sourceTransactionReport, targetTransactionReport]);
 
     // Handle selection
     const handleSelect = useCallback(

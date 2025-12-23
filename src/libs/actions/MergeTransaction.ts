@@ -46,7 +46,6 @@ function setupMergeTransactionDataAndNavigate(
     transactions: Transaction[],
     localeCompare: LocaleContextProps['localeCompare'],
     searchReports?: Report[],
-    cardList?: CardList,
     isSelectingSourceTransaction?: boolean,
 ) {
     if (!transactions.length || transactions.length > 2) {
@@ -62,7 +61,7 @@ function setupMergeTransactionDataAndNavigate(
         }
     }
 
-    const {targetTransaction, sourceTransaction} = selectTargetAndSourceTransactionsForMerge(transactions.at(0), transactions.at(1), cardList);
+    const {targetTransaction, sourceTransaction} = selectTargetAndSourceTransactionsForMerge(transactions.at(0), transactions.at(1));
     if (!targetTransaction || !sourceTransaction) {
         return;
     }
@@ -110,7 +109,7 @@ function getTransactionsForMergingFromAPI(transactionID: string) {
  * Fetches eligible transactions for merging locally
  * This is FE version of READ_COMMANDS.GET_TRANSACTIONS_FOR_MERGING API call
  */
-function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>, isAdmin = false, cardList?: CardList) {
+function getTransactionsForMergingLocally(transactionID: string, targetTransaction: Transaction, transactions: OnyxCollection<Transaction>, isAdmin = false) {
     const transactionsArray = Object.values(transactions ?? {});
 
     const eligibleTransactions = transactionsArray.filter((transaction): transaction is Transaction => {
@@ -120,7 +119,7 @@ function getTransactionsForMergingLocally(transactionID: string, targetTransacti
 
         const isUnreportedExpense = !transaction?.reportID || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         return (
-            areTransactionsEligibleForMerge(targetTransaction, transaction, cardList) &&
+            areTransactionsEligibleForMerge(targetTransaction, transaction) &&
             !isTransactionPendingDelete(transaction) &&
             (isUnreportedExpense || (!!transaction.reportID && isMoneyRequestReportEligibleForMerge(transaction.reportID, isAdmin)))
         );
@@ -138,7 +137,6 @@ function getTransactionsForMerging({
     policy,
     report,
     currentUserLogin,
-    cardList,
 }: {
     isOffline: boolean;
     targetTransaction: Transaction;
@@ -166,7 +164,7 @@ function getTransactionsForMerging({
                 return false;
             }
 
-            return areTransactionsEligibleForMerge(targetTransaction, transaction, cardList);
+            return areTransactionsEligibleForMerge(targetTransaction, transaction);
         });
 
         Onyx.merge(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {
@@ -176,7 +174,7 @@ function getTransactionsForMerging({
     }
 
     if (isOffline) {
-        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, isAdmin, cardList);
+        getTransactionsForMergingLocally(transactionID, targetTransaction, transactions, isAdmin);
     } else {
         getTransactionsForMergingFromAPI(transactionID);
     }

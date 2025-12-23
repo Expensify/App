@@ -964,6 +964,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'cardNumber':
         case 'taxValue':
         case 'groupCurrency':
+        case 'transactionType':
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
@@ -1079,6 +1080,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     tag: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    transactionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     isFromGlobalCreate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     taxRate: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     parentTransactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
