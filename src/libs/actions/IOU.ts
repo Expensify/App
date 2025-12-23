@@ -9760,7 +9760,7 @@ function getSendMoneyParams({
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
     // and we need the data to be available when we navigate to the chat page
-    const optimisticChatReportData: OnyxUpdate = isNewChat
+    const optimisticChatReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = isNewChat
         ? {
               onyxMethod: Onyx.METHOD.SET,
               key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
@@ -9825,7 +9825,7 @@ function getSendMoneyParams({
             [reportPreviewAction.reportActionID]: reportPreviewAction,
         },
     };
-    const optimisticTransactionThreadReportActionsData: OnyxUpdate | undefined = optimisticCreatedActionForTransactionThread
+    const optimisticTransactionThreadReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> | undefined = optimisticCreatedActionForTransactionThread
         ? {
               onyxMethod: Onyx.METHOD.MERGE,
               key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
