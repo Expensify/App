@@ -72,9 +72,13 @@ function isRoutePreloaded(currentState: PlatformStackNavigationState<RootNavigat
     return preloadedRoutes.some((preloadedRoute) => {
         const isMatchingFullScreenRoute = preloadedRoute.name === matchingFullScreenRoute.name;
 
+        // If the matching fullscreen route does not have a last route, then we only need to compare the fullscreen route name
+        if (!lastRouteInMatchingFullScreen?.name) {
+            return isMatchingFullScreenRoute;
+        }
+
         // Compare the last route of the preloadedRoute and the last route of the matchingFullScreenRoute to ensure the preloaded route is accepted when matching subroutes as well
-        const isMatchingLastRoute =
-            !lastRouteInMatchingFullScreen?.name || (preloadedRoute.params && 'screen' in preloadedRoute.params && preloadedRoute.params.screen === lastRouteInMatchingFullScreen?.name);
+        const isMatchingLastRoute = preloadedRoute.params && 'screen' in preloadedRoute.params && preloadedRoute.params.screen === lastRouteInMatchingFullScreen.name;
 
         return isMatchingFullScreenRoute && isMatchingLastRoute;
     });
@@ -94,7 +98,10 @@ function shouldChangeToMatchingFullScreen(
     }
 
     const lastRouteInLastFullScreenRoute = lastFullScreenRoute?.state?.routes.at(-1);
-    // Always ensure that the fullscreen route for SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD is SCREENS.SETTINGS.SUBSCRIPTION
+
+    // We always want the fullscreen route of SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD to be the SUBSCRIPTION tab of SCREENS.SETTINGS.
+    // The add payment card page can be opened via the Global create button from the create expense flow, so even when we are already on SCREENS.SETTINGS, with any tab currently open,
+    // the add payment card page can still be opened. Therefore, checking only the fullscreen name above is not sufficient, and the check below using the last route name is necessary.
     return newFocusedRoute?.name === SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD && lastRouteInLastFullScreenRoute?.name !== SCREENS.SETTINGS.SUBSCRIPTION.ROOT;
 }
 
