@@ -49,6 +49,7 @@ async function requestReview(): Promise<void> {
             };
 
             await performRequestReview();
+            Log.info('[StoreReview] Review requested');
             return;
         }
 

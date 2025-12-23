@@ -32,8 +32,10 @@ function ProactiveAppReviewModalManager() {
     const handlePositive = useCallback(() => {
         handleResponse('positive', CONCIERGE_POSITIVE_MESSAGE);
 
-        // Trigger native app store review prompt
-        requestStoreReview();
+        // Trigger native app store review prompt after a few seconds to give some time for the navigation to Concierge DM to complete
+        setTimeout(() => {
+            requestStoreReview();
+        }, 3000);
     }, [handleResponse]);
 
     const handleNegative = useCallback(() => {
