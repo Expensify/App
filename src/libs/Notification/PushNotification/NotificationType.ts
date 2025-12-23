@@ -42,7 +42,6 @@ type TransactionPushNotificationData = BasePushNotificationData & {
 
 type ApproveTransactionPushNotificationData = BasePushNotificationData &
     Omit<TransactionPushNotificationData, 'transactionID'> & {
-        // TODO: MFA/Dev make use of this challenge & deadline
         challenge: MultifactorAuthenticationChallengeObject;
         deadline: number;
         // Due to its length and the rounding, the transaction ID must be a string

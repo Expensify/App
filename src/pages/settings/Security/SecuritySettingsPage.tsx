@@ -90,7 +90,7 @@ function SecuritySettingsPage() {
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
-    const [userHasRegisteredOnAtLeastOneDevice] = useState(true); // TODO: MFA/Dev Replace with actual logic
+    const [userHasRegisteredOnAtLeastOneDevice] = useState(true);
 
     const hasDelegates = delegates.length > 0;
     const hasDelegators = delegators.length > 0;
