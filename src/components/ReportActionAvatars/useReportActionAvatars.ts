@@ -110,7 +110,7 @@ function useReportActionAvatars({
     const {chatReportIDAdmins, chatReportIDAnnounce, workspaceAccountID} = policy ?? {};
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${Number(chatReportIDAnnounce) ? chatReportIDAnnounce?.toString() : chatReportIDAdmins?.toString()}`, {
+    const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${Number(chatReportIDAnnounce) ? chatReportIDAnnounce : chatReportIDAdmins}`, {
         canBeMissing: true,
     });
 
