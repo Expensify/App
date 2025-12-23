@@ -118,6 +118,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
+import {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type IconAsset from '@src/types/utils/IconAsset';
 import ActivityIndicator from './ActivityIndicator';
@@ -134,6 +135,7 @@ import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
 import LoadingBar from './LoadingBar';
+import MobileSelectionModeHeader from './MobileSelectionModeHeader';
 import Modal from './Modal';
 import {ModalActions} from './Modal/Global/ModalContext';
 import MoneyReportHeaderKYCDropdown from './MoneyReportHeaderKYCDropdown';
@@ -174,6 +176,9 @@ type MoneyReportHeaderProps = {
 
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
+
+    /** The type of action that's pending  */
+    reportPendingAction?: PendingAction | null;
 };
 
 function MoneyReportHeader({
@@ -184,6 +189,7 @@ function MoneyReportHeader({
     isLoadingInitialReportActions,
     shouldDisplayBackButton = false,
     onBackButtonPress,
+    reportPendingAction,
 }: MoneyReportHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -1568,23 +1574,6 @@ function MoneyReportHeader({
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
-    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
-        // If mobile selection mode is enabled but only one or no transactions remain, turn it off
-        const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
-        if (visibleTransactions.length <= 1) {
-            turnOffMobileSelectionMode();
-        }
-
-        return (
-            <HeaderWithBackButton
-                title={translate('common.selectMultiple')}
-                onBackButtonPress={() => {
-                    clearSelectedTransactions(true);
-                    turnOffMobileSelectionMode();
-                }}
-            />
-        );
-    }
     const onPaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) =>
         selectPaymentType({
             event,
@@ -1605,6 +1594,29 @@ function MoneyReportHeader({
     const showNextStepBar = shouldShowNextStep && !!optimisticNextStep?.message?.length;
     const showNextStepSkeleton = shouldShowNextStep && !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
     const shouldShowMoreContent = showNextStepBar || showNextStepSkeleton || !!statusBarProps || isReportInSearch;
+
+    if (isMobileSelectionModeEnabled && shouldUseNarrowLayout) {
+        // If mobile selection mode is enabled but only one or no transactions remain, turn it off
+        const visibleTransactions = transactions.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+        if (visibleTransactions.length <= 1) {
+            turnOffMobileSelectionMode();
+        }
+
+        return (
+            <MobileSelectionModeHeader
+                transactions={transactions}
+                reportLevelActions={applicableTransactionActions}
+                report={moneyRequestReport}
+                reportActions={reportActions}
+                policy={policy}
+                session={session}
+                chatReport={chatReport}
+                reportPendingAction={reportPendingAction}
+                onPaymentSelect={onPaymentSelect}
+                confirmPayment={confirmPayment}
+            />
+        );
+    }
 
     return (
         <View style={[styles.pt0, styles.borderBottom]}>

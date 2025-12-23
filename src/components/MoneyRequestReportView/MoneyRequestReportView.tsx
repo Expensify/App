@@ -160,6 +160,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         }
                         Navigation.goBack(backToRoute);
                     }}
+                    reportPendingAction={reportPendingAction}
                 />
             ),
         [backToRoute, isLoadingInitialReportActions, isTransactionThreadView, parentReportAction, policy, report, reportActions, transactionThreadReportID],

@@ -1,4 +1,5 @@
 import {useCallback, useMemo, useState} from 'react';
+import {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
@@ -34,8 +35,6 @@ import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
-import { ValueOf } from 'type-fest';
-import { DropdownOption } from '@components/ButtonWithDropdownMenu/types';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
 const HOLD = 'HOLD';
