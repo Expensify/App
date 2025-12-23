@@ -1208,6 +1208,10 @@ function buildUserReadableQueryString(
                 continue;
             }
 
+            if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS) {
+                continue;
+            }
+
             if (rawFilter.isDefault) {
                 const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies, reports);
                 if (defaultSegment) {
@@ -1321,7 +1325,7 @@ function buildCannedSearchQuery({
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     const selectedColumns = queryJSON.columns ?? [];
-    const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
+    const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
     const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
     return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !hasCustomColumns;
 }

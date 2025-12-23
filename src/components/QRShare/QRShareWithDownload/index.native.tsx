@@ -17,7 +17,7 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
         ref,
         () => ({
             download: () =>
-                qrCodeScreenshotRef.current?.capture?.().then((uri) => fileDownload(uri, getQrCodeFileName(props.title ?? 'QRCode'), translate('fileDownload.success.qrMessage'))),
+                qrCodeScreenshotRef.current?.capture?.().then((uri) => fileDownload(translate, uri, getQrCodeFileName(props.title ?? 'QRCode'), translate('fileDownload.success.qrMessage'))),
         }),
         [props.title, translate],
     );
@@ -32,7 +32,5 @@ function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
         </ViewShot>
     );
 }
-
-QRShareWithDownload.displayName = 'QRShareWithDownload';
 
 export default QRShareWithDownload;

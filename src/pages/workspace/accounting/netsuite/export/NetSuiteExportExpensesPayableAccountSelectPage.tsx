@@ -77,7 +77,7 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteExportExpensesPayableAccountSelectPage.displayName}
+            displayName="NetSuiteExportExpensesPayableAccountSelectPage"
             sections={netsuitePayableAccountOptions.length ? [{data: netsuitePayableAccountOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updatePayableAccount}
@@ -98,7 +98,5 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
         />
     );
 }
-
-NetSuiteExportExpensesPayableAccountSelectPage.displayName = 'NetSuiteExportExpensesPayableAccountSelectPage';
 
 export default withPolicyConnections(NetSuiteExportExpensesPayableAccountSelectPage);

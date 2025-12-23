@@ -332,6 +332,4 @@ function AvatarWithDisplayName({
     );
 }
 
-AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
-
 export default AvatarWithDisplayName;

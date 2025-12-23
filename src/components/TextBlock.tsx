@@ -35,6 +35,4 @@ function TextBlock({color, textStyles, text}: TextBlockProps) {
     );
 }
 
-TextBlock.displayName = 'TextBlock';
-
 export default memo(TextBlock);

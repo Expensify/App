@@ -63,6 +63,4 @@ function IncorporationStateBusiness({onNext, isEditing}: SubStepProps) {
     );
 }
 
-IncorporationStateBusiness.displayName = 'IncorporationStateBusiness';
-
 export default IncorporationStateBusiness;

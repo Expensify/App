@@ -42,6 +42,4 @@ function ConnectionCompletePage() {
     );
 }
 
-ConnectionCompletePage.displayName = 'ConnectionCompletePage';
-
 export default ConnectionCompletePage;

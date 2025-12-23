@@ -1,7 +1,7 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
-import {BackHandler, InteractionManager, Modal, View} from 'react-native';
+import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -160,6 +160,10 @@ function ReanimatedModal({
         }
     }, [onModalHide]);
 
+    const modalStyle = useMemo(() => {
+        return {zIndex: StyleSheet.flatten(style)?.zIndex};
+    }, [style]);
+
     const containerView = (
         <Container
             pointerEvents="box-none"
@@ -221,6 +225,7 @@ function ReanimatedModal({
                         onModalHide();
                     }
                 }}
+                style={modalStyle}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
@@ -247,7 +252,5 @@ function ReanimatedModal({
         </LayoutAnimationConfig>
     );
 }
-
-ReanimatedModal.displayName = 'ReanimatedModal';
 
 export default ReanimatedModal;

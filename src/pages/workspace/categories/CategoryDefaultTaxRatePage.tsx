@@ -59,10 +59,10 @@ function CategoryDefaultTaxRatePage({
                 return;
             }
 
-            setPolicyCategoryTax(policyID, categoryName, item.keyForList);
+            setPolicyCategoryTax(policy, categoryName, item.keyForList);
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
         },
-        [policyID, categoryName, selectedTaxRate],
+        [policyID, policy, categoryName, selectedTaxRate],
     );
 
     return (
@@ -74,7 +74,7 @@ function CategoryDefaultTaxRatePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryDefaultTaxRatePage.displayName}
+                testID="CategoryDefaultTaxRatePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -94,7 +94,5 @@ function CategoryDefaultTaxRatePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryDefaultTaxRatePage.displayName = 'CategoryDefaultTaxRatePage';
 
 export default CategoryDefaultTaxRatePage;

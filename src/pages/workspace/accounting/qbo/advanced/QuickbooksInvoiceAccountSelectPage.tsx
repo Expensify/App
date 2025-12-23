@@ -82,7 +82,7 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksInvoiceAccountSelectPage.displayName}
+            displayName="QuickbooksInvoiceAccountSelectPage"
             sections={qboOnlineSelectorOptions.length ? [{data: qboOnlineSelectorOptions}] : []}
             listItem={RadioListItem}
             headerContent={listHeaderComponent}
@@ -100,7 +100,5 @@ function QuickbooksInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps
         />
     );
 }
-
-QuickbooksInvoiceAccountSelectPage.displayName = 'QuickbooksInvoiceAccountSelectPage';
 
 export default withPolicyConnections(QuickbooksInvoiceAccountSelectPage);

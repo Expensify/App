@@ -35,6 +35,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 shouldUseAutoHitSlop={shouldUseAutoHitSlop}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SEARCH_BUTTON}
                 // eslint-disable-next-line react-compiler/react-compiler
                 onPress={callFunctionIfActionIsAllowed(() => {
                     pressableRef?.current?.blur();
@@ -57,7 +58,5 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
         </Tooltip>
     );
 }
-
-SearchButton.displayName = 'SearchButton';
 
 export default SearchButton;

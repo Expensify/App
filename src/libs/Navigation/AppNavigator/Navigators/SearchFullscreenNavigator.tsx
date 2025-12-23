@@ -45,6 +45,4 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<AuthScreens
     );
 }
 
-SearchFullscreenNavigator.displayName = 'SearchFullscreenNavigator';
-
 export default SearchFullscreenNavigator;

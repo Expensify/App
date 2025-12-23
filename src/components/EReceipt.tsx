@@ -172,7 +172,5 @@ function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}:
     );
 }
 
-EReceipt.displayName = 'EReceipt';
-
 export default EReceipt;
 export type {EReceiptProps};

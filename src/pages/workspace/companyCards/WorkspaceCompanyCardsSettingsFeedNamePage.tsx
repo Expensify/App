@@ -88,7 +88,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={WorkspaceCompanyCardsSettingsFeedNamePage.displayName}
+                testID="WorkspaceCompanyCardsSettingsFeedNamePage"
                 style={styles.defaultModalContainer}
             >
                 <HeaderWithBackButton title={translate('workspace.moreFeatures.companyCards.cardFeedName')} />
@@ -123,7 +123,5 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCompanyCardsSettingsFeedNamePage.displayName = 'WorkspaceCompanyCardsSettingsFeedNamePage';
 
 export default WorkspaceCompanyCardsSettingsFeedNamePage;

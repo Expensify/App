@@ -124,6 +124,4 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
     );
 }
 
-CompanyOwnersListUBO.displayName = 'CompanyOwnersListUBO';
-
 export default CompanyOwnersListUBO;

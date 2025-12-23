@@ -27,15 +27,19 @@ import {
     getFilteredCardList,
     getMonthFromExpirationDateString,
     getOriginalCompanyFeeds,
+    getPlaidInstitutionIconUrl,
+    getPlaidInstitutionId,
     getSelectedFeed,
     getYearFromExpirationDateString,
     hasIssuedExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCard,
     isExpensifyCardFullySetUp,
+    isMaskedCardNumberEqual,
     lastFourNumbersFromCardName,
     maskCardNumber,
     sortCardsByCardholderName,
+    splitMaskedCardNumber,
 } from '@src/libs/CardUtils';
 import type {Card, CardFeeds, CardList, CompanyCardFeed, CompanyCardFeedWithDomainID, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
@@ -1338,6 +1342,112 @@ describe('CardUtils', () => {
             const domainID = 11111111;
             const combinedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
             expect(combinedKey).toBe(`${feedName}${CONST.COMPANY_CARD.FEED_KEY_SEPARATOR}${domainID}`);
+        });
+    });
+
+    describe('getPlaidInstitutionId', () => {
+        it('should return institution ID from plaid feed name without domain ID', () => {
+            const feedName = 'plaid.ins_123456';
+            const institutionId = getPlaidInstitutionId(feedName);
+            expect(institutionId).toBe('ins_123456');
+        });
+
+        it('should return institution ID from plaid feed name with domain ID', () => {
+            const feedName = 'plaid.ins_129663#12345';
+            const institutionId = getPlaidInstitutionId(feedName);
+            expect(institutionId).toBe('ins_129663');
+        });
+
+        it('should return empty string for non-plaid feed', () => {
+            const feedName = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
+            const institutionId = getPlaidInstitutionId(feedName);
+            expect(institutionId).toBe('');
+        });
+    });
+
+    describe('getPlaidInstitutionIconUrl', () => {
+        it('should return correct icon URL for plaid feed without domain ID', () => {
+            const feedName = 'plaid.ins_123456';
+            const iconUrl = getPlaidInstitutionIconUrl(feedName);
+            expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_123456.png`);
+        });
+
+        it('should return correct icon URL for plaid feed with domain ID', () => {
+            const feedName = 'plaid.ins_129663#12345';
+            const iconUrl = getPlaidInstitutionIconUrl(feedName);
+            expect(iconUrl).toBe(`${CONST.COMPANY_CARD_PLAID}ins_129663.png`);
+        });
+    });
+
+    describe('splitMaskedCardNumber', () => {
+        it('should split a masked card number correctly', () => {
+            const result = splitMaskedCardNumber('1234XXXX5678');
+            expect(result.firstDigits).toBe('1234');
+            expect(result.lastDigits).toBe('5678');
+        });
+
+        it('should handle card numbers with custom mask character', () => {
+            const result = splitMaskedCardNumber('1234****5678', '*');
+            expect(result.firstDigits).toBe('1234');
+            expect(result.lastDigits).toBe('5678');
+        });
+
+        it('should handle undefined card number', () => {
+            const result = splitMaskedCardNumber(undefined);
+            expect(result.firstDigits).toBeUndefined();
+            expect(result.lastDigits).toBeUndefined();
+        });
+
+        it('should handle card number with only first digits', () => {
+            const result = splitMaskedCardNumber('1234XXXX');
+            expect(result.firstDigits).toBe('1234');
+            expect(result.lastDigits).toBe('');
+        });
+
+        it('should handle card number with only last digits', () => {
+            const result = splitMaskedCardNumber('XXXX5678');
+            expect(result.firstDigits).toBe('');
+            expect(result.lastDigits).toBe('5678');
+        });
+    });
+
+    describe('isMaskedCardNumberEqual', () => {
+        it('should return true for identical masked card numbers', () => {
+            expect(isMaskedCardNumberEqual('1234XXXX5678', '1234XXXX5678')).toBe(true);
+        });
+
+        it('should return true for card numbers with matching first and last digits', () => {
+            expect(isMaskedCardNumberEqual('1234XXXX5678', '1234XXXXXX5678')).toBe(true);
+        });
+
+        it('should return false for card numbers with different first digits', () => {
+            expect(isMaskedCardNumberEqual('1234XXXX5678', '5678XXXX5678')).toBe(false);
+        });
+
+        it('should return false for card numbers with different last digits', () => {
+            expect(isMaskedCardNumberEqual('1234XXXX5678', '1234XXXX1234')).toBe(false);
+        });
+
+        it('should handle undefined card numbers', () => {
+            expect(isMaskedCardNumberEqual(undefined, '1234XXXX5678')).toBe(false);
+            expect(isMaskedCardNumberEqual('1234XXXX5678', undefined)).toBe(false);
+            expect(isMaskedCardNumberEqual(undefined, undefined)).toBe(false);
+        });
+
+        it('should handle custom mask character', () => {
+            expect(isMaskedCardNumberEqual('1234****5678', '1234****5678', '*')).toBe(true);
+        });
+
+        it('should return false when compareIfPatternDoesNotMatch is false and patterns differ', () => {
+            // '1234XXXX5678' has 4 first digits and 4 last digits
+            // '123XXXX5678' has 3 first digits and 4 last digits
+            // When compareIfPatternDoesNotMatch is false, it should return false because the patterns differ
+            expect(isMaskedCardNumberEqual('1234XXXX5678', '123XXXX5678', CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR, false)).toBe(false);
+        });
+
+        it('should return true when compareIfPatternDoesNotMatch is false and patterns match', () => {
+            // Both have 4 first digits and 4 last digits, so patterns match
+            expect(isMaskedCardNumberEqual('1234XXXX5678', '1234XXXXXX5678', CONST.COMPANY_CARD.CARD_NUMBER_MASK_CHAR, false)).toBe(true);
         });
     });
 });

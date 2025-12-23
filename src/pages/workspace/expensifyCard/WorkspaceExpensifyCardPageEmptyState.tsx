@@ -151,6 +151,4 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     );
 }
 
-WorkspaceExpensifyCardPageEmptyState.displayName = 'WorkspaceExpensifyCardPageEmptyState';
-
 export default withPolicyAndFullscreenLoading(WorkspaceExpensifyCardPageEmptyState);

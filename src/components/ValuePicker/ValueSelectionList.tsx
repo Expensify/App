@@ -23,6 +23,4 @@ function ValueSelectionList({items = [], selectedItem, onItemSelected, shouldSho
     );
 }
 
-ValueSelectionList.displayName = 'ValueSelectionList';
-
 export default ValueSelectionList;

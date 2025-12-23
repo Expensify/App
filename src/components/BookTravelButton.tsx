@@ -20,7 +20,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Button from './Button';
 import ConfirmModal from './ConfirmModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
@@ -28,36 +27,37 @@ import RenderHTML from './RenderHTML';
 
 type BookTravelButtonProps = {
     text: string;
+    activePolicyID?: string;
 
     /** Whether to render the error message below the button */
     shouldRenderErrorMessageBelowButton?: boolean;
 
     /** Function to set the shouldScrollToBottom state */
     setShouldScrollToBottom?: (shouldScrollToBottom: boolean) => void;
+
+    shouldShowVerifyAccountModal?: boolean;
 };
 
-const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
+const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean, policyID?: string) => {
     // Remove the previous provision session information if any is cached.
     cleanupTravelProvisioningSession();
     if (isUserValidated) {
-        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain, policyID, Navigation.getActiveRoute()));
         return;
     }
-    Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
+    Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, policyID, Navigation.getActiveRoute()));
 };
 
-function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, setShouldScrollToBottom}: BookTravelButtonProps) {
+function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, activePolicyID, setShouldScrollToBottom, shouldShowVerifyAccountModal = true}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const phoneErrorMethodsRoute = `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute())}`;
-    const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const isUserValidated = account?.validated ?? false;
     const primaryLogin = account?.primaryLogin ?? '';
-    const isLoading = isLoadingOnyxValue(activePolicyIDMetadata);
 
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
@@ -116,9 +116,15 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         if (policy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned)) {
             openTravelDotLink(policy?.id);
         } else if (isPolicyProvisioned) {
-            navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
+            navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN, undefined, activePolicyID ?? undefined);
         } else if (!isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
-            setVerificationModalVisibility(true);
+            if (!isUserValidated) {
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
+                return;
+            }
+            if (shouldShowVerifyAccountModal) {
+                setVerificationModalVisibility(true);
+            }
             if (!travelSettings?.lastTravelSignupRequestTime) {
                 requestTravelAccess();
             }
@@ -132,19 +138,21 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
             // Always validate OTP first before proceeding to address details or terms acceptance
             if (!isUserValidated) {
                 // Determine where to redirect after OTP validation
-                const nextStep = isEmptyObject(policy?.address) ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()) : ROUTES.TRAVEL_TCS.getRoute(domain);
+                const nextStep = isEmptyObject(policy?.address)
+                    ? ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute())
+                    : ROUTES.TRAVEL_TCS.getRoute(domain, activePolicyID);
                 setTravelProvisioningNextStep(nextStep);
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain));
+                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
                 return;
             }
             if (isEmptyObject(policy?.address)) {
                 // Spotnana requires an address anytime an entity is created for a policy
-                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, Navigation.getActiveRoute()));
+                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain, activePolicyID, Navigation.getActiveRoute()));
             } else {
-                navigateToAcceptTerms(domain, !!isUserValidated);
+                navigateToAcceptTerms(domain, !!isUserValidated, activePolicyID ?? undefined);
             }
         } else {
-            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR.getRoute(activePolicyID, Navigation.getActiveRoute()));
         }
     }, [
         primaryContactMethod,
@@ -156,6 +164,8 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         translate,
         isUserValidated,
         phoneErrorMethodsRoute,
+        activePolicyID,
+        shouldShowVerifyAccountModal,
     ]);
 
     return (
@@ -172,8 +182,7 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
                 onPress={bookATrip}
                 accessibilityLabel={translate('travel.bookTravel')}
                 style={styles.w100}
-                isLoading={isLoading}
-                isDisabled={!isLoading && !activePolicyID}
+                isDisabled={!activePolicyID}
                 success
                 large
             />
@@ -215,7 +224,5 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false, se
         </>
     );
 }
-
-BookTravelButton.displayName = 'BookTravelButton';
 
 export default BookTravelButton;

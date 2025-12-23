@@ -279,6 +279,4 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     );
 }
 
-AccountSwitcher.displayName = 'AccountSwitcher';
-
 export default AccountSwitcher;

@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import Text from '@components/Text';
 import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
@@ -69,14 +69,12 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                         <Text style={[styles.textBlue]}>{translate('common.cancel')}</Text>
                     </PressableWithoutFeedback>
                 )}
-                {shouldDisplayHelpButton && <HelpButton />}
+                {shouldDisplayHelpButton && <SidePanelButton />}
                 {displaySearch && <SearchButton />}
             </View>
             <LoadingBar shouldShow={!isWideRHPVisible && (shouldShowLoadingBarForReports || shouldShowLoadingBar)} />
         </View>
     );
 }
-
-TopBar.displayName = 'TopBar';
 
 export default TopBar;

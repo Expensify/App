@@ -97,6 +97,4 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
     return null;
 }
 
-AttachmentModalScreen.displayName = 'AttachmentModalScreen';
-
 export default AttachmentModalScreen;

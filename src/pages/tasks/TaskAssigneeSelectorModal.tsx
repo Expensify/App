@@ -7,6 +7,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
@@ -219,7 +220,7 @@ function TaskAssigneeSelectorModal() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={TaskAssigneeSelectorModal.displayName}
+            testID="TaskAssigneeSelectorModal"
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                 <HeaderWithBackButton
@@ -246,7 +247,5 @@ function TaskAssigneeSelectorModal() {
         </ScreenWrapper>
     );
 }
-
-TaskAssigneeSelectorModal.displayName = 'TaskAssigneeSelectorModal';
 
 export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModal));

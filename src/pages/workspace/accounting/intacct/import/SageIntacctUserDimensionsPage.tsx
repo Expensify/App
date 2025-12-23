@@ -32,7 +32,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctUserDimensionsPage.displayName}
+            displayName="SageIntacctUserDimensionsPage"
             headerTitle="workspace.intacct.userDefinedDimension"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -123,7 +123,5 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
         </ConnectionLayout>
     );
 }
-
-SageIntacctUserDimensionsPage.displayName = 'SageIntacctUserDimensionsPage';
 
 export default withPolicy(SageIntacctUserDimensionsPage);

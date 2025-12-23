@@ -42,6 +42,4 @@ function HighlightableMenuItem({wrapperStyle, highlighted, ref, ...restOfProps}:
     );
 }
 
-HighlightableMenuItem.displayName = 'HighlightableMenuItem';
-
 export default HighlightableMenuItem;

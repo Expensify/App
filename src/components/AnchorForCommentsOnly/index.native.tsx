@@ -22,6 +22,4 @@ function AnchorForCommentsOnly({onPress, href = '', ...props}: AnchorForComments
     );
 }
 
-AnchorForCommentsOnly.displayName = 'AnchorForCommentsOnly';
-
 export default AnchorForCommentsOnly;

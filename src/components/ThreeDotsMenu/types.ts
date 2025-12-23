@@ -4,8 +4,9 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type ThreeDotsMenuProps = {
+type ThreeDotsMenuProps = WithSentryLabel & {
     /** Tooltip for the popup icon */
     iconTooltip?: TranslationPaths;
 

@@ -18,6 +18,4 @@ function Camera({cameraTabIndex, ref, ...props}: NavigationAwareCameraNativeProp
     );
 }
 
-Camera.displayName = 'NavigationAwareCamera';
-
 export default Camera;

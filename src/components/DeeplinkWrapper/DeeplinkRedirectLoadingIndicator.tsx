@@ -55,6 +55,4 @@ function DeeplinkRedirectLoadingIndicator({openLinkInBrowser}: DeeplinkRedirectL
     );
 }
 
-DeeplinkRedirectLoadingIndicator.displayName = 'DeeplinkRedirectLoadingIndicator';
-
 export default DeeplinkRedirectLoadingIndicator;

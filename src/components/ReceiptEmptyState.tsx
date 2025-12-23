@@ -1,12 +1,12 @@
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 type ReceiptEmptyStateProps = {
@@ -37,6 +37,7 @@ function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isIn
     const {translate} = useLocalize();
     const theme = useTheme();
     const isLoadedRef = useRef(false);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlaceholderPlus', 'Receipt']);
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
     const containerStyle = [
@@ -68,13 +69,13 @@ function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isIn
             <View>
                 <Icon
                     fill={theme.border}
-                    src={Expensicons.Receipt}
+                    src={icons.Receipt}
                     width={variables.eReceiptEmptyIconWidth}
                     height={variables.eReceiptEmptyIconWidth}
                 />
                 {!isThumbnail && (
                     <Icon
-                        src={Expensicons.ReceiptPlaceholderPlus}
+                        src={icons.ReceiptPlaceholderPlus}
                         width={variables.avatarSizeSmall}
                         height={variables.avatarSizeSmall}
                         additionalStyles={styles.moneyRequestAttachReceiptThumbnailIcon}
@@ -84,7 +85,5 @@ function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isIn
         </Wrapper>
     );
 }
-
-ReceiptEmptyState.displayName = 'ReceiptEmptyState';
 
 export default ReceiptEmptyState;

@@ -11,6 +11,4 @@ function SearchFiltersWithdrawnPage() {
     );
 }
 
-SearchFiltersWithdrawnPage.displayName = 'SearchFiltersWithdrawnPage';
-
 export default SearchFiltersWithdrawnPage;

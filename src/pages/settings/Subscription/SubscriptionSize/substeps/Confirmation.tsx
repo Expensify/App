@@ -70,6 +70,4 @@ function Confirmation({onNext, isEditing}: ConfirmationProps) {
     );
 }
 
-Confirmation.displayName = 'ConfirmationStep';
-
 export default Confirmation;

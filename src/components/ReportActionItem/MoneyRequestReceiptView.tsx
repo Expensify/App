@@ -205,6 +205,14 @@ function MoneyRequestReceiptView({
 
     const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
 
+    const transactionAndReportActionErrors = useMemo(
+        () => ({
+            ...transaction?.errors,
+            ...parentReportAction?.errors,
+        }),
+        [transaction?.errors, parentReportAction?.errors],
+    );
+
     const dismissReceiptError = useCallback(() => {
         if (!report?.reportID) {
             return;
@@ -227,8 +235,10 @@ function MoneyRequestReceiptView({
             clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
             return;
         }
-        if (!isEmptyObject(errorsWithoutReportCreation)) {
+        if (!isEmptyObject(transactionAndReportActionErrors)) {
             revert(transaction, getLastModifiedExpense(report?.reportID));
+        }
+        if (!isEmptyObject(errorsWithoutReportCreation)) {
             clearError(transaction.transactionID);
             clearAllRelatedReportActionErrors(report.reportID, parentReportAction);
         }
@@ -376,7 +386,5 @@ function MoneyRequestReceiptView({
         </View>
     );
 }
-
-MoneyRequestReceiptView.displayName = 'MoneyRequestReceiptView';
 
 export default MoneyRequestReceiptView;

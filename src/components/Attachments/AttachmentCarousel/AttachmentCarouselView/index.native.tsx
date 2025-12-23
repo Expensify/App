@@ -114,6 +114,4 @@ function AttachmentCarouselView({
     );
 }
 
-AttachmentCarouselView.displayName = 'AttachmentCarouselView';
-
 export default AttachmentCarouselView;

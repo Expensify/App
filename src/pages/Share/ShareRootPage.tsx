@@ -174,7 +174,7 @@ function ShareRootPage() {
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={ShareRootPage.displayName}
+            testID="ShareRootPage"
         >
             <View style={[styles.flex1]}>
                 <HeaderWithBackButton
@@ -199,8 +199,6 @@ function ShareRootPage() {
         </ScreenWrapper>
     );
 }
-
-ShareRootPage.displayName = 'ShareRootPage';
 
 export default ShareRootPage;
 

@@ -127,7 +127,7 @@ function NewChatConfirmPage() {
     }, [newGroupDraftMetaData]);
 
     return (
-        <ScreenWrapper testID={NewChatConfirmPage.displayName}>
+        <ScreenWrapper testID="NewChatConfirmPage">
             <HeaderWithBackButton
                 title={translate('common.group')}
                 onBackButtonPress={navigateBack}
@@ -181,7 +181,5 @@ function NewChatConfirmPage() {
         </ScreenWrapper>
     );
 }
-
-NewChatConfirmPage.displayName = 'NewChatConfirmPage';
 
 export default NewChatConfirmPage;

@@ -73,6 +73,4 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
     );
 }
 
-Website.displayName = 'Website';
-
 export default Website;

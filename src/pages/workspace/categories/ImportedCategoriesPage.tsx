@@ -136,7 +136,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedCategoriesPage.displayName}
+            testID="ImportedCategoriesPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -163,7 +163,5 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
         </ScreenWrapper>
     );
 }
-
-ImportedCategoriesPage.displayName = 'ImportedCategoriesPage';
 
 export default ImportedCategoriesPage;

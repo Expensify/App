@@ -18,7 +18,7 @@ type SingleSelectItem<T> = {
 
 type SingleSelectPopupProps<T> = {
     /** The label to show when in an overlay on mobile */
-    label: string;
+    label?: string;
 
     /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
@@ -107,9 +107,11 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
         [searchTerm, isSearchable, searchPlaceholder, translate, setSearchTerm, noResultsFound],
     );
 
+    const shouldShowLabel = isSmallScreenWidth && !!label;
+
     return (
         <View style={[!isSmallScreenWidth && styles.pv4, styles.gap2]}>
-            {isSmallScreenWidth && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
+            {shouldShowLabel && <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pv1]}>{label}</Text>}
 
             <View style={[styles.getSelectionListPopoverHeight(options.length || 1, windowHeight, isSearchable ?? false)]}>
                 <SelectionList
@@ -142,6 +144,5 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
     );
 }
 
-SingleSelectPopup.displayName = 'SingleSelectPopup';
 export type {SingleSelectPopupProps, SingleSelectItem};
 export default SingleSelectPopup;

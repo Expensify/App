@@ -77,7 +77,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceCreateTagPage.displayName}
+                testID="WorkspaceCreateTagPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -107,7 +107,5 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCreateTagPage.displayName = 'WorkspaceCreateTagPage';
 
 export default WorkspaceCreateTagPage;

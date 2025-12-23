@@ -76,7 +76,7 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={EditCategoryPage.displayName}
+                testID="EditCategoryPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -99,7 +99,5 @@ function EditCategoryPage({route}: EditCategoryPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-EditCategoryPage.displayName = 'EditCategoryPage';
 
 export default EditCategoryPage;

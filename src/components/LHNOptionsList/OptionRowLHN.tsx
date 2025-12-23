@@ -251,6 +251,7 @@ function OptionRowLHN({
                                 }`}
                                 onLayout={onLayout}
                                 needsOffscreenAlphaCompositing={(optionItem?.icons?.length ?? 0) >= 2}
+                                sentryLabel={CONST.SENTRY_LABEL.LHN.OPTION_ROW}
                             >
                                 <View style={sidebarInnerRowStyle}>
                                     <View style={[styles.flexRow, styles.alignItemsCenter]}>
@@ -386,7 +387,5 @@ function OptionRowLHN({
         </OfflineWithFeedback>
     );
 }
-
-OptionRowLHN.displayName = 'OptionRowLHN';
 
 export default React.memo(OptionRowLHN);

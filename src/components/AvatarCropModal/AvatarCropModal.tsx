@@ -368,7 +368,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
-                testID={AvatarCropModal.displayName}
+                testID="AvatarCropModal"
             >
                 {shouldUseNarrowLayout && <HeaderGap />}
                 <HeaderWithBackButton
@@ -448,7 +448,5 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
         </Modal>
     );
 }
-
-AvatarCropModal.displayName = 'AvatarCropModal';
 
 export default AvatarCropModal;

@@ -56,7 +56,7 @@ function QuickbooksDesktopClassesDisplayedAsPage({policy}: WithPolicyConnections
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksDesktopClassesDisplayedAsPage.displayName}
+            displayName="QuickbooksDesktopClassesDisplayedAsPage"
             sections={data.length ? [{data}] : []}
             listItem={RadioListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES.getRoute(policyID))}
@@ -72,7 +72,5 @@ function QuickbooksDesktopClassesDisplayedAsPage({policy}: WithPolicyConnections
         />
     );
 }
-
-QuickbooksDesktopClassesDisplayedAsPage.displayName = 'QuickbooksDesktopClassesDisplayedAsPage';
 
 export default withPolicyConnections(QuickbooksDesktopClassesDisplayedAsPage);

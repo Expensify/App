@@ -1,4 +1,5 @@
-import React, {useContext, useEffect, useMemo, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -13,7 +14,6 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -128,10 +128,14 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
 
     const {cardsDetails, setCardsDetails, isCardDetailsLoading, cardsDetailsErrors} = useExpensifyCardContext();
 
-    // This resets card details when we exit the page.
-    useBeforeRemove(() => {
-        setCardsDetails((oldCardDetails) => ({...oldCardDetails, [cardID]: null}));
-    });
+    // Resets card details when navigating away from the page.
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                setCardsDetails((oldCardDetails) => ({...oldCardDetails, [cardID]: null}));
+            };
+        }, [cardID, setCardsDetails]),
+    );
 
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
@@ -154,7 +158,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     }
 
     return (
-        <ScreenWrapper testID={ExpensifyCardPage.displayName}>
+        <ScreenWrapper testID="ExpensifyCardPage">
             <HeaderWithBackButton
                 title={pageTitle}
                 onBackButtonPress={() => Navigation.closeRHPFlow()}
@@ -413,7 +417,5 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         </ScreenWrapper>
     );
 }
-
-ExpensifyCardPage.displayName = 'ExpensifyCardPage';
 
 export default ExpensifyCardPage;

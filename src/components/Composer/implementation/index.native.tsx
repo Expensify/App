@@ -133,6 +133,4 @@ function Composer({
     );
 }
 
-Composer.displayName = 'Composer';
-
 export default Composer;

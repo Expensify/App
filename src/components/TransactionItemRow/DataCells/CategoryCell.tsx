@@ -28,5 +28,4 @@ function CategoryCell({shouldUseNarrowLayout, shouldShowTooltip, transactionItem
     );
 }
 
-CategoryCell.displayName = 'CategoryCell';
 export default CategoryCell;

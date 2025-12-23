@@ -73,6 +73,4 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
     );
 }
 
-DistanceRequestRenderItem.displayName = 'DistanceRequestRenderItem';
-
 export default DistanceRequestRenderItem;

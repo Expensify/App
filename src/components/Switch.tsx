@@ -88,5 +88,4 @@ function Switch({isOn, onToggle, accessibilityLabel, disabled, showLockIcon, dis
     );
 }
 
-Switch.displayName = 'Switch';
 export default Switch;

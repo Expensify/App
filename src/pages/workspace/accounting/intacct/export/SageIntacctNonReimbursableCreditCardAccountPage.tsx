@@ -66,7 +66,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
         <SelectionScreen
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctNonReimbursableCreditCardAccountPage.displayName}
+            displayName="SageIntacctNonReimbursableCreditCardAccountPage"
             sections={creditCardSelectorOptions.length ? [{data: creditCardSelectorOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateCreditCardAccount}
@@ -83,7 +83,5 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
         />
     );
 }
-
-SageIntacctNonReimbursableCreditCardAccountPage.displayName = 'SageIntacctNonReimbursableCreditCardAccountPage';
 
 export default withPolicyConnections(SageIntacctNonReimbursableCreditCardAccountPage);

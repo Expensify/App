@@ -78,5 +78,5 @@ function SearchSidebar({state}: SearchSidebarProps) {
         </View>
     );
 }
-SearchSidebar.displayName = 'SearchSidebar';
+
 export default SearchSidebar;

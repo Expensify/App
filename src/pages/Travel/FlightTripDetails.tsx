@@ -151,6 +151,4 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
     );
 }
 
-FlightTripDetails.displayName = 'FlightTripDetails';
-
 export default FlightTripDetails;

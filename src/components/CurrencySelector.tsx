@@ -93,6 +93,4 @@ function CurrencySelector({
     );
 }
 
-CurrencySelector.displayName = 'CurrencySelector';
-
 export default CurrencySelector;

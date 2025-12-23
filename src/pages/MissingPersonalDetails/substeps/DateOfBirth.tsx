@@ -32,6 +32,4 @@ function DateOfBirth({isEditing, onNext, onMove, personalDetailsValues}: CustomS
     );
 }
 
-DateOfBirth.displayName = 'DateOfBirth';
-
 export default DateOfBirth;

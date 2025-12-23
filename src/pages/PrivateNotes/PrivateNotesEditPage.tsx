@@ -125,7 +125,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={PrivateNotesEditPageInternal.displayName}
+            testID="PrivateNotesEditPageInternal"
         >
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
@@ -189,8 +189,6 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
     );
 }
 
-PrivateNotesEditPageInternal.displayName = 'PrivateNotesEditPageInternal';
-
 function PrivateNotesEditPage({report, ...rest}: PrivateNotesEditPageProps) {
     const [privateNoteDraft, privateNoteDraftMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${report.reportID}`, {canBeMissing: true});
 
@@ -209,7 +207,5 @@ function PrivateNotesEditPage({report, ...rest}: PrivateNotesEditPageProps) {
         />
     );
 }
-
-PrivateNotesEditPage.displayName = 'PrivateNotesEditPage';
 
 export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(PrivateNotesEditPage);

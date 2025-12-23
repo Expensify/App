@@ -3,8 +3,10 @@ import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, subDay
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
+import {translate} from '@libs/Localize';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -426,6 +428,57 @@ describe('DateUtils', () => {
             const expectedLabel = tzFormat(converted, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
+        });
+    });
+
+    describe('getFormattedSplitDateRange', () => {
+        const translateEN = <TPath extends TranslationPaths>(path: TPath, ...params: TranslationParameters<TPath>) => translate(LOCALE, path, ...params);
+
+        it('should return empty string when startDate is undefined', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, '2024-01-15');
+            expect(result).toBe('');
+        });
+
+        it('should return empty string when endDate is undefined', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', undefined);
+            expect(result).toBe('');
+        });
+
+        it('should return empty string when both dates are undefined', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, undefined);
+            expect(result).toBe('');
+        });
+
+        it('should return plural form for multiple days', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-15');
+            expect(result).toContain('2024-01-10');
+            expect(result).toContain('to');
+            expect(result).toContain('2024-01-15');
+            expect(result).toContain('6 days');
+        });
+
+        it('should return correct format for 2 days', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-10', '2024-01-11');
+            expect(result).toContain('2024-01-10');
+            expect(result).toContain('to');
+            expect(result).toContain('2024-01-11');
+            expect(result).toContain('2 days');
+        });
+
+        it('should handle cross-month date ranges', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2024-01-25', '2024-02-05');
+            expect(result).toContain('2024-01-25');
+            expect(result).toContain('to');
+            expect(result).toContain('2024-02-05');
+            expect(result).toContain('12 days');
+        });
+
+        it('should handle cross-year date ranges', () => {
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, '2023-12-25', '2024-01-05');
+            expect(result).toContain('2023-12-25');
+            expect(result).toContain('to');
+            expect(result).toContain('2024-01-05');
+            expect(result).toContain('12 days');
         });
     });
 });

@@ -90,8 +90,6 @@ function Header({title = '', subtitle = '', textStyles = [], style, containerSty
     );
 }
 
-Header.displayName = 'Header';
-
 export default Header;
 
 export type {HeaderProps};

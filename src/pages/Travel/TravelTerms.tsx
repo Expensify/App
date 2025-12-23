@@ -47,6 +47,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
 
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
+    const policyID = route.params.policyID;
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
@@ -98,7 +99,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
         <>
             <ScreenWrapper
                 shouldEnableMaxHeight
-                testID={TravelTerms.displayName}
+                testID="TravelTerms"
             >
                 <FullPageNotFoundView shouldShow={!CONFIG.IS_HYBRID_APP && isBlockedFromSpotnanaTravel}>
                     <HeaderWithBackButton
@@ -132,7 +133,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
                                 }
 
                                 asyncOpenURL(
-                                    acceptSpotnanaTerms(domain).then((response) => {
+                                    acceptSpotnanaTerms(domain, policyID).then((response) => {
                                         if (response?.jsonCode !== 200) {
                                             return Promise.reject();
                                         }
@@ -174,7 +175,5 @@ function TravelTerms({route}: TravelTermsPageProps) {
         </>
     );
 }
-
-TravelTerms.displayName = 'TravelMenu';
 
 export default TravelTerms;

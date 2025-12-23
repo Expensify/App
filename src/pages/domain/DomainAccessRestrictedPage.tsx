@@ -53,7 +53,7 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
     }
 
     return (
-        <ScreenWrapper testID={DomainAccessRestrictedPage.displayName}>
+        <ScreenWrapper testID="DomainAccessRestrictedPage">
             <HeaderWithBackButton
                 title={translate('domain.accessRestricted.title')}
                 onBackButtonPress={Navigation.goBack}
@@ -94,5 +94,4 @@ function DomainAccessRestrictedPage({route}: DomainAccessRestrictedPageProps) {
     );
 }
 
-DomainAccessRestrictedPage.displayName = 'DomainAccessRestrictedPage';
 export default DomainAccessRestrictedPage;

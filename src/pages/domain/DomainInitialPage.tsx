@@ -1,6 +1,6 @@
 import {findFocusedRoute, useNavigationState} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -12,6 +12,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -72,7 +73,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         return menuItems;
     }, [domainAccountID, singleExecution, waitForNavigate, icons.UserLock]);
 
-    useEffect(() => {
+    const fetchDomainData = useCallback(() => {
         if (!domainName) {
             return;
         }
@@ -80,12 +81,18 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
     }, [domainName]);
 
     useEffect(() => {
+        fetchDomainData();
+    }, [fetchDomainData]);
+
+    useNetwork({onReconnect: fetchDomainData});
+
+    useEffect(() => {
         confirmReadyToOpenApp();
     }, []);
 
     return (
         <ScreenWrapper
-            testID={DomainInitialPage.displayName}
+            testID="DomainInitialPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={
                 !shouldDisplayLHB && (
@@ -138,7 +145,5 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
         </ScreenWrapper>
     );
 }
-
-DomainInitialPage.displayName = 'DomainInitialPage';
 
 export default DomainInitialPage;

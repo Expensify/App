@@ -32,6 +32,4 @@ function EmptyMoneyRequestReportPreview() {
     );
 }
 
-EmptyMoneyRequestReportPreview.displayName = 'EmptyRequestReport';
-
 export default EmptyMoneyRequestReportPreview;

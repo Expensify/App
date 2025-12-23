@@ -66,7 +66,7 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
 
     return (
         <ScreenWrapper
-            testID={ExitSurveyConfirmPage.displayName}
+            testID="ExitSurveyConfirmPage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -106,7 +106,5 @@ function ExitSurveyConfirmPage({route, navigation}: ExitSurveyConfirmPageProps) 
         </ScreenWrapper>
     );
 }
-
-ExitSurveyConfirmPage.displayName = 'ExitSurveyConfirmPage';
 
 export default ExitSurveyConfirmPage;

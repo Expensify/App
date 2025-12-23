@@ -17,6 +17,4 @@ function NewBankAccountVerifyAccountPage({route}: NewBankAccountVerifyAccountPag
     );
 }
 
-NewBankAccountVerifyAccountPage.displayName = 'NewBankAccountVerifyAccountPage';
-
 export default NewBankAccountVerifyAccountPage;

@@ -342,6 +342,4 @@ function KYCWall({
     );
 }
 
-KYCWall.displayName = 'BaseKYCWall';
-
 export default KYCWall;

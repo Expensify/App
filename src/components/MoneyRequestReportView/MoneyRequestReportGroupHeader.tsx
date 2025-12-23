@@ -117,6 +117,4 @@ function MoneyRequestReportGroupHeader({
     );
 }
 
-MoneyRequestReportGroupHeader.displayName = 'MoneyRequestReportGroupHeader';
-
 export default MoneyRequestReportGroupHeader;

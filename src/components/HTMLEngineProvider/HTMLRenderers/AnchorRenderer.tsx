@@ -183,6 +183,4 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     );
 }
 
-AnchorRenderer.displayName = 'AnchorRenderer';
-
 export default AnchorRenderer;

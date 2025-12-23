@@ -90,6 +90,4 @@ function WorkspaceMemberCustomFieldPage({policy, route, personalDetails}: Worksp
     );
 }
 
-WorkspaceMemberCustomFieldPage.displayName = 'WorkspaceMemberCustomFieldPage';
-
 export default withPolicyAndFullscreenLoading(WorkspaceMemberCustomFieldPage);

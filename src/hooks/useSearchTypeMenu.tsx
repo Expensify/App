@@ -49,7 +49,18 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Checkmark', 'Pencil']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Bookmark',
+        'Checkmark',
+        'Pencil',
+        'Receipt',
+        'ChatBubbles',
+        'MoneyBag',
+        'CreditCard',
+        'MoneyHourglass',
+        'CreditCardHourglass',
+        'Bank',
+    ] as const);
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
@@ -78,8 +89,8 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
     }, []);
 
     const getOverflowMenu = useCallback(
-        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, showDeleteModal, true, closeMenu),
-        [showDeleteModal, closeMenu, expensifyIcons],
+        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal, true, closeMenu),
+        [translate, showDeleteModal, closeMenu, expensifyIcons],
     );
 
     const {savedSearchesMenuItems, isSavedSearchActive} = useMemo(() => {
@@ -167,11 +178,12 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                         const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
                         const flattenedIndex = previousItemCount + itemIndex;
                         const isSelected = flattenedIndex === activeItemIndex;
+                        const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
                         sectionItems.push({
                             text: translate(item.translationPath),
                             isSelected,
-                            icon: item.icon,
+                            icon,
                             ...(isSelected ? {iconFill: theme.iconSuccessFill} : {}),
                             iconRight: expensifyIcons.Checkmark,
                             shouldShowRightIcon: isSelected,
@@ -188,7 +200,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                 return sectionItems;
             })
             .flat();
-    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, theme.iconSuccessFill, theme.border, expensifyIcons.Checkmark, singleExecution]);
+    }, [typeMenuSections, translate, styles.textSupporting, savedSearchesMenuItems, activeItemIndex, theme.iconSuccessFill, theme.border, expensifyIcons, singleExecution]);
 
     const openMenu = useCallback(() => {
         setIsPopoverVisible(true);

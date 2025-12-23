@@ -38,7 +38,7 @@ function RulesProhibitedDefaultPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesProhibitedDefaultPage.displayName}
+                testID="RulesProhibitedDefaultPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.individualExpenseRules.prohibitedExpenses')}
@@ -71,7 +71,5 @@ function RulesProhibitedDefaultPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesProhibitedDefaultPage.displayName = 'RulesProhibitedDefaultPage';
 
 export default RulesProhibitedDefaultPage;

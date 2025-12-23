@@ -5,6 +5,7 @@ import type {GestureResponderEvent} from 'react-native';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -236,7 +237,5 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         />
     );
 }
-
-MoneyRequestAccountantSelector.displayName = 'MoneyRequestAccountantSelector';
 
 export default memo(MoneyRequestAccountantSelector, (prevProps, nextProps) => prevProps.iouType === nextProps.iouType);

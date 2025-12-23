@@ -16,6 +16,4 @@ function VideoPlayer(props: VideoPlayerProps) {
     );
 }
 
-VideoPlayer.displayName = 'VideoPlayer';
-
 export default VideoPlayer;

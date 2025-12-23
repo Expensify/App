@@ -393,7 +393,7 @@ function WorkspaceTaxesPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceTaxesPage.displayName}
+                testID="WorkspaceTaxesPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
@@ -458,7 +458,5 @@ function WorkspaceTaxesPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTaxesPage.displayName = 'WorkspaceTaxesPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesPage);

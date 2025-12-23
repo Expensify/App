@@ -53,6 +53,4 @@ function ImportSpreadsheetConfirmModal({isVisible, closeImportPageAndModal, onMo
     );
 }
 
-ImportSpreadsheetConfirmModal.displayName = 'ImportSpreadsheetConfirmModal';
-
 export default ImportSpreadsheetConfirmModal;

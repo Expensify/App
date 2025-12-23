@@ -314,6 +314,4 @@ function WorkspacesListRow({
     );
 }
 
-WorkspacesListRow.displayName = 'WorkspacesListRow';
-
 export default withCurrentUserPersonalDetails(WorkspacesListRow);

@@ -132,6 +132,4 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     );
 }
 
-DistanceRequestFooter.displayName = 'DistanceRequestFooter';
-
 export default DistanceRequestFooter;

@@ -98,6 +98,4 @@ function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
     );
 }
 
-Plaid.displayName = 'Plaid';
-
 export default Plaid;

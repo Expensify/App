@@ -6,7 +6,7 @@ import type {AnchorOrigin} from './actions/EmojiPickerAction';
 /**
  * Gets the x,y position of the passed in component for the purpose of anchoring another component to it.
  */
-export default function calculateAnchorPosition(anchorComponent: ContextMenuAnchor, anchorOrigin?: AnchorOrigin): Promise<AnchorPosition & AnchorDimensions> {
+export default function calculateAnchorPosition(anchorComponent: ContextMenuAnchor, anchorOrigin?: Partial<AnchorOrigin>): Promise<AnchorPosition & AnchorDimensions> {
     return new Promise((resolve) => {
         if (!anchorComponent || !('measureInWindow' in anchorComponent)) {
             resolve({horizontal: 0, vertical: 0, width: 0, height: 0});

@@ -174,6 +174,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                                 ),
                         });
                     },
+                    sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.REPLACE_RECEIPT,
                 });
             }
             if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID) {
@@ -181,6 +182,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     icon: icons.Download,
                     text: translate('common.download'),
                     onSelected: () => onDownloadAttachment({source: innerSource, file}),
+                    sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.DOWNLOAD_RECEIPT,
                 });
             }
 
@@ -191,6 +193,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     text: translate('receipt.deleteReceipt'),
                     onSelected: () => setIsDeleteReceiptConfirmModalVisible?.(true),
                     shouldCallAfterModalHide: true,
+                    sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.DELETE_RECEIPT,
                 });
             }
             return menuItems;
@@ -268,6 +271,5 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         />
     );
 }
-TransactionReceiptModalContent.displayName = 'TransactionReceiptModalContent';
 
 export default TransactionReceiptModalContent;

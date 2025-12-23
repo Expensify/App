@@ -8,11 +8,12 @@ import getButtonState from '@libs/getButtonState';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import type {PressableRef} from './Pressable/GenericPressable/types';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip/PopoverAnchorTooltip';
 
-type BaseMiniContextMenuItemProps = {
+type BaseMiniContextMenuItemProps = WithSentryLabel & {
     /**
      * Text to display when hovering the menu item
      */
@@ -47,7 +48,15 @@ type BaseMiniContextMenuItemProps = {
  * Component that renders a mini context menu item with a
  * pressable. Also renders a tooltip when hovering the item.
  */
-function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonStateComplete = true, shouldPreventDefaultFocusOnPress = true, ref}: BaseMiniContextMenuItemProps) {
+function BaseMiniContextMenuItem({
+    tooltipText,
+    onPress,
+    children,
+    isDelayButtonStateComplete = true,
+    shouldPreventDefaultFocusOnPress = true,
+    ref,
+    sentryLabel,
+}: BaseMiniContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (
@@ -79,6 +88,7 @@ function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonS
                 }}
                 accessibilityLabel={tooltipText}
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={sentryLabel}
                 style={({hovered, pressed}) => [
                     styles.reportActionContextMenuMiniButton,
                     StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed, isDelayButtonStateComplete), true),
@@ -94,7 +104,5 @@ function BaseMiniContextMenuItem({tooltipText, onPress, children, isDelayButtonS
         </Tooltip>
     );
 }
-
-BaseMiniContextMenuItem.displayName = 'BaseMiniContextMenuItem';
 
 export default BaseMiniContextMenuItem;

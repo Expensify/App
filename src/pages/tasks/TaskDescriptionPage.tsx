@@ -97,7 +97,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={TaskDescriptionPage.displayName}
+            testID="TaskDescriptionPage"
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                 <HeaderWithBackButton
@@ -142,8 +142,6 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
         </ScreenWrapper>
     );
 }
-
-TaskDescriptionPage.displayName = 'TaskDescriptionPage';
 
 const ComponentWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(TaskDescriptionPage);
 

@@ -86,5 +86,4 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
     );
 }
 
-NavigationTabBarAvatar.displayName = 'NavigationTabBarAvatar';
 export default NavigationTabBarAvatar;

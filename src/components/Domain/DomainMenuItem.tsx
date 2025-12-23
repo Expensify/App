@@ -89,7 +89,5 @@ function DomainMenuItem({item, index}: DomainMenuItemProps) {
     );
 }
 
-DomainMenuItem.displayName = 'DomainMenuItem';
-
 export type {DomainItem};
 export default DomainMenuItem;

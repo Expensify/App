@@ -46,6 +46,4 @@ function ChangePolicyEducationalModal() {
     );
 }
 
-ChangePolicyEducationalModal.displayName = 'ChangePolicyEducationalModal';
-
 export default ChangePolicyEducationalModal;

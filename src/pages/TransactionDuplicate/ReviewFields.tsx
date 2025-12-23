@@ -86,7 +86,5 @@ function ReviewFields<K extends keyof ReviewDuplicates>({stepNames, label, optio
     );
 }
 
-ReviewFields.displayName = 'ReviewFields';
-
 export default ReviewFields;
 export type {FieldItemType};

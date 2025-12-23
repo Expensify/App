@@ -7,11 +7,9 @@ function SearchFiltersTotalPage() {
         <SearchFiltersAmountBase
             filterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL}
             title="common.total"
-            testID={SearchFiltersTotalPage.displayName}
+            testID="SearchFiltersTotalPage"
         />
     );
 }
-
-SearchFiltersTotalPage.displayName = 'SearchFiltersTotalPage';
 
 export default SearchFiltersTotalPage;

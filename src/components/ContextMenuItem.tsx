@@ -7,11 +7,12 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import FocusableMenuItem from './FocusableMenuItem';
 import Icon from './Icon';
 
-type ContextMenuItemProps = {
+type ContextMenuItemProps = WithSentryLabel & {
     /** Icon Component */
     icon: IconAsset;
 
@@ -89,6 +90,7 @@ function ContextMenuItem({
     disabled = false,
     shouldShowLoadingSpinnerIcon = false,
     ref,
+    sentryLabel,
 }: ContextMenuItemProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -120,6 +122,7 @@ function ContextMenuItem({
             onPress={triggerPressAndUpdateSuccess}
             isDelayButtonStateComplete={!isThrottledButtonActive}
             shouldPreventDefaultFocusOnPress={shouldPreventDefaultFocusOnPress}
+            sentryLabel={sentryLabel}
         >
             {({hovered, pressed}) => (
                 <Icon
@@ -146,11 +149,10 @@ function ContextMenuItem({
             onBlur={onBlur}
             disabled={disabled}
             shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
+            sentryLabel={sentryLabel}
         />
     );
 }
-
-ContextMenuItem.displayName = 'ContextMenuItem';
 
 export default ContextMenuItem;
 export type {ContextMenuItemHandle};

@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -37,7 +37,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || isPendingDeletePolicy(policy);
 
-    const createApprovalWorkflow = useCallback(() => {
+    const createApprovalWorkflow = () => {
         if (!approvalWorkflow) {
             return;
         }
@@ -48,7 +48,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
 
         createApprovalWorkflowAction(approvalWorkflow, policy);
         Navigation.dismissModal();
-    }, [approvalWorkflow, policy]);
+    };
 
     const submitButtonContainerStyles = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: [styles.mb5, styles.mh5]});
 
@@ -59,7 +59,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceWorkflowsApprovalsCreatePage.displayName}
+                testID="WorkspaceWorkflowsApprovalsCreatePage"
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
@@ -70,7 +70,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsCreateApprovalsPage.title')}
-                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0))}
+                        onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(route.params.policyID, 0))}
                     />
                     {!!approvalWorkflow && (
                         <>
@@ -98,7 +98,5 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceWorkflowsApprovalsCreatePage.displayName = 'WorkspaceWorkflowsApprovalsCreatePage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsCreatePage);

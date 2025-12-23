@@ -7,6 +7,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {Section} from '@components/SelectionListWithSections/types';
@@ -258,7 +259,7 @@ function RoomInvitePage({
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={RoomInvitePage.displayName}
+            testID="RoomInvitePage"
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView
@@ -302,7 +303,5 @@ function RoomInvitePage({
         </ScreenWrapper>
     );
 }
-
-RoomInvitePage.displayName = 'RoomInvitePage';
 
 export default withNavigationTransitionEnd(withReportOrNotFound()(RoomInvitePage));

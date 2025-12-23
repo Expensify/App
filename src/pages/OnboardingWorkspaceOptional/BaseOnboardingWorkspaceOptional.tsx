@@ -107,7 +107,7 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            testID={BaseOnboardingWorkspaceOptional.displayName}
+            testID="BaseOnboardingWorkspaceOptional"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton progressBarPercentage={100} />
@@ -169,7 +169,5 @@ function BaseOnboardingWorkspaceOptional({shouldUseNativeStyles}: BaseOnboarding
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingWorkspaceOptional.displayName = 'BaseOnboardingWorkspaceOptional';
 
 export default BaseOnboardingWorkspaceOptional;

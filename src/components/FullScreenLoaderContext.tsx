@@ -54,7 +54,5 @@ function useFullScreenLoader() {
     return context;
 }
 
-FullScreenLoaderContextProvider.displayName = 'FullScreenLoaderContextProvider';
-
 export default FullScreenLoaderContextProvider;
 export {FullScreenLoaderContext, useFullScreenLoader};

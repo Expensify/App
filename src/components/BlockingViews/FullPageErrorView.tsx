@@ -58,7 +58,5 @@ function FullPageErrorView({testID, children = null, shouldShow = false, title =
     return children;
 }
 
-FullPageErrorView.displayName = 'FullPageErrorView';
-
 export type {FullPageErrorViewProps};
 export default FullPageErrorView;

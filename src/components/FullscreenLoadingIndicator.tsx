@@ -75,8 +75,6 @@ function FullScreenLoadingIndicator({
     );
 }
 
-FullScreenLoadingIndicator.displayName = 'FullScreenLoadingIndicator';
-
 export default FullScreenLoadingIndicator;
 
 export type {FullScreenLoadingIndicatorIconSize};

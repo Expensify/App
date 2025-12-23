@@ -96,7 +96,5 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
     );
 }
 
-GoogleSignIn.displayName = 'GoogleSignIn';
-
 export default GoogleSignIn;
 export type {GoogleSignInProps};

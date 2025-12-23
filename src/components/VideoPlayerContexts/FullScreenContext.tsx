@@ -34,7 +34,5 @@ function useFullScreenContext() {
     return fullscreenContext;
 }
 
-FullScreenContextProvider.displayName = 'FullScreenContextProvider';
-
 export {Context as FullScreenContext, FullScreenContextProvider, useFullScreenContext};
 export type {ResponsiveLayoutProperties};

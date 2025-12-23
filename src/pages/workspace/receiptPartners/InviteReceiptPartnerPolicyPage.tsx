@@ -216,7 +216,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
 
     if (isInvitationSent || shouldSkipToAllSet) {
         return (
-            <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
+            <ScreenWrapper testID="InviteReceiptPartnerPolicyPage">
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.allSet')}
                     onBackButtonPress={() => Navigation.dismissModal()}
@@ -241,7 +241,7 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
-            <ScreenWrapper testID={InviteReceiptPartnerPolicyPage.displayName}>
+            <ScreenWrapper testID="InviteReceiptPartnerPolicyPage">
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.sendInvites')}
                     onBackButtonPress={() => Navigation.goBack()}
@@ -263,7 +263,5 @@ function InviteReceiptPartnerPolicyPage({route}: InviteReceiptPartnerPolicyPageP
         </AccessOrNotFoundWrapper>
     );
 }
-
-InviteReceiptPartnerPolicyPage.displayName = 'InviteReceiptPartnerPolicyPage';
 
 export default InviteReceiptPartnerPolicyPage;

@@ -79,7 +79,7 @@ function AddBankAccount() {
 
     return (
         <ScreenWrapper
-            testID={AddBankAccount.displayName}
+            testID="AddBankAccount"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicator
@@ -112,7 +112,5 @@ function AddBankAccount() {
         </ScreenWrapper>
     );
 }
-
-AddBankAccount.displayName = 'AddBankAccountPage';
 
 export default AddBankAccount;
