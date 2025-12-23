@@ -1052,6 +1052,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 reportTransactions={reportTransactions}
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
+                                                isInSidePanel={isInSidePanel}
                                             />
                                         ) : null}
                                     </View>
