@@ -83,7 +83,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={RequireQuickBooksDesktopModal.displayName}
+            testID="RequireQuickBooksDesktopModal"
         >
             <HeaderWithBackButton
                 title={translate('workspace.qbd.qbdSetup')}
@@ -140,7 +140,5 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         </ScreenWrapper>
     );
 }
-
-RequireQuickBooksDesktopModal.displayName = 'RequireQuickBooksDesktopModal';
 
 export default RequireQuickBooksDesktopModal;

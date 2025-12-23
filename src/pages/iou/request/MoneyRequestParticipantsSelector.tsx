@@ -15,6 +15,7 @@ import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItem from '@components/MenuItem';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
@@ -119,6 +120,7 @@ function MoneyRequestParticipantsSelector({
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
 
     const [textInputAutoFocus, setTextInputAutoFocus] = useState<boolean>(!isNative);
     const selectionListRef = useRef<SelectionListHandle | null>(null);
@@ -323,11 +325,14 @@ function MoneyRequestParticipantsSelector({
         if (
             !isWorkspacesOnly &&
             availableOptions.userToInvite &&
-            !isCurrentUser({
-                ...availableOptions.userToInvite,
-                accountID: availableOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                status: availableOptions.userToInvite?.status ?? undefined,
-            }) &&
+            !isCurrentUser(
+                {
+                    ...availableOptions.userToInvite,
+                    accountID: availableOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    status: availableOptions.userToInvite?.status ?? undefined,
+                },
+                loginList,
+            ) &&
             !isPerDiemRequest
         ) {
             newSections.push({
@@ -360,6 +365,7 @@ function MoneyRequestParticipantsSelector({
         availableOptions.recentReports,
         availableOptions.personalDetails,
         isWorkspacesOnly,
+        loginList,
         isPerDiemRequest,
         showImportContacts,
         inputHelperText,
@@ -588,8 +594,6 @@ function MoneyRequestParticipantsSelector({
         </>
     );
 }
-
-MoneyRequestParticipantsSelector.displayName = 'MoneyRequestParticipantsSelector';
 
 export default memo(
     MoneyRequestParticipantsSelector,

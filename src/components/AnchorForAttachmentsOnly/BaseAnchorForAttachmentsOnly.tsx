@@ -2,6 +2,7 @@ import React from 'react';
 import AttachmentView from '@components/Attachments/AttachmentView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +29,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
     const sourceID = (source.match(CONST.REGEX.ATTACHMENT_ID) ?? [])[1];
 
     const [download] = useOnyx(`${ONYXKEYS.COLLECTION.DOWNLOAD}${sourceID}`, {canBeMissing: true});
+    const {translate} = useLocalize();
 
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -44,7 +46,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                             return;
                         }
                         setDownload(sourceID, true);
-                        fileDownload(sourceURLWithAuth, displayName, '', isMobileSafari()).then(() => setDownload(sourceID, false));
+                        fileDownload(translate, sourceURLWithAuth, displayName, '', isMobileSafari()).then(() => setDownload(sourceID, false));
                     }}
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
@@ -74,7 +76,5 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
         </ShowContextMenuContext.Consumer>
     );
 }
-
-BaseAnchorForAttachmentsOnly.displayName = 'BaseAnchorForAttachmentsOnly';
 
 export default BaseAnchorForAttachmentsOnly;

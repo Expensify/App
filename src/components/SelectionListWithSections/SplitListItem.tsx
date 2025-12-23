@@ -1,7 +1,6 @@
-import React, {useCallback, useLayoutEffect, useRef} from 'react';
+import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -15,6 +14,8 @@ import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
+import SplitAmountDisplay from './SplitExpense/SplitAmountDisplay';
+import SplitListItemInput from './SplitListItemInput';
 import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
 
 function SplitListItem<TItem extends ListItem>({
@@ -39,13 +40,7 @@ function SplitListItem<TItem extends ListItem>({
 
     const formattedOriginalAmount = convertToDisplayStringWithoutCurrency(splitItem.originalAmount, splitItem.currency);
 
-    const onSplitExpenseAmountChange = useCallback(
-        (amount: string) => {
-            splitItem.onSplitExpenseAmountChange(splitItem.transactionID, Number(amount));
-        },
-
-        [splitItem],
-    );
+    const onSplitExpenseValueChange = useCallback((value: string) => splitItem.onSplitExpenseValueChange(splitItem.transactionID, Number(value), splitItem.mode), [splitItem]);
 
     const inputRef = useRef<BaseTextInputRef | null>(null);
 
@@ -62,6 +57,7 @@ function SplitListItem<TItem extends ListItem>({
     const isBottomVisible = !!splitItem.category || !!splitItem.tags?.at(0);
 
     const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
+    const [percentageDraft, setPercentageDraft] = useState<string | undefined>();
     const focusHandler = useCallback(() => {
         if (!onInputFocus) {
             return;
@@ -85,6 +81,8 @@ function SplitListItem<TItem extends ListItem>({
     const inputCallbackRef = (ref: BaseTextInputRef | null) => {
         inputRef.current = ref;
     };
+
+    const isPercentageMode = splitItem.mode === CONST.TAB.SPLIT.PERCENTAGE;
 
     return (
         <BaseListItem
@@ -115,8 +113,8 @@ function SplitListItem<TItem extends ListItem>({
                                 {splitItem.headerText}
                             </Text>
                         </View>
-                        <View style={[styles.minHeight5, styles.justifyContentCenter, styles.gap2]}>
-                            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                        <View style={[styles.minHeight5, styles.justifyContentCenter]}>
+                            <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.gap1]}>
                                 <Text
                                     fontSize={variables.fontSizeNormal}
                                     style={[styles.flexShrink1]}
@@ -124,6 +122,12 @@ function SplitListItem<TItem extends ListItem>({
                                 >
                                     {splitItem.merchant}
                                 </Text>
+                                {isPercentageMode && (
+                                    <SplitAmountDisplay
+                                        shouldRemoveSpacing
+                                        splitItem={splitItem}
+                                    />
+                                )}
                             </View>
                         </View>
                     </View>
@@ -166,32 +170,17 @@ function SplitListItem<TItem extends ListItem>({
                 </View>
                 <View style={[styles.flexRow]}>
                     <View style={[styles.justifyContentCenter]}>
-                        <MoneyRequestAmountInput
-                            ref={inputCallbackRef}
-                            disabled={!splitItem.isEditable}
-                            autoGrow={false}
-                            amount={splitItem.amount}
-                            currency={splitItem.currency}
-                            prefixCharacter={splitItem.currencySymbol}
-                            disableKeyboard={false}
-                            isCurrencyPressable={false}
-                            hideFocusedState={false}
-                            hideCurrencySymbol
-                            submitBehavior="blurAndSubmit"
-                            formatAmountOnBlur
-                            onAmountChange={onSplitExpenseAmountChange}
-                            prefixContainerStyle={[styles.pv0, styles.h100]}
-                            prefixStyle={styles.lineHeightUndefined}
-                            inputStyle={[styles.optionRowAmountInput, styles.lineHeightUndefined]}
-                            containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
-                            touchableInputWrapperStyle={[styles.ml3]}
-                            maxLength={formattedOriginalAmount.length + 1}
+                        <SplitListItemInput
+                            isPercentageMode={isPercentageMode}
+                            splitItem={splitItem}
                             contentWidth={contentWidth}
-                            shouldApplyPaddingToContainer
-                            shouldUseDefaultLineHeightForPrefix={false}
-                            shouldWrapInputInContainer={false}
-                            onFocus={focusHandler}
-                            onBlur={onInputBlur}
+                            formattedOriginalAmount={formattedOriginalAmount}
+                            percentageDraft={percentageDraft}
+                            onSplitExpenseValueChange={onSplitExpenseValueChange}
+                            setPercentageDraft={setPercentageDraft}
+                            focusHandler={focusHandler}
+                            onInputBlur={onInputBlur}
+                            inputCallbackRef={inputCallbackRef}
                         />
                     </View>
                     <View style={[styles.popoverMenuIcon]}>
@@ -209,7 +198,5 @@ function SplitListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-SplitListItem.displayName = 'SplitListItem';
 
 export default SplitListItem;

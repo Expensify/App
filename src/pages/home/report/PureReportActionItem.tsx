@@ -1227,7 +1227,7 @@ function PureReportActionItem({
                 const last4Digits = policy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
                 if (wasAutoPaid) {
-                    const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', {amount: '', last4Digits});
+                    const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
 
                     children = (
                         <ReportActionItemBasicMessage>
@@ -1235,7 +1235,7 @@ function PureReportActionItem({
                         </ReportActionItemBasicMessage>
                     );
                 } else {
-                    children = <ReportActionItemBasicMessage message={translate('iou.businessBankAccount', {amount: '', last4Digits})} />;
+                    children = <ReportActionItemBasicMessage message={translate('iou.businessBankAccount', '', last4Digits)} />;
                 }
             } else if (wasAutoPaid) {
                 children = (
@@ -1250,10 +1250,11 @@ function PureReportActionItem({
                     const bankAccount = bankAccountList?.[originalMessage.bankAccountID];
                     children = (
                         <ReportActionItemBasicMessage
-                            message={translate(originalMessage?.payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal', {
+                            message={translate(
+                                originalMessage?.payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal',
                                 amount,
-                                last4Digits: bankAccount?.accountData?.accountNumber?.slice(-4) ?? '',
-                            })}
+                                bankAccount?.accountData?.accountNumber?.slice(-4) ?? '',
+                            )}
                         />
                     );
                 } else {
@@ -1534,6 +1535,7 @@ function PureReportActionItem({
                                             small
                                             style={[styles.mt2, styles.alignSelfStart]}
                                             onPress={() => updateHiddenState(!isHidden)}
+                                            sentryLabel={CONST.SENTRY_LABEL.REPORT.MODERATION_BUTTON}
                                         >
                                             <Text
                                                 style={[styles.buttonSmallText, styles.userSelectNone]}
@@ -1801,6 +1803,7 @@ function PureReportActionItem({
                 withoutFocusOnSecondaryInteraction
                 accessibilityLabel={translate('accessibilityHints.chatMessage')}
                 accessible
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
                 <Hoverable
                     shouldHandleScroll
