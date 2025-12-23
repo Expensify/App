@@ -76,6 +76,7 @@ function getLength(): number {
 }
 
 function save(requestToPersist: Request) {
+    Log.info('[PersistedRequests] Saving request to queue started', false, {command: requestToPersist.command});
     // If not initialized yet, queue the request for later processing
     if (!isInitialized) {
         Log.info('[PersistedRequests] Queueing request until initialization completes', false);
@@ -86,9 +87,13 @@ function save(requestToPersist: Request) {
     // If the command is not in the keepLastInstance array, add the new request as usual
     const requests = [...persistedRequests, requestToPersist];
     persistedRequests = requests;
-    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests).then(() => {
-        Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
-    });
+    Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, requests)
+        .then(() => {
+            Log.info(`[SequentialQueue] '${requestToPersist.command}' command queued. Queue length is ${getLength()}`);
+        })
+        .catch(() => {
+            Log.info('[SequentialQueue] Error saving request to queue', false, {command: requestToPersist.command});
+        });
 }
 
 function endRequestAndRemoveFromQueue(requestToRemove: Request) {
