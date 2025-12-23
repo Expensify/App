@@ -93,6 +93,13 @@ describe('ReportActionsUtils', () => {
             // Invalid: more than one decimal place with comma
             expect(validatePercentage('7,55', true, true)).toBe(false);
             expect(validatePercentage('100,01', false, true)).toBe(false);
+
+            // Invalid: mixed comma and period (should not accept both)
+            expect(validatePercentage('7,5.5', true, true)).toBe(false);
+            expect(validatePercentage('7.5,5', true, true)).toBe(false);
+            expect(validatePercentage('1,234.56', true, true)).toBe(false);
+            expect(validatePercentage('1.234,56', true, true)).toBe(false);
+            expect(validatePercentage('10,5.0', false, true)).toBe(false);
         });
     });
 
