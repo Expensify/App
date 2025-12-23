@@ -1268,9 +1268,13 @@ function setMoneyRequestPendingFields(transactionID: string, pendingFields: Onyx
  * @param transactionID - The transaction ID
  * @param category - The category name
  * @param policy - The policy object, or undefined for P2P transactions where tax info should be cleared
+ * @param isMovingFromTrackExpense - If the expense is moved from Track Expense
  */
-function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<OnyxTypes.Policy>) {
+function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<OnyxTypes.Policy>, isMovingFromTrackExpense?: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
+    if (isMovingFromTrackExpense) {
+        return;
+    }
     if (!policy) {
         setMoneyRequestTaxRate(transactionID, '');
         setMoneyRequestTaxAmount(transactionID, null);
@@ -6469,7 +6473,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                           category,
                           tag,
                           taxCode,
-                          taxAmount,
+                          taxAmount: Math.abs(taxAmount),
                           billable,
                           policyID: chatReport.policyID,
                           waypoints: sanitizedWaypoints,
@@ -12150,6 +12154,7 @@ function completePaymentOnboarding(
         shouldSkipTestDriveModal: true,
     });
 }
+
 function payMoneyRequest(
     paymentType: PaymentMethodType,
     chatReport: OnyxTypes.Report,

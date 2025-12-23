@@ -254,6 +254,8 @@ function MoneyRequestConfirmationList({
         selector: mileageRateSelector,
         canBeMissing: true,
     });
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const [defaultMileageRateReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
         selector: mileageRateSelector,
         canBeMissing: true,
@@ -281,7 +283,6 @@ function MoneyRequestConfirmationList({
         isTestDriveReceipt || isManagerMcTestReceipt,
     );
 
-    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
     const policy = isTrackExpense ? policyForMovingExpenses : (policyReal ?? policyDraft);
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
@@ -299,7 +300,6 @@ function MoneyRequestConfirmationList({
     const isTypeInvoice = iouType === CONST.IOU.TYPE.INVOICE;
     const isScanRequest = useMemo(() => isScanRequestUtil(transaction), [transaction]);
     const isCreateExpenseFlow = !!transaction?.isFromGlobalCreate && !isPerDiemRequest;
-    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
 
     const transactionID = transaction?.transactionID;
     const customUnitRateID = getRateID(transaction);
@@ -343,16 +343,18 @@ function MoneyRequestConfirmationList({
 
     const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense, policy, isDistanceRequest, isPerDiemRequest);
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
-    const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? '';
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
+
     useEffect(() => {
-        if (!transactionID || isReadOnly || !shouldShowTax) {
+        if (!transactionID || isReadOnly || !shouldShowTax || isMovingTransactionFromTrackExpense) {
             return;
         }
         setMoneyRequestTaxRate(transactionID, defaultTaxCode);
-    }, [defaultTaxCode, transactionID, isReadOnly, shouldShowTax]);
+        // trigger this useEffect also when policyID changes - the defaultTaxCode may stay the same
+    }, [defaultTaxCode, isMovingTransactionFromTrackExpense, isReadOnly, transactionID, policyID, shouldShowTax]);
 
     const distance = getDistanceInMeters(transaction, unit);
     const prevDistance = usePrevious(distance);
@@ -503,15 +505,18 @@ function MoneyRequestConfirmationList({
 
     // Calculate and set tax amount in transaction draft
     const taxableAmount = isDistanceRequest ? DistanceRequestUtils.getTaxableAmount(policy, customUnitRateID, distance) : (transaction?.amount ?? 0);
-    const taxPercentage = getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ?? '';
+    // First we'll try to get the tax value from the chosen policy and if not found, we'll try to get it from the policy for moving expenses (only if the transaction is moving from track expense)
+    const taxPercentage =
+        getTaxValue(policy, transaction, transaction?.taxCode ?? defaultTaxCode) ??
+        (isMovingTransactionFromTrackExpense ? getTaxValue(policyForMovingExpenses, transaction, transaction?.taxCode ?? defaultTaxCode) : '');
     const taxAmount = calculateTaxAmount(taxPercentage, taxableAmount, transaction?.currency ?? CONST.CURRENCY.USD);
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
     useEffect(() => {
-        if (!transactionID || isReadOnly || !shouldShowTax) {
+        if (!transactionID || isMovingTransactionFromTrackExpense || isReadOnly || !shouldShowTax) {
             return;
         }
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
-    }, [transactionID, taxAmountInSmallestCurrencyUnits, isReadOnly, shouldShowTax]);
+    }, [transactionID, taxAmountInSmallestCurrencyUnits, isMovingTransactionFromTrackExpense, isReadOnly, shouldShowTax]);
 
     // If completing a split expense fails, set didConfirm to false to allow the user to edit the fields again
     if (isEditingSplitBill && didConfirm) {
@@ -836,7 +841,7 @@ function MoneyRequestConfirmationList({
         if (!transactionID || iouCategory || !shouldShowCategories || enabledCategories.length !== 1 || !isCategoryRequired) {
             return;
         }
-        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy);
+        setMoneyRequestCategory(transactionID, enabledCategories.at(0)?.name ?? '', policy, isMovingTransactionFromTrackExpense);
         // Keep 'transaction' out to ensure that we auto select the option only once
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [shouldShowCategories, policyCategories, isCategoryRequired, policy?.id]);
@@ -920,6 +925,11 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
+            if (shouldShowTax && !Object.keys(policy?.taxRates?.taxes ?? {}).some((key) => key === transaction.taxCode)) {
+                setFormError('violations.taxOutOfPolicy');
+                return;
+            }
+
             if (isPerDiemRequest && (transaction.comment?.customUnit?.subRates ?? []).length === 0) {
                 setFormError('iou.error.invalidSubrateLength');
                 return;
@@ -977,6 +987,7 @@ function MoneyRequestConfirmationList({
             isMerchantRequired,
             isMerchantEmpty,
             shouldDisplayFieldError,
+            shouldShowTax,
             transaction,
             policyTags,
             isPerDiemRequest,

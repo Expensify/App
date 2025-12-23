@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setTransactionReport} from '@libs/actions/Transaction';
@@ -79,7 +80,9 @@ function IOURequestStepAmount({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isSaveButtonPressed = useRef(false);
     const iouRequestType = getRequestType(transaction);
-    const policyID = report?.policyID;
+    const isTrackExpense = iouType === CONST.IOU.TYPE.TRACK;
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const policyID = isTrackExpense ? policyForMovingExpensesID : report?.policyID;
 
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
