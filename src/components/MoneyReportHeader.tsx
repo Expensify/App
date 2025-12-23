@@ -391,6 +391,16 @@ function MoneyReportHeader({
     );
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
+        report: moneyRequestReport,
+        reportActions,
+        allTransactionsLength: transactions.length,
+        session,
+        onExportFailed: () => setIsDownloadErrorModalVisible(true),
+        onExportOffline: () => setOfflineModalVisible(true),
+        policy,
+        beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
+    });
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
     const onlyShowPayElsewhere = useMemo(() => !canIOUBePaid && getCanIOUBePaid(true), [canIOUBePaid, getCanIOUBePaid]);
@@ -756,47 +766,31 @@ function MoneyReportHeader({
         return options;
     }, [translate, connectedIntegrationFallback, connectedIntegration, moneyRequestReport, isOffline, transactionIDs, isExported, beginExportWithTemplate, exportTemplates, expensifyIcons]);
 
-    const handleSubmitReport = useCallback(() => {
-        if (!moneyRequestReport || shouldBlockSubmit) {
-            return;
-        }
-        if (hasDynamicExternalWorkflow(policy)) {
-            showDWEModal();
-            return;
-        }
-        startSubmittingAnimation();
-        submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
-        if (currentSearchQueryJSON && !isOffline) {
-            search({
-                searchKey: currentSearchKey,
-                shouldCalculateTotals,
-                offset: 0,
-                queryJSON: currentSearchQueryJSON,
-                isOffline,
-            });
-        }
-    }, [
-        moneyRequestReport,
-        shouldBlockSubmit,
-        policy,
-        accountID,
-        email,
-        hasViolations,
-        isASAPSubmitBetaEnabled,
-        currentSearchQueryJSON,
-        currentSearchKey,
-        shouldCalculateTotals,
-        isOffline,
-        showDWEModal,
-        startSubmittingAnimation,
-    ]);
-
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
             <AnimatedSubmitButton
                 success
                 text={translate('common.submit')}
-                onPress={handleSubmitReport}
+                onPress={() => {
+                    if (!moneyRequestReport || shouldBlockSubmit) {
+                        return;
+                    }
+                    if (hasDynamicExternalWorkflow(policy)) {
+                        showDWEModal();
+                        return;
+                    }
+                    startSubmittingAnimation();
+                    submitReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled);
+                    if (currentSearchQueryJSON && !isOffline) {
+                        search({
+                            searchKey: currentSearchKey,
+                            shouldCalculateTotals,
+                            offset: 0,
+                            queryJSON: currentSearchQueryJSON,
+                            isOffline,
+                        });
+                    }
+                }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}
                 isDisabled={shouldBlockSubmit}
@@ -939,61 +933,6 @@ function MoneyReportHeader({
         }
         return getSecondaryExportReportActions(moneyRequestReport, policy, exportTemplates);
     }, [moneyRequestReport, policy, exportTemplates]);
-
-    // Build list of available report-level actions (Submit, Approve, Pay) to show when all expenses are selected
-    const availableReportLevelActions = useMemo((): PopoverMenuItem[] => {
-        // Define action configurations with their primary/secondary action types and menu item properties
-        const actionConfigs = [
-            {
-                primaryActionType: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
-                secondaryActionType: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
-                text: translate('common.submit'),
-                icon: expensifyIcons.Send,
-                onSelected: handleSubmitReport,
-            },
-            {
-                primaryActionType: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
-                secondaryActionType: CONST.REPORT.SECONDARY_ACTIONS.APPROVE,
-                text: translate('iou.approve'),
-                icon: expensifyIcons.ThumbsUp,
-                onSelected: confirmApproval,
-            },
-            {
-                primaryActionType: CONST.REPORT.PRIMARY_ACTIONS.PAY,
-                secondaryActionType: CONST.REPORT.SECONDARY_ACTIONS.PAY,
-                text: translate('iou.settlePayment', {formattedAmount: totalAmount}),
-                icon: expensifyIcons.Cash,
-                onSelected: confirmPayment,
-            },
-        ];
-
-        // Filter and build the list of available actions
-        return actionConfigs.reduce<PopoverMenuItem[]>((acc, config) => {
-            const isAvailable = primaryAction === config.primaryActionType || secondaryActions.includes(config.secondaryActionType);
-
-            if (isAvailable) {
-                acc.push({
-                    text: config.text,
-                    icon: config.icon,
-                    onSelected: config.onSelected,
-                });
-            }
-
-            return acc;
-        }, []);
-    }, [primaryAction, secondaryActions, translate, handleSubmitReport, confirmApproval, confirmPayment, totalAmount]);
-
-    const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
-        report: moneyRequestReport,
-        reportActions,
-        allTransactionsLength: transactions.length,
-        session,
-        onExportFailed: () => setIsDownloadErrorModalVisible(true),
-        onExportOffline: () => setOfflineModalVisible(true),
-        policy,
-        beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
-        reportLevelActions: availableReportLevelActions,
-    });
 
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
     const unapproveWarningText = useMemo(

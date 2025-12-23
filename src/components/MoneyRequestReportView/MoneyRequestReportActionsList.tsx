@@ -210,7 +210,6 @@ function MoneyRequestReportActionsList({
         onExportOffline: () => setOfflineModalVisible(true),
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList) => beginExportWithTemplate(templateName, templateType, transactionIDList),
-        reportLevelActions: [], // Report-level actions are shown in MoneyReportHeader instead
     });
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
