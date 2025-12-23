@@ -17,14 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
 import {computeTimeAmount, formatTimeMerchant} from '@libs/TimeTrackingUtils';
 import variables from '@styles/variables';
-import {
-    setMoneyRequestAmount,
-    setMoneyRequestMerchant,
-    setMoneyRequestParticipantsFromReport,
-    setMoneyRequestTimeCount,
-    setMoneyRequestTimeRate,
-    setMoneyRequestTimeType,
-} from '@userActions/IOU';
+import {setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestParticipantsFromReport, setMoneyRequestTimeCount, setMoneyRequestTimeRate} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -75,7 +68,6 @@ function IOURequestStepTimeHours({
     const saveTime = (count: number) => {
         setMoneyRequestAmount(transactionID, computeTimeAmount(rate, count), currency);
         setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate), isTransactionDraft);
-        setMoneyRequestTimeType(transactionID, isTransactionDraft);
         setMoneyRequestTimeRate(transactionID, rate, isTransactionDraft);
         setMoneyRequestTimeCount(transactionID, count, isTransactionDraft);
 
