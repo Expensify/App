@@ -126,7 +126,6 @@ describe('domainSelectors', () => {
                 },
             } as unknown as OnyxEntry<Domain>;
 
-            // Sortujemy wynik, aby test był stabilny (kolejność w Set/Object.keys nie zawsze jest gwarantowana)
             expect(selectMemberIDs(domain).sort()).toEqual([100, 200, 300]);
         });
 
