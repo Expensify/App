@@ -13,6 +13,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {useSearchContext} from '@components/Search/SearchContext';
 import Section from '@components/Section';
+import SentryDebugToolMenu from '@components/SentryDebugToolMenu';
 import Switch from '@components/Switch';
 import TestToolMenu from '@components/TestToolMenu';
 import TestToolRow from '@components/TestToolRow';
@@ -52,7 +53,7 @@ function TroubleshootPage() {
     const troubleshootIllustration = useTroubleshootSectionIllustration();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isProduction} = useEnvironment();
+    const {isProduction, isDevelopment} = useEnvironment();
     const waitForNavigate = useWaitForNavigation();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoading, setIsLoading] = useState(false);
@@ -242,6 +243,11 @@ function TroubleshootPage() {
                             {!isProduction && (
                                 <View style={[styles.mt6]}>
                                     <TestToolMenu />
+                                </View>
+                            )}
+                            {isDevelopment && (
+                                <View style={[styles.mt6]}>
+                                    <SentryDebugToolMenu />
                                 </View>
                             )}
                         </View>
