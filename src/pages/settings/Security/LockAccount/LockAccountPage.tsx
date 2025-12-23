@@ -6,7 +6,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type Response from '@src/types/onyx/Response';
-import LockAccountPageBase from './LockAccountPageBase';
+import BaseLockAccountComponent from './LockAccountPageBase';
 
 function LockAccountPage() {
     const {translate} = useLocalize();
@@ -34,7 +34,7 @@ function LockAccountPage() {
     );
 
     return (
-        <LockAccountPageBase
+        <BaseLockAccountComponent
             testID="LockAccountPage"
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_LOCK_ACCOUNT)}
             confirmModalPrompt={confirmModalPrompt}

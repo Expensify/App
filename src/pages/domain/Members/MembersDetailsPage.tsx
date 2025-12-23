@@ -25,7 +25,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
                 key: 'report',
                 title: translate('lockAccountPage.reportSuspiciousActivity'),
                 icon: icons.Flag,
-                onPress: () => Navigation.navigate(ROUTES.DOMAIN_MEMBER_REPORT_SUSPICIOUS_ACTIVITY.getRoute(domainAccountID, accountID)),
+                onPress: () => Navigation.navigate(ROUTES.DOMAIN_LOCK_ACCOUNT.getRoute(domainAccountID, accountID)),
                 shouldShowRightIcon: true,
             },
         ],

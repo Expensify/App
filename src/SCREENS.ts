@@ -869,7 +869,7 @@ const SCREENS = {
         ADD_ADMIN: 'Domain_Add_Admin',
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
-        MEMBER_REPORT_SUSPICIOUS_ACTIVITY: 'Member_Report_Suspicious_Activity',
+        MEMBER_LOCK_ACCOUNT: 'Member_Lock_Account',
     },
 } as const;
 

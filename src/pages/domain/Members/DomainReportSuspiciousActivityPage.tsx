@@ -7,14 +7,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import LockAccountPageBase from '@pages/settings/Security/LockAccount/LockAccountPageBase';
+import BaseLockAccountComponent from '@pages/settings/Security/LockAccount/LockAccountPageBase';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type DomainMembersReportSuspiciousActivityProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_REPORT_SUSPICIOUS_ACTIVITY>;
+type DomainReportSuspiciousActivityPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT>;
 
-function DomainMembersReportSuspiciousActivity({route}: DomainMembersReportSuspiciousActivityProps) {
+function DomainReportSuspiciousActivityPage({route}: DomainReportSuspiciousActivityPageProps) {
     const {domainAccountID, accountID} = route.params;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
@@ -36,8 +36,8 @@ function DomainMembersReportSuspiciousActivity({route}: DomainMembersReportSuspi
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
-            <LockAccountPageBase
-                testID="DomainMembersReportSuspiciousActivity"
+            <BaseLockAccountComponent
+                testID="DomainReportSuspiciousActivityPage"
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_LOCK_ACCOUNT)}
                 confirmModalPrompt={confirmModalPrompt}
                 lockAccountPagePrompt={lockAccountPagePrompt}
@@ -47,4 +47,4 @@ function DomainMembersReportSuspiciousActivity({route}: DomainMembersReportSuspi
     );
 }
 
-export default DomainMembersReportSuspiciousActivity;
+export default DomainReportSuspiciousActivityPage;

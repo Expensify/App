@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import HeaderPageLayout from '@components/HeaderPageLayout';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -11,14 +12,14 @@ import {lockAccount} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Response from '@src/types/onyx/Response';
 
-type LockAccountPageBaseProps = {
+type BaseLockAccountComponentProps = {
     confirmModalPrompt: React.JSX.Element | string;
     lockAccountPagePrompt: React.JSX.Element | string;
     testID: string;
     onBackButtonPress: () => void;
     handleLockRequestFinish: (response: void | Response) => void;
 };
-function LockAccountPageBase({confirmModalPrompt, lockAccountPagePrompt, testID, onBackButtonPress, handleLockRequestFinish}: LockAccountPageBaseProps) {
+function BaseLockAccountComponent({confirmModalPrompt, lockAccountPagePrompt, testID, onBackButtonPress, handleLockRequestFinish}: BaseLockAccountComponentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -31,7 +32,7 @@ function LockAccountPageBase({confirmModalPrompt, lockAccountPagePrompt, testID,
         if (session?.accountID === -1) {
             return;
         }
-        await showConfirmModal({
+        const modalResult = await showConfirmModal({
             danger: true,
             title: translate('lockAccountPage.reportSuspiciousActivity'),
 
@@ -41,6 +42,10 @@ function LockAccountPageBase({confirmModalPrompt, lockAccountPagePrompt, testID,
             shouldDisableConfirmButtonWhenOffline: true,
             shouldShowCancelButton: true,
         });
+
+        if (modalResult.action !== ModalActions.CONFIRM) {
+            return;
+        }
 
         setIsLoading(true);
         const response = await lockAccount();
@@ -76,4 +81,4 @@ function LockAccountPageBase({confirmModalPrompt, lockAccountPagePrompt, testID,
     );
 }
 
-export default LockAccountPageBase;
+export default BaseLockAccountComponent;

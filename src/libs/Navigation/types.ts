@@ -1381,7 +1381,7 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
         accountID: number;
     };
-    [SCREENS.DOMAIN.MEMBER_REPORT_SUSPICIOUS_ACTIVITY]: {
+    [SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT]: {
         domainAccountID: number;
         accountID: number;
     };
