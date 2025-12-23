@@ -180,9 +180,9 @@ function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return hasDistanceCustomUnit(transaction);
 }
 
-function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedMergeTransaction = false): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
+    if (lodashHas(transaction, 'iouRequestType') && !isUpdatedMergeTransaction) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     }
 
