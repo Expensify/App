@@ -1033,7 +1033,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 hasOlderActions={hasOlderActions}
                                                 hasNewerActions={hasNewerActions}
                                                 showReportActionsLoadingState={showReportActionsLoadingState}
-                                                reportPendingAction={reportPendingAction}
                                             />
                                         ) : null}
                                         {isCurrentReportLoadedFromOnyx ? (
@@ -1052,6 +1051,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                     </View>
                                 </View>
                                 <PortalHost name="suggestions" />
+                                </ReportLevelActionsContextProvider>
                             </DragAndDropProvider>
                         </FullPageNotFoundView>
                     </ScreenWrapper>

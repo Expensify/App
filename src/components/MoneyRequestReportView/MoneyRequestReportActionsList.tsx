@@ -101,9 +101,6 @@ type MoneyRequestReportListProps = {
 
     /** Whether report actions are still loading and we load the report for the first time, since the last sign in */
     showReportActionsLoadingState?: boolean;
-
-    /** The type of action that's pending  */
-    reportPendingAction?: PendingAction | null;
 };
 
 function MoneyRequestReportActionsList({
