@@ -40,6 +40,4 @@ function WhyLink({containerStyles}: WhyLinkProps) {
     );
 }
 
-WhyLink.displayName = 'WhyLink';
-
 export default WhyLink;

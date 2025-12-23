@@ -105,6 +105,4 @@ function CustomCloseDateSelectionList({initiallySelectedDay, onConfirmSelectedDa
     );
 }
 
-CustomCloseDateSelectionList.displayName = 'CustomCloseDateSelectionList';
-
 export default CustomCloseDateSelectionList;

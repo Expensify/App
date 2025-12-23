@@ -610,7 +610,7 @@ function WorkspacesListPage() {
         }
 
         return Object.values(allDomains).reduce<DomainItem[]>((domainItems, domain) => {
-            if (!domain) {
+            if (!domain || !domain.accountID || !domain.email) {
                 return domainItems;
             }
 
@@ -755,7 +755,7 @@ function WorkspacesListPage() {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={WorkspacesListPage.displayName}
+            testID="WorkspacesListPage"
             enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={
                 shouldUseNarrowLayout && (
@@ -835,7 +835,5 @@ function WorkspacesListPage() {
         </ScreenWrapper>
     );
 }
-
-WorkspacesListPage.displayName = 'WorkspacesListPage';
 
 export default WorkspacesListPage;
