@@ -3,7 +3,7 @@ import type {Country} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type {BankAccountList} from '@src/types/onyx';
-import type {ACHDataReimbursementAccount, ACHData, BankAccountStep, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHData, ACHDataReimbursementAccount, BankAccountStep, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
 
 type ReimbursementAccountStepToOpen = ValueOf<typeof REIMBURSEMENT_ACCOUNT_ROUTE_NAMES> | '';
 
@@ -237,5 +237,15 @@ function getSetupStateBankAccount(bankAccountList?: BankAccountList) {
     return setupStateBankAccounts.at(0) ?? null;
 }
 
-export {getRouteForCurrentStep, hasInProgressUSDVBBA, hasInProgressNonUSDVBBA, hasInProgressVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES, mapBankAccountToACHData, mapBankAccountToReimbursementAccountDraft, getCurrentStepFromBankAccount, getSetupStateBankAccount};
+export {
+    getRouteForCurrentStep,
+    hasInProgressUSDVBBA,
+    hasInProgressNonUSDVBBA,
+    hasInProgressVBBA,
+    REIMBURSEMENT_ACCOUNT_ROUTE_NAMES,
+    mapBankAccountToACHData,
+    mapBankAccountToReimbursementAccountDraft,
+    getCurrentStepFromBankAccount,
+    getSetupStateBankAccount,
+};
 export type {ReimbursementAccountStepToOpen};
