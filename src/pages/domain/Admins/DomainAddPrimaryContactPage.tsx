@@ -58,10 +58,17 @@ function DomainAddPrimaryContactPage({route}: DomainAddPrimaryContactPageProps) 
         canBeMissing: false,
         selector: technicalContactSettingsSelector,
     });
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
 
     let technicalContactEmailKey: string | undefined;
     const data: AdminOption[] = [];
     for (const accountID of adminAccountIDs ?? []) {
+        // Don't show admins with errors
+        const adminErrors = domainErrors?.adminErrors?.[accountID] ?? {};
+        if (Object.keys(adminErrors).length !== 0) {
+            continue;
+        }
+
         const details = personalDetails?.[accountID];
         if (details?.login === technicalContactSettings?.technicalContactEmail) {
             technicalContactEmailKey = String(accountID);
