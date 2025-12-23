@@ -653,15 +653,17 @@ function clearAddAdminError(domainAccountID: number, accountID: number) {
 }
 
 function addMemberToDomain(domainAccountID: number, targetEmail: string) {
-    const DOMAIN_SECURITY_GROUP_OPTIMISTIC = `${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}${-1}`;
+    const DOMAIN_SECURITY_GROUP = `${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}${CONST.DEFAULT_NUMBER_ID}`;
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
             value: {
-                [DOMAIN_SECURITY_GROUP_OPTIMISTIC]: {
-                    [CONST.DEFAULT_NUMBER_ID]:'read'
+                [DOMAIN_SECURITY_GROUP]: {
+                    shared:{
+                        [CONST.DEFAULT_NUMBER_ID]:'read'
+                    }
                 },
             },
         },

@@ -72,6 +72,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
 
     const inviteUser = useCallback(() => {
         addMemberToDomain(domainAccountID,email)
+        Navigation.dismissModal();
     }, []);
 
     const isButtonDisabled = !email || email === domainSuffix || !email.includes('@');
