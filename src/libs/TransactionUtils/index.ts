@@ -1134,7 +1134,7 @@ function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean 
 }
 
 /**
- * Determins whether the transaction is coming from any card (Expensify/Corporate/personal cards)
+ * Determine whether the transaction is coming from any card (Expensify/Corporate/personal cards)
  */
 function isCardTransaction(transaction: OnyxEntry<Transaction>, cardList?: CardList): boolean {
     if (transaction?.managedCard) {

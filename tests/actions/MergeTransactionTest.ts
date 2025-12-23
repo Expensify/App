@@ -526,6 +526,7 @@ describe('areTransactionsEligibleForMerge', () => {
             const cashTransaction = {
                 ...createRandomTransaction(1),
                 managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
                 amount: 2000,
             };
 
@@ -544,11 +545,13 @@ describe('areTransactionsEligibleForMerge', () => {
                 ...createRandomTransaction(0),
                 amount: 0,
                 managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
             const zeroTransaction2 = {
                 ...createRandomTransaction(1),
                 amount: 0,
                 managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
 
             // When we check if they are eligible for merge
@@ -565,12 +568,14 @@ describe('areTransactionsEligibleForMerge', () => {
                 amount: 0,
                 currency: CONST.CURRENCY.USD,
                 managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
             const nonZeroTransaction = {
                 ...createRandomTransaction(1),
                 amount: -1000, // Negative amount as stored in database
                 currency: CONST.CURRENCY.USD,
                 managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
 
             // When we check if they are eligible for merge
@@ -599,12 +604,12 @@ describe('areTransactionsEligibleForMerge', () => {
             const distanceTransaction1 = {
                 ...createRandomDistanceRequestTransaction(0),
                 amount: 1000,
-                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
             const distanceTransaction2 = {
                 ...createRandomDistanceRequestTransaction(1),
                 amount: 2000,
-                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
             };
 
             // When we check if they are eligible for merge
@@ -621,10 +626,12 @@ describe('areTransactionsEligibleForMerge', () => {
             const cashTransaction1 = {
                 ...createRandomTransaction(0),
                 managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
                 amount: 1000,
             };
             const cashTransaction2 = {
                 ...createRandomTransaction(1),
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
                 managedCard: false,
                 amount: 2000,
             };
@@ -641,6 +648,8 @@ describe('areTransactionsEligibleForMerge', () => {
         it('can not merge 2 split expenses', () => {
             const splitExpenseTransaction1 = {
                 ...createRandomTransaction(1),
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
                 comment: {
                     ...createRandomTransaction(1).comment,
                     originalTransactionID: 'original-1',
@@ -649,6 +658,8 @@ describe('areTransactionsEligibleForMerge', () => {
             } as Transaction;
             const splitExpenseTransaction2 = {
                 ...createRandomTransaction(2),
+                managedCard: false,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
                 comment: {
                     ...createRandomTransaction(2).comment,
                     originalTransactionID: 'original-2',
@@ -664,6 +675,8 @@ describe('areTransactionsEligibleForMerge', () => {
             const splitExpenseTransaction = {
                 ...createRandomTransaction(1),
                 amount: 1000,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                managedCard: false,
                 comment: {
                     ...createRandomTransaction(1).comment,
                     originalTransactionID: 'original-split-transaction',
@@ -674,7 +687,8 @@ describe('areTransactionsEligibleForMerge', () => {
             const cashTransaction = {
                 ...createRandomTransaction(2),
                 amount: 1500,
-                managedCard: undefined,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                managedCard: false,
                 reportID: 'expense-report-456',
             } as Transaction;
 
@@ -686,7 +700,8 @@ describe('areTransactionsEligibleForMerge', () => {
             const splitExpenseTransaction = {
                 ...createRandomTransaction(1),
                 amount: 1000,
-                managedCard: undefined,
+                cardName: CONST.EXPENSE.TYPE.CASH_CARD_NAME,
+                managedCard: false,
                 comment: {
                     ...createRandomTransaction(1).comment,
                     originalTransactionID: 'original-split-transaction',

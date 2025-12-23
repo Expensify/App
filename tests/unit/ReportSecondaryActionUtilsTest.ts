@@ -2597,7 +2597,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             jest.clearAllMocks();
         });
 
-        it('should return false for transactions with negative amounts', () => {
+        it('should return true for transactions with negative amounts', () => {
             const report = {
                 reportID: REPORT_ID,
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -2646,7 +2646,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 policy,
             });
 
-            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(false);
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
         });
 
         it('should return true for transactions with positive amounts when eligible', () => {
