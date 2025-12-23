@@ -175,37 +175,42 @@ function TransactionListItem<TItem extends ListItem>({
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
             >
-                {!isLargeScreenWidth && (
-                    <UserInfoAndActionButtonRow
-                        item={transactionItem}
-                        handleActionButtonPress={handleActionButtonPress}
-                        shouldShowUserInfo={!!transactionItem?.from}
-                        isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
-                    />
+                {({hovered}) => (
+                    <>
+                        {!isLargeScreenWidth && (
+                            <UserInfoAndActionButtonRow
+                                item={transactionItem}
+                                handleActionButtonPress={handleActionButtonPress}
+                                shouldShowUserInfo={!!transactionItem?.from}
+                                isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
+                            />
+                        )}
+                        <TransactionItemRow
+                            hash={currentSearchHash}
+                            transactionItem={transactionItem}
+                            report={transactionItem.report}
+                            shouldShowTooltip={showTooltip}
+                            onButtonPress={handleActionButtonPress}
+                            onCheckboxPress={handleCheckboxPress}
+                            shouldUseNarrowLayout={!isLargeScreenWidth}
+                            columns={columns}
+                            isActionLoading={isLoading ?? isActionLoading}
+                            isSelected={!!transactionItem.isSelected}
+                            dateColumnSize={dateColumnSize}
+                            submittedColumnSize={submittedColumnSize}
+                            approvedColumnSize={approvedColumnSize}
+                            postedColumnSize={postedColumnSize}
+                            exportedColumnSize={exportedColumnSize}
+                            amountColumnSize={amountColumnSize}
+                            taxAmountColumnSize={taxAmountColumnSize}
+                            shouldShowCheckbox={!!canSelectMultiple}
+                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                            violations={transactionViolations}
+                            onArrowRightPress={onPress}
+                            isHover={hovered}
+                        />
+                    </>
                 )}
-                <TransactionItemRow
-                    hash={currentSearchHash}
-                    transactionItem={transactionItem}
-                    report={transactionItem.report}
-                    shouldShowTooltip={showTooltip}
-                    onButtonPress={handleActionButtonPress}
-                    onCheckboxPress={handleCheckboxPress}
-                    shouldUseNarrowLayout={!isLargeScreenWidth}
-                    columns={columns}
-                    isActionLoading={isLoading ?? isActionLoading}
-                    isSelected={!!transactionItem.isSelected}
-                    dateColumnSize={dateColumnSize}
-                    submittedColumnSize={submittedColumnSize}
-                    approvedColumnSize={approvedColumnSize}
-                    postedColumnSize={postedColumnSize}
-                    exportedColumnSize={exportedColumnSize}
-                    amountColumnSize={amountColumnSize}
-                    taxAmountColumnSize={taxAmountColumnSize}
-                    shouldShowCheckbox={!!canSelectMultiple}
-                    style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
-                    violations={transactionViolations}
-                    onArrowRightPress={onPress}
-                />
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
