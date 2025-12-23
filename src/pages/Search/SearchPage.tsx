@@ -62,8 +62,8 @@ import {navigateToParticipantPage} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getActiveAdminWorkspaces, getAllTaxRates, hasDynamicExternalWorkflow, hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     canDeleteMoneyRequestReport,
     generateReportID,
@@ -713,9 +713,6 @@ function SearchPage({route}: SearchPageProps) {
                 }
                 const parentReportID = transaction.reportID;
                 const parentReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-                if (!parentReport) {
-                    return false;
-                }
                 const reportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
                 const parentReportAction = Object.values(reportActions ?? {}).find(
                     (action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === transaction.transactionID,

@@ -2946,10 +2946,10 @@ function canDeleteMoneyRequestReport(report: Report, reportTransactions: Transac
         return true;
     }
 
-    const isUnreported = isSelfDM(report);
+    const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
-        return isOwner && canCardTransactionBeDeleted;
+        return (isOwner || transaction?.managerID === currentUserAccountID) && canCardTransactionBeDeleted;
     }
 
     if (isInvoiceReport(report)) {
