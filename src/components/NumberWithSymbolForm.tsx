@@ -3,6 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
@@ -473,7 +474,7 @@ function NumberWithSymbolForm({
                             <Button
                                 shouldShowRightIcon
                                 small
-                                iconRight={Expensicons.DownArrow}
+                                iconRight={icons.DownArrow}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
                                 isContentCentered
@@ -498,7 +499,7 @@ function NumberWithSymbolForm({
                     <Button
                         shouldShowRightIcon
                         small
-                        iconRight={Expensicons.DownArrow}
+                        iconRight={icons.DownArrow}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
                         isContentCentered
