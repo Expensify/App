@@ -118,7 +118,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
         // Apply search filter if there's a search term
         if (debouncedSearchTerm) {
             const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-            adminsToDisplay = tokenizedSearch(admins, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
+            adminsToDisplay = tokenizedSearch(adminsToDisplay, searchValue, (option) => [option.text ?? '', option.alternateText ?? '']);
         }
 
         return adminsToDisplay;
