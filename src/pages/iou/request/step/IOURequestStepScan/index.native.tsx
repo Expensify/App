@@ -795,7 +795,10 @@ function IOURequestStepScan({
         if (isMultiScanEnabled) {
             removeDraftTransactions(true);
         }
-        removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+
+        optimisticTransactions?.forEach((transaction) => {
+            removeTransactionReceipt(transaction?.transactionID);
+        });
         setIsMultiScanEnabled?.(!isMultiScanEnabled);
     };
 
