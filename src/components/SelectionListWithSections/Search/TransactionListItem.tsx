@@ -43,7 +43,6 @@ function TransactionListItem<TItem extends ListItem>({
     shouldSyncFocus,
     columns,
     isLoading,
-    areAllOptionalColumnsHidden,
     violations,
     onDEWModalOpen,
 }: TransactionListItemProps<TItem>) {
@@ -185,6 +184,7 @@ function TransactionListItem<TItem extends ListItem>({
                     />
                 )}
                 <TransactionItemRow
+                    hash={currentSearchHash}
                     transactionItem={transactionItem}
                     report={transactionItem.report}
                     shouldShowTooltip={showTooltip}
@@ -203,7 +203,6 @@ function TransactionListItem<TItem extends ListItem>({
                     taxAmountColumnSize={taxAmountColumnSize}
                     shouldShowCheckbox={!!canSelectMultiple}
                     style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
-                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
                     violations={transactionViolations}
                     onArrowRightPress={onPress}
                 />

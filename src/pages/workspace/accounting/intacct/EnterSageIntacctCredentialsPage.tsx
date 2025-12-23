@@ -53,6 +53,7 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
     );
     return (
         <ScreenWrapper
+            shouldEnableMaxHeight
             testID="EnterSageIntacctCredentialsPage"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
@@ -68,7 +69,6 @@ function EnterSageIntacctCredentialsPage({route}: SageIntacctPrerequisitesPagePr
                 submitButtonText={translate('common.confirm')}
                 enabledWhenOffline
                 shouldValidateOnBlur
-                shouldUseScrollView
                 shouldValidateOnChange
                 addBottomSafeAreaPadding
             >
