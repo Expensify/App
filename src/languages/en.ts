@@ -7866,7 +7866,8 @@ const translations = {
             findMember: 'Find member',
             addMember: 'Add member',
             invite: 'Invite',
-            email: 'Email address'
+            email: 'Email address',
+            addMemberError: 'Unable to add this member. Please try again.',
         },
     },
 };

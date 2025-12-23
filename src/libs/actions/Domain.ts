@@ -1,7 +1,12 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddAdminToDomainParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
+import type {
+    AddAdminToDomainParams,
+    AddMemberToDomainParams,
+    SetTechnicalContactEmailParams,
+    ToggleConsolidatedDomainBillingParams,
+} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getAuthToken} from '@libs/Network/NetworkStore';
@@ -647,16 +652,38 @@ function clearAddAdminError(domainAccountID: number, accountID: number) {
     });
 }
 
-function addMemberToDomain(domainAccountID: number, accountID: number, targetEmail: string, domainName: string) {
-    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}${1}`;
+function addMemberToDomain(domainAccountID: number, targetEmail: string) {
+    const DOMAIN_SECURITY_GROUP_OPTIMISTIC = `${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}${-1}`;
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            value: {
+                [DOMAIN_SECURITY_GROUP_OPTIMISTIC]: {
+                    [CONST.DEFAULT_NUMBER_ID]:'read'
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                admin: {
-                    [accountID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                member: {
+                    [CONST.DEFAULT_NUMBER_ID]: {
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    },
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            value: {
+                memberErrors: {
+                    [CONST.DEFAULT_NUMBER_ID]: {
+                        errors: null,
+                    },
                 },
             },
         },
@@ -665,67 +692,61 @@ function addMemberToDomain(domainAccountID: number, accountID: number, targetEma
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                [PERMISSION_KEY]: null,
+                member: {
+                    [CONST.DEFAULT_NUMBER_ID]: {
+                        pendingAction: null,
+                    },
+                },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
-                admin: {
-                    [accountID]: null,
+                memberErrors: {
+                    [CONST.DEFAULT_NUMBER_ID]: {
+                        errors: null,
+                    },
                 },
             },
         },
     ];
+
 
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
-                [PERMISSION_KEY]: null,
+                memberErrors: {
+                    [CONST.DEFAULT_NUMBER_ID]: {
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.addMemberError'),
+                    },
+                },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
             value: {
-                admin: {
-                    [accountID]: null,
+                member: {
+                    [CONST.DEFAULT_NUMBER_ID]: {
+                        pendingAction: null,
+                    },
                 },
             },
-        },
+        }
     ];
 
-    // Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
-    //     [PERMISSION_KEY]: accountID,
-    // });
-    //
-    // Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
-    //     adminErrors: {
-    //         [accountID]: {
-    //             12334: 'Adding admin ends with failure, great success!',
-    //         },
-    //     },
-    // });
-    //
-    // Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-    //     admin: {
-    //         [accountID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-    //     },
-    // });
-
-    const authToken = NetworkStore.getAuthToken();
-    const params: AddAdminToDomainParams = {
+    const authToken = getAuthToken();
+    const params: AddMemberToDomainParams = {
         authToken,
-        domainName,
-        targetEmail,
+        targetEmail
     };
 
-    API.write(WRITE_COMMANDS.ADD_DOMAIN_ADMIN, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.ADD_DOMAIN_MEMBER, params, {optimisticData, successData, failureData});
 }
 
 export {
@@ -748,4 +769,5 @@ export {
     clearToggleConsolidatedDomainBillingErrors,
     addAdminToDomain,
     clearAddAdminError,
+    addMemberToDomain
 };

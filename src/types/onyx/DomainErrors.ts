@@ -11,6 +11,16 @@ type GeneralDomainAdminErrors = {
 };
 
 /**
+ * Basic errors for domain member
+ */
+type GeneralDomainMemberErrors = {
+    /**
+     * Base pending actions
+     */
+    errors: OnyxCommon.Errors;
+};
+
+/**
  * Collection of errors related to domain operations received from the backend
  */
 type DomainErrors = {
@@ -28,6 +38,11 @@ type DomainErrors = {
      * Errors related to the "use technical contact billing card" setting
      */
     useTechnicalContactBillingCardErrors?: OnyxCommon.Errors;
+
+    /**
+     * Errors related to specific domain administrators, keyed by their adminID
+     */
+    memberErrors?: Record<number, GeneralDomainMemberErrors>;
 };
 
 export default DomainErrors;

@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {addMemberToDomain} from '@userActions/Domain';
 
 type DomainAddMemberProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_MEMBER>;
 
@@ -70,7 +71,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     }, [maxCursorPosition]);
 
     const inviteUser = useCallback(() => {
-        // invite logic
+        addMemberToDomain(domainAccountID,email)
     }, []);
 
     const isButtonDisabled = !email || email === domainSuffix || !email.includes('@');
