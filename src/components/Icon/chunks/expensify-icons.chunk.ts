@@ -468,7 +468,6 @@ const Expensicons = {
     SageIntacctExport,
     XeroExport,
     ArrowCircleClockwise,
-    PlusMinus,
     LuggageWithLines,
 };
 
