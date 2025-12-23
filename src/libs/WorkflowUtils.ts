@@ -131,16 +131,24 @@ function convertPolicyEmployeesToApprovalWorkflows({policy, personalDetails, fir
                 }
             }
 
+            // Only set ADD/UPDATE pending actions on the workflow, not DELETE
+            // When a member is being deleted from the workspace, their DELETE pending action
+            // should not affect the workflow's display state
+            const workflowPendingAction = pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? pendingAction : undefined;
+
             approvalWorkflows[submitsTo] = {
                 members: [],
                 approvers,
                 isDefault: defaultApprover === submitsTo,
-                pendingAction,
+                pendingAction: workflowPendingAction,
             };
         }
 
         approvalWorkflows[submitsTo].members.push(member);
-        if (pendingAction) {
+        // Only propagate ADD/UPDATE pending actions to the workflow, not DELETE
+        // When a member is being deleted from the workspace, their DELETE pending action
+        // should not affect the workflow's display state (e.g., strikethrough styling)
+        if (pendingAction && pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             approvalWorkflows[submitsTo].pendingAction = pendingAction;
         }
     }

@@ -153,10 +153,9 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
 
                 {approvalWorkflow.approvers.map((approver, approverIndex) => {
                     const errorText = approverErrorMessage(approver, approverIndex);
-                    const hintText =
-                        !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email)
-                            ? translate('workflowsPage.approverInMultipleWorkflows')
-                            : undefined;
+                    const isApproverInMultipleWorkflows = !errorText && approvalWorkflow.usedApproverEmails.some((approverEmail) => approverEmail === approver?.email);
+                    const limitDescription = getApprovalLimitDescription({approver, currency, translate, personalDetailsByEmail});
+                    const hintText = [isApproverInMultipleWorkflows ? translate('workflowsPage.approverInMultipleWorkflows') : undefined, limitDescription].filter(Boolean).join('\n');
 
                     return (
                         <OfflineWithFeedback
@@ -173,7 +172,6 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                                 onPress={() => editApprover(approverIndex)}
                                 shouldShowRightIcon
                                 hintText={hintText}
-                                shouldRenderHintAsHTML
                                 brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                                 errorText={errorText}
                                 shouldRenderErrorAsHTML

@@ -297,6 +297,16 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
         if (approver?.isCircularReference) {
             errors[`approver-${approverIndex}`] = 'workflowsPage.approverCircularReference';
         }
+
+        // Validate that if overLimitForwardsTo is set, approvalLimit must also be set
+        if (approver?.overLimitForwardsTo && (!approver?.approvalLimit || approver.approvalLimit <= 0)) {
+            errors[`approver-${approverIndex}`] = 'workflowsApprovalLimitPage.enterAmountError';
+        }
+
+        // Validate that if approvalLimit is set, overLimitForwardsTo must also be set
+        if (approver?.approvalLimit && approver.approvalLimit > 0 && !approver?.overLimitForwardsTo) {
+            errors[`approver-${approverIndex}`] = 'workflowsApprovalLimitPage.enterApproverError';
+        }
     }
 
     if (!approvalWorkflow.members.length && !approvalWorkflow.isDefault) {

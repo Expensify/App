@@ -109,6 +109,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             disableMaintainingScrollPosition
             addBottomSafeAreaPadding
             showScrollIndicator
+            isRowMultilineSupported
         />
     );
 }
