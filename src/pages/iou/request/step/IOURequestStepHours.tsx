@@ -1,5 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
@@ -40,6 +40,7 @@ function IOURequestStepTimeHours({
 }: IOURequestStepHoursProps) {
     const policyID = report?.policyID;
     const isTransactionDraft = shouldUseTransactionDraft(action);
+    const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, {canBeMissing: true});
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -54,6 +55,11 @@ function IOURequestStepTimeHours({
     const moneyRequestTimeInputRef = useRef<NumberWithSymbolFormRef | null>(null);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
+    const [formError, setFormError] = useState('');
+
+    useEffect(() => {
+        setFormError('');
+    }, [selectedTab]);
 
     useFocusEffect(() => {
         focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
@@ -66,6 +72,11 @@ function IOURequestStepTimeHours({
     });
 
     const saveTime = (count: number) => {
+        if (Number.isNaN(count) || count <= 0) {
+            setFormError(translate('iou.error.quantityGreaterThanZero'));
+            return;
+        }
+
         setMoneyRequestAmount(transactionID, computeTimeAmount(rate, count), currency);
         setMoneyRequestMerchant(transactionID, formatTimeMerchant(count, rate, currency, translate), isTransactionDraft);
         setMoneyRequestTimeRate(transactionID, rate, isTransactionDraft);
@@ -97,6 +108,13 @@ function IOURequestStepTimeHours({
                     numberFormRef={moneyRequestTimeInputRef}
                     style={styles.iouAmountTextInput}
                     containerStyle={styles.iouAmountTextInputContainer}
+                    errorText={formError}
+                    onInputChange={() => {
+                        if (!formError) {
+                            return;
+                        }
+                        setFormError('');
+                    }}
                     footer={
                         <Button
                             success
