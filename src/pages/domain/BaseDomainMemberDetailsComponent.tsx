@@ -32,20 +32,17 @@ type MemberDetailsMenuItem = {
 };
 
 type BaseDomainMemberDetailsComponentProps = {
-    /** ID domeny dla wrappera NotFound */
+    /** Domain ID */
     domainAccountID: number;
 
-    /** ID konta użytkownika */
+    /** User account ID */
     accountID: number;
 
-    /** Lista pozycji menu (np. profil, uprawnienia) */
+    /** List of additional fields (e.g., force 2FA) */
     menuItems: MemberDetailsMenuItem[];
-
-    /** Dodatkowy kontent na dole strony */
-    children?: React.ReactNode;
 };
 
-function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems, children}: BaseDomainMemberDetailsComponentProps) {
+function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems}: BaseDomainMemberDetailsComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info'] as const);
@@ -112,8 +109,6 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems
                             shouldShowRightIcon={item.shouldShowRightIcon}
                         />
                     ))}
-
-                    {children}
 
                     <MenuItem
                         style={styles.mb5}
