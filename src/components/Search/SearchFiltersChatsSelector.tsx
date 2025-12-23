@@ -2,6 +2,7 @@ import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
 import useArchivedReportsIdSet from '@hooks/useArchivedReportsIdSet';
@@ -196,7 +197,5 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         />
     );
 }
-
-SearchFiltersChatsSelector.displayName = 'SearchFiltersChatsSelector';
 
 export default SearchFiltersChatsSelector;

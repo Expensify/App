@@ -271,6 +271,4 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     );
 }
 
-BaseOnboardingAccounting.displayName = 'BaseOnboardingAccounting';
-
 export default BaseOnboardingAccounting;
