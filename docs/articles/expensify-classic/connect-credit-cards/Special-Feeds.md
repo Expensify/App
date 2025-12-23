@@ -9,7 +9,7 @@ Expensify supports a range of standard card feeds, as well as special file forma
 
 # Supported Special Feeds
 
-Expensify supports the following feeds in addition to standard Visa, Mastercard, and Amex feeds. The ID format example will help you know what to ask for, and whether your bank has provided the information needed for the Expensify team to set up your feed. 
+Expensify supports the following feeds in addition to standard Visa, Mastercard, and Amex feeds. The Feed ID format example will help you know what to ask for and whether your bank has provided the information needed for the Expensify team to set up your feed.
 
 | **Bank**                 | **File format**    | **Feed ID format example**                                      |
 | ------------------------ | ------------------ | --------------------------------------------------------------- |
@@ -20,11 +20,11 @@ Expensify supports the following feeds in addition to standard Visa, Mastercard,
 | Key Bank                 | Key2Business       | Key2Business_MC_A12545678_ or A12545678                         |
 | BMO                      | CDF                | EPS-COMPANYNAME.CCTRANSXML. or COMPANYNAME-123456.EXPENSIFYCDF3 |
 | Brex                     | CDF                | CompanyName_ or [DomainID]_                                     |
-| CitiBank                 | VCF                | companyname_FPCS#3GF_                                           |
-| CitiBank                 | CCF / CGI          | Work with your account manager for this bespoke feed            |
+| Citi                | VCF                | companyname_FPCS#3GF_                                           |
+| Citi                 | CCF / CGI          | Work with your account manager for this bespoke feed            |
 | CSI                      | GlobalVCard        | Work with your account manager for this bespoke feed            |
-| Diner's Club             | SDF                | Work with your account manager for this bespoke feed            |
-| Diner's Club             | DCF                | Work with your account manager for this bespoke feed            |
+| Diners Club             | SDF                | Work with your account manager for this bespoke feed            |
+| Diners Club             | DCF                | Work with your account manager for this bespoke feed            |
 | HSBC                     | VCF                | HSBC.UK.ABC1.ABCE1                                              |
 | HSBC                     | CDF                | HSBC.UK.IXYZ.INTOP.                                             |
 | SEB Kort EuroCard        | CDF                | ECGBP_Company_UK_Non-billed_                                    |
@@ -32,7 +32,7 @@ Expensify supports the following feeds in addition to standard Visa, Mastercard,
 | UBS                      | VCF                | Expensi.Dat1930.prod.vcf.                                       |
 | UBS                      | TSV                | Work with your account manager for this bespoke feed            |
 | NedBank SA / Intecoms    | VCF                | NBSA_COMPANY_SA_123456_                                         |
-| Wex                      | CDF                | ABCompany00123_Daily                                            |
+| WEX                      | CDF                | ABCompany00123_Daily                                            |
 
 Each feed may require coordination with your bank representative and setup from Expensify’s engineering team. Some feeds can take more than a month to enable, so plan this as a project with your Account Manager.
 
