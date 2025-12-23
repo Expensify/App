@@ -853,9 +853,12 @@ describe('getSecondaryAction', () => {
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
         } as unknown as Report;
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
         } as unknown as Policy;
 
         const result = getSecondaryReportActions({
@@ -876,10 +879,16 @@ describe('getSecondaryAction', () => {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             isWaitingOnBankAccount: true,
+            managerID: EMPLOYEE_ACCOUNT_ID,
         } as unknown as Report;
-        const policy = {role: CONST.POLICY.ROLE.ADMIN} as unknown as Policy;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        } as unknown as Policy;
         const TRANSACTION_ID = 'transaction_id';
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
@@ -891,7 +900,148 @@ describe('getSecondaryAction', () => {
                 IOUTransactionID: TRANSACTION_ID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
             },
-            created: '2025-03-06 18:00:00.000',
+            created: new Date().toISOString(),
+        } as unknown as ReportAction;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [
+                {
+                    transactionID: TRANSACTION_ID,
+                } as unknown as Transaction,
+            ],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('includes CANCEL_PAYMENT option for bank payment in BILLING state', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        } as unknown as Policy;
+        const TRANSACTION_ID = 'transaction_id';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = {
+            actionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                IOUTransactionID: TRANSACTION_ID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: new Date().toISOString(),
+        } as unknown as ReportAction;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [
+                {
+                    transactionID: TRANSACTION_ID,
+                } as unknown as Transaction,
+            ],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('includes CANCEL_PAYMENT option for bank payment in APPROVED + REIMBURSED state', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        } as unknown as Policy;
+        const TRANSACTION_ID = 'transaction_id';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = {
+            actionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                IOUTransactionID: TRANSACTION_ID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: new Date().toISOString(),
+        } as unknown as ReportAction;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [
+                {
+                    transactionID: TRANSACTION_ID,
+                } as unknown as Transaction,
+            ],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('includes CANCEL_PAYMENT option for auto-reimbursed payment', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.AUTOREIMBURSED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        } as unknown as Policy;
+        const TRANSACTION_ID = 'transaction_id';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = {
+            actionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                IOUTransactionID: TRANSACTION_ID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: new Date().toISOString(),
         } as unknown as ReportAction;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
@@ -1721,50 +1871,49 @@ describe('getSecondaryAction', () => {
         expect(result).not.toContain(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     });
 
-    // Will be re-enabled in https://github.com/Expensify/App/pull/77343
-    // it('include DUPLICATE option for single-transaction expense report', () => {
-    //     const report = {
-    //         reportID: REPORT_ID,
-    //         type: CONST.REPORT.TYPE.EXPENSE,
-    //         ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-    //         statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-    //         stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-    //     } as unknown as Report;
+    it('include DUPLICATE option for single-transaction expense report', () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+        } as unknown as Report;
 
-    //     const TRANSACTION_ID = 'TRANSACTION_ID';
+        const TRANSACTION_ID = 'TRANSACTION_ID';
 
-    //     const transaction1 = {
-    //         transactionID: TRANSACTION_ID,
-    //         reportID: REPORT_ID,
-    //     } as unknown as Transaction;
+        const transaction1 = {
+            transactionID: TRANSACTION_ID,
+            reportID: REPORT_ID,
+        } as unknown as Transaction;
 
-    //     const reportActions = [
-    //         {
-    //             reportActionID: '1',
-    //             actorAccountID: EMPLOYEE_ACCOUNT_ID,
-    //             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-    //             originalMessage: {
-    //                 IOUTransactionID: TRANSACTION_ID,
-    //                 IOUReportID: REPORT_ID,
-    //             },
-    //         },
-    //     ] as unknown as ReportAction[];
+        const reportActions = [
+            {
+                reportActionID: '1',
+                actorAccountID: EMPLOYEE_ACCOUNT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUTransactionID: TRANSACTION_ID,
+                    IOUReportID: REPORT_ID,
+                },
+            },
+        ] as unknown as ReportAction[];
 
-    //     const policy = {} as unknown as Policy;
+        const policy = {} as unknown as Policy;
 
-    //     const result = getSecondaryReportActions({
-    //         currentUserEmail: EMPLOYEE_EMAIL,
-    //         currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-    //         report,
-    //         chatReport,
-    //         reportTransactions: [transaction1],
-    //         originalTransaction: {} as Transaction,
-    //         violations: {},
-    //         policy,
-    //         reportActions,
-    //     });
-    //     expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(true);
-    // });
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [transaction1],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+            reportActions,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE)).toBe(true);
+    });
 
     it('does not include DUPLICATE option if there are no transactions', async () => {
         const report = {

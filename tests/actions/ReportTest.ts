@@ -2054,7 +2054,7 @@ describe('actions/Report', () => {
             });
 
             // When deleting the expense report
-            Report.deleteAppReport(reportID, '');
+            Report.deleteAppReport(reportID, '', []);
             await waitForBatchedUpdates();
 
             // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
@@ -2150,7 +2150,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
             // When deleting the first expense report
-            Report.deleteAppReport(expenseReport1.reportID, '');
+            Report.deleteAppReport(expenseReport1.reportID, '', []);
             await waitForBatchedUpdates();
 
             const report = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {

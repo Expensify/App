@@ -871,11 +871,8 @@ function ReportActionsList({
                     data={sortedVisibleReportActions}
                     renderItem={renderItem}
                     renderScrollComponent={renderActionSheetAwareScrollView}
-                    contentContainerStyle={[
-                        styles.chatContentScrollView,
-                        shouldScrollToEndAfterLayout ? styles.visibilityHidden : styles.visibilityVisible,
-                        shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined,
-                    ]}
+                    contentContainerStyle={[styles.chatContentScrollView, shouldFocusToTopOnMount ? styles.justifyContentEnd : undefined]}
+                    shouldHideContent={shouldScrollToEndAfterLayout}
                     shouldDisableVisibleContentPosition={shouldScrollToEndAfterLayout}
                     showsVerticalScrollIndicator={!shouldScrollToEndAfterLayout}
                     keyExtractor={keyExtractor}
