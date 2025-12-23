@@ -2303,26 +2303,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'O aprovador não pôde ser alterado. Tente novamente ou entre em contato com o suporte.',
-        title: 'Enviar para este membro para aprovação:',
-        description: 'Esta pessoa aprovará as despesas.',
-    },
-    workflowsApprovalLimitPage: {
-        title: 'Aprovador',
-        header: '(Opcional) Deseja adicionar um limite de aprovação?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Adicione outro aprovador quando <strong>${approverName}</strong> for aprovador e o relatório exceder o valor abaixo:`
-                : 'Adicione outro aprovador quando o relatório exceder o valor abaixo:',
-        reportAmountLabel: 'Valor do relatório',
-        additionalApproverLabel: 'Aprovador adicional',
-        skip: 'Pular',
-        next: 'Próximo',
-        removeLimit: 'Remover limite',
-        enterAmountError: 'Por favor, insira um valor válido',
-        enterApproverError: 'Um aprovador é necessário quando você define um limite de relatório',
-        enterBothError: 'Insira um valor do relatório e um aprovador adicional',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
-            `Relatórios acima de ${approvalLimit} são encaminhados para ${approverName}`,
+        header: 'Enviar para este membro para aprovação:',
     },
     workflowsPayerPage: {
         title: 'Pagador autorizado',
@@ -2877,6 +2858,7 @@ ${
             containsReservedWord: 'O nome não pode conter as palavras Expensify ou Concierge',
             hasInvalidCharacter: 'O nome não pode conter vírgula ou ponto e vírgula',
             requiredFirstName: 'Nome não pode ficar em branco',
+            cannotContainSpecialCharacters: 'O nome não pode conter caracteres especiais',
         },
     },
     privatePersonalDetails: {
@@ -7974,11 +7956,15 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             findAdmin: 'Encontrar administrador',
             primaryContact: 'Contato principal',
             addPrimaryContact: 'Adicionar contato principal',
+            setPrimaryContactError: 'Não foi possível definir o contato principal. Tente novamente mais tarde.',
             settings: 'Configurações',
             consolidatedDomainBilling: 'Cobrança consolidada de domínio',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Quando ativado, o contato principal pagará por todos os espaços de trabalho pertencentes aos membros de <strong>${domainName}</strong> e receberá todos os recibos de cobrança.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'A cobrança de domínio consolidada não pôde ser alterada. Tente novamente mais tarde.',
+            addAdmin: 'Adicionar administrador',
+            invite: 'Convidar',
+            addAdminError: 'Não foi possível adicionar este membro como administrador. Tente novamente.',
         },
     },
     desktopAppRetiredPage: {
