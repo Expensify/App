@@ -596,7 +596,7 @@ type SplitListItemType = ListItem &
         isEditable: boolean;
 
         /** Current mode for the split editor: amount or percentage */
-        mode: ValueOf<typeof CONST.IOU.SPLIT_TYPE>;
+        mode: ValueOf<typeof CONST.TAB.SPLIT>;
 
         /** Percentage value to show when in percentage mode (0-100) */
         percentage: number;
@@ -604,7 +604,7 @@ type SplitListItemType = ListItem &
         /**
          * Function for updating value (amount or percentage based on mode)
          */
-        onSplitExpenseValueChange: (transactionID: string, value: number, mode: ValueOf<typeof CONST.IOU.SPLIT_TYPE>) => void;
+        onSplitExpenseValueChange: (transactionID: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => void;
     };
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
@@ -632,7 +632,6 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
     columns?: SearchColumnType[];
-    areAllOptionalColumnsHidden?: boolean;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
@@ -666,7 +665,6 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     policies?: OnyxCollection<Policy>;
     accountID?: number;
     columns?: SearchColumnType[];
-    areAllOptionalColumnsHidden?: boolean;
     newTransactionID?: string;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     /** Callback to fire when DEW modal should be opened */
@@ -675,7 +673,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'areAllOptionalColumnsHidden'
+    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
@@ -973,6 +971,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Styles applied for the title of the list item */
     listItemTitleStyles?: StyleProp<TextStyle>;
+
+    /** Styles applied for the select all text */
+    selectAllStyle?: StyleProp<TextStyle>;
 
     /** Styles applied for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
