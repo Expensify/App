@@ -3002,5 +3002,157 @@ describe('getSecondaryTransactionThreadActions', () => {
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(1, reports.at(0), true);
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(2, reports.at(1), false);
         });
+
+        describe('preventing merge for transactions belonging to different users', () => {
+            beforeEach(() => {
+                jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
+            });
+
+            it('should return true when both transactions are unreported', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports: Report[] = [];
+                const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+
+                expect(result).toBe(true);
+            });
+
+            it('should return true when both reported transactions have the same owner', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: 'report1',
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: 'report2',
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports = [
+                    {reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'},
+                    {reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'},
+                ] as Report[];
+                const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, EMPLOYEE_ACCOUNT_ID);
+
+                expect(result).toBe(true);
+            });
+
+            it('should return false when both reported transactions belong to different users', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: 'report1',
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: 'report2',
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports = [
+                    {reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'},
+                    {reportID: 'report2', ownerAccountID: MANAGER_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'},
+                ] as Report[];
+                const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, EMPLOYEE_ACCOUNT_ID);
+
+                expect(result).toBe(false);
+            });
+
+            it('should return true when first transaction is unreported and second belongs to current user', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: 'report2',
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports = [{reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}] as Report[];
+                const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, EMPLOYEE_ACCOUNT_ID);
+
+                expect(result).toBe(true);
+            });
+
+            it('should return true when second transaction is unreported and first belongs to current user', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: 'report1',
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports = [{reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}] as Report[];
+                const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, EMPLOYEE_ACCOUNT_ID);
+
+                expect(result).toBe(true);
+            });
+
+            it('should return false when first transaction is unreported and second belongs to different user', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: 'report2',
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports = [{reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}] as Report[];
+                const policies = [{id: 'policy1'}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, MANAGER_ACCOUNT_ID);
+
+                expect(result).toBe(false);
+            });
+
+            it('should return false when second transaction is unreported and first belongs to different user', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: 'report1',
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports = [{reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}] as Report[];
+                const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, MANAGER_ACCOUNT_ID);
+
+                expect(result).toBe(false);
+            });
+        });
     });
 });

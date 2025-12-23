@@ -595,7 +595,7 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
 }
 
-function isMergeActionForSelectedTransactions(transactions: Transaction[], reports: Report[], policies: Policy[]) {
+function isMergeActionForSelectedTransactions(transactions: Transaction[], reports: Report[], policies: Policy[], currentUserAccountID?: number) {
     if ([transactions, reports, policies].some((collection) => collection?.length > 2)) {
         return false;
     }
@@ -603,8 +603,6 @@ function isMergeActionForSelectedTransactions(transactions: Transaction[], repor
     // Prevent Merge from showing for admins/managers when selecting transactions
     // belonging to different users
     if (transactions.length === 2) {
-        const currentUserAccountID = getCurrentUserAccountID();
-
         const transactionReportData = transactions.map((transaction) => ({
             transaction,
             report: reports.find((r) => r.reportID === transaction.reportID),
