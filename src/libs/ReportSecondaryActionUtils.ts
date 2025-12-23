@@ -628,16 +628,19 @@ function isMergeActionForSelectedTransactions(transactions: Transaction[], repor
     }
 
     // All reports must be in an editable state by the current user to allow merging
+    const policyMap = new Map(policies.map((p) => [p?.id, p]));
     const allReportsEligible = reports.every((report) => {
-        // Transaction could be unreported
         if (!report) {
             return true;
         }
-        const policy = policies.find((p) => p?.id === report?.policyID);
+        if (!report?.policyID) {
+            return true;
+        }
+
+        const policy = policyMap.get(report.policyID);
         if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
             return false;
         }
-
         return isMoneyRequestReportEligibleForMerge(report, policy?.role === CONST.POLICY.ROLE.ADMIN);
     });
 
