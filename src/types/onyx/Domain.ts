@@ -1,7 +1,7 @@
 import type ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxCommon from './OnyxCommon';
-import SecurityGroup from '@src/types/onyx/SecurityGroup';
 import type * as OnyxTypes from '@src/types/onyx/index';
+import type SecurityGroup from '@src/types/onyx/SecurityGroup';
+import type * as OnyxCommon from './OnyxCommon';
 
 /**
  * A utility type that creates a record where all keys are strings that start with a specified prefix.
@@ -20,7 +20,7 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     email: string;
 
     /** Validation code for the domain */
-    validateCode: string;
+    validateCode?: string;
 
     /** Whether domain validation is pending */
     isValidationPending?: boolean;

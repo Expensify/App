@@ -1,7 +1,7 @@
-import {adminAccountIDsSelector,selectMemberIDs} from '@selectors/Domain';
+import {adminAccountIDsSelector, domainEmailSelector, selectMemberIDs, technicalContactSettingsSelector} from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Domain} from '@src/types/onyx';
+import type {CardFeeds, Domain} from '@src/types/onyx';
 
 describe('domainSelectors', () => {
     describe('adminAccountIDsSelector', () => {
@@ -42,6 +42,82 @@ describe('domainSelectors', () => {
             expect(adminAccountIDsSelector(domain)).toEqual([]);
         });
     });
+
+    describe('technicalContactSettingsSelector', () => {
+        it('Should return undefined values if the domain object is undefined', () => {
+            expect(technicalContactSettingsSelector(undefined)).toEqual({
+                technicalContactEmail: undefined,
+                useTechnicalContactBillingCard: undefined,
+            });
+        });
+
+        it('Should return undefined values if shared NVP is empty', () => {
+            const domainMemberSharedNVP = {} as OnyxEntry<CardFeeds>;
+
+            expect(technicalContactSettingsSelector(domainMemberSharedNVP)).toEqual({
+                technicalContactEmail: undefined,
+                useTechnicalContactBillingCard: undefined,
+            });
+        });
+
+        it('Should return technical contact settings when present', () => {
+            const domainMemberSharedNVP = {
+                settings: {
+                    technicalContactEmail: 'tech@example.com',
+                    useTechnicalContactBillingCard: true,
+                },
+            } as OnyxEntry<CardFeeds>;
+
+            expect(technicalContactSettingsSelector(domainMemberSharedNVP)).toEqual({
+                technicalContactEmail: 'tech@example.com',
+                useTechnicalContactBillingCard: true,
+            });
+        });
+
+        it('Should handle partial settings correctly', () => {
+            const domainMemberSharedNVP = {
+                settings: {
+                    technicalContactEmail: 'tech@example.com',
+                },
+            } as OnyxEntry<CardFeeds>;
+
+            expect(technicalContactSettingsSelector(domainMemberSharedNVP)).toEqual({
+                technicalContactEmail: 'tech@example.com',
+                useTechnicalContactBillingCard: undefined,
+            });
+        });
+
+        it('Should return undefined values if settings are empty', () => {
+            const domainMemberSharedNVP = {
+                settings: {},
+            } as OnyxEntry<CardFeeds>;
+
+            expect(technicalContactSettingsSelector(domainMemberSharedNVP)).toEqual({
+                technicalContactEmail: undefined,
+                useTechnicalContactBillingCard: undefined,
+            });
+        });
+    });
+
+    describe('domainEmailSelector', () => {
+        it('Should return the email when it exists in the domain object', () => {
+            const domain = {
+                email: '+@expensify.com',
+            } as OnyxEntry<Domain>;
+
+            expect(domainEmailSelector(domain)).toBe('+@expensify.com');
+        });
+
+        it('Should return undefined if the domain object is undefined', () => {
+            expect(domainEmailSelector(undefined)).toBeUndefined();
+        });
+
+        it('Should return undefined if the email property is missing', () => {
+            const domain = {} as OnyxEntry<Domain>;
+
+            expect(domainEmailSelector(domain)).toBeUndefined();
+        });
+    });
     describe('selectMemberIDs', () => {
         it('Should return an empty array if the domain object is undefined', () => {
             expect(selectMemberIDs(undefined)).toEqual([]);
@@ -70,7 +146,6 @@ describe('domainSelectors', () => {
                 },
             } as unknown as OnyxEntry<Domain>;
 
-            // Sortujemy wynik, aby test był stabilny (kolejność w Set/Object.keys nie zawsze jest gwarantowana)
             expect(selectMemberIDs(domain).sort()).toEqual([100, 200, 300]);
         });
 
@@ -145,4 +220,3 @@ describe('domainSelectors', () => {
         });
     });
 });
-
