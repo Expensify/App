@@ -1,18 +1,14 @@
 import React from 'react';
-import Button from '@components/Button';
-import FixedFooter from '@components/FixedFooter';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
-import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
-import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import useThemeStyles from '@hooks/useThemeStyles';
+import useOnyx from '@hooks/useOnyx';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
+import LockAccountPageBase from '@pages/settings/Security/LockAccount/LockAccountPageBase';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -20,53 +16,35 @@ type DomainMembersReportSuspiciousActivityProps = PlatformStackScreenProps<Setti
 
 function DomainMembersReportSuspiciousActivity({route}: DomainMembersReportSuspiciousActivityProps) {
     const {domainAccountID, accountID} = route.params;
-    const {isOffline} = useNetwork();
-    const styles = useThemeStyles();
+
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const memberLogin = personalDetails?.[accountID]?.login ?? '';
 
     const {translate} = useLocalize();
 
-    const {showConfirmModal} = useConfirmModal();
+    const confirmModalPrompt = translate('domain.members.reportSuspiciousActivityConfirmationPrompt');
 
-    const handleReportSuspiciousActivity = () => {
-        showConfirmModal({
-            title: translate('lockAccountPage.reportSuspiciousActivity'),
-            // prompt: translate('domain.members.reportSuspiciousActivityPrompt', 'test'),
-            confirmText: translate('lockAccountPage.lockAccount'),
-            shouldShowCancelButton: false,
-            danger: true,
-        });
+    const lockAccountPagePrompt = (
+        <Text>
+            <RenderHTML html={translate('domain.members.reportSuspiciousActivityPrompt', memberLogin)} />
+        </Text>
+    );
+
+    const handleLockRequestFinish = () => {
+        Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID));
     };
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
-            <ScreenWrapper
-                shouldEnableMaxHeight
-                shouldUseCachedViewportHeight
-                testID={DomainMembersReportSuspiciousActivity.displayName}
-                enableEdgeToEdgeBottomSafeAreaPadding
-            >
-                <HeaderWithBackButton
-                    title={translate('lockAccountPage.reportSuspiciousActivity')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_MEMBER_DETAILS.getRoute(domainAccountID, accountID))}
-                />
-                <Text style={styles.flex1}>
-                    <RenderHTML html={translate('domain.members.reportSuspiciousActivityPrompt', 'test')} />
-                </Text>
-                <FixedFooter>
-                    <Button
-                        danger
-                        isDisabled={isOffline}
-                        large
-                        text={translate('lockAccountPage.reportSuspiciousActivity')}
-                        pressOnEnter
-                        onPress={handleReportSuspiciousActivity}
-                    />
-                </FixedFooter>
-            </ScreenWrapper>
+            <LockAccountPageBase
+                testID="DomainMembersReportSuspiciousActivity"
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_LOCK_ACCOUNT)}
+                confirmModalPrompt={confirmModalPrompt}
+                lockAccountPagePrompt={lockAccountPagePrompt}
+                handleLockRequestFinish={handleLockRequestFinish}
+            />
         </DomainNotFoundPageWrapper>
     );
 }
-
-DomainMembersReportSuspiciousActivity.displayName = 'DomainMembersReportSuspiciousActivity';
 
 export default DomainMembersReportSuspiciousActivity;

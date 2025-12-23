@@ -2,8 +2,6 @@ import React, {useMemo} from 'react';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
