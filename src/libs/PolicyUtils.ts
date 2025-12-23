@@ -31,12 +31,15 @@ import type {
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
+import {formatMemberForList} from './OptionsListUtils';
+import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
@@ -208,6 +211,73 @@ function getPolicyByCustomUnitID(transaction: OnyxEntry<Transaction>, policies: 
 function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
     const distanceUnit = getDistanceRateCustomUnit(policy);
     return distanceUnit?.rates[customUnitRateID];
+}
+
+/**
+ * Return admins from active policies
+ */
+function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): MemberForList[] {
+    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
+    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin);
+    if (!activePolicies) {
+        return [];
+    }
+    const adminMap = new Map<string, MemberForList>();
+    // O(1) checks for already-shared emails
+    const shareesSet = new Set(currentBankAccount?.accountData?.sharees ?? []);
+    for (const policy of Object.values(activePolicies)) {
+        for (const admin of getAdminEmployees(policy)) {
+            const email = admin?.email;
+            // Check if the email is for the active user or an existing user in the sharees array or admins list to avoid extra iterations
+            if (!email || email === currentUserLogin || adminMap.has(email) || shareesSet.has(email)) {
+                continue;
+            }
+            const personalDetails = getPersonalDetailByEmail(email);
+            if (!personalDetails) {
+                continue;
+            }
+            adminMap.set(
+                email,
+                formatMemberForList({
+                    text: personalDetails.displayName,
+                    alternateText: personalDetails.login,
+                    keyForList: personalDetails.login,
+                    accountID: personalDetails.accountID,
+                    login: personalDetails.login,
+                    pendingAction: personalDetails.pendingAction,
+                    reportID: '',
+                }),
+            );
+        }
+    }
+
+    return Array.from(adminMap.values());
+}
+
+/**
+ * Return true if there is at least one eligible admin in active policies
+ */
+function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
+    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    if (!activePolicies) {
+        return false;
+    }
+    // Normalize sharees to a Set for O(1) lookups
+    const alreadySharedSharees = new Set(currentBankAccount?.accountData?.sharees ?? []);
+    for (const policy of Object.values(activePolicies)) {
+        const admins = getAdminEmployees(policy);
+        for (const admin of admins) {
+            const email = admin?.email;
+            if (!email || email === currentUserLogin || alreadySharedSharees.has(email)) {
+                continue;
+            }
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function getCustomUnitsForDuplication(policy: Policy, isCustomUnitsOptionSelected: boolean, isPerDiemOptionSelected: boolean): Record<string, CustomUnit> | undefined {
@@ -1673,6 +1743,7 @@ export {
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
+    hasEligibleActiveAdminFromWorkspaces,
     isPolicyEmployee,
     isPolicyFeatureEnabled,
     getUberConnectionErrorDirectlyFromPolicy,
@@ -1704,6 +1775,7 @@ export {
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
+    getEligibleBankAccountShareRecipients,
     getFilteredReimbursableAccountOptions,
     getNetSuiteReimbursableAccountOptions,
     getFilteredCollectionAccountOptions,

@@ -972,6 +972,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles applied for the title of the list item */
     listItemTitleStyles?: StyleProp<TextStyle>;
 
+    /** Styles applied for the select all text */
+    selectAllStyle?: StyleProp<TextStyle>;
+
     /** Styles applied for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
 
