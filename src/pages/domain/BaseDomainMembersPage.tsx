@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
@@ -21,6 +22,7 @@ import Navigation from '@navigation/Navigation';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
@@ -53,6 +55,12 @@ type BaseDomainMembersPageProps = {
     /** Function to render a custom right element for a row */
     getCustomRightElement?: (accountID: number) => React.ReactNode;
 
+    /** Function to return additional row-specific properties like errors or pending actions */
+    getCustomRowProps?: (accountID: number) => {errors?: Errors; pendingAction?: PendingAction};
+
+    /** Callback fired when the user dismisses an error message for a specific row */
+    onDismissError?: (item: MemberOption) => void;
+
     /** Whether the data is still loading */
     isLoading?: boolean;
 };
@@ -66,6 +74,8 @@ function BaseDomainMembersPage({
     onSelectRow,
     headerIcon,
     getCustomRightElement,
+    getCustomRowProps,
+    onDismissError,
     isLoading = false,
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
@@ -73,9 +83,11 @@ function BaseDomainMembersPage({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+
     const data: MemberOption[] = accountIDs.map((accountID) => {
         const details = personalDetails?.[accountID];
         const login = details?.login ?? '';
+        const customProps = getCustomRowProps?.(accountID);
 
         return {
             keyForList: String(accountID),
@@ -92,6 +104,8 @@ function BaseDomainMembersPage({
                 },
             ],
             rightElement: getCustomRightElement?.(accountID),
+            errors: customProps?.errors,
+            pendingAction: customProps?.pendingAction,
         };
     });
 
@@ -157,6 +171,7 @@ function BaseDomainMembersPage({
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     ListItem={TableListItem}
                     onSelectRow={onSelectRow}
+                    onDismissError={onDismissError}
                     shouldShowListEmptyContent={false}
                     listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
                     showScrollIndicator={false}
@@ -170,6 +185,5 @@ function BaseDomainMembersPage({
 }
 
 BaseDomainMembersPage.displayName = 'BaseDomainMembersPage';
-
 export type {MemberOption};
 export default BaseDomainMembersPage;

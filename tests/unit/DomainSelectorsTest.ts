@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, technicalContactSettingsSelector, selectMemberIDs, domainEmailSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, domainEmailSelector, selectMemberIDs, technicalContactSettingsSelector} from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, Domain} from '@src/types/onyx';
