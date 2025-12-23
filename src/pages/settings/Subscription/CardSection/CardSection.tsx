@@ -84,6 +84,7 @@ function CardSection() {
             merchant: CONST.EXPENSIFY_MERCHANT,
         });
 
+        // rawQuery is needed to populate rawFilterList, which prevents useSuggestedSearchDefaultNavigation from auto-redirecting to actionable searches.
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
     }, []);
 
