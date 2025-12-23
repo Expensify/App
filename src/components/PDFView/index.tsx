@@ -106,7 +106,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
                     maxCanvasHeight={maxCanvasHeight}
                     maxCanvasArea={maxCanvasArea}
                     LoadingComponent={
-                        <View
+                        <LoadingIndicator
                             style={
                                 isUsedAsChatAttachment && [
                                     styles.chatItemPDFAttachmentLoading,
@@ -114,9 +114,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
                                     styles.pRelative,
                                 ]
                             }
-                        >
-                            <LoadingIndicator />
-                        </View>
+                        />
                     }
                     shouldShowErrorComponent={false}
                     onLoadError={onLoadError}
