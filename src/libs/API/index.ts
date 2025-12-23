@@ -8,7 +8,6 @@ import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Rea
 import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
 import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
-import {initialize as initializeOptimisticReportNamesContext} from '@libs/OptimisticReportNamesConnectionManager';
 import Pusher from '@libs/Pusher';
 import {addMiddleware, processWithMiddleware} from '@libs/Request';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
@@ -49,11 +48,6 @@ addMiddleware(SaveResponseInOnyx);
 
 // FraudMonitoring - Tags the request with the appropriate Fraud Protection event.
 addMiddleware(FraudMonitoring);
-
-// Initialize OptimisticReportNames context on module load
-initializeOptimisticReportNamesContext().catch(() => {
-    Log.warn('Failed to initialize OptimisticReportNames context');
-});
 
 let requestIndex = 0;
 
