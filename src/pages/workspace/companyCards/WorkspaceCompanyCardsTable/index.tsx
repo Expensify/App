@@ -279,7 +279,6 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                 <View style={shouldUseNarrowTableLayout && styles.mb5}>
                     <WorkspaceCompanyCardsTableHeaderButtons
                         isLoading={isLoadingPage}
-                        isFeedPending={isFeedPending}
                         policyID={policy?.id}
                         feedName={feedName}
                         showTableControls={showTableControls}
