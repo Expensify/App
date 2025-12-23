@@ -253,6 +253,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             <HeaderWithBackButton
                 progressBarPercentage={100}
                 shouldShowBackButton={false}
+                shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
                 <Text style={styles.textHeadlineH1}>{translate('onboarding.inviteMembers.title')}</Text>

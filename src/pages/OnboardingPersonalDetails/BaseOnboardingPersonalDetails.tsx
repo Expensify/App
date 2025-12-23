@@ -176,6 +176,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
 
                     Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
                 }}
+                shouldDisplayHelpButton={false}
             />
             <FormProvider
                 style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
