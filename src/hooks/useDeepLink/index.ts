@@ -12,7 +12,7 @@ export default function useDeepLink(): UseDeepLinkResult {
     const {initialURL} = useContext(InitialURLContext);
 
     const deepLinkUrl = window.location.href;
-    const isDeeplink = deepLinkUrl === initialURL;
+    const isDeeplink = !!initialURL;
 
     return {
         isDeeplink,
