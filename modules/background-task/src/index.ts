@@ -41,6 +41,10 @@ const TaskManager = {
 
         return NativeReactNativeBackgroundTask.defineTask(taskName, taskExecutor);
     },
+    /**
+     * Starts a background receipt upload on Android.
+     */
+    startReceiptUpload: (options: Record<string, unknown>): Promise<void> => NativeReactNativeBackgroundTask.startReceiptUpload(options),
 };
 
 addBackgroundTaskListener();

@@ -105,6 +105,15 @@ function endRequestAndRemoveFromQueue(requestToRemove: Request) {
     const requests = [...persistedRequests];
     const index = requests.findIndex((persistedRequest) => deepEqual(persistedRequest, requestToRemove));
 
+    Log.info('[PersistedRequests] Ending request and removing from queue', false, {
+        command: requestToRemove.command,
+        requestID: requestToRemove.requestID,
+        transactionID: requestToRemove.data?.transactionID,
+        receiptState: requestToRemove.data?.receipt?.state,
+        foundIndex: index,
+        queuedBefore: persistedRequests.length,
+    });
+
     if (index !== -1) {
         requests.splice(index, 1);
     }
@@ -115,7 +124,10 @@ function endRequestAndRemoveFromQueue(requestToRemove: Request) {
         [ONYXKEYS.PERSISTED_REQUESTS]: persistedRequests,
         [ONYXKEYS.PERSISTED_ONGOING_REQUESTS]: null,
     }).then(() => {
-        Log.info(`[SequentialQueue] '${requestToRemove.command}' removed from the queue. Queue length is ${getLength()}`);
+        Log.info(`[SequentialQueue] '${requestToRemove.command}' removed from the queue. Queue length is ${getLength()}`, false, {
+            requestID: requestToRemove.requestID,
+            remainingQueued: persistedRequests.length,
+        });
     });
 }
 
@@ -145,7 +157,7 @@ function updateOngoingRequest(newRequest: Request) {
     Log.info('[PersistedRequests] Updating the ongoing request', false, {ongoingRequest, newRequest});
     ongoingRequest = newRequest;
 
-    if (newRequest.persistWhenOngoing) {
+    if (newRequest.persistWhenOngoing) { 
         Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, newRequest);
     }
 }
@@ -166,6 +178,14 @@ function processNextRequest(): Request | null {
     // Create a new array without the first element
     const newPersistedRequests = persistedRequests.slice(1);
     persistedRequests = newPersistedRequests;
+
+    Log.info('[PersistedRequests] Processing next request', false, {
+        command: ongoingRequest?.command,
+        requestID: ongoingRequest?.requestID,
+        transactionID: ongoingRequest?.data?.transactionID,
+        receiptState: ongoingRequest?.data?.receipt?.state,
+        remainingQueued: persistedRequests.length,
+    });
 
     if (ongoingRequest && ongoingRequest.persistWhenOngoing) {
         Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, ongoingRequest);

@@ -5,6 +5,7 @@ import {TurboModuleRegistry} from 'react-native';
 // eslint-disable-next-line rulesdir/no-inline-named-export, @typescript-eslint/consistent-type-definitions
 export interface Spec extends TurboModule {
     defineTask(taskName: string, taskExecutor: (data: unknown) => void | Promise<void>): Promise<void>;
+    startReceiptUpload(options: Object): Promise<void>;
     addListener: (eventType: string) => void;
     removeListeners: (count: number) => void;
 }
