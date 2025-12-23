@@ -1926,7 +1926,7 @@ type MoneyRequestNavigatorParamList = {
         pageIndex?: string;
         backToReport?: string;
         reportActionID?: string;
-        isEditingFromConfrimation?: boolean | string;
+        isEditingFromConfirmation?: boolean | string;
     };
     [SCREENS.SET_DEFAULT_WORKSPACE]: {
         navigateTo?: Routes;
