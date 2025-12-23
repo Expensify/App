@@ -9,6 +9,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {ThemeStyles} from '@styles/index';
+import type {PaymentActionParams} from '@src/components/SettlementButton/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
@@ -32,7 +33,7 @@ type SelectPaymentTypeParams = {
     iouPaymentType: PaymentMethodType;
     triggerKYCFlow: TriggerKYCFlow;
     policy: OnyxEntry<Policy>;
-    onPress: (paymentType?: PaymentMethodType, payAsBusiness?: boolean, methodID?: number, paymentMethod?: KYCPaymentMethod) => void;
+    onPress: (params: PaymentActionParams) => void;
     currentAccountID: number;
     currentEmail: string;
     hasViolations: boolean;
@@ -200,7 +201,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         return;
     }
 
-    onPress(iouPaymentType);
+    onPress({paymentType: iouPaymentType, skipAnimation: true});
 };
 
 type ApproveActionType = Extract<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>, 'approve'>;
