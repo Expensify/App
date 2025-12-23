@@ -83,7 +83,7 @@ function ReportCardLostConfirmMagicCodePage({
             handleSubmitForm={handleValidateCodeEntered}
             isLoading={formData?.isLoading}
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
+            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin)}
             sendValidateCode={() => requestValidateCodeAction()}
             validateError={validateError}
             clearError={() => {
