@@ -174,7 +174,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
             }
             if ('types' in item || 'name' in item) {
                 const emoji = typeof preferredSkinTone === 'number' && preferredSkinTone !== -1 && item?.types?.at(preferredSkinTone) ? item.types.at(preferredSkinTone) : item.code;
-                onEmojiSelected(emoji ?? '', item);
+                onEmojiSelected(emoji ?? '', item, preferredSkinTone);
                 // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
                 keyBoardEvent.preventDefault();
                 // On mWeb, avoid propagating this Enter keystroke to Pressable child component; otherwise, it will trigger the onEmojiSelected callback again.
@@ -282,7 +282,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                         if (!('name' in item)) {
                             return;
                         }
-                        onEmojiSelected(emoji, item);
+                        onEmojiSelected(emoji, item, preferredSkinTone);
                     })}
                     onHoverIn={() => {
                         setHighlightEmoji(false);
@@ -341,7 +341,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                     }}
                     onBlur={() => setIsFocused(false)}
                     autoCorrect={false}
-                    blurOnSubmit={filteredEmojis.length > 0}
+                    submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
+                    sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}
                 />
             </View>
             <BaseEmojiPickerMenu
@@ -359,5 +360,4 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
     );
 }
 
-EmojiPickerMenu.displayName = 'EmojiPickerMenu';
 export default EmojiPickerMenu;

@@ -116,6 +116,9 @@ type MoneyRequestAmountInputProps = {
      */
     shouldWrapInputInContainer?: boolean;
 
+    /** Whether the input is disabled or not */
+    disabled?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
@@ -160,6 +163,7 @@ function MoneyRequestAmountInput({
     toggleNegative,
     clearNegative,
     ref,
+    disabled,
     ...props
 }: MoneyRequestAmountInputProps) {
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -214,6 +218,7 @@ function MoneyRequestAmountInput({
                 // eslint-disable-next-line react-compiler/react-compiler
                 textInput.current = newRef;
             }}
+            disabled={disabled}
             numberFormRef={(newRef) => {
                 if (typeof moneyRequestAmountInputRef === 'function') {
                     moneyRequestAmountInputRef(newRef);
@@ -255,8 +260,6 @@ function MoneyRequestAmountInput({
         />
     );
 }
-
-MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
 
 export default MoneyRequestAmountInput;
 export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};

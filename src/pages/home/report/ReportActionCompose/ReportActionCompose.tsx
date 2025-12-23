@@ -35,6 +35,7 @@ import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DomUtils from '@libs/DomUtils';
+import FS from '@libs/Fullstory';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Performance from '@libs/Performance';
 import {getLinkedTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -187,7 +188,7 @@ function ReportActionCompose({
     const {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength, setHasExceededMaxTitleLength} = useHandleExceedMaxTaskTitleLength();
     const [exceededMaxLength, setExceededMaxLength] = useState<number | null>(null);
 
-    const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle']);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerRef | undefined>(undefined);
@@ -498,6 +499,8 @@ function ReportActionCompose({
         setIsAttachmentPreviewActive,
     });
 
+    const fsClass = FS.getChatFSClass(report);
+
     return (
         <View style={[shouldShowReportRecipientLocalTime && !isOffline && styles.chatItemComposeWithFirstRow, isComposerFullSize && styles.chatItemFullComposeRow]}>
             <OfflineWithFeedback pendingAction={pendingAction}>
@@ -576,6 +579,7 @@ function ReportActionCompose({
                             measureParentContainer={measureContainer}
                             onValueChange={onValueChange}
                             didHideComposerInput={didHideComposerInput}
+                            forwardedFSClass={fsClass}
                         />
                         {shouldDisplayDualDropZone && (
                             <DualDropZone
@@ -648,8 +652,6 @@ function ReportActionCompose({
         </View>
     );
 }
-
-ReportActionCompose.displayName = 'ReportActionCompose';
 
 export default memo(ReportActionCompose);
 export {onSubmitAction};

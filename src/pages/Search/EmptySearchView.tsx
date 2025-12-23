@@ -8,15 +8,15 @@ import {Linking, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import BookTravelButton from '@components/BookTravelButton';
 import ConfirmModal from '@components/ConfirmModal';
-import EmptyStateComponent from '@components/EmptyStateComponent';
-import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
+import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
+import type {EmptyStateButton, HeaderMedia, MediaTypes} from '@components/EmptyStateComponent/types';
 import type {FeatureListItem} from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';
-import type DotLottieAnimation from '@components/LottieAnimations/types';
 import MenuItem from '@components/MenuItem';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ScrollView from '@components/ScrollView';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
+import type {SearchQueryJSON} from '@components/Search/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -39,6 +39,7 @@ import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {areAllGroupPoliciesExpenseChatDisabled, getDefaultChatEnabledPolicy, getGroupPaidPoliciesWithExpenseChatEnabled} from '@libs/PolicyUtils';
 import {generateReportID, hasEmptyReportsForPolicy, hasViolations as hasViolationsReportUtils, reportSummariesOnyxSelector} from '@libs/ReportUtils';
+import {isDefaultExpenseReportsQuery, isDefaultExpensesQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
@@ -49,11 +50,13 @@ import ROUTES from '@src/ROUTES';
 import type {IntroSelected, PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+import useSearchEmptyStateIllustration from './useSearchEmptyStateIllustration';
 
 type EmptySearchViewProps = {
     similarSearchHash: number;
     type: SearchDataTypes;
     hasResults: boolean;
+    queryJSON?: SearchQueryJSON;
 };
 
 type EmptySearchViewContentProps = EmptySearchViewProps & {
@@ -69,7 +72,8 @@ type EmptySearchViewContentProps = EmptySearchViewProps & {
 };
 
 type EmptySearchViewItem = {
-    headerMedia: DotLottieAnimation;
+    headerMediaType: MediaTypes;
+    headerMedia: HeaderMedia;
     title: string;
     subtitle?: string;
     headerContentStyles: Array<Pick<ViewStyle, 'width' | 'height'>>;
@@ -83,7 +87,7 @@ type EmptySearchViewItem = {
 
 type ReportSummary = ReturnType<typeof reportSummariesOnyxSelector>[number];
 
-function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewProps) {
+function EmptySearchView({similarSearchHash, type, hasResults, queryJSON}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {typeMenuSections, CreateReportConfirmationModal: SearchMenuCreateReportConfirmationModal} = useSearchTypeMenuSections();
 
@@ -117,6 +121,7 @@ function EmptySearchView({similarSearchHash, type, hasResults}: EmptySearchViewP
                 introSelected={introSelected}
                 hasSeenTour={hasSeenTour}
                 searchMenuCreateReportConfirmationModal={SearchMenuCreateReportConfirmationModal}
+                queryJSON={queryJSON}
             />
         </SearchScopeProvider>
     );
@@ -126,8 +131,7 @@ const hasTransactionsSelector = (transactions: OnyxCollection<Transaction>) =>
     Object.values(transactions ?? {}).filter((transaction) => transaction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
 
 const hasExpenseReportsSelector = (reports: OnyxCollection<Report>) =>
-    Object.values(reports ?? {}).filter((report) => report?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && report?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length >
-    0;
+    Object.values(reports ?? {}).filter((report) => report?.type === CONST.REPORT.TYPE.EXPENSE && report?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length > 0;
 
 function EmptySearchViewContent({
     similarSearchHash,
@@ -142,12 +146,14 @@ function EmptySearchViewContent({
     introSelected,
     hasSeenTour,
     searchMenuCreateReportConfirmationModal,
+    queryJSON,
 }: EmptySearchViewContentProps) {
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'Alert'] as const);
+
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts']);
 
     const tripsFeatures: FeatureListItem[] = useMemo(
         () => [
@@ -156,11 +162,11 @@ function EmptySearchViewContent({
                 translationKey: 'travel.features.saveMoney',
             },
             {
-                icon: illustrations.Alert,
+                icon: illustrations.TravelAlerts,
                 translationKey: 'travel.features.alerts',
             },
         ],
-        [illustrations.PiggyBank, illustrations.Alert],
+        [illustrations.PiggyBank, illustrations.TravelAlerts],
     );
     const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
     const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
@@ -199,18 +205,32 @@ function EmptySearchViewContent({
         canBeMissing: true,
         selector: reportSummariesOnyxSelector,
     });
-    const hasEmptyReport = useMemo(() => hasEmptyReportsForPolicy(reportSummaries, defaultChatEnabledPolicyID, accountID), [accountID, defaultChatEnabledPolicyID, reportSummaries]);
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
+    const shouldShowEmptyReportConfirmation = useMemo(
+        () => hasEmptyReportsForPolicy(reportSummaries, defaultChatEnabledPolicyID, accountID) && hasDismissedEmptyReportsConfirmation !== true,
+        [accountID, defaultChatEnabledPolicyID, hasDismissedEmptyReportsConfirmation, reportSummaries],
+    );
 
-    const handleCreateWorkspaceReport = useCallback(() => {
-        if (!defaultChatEnabledPolicyID) {
-            return;
-        }
+    const handleCreateWorkspaceReport = useCallback(
+        (shouldDismissEmptyReportsConfirmation?: boolean) => {
+            if (!defaultChatEnabledPolicyID) {
+                return;
+            }
 
-        const {reportID: createdReportID} = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, defaultChatEnabledPolicyID);
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-        });
-    }, [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled]);
+            const {reportID: createdReportID} = createNewReport(
+                currentUserPersonalDetails,
+                hasViolations,
+                isASAPSubmitBetaEnabled,
+                defaultChatEnabledPolicyID,
+                false,
+                shouldDismissEmptyReportsConfirmation,
+            );
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
+            });
+        },
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled],
+    );
 
     const {openCreateReportConfirmation: openCreateReportFromSearch, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
         policyID: defaultChatEnabledPolicyID,
@@ -219,12 +239,12 @@ function EmptySearchViewContent({
     });
 
     const handleCreateReportClick = useCallback(() => {
-        if (hasEmptyReport) {
+        if (shouldShowEmptyReportConfirmation) {
             openCreateReportFromSearch();
         } else {
-            handleCreateWorkspaceReport();
+            handleCreateWorkspaceReport(false);
         }
-    }, [hasEmptyReport, handleCreateWorkspaceReport, openCreateReportFromSearch]);
+    }, [handleCreateWorkspaceReport, openCreateReportFromSearch, shouldShowEmptyReportConfirmation]);
 
     const typeMenuItems = useMemo(() => {
         return typeMenuSections.map((section) => section.menuItems).flat();
@@ -287,21 +307,17 @@ function EmptySearchViewContent({
                     ))}
                 </View>
                 <SearchScopeProvider isOnSearch={false}>
-                    <BookTravelButton text={translate('search.searchResults.emptyTripResults.buttonText')} />
+                    <BookTravelButton
+                        text={translate('search.searchResults.emptyTripResults.buttonText')}
+                        activePolicyID={activePolicy?.id}
+                    />
                 </SearchScopeProvider>
             </>
         );
-    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, tripsFeatures]);
+    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, activePolicy?.id, tripsFeatures]);
 
     // Default 'Folder' lottie animation, along with its background styles
-    const defaultViewItemHeader = useMemo(
-        () => ({
-            headerMedia: LottieAnimations.GenericEmptyState,
-            headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.emptyFolderBG)],
-            lottieWebViewStyles: {backgroundColor: theme.emptyFolderBG, ...styles.emptyStateFolderWebStyles},
-        }),
-        [StyleUtils, styles.emptyStateFolderWebStyles, theme.emptyFolderBG],
-    );
+    const defaultViewItemHeader = useSearchEmptyStateIllustration();
 
     const content: EmptySearchViewItem = useMemo(() => {
         // Begin by going through all of our To-do searches, and returning their empty state
@@ -309,12 +325,9 @@ function EmptySearchViewContent({
         for (const menuItem of typeMenuItems) {
             if (menuItem.similarSearchHash === similarSearchHash && menuItem.emptyState) {
                 return {
-                    headerMedia: menuItem.emptyState.headerMedia,
+                    ...defaultViewItemHeader.fireworks,
                     title: translate(menuItem.emptyState.title),
                     subtitle: translate(menuItem.emptyState.subtitle),
-                    headerStyles: StyleUtils.getBackgroundColorStyle(theme.todoBG),
-                    headerContentStyles: [StyleUtils.getWidthAndHeightStyle(375, 240), StyleUtils.getBackgroundColorStyle(theme.todoBG)],
-                    lottieWebViewStyles: styles.emptyStateFireworksWebStyles,
                     buttons: menuItem.emptyState.buttons?.map((button) => ({
                         ...button,
                         buttonText: translate(button.buttonText),
@@ -331,6 +344,7 @@ function EmptySearchViewContent({
         switch (type) {
             case CONST.SEARCH.DATA_TYPES.TRIP:
                 return {
+                    headerMediaType: CONST.EMPTY_STATE_MEDIA.ANIMATION,
                     headerMedia: LottieAnimations.TripsEmptyState,
                     headerContentStyles: [styles.emptyStateFolderWebStyles, StyleUtils.getBackgroundColorStyle(theme.travelBG)],
                     title: translate('travel.title'),
@@ -339,16 +353,16 @@ function EmptySearchViewContent({
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-                if (hasResults) {
+                if (hasResults && (!queryJSON || !isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
                     return {
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyResults.title'),
                         subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     };
                 }
                 if (!hasResults || !hasExpenseReports) {
                     return {
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyReportResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyReportResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyReportResults.subtitle'),
                         buttons: [
@@ -393,16 +407,16 @@ function EmptySearchViewContent({
                 }
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
-                if (hasResults) {
+                if (hasResults && (!queryJSON || !isDefaultExpensesQuery(queryJSON) || hasTransactions)) {
                     return {
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyResults.title'),
                         subtitle: translate('search.searchResults.emptyResults.subtitle'),
                     };
                 }
                 if (!hasResults || !hasTransactions) {
                     return {
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
                         subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                         buttons: [
@@ -458,14 +472,14 @@ function EmptySearchViewContent({
                                 success: true,
                             },
                         ],
-                        ...defaultViewItemHeader,
+                        ...defaultViewItemHeader.folder,
                     };
                 }
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.CHAT:
             default:
                 return {
-                    ...defaultViewItemHeader,
+                    ...defaultViewItemHeader.folder,
                     title: translate('search.searchResults.emptyResults.title'),
                     subtitle: translate('search.searchResults.emptyResults.subtitle'),
                 };
@@ -476,9 +490,7 @@ function EmptySearchViewContent({
         similarSearchHash,
         translate,
         StyleUtils,
-        theme.todoBG,
         theme.travelBG,
-        styles.emptyStateFireworksWebStyles,
         styles.emptyStateFolderWebStyles,
         styles.textAlignLeft,
         styles.tripEmptyStateLottieWebView,
@@ -486,7 +498,8 @@ function EmptySearchViewContent({
         tryNewDot?.hasBeenAddedToNudgeMigration,
         isUserPaidPolicyMember,
         hasResults,
-        defaultViewItemHeader,
+        defaultViewItemHeader.fireworks,
+        defaultViewItemHeader.folder,
         hasSeenTour,
         groupPoliciesWithChatEnabled.length,
         tripViewChildren,
@@ -495,6 +508,7 @@ function EmptySearchViewContent({
         hasExpenseReports,
         defaultChatEnabledPolicyID,
         handleCreateReportClick,
+        queryJSON,
     ]);
 
     return (
@@ -504,9 +518,9 @@ function EmptySearchViewContent({
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
             >
-                <EmptyStateComponent
+                <GenericEmptyStateComponent
                     SkeletonComponent={SearchRowSkeleton}
-                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                    headerMediaType={content.headerMediaType}
                     headerMedia={content.headerMedia}
                     headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden, content.headerStyles]}
                     title={content.title}
@@ -517,7 +531,7 @@ function EmptySearchViewContent({
                     lottieWebViewStyles={content.lottieWebViewStyles}
                 >
                     {content.children}
-                </EmptyStateComponent>
+                </GenericEmptyStateComponent>
             </ScrollView>
             {CreateReportConfirmationModal}
             <ConfirmModal
@@ -536,6 +550,5 @@ function EmptySearchViewContent({
     );
 }
 
-EmptySearchView.displayName = 'EmptySearchView';
-
+export type {EmptySearchViewItem};
 export default EmptySearchView;

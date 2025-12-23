@@ -19,7 +19,7 @@ import {
     isPreferredExporter,
     isSubmitAndClose,
 } from './PolicyUtils';
-import {getIOUActionForReportID, getIOUActionForTransactionID, getOneTransactionThreadReportID, getReportAction, isPayAction} from './ReportActionsUtils';
+import {getAllReportActions, getIOUActionForTransactionID, getOneTransactionThreadReportID, getOriginalMessage, getReportAction, isPayAction} from './ReportActionsUtils';
 import {getReportPrimaryAction, isPrimaryPayAction} from './ReportPrimaryActionUtils';
 import {
     canAddTransaction,
@@ -29,6 +29,7 @@ import {
     canRejectReportAction,
     doesReportContainRequestsFromMultipleUsers,
     getTransactionDetails,
+    hasExportError as hasExportErrorUtils,
     hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     hasReportBeenReopened as hasReportBeenReopenedUtils,
@@ -57,10 +58,15 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
+    hasSmartScanFailedViolation,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
+    isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
     isPending,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isReceiptBeingScanned,
+    isScanning as isScanningTransactionUtils,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from './TransactionUtils';
 
@@ -74,8 +80,8 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[], i
     return canAddTransaction(report, isReportArchived);
 }
 
-function isSplitAction(report: Report, reportTransactions: Transaction[], originalTransaction: OnyxEntry<Transaction>, policy?: Policy): boolean {
-    if (Number(reportTransactions?.length) !== 1) {
+function isSplitAction(report: OnyxEntry<Report>, reportTransactions: Array<OnyxEntry<Transaction>>, originalTransaction: OnyxEntry<Transaction>, policy?: OnyxEntry<Policy>): boolean {
+    if (Number(reportTransactions?.length) !== 1 || !report) {
         return false;
     }
 
@@ -136,6 +142,9 @@ function isSubmitAction(
     reportActions?: ReportAction[],
     isChatReportArchived = false,
     primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
+    violations?: OnyxCollection<TransactionViolation[]>,
+    currentUserEmail?: string,
+    currentUserAccountID?: number,
 ): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -145,6 +154,18 @@ function isSubmitAction(
 
     if (!transactionAreComplete) {
         return false;
+    }
+
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    if (violations && currentUserEmail && currentUserAccountID !== undefined) {
+        if (reportTransactions.some((transaction) => hasSmartScanFailedViolation(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+            return false;
+        }
     }
 
     if (primaryAction === CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_RESOLVED) {
@@ -225,7 +246,9 @@ function isApproveAction(currentUserLogin: string, report: Report, reportTransac
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, policy));
+    const reportHasDuplicatedTransactions = reportTransactions.some((transaction) =>
+        isDuplicate(transaction, currentUserLogin, currentUserAccountID, report, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
+    );
 
     if (isExpenseReport && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -290,28 +313,42 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
         return false;
     }
 
-    const isReportPaidElsewhere = report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    // Get all report actions for this report and filter for pay actions
+    // Pay actions are at the report level, not per transaction
+    const allReportActions = getAllReportActions(report.reportID);
+    const allActionsArray = Object.values(allReportActions);
+    const payActions = allActionsArray.filter((action): action is ReportAction => !!action && isPayAction(action));
 
-    if (isReportPaidElsewhere) {
+    // Check if payment was made via bank account (not elsewhere)
+    // If no pay actions exist, we can't determine the payment type, so we assume it was NOT a bank payment
+    const isPaidViaBankAccount =
+        payActions.length > 0 &&
+        payActions.every((action) => {
+            const originalMessage = getOriginalMessage(action);
+            return originalMessage && 'paymentType' in originalMessage && originalMessage.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+        });
+
+    // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
+    if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
         return true;
     }
 
-    const isPaymentProcessing = !!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
-
-    const payActions = reportTransactions.reduce((acc, transaction) => {
-        const action = getIOUActionForReportID(report.reportID, transaction.transactionID);
-        if (action && isPayAction(action)) {
-            acc.push(action);
-        }
-        return acc;
-    }, [] as ReportAction[]);
+    // Bank payment is processing when:
+    // 1. In BILLING state (ACH batch submitted), OR
+    // 2. In APPROVED + REIMBURSED state (immediately after paying via bank, before batch is sent), OR
+    // 3. In AUTOREIMBURSED state (automatically reimbursed)
+    const isInBillingState = report.stateNum === CONST.REPORT.STATE_NUM.BILLING && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const isApprovedAndReimbursed = report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const isAutoReimbursed = report.stateNum === CONST.REPORT.STATE_NUM.AUTOREIMBURSED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const isBankProcessing = isPaidViaBankAccount && (isInBillingState || isApprovedAndReimbursed || isAutoReimbursed);
+    const isPaymentProcessing = (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) || isBankProcessing;
 
     const hasDailyNachaCutoffPassed = payActions.some((action) => {
         const now = new Date();
         const paymentDatetime = new Date(action.created);
         const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
         const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
-        return nowUTC.getTime() < cutoffTimeUTC.getTime();
+        return nowUTC.getTime() > cutoffTimeUTC.getTime();
     });
 
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
@@ -624,6 +661,34 @@ function isReportLayoutAction(report: Report, reportTransactions: Transaction[])
     return reportTransactions.length >= 2;
 }
 
+function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
+    // Only single transactions are supported for now
+    if (reportTransactions.length !== 1) {
+        return false;
+    }
+
+    const reportTransaction = reportTransactions.at(0);
+
+    // Per diem and distance requests will be handled separately in a follow-up
+    if (isPerDiemRequestTransactionUtils(reportTransaction) || isDistanceRequestTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    if (isScanningTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    if (!isCurrentUserSubmitter(report)) {
+        return false;
+    }
+
+    if (isManagedCardTransactionTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    return true;
+}
+
 function getSecondaryReportActions({
     currentUserEmail,
     currentUserAccountID,
@@ -654,7 +719,11 @@ function getSecondaryReportActions({
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    if (isPrimaryPayAction(report, policy, reportNameValuePairs) && hasOnlyHeldExpenses(report?.reportID)) {
+    const isExported = isExportedUtils(reportActions);
+    const hasExportError = hasExportErrorUtils(reportActions, report);
+    const didExportFail = !isExported && hasExportError;
+
+    if (isPrimaryPayAction(report, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions, true) && (hasOnlyHeldExpenses(report?.reportID) || didExportFail)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
     }
 
@@ -675,7 +744,7 @@ function getSecondaryReportActions({
         isChatReportArchived,
     });
 
-    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction)) {
+    if (isSubmitAction(report, reportTransactions, policy, reportNameValuePairs, reportActions, isChatReportArchived, primaryAction, violations, currentUserEmail, currentUserAccountID)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
@@ -719,6 +788,10 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
+    if (isDuplicateAction(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
+    }
+
     options.push(CONST.REPORT.SECONDARY_ACTIONS.EXPORT);
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
@@ -727,7 +800,8 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);
     }
 
-    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy)) {
+    const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+    if (isExpenseReportUtils(report) && isProcessingReportUtils(report) && isPolicyAdmin(policy) && isApprovalEnabled) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_APPROVER);
     }
 
@@ -740,6 +814,7 @@ function getSecondaryReportActions({
     if (isDeleteAction(report, reportTransactions, reportActions ?? [])) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DELETE);
     }
+
     return options;
 }
 
@@ -792,6 +867,10 @@ function getSecondaryTransactionThreadActions(
 
     if (isMergeAction(parentReport, [reportTransaction], policy)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
+    }
+
+    if (isDuplicateAction(parentReport, [reportTransaction])) {
+        options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
     }
 
     options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.VIEW_DETAILS);

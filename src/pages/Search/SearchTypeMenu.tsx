@@ -22,7 +22,7 @@ import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAllFilters} from '@libs/actions/Search';
+import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -59,7 +59,17 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
         !!typeMenuSections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle') && isFocused,
     );
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Bookmark',
+        'Pencil',
+        'Receipt',
+        'ChatBubbles',
+        'MoneyBag',
+        'CreditCard',
+        'MoneyHourglass',
+        'CreditCardHourglass',
+        'Bank',
+    ] as const);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
@@ -82,7 +92,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         shouldSkipNavigation: shouldSkipSuggestedSearchNavigation,
     });
 
-    const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
+    const getOverflowMenu = useCallback(
+        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal),
+        [translate, showDeleteModal, expensifyIcons],
+    );
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, index: number) => {
             let title = item.name;
@@ -97,7 +110,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             return {
                 ...baseMenuItem,
                 onPress: () => {
-                    clearAllFilters();
+                    setSearchContext(false);
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
                 },
                 rightComponent: (
@@ -240,10 +253,11 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                             const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
                                             const flattenedIndex = previousItemCount + itemIndex;
                                             const focused = activeItemIndex === flattenedIndex;
+                                            const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
 
                                             const onPress = singleExecution(() => {
-                                                clearAllFilters();
                                                 clearSelectedTransactions();
+                                                setSearchContext(false);
                                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                                             });
 
@@ -253,7 +267,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                                     disabled={false}
                                                     interactive
                                                     title={translate(item.translationPath)}
-                                                    icon={item.icon}
+                                                    icon={icon}
                                                     iconWidth={variables.iconSizeNormal}
                                                     iconHeight={variables.iconSizeNormal}
                                                     wrapperStyle={styles.sectionMenuItem}
@@ -273,7 +287,5 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         </>
     );
 }
-
-SearchTypeMenu.displayName = 'SearchTypeMenu';
 
 export default SearchTypeMenu;

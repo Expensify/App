@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit, getPolicy, sortWorkspacesBySelected} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit, sortWorkspacesBySelected} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar, getPolicyExpenseChat} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {setCustomUnitID, setMoneyRequestCategory, setMoneyRequestParticipants} from '@userActions/IOU';
@@ -92,9 +92,7 @@ function IOURequestStepPerDiemWorkspace({
         if (!policyExpenseReportID) {
             return;
         }
-        // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        const selectedPolicy = getPolicy(item.value, allPolicies);
+        const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.value}`];
         const perDiemUnit = getPerDiemCustomUnit(selectedPolicy);
         setMoneyRequestParticipants(transactionID, [
             {
@@ -106,7 +104,7 @@ function IOURequestStepPerDiemWorkspace({
             },
         ]);
         setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '');
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DESTINATION.getRoute(action, iouType, transactionID, policyExpenseReportID));
     };
 
@@ -135,7 +133,5 @@ function IOURequestStepPerDiemWorkspace({
         </>
     );
 }
-
-IOURequestStepPerDiemWorkspace.displayName = 'IOURequestStepPerDiemWorkspace';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepPerDiemWorkspace));

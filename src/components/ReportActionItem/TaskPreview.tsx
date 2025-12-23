@@ -139,6 +139,7 @@ function TaskPreview({
                 style={[styles.flexRow, styles.justifyContentBetween, style]}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('task.task')}
+                sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CARD}
             >
                 <View style={[styles.flex1, styles.flexRow, styles.alignItemsStart, styles.mr2]}>
                     <View style={iconWrapperStyle}>
@@ -148,12 +149,13 @@ function TaskPreview({
                             disabled={!isTaskActionable}
                             onPress={callFunctionIfActionIsAllowed(() => {
                                 if (isTaskCompleted) {
-                                    reopenTask(taskReport, currentUserPersonalDetails.accountID, taskReportID);
+                                    reopenTask(taskReport, parentReport, currentUserPersonalDetails.accountID, taskReportID);
                                 } else {
-                                    completeTask(taskReport, hasOutstandingChildTask, parentReportAction, taskReportID);
+                                    completeTask(taskReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, taskReportID);
                                 }
                             })}
                             accessibilityLabel={translate('task.task')}
+                            sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
                         />
                     </View>
                     {hasAssignee && (
@@ -190,7 +192,5 @@ function TaskPreview({
         </View>
     );
 }
-
-TaskPreview.displayName = 'TaskPreview';
 
 export default withCurrentUserPersonalDetails(TaskPreview);
