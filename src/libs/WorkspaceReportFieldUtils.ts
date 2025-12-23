@@ -17,6 +17,7 @@ function getReportFieldTypeTranslationKey(reportFieldType: PolicyReportFieldType
         [CONST.REPORT_FIELD_TYPES.TEXT]: 'workspace.reportFields.textType',
         [CONST.REPORT_FIELD_TYPES.DATE]: 'workspace.reportFields.dateType',
         [CONST.REPORT_FIELD_TYPES.LIST]: 'workspace.reportFields.dropdownType',
+        [CONST.REPORT_FIELD_TYPES.FORMULA]: 'workspace.reportFields.formulaType',
     };
 
     return typeTranslationKeysStrategy[reportFieldType];
@@ -30,6 +31,7 @@ function getReportFieldAlternativeTextTranslationKey(reportFieldType: PolicyRepo
         [CONST.REPORT_FIELD_TYPES.TEXT]: 'workspace.reportFields.textAlternateText',
         [CONST.REPORT_FIELD_TYPES.DATE]: 'workspace.reportFields.dateAlternateText',
         [CONST.REPORT_FIELD_TYPES.LIST]: 'workspace.reportFields.dropdownAlternateText',
+        [CONST.REPORT_FIELD_TYPES.FORMULA]: 'workspace.reportFields.formulaAlternateText',
     };
 
     return typeTranslationKeysStrategy[reportFieldType];
@@ -64,7 +66,7 @@ function validateReportFieldListValueName(
  * Generates a field ID based on the field name.
  */
 function generateFieldID(name: string) {
-    return `field_id_${name.replace(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
+    return `field_id_${name.replaceAll(CONST.REGEX.ANY_SPACE, '_').toUpperCase()}`;
 }
 
 /**
@@ -87,4 +89,28 @@ function getReportFieldInitialValue(reportField: PolicyReportField | null): stri
     return reportField.value ?? reportField.defaultValue;
 }
 
-export {getReportFieldTypeTranslationKey, getReportFieldAlternativeTextTranslationKey, validateReportFieldListValueName, generateFieldID, getReportFieldInitialValue};
+/**
+ * Determine if a string contains any recognized formula parts (e.g., {report:id}).
+ * Only returns true when at least one parsed part is not free text.
+ */
+function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
+    if (!initialValue || typeof initialValue !== 'string') {
+        return false;
+    }
+
+    // Dynamically require to avoid circular dependency with ReportActionsUtils
+    const {parse, FORMULA_PART_TYPES} = require('./Formula') as {
+        parse: (formula?: string) => Array<{type: string}>;
+        FORMULA_PART_TYPES: {FREETEXT: string};
+    };
+    return parse(initialValue).some((part) => part.type !== FORMULA_PART_TYPES.FREETEXT);
+}
+
+export {
+    getReportFieldTypeTranslationKey,
+    getReportFieldAlternativeTextTranslationKey,
+    validateReportFieldListValueName,
+    generateFieldID,
+    getReportFieldInitialValue,
+    hasFormulaPartsInInitialValue,
+};

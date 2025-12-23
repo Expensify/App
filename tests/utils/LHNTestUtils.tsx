@@ -133,12 +133,12 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
 
     const participants = buildParticipantsFromAccountIDs(participantAccountIDs);
 
-    adminIDs.forEach((id) => {
+    for (const id of adminIDs) {
         participants[id] = {
             notificationPreference: 'always',
             role: CONST.REPORT.ROLE.ADMIN,
         };
-    });
+    }
 
     return {
         type: CONST.REPORT.TYPE.CHAT,

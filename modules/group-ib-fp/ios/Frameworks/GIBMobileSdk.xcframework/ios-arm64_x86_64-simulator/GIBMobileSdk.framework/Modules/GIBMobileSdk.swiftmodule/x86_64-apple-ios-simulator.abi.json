@@ -126,6 +126,16 @@
         ]
       },
       {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "GIBMobileSdk",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
         "kind": "TypeDecl",
         "name": "GIBHelperManager",
         "printedName": "GIBHelperManager",
@@ -614,6 +624,43 @@
               },
               {
                 "kind": "Var",
+                "name": "v1_1_1",
+                "printedName": "v1_1_1",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(GIBMobileSdk.GIBPacket.Versions.Type) -> GIBMobileSdk.GIBPacket.Versions",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Versions",
+                        "printedName": "GIBMobileSdk.GIBPacket.Versions",
+                        "usr": "s:12GIBMobileSdk9GIBPacketC8VersionsO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "GIBMobileSdk.GIBPacket.Versions.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Versions",
+                            "printedName": "GIBMobileSdk.GIBPacket.Versions",
+                            "usr": "s:12GIBMobileSdk9GIBPacketC8VersionsO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:12GIBMobileSdk9GIBPacketC8VersionsO6v1_1_1yA2EmF",
+                "mangledName": "$s12GIBMobileSdk9GIBPacketC8VersionsO6v1_1_1yA2EmF",
+                "moduleName": "GIBMobileSdk"
+              },
+              {
+                "kind": "Var",
                 "name": "v2_0_0",
                 "printedName": "v2_0_0",
                 "children": [
@@ -688,6 +735,43 @@
               },
               {
                 "kind": "Var",
+                "name": "v2_2_0",
+                "printedName": "v2_2_0",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(GIBMobileSdk.GIBPacket.Versions.Type) -> GIBMobileSdk.GIBPacket.Versions",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Versions",
+                        "printedName": "GIBMobileSdk.GIBPacket.Versions",
+                        "usr": "s:12GIBMobileSdk9GIBPacketC8VersionsO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "GIBMobileSdk.GIBPacket.Versions.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Versions",
+                            "printedName": "GIBMobileSdk.GIBPacket.Versions",
+                            "usr": "s:12GIBMobileSdk9GIBPacketC8VersionsO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:12GIBMobileSdk9GIBPacketC8VersionsO6v2_2_0yA2EmF",
+                "mangledName": "$s12GIBMobileSdk9GIBPacketC8VersionsO6v2_2_0yA2EmF",
+                "moduleName": "GIBMobileSdk"
+              },
+              {
+                "kind": "Var",
                 "name": "v3_0_0",
                 "printedName": "v3_0_0",
                 "children": [
@@ -758,6 +842,80 @@
                 "declKind": "EnumElement",
                 "usr": "s:12GIBMobileSdk9GIBPacketC8VersionsO6v3_1_0yA2EmF",
                 "mangledName": "$s12GIBMobileSdk9GIBPacketC8VersionsO6v3_1_0yA2EmF",
+                "moduleName": "GIBMobileSdk"
+              },
+              {
+                "kind": "Var",
+                "name": "v3_2_0",
+                "printedName": "v3_2_0",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(GIBMobileSdk.GIBPacket.Versions.Type) -> GIBMobileSdk.GIBPacket.Versions",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Versions",
+                        "printedName": "GIBMobileSdk.GIBPacket.Versions",
+                        "usr": "s:12GIBMobileSdk9GIBPacketC8VersionsO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "GIBMobileSdk.GIBPacket.Versions.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Versions",
+                            "printedName": "GIBMobileSdk.GIBPacket.Versions",
+                            "usr": "s:12GIBMobileSdk9GIBPacketC8VersionsO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:12GIBMobileSdk9GIBPacketC8VersionsO6v3_2_0yA2EmF",
+                "mangledName": "$s12GIBMobileSdk9GIBPacketC8VersionsO6v3_2_0yA2EmF",
+                "moduleName": "GIBMobileSdk"
+              },
+              {
+                "kind": "Var",
+                "name": "v3_3_0",
+                "printedName": "v3_3_0",
+                "children": [
+                  {
+                    "kind": "TypeFunc",
+                    "name": "Function",
+                    "printedName": "(GIBMobileSdk.GIBPacket.Versions.Type) -> GIBMobileSdk.GIBPacket.Versions",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Versions",
+                        "printedName": "GIBMobileSdk.GIBPacket.Versions",
+                        "usr": "s:12GIBMobileSdk9GIBPacketC8VersionsO"
+                      },
+                      {
+                        "kind": "TypeNominal",
+                        "name": "Metatype",
+                        "printedName": "GIBMobileSdk.GIBPacket.Versions.Type",
+                        "children": [
+                          {
+                            "kind": "TypeNominal",
+                            "name": "Versions",
+                            "printedName": "GIBMobileSdk.GIBPacket.Versions",
+                            "usr": "s:12GIBMobileSdk9GIBPacketC8VersionsO"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "declKind": "EnumElement",
+                "usr": "s:12GIBMobileSdk9GIBPacketC8VersionsO6v3_3_0yA2EmF",
+                "mangledName": "$s12GIBMobileSdk9GIBPacketC8VersionsO6v3_3_0yA2EmF",
                 "moduleName": "GIBMobileSdk"
               },
               {
@@ -2388,6 +2546,574 @@
       },
       {
         "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "GIBMobileSdk",
+        "declAttributes": [
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "Import",
+        "name": "CoreLocation",
+        "printedName": "CoreLocation",
+        "declKind": "Import",
+        "moduleName": "GIBMobileSdk"
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "FPLocationSettings",
+        "printedName": "FPLocationSettings",
+        "children": [
+          {
+            "kind": "Var",
+            "name": "timeoutInterval",
+            "printedName": "timeoutInterval",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "usr": "s:Sd"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cpy)timeoutInterval",
+            "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC15timeoutIntervalSdvpZ",
+            "moduleName": "GIBMobileSdk",
+            "static": true,
+            "declAttributes": [
+              "HasInitialValue",
+              "Final",
+              "HasStorage",
+              "AccessControl",
+              "ObjC"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cm)timeoutInterval",
+                "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC15timeoutIntervalSdvgZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "implicit": true,
+                "declAttributes": [
+                  "Final",
+                  "ObjC"
+                ],
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cm)setTimeoutInterval:",
+                "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC15timeoutIntervalSdvsZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "implicit": true,
+                "declAttributes": [
+                  "Final",
+                  "ObjC"
+                ],
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:12GIBMobileSdk18FPLocationSettingsC15timeoutIntervalSdvMZ",
+                "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC15timeoutIntervalSdvMZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "implicit": true,
+                "declAttributes": [
+                  "Final"
+                ],
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "distanceFilterBest",
+            "printedName": "distanceFilterBest",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "usr": "s:Sd"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cpy)distanceFilterBest",
+            "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC18distanceFilterBestSdvpZ",
+            "moduleName": "GIBMobileSdk",
+            "static": true,
+            "declAttributes": [
+              "HasInitialValue",
+              "Final",
+              "HasStorage",
+              "AccessControl",
+              "ObjC"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cm)distanceFilterBest",
+                "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC18distanceFilterBestSdvgZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "implicit": true,
+                "declAttributes": [
+                  "Final",
+                  "ObjC"
+                ],
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cm)setDistanceFilterBest:",
+                "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC18distanceFilterBestSdvsZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "implicit": true,
+                "declAttributes": [
+                  "Final",
+                  "ObjC"
+                ],
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:12GIBMobileSdk18FPLocationSettingsC18distanceFilterBestSdvMZ",
+                "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC18distanceFilterBestSdvMZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "implicit": true,
+                "declAttributes": [
+                  "Final"
+                ],
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "distanceFilterReduced",
+            "printedName": "distanceFilterReduced",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Double",
+                "printedName": "Swift.Double",
+                "usr": "s:Sd"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cpy)distanceFilterReduced",
+            "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC21distanceFilterReducedSdvpZ",
+            "moduleName": "GIBMobileSdk",
+            "static": true,
+            "declAttributes": [
+              "HasInitialValue",
+              "Final",
+              "HasStorage",
+              "AccessControl",
+              "ObjC"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cm)distanceFilterReduced",
+                "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC21distanceFilterReducedSdvgZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "implicit": true,
+                "declAttributes": [
+                  "Final",
+                  "ObjC"
+                ],
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Double",
+                    "printedName": "Swift.Double",
+                    "usr": "s:Sd"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cm)setDistanceFilterReduced:",
+                "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC21distanceFilterReducedSdvsZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "implicit": true,
+                "declAttributes": [
+                  "Final",
+                  "ObjC"
+                ],
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:12GIBMobileSdk18FPLocationSettingsC21distanceFilterReducedSdvMZ",
+                "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC21distanceFilterReducedSdvMZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "implicit": true,
+                "declAttributes": [
+                  "Final"
+                ],
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "maxPerPacket",
+            "printedName": "maxPerPacket",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Int",
+                "printedName": "Swift.Int",
+                "usr": "s:Si"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cpy)maxPerPacket",
+            "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC12maxPerPacketSivpZ",
+            "moduleName": "GIBMobileSdk",
+            "static": true,
+            "declAttributes": [
+              "HasInitialValue",
+              "Final",
+              "HasStorage",
+              "AccessControl",
+              "ObjC"
+            ],
+            "hasStorage": true,
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cm)maxPerPacket",
+                "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC12maxPerPacketSivgZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "implicit": true,
+                "declAttributes": [
+                  "Final",
+                  "ObjC"
+                ],
+                "accessorKind": "get"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Set",
+                "printedName": "Set()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  },
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Int",
+                    "printedName": "Swift.Int",
+                    "usr": "s:Si"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cm)setMaxPerPacket:",
+                "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC12maxPerPacketSivsZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "implicit": true,
+                "declAttributes": [
+                  "Final",
+                  "ObjC"
+                ],
+                "accessorKind": "set"
+              },
+              {
+                "kind": "Accessor",
+                "name": "Modify",
+                "printedName": "Modify()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Void",
+                    "printedName": "()"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:12GIBMobileSdk18FPLocationSettingsC12maxPerPacketSivMZ",
+                "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC12maxPerPacketSivMZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "implicit": true,
+                "declAttributes": [
+                  "Final"
+                ],
+                "accessorKind": "_modify"
+              }
+            ]
+          },
+          {
+            "kind": "Function",
+            "name": "sendCurrentLocation",
+            "printedName": "sendCurrentLocation()",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cm)sendCurrentLocation",
+            "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC19sendCurrentLocationyyFZ",
+            "moduleName": "GIBMobileSdk",
+            "static": true,
+            "declAttributes": [
+              "Final",
+              "AccessControl",
+              "ObjC"
+            ],
+            "funcSelfKind": "NonMutating"
+          },
+          {
+            "kind": "Function",
+            "name": "setIsBestAccuracy",
+            "printedName": "setIsBestAccuracy(_:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Void",
+                "printedName": "()"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "usr": "s:Sb"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings(cm)setIsBestAccuracy:",
+            "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC17setIsBestAccuracyyySbFZ",
+            "moduleName": "GIBMobileSdk",
+            "static": true,
+            "declAttributes": [
+              "Final",
+              "AccessControl",
+              "ObjC"
+            ],
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Class",
+        "usr": "c:@M@GIBMobileSdk@objc(cs)FPLocationSettings",
+        "mangledName": "$s12GIBMobileSdk18FPLocationSettingsC",
+        "moduleName": "GIBMobileSdk",
+        "declAttributes": [
+          "Final",
+          "AccessControl",
+          "ObjC"
+        ],
+        "superclassUsr": "c:objc(cs)NSObject",
+        "hasMissingDesignatedInitializers": true,
+        "inheritsConvenienceInitializers": true,
+        "superclassNames": [
+          "ObjectiveC.NSObject"
+        ],
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Equatable",
+            "printedName": "Equatable",
+            "usr": "s:SQ",
+            "mangledName": "$sSQ"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Hashable",
+            "printedName": "Hashable",
+            "usr": "s:SH",
+            "mangledName": "$sSH"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CVarArg",
+            "printedName": "CVarArg",
+            "usr": "s:s7CVarArgP",
+            "mangledName": "$ss7CVarArgP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_KeyValueCodingAndObservingPublishing",
+            "printedName": "_KeyValueCodingAndObservingPublishing",
+            "usr": "s:10Foundation37_KeyValueCodingAndObservingPublishingP",
+            "mangledName": "$s10Foundation37_KeyValueCodingAndObservingPublishingP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "_KeyValueCodingAndObserving",
+            "printedName": "_KeyValueCodingAndObserving",
+            "usr": "s:10Foundation27_KeyValueCodingAndObservingP",
+            "mangledName": "$s10Foundation27_KeyValueCodingAndObservingP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomStringConvertible",
+            "printedName": "CustomStringConvertible",
+            "usr": "s:s23CustomStringConvertibleP",
+            "mangledName": "$ss23CustomStringConvertibleP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "CustomDebugStringConvertible",
+            "printedName": "CustomDebugStringConvertible",
+            "usr": "s:s28CustomDebugStringConvertibleP",
+            "mangledName": "$ss28CustomDebugStringConvertibleP"
+          }
+        ]
+      },
+      {
+        "kind": "Import",
         "name": "UIKit",
         "printedName": "UIKit",
         "declKind": "Import",
@@ -2419,6 +3145,16 @@
         "printedName": "Network",
         "declKind": "Import",
         "moduleName": "GIBMobileSdk"
+      },
+      {
+        "kind": "Import",
+        "name": "Foundation",
+        "printedName": "Foundation",
+        "declKind": "Import",
+        "moduleName": "GIBMobileSdk",
+        "declAttributes": [
+          "RawDocComment"
+        ]
       },
       {
         "kind": "Import",
@@ -2583,6 +3319,130 @@
                 "declKind": "Accessor",
                 "usr": "s:12GIBMobileSdk14GIBApplicationC6sharedSo13UIApplicationCSgvgZ",
                 "mangledName": "$s12GIBMobileSdk14GIBApplicationC6sharedSo13UIApplicationCSgvgZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "declAttributes": [
+                  "Final"
+                ],
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "allScreens",
+            "printedName": "allScreens",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Array",
+                "printedName": "[UIKit.UIScreen]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UIScreen",
+                    "printedName": "UIKit.UIScreen",
+                    "usr": "c:objc(cs)UIScreen"
+                  }
+                ],
+                "usr": "s:Sa"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:12GIBMobileSdk14GIBApplicationC10allScreensSaySo8UIScreenCGvpZ",
+            "mangledName": "$s12GIBMobileSdk14GIBApplicationC10allScreensSaySo8UIScreenCGvpZ",
+            "moduleName": "GIBMobileSdk",
+            "static": true,
+            "declAttributes": [
+              "Final",
+              "AccessControl"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Array",
+                    "printedName": "[UIKit.UIScreen]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "UIScreen",
+                        "printedName": "UIKit.UIScreen",
+                        "usr": "c:objc(cs)UIScreen"
+                      }
+                    ],
+                    "usr": "s:Sa"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:12GIBMobileSdk14GIBApplicationC10allScreensSaySo8UIScreenCGvgZ",
+                "mangledName": "$s12GIBMobileSdk14GIBApplicationC10allScreensSaySo8UIScreenCGvgZ",
+                "moduleName": "GIBMobileSdk",
+                "static": true,
+                "declAttributes": [
+                  "Final"
+                ],
+                "accessorKind": "get"
+              }
+            ]
+          },
+          {
+            "kind": "Var",
+            "name": "mainScreen",
+            "printedName": "mainScreen",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "UIKit.UIScreen?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "UIScreen",
+                    "printedName": "UIKit.UIScreen",
+                    "usr": "c:objc(cs)UIScreen"
+                  }
+                ],
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Var",
+            "usr": "s:12GIBMobileSdk14GIBApplicationC10mainScreenSo8UIScreenCSgvpZ",
+            "mangledName": "$s12GIBMobileSdk14GIBApplicationC10mainScreenSo8UIScreenCSgvpZ",
+            "moduleName": "GIBMobileSdk",
+            "static": true,
+            "declAttributes": [
+              "Final",
+              "AccessControl"
+            ],
+            "accessors": [
+              {
+                "kind": "Accessor",
+                "name": "Get",
+                "printedName": "Get()",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Optional",
+                    "printedName": "UIKit.UIScreen?",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "UIScreen",
+                        "printedName": "UIKit.UIScreen",
+                        "usr": "c:objc(cs)UIScreen"
+                      }
+                    ],
+                    "usr": "s:Sq"
+                  }
+                ],
+                "declKind": "Accessor",
+                "usr": "s:12GIBMobileSdk14GIBApplicationC10mainScreenSo8UIScreenCSgvgZ",
+                "mangledName": "$s12GIBMobileSdk14GIBApplicationC10mainScreenSo8UIScreenCSgvgZ",
                 "moduleName": "GIBMobileSdk",
                 "static": true,
                 "declAttributes": [
@@ -4967,23 +5827,6 @@
       },
       {
         "kind": "Import",
-        "name": "CoreLocation",
-        "printedName": "CoreLocation",
-        "declKind": "Import",
-        "moduleName": "GIBMobileSdk"
-      },
-      {
-        "kind": "Import",
-        "name": "UIKit",
-        "printedName": "UIKit",
-        "declKind": "Import",
-        "moduleName": "GIBMobileSdk",
-        "declAttributes": [
-          "RawDocComment"
-        ]
-      },
-      {
-        "kind": "Import",
         "name": "Foundation",
         "printedName": "Foundation",
         "declKind": "Import",
@@ -7167,28 +8010,28 @@
     {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/GlobalId\/BootTimeManager.swift",
       "kind": "StringLiteral",
-      "offset": 3418,
+      "offset": 4233,
       "length": 14,
       "value": "\"fp_saved_now\""
     },
     {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/GlobalId\/BootTimeManager.swift",
       "kind": "StringLiteral",
-      "offset": 3469,
+      "offset": 4284,
       "length": 16,
       "value": "\"fp_save_uptime\""
     },
     {
-      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Location\/LocationManager.swift",
+      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Location\/LocationCapability.swift",
       "kind": "StringLiteral",
-      "offset": 286,
+      "offset": 282,
       "length": 26,
       "value": "\"sendLocationNotification\""
     },
     {
-      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Location\/LocationManager.swift",
+      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Location\/LocationCapability.swift",
       "kind": "BooleanLiteral",
-      "offset": 667,
+      "offset": 649,
       "length": 4,
       "value": "true"
     },
@@ -7253,33 +8096,61 @@
       "kind": "StringLiteral",
       "offset": 313,
       "length": 7,
-      "value": "\"2.0.0\""
+      "value": "\"1.1.1\""
     },
     {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/GIBPacket.swift",
       "kind": "StringLiteral",
       "offset": 343,
       "length": 7,
-      "value": "\"2.1.0\""
+      "value": "\"2.0.0\""
     },
     {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/GIBPacket.swift",
       "kind": "StringLiteral",
       "offset": 373,
       "length": 7,
-      "value": "\"3.0.0\""
+      "value": "\"2.1.0\""
     },
     {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/GIBPacket.swift",
       "kind": "StringLiteral",
       "offset": 403,
       "length": 7,
+      "value": "\"2.2.0\""
+    },
+    {
+      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/GIBPacket.swift",
+      "kind": "StringLiteral",
+      "offset": 433,
+      "length": 7,
+      "value": "\"3.0.0\""
+    },
+    {
+      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/GIBPacket.swift",
+      "kind": "StringLiteral",
+      "offset": 463,
+      "length": 7,
       "value": "\"3.1.0\""
     },
     {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/GIBPacket.swift",
+      "kind": "StringLiteral",
+      "offset": 493,
+      "length": 7,
+      "value": "\"3.2.0\""
+    },
+    {
+      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/GIBPacket.swift",
+      "kind": "StringLiteral",
+      "offset": 523,
+      "length": 7,
+      "value": "\"3.3.0\""
+    },
+    {
+      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/GIBPacket.swift",
       "kind": "BooleanLiteral",
-      "offset": 2620,
+      "offset": 2740,
       "length": 4,
       "value": "true"
     },
@@ -7344,7 +8215,7 @@
       "kind": "IntegerLiteral",
       "offset": 52,
       "length": 10,
-      "value": "1748046444"
+      "value": "1756913221"
     },
     {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Motion\/MotionSensorObserver.swift",
@@ -7440,28 +8311,28 @@
     {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Security\/SecurityManager\/JailbreakChecker.swift",
       "kind": "IntegerLiteral",
-      "offset": 36789,
+      "offset": 36803,
       "length": 2,
       "value": "-2"
     },
     {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Security\/SecurityManager\/JailbreakChecker.swift",
       "kind": "StringLiteral",
-      "offset": 36836,
+      "offset": 36850,
       "length": 6,
       "value": "\"fork\""
     },
     {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Security\/SecurityManager\/JailbreakChecker.swift",
       "kind": "IntegerLiteral",
-      "offset": 37027,
+      "offset": 37041,
       "length": 1,
       "value": "0"
     },
     {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Security\/SecurityManager\/JailbreakChecker.swift",
       "kind": "IntegerLiteral",
-      "offset": 37059,
+      "offset": 37073,
       "length": 1,
       "value": "0"
     },
@@ -7592,9 +8463,44 @@
       "value": "[]"
     },
     {
+      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Location\/FPLocationSettings.swift",
+      "kind": "IntegerLiteral",
+      "offset": 310,
+      "length": 2,
+      "value": "60"
+    },
+    {
+      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Location\/FPLocationSettings.swift",
+      "kind": "IntegerLiteral",
+      "offset": 382,
+      "length": 3,
+      "value": "500"
+    },
+    {
+      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Location\/FPLocationSettings.swift",
+      "kind": "IntegerLiteral",
+      "offset": 458,
+      "length": 5,
+      "value": "25000"
+    },
+    {
+      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Location\/FPLocationSettings.swift",
+      "kind": "IntegerLiteral",
+      "offset": 512,
+      "length": 1,
+      "value": "5"
+    },
+    {
+      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Location\/FPLocationSettings.swift",
+      "kind": "BooleanLiteral",
+      "offset": 565,
+      "length": 4,
+      "value": "true"
+    },
+    {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Capture\/CaptureCapability.swift",
       "kind": "BooleanLiteral",
-      "offset": 2069,
+      "offset": 3182,
       "length": 4,
       "value": "true"
     },
@@ -7657,7 +8563,7 @@
     {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/GlobalId\/GlobalIdCapability.swift",
       "kind": "IntegerLiteral",
-      "offset": 1665,
+      "offset": 1823,
       "length": 2,
       "value": "10"
     },
@@ -7688,20 +8594,6 @@
       "offset": 612,
       "length": 41,
       "value": "\"com.group-ib.GIBMobileSDK.locationQueue\""
-    },
-    {
-      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Location\/LocationStorage.swift",
-      "kind": "IntegerLiteral",
-      "offset": 2012,
-      "length": 1,
-      "value": "5"
-    },
-    {
-      "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/Capabilities\/Location\/LocationStorage.swift",
-      "kind": "IntegerLiteral",
-      "offset": 2055,
-      "length": 3,
-      "value": "500"
     },
     {
       "filePath": "\/Users\/mikhaillutskii\/XcodeProjects\/sdk\/builds\/VDhvWnX9\/0\/sb\/ios\/sdk\/GIBMobileSdk\/Swift parts\/GIBSwiftManager.swift",

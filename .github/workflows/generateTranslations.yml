@@ -137,7 +137,7 @@ jobs:
           readonly PARROT_INTRO="_Squawk!_ Looks like you added some shiny new English strings. Allow me to parrot them back to you in other tongues:"
           PARROT_FOOTER="$(cat <<'EOF'
           > [!NOTE]
-          > You can apply these changes to your branch by copying the patch to your clipboard, then running `pbpaste | git apply` 😉
+          > You can apply these changes to your branch by copying the patch to your clipboard, then running `pbpaste | git apply`
           EOF
           )"
           readonly PARROT_FOOTER
@@ -158,12 +158,14 @@ jobs:
               echo
               echo '</details>'
               echo
-              echo "$PARROT_FOOTER"
+              echo "$PARROT_FOOTER 😉"
             } > "$TEMP_COMMENT_FILE"
           else
             # Large diff - upload as gist and link
             echo "📁 Creating gist for large diff..."
             GIST_URL=$(gh gist create "$TEMP_PATCH_FILE" --desc "🦜 Polyglot Parrot translations for PR #${{ steps.pr-data.outputs.PR_NUMBER }}" --filename "translations.patch")
+            GIST_ID="${GIST_URL##*/}"
+            PARROT_FOOTER_WITH_CMD="${PARROT_FOOTER}, or directly by running \`gh gist view --raw ${GIST_ID} | git apply\`"
             {
               echo "$PARROT_HEADER"
               echo
@@ -173,7 +175,7 @@ jobs:
               echo
               echo "📋 **[View the translation diff here](${GIST_URL})** 📋"
               echo
-              echo "$PARROT_FOOTER"
+              echo "$PARROT_FOOTER_WITH_CMD 😉"
             } > "$TEMP_COMMENT_FILE"
           fi
 

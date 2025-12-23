@@ -3,10 +3,14 @@ import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCorrectSearchUserName} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import ActionCell from './ActionCell';
 import UserInfoCellsWithArrow from './UserInfoCellsWithArrow';
 
@@ -15,20 +19,24 @@ function UserInfoAndActionButtonRow({
     handleActionButtonPress,
     shouldShowUserInfo,
     containerStyles,
+    isInMobileSelectionMode,
 }: {
     item: TransactionReportGroupListItemType | TransactionListItemType;
     handleActionButtonPress: () => void;
     shouldShowUserInfo: boolean;
     containerStyles?: StyleProp<ViewStyle>;
+    isInMobileSelectionMode: boolean;
 }) {
-    const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isLargeScreenWidth} = useResponsiveLayout();
+    const {translate} = useLocalize();
+    const transactionItem = item as unknown as TransactionListItemType;
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
     const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
     const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
     const participantFromDisplayName = item?.from?.displayName ?? item?.from?.login ?? translate('common.hidden');
     const participantToDisplayName = item?.to?.displayName ?? item?.to?.login ?? translate('common.hidden');
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
-
     return (
         <View
             style={[
@@ -48,23 +56,26 @@ function UserInfoAndActionButtonRow({
                     participantFromDisplayName={participantFromDisplayName}
                     participantToDisplayName={participantToDisplayName}
                     participantTo={item?.to}
-                    avatarSize={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}
-                    infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                    avatarSize={!isLargeScreenWidth ? CONST.AVATAR_SIZE.SMALL_SUBSCRIPT : CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}
+                    infoCellsTextStyle={{lineHeight: 14}}
                     infoCellsAvatarStyle={styles.pr1}
                     fromRecipientStyle={!shouldShowToRecipient ? styles.mw100 : {}}
+                    shouldUseArrowIcon={false}
                 />
             )}
-            <View style={[{width: variables.w80}, styles.alignItemsEnd]}>
+            <View style={[{width: isLargeScreenWidth ? variables.w80 : variables.w72}, styles.alignItemsEnd]}>
                 <ActionCell
                     action={item.action}
                     goToItem={handleActionButtonPress}
                     isSelected={item.isSelected}
-                    isLoading={item.isActionLoading}
+                    isLoading={isActionLoading}
                     policyID={item.policyID}
                     reportID={item.reportID}
                     hash={item.hash}
                     amount={(item as TransactionListItemType)?.amount ?? (item as TransactionReportGroupListItemType)?.total}
+                    extraSmall={!isLargeScreenWidth}
+                    shouldDisablePointerEvents={isInMobileSelectionMode}
                 />
             </View>
         </View>

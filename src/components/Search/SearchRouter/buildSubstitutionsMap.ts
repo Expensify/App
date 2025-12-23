@@ -52,12 +52,12 @@ function buildSubstitutionsMap(
 
             const taxRateNames = taxRates.length > 0 ? taxRates : [taxRateID];
             const uniqueTaxRateNames = [...new Set(taxRateNames)];
-            uniqueTaxRateNames.forEach((taxRateName) => {
+            for (const taxRateName of uniqueTaxRateNames) {
                 const substitutionKey = getSubstitutionsKey(filterKey, taxRateName);
 
                 // eslint-disable-next-line no-param-reassign
                 map[substitutionKey] = taxRateID;
-            });
+            }
         } else if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||

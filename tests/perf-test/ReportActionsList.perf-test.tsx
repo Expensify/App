@@ -79,7 +79,7 @@ const signUpWithTestUser = () => {
     TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
 };
 
-const report = createRandomReport(1);
+const report = createRandomReport(1, undefined);
 const parentReportAction = createRandomReportAction(1);
 
 beforeEach(() => {

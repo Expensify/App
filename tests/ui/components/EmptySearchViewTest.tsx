@@ -121,8 +121,7 @@ describe('EmptySearchView', () => {
 
                 // Given a query string for expense search with draft status
                 const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
@@ -135,7 +134,6 @@ describe('EmptySearchView', () => {
                             similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
-                            groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
                         />
                     </Wrapper>,
                 );
@@ -144,8 +142,8 @@ describe('EmptySearchView', () => {
                 // Then it should display the submit empty results title
                 expect(screen.getByText(translateLocal('search.searchResults.emptySubmitResults.title'))).toBeVisible();
 
-                // And it should display the "Create Report" button
-                expect(screen.getByText(translateLocal('report.newReport.createReport'))).toBeVisible();
+                // And it should display the "Create Expense" button
+                expect(screen.getByText(translateLocal('report.newReport.createExpense'))).toBeVisible();
             });
 
             it('should hide "Create Report" button when user has a paid group policy with expense chat disabled', async () => {
@@ -157,8 +155,7 @@ describe('EmptySearchView', () => {
 
                 // Given: A query string for expense search with draft status
                 const queryString = buildQueryStringFromFilterFormValues({
-                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                    groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
                     action: CONST.SEARCH.ACTION_FILTERS.SUBMIT,
                     from: [CURRENT_USER_ACCOUNT_ID.toString()],
                 });
@@ -171,7 +168,6 @@ describe('EmptySearchView', () => {
                             similarSearchHash={queryJSON?.similarSearchHash ?? 1}
                             type={dataType}
                             hasResults={false}
-                            groupBy={CONST.SEARCH.GROUP_BY.REPORTS}
                         />
                     </Wrapper>,
                 );
@@ -180,9 +176,71 @@ describe('EmptySearchView', () => {
                 // Then it should display the submit empty results title
                 expect(screen.getByText(translateLocal('search.searchResults.emptySubmitResults.title'))).toBeVisible();
 
-                // And it should not display the "Create Report" button
-                expect(screen.queryByText(translateLocal('report.newReport.createReport'))).not.toBeOnTheScreen();
+                // And it should not display the "Create Expense" button
+                expect(screen.queryByText(translateLocal('report.newReport.createExpense'))).not.toBeOnTheScreen();
             });
+        });
+
+        it('should show "emptyExpenseResults" when the user has deleted all expenses, even though hasResults remains true', async () => {
+            const policy = createPaidGroupPolicy();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            });
+
+            // Given: A query string for expense search
+            const queryString = buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            });
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            // When rendering the EmptySearchView component
+            render(
+                <Wrapper>
+                    <EmptySearchView
+                        similarSearchHash={queryJSON?.similarSearchHash ?? 1}
+                        type={dataType}
+                        hasResults
+                        queryJSON={queryJSON}
+                    />
+                </Wrapper>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('search.searchResults.emptyExpenseResults.title'))).toBeVisible();
+        });
+    });
+
+    describe('type is expense Report', () => {
+        const dataType = CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
+
+        it('should show "emptyReportResults" when the user has deleted all expenses, even though hasResults remains true', async () => {
+            const policy = createPaidGroupPolicy();
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            });
+
+            // Given: A query string for expense report search
+            const queryString = buildQueryStringFromFilterFormValues({
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            });
+            const queryJSON = buildSearchQueryJSON(queryString);
+
+            // When rendering the EmptySearchView component
+            render(
+                <Wrapper>
+                    <EmptySearchView
+                        similarSearchHash={queryJSON?.similarSearchHash ?? 1}
+                        type={dataType}
+                        hasResults
+                        queryJSON={queryJSON}
+                    />
+                </Wrapper>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            expect(screen.getByText(translateLocal('search.searchResults.emptyReportResults.title'))).toBeVisible();
         });
     });
 

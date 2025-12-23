@@ -9,7 +9,7 @@ on:
 jobs:
   perf-tests:
     if: ${{ github.actor != 'OSBotify' }}
-    runs-on: ubuntu-24.04-v4
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         # v4

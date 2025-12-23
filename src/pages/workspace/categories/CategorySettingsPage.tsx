@@ -15,10 +15,9 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
-import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
+import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -37,7 +36,6 @@ import {
     setWorkspaceCategoryEnabled,
 } from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -52,28 +50,29 @@ function CategorySettingsPage({
     },
     navigation,
 }: CategorySettingsPageProps) {
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
-    const policy = usePolicy(policyID);
+    const policyData = usePolicyData(policyID);
+    const {policy, categories: policyCategories} = policyData;
     const {environmentURL} = useEnvironment();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === categoryName);
+    const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories).find((category) => category.previousCategoryName === categoryName);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
+    const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
 
     const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
-    const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [policyCategory]);
+    const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
     const {
         taskReport: setupCategoryTaskReport,
         taskParentReport: setupCategoryTaskParentReport,
         isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+        hasOutstandingChildTask,
+        parentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const navigateBack = () => {
@@ -138,15 +137,14 @@ function CategorySettingsPage({
             return;
         }
         setWorkspaceCategoryEnabled(
-            policyID,
+            policyData,
             {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
             currentUserPersonalDetails.accountID,
-            policyCategories,
-            policyTagLists,
-            allTransactionViolations,
+            hasOutstandingChildTask,
+            parentReportAction,
         );
     };
 
@@ -158,15 +156,14 @@ function CategorySettingsPage({
 
     const deleteCategory = () => {
         deleteWorkspaceCategories(
-            policyID,
+            policyData,
             [categoryName],
             isSetupCategoryTaskParentReportArchived,
             setupCategoryTaskReport,
             setupCategoryTaskParentReport,
             currentUserPersonalDetails.accountID,
-            policyTagLists,
-            policyCategories,
-            allTransactionViolations,
+            hasOutstandingChildTask,
+            parentReportAction,
         );
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
@@ -185,10 +182,10 @@ function CategorySettingsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategorySettingsPage.displayName}
+                testID="CategorySettingsPage"
             >
                 <HeaderWithBackButton
-                    title={categoryName}
+                    title={decodedCategoryName}
                     onBackButtonPress={navigateBack}
                 />
                 <ConfirmModal
@@ -234,7 +231,7 @@ function CategorySettingsPage({
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
                         <MenuItemWithTopDescription
-                            title={policyCategory.name}
+                            title={decodedCategoryName}
                             description={translate('common.name')}
                             onPress={navigateToEditCategory}
                             shouldShowRightIcon
@@ -393,7 +390,5 @@ function CategorySettingsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategorySettingsPage.displayName = 'CategorySettingsPage';
 
 export default CategorySettingsPage;

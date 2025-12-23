@@ -1,4 +1,4 @@
-import React, {forwardRef, useRef} from 'react';
+import React, {useRef} from 'react';
 import type {InputModeOptions} from 'react-native';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -11,59 +11,65 @@ import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
-    /** The ID of the form */
-    formID: TFormID;
+type SingleFieldStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
+    ForwardedFSClassProps & {
+        /** The ID of the form */
+        formID: TFormID;
 
-    /** The title of the form */
-    formTitle: string;
+        /** The title of the form */
+        formTitle: string;
 
-    /** The disclaimer to show below the form title */
-    formDisclaimer?: string;
+        /** The disclaimer to show below the form title */
+        formDisclaimer?: string;
 
-    /** The validation function to call when the form is submitted */
-    validate: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
+        /** The validation function to call when the form is submitted */
+        validate: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-    /** A function to call when the form is submitted */
-    onSubmit: (values: FormOnyxValues<TFormID>) => void;
+        /** A function to call when the form is submitted */
+        onSubmit: (values: FormOnyxValues<TFormID>) => void;
 
-    /** The ID of the form input */
-    inputId: string;
+        /** The ID of the form input */
+        inputId: string;
 
-    /** The label of the input */
-    inputLabel: string;
+        /** The label of the input */
+        inputLabel: string;
 
-    /** The mode of the input */
-    inputMode?: InputModeOptions;
+        /** The mode of the input */
+        inputMode?: InputModeOptions;
 
-    /** The default values for the form */
-    defaultValue: string;
+        /** The default values for the form */
+        defaultValue: string;
 
-    /** Whether to show help links */
-    shouldShowHelpLinks?: boolean;
+        /** Whether to show help links */
+        shouldShowHelpLinks?: boolean;
 
-    /** Max length of the field */
-    maxLength?: number;
+        /** Max length of the field */
+        maxLength?: number;
 
-    /** Should the submit button be enabled when offline */
-    enabledWhenOffline?: boolean;
+        /** Should the submit button be enabled when offline */
+        enabledWhenOffline?: boolean;
 
-    /** Set the default value to the input if there is a valid saved value */
-    shouldUseDefaultValue?: boolean;
+        /** Set the default value to the input if there is a valid saved value */
+        shouldUseDefaultValue?: boolean;
 
-    /** Should the input be disabled */
-    disabled?: boolean;
+        /** Should the input be disabled */
+        disabled?: boolean;
 
-    /** Placeholder displayed inside input */
-    placeholder?: string;
+        /** Placeholder displayed inside input */
+        placeholder?: string;
 
-    /** Whether to delay autoFocus to avoid conflicts with navigation animations */
-    shouldDelayAutoFocus?: boolean;
-};
+        /** Whether to delay autoFocus to avoid conflicts with navigation animations */
+        shouldDelayAutoFocus?: boolean;
+
+        /** Whether to show the Patriot Act help link (EnablePayments-only) */
+        shouldShowPatriotActLink?: boolean;
+    };
 
 function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     formID,
@@ -83,6 +89,8 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
     disabled = false,
     placeholder,
     shouldDelayAutoFocus = false,
+    shouldShowPatriotActLink = false,
+    forwardedFSClass,
 }: SingleFieldStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -120,14 +128,18 @@ function SingleFieldStep<TFormID extends keyof OnyxFormValuesMapping>({
                         placeholder={placeholder}
                         autoFocus={!shouldDelayAutoFocus}
                         ref={internalInputRef}
+                        forwardedFSClass={forwardedFSClass}
                     />
                 </View>
-                {shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt5]} />}
+                {shouldShowHelpLinks && (
+                    <>
+                        <HelpLinks containerStyles={[styles.mt5]} />
+                        {shouldShowPatriotActLink && <PatriotActLink containerStyles={[styles.mt2]} />}
+                    </>
+                )}
             </View>
         </FormProvider>
     );
 }
 
-SingleFieldStep.displayName = 'SingleFieldStep';
-
-export default forwardRef(SingleFieldStep);
+export default SingleFieldStep;

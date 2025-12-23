@@ -1,18 +1,23 @@
-import {useCallback} from 'react';
+import {useCallback, useContext} from 'react';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import Navigation from '@libs/Navigation/Navigation';
+import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useLocalize from './useLocalize';
 
 type OpenPicker = (options: {onPicked: (files: FileObject[]) => void}) => void;
 
 type UseAvatarMenuParams = {
     /** Whether the user is using a default avatar */
-    isUsingDefaultAvatar: boolean;
-    /** Whether the user has chosen a new avatar in the form  but hasn't uploaded it yet */
-    isAvatarSelected: boolean;
+    shouldHideAvatarEdit: boolean;
+    /** Source of newly uploaded avatar */
+    source?: string;
+    /** File name of newly uploaded avatar */
+    originalFileName?: string;
     /** Account ID for navigation */
     accountID: number;
     /** Callback when avatar is removed */
@@ -26,8 +31,10 @@ type UseAvatarMenuParams = {
 /**
  * Custom hook to create avatar menu items
  */
-function useAvatarMenu({isUsingDefaultAvatar, isAvatarSelected, accountID, onImageRemoved, showAvatarCropModal, clearError}: UseAvatarMenuParams) {
+function useAvatarMenu({shouldHideAvatarEdit, accountID, onImageRemoved, showAvatarCropModal, clearError, source, originalFileName}: UseAvatarMenuParams) {
+    const icons = useMemoizedLazyExpensifyIcons(['Upload']);
     const {translate} = useLocalize();
+    const attachmentContext = useContext(AttachmentModalContext);
 
     /**
      * Create menu items list for avatar menu
@@ -36,7 +43,7 @@ function useAvatarMenu({isUsingDefaultAvatar, isAvatarSelected, accountID, onIma
         (openPicker: OpenPicker): Array<DropdownOption<null>> => {
             const menuItems: Array<DropdownOption<null>> = [
                 {
-                    icon: Expensicons.Upload,
+                    icon: icons.Upload,
                     text: translate('avatarWithImagePicker.uploadPhoto'),
                     onSelected: () => {
                         openPicker({
@@ -47,13 +54,11 @@ function useAvatarMenu({isUsingDefaultAvatar, isAvatarSelected, accountID, onIma
                 },
             ];
             // If current avatar is a default avatar and for avatar is selected in the form, only show upload option
-            if (isUsingDefaultAvatar || isAvatarSelected) {
+            if (shouldHideAvatarEdit) {
                 return menuItems;
             }
-
-            return [
-                ...menuItems,
-                {
+            if (!source) {
+                menuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('avatarWithImagePicker.removePhoto'),
                     value: null,
@@ -61,16 +66,23 @@ function useAvatarMenu({isUsingDefaultAvatar, isAvatarSelected, accountID, onIma
                         clearError();
                         onImageRemoved();
                     },
-                },
+                });
+            }
+
+            return [
+                ...menuItems,
                 {
                     value: null,
                     icon: Expensicons.Eye,
                     text: translate('avatarWithImagePicker.viewPhoto'),
-                    onSelected: () => Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID)),
+                    onSelected: () => {
+                        attachmentContext.setCurrentAttachment({source, originalFileName});
+                        Navigation.navigate(ROUTES.PROFILE_AVATAR.getRoute(accountID));
+                    },
                 },
             ];
         },
-        [accountID, isUsingDefaultAvatar, onImageRemoved, showAvatarCropModal, translate, clearError, isAvatarSelected],
+        [icons.Upload, translate, shouldHideAvatarEdit, source, showAvatarCropModal, clearError, onImageRemoved, attachmentContext, originalFileName, accountID],
     );
 
     return {createMenuItems};

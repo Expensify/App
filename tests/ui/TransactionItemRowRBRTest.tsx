@@ -33,7 +33,7 @@ const defaultProps = {
     taxAmountColumnSize: CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
     onCheckboxPress: jest.fn(),
     shouldShowCheckbox: false,
-    columns: Object.values(CONST.REPORT.TRANSACTION_LIST.COLUMNS) as SearchColumnType[],
+    columns: Object.values(CONST.SEARCH.TABLE_COLUMNS) as SearchColumnType[],
     onButtonPress: jest.fn(),
     isParentHovered: false,
 };
@@ -158,7 +158,7 @@ describe('TransactionItemRowRBR', () => {
             },
         ];
         const mockReport = {
-            ...createRandomReport(1),
+            ...createRandomReport(1, undefined),
             pendingAction: null,
             type: CONST.REPORT.TYPE.EXPENSE,
         };
@@ -182,7 +182,7 @@ describe('TransactionItemRowRBR', () => {
     it('should display RBR message for transaction with missing merchant error', async () => {
         // Given a transaction with a missing merchant error
         const mockReport = {
-            ...createRandomReport(1),
+            ...createRandomReport(1, undefined),
             pendingAction: null,
             type: CONST.REPORT.TYPE.EXPENSE,
         };
@@ -269,7 +269,7 @@ describe('TransactionItemRowRBR', () => {
             },
         ];
         const mockReport = {
-            ...createRandomReport(1),
+            ...createRandomReport(1, undefined),
             pendingAction: null,
             type: CONST.REPORT.TYPE.EXPENSE,
         };

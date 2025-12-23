@@ -1,5 +1,15 @@
 import type {ValueOf} from 'type-fest';
-import type {SearchAmountFilterKeys, SearchDateFilterKeys, SearchGroupBy, SearchWithdrawalType} from '@components/Search/types';
+import type {
+    ReportFieldDateKey,
+    ReportFieldKey,
+    ReportFieldNegatedKey,
+    ReportFieldTextKey,
+    SearchAmountFilterKeys,
+    SearchCustomColumnIds,
+    SearchDateFilterKeys,
+    SearchGroupBy,
+    SearchWithdrawalType,
+} from '@components/Search/types';
 import CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type Form from './Form';
@@ -154,6 +164,9 @@ const FILTER_KEYS = {
 
     ATTENDEE_NOT: 'attendeeNot',
     ATTENDEE: 'attendee',
+    REPORT_FIELD: 'reportField',
+
+    COLUMNS: 'columns',
 } as const;
 
 const ALLOWED_TYPE_FILTERS = {
@@ -249,9 +262,66 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.TITLE,
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.ATTENDEE,
+        FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.ATTENDEE_NOT,
+        FILTER_KEYS.COLUMNS,
     ],
-
+    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: [
+        FILTER_KEYS.TYPE,
+        FILTER_KEYS.STATUS,
+        FILTER_KEYS.FROM,
+        FILTER_KEYS.FROM_NOT,
+        FILTER_KEYS.TO,
+        FILTER_KEYS.TO_NOT,
+        FILTER_KEYS.KEYWORD,
+        FILTER_KEYS.POLICY_ID,
+        FILTER_KEYS.DATE_ON,
+        FILTER_KEYS.DATE_NOT,
+        FILTER_KEYS.DATE_AFTER,
+        FILTER_KEYS.DATE_BEFORE,
+        FILTER_KEYS.TOTAL_EQUAL_TO,
+        FILTER_KEYS.TOTAL_NOT,
+        FILTER_KEYS.TOTAL_GREATER_THAN,
+        FILTER_KEYS.TOTAL_LESS_THAN,
+        FILTER_KEYS.CURRENCY,
+        FILTER_KEYS.CURRENCY_NOT,
+        FILTER_KEYS.GROUP_CURRENCY,
+        FILTER_KEYS.PAYER,
+        FILTER_KEYS.PAYER_NOT,
+        FILTER_KEYS.WITHDRAWAL_TYPE,
+        FILTER_KEYS.WITHDRAWAL_TYPE_NOT,
+        FILTER_KEYS.WITHDRAWN_AFTER,
+        FILTER_KEYS.WITHDRAWN_BEFORE,
+        FILTER_KEYS.WITHDRAWN_ON,
+        FILTER_KEYS.WITHDRAWN_NOT,
+        FILTER_KEYS.REPORT_ID,
+        FILTER_KEYS.REPORT_ID_NOT,
+        FILTER_KEYS.SUBMITTED_ON,
+        FILTER_KEYS.SUBMITTED_NOT,
+        FILTER_KEYS.SUBMITTED_AFTER,
+        FILTER_KEYS.SUBMITTED_BEFORE,
+        FILTER_KEYS.APPROVED_AFTER,
+        FILTER_KEYS.APPROVED_BEFORE,
+        FILTER_KEYS.APPROVED_ON,
+        FILTER_KEYS.APPROVED_NOT,
+        FILTER_KEYS.PAID_AFTER,
+        FILTER_KEYS.PAID_BEFORE,
+        FILTER_KEYS.PAID_ON,
+        FILTER_KEYS.PAID_NOT,
+        FILTER_KEYS.EXPORTED_AFTER,
+        FILTER_KEYS.EXPORTED_BEFORE,
+        FILTER_KEYS.EXPORTED_ON,
+        FILTER_KEYS.EXPORTED_NOT,
+        FILTER_KEYS.EXPORTER,
+        FILTER_KEYS.ACTION,
+        FILTER_KEYS.ACTION_NOT,
+        FILTER_KEYS.WITHDRAWAL_ID,
+        FILTER_KEYS.WITHDRAWAL_ID_NOT,
+        FILTER_KEYS.TITLE,
+        FILTER_KEYS.TITLE_NOT,
+        FILTER_KEYS.REPORT_FIELD,
+        FILTER_KEYS.COLUMNS,
+    ],
     [CONST.SEARCH.DATA_TYPES.INVOICE]: [
         FILTER_KEYS.TYPE,
         FILTER_KEYS.STATUS,
@@ -332,7 +402,9 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.WITHDRAWAL_ID,
         FILTER_KEYS.WITHDRAWAL_ID_NOT,
         FILTER_KEYS.TITLE,
+        FILTER_KEYS.REPORT_FIELD,
         FILTER_KEYS.TITLE_NOT,
+        FILTER_KEYS.COLUMNS,
     ],
 
     [CONST.SEARCH.DATA_TYPES.TRIP]: [
@@ -409,6 +481,8 @@ const ALLOWED_TYPE_FILTERS = {
         FILTER_KEYS.PURCHASE_CURRENCY_NOT,
         FILTER_KEYS.TITLE,
         FILTER_KEYS.TITLE_NOT,
+        FILTER_KEYS.REPORT_FIELD,
+        FILTER_KEYS.COLUMNS,
     ],
 
     [CONST.SEARCH.DATA_TYPES.CHAT]: [
@@ -451,14 +525,14 @@ const ALLOWED_TYPE_FILTERS = {
     ],
 };
 
-type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS>;
+type SearchAdvancedFiltersKey = ValueOf<typeof FILTER_KEYS> | ReportFieldKey;
 
 type SearchAdvancedFiltersForm = Form<
     SearchAdvancedFiltersKey,
     {
         [FILTER_KEYS.GROUP_BY]: SearchGroupBy;
-
         [FILTER_KEYS.TYPE]: SearchDataTypes;
+        [FILTER_KEYS.COLUMNS]: SearchCustomColumnIds[];
 
         [FILTER_KEYS.STATUS]: string[] | string;
 
@@ -597,7 +671,12 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.ATTENDEE]: string[];
         [FILTER_KEYS.ATTENDEE_NOT]: string[];
-    }
+        [FILTER_KEYS.IS]: string[];
+        [FILTER_KEYS.HAS]: string[];
+        [FILTER_KEYS.REPORT_FIELD]: string;
+    } & Record<ReportFieldTextKey, string> &
+        Record<ReportFieldDateKey, string> &
+        Record<ReportFieldNegatedKey, string>
 >;
 
 export type {SearchAdvancedFiltersForm, SearchAdvancedFiltersKey};

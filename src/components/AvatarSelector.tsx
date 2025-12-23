@@ -5,7 +5,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {CUSTOM_AVATAR_CATALOG} from '@libs/Avatars/CustomAvatarCatalog';
+import {PRESET_AVATAR_CATALOG_ORDERED} from '@libs/Avatars/PresetAvatarCatalog';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import Avatar from './Avatar';
@@ -29,6 +29,8 @@ type AvatarSelectorProps = {
     label?: string;
 };
 
+const SPACER_SIZE = 10;
+
 /**
  * AvatarSelector — renders a grid of selectable avatars.
  */
@@ -39,13 +41,15 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
     const StyleUtils = useStyleUtils();
     const {avatarList} = useLetterAvatars(name, size);
 
+    const iconSize = StyleUtils.getAvatarSize(size);
+
     return (
         <>
             {!!label && avatarList?.length > 0 && (
                 <Text style={StyleUtils.combineStyles([styles.sidebarLinkText, styles.optionAlternateText, styles.textLabelSupporting, styles.pre, styles.ph2])}>{label}</Text>
             )}
             <View style={styles.avatarSelectorListContainer}>
-                {CUSTOM_AVATAR_CATALOG.map(({id, local}) => {
+                {PRESET_AVATAR_CATALOG_ORDERED.map(({id, local}) => {
                     const isSelected = selectedID === id;
 
                     return (
@@ -89,12 +93,19 @@ function AvatarSelector({selectedID, onSelect, label, name, size = CONST.AVATAR_
                         </PressableWithFeedback>
                     );
                 })}
+                {/* We need to add several invisible items at the end of the avatar list to guarantee that the last row avatars are aligned properly */}
+                {[...Array(SPACER_SIZE).keys()].map((i) => (
+                    <View
+                        key={`spacer-${i}`}
+                        style={[styles.avatarSelectorWrapper]}
+                    >
+                        <View style={{width: iconSize, height: iconSize}} />
+                    </View>
+                ))}
             </View>
         </>
     );
 }
-
-AvatarSelector.displayName = 'AvatarSelector';
 
 export type {AvatarSelectorProps};
 export default AvatarSelector;

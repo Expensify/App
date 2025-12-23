@@ -45,7 +45,7 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
         }
         clearUnvalidatedNewContactMethodAction();
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(addSMSDomainIfPhoneNumber(newContactMethod), navigateBackTo, true));
-    }, [navigateBackTo, newContactMethod, pendingContactAction, pendingContactAction?.actionVerified, prevPendingContactAction?.contactMethod]);
+    }, [navigateBackTo, newContactMethod, pendingContactAction?.actionVerified, prevPendingContactAction?.contactMethod]);
 
     return (
         <ValidateCodeActionContent
@@ -60,7 +60,6 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
                     return;
                 }
                 clearContactMethod(newContactMethod);
-                clearUnvalidatedNewContactMethodAction();
             }}
             onClose={() => {
                 if (!pendingContactAction?.contactMethod) {
@@ -73,7 +72,5 @@ function NewContactMethodConfirmMagicCodePage({route}: NewContactMethodConfirmMa
         />
     );
 }
-
-NewContactMethodConfirmMagicCodePage.displayName = 'NewContactMethodConfirmMagicCodePage';
 
 export default NewContactMethodConfirmMagicCodePage;

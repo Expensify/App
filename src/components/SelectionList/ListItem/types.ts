@@ -12,6 +12,7 @@ import type MultiSelectListItem from './MultiSelectListItem';
 import type RadioListItem from './RadioListItem';
 import type SingleSelectListItem from './SingleSelectListItem';
 import type SpendCategorySelectorListItem from './SpendCategorySelectorListItem';
+import type TravelDomainListItem from './TravelDomainListItem';
 
 type ListItem<K extends string | number = string> = {
     /** Text to display */
@@ -232,9 +233,24 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
 
     /** Whether to show the default right hand side checkmark */
     shouldUseDefaultRightHandSideCheckmark?: boolean;
+
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
+
+    /** Whether to disable the hover style of the item */
+    shouldDisableHoverStyle?: boolean;
+
+    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
+    shouldStopMouseLeavePropagation?: boolean;
 };
 
-type ValidListItem = typeof RadioListItem | typeof BaseListItem | typeof MultiSelectListItem | typeof SingleSelectListItem | typeof SpendCategorySelectorListItem;
+type ValidListItem =
+    | typeof RadioListItem
+    | typeof BaseListItem
+    | typeof MultiSelectListItem
+    | typeof SingleSelectListItem
+    | typeof SpendCategorySelectorListItem
+    | typeof TravelDomainListItem;
 
 type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     item: TItem;
@@ -256,6 +272,14 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     shouldUseDefaultRightHandSideCheckmark?: boolean;
     /** Whether to show the right caret icon */
     shouldShowRightCaret?: boolean;
+    /** Whether to highlight the selected item */
+    shouldHighlightSelectedItem?: boolean;
+
+    /** Whether to disable the hover style of the item */
+    shouldDisableHoverStyle?: boolean;
+
+    /** Whether to call stopPropagation on the mouseleave event in BaseListItem */
+    shouldStopMouseLeavePropagation?: boolean;
 };
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
 
@@ -267,6 +291,32 @@ type SpendCategorySelectorListItemProps<TItem extends ListItem> = ListItemProps<
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & ForwardedFSClassProps;
 
+type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
+    /** Whether product training tooltips can be displayed */
+    canShowProductTrainingTooltip?: boolean;
+    index?: number;
+    sectionIndex?: number;
+};
+
+type WorkspaceListItemType = {
+    text: string;
+    policyID?: string;
+    isPolicyAdmin?: boolean;
+    brickRoadIndicator?: BrickRoad;
+} & ListItem;
+
+type TravelDomainListItemProps<TItem extends ListItem> = BaseListItemProps<
+    TItem & {
+        /** Value of the domain */
+        value?: string;
+
+        /** Should display tag 'Recommended' */
+        isRecommended?: boolean;
+    }
+>;
+
+type UserSelectionListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
+
 export type {
     BaseListItemProps,
     ExtendedTargetedEvent,
@@ -277,6 +327,10 @@ export type {
     ValidListItem,
     SingleSelectListItemProps,
     MultiSelectListItemProps,
+    TravelDomainListItemProps,
     SpendCategorySelectorListItemProps,
     UserListItemProps,
+    InviteMemberListItemProps,
+    WorkspaceListItemType,
+    UserSelectionListItemProps,
 };

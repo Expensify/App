@@ -1,7 +1,7 @@
 # `@react-native/virtualized-lists` patches
 
 
-### [@react-native+virtualized-lists+0.79.2+001+osr-improvement.patch](@react-native+virtualized-lists+0.79.2+001+osr-improvement.patch)
+### [@react-native+virtualized-lists+0.81.4+001+osr-improvement.patch](@react-native+virtualized-lists+0.81.4+001+osr-improvement.patch)
 
 - Reason:
   

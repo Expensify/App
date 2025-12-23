@@ -12,7 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDatePassedError, getFieldRequiredErrors} from '@libs/ValidationUtils';
-import {updateDraftCustomStatus} from '@userActions/User';
+import {updateStatusDraftCustomClearAfterDate} from '@userActions/User';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SettingsStatusClearDateForm';
@@ -24,11 +24,11 @@ type DateTime = {
 function SetDatePage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [customStatus, customStatusMetadata] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
-    const customClearAfter = customStatus?.clearAfter ?? '';
+    const [statusDraftCustomClearAfterDate, statusDraftCustomClearAfterDateMetaData] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE, {canBeMissing: true});
+    const customStatusClearAfterDate = statusDraftCustomClearAfterDate ?? '';
 
     const onSubmit = (value: DateTime) => {
-        updateDraftCustomStatus({clearAfter: DateUtils.combineDateAndTime(customClearAfter, value.dateTime)});
+        updateStatusDraftCustomClearAfterDate(DateUtils.combineDateAndTime(customStatusClearAfterDate, value.dateTime));
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
@@ -43,14 +43,14 @@ function SetDatePage() {
         return errors;
     }, []);
 
-    if (isLoadingOnyxValue(customStatusMetadata)) {
+    if (isLoadingOnyxValue(statusDraftCustomClearAfterDateMetaData)) {
         return <FullScreenLoadingIndicator />;
     }
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={SetDatePage.displayName}
+            testID="SetDatePage"
         >
             <HeaderWithBackButton
                 title={translate('statusPage.date')}
@@ -69,7 +69,7 @@ function SetDatePage() {
                     InputComponent={DatePicker}
                     inputID={INPUT_IDS.DATE_TIME}
                     label={translate('statusPage.date')}
-                    defaultValue={DateUtils.extractDate(customClearAfter)}
+                    defaultValue={DateUtils.extractDate(customStatusClearAfterDate)}
                     minDate={new Date()}
                     shouldUseDefaultValue
                     autoFocus
@@ -78,7 +78,5 @@ function SetDatePage() {
         </ScreenWrapper>
     );
 }
-
-SetDatePage.displayName = 'SetDatePage';
 
 export default SetDatePage;

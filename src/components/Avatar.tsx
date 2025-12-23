@@ -5,9 +5,10 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getAvatarLocal} from '@libs/Avatars/PresetAvatarCatalog';
 import {getDefaultWorkspaceAvatar, getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
-import type {AvatarSource} from '@libs/UserUtils';
-import {getAvatar} from '@libs/UserUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {getAvatar, getPresetAvatarNameFromURL} from '@libs/UserAvatarUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
@@ -86,11 +87,17 @@ function Avatar({
     const isWorkspace = type === CONST.ICON_TYPE_WORKSPACE;
     const userAccountID = isWorkspace ? undefined : (avatarID as number);
 
-    const source = isWorkspace ? originalSource : getAvatar(originalSource, userAccountID);
+    const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID});
+    let optimizedSource = source;
+    const maybeDefaultAvatarName = getPresetAvatarNameFromURL(source);
+
+    if (maybeDefaultAvatarName) {
+        optimizedSource = getAvatarLocal(maybeDefaultAvatarName);
+    }
     const useFallBackAvatar = imageError || !source || source === Expensicons.FallbackAvatar;
     const fallbackAvatar = isWorkspace ? getDefaultWorkspaceAvatar(name) : fallbackIcon || Expensicons.FallbackAvatar;
     const fallbackAvatarTestID = isWorkspace ? getDefaultWorkspaceAvatarTestID(name) : fallbackIconTestID || 'SvgFallbackAvatar Icon';
-    const avatarSource = useFallBackAvatar ? fallbackAvatar : source;
+    const avatarSource = useFallBackAvatar ? fallbackAvatar : optimizedSource;
 
     // We pass the color styles down to the SVG for the workspace and fallback avatar.
     const iconSize = StyleUtils.getAvatarSize(size);
@@ -106,7 +113,6 @@ function Avatar({
     } else {
         iconColors = null;
     }
-
     return (
         <View
             style={[containerStyles, styles.pointerEventsNone]}
@@ -136,8 +142,6 @@ function Avatar({
         </View>
     );
 }
-
-Avatar.displayName = 'Avatar';
 
 export type {AvatarProps};
 export default Avatar;

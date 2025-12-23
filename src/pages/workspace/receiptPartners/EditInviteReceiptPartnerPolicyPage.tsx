@@ -3,15 +3,16 @@ import type {TupleToUnion, ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem} from '@components/SelectionListWithSections/types';
-import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import SelectionList from '@components/SelectionList';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -44,9 +45,10 @@ type UberEmployeeStatus = ValueOf<typeof CONST.POLICY.RECEIPT_PARTNERS.UBER_EMPL
 function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPolicyPageProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['SewerDino']);
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
 
@@ -130,10 +132,10 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         ];
         const buttonTextStyles = [styles.buttonText, styles.buttonSmallText];
 
-        Object.entries(employees).forEach(([email, policyEmployee]) => {
+        for (const [email, policyEmployee] of Object.entries(employees)) {
             // Skip deleted policy employees
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
-                return;
+                continue;
             }
             const personalDetail = getPersonalDetailByEmail(email);
             const status = deriveStatus(email);
@@ -196,7 +198,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             };
 
             list.push(optionWithErrorsAndRightElement as MemberForList & ListItem);
-        });
+        }
         return sortAlphabetically(list, 'text', localeCompare);
     }, [policy?.employeeList, styles, StyleUtils, localeCompare, isOffline, deriveStatus, uberEmployeesByEmail, translate, inviteOrResend]);
 
@@ -245,21 +247,10 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         [applyTabStatusFilter, getSearchStateForTab, members],
     );
 
-    const buildSections = useCallback(
-        (data: MemberForList[]) => [
-            {
-                title: undefined,
-                data,
-                shouldShow: true,
-            },
-        ],
-        [],
-    );
-
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.SewerDino}
+                icon={illustrations.SewerDino}
                 iconWidth={variables.uberEmptyListIconWidth}
                 iconHeight={variables.uberEmptyListIconHeight}
                 title={translate('workspace.receiptPartners.uber.emptyContent.title')}
@@ -270,7 +261,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                 contentFitImage="contain"
             />
         ),
-        [translate, styles.textSupporting, styles.mb2, styles.pb5, styles.ph5],
+        [translate, styles.textSupporting, styles.mb2, styles.pb5, styles.ph5, illustrations.SewerDino],
     );
 
     return (
@@ -279,7 +270,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED}
         >
-            <ScreenWrapper testID={EditInviteReceiptPartnerPolicyPage.displayName}>
+            <ScreenWrapper testID="EditInviteReceiptPartnerPolicyPage">
                 <HeaderWithBackButton
                     title={translate('workspace.receiptPartners.uber.manageInvites')}
                     onBackButtonPress={() => {
@@ -306,7 +297,7 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
 
                                 // Determine header message for search results
                                 const searchValue = debouncedSearchTerm.trim().toLowerCase();
-                                let currentHeaderMessage = getHeaderMessage(members.length !== 0, false, searchValue, false, countryCode);
+                                let currentHeaderMessage = getHeaderMessage(members.length !== 0, false, searchValue, countryCode, false);
 
                                 if (filteredMembers.length === 0 && searchValue) {
                                     currentHeaderMessage = translate('common.noResultsFound');
@@ -315,20 +306,21 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
                                 return (
                                     <TabScreenWithFocusTrapWrapper>
                                         <SelectionList
+                                            data={filteredMembers}
                                             ListItem={UserListItem}
                                             onSelectRow={() => {}}
                                             onDismissError={dismissError}
-                                            listItemWrapperStyle={styles.cursorDefault}
+                                            style={{listItemWrapperStyle: styles.cursorDefault, listStyle: styles.mt3}}
                                             addBottomSafeAreaPadding
                                             shouldShowTextInput={shouldShowTextInput}
-                                            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
-                                            textInputValue={searchTerm}
-                                            onChangeText={setSearchTerm}
-                                            headerMessage={currentHeaderMessage}
-                                            sections={buildSections(filteredMembers)}
+                                            textInputOptions={{
+                                                label: shouldShowTextInput ? translate('common.search') : undefined,
+                                                value: searchTerm,
+                                                onChangeText: setSearchTerm,
+                                                headerMessage: currentHeaderMessage,
+                                            }}
                                             listEmptyContent={listEmptyContent}
-                                            shouldShowListEmptyContent={shouldShowListEmptyContent}
-                                            sectionListStyle={styles.pt3}
+                                            showListEmptyContent={shouldShowListEmptyContent}
                                         />
                                     </TabScreenWithFocusTrapWrapper>
                                 );
@@ -340,7 +332,5 @@ function EditInviteReceiptPartnerPolicyPage({route}: EditInviteReceiptPartnerPol
         </AccessOrNotFoundWrapper>
     );
 }
-
-EditInviteReceiptPartnerPolicyPage.displayName = 'EditInviteReceiptPartnerPolicyPage';
 
 export default EditInviteReceiptPartnerPolicyPage;

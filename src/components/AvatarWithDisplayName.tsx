@@ -1,7 +1,7 @@
 import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import type {ColorValue, TextStyle} from 'react-native';
+import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
@@ -72,6 +72,15 @@ type AvatarWithDisplayNameProps = {
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
+
+    /** The style of the custom display name text */
+    customDisplayNameStyle?: TextStyle;
+
+    /** The style of the parent navigation subtitle text */
+    parentNavigationSubtitleTextStyles?: StyleProp<TextStyle>;
+
+    /** The style of the parent navigation status container */
+    parentNavigationStatusContainerStyles?: StyleProp<ViewStyle>;
 };
 
 function getCustomDisplayName(
@@ -161,6 +170,9 @@ function AvatarWithDisplayName({
     openParentReportInCurrentTab = false,
     avatarBorderColor: avatarBorderColorProp,
     shouldDisplayStatus = false,
+    customDisplayNameStyle = {},
+    parentNavigationSubtitleTextStyles,
+    parentNavigationStatusContainerStyles = {},
 }: AvatarWithDisplayNameProps) {
     const {localeCompare} = useLocalize();
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false, canBeMissing: !report?.parentReportID});
@@ -168,6 +180,7 @@ function AvatarWithDisplayName({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${parentReport?.invoiceReceiver && 'policyID' in parentReport.invoiceReceiver ? parentReport.invoiceReceiver.policyID : undefined}`,
@@ -184,7 +197,7 @@ function AvatarWithDisplayName({
     const ownerPersonalDetails = getPersonalDetailsForAccountIDs(report?.ownerAccountID ? [report.ownerAccountID] : [], personalDetails);
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(Object.values(ownerPersonalDetails), false, localeCompare);
     const avatarBorderColor = avatarBorderColorProp ?? (isAnonymous ? theme.highlightBG : theme.componentBG);
-    const statusText = shouldDisplayStatus ? getReportStatusTranslation(report?.stateNum, report?.statusNum) : undefined;
+    const statusText = shouldDisplayStatus ? getReportStatusTranslation({stateNum: report?.stateNum, statusNum: report?.statusNum, translate}) : undefined;
     const reportStatusColorStyle = shouldDisplayStatus ? getReportStatusColorStyle(theme, report?.stateNum, report?.statusNum) : {};
 
     const actorAccountID = useRef<number | null>(null);
@@ -194,7 +207,7 @@ function AvatarWithDisplayName({
         }
         const parentReportAction = parentReportActions?.[report?.parentReportActionID];
         actorAccountID.current = parentReportAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    }, [parentReportActions, report]);
+    }, [parentReportActions, report?.parentReportActionID]);
 
     const goToDetailsPage = useCallback(() => {
         navigateToDetailsPage(report, Navigation.getActiveRoute());
@@ -269,7 +282,7 @@ function AvatarWithDisplayName({
                             displayNamesWithTooltips,
                             transactions,
                             shouldUseFullTitle,
-                            [styles.headerText, styles.pre],
+                            [styles.headerText, styles.pre, customDisplayNameStyle],
                             [isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre],
                             isAnonymous,
                             isMoneyRequestOrReport,
@@ -277,11 +290,14 @@ function AvatarWithDisplayName({
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                reportID={report?.reportID}
                                 parentReportID={report?.parentReportID}
                                 parentReportActionID={report?.parentReportActionID}
                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                 openParentReportInCurrentTab={openParentReportInCurrentTab}
                                 statusText={statusText}
+                                textStyles={parentNavigationSubtitleTextStyles}
+                                statusTextContainerStyles={parentNavigationStatusContainerStyles}
                                 statusTextColor={reportStatusColorStyle?.textColor}
                                 statusTextBackgroundColor={reportStatusColorStyle?.backgroundColor}
                             />
@@ -315,7 +331,5 @@ function AvatarWithDisplayName({
         </PressableWithoutFeedback>
     );
 }
-
-AvatarWithDisplayName.displayName = 'AvatarWithDisplayName';
 
 export default AvatarWithDisplayName;

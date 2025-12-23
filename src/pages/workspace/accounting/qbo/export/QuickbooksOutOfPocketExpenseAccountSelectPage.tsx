@@ -34,7 +34,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT>>();
     const backTo = route.params?.backTo;
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const [title, description] = useMemo(() => {
         let titleText: TranslationPaths | undefined;
@@ -53,6 +53,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
                 descriptionText = translate('workspace.qbo.accountsPayableDescription');
                 break;
             default:
+                titleText = 'workspace.qbo.account';
                 break;
         }
 
@@ -118,7 +119,7 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksOutOfPocketExpenseAccountSelectPage.displayName}
+            displayName="QuickbooksOutOfPocketExpenseAccountSelectPage"
             sections={data.length ? [{data}] : []}
             listItem={RadioListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{description}</Text>}
@@ -136,7 +137,5 @@ function QuickbooksOutOfPocketExpenseAccountSelectPage({policy}: WithPolicyConne
         />
     );
 }
-
-QuickbooksOutOfPocketExpenseAccountSelectPage.displayName = 'QuickbooksOutOfPocketExpenseAccountSelectPage';
 
 export default withPolicyConnections(QuickbooksOutOfPocketExpenseAccountSelectPage);

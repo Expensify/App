@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
-import type {NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextStyle, ViewStyle} from 'react-native';
+import type {BlurEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
@@ -116,6 +116,9 @@ type MoneyRequestAmountInputProps = {
      */
     shouldWrapInputInContainer?: boolean;
 
+    /** Whether the input is disabled or not */
+    disabled?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
@@ -160,6 +163,7 @@ function MoneyRequestAmountInput({
     toggleNegative,
     clearNegative,
     ref,
+    disabled,
     ...props
 }: MoneyRequestAmountInputProps) {
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -192,7 +196,7 @@ function MoneyRequestAmountInput({
         numberFormRef.current?.updateNumber(formattedAmount);
     }, [amount, currency, onFormatAmount, formatAmountOnBlur, maxLength]);
 
-    const inputOnBlur = (e: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const inputOnBlur = (e: BlurEvent) => {
         props.onBlur?.(e);
         formatAmount();
     };
@@ -214,6 +218,7 @@ function MoneyRequestAmountInput({
                 // eslint-disable-next-line react-compiler/react-compiler
                 textInput.current = newRef;
             }}
+            disabled={disabled}
             numberFormRef={(newRef) => {
                 if (typeof moneyRequestAmountInputRef === 'function') {
                     moneyRequestAmountInputRef(newRef);
@@ -255,8 +260,6 @@ function MoneyRequestAmountInput({
         />
     );
 }
-
-MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
 
 export default MoneyRequestAmountInput;
 export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};

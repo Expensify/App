@@ -20,6 +20,7 @@ import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.unmock('react-native-reanimated');
+jest.unmock('react-native-worklets');
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
@@ -52,6 +53,7 @@ describe('WorkspaceCategories', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
         });
     });
 
@@ -114,7 +116,7 @@ describe('WorkspaceCategories', () => {
         fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
         fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
 
-        const dropdownMenuButtonTestID = `${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`;
+        const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
 
         // Wait for selection mode to be active and click the dropdown menu button
         await waitFor(() => {
@@ -220,7 +222,7 @@ describe('WorkspaceCategories', () => {
         fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_CATEGORY}`));
         fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_CATEGORY}`));
 
-        const dropdownMenuButtonTestID = `${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`;
+        const dropdownMenuButtonTestID = 'WorkspaceCategoriesPage-header-dropdown-menu-button';
 
         // Wait for selection mode to be active and click the dropdown menu button
         await waitFor(() => {

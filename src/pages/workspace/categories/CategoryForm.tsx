@@ -8,6 +8,7 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -33,6 +34,8 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
+
+    const decodedCategoryName = getDecodedCategoryName(categoryName ?? '');
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
@@ -82,7 +85,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
             <InputWrapper
                 ref={inputCallbackRef}
                 InputComponent={TextInput}
-                defaultValue={categoryName}
+                defaultValue={decodedCategoryName}
                 label={translate('common.name')}
                 accessibilityLabel={translate('common.name')}
                 inputID={INPUT_IDS.CATEGORY_NAME}
@@ -91,7 +94,5 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
         </FormProvider>
     );
 }
-
-CategoryForm.displayName = 'CategoryForm';
 
 export default CategoryForm;

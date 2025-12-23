@@ -9,6 +9,7 @@ import type {Destination} from '@libs/PerDiemRequestUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
 import RadioListItem from './SelectionListWithSections/RadioListItem';
 import type {ListItem} from './SelectionListWithSections/types';
@@ -54,6 +55,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             selectedOptions,
             destinations: Object.values(customUnit?.rates ?? {}),
             recentlyUsedDestinations: policyRecentlyUsedDestinations,
+            translate,
         });
 
         const destinationData = destinationOptions?.at(0)?.data ?? [];
@@ -63,12 +65,9 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
         const showInput = !isDestinationsCountBelowThreshold;
 
         return [destinationOptions, header, showInput];
-    }, [debouncedSearchValue, selectedOptions, customUnit?.rates, policyRecentlyUsedDestinations]);
+    }, [debouncedSearchValue, selectedOptions, customUnit?.rates, policyRecentlyUsedDestinations, translate]);
 
-    const selectedOptionKey = useMemo(
-        () => (sections?.at(0)?.data ?? []).filter((destination) => destination.keyForList === selectedDestination).at(0)?.keyForList,
-        [sections, selectedDestination],
-    );
+    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).find((destination) => destination.keyForList === selectedDestination)?.keyForList, [sections, selectedDestination]);
 
     return (
         <SelectionList
@@ -80,12 +79,9 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            isRowMultilineSupported
             shouldHideKeyboardOnScroll={false}
         />
     );
 }
-
-DestinationPicker.displayName = 'DestinationPicker';
 
 export default DestinationPicker;

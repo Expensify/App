@@ -3,9 +3,9 @@ import Button from '@components/Button';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -88,22 +88,19 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 {translate('onboarding.employees.title')}
             </Text>
             <SelectionList
-                sections={[{data: companySizeOptions}]}
+                data={companySizeOptions}
                 onSelectRow={(item) => {
                     setSelectedCompanySize(item.keyForList);
                     setError('');
                 }}
-                initiallyFocusedOptionKey={companySizeOptions.find((item) => item.keyForList === selectedCompanySize)?.keyForList}
+                initiallyFocusedItemKey={companySizeOptions.find((item) => item.keyForList === selectedCompanySize)?.keyForList}
                 shouldUpdateFocusedIndex
                 ListItem={RadioListItem}
                 footerContent={footerContent}
-                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
-                includeSafeAreaPaddingBottom={false}
+                style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}}
             />
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingEmployees.displayName = 'BaseOnboardingEmployees';
 
 export default BaseOnboardingEmployees;

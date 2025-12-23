@@ -1,5 +1,5 @@
 import Onyx from 'react-native-onyx';
-import {appendCountryCodeWithCountryCode, getPhoneLogin, getPhoneNumberWithoutSpecialChars, isEmailPublicDomain, validateNumber} from '@libs/LoginUtils';
+import {appendCountryCode, getEmailDomain, getPhoneLogin, getPhoneNumberWithoutSpecialChars, isDomainPublic, isEmailPublicDomain, validateNumber} from '@libs/LoginUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -35,13 +35,13 @@ describe('LoginUtils', () => {
         it('Should return valid phone number with country code when received a phone with country code', () => {
             const givenPhone = '+12345678901';
             const countryCode = CONST.DEFAULT_COUNTRY_CODE;
-            const parsedPhone = appendCountryCodeWithCountryCode(givenPhone, countryCode);
+            const parsedPhone = appendCountryCode(givenPhone, countryCode);
             expect(parsedPhone).toBe('+12345678901');
         });
         it('Should return valid phone number with country code when received a phone without country code', () => {
             const givenPhone = '2345678901';
             const countryCode = CONST.DEFAULT_COUNTRY_CODE;
-            const parsedPhone = appendCountryCodeWithCountryCode(givenPhone, countryCode);
+            const parsedPhone = appendCountryCode(givenPhone, countryCode);
             expect(parsedPhone).toBe('+12345678901');
         });
     });
@@ -82,18 +82,76 @@ describe('LoginUtils', () => {
     describe('getPhoneLogin', () => {
         it('Should return valid phone number with country code if provided phone number is valid and with country code', () => {
             const givenPhone = '+12345678901';
-            const parsedPhone = getPhoneLogin(givenPhone);
+            const countryCode = CONST.DEFAULT_COUNTRY_CODE;
+            const parsedPhone = getPhoneLogin(givenPhone, countryCode);
             expect(parsedPhone).toBe('+12345678901');
         });
         it('Should return valid phone number with country code if provided phone number is valid and without country code', () => {
             const givenPhone = '2345678901';
-            const parsedPhone = getPhoneLogin(givenPhone);
+            const countryCode = CONST.DEFAULT_COUNTRY_CODE;
+            const parsedPhone = getPhoneLogin(givenPhone, countryCode);
             expect(parsedPhone).toBe('+12345678901');
         });
         it('Should return empty string if provided phone number is empty', () => {
             const givenPhone = '';
-            const parsedPhone = getPhoneLogin(givenPhone);
+            const countryCode = CONST.DEFAULT_COUNTRY_CODE;
+            const parsedPhone = getPhoneLogin(givenPhone, countryCode);
             expect(parsedPhone).toBe('');
+        });
+    });
+    describe('isDomainPublic', () => {
+        it('Should return true for public domains', () => {
+            expect(isDomainPublic('gmail.com')).toBe(true);
+            expect(isDomainPublic('yahoo.com')).toBe(true);
+            expect(isDomainPublic('hotmail.com')).toBe(true);
+        });
+
+        it('Should return false for private/custom domains', () => {
+            expect(isDomainPublic('expensify.com')).toBe(false);
+            expect(isDomainPublic('customdomain.com')).toBe(false);
+            expect(isDomainPublic('test.org')).toBe(false);
+        });
+
+        it('Should return false for empty string', () => {
+            expect(isDomainPublic('')).toBe(false);
+        });
+
+        it('Should handle case sensitivity correctly', () => {
+            expect(isDomainPublic('GMAIL.COM')).toBe(false);
+            expect(isDomainPublic('Gmail.Com')).toBe(false);
+        });
+    });
+
+    describe('getEmailDomain', () => {
+        it('Should extract domain from valid email addresses', () => {
+            expect(getEmailDomain('user@gmail.com')).toBe('gmail.com');
+            expect(getEmailDomain('test@example.org')).toBe('example.org');
+            expect(getEmailDomain('admin@company.co.uk')).toBe('company.co.uk');
+        });
+
+        it('Should handle emails with multiple dots in domain', () => {
+            expect(getEmailDomain('user@sub.domain.com')).toBe('sub.domain.com');
+        });
+
+        it('Should return lowercase domain', () => {
+            expect(getEmailDomain('user@GMAIL.COM')).toBe('gmail.com');
+            expect(getEmailDomain('test@Example.ORG')).toBe('example.org');
+        });
+
+        it('Should handle emails with uppercase local part', () => {
+            expect(getEmailDomain('USER@gmail.com')).toBe('gmail.com');
+        });
+
+        it('Should handle invalid email formats gracefully', () => {
+            expect(getEmailDomain('email')).toBe('email');
+            expect(getEmailDomain('')).toBe('');
+            expect(getEmailDomain('@gmail.com')).toBe('gmail.com');
+            expect(getEmailDomain('user@')).toBe('');
+        });
+
+        it('Should handle emails with special characters', () => {
+            expect(getEmailDomain('user+tag@gmail.com')).toBe('gmail.com');
+            expect(getEmailDomain('user.name@example.com')).toBe('example.com');
         });
     });
 });

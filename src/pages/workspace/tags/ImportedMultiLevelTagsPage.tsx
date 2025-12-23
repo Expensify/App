@@ -1,7 +1,7 @@
 import React, {useCallback, useState} from 'react';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
@@ -50,7 +50,7 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedMultiLevelTagsPage.displayName}
+            testID="ImportedMultiLevelTagsPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -69,20 +69,12 @@ function ImportedMultiLevelTagsPage({route}: ImportedMultiLevelTagsPageProps) {
                 customHeaderText={translate('workspace.tags.importMultiLevelTagsSupportingText')}
             />
 
-            <ConfirmModal
+            <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
-                title={spreadsheet?.importFinalModal?.title ?? ''}
-                prompt={spreadsheet?.importFinalModal?.prompt ?? ''}
-                onConfirm={closeImportPageAndModal}
-                onCancel={closeImportPageAndModal}
-                confirmText={translate('common.buttonConfirm')}
-                shouldShowCancelButton={false}
-                shouldHandleNavigationBack
+                closeImportPageAndModal={closeImportPageAndModal}
             />
         </ScreenWrapper>
     );
 }
-
-ImportedMultiLevelTagsPage.displayName = 'ImportedMultiLevelTagsPage';
 
 export default ImportedMultiLevelTagsPage;

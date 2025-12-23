@@ -41,13 +41,13 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
             const addressRequiredFields = [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.CITY, INPUT_IDS.COUNTRY, INPUT_IDS.STATE] as const;
-            addressRequiredFields.forEach((fieldKey) => {
+            for (const fieldKey of addressRequiredFields) {
                 const fieldValue = values[fieldKey] ?? '';
                 if (isRequiredFulfilled(fieldValue)) {
-                    return;
+                    continue;
                 }
                 errors[fieldKey] = translate('common.error.fieldRequired');
-            });
+            }
 
             if (values.addressLine2.length > CONST.FORM_CHARACTER_LIMIT) {
                 errors.addressLine2 = translate('common.error.characterLimitExceedCounter', {
@@ -142,7 +142,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                     <InputWrapper
                         InputComponent={AddressSearch}
                         inputID={INPUT_IDS.ADDRESS_LINE_1}
-                        label={translate('common.addressLine', {lineNumber: 1})}
+                        label={translate('common.addressLine', 1)}
                         onValueChange={(data: unknown, key: unknown) => {
                             handleAddressChange(data, key);
                         }}
@@ -161,8 +161,8 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.ADDRESS_LINE_2}
-                    label={translate('common.addressLine', {lineNumber: 2})}
-                    aria-label={translate('common.addressLine', {lineNumber: 2})}
+                    label={translate('common.addressLine', 2)}
+                    aria-label={translate('common.addressLine', 2)}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={personalDetailsValues[INPUT_IDS.ADDRESS_LINE_2]}
                     spellCheck={false}
@@ -225,7 +225,5 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
         </FormProvider>
     );
 }
-
-AddressStep.displayName = 'AddressStep';
 
 export default AddressStep;

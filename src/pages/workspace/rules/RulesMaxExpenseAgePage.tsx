@@ -39,7 +39,7 @@ function RulesMaxExpenseAgePage({
 
     const onChangeMaxExpenseAge = useCallback((newValue: string) => {
         // replace all characters that are not spaces or digits
-        let validMaxExpenseAge = newValue.replace(/[^0-9]/g, '');
+        let validMaxExpenseAge = newValue.replaceAll(/[^0-9]/g, '');
         validMaxExpenseAge = validMaxExpenseAge.match(/(?:\d *){1,5}/)?.[0] ?? '';
         setMaxExpenseAgeValue(validMaxExpenseAge);
     }, []);
@@ -53,7 +53,7 @@ function RulesMaxExpenseAgePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesMaxExpenseAgePage.displayName}
+                testID="RulesMaxExpenseAgePage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.individualExpenseRules.maxExpenseAge')}
@@ -91,7 +91,5 @@ function RulesMaxExpenseAgePage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesMaxExpenseAgePage.displayName = 'RulesMaxExpenseAgePage';
 
 export default RulesMaxExpenseAgePage;

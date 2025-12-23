@@ -21,8 +21,11 @@ When an expense is submitted on a workspace with an approval workflow configured
 **For each expense report, you can:**
 
 - **Approve**: Confirm the expense is valid and ready to pay.
-- **Hold**: Temporarily delay approval if more information is needed.
-- **Unapprove**: Send the expense back to the submitter for changes.
+- **Unapprove**: Return the report to its previous state for additional edits.
+
+**For each expense on a report, you can:**
+- **Hold**: Temporarily delay approval of the individual expense if more information is needed.
+- **Reject**: Remove the expense from the report and send back to the submitter with a reason. The rejected expense can be marked as resolved and resubmitted by the submitter. 
 
 **To set up an approval workflow:**
 
@@ -84,19 +87,32 @@ When an expense is submitted on a workspace with an approval workflow configured
 
 ---
 
-# Unapprove an Expense
+# Unapprove a report
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Reports**.
+2. Locate the report using the search bar or filters.
+3. Click **View**.
+4. Open the **More** dropdown at the top of the report.
+5. Select **Unapprove**.
+
+Unapproving a report returns it to the Processing state. The last approver will be notified and can then revise or reject expenses on the report.
+
+**Note:** Paid reports cannot be unapproved. If the expense was already exported to accounting software, unapproving it may cause reconciliation issues. Be sure to remove the exported data before approving the expense again.
+
+---
+
+# Reject an expense
 
 1. In the navigation tabs (on the left on web, and at the bottom on mobile), head to **Reports > Expenses**.
 2. Locate the expense using the search bar or filters.
 3. Click **View**.
 4. Open the **More** dropdown at the top of the expense.
-5. Select **Unapprove**.
+5. Select **Reject** and enter a reason (this will be added to the report).
 
-The submitter will be notified so they can revise or delete the expense.
-
-**Note:** Paid reports cannot be unapproved. If the expense was already exported to accounting software, unapproving it may cause reconciliation issues. Be sure to remove the exported data before approving the expense again.
+The rejected expense will be removed from the report, and the submitter will be notified. The rejection reason will be added to the expense. The expense can later be marked as resolved and resubmitted for approval.
 
 ---
+
 
 # FAQ
 

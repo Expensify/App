@@ -72,9 +72,9 @@ function getAttributes<T extends keyof PerfAttributes>(attributes?: T[]): Pick<P
 
     if (attributes && attributes.length > 0) {
         const selectedAttributes = {} as Pick<PerfAttributes, T>;
-        attributes.forEach((attribute) => {
+        for (const attribute of attributes) {
             selectedAttributes[attribute] = allAttributes[attribute];
-        });
+        }
         return selectedAttributes;
     }
 

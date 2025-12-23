@@ -64,7 +64,7 @@ function ReportFieldsSettingsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={ReportFieldsSettingsPage.displayName}
+                testID="ReportFieldsSettingsPage"
             >
                 <HeaderWithBackButton
                     title={reportField.name}
@@ -113,8 +113,8 @@ function ReportFieldsSettingsPage({
                             titleStyle={styles.flex1}
                             title={getReportFieldInitialValue(reportField)}
                             description={translate('common.initialValue')}
-                            shouldShowRightIcon={!isDateFieldType && !hasAccountingConnections}
-                            interactive={!isDateFieldType && !hasAccountingConnections}
+                            shouldShowRightIcon={!isDateFieldType}
+                            interactive={!isDateFieldType}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.getRoute(policyID, reportFieldID))}
                         />
                     )}
@@ -132,7 +132,5 @@ function ReportFieldsSettingsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportFieldsSettingsPage.displayName = 'ReportFieldsSettingsPage';
 
 export default withPolicyAndFullscreenLoading(ReportFieldsSettingsPage);

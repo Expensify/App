@@ -1,4 +1,5 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
+import * as Sentry from '@sentry/react-native';
 import {Audio} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
@@ -10,6 +11,7 @@ import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
 import {InitialURLContext} from './components/InitialURLContextProvider';
+import ProactiveAppReviewModalManager from './components/ProactiveAppReviewModalManager';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
@@ -23,6 +25,7 @@ import usePriorityMode from './hooks/usePriorityChange';
 import {updateLastRoute} from './libs/actions/App';
 import {disconnect} from './libs/actions/Delegate';
 import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
+import {openReportFromDeepLink} from './libs/actions/Link';
 import * as Report from './libs/actions/Report';
 import {hasAuthToken} from './libs/actions/Session';
 import * as User from './libs/actions/User';
@@ -30,6 +33,7 @@ import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
+import getPlatform from './libs/getPlatform';
 import Growl, {growlRef} from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
@@ -42,6 +46,9 @@ import './libs/Notification/PushNotification/subscribeToPushNotifications';
 import './libs/registerPaginationConfig';
 import setCrashlyticsUserId from './libs/setCrashlyticsUserId';
 import StartupTimer from './libs/StartupTimer';
+import {endSpan, startSpan} from './libs/telemetry/activeSpans';
+// This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
+import './libs/telemetry/TelemetrySynchronizer';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import './libs/UnreadIndicatorUpdater';
 import Visibility from './libs/Visibility';
@@ -114,9 +121,12 @@ function Expensify() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
+    const isDesktop = getPlatform() === CONST.PLATFORM.DESKTOP;
 
     useDebugShortcut();
     usePriorityMode();
+
+    const bootsplashSpan = useRef<Sentry.Span>(null);
 
     const [initialUrl, setInitialUrl] = useState<Route | null>(null);
     const {setIsAuthenticatedAtStartup} = useContext(InitialURLContext);
@@ -124,17 +134,55 @@ function Expensify() {
         if (isCheckingPublicRoom) {
             return;
         }
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX);
         setAttemptedToOpenPublicRoom(true);
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION,
+            parentSpan: bootsplashSpan.current,
+        });
     }, [isCheckingPublicRoom]);
 
+    useEffect(() => {
+        bootsplashSpan.current = startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT,
+        });
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.ONYX,
+            parentSpan: bootsplashSpan.current,
+        });
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE,
+            parentSpan: bootsplashSpan.current,
+        });
+    }, []);
+
     const isAuthenticated = useIsAuthenticated();
-    const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session]);
+    const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session?.autoAuthState]);
 
     const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
 
     const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && !!preferredLocale;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
+
+    useEffect(() => {
+        if (!shouldHideSplash) {
+            return;
+        }
+
+        startSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER, {
+            name: CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER,
+            op: CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER,
+            parentSpan: bootsplashSpan.current,
+        });
+    }, [shouldHideSplash]);
 
     useEffect(() => {
         if (!shouldInit || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
@@ -163,12 +211,17 @@ function Expensify() {
     const setNavigationReady = useCallback(() => {
         setIsNavigationReady(true);
 
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
+
         // Navigate to any pending routes now that the NavigationContainer is ready
         Navigation.setIsNavigationReady();
     }, []);
 
     const onSplashHide = useCallback(() => {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
+        endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER);
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {
@@ -184,6 +237,12 @@ function Expensify() {
     useEffect(() => {
         // Initialize Fullstory lib
         FS.init(userMetadata);
+        FS.getSessionId().then((sessionId) => {
+            if (!sessionId) {
+                return;
+            }
+            Sentry.setContext(CONST.TELEMETRY.CONTEXT_FULLSTORY, {sessionId});
+        });
     }, [userMetadata]);
 
     // Log the platform and config to debug .env issues
@@ -233,13 +292,17 @@ function Expensify() {
         // If the app is opened from a deep link, get the reportID (if exists) from the deep link and navigate to the chat report
         Linking.getInitialURL().then((url) => {
             setInitialUrl(url as Route);
-            Report.openReportFromDeepLink(url ?? '', currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
+            if (url) {
+                openReportFromDeepLink(url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isAuthenticated);
+            } else {
+                Report.doneCheckingPublicRoom();
+            }
         });
 
         // Open chat report from a deep link (only mobile native)
         linkingChangeListener.current = Linking.addEventListener('url', (state) => {
             const isCurrentlyAuthenticated = hasAuthToken();
-            Report.openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated);
+            openReportFromDeepLink(state.url, currentOnboardingPurposeSelected, currentOnboardingCompanySize, onboardingInitialPath, allReports, isCurrentlyAuthenticated);
         });
         if (CONFIG.IS_HYBRID_APP) {
             HybridAppModule.onURLListenerAdded();
@@ -294,6 +357,10 @@ function Expensify() {
         return null;
     }
 
+    if (isDesktop) {
+        throw new Error(CONST.ERROR.DESKTOP_APP_RETIRED);
+    }
+
     if (updateRequired) {
         throw new Error(CONST.ERROR.UPDATE_REQUIRED);
     }
@@ -311,6 +378,8 @@ function Expensify() {
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
                     {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
+                    {/* Proactive app review modal shown when user has completed a trigger action */}
+                    <ProactiveAppReviewModalManager />
                     {screenShareRequest ? (
                         <ConfirmModal
                             title={translate('guides.screenShare')}
@@ -338,7 +407,5 @@ function Expensify() {
         </DeeplinkWrapper>
     );
 }
-
-Expensify.displayName = 'Expensify';
 
 export default Expensify;

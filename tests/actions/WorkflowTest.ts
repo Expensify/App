@@ -5,7 +5,7 @@ import {generatePolicyID} from '@src/libs/actions/Policy/Policy';
 import {clearApprovalWorkflowApprover, createApprovalWorkflow, setApprovalWorkflowApprover} from '@src/libs/actions/Workflow';
 import {calculateApprovers} from '@src/libs/WorkflowUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ApprovalWorkflowOnyx, Policy, Policy as PolicyType} from '@src/types/onyx';
+import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Policy as PolicyType} from '@src/types/onyx';
 import type {Approver} from '@src/types/onyx/ApprovalWorkflow';
 import createRandomPolicy from '../utils/collections/policies';
 import {getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
@@ -110,6 +110,15 @@ describe('actions/Workflow', () => {
             };
             Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, currentApprovalWorkflow);
 
+            const personalDetailsByEmail: PersonalDetailsList = {
+                [newApprover.email]: {
+                    login: newApprover.email,
+                    displayName: newApprover.displayName,
+                    avatar: newApprover.avatar,
+                    accountID: 1,
+                },
+            };
+
             const fakePolicy: PolicyType = {
                 ...createRandomPolicy(1),
                 id: policyID,
@@ -118,7 +127,7 @@ describe('actions/Workflow', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
-            setApprovalWorkflowApprover({approver: newApprover, approverIndex, policy: fakePolicy, currentApprovalWorkflow});
+            setApprovalWorkflowApprover({approver: newApprover, approverIndex, policy: fakePolicy, currentApprovalWorkflow, personalDetailsByEmail});
             await waitForBatchedUpdates();
 
             const approvalWorkflow = await getApprovalWorkflowState();

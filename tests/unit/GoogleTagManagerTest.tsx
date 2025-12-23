@@ -7,6 +7,7 @@ import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentM
 import {createWorkspace} from '@libs/actions/Policy/Policy';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import OnboardingModalNavigator from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigator';
+import navigationRef from '@libs/Navigation/navigationRef';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -131,17 +132,17 @@ describe('GoogleTagManagerTest', () => {
     test('sign_up', async () => {
         // When we render the OnboardingModal a few times
         const {rerender} = render(
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
                 <OnboardingModalNavigator />
             </NavigationContainer>,
         );
         rerender(
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
                 <OnboardingModalNavigator />
             </NavigationContainer>,
         );
         rerender(
-            <NavigationContainer>
+            <NavigationContainer ref={navigationRef}>
                 <OnboardingModalNavigator />
             </NavigationContainer>,
         );
@@ -155,16 +156,16 @@ describe('GoogleTagManagerTest', () => {
 
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
-        createWorkspace({});
+        createWorkspace({currentUserAccountIDParam: 123456, activePolicyIDParam: undefined, currentUserEmailParam: 'test@test.com'});
         await waitForBatchedUpdatesWithAct();
-        createWorkspace({});
+        createWorkspace({currentUserAccountIDParam: 123456, activePolicyIDParam: undefined, currentUserEmailParam: 'test@test.com'});
         await waitForBatchedUpdatesWithAct();
-        createWorkspace({});
+        createWorkspace({currentUserAccountIDParam: 123456, activePolicyIDParam: undefined, currentUserEmailParam: 'test@test.com'});
         await waitForBatchedUpdatesWithAct();
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, 123456);
     });
 
     test('workspace_created - categorizeTrackedExpense', async () => {
@@ -190,6 +191,8 @@ describe('GoogleTagManagerTest', () => {
                 linkedTrackedExpenseReportAction: {actionName: 'IOU', reportActionID: 'linkedTrackedExpenseReportAction', created: '2024-10-30'},
                 linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
             },
+            isASAPSubmitBetaEnabled: false,
+            quickAction: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();
@@ -217,16 +220,20 @@ describe('GoogleTagManagerTest', () => {
     });
 
     test('paid_adoption - addSubscriptionPaymentCard', async () => {
-        // When we add a payment card
-        addSubscriptionPaymentCard(accountID, {
-            cardNumber: 'cardNumber',
-            cardYear: 'cardYear',
-            cardMonth: 'cardMonth',
-            cardCVV: 'cardCVV',
-            addressName: 'addressName',
-            addressZip: 'addressZip',
-            currency: 'USD',
-        });
+        // When we add a payment card (with no existing billing card)
+        addSubscriptionPaymentCard(
+            accountID,
+            {
+                cardNumber: 'cardNumber',
+                cardYear: 'cardYear',
+                cardMonth: 'cardMonth',
+                cardCVV: 'cardCVV',
+                addressName: 'addressName',
+                addressZip: 'addressZip',
+                currency: 'USD',
+            },
+            undefined,
+        );
 
         await waitForBatchedUpdatesWithAct();
 
@@ -242,19 +249,23 @@ describe('GoogleTagManagerTest', () => {
             });
         });
 
-        addSubscriptionPaymentCard(accountID, {
-            cardNumber: 'cardNumber',
-            cardYear: 'cardYear',
-            cardMonth: 'cardMonth',
-            cardCVV: 'cardCVV',
-            addressName: 'addressName',
-            addressZip: 'addressZip',
-            currency: 'USD',
-        });
+        addSubscriptionPaymentCard(
+            accountID,
+            {
+                cardNumber: 'cardNumber',
+                cardYear: 'cardYear',
+                cardMonth: 'cardMonth',
+                cardCVV: 'cardCVV',
+                addressName: 'addressName',
+                addressZip: 'addressZip',
+                currency: 'USD',
+            },
+            FUND_LIST,
+        );
 
         await waitForBatchedUpdatesWithAct();
 
-        expect(!!getCardForSubscriptionBilling()).toBe(true);
+        expect(!!getCardForSubscriptionBilling(FUND_LIST)).toBe(true);
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(0);
     });
 });

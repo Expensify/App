@@ -65,11 +65,11 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
             const newGLCode = values.glCode.trim();
             if (newGLCode !== glCode) {
-                setPolicyTagGLCode(policyID, tagName, orderWeight, newGLCode);
+                setPolicyTagGLCode({policyID, tagName, tagListIndex: orderWeight, glCode: newGLCode, policyTags});
             }
             goBack();
         },
-        [glCode, policyID, tagName, orderWeight, goBack],
+        [glCode, goBack, policyID, tagName, orderWeight, policyTags],
     );
 
     return (
@@ -82,7 +82,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={TagGLCodePage.displayName}
+                testID="TagGLCodePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -113,7 +113,5 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-TagGLCodePage.displayName = 'TagGLCodePage';
 
 export default TagGLCodePage;

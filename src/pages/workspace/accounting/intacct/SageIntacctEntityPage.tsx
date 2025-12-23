@@ -5,7 +5,7 @@ import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField, updateSageIntacctEntity} from '@libs/actions/connections/SageIntacct';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicy from '@pages/workspace/withPolicy';
@@ -17,8 +17,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
     const config = policy?.connections?.intacct?.config;
     const entityID = config?.entity ?? '';
     const {translate} = useLocalize();
-
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const sections = [
         {
@@ -28,14 +27,14 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
             isSelected: entityID === '',
         },
     ];
-    policy?.connections?.intacct?.data?.entities.forEach((entity) => {
+    for (const entity of policy?.connections?.intacct?.data?.entities ?? []) {
         sections.push({
             text: entity.name,
             value: entity.name,
             keyForList: entity.id,
             isSelected: entity.id === entityID,
         });
-    });
+    }
 
     const saveSelection = ({keyForList}: ListItem) => {
         updateSageIntacctEntity(policyID, keyForList ?? '', entityID);
@@ -46,7 +45,7 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
         <SelectionScreen
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctEntityPage.displayName}
+            displayName="SageIntacctEntityPage"
             sections={sections ? [{data: sections}] : []}
             listItem={RadioListItem}
             onSelectRow={saveSelection}
@@ -56,13 +55,11 @@ function SageIntacctEntityPage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             pendingAction={settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.ENTITY], config?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.ENTITY)}
+            errors={getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.ENTITY)}
             errorRowStyles={[styles.ph5, styles.mv2]}
             onClose={() => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.ENTITY)}
         />
     );
 }
-
-SageIntacctEntityPage.displayName = 'SageIntacctEntityPage';
 
 export default withPolicy(SageIntacctEntityPage);

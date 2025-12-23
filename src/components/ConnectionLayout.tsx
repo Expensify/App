@@ -107,7 +107,7 @@ function ConnectionLayout({
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const isConnectionEmpty = isEmpty(policy?.connections?.[connectionName]);
 
     const renderSelectionContent = useMemo(
@@ -130,7 +130,7 @@ function ConnectionLayout({
             policyID={policyID}
             accessVariants={accessVariants}
             featureName={featureName}
-            shouldBeBlocked={!!shouldBeBlocked || shouldBlockByConnection}
+            shouldBeBlocked={!!shouldBeBlocked && shouldBlockByConnection}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
@@ -158,5 +158,4 @@ function ConnectionLayout({
     );
 }
 
-ConnectionLayout.displayName = 'ConnectionLayout';
 export default ConnectionLayout;

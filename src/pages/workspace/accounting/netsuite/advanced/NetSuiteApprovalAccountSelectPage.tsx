@@ -22,13 +22,13 @@ import ROUTES from '@src/ROUTES';
 function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
 
     const config = policy?.connections?.netsuite?.options.config;
     const netsuiteApprovalAccountOptions = useMemo<SelectorType[]>(
-        () => getNetSuiteApprovalAccountOptions(policy ?? undefined, config?.approvalAccount),
+        () => getNetSuiteApprovalAccountOptions(policy ?? undefined, config?.approvalAccount, translate),
         // The default option will be language dependent, so we need to recompute the options when the language changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [config?.approvalAccount, policy, translate],
@@ -74,7 +74,7 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteApprovalAccountSelectPage.displayName}
+            displayName="NetSuiteApprovalAccountSelectPage"
             headerContent={headerContent}
             sections={netsuiteApprovalAccountOptions.length ? [{data: netsuiteApprovalAccountOptions}] : []}
             listItem={RadioListItem}
@@ -91,7 +91,5 @@ function NetSuiteApprovalAccountSelectPage({policy}: WithPolicyConnectionsProps)
         />
     );
 }
-
-NetSuiteApprovalAccountSelectPage.displayName = 'NetSuiteApprovalAccountSelectPage';
 
 export default withPolicyConnections(NetSuiteApprovalAccountSelectPage);

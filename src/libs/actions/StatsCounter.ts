@@ -9,7 +9,7 @@ import pkg from '../../../package.json';
 const StatsCounter = (eventName: string, value = 1) => {
     getEnvironment().then((envName) => {
         const platform = getPlatform();
-        const version = pkg.version.replace(/\./g, '-');
+        const version = pkg.version.replaceAll('.', '-');
 
         // This normalizes the name of the web platform so it will be more consistent in Grafana
         const grafanaEventName = `${platform === 'web' ? 'webApp' : platform}.${envName}.new.expensify.${eventName}.${version}`;

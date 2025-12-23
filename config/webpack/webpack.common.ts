@@ -1,3 +1,4 @@
+import {sentryWebpackPlugin} from '@sentry/webpack-plugin';
 import {CleanWebpackPlugin} from 'clean-webpack-plugin';
 import CopyPlugin from 'copy-webpack-plugin';
 import dotenv from 'dotenv';
@@ -29,6 +30,7 @@ const PreloadWebpackPlugin = require('@vue/preload-webpack-plugin') as PreloadWe
 
 const includeModules = [
     'react-native-reanimated',
+    'react-native-worklets',
     'react-native-picker-select',
     'react-native-web',
     'react-native-webview',
@@ -68,6 +70,12 @@ function mapEnvironmentToLogoSuffix(environmentFile: string): string {
  */
 const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment): Configuration => {
     const isDevelopment = file === '.env' || file === '.env.development';
+
+    if (!isDevelopment) {
+        const releaseName = `${process.env.npm_package_name}@${process.env.npm_package_version}`;
+        console.debug(`[SENTRY ${platform.toUpperCase()}] Release: ${releaseName}`);
+        console.debug(`[SENTRY ${platform.toUpperCase()}] Assets Path: ${platform === 'desktop' ? './desktop/dist/www/**/*.{js,map}' : './dist/**/*.{js,map}'}`);
+    }
 
     return {
         mode: isDevelopment ? 'development' : 'production',
@@ -168,6 +176,32 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 __DEV__: /staging|prod|adhoc/.test(file) === false,
             }),
             ...(isDevelopment ? [] : [new MiniCssExtractPlugin()]),
+
+            // Upload source maps to Sentry
+            ...(isDevelopment
+                ? []
+                : ([
+                      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                      sentryWebpackPlugin({
+                          authToken: process.env.SENTRY_AUTH_TOKEN as string | undefined,
+                          org: 'expensify',
+                          project: 'app',
+                          release: {
+                              name: `${process.env.npm_package_name}@${process.env.npm_package_version}`,
+                              create: true,
+                              setCommits: {
+                                  auto: true,
+                              },
+                          },
+                          sourcemaps: {
+                              // Use relative path from project root - works for both web (dist/) and desktop (desktop/dist/www/)
+                              assets: platform === 'desktop' ? './desktop/dist/www/**/*.{js,map}' : './dist/**/*.{js,map}',
+                              filesToDeleteAfterUpload: platform === 'desktop' ? './desktop/dist/www/**/*.map' : './dist/**/*.map',
+                          },
+                          debug: false,
+                          telemetry: false,
+                      }),
+                  ] as WebpackPluginInstance[])),
 
             // This allows us to interactively inspect JS bundle contents
             ...(process.env.ANALYZE_BUNDLE === 'true' ? [new BundleAnalyzerPlugin()] : []),

@@ -10,12 +10,14 @@ import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SafeString from '@src/utils/SafeString';
 import type {TextSelectorModalProps} from './types';
 
 function TextSelectorModal({
@@ -28,18 +30,22 @@ function TextSelectorModal({
     shouldClearOnClose,
     maxLength = CONST.CATEGORY_NAME_LIMIT,
     required = false,
+    customValidate,
+    enabledWhenOffline = true,
+    allowHTML,
+    autoGrowHeight,
     ...rest
 }: TextSelectorModalProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [currentValue, setValue] = useState(value);
 
-    const inputRef = useRef<BaseTextInputRef | null>(null);
+    const inputRef = useRef<TextInputType | null>(null);
     const inputValueRef = useRef(value);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-    const inputCallbackRef = (ref: BaseTextInputRef | null) => {
+    const inputCallbackRef = (ref: TextInputType | null) => {
         inputRef.current = ref;
     };
 
@@ -63,9 +69,14 @@ function TextSelectorModal({
                 errors[rest.inputID] = translate('common.error.characterLimitExceedCounter', {length: formValue.length, limit: maxLength});
             }
 
+            if (customValidate) {
+                const customErrors = customValidate(values);
+                errors = {...errors, ...customErrors};
+            }
+
             return errors;
         },
-        [maxLength, rest.inputID, required, translate],
+        [maxLength, rest.inputID, required, translate, customValidate],
     );
 
     // In TextPicker, when the modal is hidden, it is not completely unmounted, so when it is shown again, the currentValue is not updated with the value prop.
@@ -87,7 +98,11 @@ function TextSelectorModal({
             focusTimeoutRef.current = setTimeout(() => {
                 if (inputRef.current && isVisible) {
                     inputRef.current.focus();
-                    (inputRef.current as TextInputType).setSelection?.(inputValueRef.current?.length ?? 0, inputValueRef.current?.length ?? 0);
+                    inputRef.current.setSelection?.(inputValueRef.current?.length ?? 0, inputValueRef.current?.length ?? 0);
+                    if (autoGrowHeight) {
+                        scrollToBottom(inputRef.current);
+                        moveSelectionToEnd(inputRef.current);
+                    }
                 }
                 return () => {
                     if (!focusTimeoutRef.current || !isVisible) {
@@ -96,7 +111,7 @@ function TextSelectorModal({
                     clearTimeout(focusTimeoutRef.current);
                 };
             }, CONST.ANIMATED_TRANSITION);
-        }, [isVisible]),
+        }, [isVisible, autoGrowHeight]),
     );
 
     const handleSubmit = useCallback(
@@ -121,11 +136,13 @@ function TextSelectorModal({
             onModalHide={hide}
             shouldUseModalPaddingStyle={false}
             enableEdgeToEdgeBottomSafeAreaPadding
+            shouldHandleNavigationBack
+            swipeDirection={CONST.SWIPE_DIRECTION.RIGHT}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 includePaddingTop
-                testID={TextSelectorModal.displayName}
+                testID="TextSelectorModal"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -138,27 +155,32 @@ function TextSelectorModal({
                     onSubmit={handleSubmit}
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
-                    enabledWhenOffline
+                    enabledWhenOffline={enabledWhenOffline}
+                    addOfflineIndicatorBottomSafeAreaPadding={shouldUseNarrowLayout ? undefined : false}
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                     enterKeyEventListenerPriority={0}
+                    allowHTML={allowHTML}
                 >
-                    <View style={styles.pb4}>{!!subtitle && <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>}</View>
+                    {!!subtitle && (
+                        <View style={styles.pb4}>
+                            <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>
+                        </View>
+                    )}
                     <InputWrapper
                         ref={inputCallbackRef}
                         InputComponent={TextInput}
                         value={currentValue}
-                        onValueChange={(changedValue) => setValue(changedValue.toString())}
+                        onValueChange={(changedValue) => setValue(SafeString(changedValue))}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...rest}
                         inputID={rest.inputID}
+                        autoGrowHeight={autoGrowHeight}
                     />
                 </FormProvider>
             </ScreenWrapper>
         </Modal>
     );
 }
-
-TextSelectorModal.displayName = 'TextSelectorModal';
 
 export default TextSelectorModal;

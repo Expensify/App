@@ -1,7 +1,7 @@
 ---
 title: Delete Expenses
 description: Learn how to delete personal or company card expenses in New Expensify, including rules for submitted reports, admin-only cases, and account-level deletion limits.
-keywords: [New Expensify, delete expenses, remove expense, company card, undo submit, draft expense, report expense, expense deletion]
+keywords: [New Expensify, delete expenses, remove expense, company card, retract, draft expense, report expense, expense deletion]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -25,12 +25,12 @@ You can delete any personal (out-of-pocket) expense that hasn’t been submitted
 
 # The report is submitted or marked as "Done"
 
-To delete an expense on a submitted report, you'll need to reopen it first:
+To delete an expense on a submitted report, you'll need to retract it first:
 
-1. Click **Undo submit** or **Undo close**.
+1. Click **Retract**.
 2. Then follow the deletion steps above.
 
-**Note:** You can only undo reports that are in the **Closed** or **Processing** state. Reports that are **Approved** or **Paid** cannot be reopened.
+**Note:** You can only retract reports that are **Done** or **Outstanding**. Reports that are **Approved** or **Paid** cannot be retracted.
 
 # Deleting company card expenses
 
@@ -57,9 +57,9 @@ Company card expenses can’t be deleted if **Allow deleting transactions** is t
 
 Expense actions like deleting, editing, or retracting can only be done in your own account. Even Workspace Admins can’t delete another member’s expenses. If you need to help a teammate, ask them to add you as a [Copilot](https://help.expensify.com/articles/new-expensify/settings/Copilot-Access) so you can assist from their account.
 
-## Can I reopen a report after it’s been approved or paid?
+## Can I retract a report after it’s been approved or paid?
 
-No, reports in **Approved** or **Paid** status can’t be reopened. Only reports in a **Closed** or **Processing** state can be reopened to allow expense deletion.
+No, reports in **Approved** or **Paid** status can’t be retracted. Only reports that are **Done** or **Outstanding** can be retracted to allow expense deletion.
 
 ## Can Expensify permanently delete expenses for me?
 

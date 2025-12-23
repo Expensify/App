@@ -75,6 +75,18 @@ type Comment = {
     /** Type of the transaction */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 
+    /** Contains information pertaining to time tracking */
+    units?: {
+        /** Count of the unit */
+        count?: number;
+
+        /** Rate of the unit in cents */
+        rate?: number;
+
+        /** Unit of the unit (e.g. 'h' for hours) */
+        unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
+    };
+
     /** In custom unit transactions this holds the information of the custom unit */
     customUnit?: TransactionCustomUnit;
 
@@ -92,6 +104,12 @@ type Comment = {
 
     /** Total that the user currently owes for splitExpenses */
     splitExpensesTotal?: number;
+
+    /** Start date for splits */
+    splitsStartDate?: string;
+
+    /** End date for splits */
+    splitsEndDate?: string;
 
     /** Violations that were dismissed */
     dismissedViolations?: Partial<Record<ViolationName, Record<string, string | number>>>;
@@ -164,7 +182,7 @@ type Geometry = {
 };
 
 /** Accepted receipt paths */
-type ReceiptSource = string;
+type ReceiptSource = string | number;
 
 /** Model of receipt */
 type Receipt = {
@@ -406,6 +424,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Selected accountant */
         accountant?: Accountant;
 
+        /** The transaction converted amount in report's currency */
+        convertedAmount?: number;
+
         /** The transaction tax amount */
         taxAmount?: number;
 
@@ -436,8 +457,14 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Server side errors keyed by microtime */
         errorFields?: OnyxCommon.ErrorFields;
 
-        /** The name of the file used for a receipt (formerly receiptFilename) */
-        filename?: string;
+        /** The transaction converted amount in `groupCurrency` currency */
+        groupAmount?: number;
+
+        /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
+        groupCurrency?: string;
+
+        /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
+        groupExchangeRate?: number;
 
         /** Used during the creation flow before the transaction is saved to the server */
         iouRequestType?: IOURequestType;
@@ -477,6 +504,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
+
+        /** The name of iouReport associated with the transaction */
+        reportName?: string;
 
         /** Existing routes */
         routes?: Routes;

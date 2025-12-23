@@ -2,21 +2,25 @@ import React, {useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 import ConfirmModal from '@components/ConfirmModal';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setHasDeniedContactImportPrompt} from '@libs/actions/ContactPermissions';
 import {getContactPermission, requestContactPermission} from '@libs/ContactPermission';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ContactPermissionModalProps} from './types';
 
-let hasShownContactImportPromptThisSession = false;
 function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPermissionModalProps) {
+    const [hasDeniedContactImportPrompt] = useOnyx(ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT, {canBeMissing: true});
     const [isModalVisible, setIsModalVisible] = useState(false);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['ToddWithPhones']);
 
     useEffect(() => {
-        if (hasShownContactImportPromptThisSession) {
+        if (hasDeniedContactImportPrompt) {
             onFocusTextInput();
             return;
         }
@@ -26,7 +30,6 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
                 onFocusTextInput();
                 return;
             }
-            hasShownContactImportPromptThisSession = true;
             setIsModalVisible(true);
         });
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -48,6 +51,7 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
 
     const handleCloseModal = () => {
         setIsModalVisible(false);
+        setHasDeniedContactImportPrompt(true);
         onDeny(RESULTS.DENIED);
         // Sometimes, the input gains focus when the modal closes, but the keyboard doesn't appear.
         // To fix this, we need to call the focus function after the modal has finished closing.
@@ -57,6 +61,10 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
         });
     };
 
+    if (hasDeniedContactImportPrompt) {
+        return;
+    }
+
     return (
         <ConfirmModal
             isVisible={isModalVisible}
@@ -64,13 +72,13 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
             onCancel={handleCloseModal}
             onBackdropPress={handleCloseModal}
             confirmText={translate('common.continue')}
-            cancelText={translate('common.notNow')}
+            cancelText={translate('common.noThanks')}
             prompt={translate('contact.importContactsText')}
             promptStyles={[styles.textLabelSupportingEmptyValue, styles.mb4]}
             title={translate('contact.importContactsTitle')}
             titleContainerStyles={[styles.mt2, styles.mb0]}
             titleStyles={[styles.textHeadline]}
-            iconSource={Illustrations.ToddWithPhones}
+            iconSource={illustrations.ToddWithPhones}
             iconFill={false}
             iconWidth={176}
             iconHeight={178}
@@ -79,7 +87,5 @@ function ContactPermissionModal({onDeny, onGrant, onFocusTextInput}: ContactPerm
         />
     );
 }
-
-ContactPermissionModal.displayName = 'ContactPermissionModal';
 
 export default ContactPermissionModal;

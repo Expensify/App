@@ -3,7 +3,7 @@ import React from 'react';
 import type {SvgProps} from 'react-native-svg';
 import useLetterAvatars from '@hooks/useLetterAvatars';
 // eslint-disable-next-line no-restricted-syntax -- For mocking
-import * as CustomAvatarCatalog from '@libs/Avatars/CustomAvatarCatalog';
+import * as PresetAvatarCatalog from '@libs/Avatars/PresetAvatarCatalog';
 
 const mockAvatarComponent: React.FC<SvgProps> = React.memo((props: SvgProps) =>
     React.createElement('svg', {
@@ -19,7 +19,7 @@ describe('useLetterAvatars', () => {
 
     describe('basic functionality', () => {
         it('should return the expected structure', () => {
-            jest.spyOn(CustomAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
+            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
 
             const {result} = renderHook(() => useLetterAvatars('John'));
 
@@ -33,7 +33,7 @@ describe('useLetterAvatars', () => {
         });
 
         it('should create unique IDs for each avatar variant', () => {
-            jest.spyOn(CustomAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
+            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
 
             const {result} = renderHook(() => useLetterAvatars('Bob'));
 
@@ -46,15 +46,15 @@ describe('useLetterAvatars', () => {
         });
 
         it('should include the StyledLetterAvatar component in each item', () => {
-            jest.spyOn(CustomAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
+            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
 
             const {result} = renderHook(() => useLetterAvatars('Charlie'));
 
-            result.current.avatarList.forEach((item) => {
+            for (const item of result.current.avatarList) {
                 expect(item).toHaveProperty('id');
                 expect(item).toHaveProperty('StyledLetterAvatar');
                 expect(typeof item.StyledLetterAvatar).toBe('function');
-            });
+            }
         });
     });
 
@@ -64,7 +64,7 @@ describe('useLetterAvatars', () => {
             ['names starting with numbers', '5th Avenue', '-5'],
             ['single character names', 'X', '-'],
         ])('should handle %s', (_, name, expectedChar) => {
-            jest.spyOn(CustomAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
+            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(mockAvatarComponent);
 
             const {result} = renderHook(() => useLetterAvatars(name));
 
@@ -80,7 +80,7 @@ describe('useLetterAvatars', () => {
             ['names with only spaces', '   '],
             ['names with only special characters', '!@#$%'],
         ])('should handle %s', (_, name) => {
-            jest.spyOn(CustomAvatarCatalog, 'getLetterAvatar').mockReturnValue(null);
+            jest.spyOn(PresetAvatarCatalog, 'getLetterAvatar').mockReturnValue(null);
 
             const {result} = renderHook(() => useLetterAvatars(name));
 

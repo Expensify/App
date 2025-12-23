@@ -2,18 +2,21 @@ import {Str} from 'expensify-common';
 import React, {memo, useContext, useEffect, useState} from 'react';
 import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import Button from '@components/Button';
 import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
-import {ArrowCircleClockwise, Gallery} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {ArrowCircleClockwise} from '@components/Icon/Expensicons';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -30,6 +33,8 @@ import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx';
+import SafeString from '@src/utils/SafeString';
 import AttachmentViewImage from './AttachmentViewImage';
 import AttachmentViewPdf from './AttachmentViewPdf';
 import AttachmentViewVideo from './AttachmentViewVideo';
@@ -87,6 +92,9 @@ type AttachmentViewProps = Attachment & {
 
     /** The reportID related to the attachment */
     reportID?: string;
+
+    /** Transaction object. When provided, will be used instead of fetching from Onyx. */
+    transaction?: OnyxEntry<OnyxTypes.Transaction>;
 };
 
 function checkIsFileImage(source: string | number | ImageURISource | ImageURISource[], fileName: string | undefined) {
@@ -98,6 +106,7 @@ function checkIsFileImage(source: string | number | ImageURISource | ImageURISou
 }
 
 function AttachmentView({
+    attachmentID,
     source,
     previewSource,
     file,
@@ -122,8 +131,11 @@ function AttachmentView({
     isDeleted,
     isUploading = false,
     reportID,
+    transaction: transactionProp,
 }: AttachmentViewProps) {
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const icons = useMemoizedLazyExpensifyIcons(['Gallery']);
+    const [transactionFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
+    const transaction = transactionProp ?? transactionFromOnyx;
     const {translate} = useLocalize();
     const {updateCurrentURLAndReportID, currentlyPlayingURL, playVideo} = usePlaybackContext();
 
@@ -289,6 +301,7 @@ function AttachmentView({
                             }
                             setImageError(false);
                         }}
+                        sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_CAROUSEL.RETRY_BUTTON}
                     />
                 </View>
             );
@@ -302,7 +315,7 @@ function AttachmentView({
                     <>
                         <View style={[styles.imageModalImageCenterContainer, styles.ph10]}>
                             <DefaultAttachmentView
-                                icon={Gallery}
+                                icon={icons.Gallery}
                                 fileName={file?.name}
                                 shouldShowDownloadIcon={shouldShowDownloadIcon}
                                 shouldShowLoadingSpinnerIcon={shouldShowLoadingSpinnerIcon}
@@ -313,13 +326,14 @@ function AttachmentView({
                     </>
                 );
             }
-            imageSource = previewSource?.toString() ?? imageSource;
+            imageSource = SafeString(previewSource) || imageSource;
         }
 
         return (
             <>
                 <View style={styles.imageModalImageCenterContainer}>
                     <AttachmentViewImage
+                        attachmentID={attachmentID}
                         url={imageSource}
                         file={file}
                         isAuthTokenRequired={isAuthTokenRequired}
@@ -368,8 +382,6 @@ function AttachmentView({
         />
     );
 }
-
-AttachmentView.displayName = 'AttachmentView';
 
 export default memo(AttachmentView);
 

@@ -93,24 +93,26 @@ function SearchContextProvider({children}: ChildrenProps) {
         if (data.length && data.every(isTransactionReportGroupListItemType)) {
             selectedReports = data
                 .filter((item) => isMoneyRequestReport(item) && item.transactions.length > 0 && item.transactions.every(({keyForList}) => selectedTransactions[keyForList]?.isSelected))
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency}) => ({
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency, chatReportID}) => ({
                     reportID,
                     action,
                     total,
                     policyID,
                     allActions,
                     currency,
+                    chatReportID,
                 }));
         } else if (data.length && data.every(isTransactionListItemType)) {
             selectedReports = data
                 .filter(({keyForList}) => !!keyForList && selectedTransactions[keyForList]?.isSelected)
-                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency}) => ({
+                .map(({reportID, action = CONST.SEARCH.ACTION_TYPES.VIEW, amount: total = CONST.DEFAULT_NUMBER_ID, policyID, allActions = [action], currency, report}) => ({
                     reportID,
                     action,
                     total,
                     policyID,
                     allActions,
                     currency,
+                    chatReportID: report?.chatReportID,
                 }));
         }
 
@@ -240,7 +242,5 @@ function SearchContextProvider({children}: ChildrenProps) {
 function useSearchContext() {
     return useContext(SearchContext);
 }
-
-SearchContextProvider.displayName = 'SearchContextProvider';
 
 export {SearchContextProvider, useSearchContext, SearchContext};

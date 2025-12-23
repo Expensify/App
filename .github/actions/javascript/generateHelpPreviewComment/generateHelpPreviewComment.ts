@@ -12,7 +12,7 @@ function normalizeAlias(alias: string): string {
 }
 
 function toRoutePath(filename: string): string {
-    return filename.slice(DOCS_DIRECTORY_PREFIX.length).replace(/\.md$/, '');
+    return filename.slice(DOCS_DIRECTORY_PREFIX.length).replaceAll(/\.md$/g, '');
 }
 
 async function getUpdatedDocRoutes(octokit: OctokitClient, owner: string, repo: string, prNumber: number): Promise<string[]> {
@@ -27,20 +27,20 @@ async function getUpdatedDocRoutes(octokit: OctokitClient, owner: string, repo: 
 
     const routes = new Set<string>();
 
-    files.forEach((file) => {
+    for (const file of files) {
         const filename = file.filename ?? '';
         const status = file.status ?? '';
 
         if (!INCLUDED_STATUSES.has(status)) {
-            return;
+            continue;
         }
 
         if (!filename.startsWith(DOCS_DIRECTORY_PREFIX) || !filename.endsWith(MARKDOWN_EXTENSION)) {
-            return;
+            continue;
         }
 
         routes.add(toRoutePath(filename));
-    });
+    }
 
     return [...routes].sort((a, b) => a.localeCompare(b));
 }
@@ -61,7 +61,7 @@ async function run(): Promise<void> {
     const routes = await getUpdatedDocRoutes(octokit, owner, repo, prNumber);
     const normalizedRootURL = normalizeAlias(rootURL);
 
-    const displayRootURL = normalizedRootURL.replace(/\/$/, '');
+    const displayRootURL = normalizedRootURL.replaceAll(/\/$/g, '');
     let body = `A preview of your ExpensifyHelp changes have been deployed to ${displayRootURL} ⚡️`;
 
     if (routes.length > 0) {
@@ -72,7 +72,9 @@ async function run(): Promise<void> {
     core.setOutput('BODY', body);
 
     core.startGroup('Updated ExpensifyHelp routes');
-    routes.forEach((route) => console.log(route));
+    for (const route of routes) {
+        console.log(route);
+    }
     core.endGroup();
 
     console.log(`Generated preview comment with ${routes.length} updated article(s)`);

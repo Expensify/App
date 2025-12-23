@@ -21,7 +21,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ScheduleCallParamList} from '@libs/Navigation/types';
-import {getDefaultAvatarURL} from '@libs/UserUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -52,7 +52,7 @@ function ScheduleCallConfirmationPage() {
             currentUserPersonalDetails,
             userTimezone,
         );
-    }, [currentUserPersonalDetails, scheduleCallDraft, userTimezone]);
+    }, [currentUserPersonalDetails, scheduleCallDraft?.timeSlot, scheduleCallDraft?.date, scheduleCallDraft?.guide, scheduleCallDraft?.reportID, userTimezone]);
 
     const guideDetails: PersonalDetails | null = useMemo(
         () =>
@@ -61,7 +61,10 @@ function ScheduleCallConfirmationPage() {
                       accountID: scheduleCallDraft.guide.accountID,
                       login: scheduleCallDraft.guide.email,
                       displayName: scheduleCallDraft.guide.email,
-                      avatar: getDefaultAvatarURL(scheduleCallDraft.guide.accountID, scheduleCallDraft.guide.email),
+                      avatar: getDefaultAvatarURL({
+                          accountID: scheduleCallDraft.guide.accountID,
+                          accountEmail: scheduleCallDraft.guide.email,
+                      }),
                   })
                 : null,
         [personalDetails, scheduleCallDraft?.guide?.accountID, scheduleCallDraft?.guide?.email],
@@ -93,7 +96,7 @@ function ScheduleCallConfirmationPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID={ScheduleCallConfirmationPage.displayName}
+            testID="ScheduleCallConfirmationPage"
         >
             <HeaderWithBackButton
                 title={translate('scheduledCall.confirmation.title')}
@@ -148,7 +151,5 @@ function ScheduleCallConfirmationPage() {
         </ScreenWrapper>
     );
 }
-
-ScheduleCallConfirmationPage.displayName = 'ScheduleCallConfirmationPage';
 
 export default ScheduleCallConfirmationPage;

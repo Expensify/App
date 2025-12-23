@@ -11,11 +11,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
-import {buildMergedTransactionData, getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
+import {buildMergedTransactionData, getReportIDForExpense, getSourceTransactionFromMergeTransaction, getTargetTransactionFromMergeTransaction} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
@@ -51,7 +53,8 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         },
         [mergeTransaction?.targetTransactionID],
     );
-    const [targetTransactionThreadReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction?.reportID}`, {
+    const targetTransactionParentReportID = getReportIDForExpense(targetTransaction);
+    const [targetTransactionThreadReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransactionParentReportID}`, {
         canBeMissing: true,
         selector: targetTransactionThreadReportIDSelector,
     });
@@ -60,6 +63,11 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     // Build the merged transaction data for display
     const mergedTransactionData = useMemo(() => buildMergedTransactionData(targetTransaction, mergeTransaction), [targetTransaction, mergeTransaction]);
@@ -85,7 +93,18 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         const reportID = mergeTransaction.reportID;
 
         setIsMergingExpenses(true);
-        mergeTransactionRequest({mergeTransactionID: transactionID, mergeTransaction, targetTransaction, sourceTransaction, policy, policyTags, policyCategories});
+        mergeTransactionRequest({
+            mergeTransactionID: transactionID,
+            mergeTransaction,
+            targetTransaction,
+            sourceTransaction,
+            policy,
+            policyTags,
+            policyCategories,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+        });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : targetTransactionThreadReportID;
         if (reportID !== targetTransaction.reportID && reportIDToDismiss) {
@@ -93,7 +112,19 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         } else {
             Navigation.dismissModal();
         }
-    }, [targetTransaction, mergeTransaction, sourceTransaction, transactionID, targetTransactionThreadReportID, policy, policyTags, policyCategories]);
+    }, [
+        targetTransaction,
+        mergeTransaction,
+        sourceTransaction,
+        transactionID,
+        targetTransactionThreadReportID,
+        policy,
+        policyTags,
+        policyCategories,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        isASAPSubmitBetaEnabled,
+    ]);
 
     if (isLoadingOnyxValue(mergeTransactionMetadata) || !targetTransactionThreadReport?.reportID) {
         return <FullScreenLoadingIndicator />;
@@ -101,7 +132,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ConfirmationPage.displayName}
+            testID="ConfirmationPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -140,7 +171,5 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         </ScreenWrapper>
     );
 }
-
-ConfirmationPage.displayName = 'ConfirmationPage';
 
 export default ConfirmationPage;

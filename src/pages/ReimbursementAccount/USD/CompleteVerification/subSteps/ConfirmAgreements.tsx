@@ -1,16 +1,16 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import CONST from '@src/CONST';
+import {getFieldRequiredErrors, isRequiredFulfilled} from '@libs/ValidationUtils';
+import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -35,36 +35,36 @@ function CertifyTrueAndAccurateLabel() {
 
 function TermsAndConditionsLabel() {
     const {translate} = useLocalize();
-    return (
-        <Text>
-            {translate('common.iAcceptThe')}
-            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.ACH_TERMS_URL}>{`${translate('completeVerificationStep.termsAndConditions')}`}</TextLink>
-        </Text>
-    );
+    return <RenderHTML html={translate('common.acceptTermsAndConditions')} />;
 }
 
 function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const confirmAgreementsValues = useMemo(
+        () => getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount),
+        [reimbursementAccount, reimbursementAccountDraft],
+    );
     const defaultValues = {
-        isAuthorizedToUseBankAccount: reimbursementAccount?.achData?.isAuthorizedToUseBankAccount ?? false,
-        certifyTrueInformation: reimbursementAccount?.achData?.certifyTrueInformation ?? false,
-        acceptTermsAndConditions: reimbursementAccount?.achData?.acceptTermsAndConditions ?? false,
+        isAuthorizedToUseBankAccount: confirmAgreementsValues.isAuthorizedToUseBankAccount ?? false,
+        certifyTrueInformation: confirmAgreementsValues.certifyTrueInformation ?? false,
+        acceptTermsAndConditions: confirmAgreementsValues.acceptTermsAndConditions ?? false,
     };
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (!ValidationUtils.isRequiredFulfilled(values.acceptTermsAndConditions)) {
+            if (!isRequiredFulfilled(values.acceptTermsAndConditions)) {
                 errors.acceptTermsAndConditions = translate('common.error.acceptTerms');
             }
 
-            if (!ValidationUtils.isRequiredFulfilled(values.certifyTrueInformation)) {
+            if (!isRequiredFulfilled(values.certifyTrueInformation)) {
                 errors.certifyTrueInformation = translate('completeVerificationStep.certifyTrueAndAccurateError');
             }
 
-            if (!ValidationUtils.isRequiredFulfilled(values.isAuthorizedToUseBankAccount)) {
+            if (!isRequiredFulfilled(values.isAuthorizedToUseBankAccount)) {
                 errors.isAuthorizedToUseBankAccount = translate('completeVerificationStep.isAuthorizedToUseBankAccountError');
             }
 
@@ -113,7 +113,5 @@ function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
         </FormProvider>
     );
 }
-
-ConfirmAgreements.displayName = 'ConfirmAgreements';
 
 export default ConfirmAgreements;

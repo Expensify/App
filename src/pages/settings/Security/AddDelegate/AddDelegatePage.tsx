@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useLocalize from '@hooks/useLocalize';
@@ -21,7 +22,7 @@ function AddDelegatePage() {
     const styles = useThemeStyles();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const existingDelegates = useMemo(
         () =>
             account?.delegatedAccess?.delegates?.reduce(
@@ -48,8 +49,13 @@ function AddDelegatePage() {
     });
 
     const headerMessage = useMemo(() => {
-        return getHeaderMessage((availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0, !!availableOptions.userToInvite, debouncedSearchTerm);
-    }, [availableOptions, debouncedSearchTerm]);
+        return getHeaderMessage(
+            (availableOptions.recentReports?.length || 0) + (availableOptions.personalDetails?.length || 0) !== 0,
+            !!availableOptions.userToInvite,
+            debouncedSearchTerm,
+            countryCode,
+        );
+    }, [availableOptions.recentReports?.length, availableOptions.personalDetails?.length, availableOptions.userToInvite, debouncedSearchTerm, countryCode]);
 
     const sections = useMemo(() => {
         const sectionsList = [];
@@ -86,7 +92,7 @@ function AddDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [availableOptions, translate]);
+    }, [availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, translate]);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm);
@@ -95,7 +101,7 @@ function AddDelegatePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={AddDelegatePage.displayName}
+            testID="AddDelegatePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -120,7 +126,5 @@ function AddDelegatePage() {
         </ScreenWrapper>
     );
 }
-
-AddDelegatePage.displayName = 'AddDelegatePage';
 
 export default AddDelegatePage;

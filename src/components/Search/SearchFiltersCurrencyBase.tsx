@@ -11,6 +11,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import SearchMultipleSelectionPicker from './SearchMultipleSelectionPicker';
 import type {SearchSingleSelectionPickerItem} from './SearchSingleSelectionPicker';
 import SearchSingleSelectionPicker from './SearchSingleSelectionPicker';
@@ -33,9 +34,9 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
         const currencies: SearchSingleSelectionPickerItem[] = [];
         const selectedCurrencies: SearchSingleSelectionPickerItem[] = [];
 
-        Object.keys(currencyList ?? {}).forEach((currencyCode) => {
+        for (const currencyCode of Object.keys(currencyList ?? {})) {
             if (currencyList?.[currencyCode]?.retired) {
-                return;
+                continue;
             }
 
             if (Array.isArray(selectedCurrencyData) && selectedCurrencyData?.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
@@ -49,18 +50,18 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
             if (!currencies.some((item) => item.value === currencyCode)) {
                 currencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
             }
-        });
+        }
 
         return {selectedCurrenciesItems: selectedCurrencies, currencyItems: currencies};
     }, [currencyList, selectedCurrencyData]);
 
     const handleOnSubmit = (values: string[] | string | undefined) => {
-        updateAdvancedFilters({[filterKey]: values ?? null});
+        updateAdvancedFilters({[filterKey]: values ?? null} as Partial<SearchAdvancedFiltersForm>);
     };
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersCurrencyBase.displayName}
+            testID="SearchFiltersCurrencyBase"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -91,7 +92,5 @@ function SearchFiltersCurrencyBase({title, filterKey, multiselect = false}: Sear
         </ScreenWrapper>
     );
 }
-
-SearchFiltersCurrencyBase.displayName = 'SearchFiltersCurrencyBase';
 
 export default SearchFiltersCurrencyBase;

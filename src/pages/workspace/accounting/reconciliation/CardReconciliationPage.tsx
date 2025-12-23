@@ -69,7 +69,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     const domainID = fullySetUpCardSetting.key.split('_').at(-1);
     const effectiveDomainID = Number(domainID ?? workspaceAccountID);
 
-    const [isContinuousReconciliationOn] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {canBeMissing: true});
+    const [continuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${effectiveDomainID}`, {canBeMissing: true});
     const [currentConnectionName] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${effectiveDomainID}`, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
 
@@ -101,9 +101,9 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
             case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
                 return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_NETSUITE_AUTO_SYNC.getRoute(policyID, backTo)}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:
-                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID)}`;
+                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID)}`;
             case CONST.POLICY.CONNECTIONS.ROUTE.QBD:
-                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.getRoute(policyID, backTo)}`;
+                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_QUICKBOOKS_DESKTOP_AUTO_SYNC.getRoute(policyID)}`;
             default:
                 return '';
         }
@@ -117,11 +117,11 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
     }, [policyID]);
 
     useEffect(() => {
-        if (isContinuousReconciliationOn !== undefined) {
+        if (continuousReconciliation?.value !== undefined) {
             return;
         }
         fetchPolicyAccountingData();
-    }, [isContinuousReconciliationOn, fetchPolicyAccountingData]);
+    }, [continuousReconciliation?.value, fetchPolicyAccountingData]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -132,7 +132,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         >
             <ScreenWrapper
                 shouldEnableMaxHeight
-                testID={CardReconciliationPage.displayName}
+                testID="CardReconciliationPage"
             >
                 <HeaderWithBackButton title={translate('workspace.accounting.cardReconciliation')} />
                 <ScrollView
@@ -146,9 +146,10 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                         shouldPlaceSubtitleBelowSwitch
                         switchAccessibilityLabel={translate('workspace.accounting.continuousReconciliation')}
                         disabled={!autoSync}
-                        isActive={!!isContinuousReconciliationOn}
+                        isActive={!!continuousReconciliation?.value}
                         onToggle={handleToggleContinuousReconciliation}
                         wrapperStyle={styles.ph5}
+                        pendingAction={continuousReconciliation?.pendingAction}
                     />
                     {!autoSync && (
                         <View style={[styles.renderHTML, styles.ph5, styles.mt2]}>
@@ -160,7 +161,7 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             />
                         </View>
                     )}
-                    {!!paymentBankAccountID && !!isContinuousReconciliationOn && (
+                    {!!paymentBankAccountID && !!continuousReconciliation?.value && (
                         <MenuItemWithTopDescription
                             style={styles.mt5}
                             title={bankAccountTitle}
@@ -174,7 +175,5 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-CardReconciliationPage.displayName = 'CardReconciliationPage';
 
 export default withPolicyConnections(CardReconciliationPage);

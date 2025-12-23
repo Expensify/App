@@ -1,9 +1,11 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {PaymentMethodType} from '@components/KYCWall/types';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
@@ -89,6 +91,8 @@ function SearchPageNarrow({
     const route = useRoute();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
 
+    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
+
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
 
@@ -111,7 +115,7 @@ function SearchPageNarrow({
     const scrollHandler = useAnimatedScrollHandler(
         {
             onScroll: (event) => {
-                runOnJS(triggerScrollEvent)();
+                scheduleOnRN(triggerScrollEvent);
                 const {contentOffset, layoutMeasurement, contentSize} = event;
                 if (windowHeight > contentSize.height) {
                     topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
@@ -121,7 +125,7 @@ function SearchPageNarrow({
                 const isScrollingDown = currentOffset > scrollOffset.get();
                 const distanceScrolled = currentOffset - scrollOffset.get();
 
-                runOnJS(saveScrollOffset)(route, currentOffset);
+                scheduleOnRN(saveScrollOffset, route, currentOffset);
 
                 if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
                     topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
@@ -145,14 +149,25 @@ function SearchPageNarrow({
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value);
+            search(value)?.then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
         }
     }, []);
+
+    const {addRouteKey, removeRouteKey} = useContext(FullScreenBlockingViewContext);
+    useEffect(() => {
+        if (!searchRouterListVisible) {
+            return;
+        }
+
+        addRouteKey(route.key);
+
+        return () => removeRouteKey(route.key);
+    }, [addRouteKey, removeRouteKey, route.key, searchRouterListVisible]);
 
     if (!queryJSON) {
         return (
             <ScreenWrapper
-                testID={SearchPageNarrow.displayName}
+                testID="SearchPageNarrow"
                 style={styles.pv0}
                 offlineIndicatorStyle={styles.mtAuto}
                 shouldShowOfflineIndicator={!!searchResults}
@@ -172,10 +187,10 @@ function SearchPageNarrow({
 
     return (
         <ScreenWrapper
-            testID={SearchPageNarrow.displayName}
+            testID="SearchPageNarrow"
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
-            bottomContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
+            bottomContent={!searchRouterListVisible && <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
             shouldShowOfflineIndicator={!!searchResults}
         >
@@ -191,7 +206,15 @@ function SearchPageNarrow({
                             />
                         </View>
                         <View style={[styles.flex1]}>
-                            <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}>
+                            <Animated.View
+                                style={[
+                                    topBarAnimatedStyle,
+                                    !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle,
+                                    styles.flex1,
+                                    styles.bgTransparent,
+                                    styles.searchTopBarZIndexStyle,
+                                ]}
+                            >
                                 <View style={[styles.flex1, styles.pt2, styles.appBG]}>
                                     <SearchPageHeader
                                         queryJSON={queryJSON}
@@ -252,10 +275,11 @@ function SearchPageNarrow({
                             contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
                             handleSearch={handleSearchAction}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                         />
                     </View>
                 )}
-                {shouldShowFooter && (
+                {shouldShowFooter && !searchRouterListVisible && (
                     <SearchPageFooter
                         count={footerData.count}
                         total={footerData.total}
@@ -266,7 +290,5 @@ function SearchPageNarrow({
         </ScreenWrapper>
     );
 }
-
-SearchPageNarrow.displayName = 'SearchPageNarrow';
 
 export default SearchPageNarrow;

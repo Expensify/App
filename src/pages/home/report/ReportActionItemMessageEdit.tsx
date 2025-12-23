@@ -2,7 +2,7 @@ import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData, TextInputScrollEventData} from 'react-native';
+import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
@@ -15,6 +15,7 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
+import useAncestors from '@hooks/useAncestors';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -43,7 +44,7 @@ import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
-import {getCommentLength, getOriginalReportID} from '@libs/ReportUtils';
+import {getOriginalReportID} from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -151,6 +152,7 @@ function ReportActionItemMessageEdit({
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const originalParentReportID = getOriginalReportID(originalReportID, action);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
+    const ancestors = useAncestors(originalReport);
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
@@ -297,7 +299,7 @@ function ReportActionItemMessageEdit({
      */
     const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
+        if (!debouncedValidateCommentMaxLength.flush()) {
             return;
         }
 
@@ -309,9 +311,9 @@ function ReportActionItemMessageEdit({
             ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(originalReport, action, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(originalReport, action, ancestors, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
-    }, [reportID, action, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived]);
+    }, [reportID, action, ancestors, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived, debouncedValidateCommentMaxLength]);
 
     /**
      * @param emoji
@@ -340,7 +342,7 @@ function ReportActionItemMessageEdit({
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, [suggestionsRef]);
     const onSaveScrollAndHideSuggestionMenu = useCallback(
-        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+        (e: TextInputScrollEvent) => {
             if (isScrollLayoutTriggered.current) {
                 return;
             }
@@ -357,7 +359,7 @@ function ReportActionItemMessageEdit({
      * @param {Event} e
      */
     const triggerSaveOrCancel = useCallback(
-        (e: NativeSyntheticEvent<TextInputKeyPressEventData> | KeyboardEvent) => {
+        (e: TextInputKeyPressEvent | KeyboardEvent) => {
             if (!e || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
             }
@@ -479,6 +481,7 @@ function ReportActionItemMessageEdit({
                                 pressDimmingValue={1}
                                 // Keep focus on the composer when cancel button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON}
                             >
                                 <Icon
                                     fill={theme.icon}
@@ -532,10 +535,10 @@ function ReportActionItemMessageEdit({
                                     ReportActionContextMenu.clearActiveReportAction();
                                 }
                             }}
-                            onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+                            onBlur={(event: BlurEvent) => {
                                 setIsFocused(false);
-                                const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                if (relatedTargetId === CONST.COMPOSER.NATIVE_ID || relatedTargetId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID || isEmojiPickerVisible()) {
+                                const relatedTargetId = event.nativeEvent?.target;
+                                if (relatedTargetId === tag.get() || isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
@@ -551,6 +554,7 @@ function ReportActionItemMessageEdit({
                             isGroupPolicyReport={isGroupPolicyReport}
                             shouldCalculateCaretPosition
                             onScroll={onSaveScrollAndHideSuggestionMenu}
+                            testID="composer"
                         />
                     </View>
 
@@ -595,6 +599,7 @@ function ReportActionItemMessageEdit({
                                 pressDimmingValue={0.2}
                                 // Keep focus on the composer when send button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON}
                             >
                                 <Icon
                                     src={Expensicons.Checkmark}
@@ -610,6 +615,5 @@ function ReportActionItemMessageEdit({
     );
 }
 
-ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
-
 export default ReportActionItemMessageEdit;
+export type {ReportActionItemMessageEditProps};

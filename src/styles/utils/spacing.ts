@@ -123,6 +123,10 @@ export default {
         marginVertical: -48,
     },
 
+    mrAuto: {
+        marginRight: 'auto',
+    },
+
     mr0: {
         marginRight: 0,
     },
@@ -181,6 +185,10 @@ export default {
 
     ml0: {
         marginLeft: 0,
+    },
+
+    mlHalf: {
+        marginLeft: 2,
     },
 
     ml1: {
@@ -339,6 +347,10 @@ export default {
         marginBottom: 0,
     },
 
+    mbHalf: {
+        marginBottom: 2,
+    },
+
     mb1: {
         marginBottom: 4,
     },
@@ -433,6 +445,10 @@ export default {
 
     p3: {
         padding: 12,
+    },
+
+    p3Half: {
+        padding: 14,
     },
 
     p4: {
@@ -563,6 +579,10 @@ export default {
         paddingRight: 0,
     },
 
+    pr0half: {
+        paddingRight: 2,
+    },
+
     pr1: {
         paddingRight: 4,
     },
@@ -573,6 +593,10 @@ export default {
 
     pr3: {
         paddingRight: 12,
+    },
+
+    pr3half: {
+        paddingRight: 14,
     },
 
     pr4: {
@@ -595,12 +619,24 @@ export default {
         paddingRight: 40,
     },
 
+    pr11: {
+        paddingRight: 44,
+    },
+
     pr15: {
         paddingRight: 60,
     },
 
+    pr16: {
+        paddingRight: 64,
+    },
+
     pl0: {
         paddingLeft: 0,
+    },
+
+    pl0half: {
+        paddingLeft: 2,
     },
 
     pl1: {
@@ -795,12 +831,20 @@ export default {
         minHeight: 20,
     },
 
+    minHeight6: {
+        minHeight: 24,
+    },
+
     minHeight7: {
         minHeight: 28,
     },
 
     minHeight22: {
         minHeight: 88,
+    },
+
+    minHeight32: {
+        minHeight: 128,
     },
 
     minHeight65: {

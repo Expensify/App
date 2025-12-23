@@ -99,7 +99,7 @@ type TransactionViolationData = {
     tooltip?: string;
 
     /** What prohibitive expense rule did they break? */
-    prohibitedExpenseRule?: string;
+    prohibitedExpenseRule?: string | string[];
 
     /** Comment that triggered the violation */
     comment?: string;

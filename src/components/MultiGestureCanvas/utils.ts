@@ -1,6 +1,6 @@
-import type {CanvasSize, ContentSize} from './types';
+import type {Dimensions} from '@src/types/utils/Layout';
 
-type GetCanvasFitScale = (props: {canvasSize: CanvasSize; contentSize: ContentSize}) => {scaleX: number; scaleY: number; minScale: number; maxScale: number};
+type GetCanvasFitScale = (props: {canvasSize: Dimensions; contentSize: Dimensions}) => {scaleX: number; scaleY: number; minScale: number; maxScale: number};
 
 /** Clamps a value between a lower and upper bound */
 function clamp(value: number, lowerBound: number, upperBound: number) {

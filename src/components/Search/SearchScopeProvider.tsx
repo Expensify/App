@@ -7,12 +7,12 @@ const defaultSearchContext = {
 
 const SearchScopeContext = React.createContext(defaultSearchContext);
 
-function SearchScopeProvider({children}: ChildrenProps) {
+function SearchScopeProvider({children, isOnSearch = true}: ChildrenProps) {
     const searchContext = useMemo(
         () => ({
-            isOnSearch: true,
+            isOnSearch,
         }),
-        [],
+        [isOnSearch],
     );
 
     return <SearchScopeContext.Provider value={searchContext}>{children}</SearchScopeContext.Provider>;
@@ -22,7 +22,5 @@ function useIsOnSearch() {
     const {isOnSearch} = useContext(SearchScopeContext);
     return isOnSearch;
 }
-
-SearchScopeProvider.displayName = 'SearchScopeProvider';
 
 export {useIsOnSearch, SearchScopeProvider};

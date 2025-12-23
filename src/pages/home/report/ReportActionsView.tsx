@@ -32,7 +32,7 @@ import {
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
-import markOpenReportEnd from '@libs/Telemetry/markOpenReportEnd';
+import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -270,8 +270,8 @@ function ReportActionsView({
 
         didLayout.current = true;
 
-        markOpenReportEnd();
-    }, []);
+        markOpenReportEnd(reportID);
+    }, [reportID]);
 
     // Check if the first report action in the list is the one we're currently linked to
     const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;
@@ -283,6 +283,7 @@ function ReportActionsView({
             setNavigatingToLinkedMessage(true);
             // After navigating to the linked reportAction, apply this to correctly set
             // `autoscrollToTopThreshold` prop when linking to a specific reportAction.
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 // Using a short delay to ensure the view is updated after interactions
                 timerID = setTimeout(() => setNavigatingToLinkedMessage(false), 10);
@@ -336,7 +337,5 @@ function ReportActionsView({
         </>
     );
 }
-
-ReportActionsView.displayName = 'ReportActionsView';
 
 export default Performance.withRenderTrace({id: '<ReportActionsView> rendering'})(ReportActionsView);

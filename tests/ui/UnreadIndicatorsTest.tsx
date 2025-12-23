@@ -493,7 +493,7 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
 
                 // Leave a comment as the current user and verify the indicator is removed
-                addComment(REPORT_ID, REPORT_ID, 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
+                addComment(REPORT_ID, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -556,7 +556,7 @@ describe('Unread Indicators', () => {
                 .then(() => navigateToSidebarOption(0))
                 .then(() => {
                     // Leave a comment as the current user
-                    addComment(REPORT_ID, REPORT_ID, 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
+                    addComment(REPORT_ID, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -579,7 +579,7 @@ describe('Unread Indicators', () => {
                     expect(screen.getAllByText('Current User Comment 1').at(0)).toBeOnTheScreen();
 
                     if (lastReportAction) {
-                        deleteReportComment(REPORT_ID, lastReportAction, undefined, undefined);
+                        deleteReportComment(REPORT_ID, lastReportAction, [], undefined, undefined);
                     }
                     return waitForBatchedUpdates();
                 })
@@ -601,7 +601,7 @@ describe('Unread Indicators', () => {
         await signInAndGetAppWithUnreadChat();
         await navigateToSidebarOption(0);
 
-        addComment(REPORT_ID, REPORT_ID, 'Comment 1', CONST.DEFAULT_TIME_ZONE);
+        addComment(REPORT_ID, REPORT_ID, [], 'Comment 1', CONST.DEFAULT_TIME_ZONE);
 
         await waitForBatchedUpdates();
 
@@ -612,11 +612,11 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            addComment(REPORT_ID, REPORT_ID, 'Comment 2', CONST.DEFAULT_TIME_ZONE);
+            addComment(REPORT_ID, REPORT_ID, [], 'Comment 2', CONST.DEFAULT_TIME_ZONE);
 
             await waitForBatchedUpdates();
 
-            deleteReportComment(REPORT_ID, firstNewReportAction, undefined, undefined);
+            deleteReportComment(REPORT_ID, firstNewReportAction, [], undefined, undefined);
 
             await waitForBatchedUpdates();
         }
@@ -660,8 +660,7 @@ describe('Unread Indicators', () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, null);
 
         const selfDMReport = {
-            ...createRandomReport(2),
-            chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
+            ...createRandomReport(2, CONST.REPORT.CHAT_TYPE.SELF_DM),
             type: CONST.REPORT.TYPE.CHAT,
             lastMessageText: 'test',
         };
@@ -711,6 +710,8 @@ describe('Unread Indicators', () => {
                 currency: fakeTransaction.currency,
                 created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             },
+            isASAPSubmitBetaEnabled: true,
+            quickAction: undefined,
         });
         await waitForBatchedUpdates();
 

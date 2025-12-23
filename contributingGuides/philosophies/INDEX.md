@@ -19,5 +19,6 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 * [Onyx Data Management Philosophy](/contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md)
 * [Over-engineering Philosophy](/contributingGuides/philosophies/OVERENGINEERING.md)
 * [Optimization Philosophy](/contributingGuides/philosophies/OPTMIZATION.md)
+* [Pagination Philosophy](contributingGuides/philosophies/PAGINATION.md)
 * [Routing Philosophy](/contributingGuides/philosophies/ROUTING.md)
 * [Security Philosophy](/contributingGuides/philosophies/SECURITY.md)

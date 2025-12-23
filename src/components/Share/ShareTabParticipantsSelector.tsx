@@ -1,4 +1,5 @@
-import React, {forwardRef} from 'react';
+import type {Ref} from 'react';
+import React from 'react';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
@@ -8,13 +9,14 @@ import type ROUTES from '@src/ROUTES';
 
 type ShareTabParticipantsSelectorProps = {
     detailsPageRouteObject: typeof ROUTES.SHARE_SUBMIT_DETAILS | typeof ROUTES.SHARE_DETAILS;
+    ref?: Ref<InputFocusRef>;
 };
 
 type InputFocusRef = {
     focus?: () => void;
 };
 
-function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTabParticipantsSelectorProps, ref: React.Ref<InputFocusRef>) {
+function ShareTabParticipantsSelectorComponent({detailsPageRouteObject, ref}: ShareTabParticipantsSelectorProps) {
     return (
         <MoneyRequestParticipantsSelector
             ref={ref}
@@ -40,4 +42,4 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject}: ShareTa
     );
 }
 
-export default forwardRef<InputFocusRef, ShareTabParticipantsSelectorProps>(ShareTabParticipantsSelectorComponent);
+export default ShareTabParticipantsSelectorComponent;

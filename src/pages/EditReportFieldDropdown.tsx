@@ -1,10 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -32,13 +33,13 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
     const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
     const recentlyUsedOptions = useMemo(() => recentlyUsedReportFields?.[fieldKey]?.sort(localeCompare) ?? [], [recentlyUsedReportFields, fieldKey, localeCompare]);
-
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
     const itemRightSideComponent = useCallback(
         (item: ListItem) => {
             if (item.text === fieldValue) {
                 return (
                     <Icon
-                        src={Expensicons.Checkmark}
+                        src={icons.Checkmark}
                         fill={theme.iconSuccessFill}
                     />
                 );
@@ -46,7 +47,7 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
 
             return null;
         },
-        [theme.iconSuccessFill, fieldValue],
+        [fieldValue, icons.Checkmark, theme.iconSuccessFill],
     );
 
     const [sections, headerMessage] = useMemo(() => {
@@ -63,13 +64,14 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
             ],
             options: validFieldOptions,
             recentlyUsedOptions,
+            translate,
         });
 
         const policyReportFieldData = policyReportFieldOptions.at(0)?.data ?? [];
         const header = getHeaderMessageForNonUserList(policyReportFieldData.length > 0, debouncedSearchValue);
 
         return [policyReportFieldOptions, header];
-    }, [fieldOptions, localeCompare, debouncedSearchValue, fieldValue, recentlyUsedOptions]);
+    }, [fieldOptions, localeCompare, debouncedSearchValue, fieldValue, recentlyUsedOptions, translate]);
 
     const selectedOptionKey = useMemo(() => (sections.at(0)?.data ?? []).filter((option) => option.searchText === fieldValue)?.at(0)?.keyForList, [sections, fieldValue]);
     return (
@@ -82,12 +84,9 @@ function EditReportFieldDropdownPage({onSubmit, fieldKey, fieldValue, fieldOptio
             onChangeText={setSearchValue}
             headerMessage={headerMessage}
             ListItem={RadioListItem}
-            isRowMultilineSupported
             rightHandSideComponent={itemRightSideComponent}
         />
     );
 }
-
-EditReportFieldDropdownPage.displayName = 'EditReportFieldDropdownPage';
 
 export default EditReportFieldDropdownPage;

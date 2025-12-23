@@ -42,10 +42,6 @@ jest.mock('@rnmapbox/maps', () => {
     };
 });
 
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
-
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
@@ -583,7 +579,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
     it('should display specific error message when ONBOARDING_ERROR_MESSAGE is set', async () => {
         await TestHelper.signInWithTestUser();
 
-        const specificErrorMessage = 'some extraordinarily specific error has occurred!';
+        const specificErrorMessage = 'onboarding.errorSelection';
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
@@ -594,7 +590,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
                 onboardingWorkEmail: 'test@company.com',
             });
-            await Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, specificErrorMessage);
+            await Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY, specificErrorMessage);
         });
 
         const {unmount} = renderOnboardingWorkEmailValidationPage(SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION, {backTo: ''});
@@ -602,7 +598,7 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByText(specificErrorMessage)).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal(specificErrorMessage))).toBeOnTheScreen();
         });
 
         unmount();

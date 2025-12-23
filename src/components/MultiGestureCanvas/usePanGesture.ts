@@ -3,7 +3,8 @@ import {useCallback} from 'react';
 import {Dimensions} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 import {Gesture} from 'react-native-gesture-handler';
-import {runOnJS, useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
+import {useDerivedValue, useSharedValue, withDecay, withSpring} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import {isMobile} from '@libs/Browser';
 import {SPRING_CONFIG} from './constants';
 import type {MultiGestureCanvasVariables} from './types';
@@ -157,7 +158,7 @@ const usePanGesture = ({
                         isSwipingDownToClose.set(false);
 
                         if (onSwipeDown) {
-                            runOnJS(onSwipeDown)();
+                            scheduleOnRN(onSwipeDown);
                         }
                     }),
                 );

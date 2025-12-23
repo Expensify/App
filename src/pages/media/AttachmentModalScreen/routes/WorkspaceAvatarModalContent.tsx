@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import {getFullSizeAvatar} from '@libs/UserUtils';
+import {getFullSizeAvatar} from '@libs/UserAvatarUtils';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
@@ -17,7 +17,7 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
     const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true, initWithStoredValues: false});
 
     const avatarURL = policy?.avatarURL ?? getDefaultWorkspaceAvatar(policy?.name ?? fallbackLetter);
-    const source = getFullSizeAvatar(avatarURL, 0);
+    const source = getFullSizeAvatar({avatarSource: avatarURL});
     const policyKeysLength = Object.keys(policy ?? {}).length;
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -38,6 +38,7 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
             isWorkspaceAvatar: true,
             maybeIcon: true,
             onDownloadAttachment,
+            shouldCloseOnSwipeDown: true,
         }),
         [headerTitle, isLoading, onDownloadAttachment, originalFileName, shouldShowNotFoundPage, source],
     );
@@ -49,6 +50,5 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
         />
     );
 }
-WorkspaceAvatarModalContent.displayName = 'WorkspaceAvatarModalContent';
 
 export default WorkspaceAvatarModalContent;

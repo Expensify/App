@@ -78,15 +78,14 @@ has = "has"i {return "has"; }
 is = "is"i {return "is"; }
 purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
+columns = "columns"i {return "columns"}
 
 // Value transformation rules
 values
   = perDiem
-  / report
   / draft
 
 perDiem = "perDiem"i / "per-diem"i { return "perDiem"; }
-report = "reports"i / "report"i {return "reports"; }
 draft = "drafts"i / "draft"i {return "drafts"; }
 
 operator "operator"

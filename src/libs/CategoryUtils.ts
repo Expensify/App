@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
@@ -38,9 +39,7 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
 
     const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
 
-    return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
-        defaultAmount: convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-    });
+    return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD));
 }
 
 function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: string) {
@@ -97,9 +96,19 @@ function isCategoryMissing(category: string | undefined): boolean {
     if (!category) {
         return true;
     }
-    const emptyCategories = CONST.SEARCH.CATEGORY_EMPTY_VALUE.split(',');
 
-    return emptyCategories.includes(category ?? '');
+    return category === CONST.SEARCH.CATEGORY_EMPTY_VALUE || category === CONST.SEARCH.CATEGORY_DEFAULT_VALUE;
+}
+
+function isCategoryDescriptionRequired(policyCategories: PolicyCategories | undefined, category: string | undefined, areRulesEnabled: boolean | undefined): boolean {
+    if (!policyCategories || !category || !areRulesEnabled) {
+        return false;
+    }
+    return !!policyCategories[category]?.areCommentsRequired;
+}
+
+function getDecodedCategoryName(categoryName: string) {
+    return Str.htmlDecode(categoryName);
 }
 
 export {
@@ -111,4 +120,6 @@ export {
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
     isCategoryMissing,
+    isCategoryDescriptionRequired,
+    getDecodedCategoryName,
 };

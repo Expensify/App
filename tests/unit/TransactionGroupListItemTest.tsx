@@ -15,25 +15,43 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/actions/Search', () => ({
     search: jest.fn(),
+    handleActionButtonPress: jest.fn(),
 }));
 
 jest.mock('@libs/SearchUIUtils', () => ({
     getSections: jest.fn(() => []),
     isCorrectSearchUserName: jest.fn(() => true),
+    getTableMinWidth: jest.fn(() => 0),
 }));
 
 const mockTransaction: TransactionListItemType = {
     accountID: 1,
     amount: 0,
     canDelete: true,
-    canHold: true,
-    canUnhold: false,
     category: '',
-    convertedAmount: 1284,
-    convertedCurrency: 'USD',
+    groupAmount: 1284,
+    groupCurrency: 'USD',
     created: '2025-09-19',
+    submitted: '2025-09-19',
+    approved: undefined,
+    posted: undefined,
+    exported: undefined,
     currency: 'USD',
-    managerID: 1,
+    policy: {
+        id: '06F34677820A4D07',
+        type: 'team',
+        role: 'admin',
+        owner: 'test@test.com',
+        name: 'Policy',
+        outputCurrency: 'USD',
+        isPolicyExpenseChatEnabled: true,
+    },
+    reportAction: {
+        reportActionID: '2454187434077044186',
+        actionName: 'IOU',
+        created: '2025-09-19',
+    },
+    holdReportAction: undefined,
     merchant: '(none)',
     modifiedAmount: -1284,
     modifiedCreated: '2025-09-07',
@@ -41,11 +59,8 @@ const mockTransaction: TransactionListItemType = {
     modifiedMerchant: 'The Home Depot',
     policyID: '06F34677820A4D07',
     reportID: '515146912679679',
-    reportType: 'expense',
     tag: '',
     transactionID: '1',
-    transactionThreadReportID: '2925191332104975',
-    transactionType: 'cash',
     action: 'approve',
     allActions: ['approve'],
     formattedFrom: 'Main Applause QA',
@@ -55,6 +70,10 @@ const mockTransaction: TransactionListItemType = {
     date: '2025-09-07',
     shouldShowMerchant: true,
     shouldShowYear: true,
+    shouldShowYearSubmitted: false,
+    shouldShowYearApproved: false,
+    shouldShowYearPosted: false,
+    shouldShowYearExported: false,
     keyForList: '1',
     isAmountColumnWide: false,
     isTaxAmountColumnWide: false,
@@ -79,10 +98,12 @@ const mockReport: TransactionReportGroupListItemType = {
     chatReportID: '4735435600700077',
     chatType: undefined,
     created: '2025-09-19 20:00:47',
+    submitted: '2025-09-19',
+    approved: undefined,
+    exported: undefined,
     currency: 'USD',
     isOneTransactionReport: true,
     isOwnPolicyExpenseChat: false,
-    isPolicyExpenseChat: false,
     isWaitingOnBankAccount: false,
     managerID: 1,
     nonReimbursableTotal: 0,
@@ -91,7 +112,6 @@ const mockReport: TransactionReportGroupListItemType = {
     parentReportActionID: '2454187434077044186',
     parentReportID: '4735435600700077',
     policyID: '06F34677820A4D07',
-    private_isArchived: '',
     reportID: '515146912679679',
     reportName: 'Expense Report #515146912679679',
     stateNum: 1,
@@ -109,8 +129,13 @@ const mockReport: TransactionReportGroupListItemType = {
         avatar: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_15.png',
         displayName: 'Main Applause QA',
     },
+    shouldShowYear: false,
+    shouldShowYearSubmitted: false,
+    shouldShowYearApproved: false,
+    shouldShowYearExported: false,
+    action: 'view',
     transactions: [],
-    groupedBy: 'reports',
+    groupedBy: 'expense-report',
     keyForList: '515146912679679',
 };
 
@@ -153,7 +178,7 @@ describe('TransactionGroupListItem', () => {
         item: report,
         showTooltip: false,
         onSelectRow: mockOnSelectRow,
-        groupBy: CONST.SEARCH.GROUP_BY.REPORTS,
+        searchType: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         canSelectMultiple: true,
     };
 
@@ -252,5 +277,59 @@ describe('TransactionGroupListItem', () => {
 
         expect(getVisibleTransactionRowsCount()).toBe(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
         expect(screen.getByText('Show more')).toBeTruthy();
+    });
+
+    it('should pass onDEWModalOpen callback to ReportListItemHeader for SUBMIT action', async () => {
+        const mockOnDEWModalOpen = jest.fn();
+        const reportWithSubmitAction: TransactionReportGroupListItemType = {
+            ...report,
+            action: 'submit',
+            hash: 0,
+        };
+
+        const propsWithDEWCallback: TransactionGroupListItemProps<TransactionReportGroupListItemType> = {
+            ...defaultProps,
+            item: reportWithSubmitAction,
+            onDEWModalOpen: mockOnDEWModalOpen,
+        };
+
+        render(
+            <TransactionGroupListItem
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...propsWithDEWCallback}
+            />,
+            {wrapper: TestWrapper},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Verify that the component renders with the callback prop
+        expect(screen.getByTestId('ReportSearchHeader')).toBeTruthy();
+    });
+
+    it('should pass onDEWModalOpen callback to ReportListItemHeader for APPROVE action', async () => {
+        const mockOnDEWModalOpen = jest.fn();
+        const reportWithApproveAction: TransactionReportGroupListItemType = {
+            ...report,
+            action: 'approve',
+            hash: 0,
+        };
+
+        const propsWithDEWCallback: TransactionGroupListItemProps<TransactionReportGroupListItemType> = {
+            ...defaultProps,
+            item: reportWithApproveAction,
+            onDEWModalOpen: mockOnDEWModalOpen,
+        };
+
+        render(
+            <TransactionGroupListItem
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...propsWithDEWCallback}
+            />,
+            {wrapper: TestWrapper},
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // Verify that the component renders with the callback prop
+        expect(screen.getByTestId('ReportSearchHeader')).toBeTruthy();
     });
 });

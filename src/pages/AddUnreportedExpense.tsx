@@ -8,13 +8,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LottieAnimations from '@components/LottieAnimations';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem, SectionListDataType, SelectionListHandle} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import UnreportedExpensesSkeleton from '@components/Skeletons/UnreportedExpensesSkeleton';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchUnreportedExpenses} from '@libs/actions/UnreportedExpenses';
@@ -22,12 +23,11 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import type {AddUnreportedExpensesParamList} from '@libs/Navigation/types';
-import Permissions from '@libs/Permissions';
 import {canSubmitPerDiemExpenseFromWorkspace, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import {getTransactionDetails, isIOUReport} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
-import {createUnreportedExpenseSections, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
+import {createUnreportedExpenses, getAmount, getCurrency, getDescription, getMerchant, isPerDiemRequest} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {convertBulkTrackedExpensesToIOU, startMoneyRequest} from '@userActions/IOU';
@@ -38,7 +38,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
-import NewChatSelectorPage from './NewChatSelectorPage';
 import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 
 type AddUnreportedExpensePageType = PlatformStackScreenProps<AddUnreportedExpensesParamList, typeof SCREENS.ADD_UNREPORTED_EXPENSES_ROOT>;
@@ -50,17 +49,18 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {isOffline} = useNetwork();
     const [selectedIds, setSelectedIds] = useState(new Set<string>());
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-
     const {reportID, backToReport} = route.params;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [reportToConfirm] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID}`, {canBeMissing: true});
     const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(report?.policyID)}`, {canBeMissing: true});
     const [hasMoreUnreportedTransactionsResults] = useOnyx(ONYXKEYS.HAS_MORE_UNREPORTED_TRANSACTIONS_RESULTS, {canBeMissing: true});
     const [isLoadingUnreportedTransactions] = useOnyx(ONYXKEYS.IS_LOADING_UNREPORTED_TRANSACTIONS, {canBeMissing: true});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
-    const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     const getUnreportedTransactions = useCallback(
@@ -144,11 +144,20 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             const formattedAmount = convertToDisplayString(amount, currency);
             searchableFields.push(formattedAmount);
 
+            // This allows users to search "2000" and find "$2,000.00" for example
+            const normalizedAmount = (amount / 100).toString();
+            searchableFields.push(normalizedAmount);
+
             return searchableFields;
         });
     }, [debouncedSearchValue, shouldShowTextInput, transactions]);
 
-    const sections: Array<SectionListDataType<Transaction & ListItem>> = useMemo(() => createUnreportedExpenseSections(filteredTransactions), [filteredTransactions]);
+    const unreportedExpenses = useMemo(() => {
+        return createUnreportedExpenses(filteredTransactions).map((item) => ({
+            ...item,
+            isSelected: selectedIds.has(item.transactionID),
+        }));
+    }, [filteredTransactions, selectedIds]);
 
     const handleConfirm = useCallback(() => {
         if (selectedIds.size === 0) {
@@ -159,14 +168,21 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (report && isIOUReport(report)) {
-                convertBulkTrackedExpensesToIOU([...selectedIds], report.reportID);
-            } else {
-                changeTransactionsReport(
+                convertBulkTrackedExpensesToIOU(
                     [...selectedIds],
-                    report?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID,
+                    report.reportID,
                     isASAPSubmitBetaEnabled,
                     session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     session?.email ?? '',
+                    transactionViolations,
+                );
+            } else {
+                changeTransactionsReport(
+                    [...selectedIds],
+                    isASAPSubmitBetaEnabled,
+                    session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    session?.email ?? '',
+                    reportToConfirm,
                     policy,
                     reportNextStep,
                     policyCategories,
@@ -174,7 +190,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
         });
         setErrorMessage('');
-    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, policy, reportNextStep, policyCategories]);
+    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, transactionViolations, reportToConfirm, policy, reportNextStep, policyCategories]);
 
     const footerContent = useMemo(() => {
         return (
@@ -200,11 +216,39 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     }, [errorMessage, styles, translate, handleConfirm]);
 
     const headerMessage = useMemo(() => {
-        if (debouncedSearchValue.trim() && sections.at(0)?.data.length === 0) {
+        if (debouncedSearchValue.trim() && unreportedExpenses?.length === 0) {
             return translate('common.noResultsFound');
         }
         return '';
-    }, [debouncedSearchValue, sections, translate]);
+    }, [debouncedSearchValue, unreportedExpenses?.length, translate]);
+
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchValue,
+            label: shouldShowTextInput ? translate('iou.findExpense') : undefined,
+            onChangeText: setSearchValue,
+            headerMessage,
+        }),
+        [searchValue, shouldShowTextInput, translate, setSearchValue, headerMessage],
+    );
+
+    const onSelectRow = useCallback(
+        (item: {transactionID: string}) => {
+            setSelectedIds((prevIds) => {
+                const newIds = new Set(prevIds);
+                if (newIds.has(item.transactionID)) {
+                    newIds.delete(item.transactionID);
+                } else {
+                    newIds.add(item.transactionID);
+                    if (errorMessage) {
+                        setErrorMessage('');
+                    }
+                }
+                return newIds;
+            });
+        },
+        [errorMessage],
+    );
 
     const hasSearchTerm = debouncedSearchValue.trim().length > 0;
     const isShowingEmptyState = !hasSearchTerm && transactions.length === 0;
@@ -216,7 +260,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 includeSafeAreaPaddingBottom
                 shouldShowOfflineIndicator={false}
                 shouldEnablePickerAvoiding={false}
-                testID={NewChatSelectorPage.displayName}
+                testID="NewChatSelectorPage"
                 focusTrapSettings={{active: false}}
             >
                 <HeaderWithBackButton
@@ -234,7 +278,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 shouldEnableKeyboardAvoidingView={false}
                 includeSafeAreaPaddingBottom
                 shouldEnablePickerAvoiding={false}
-                testID={NewChatSelectorPage.displayName}
+                testID="NewChatSelectorPage"
                 focusTrapSettings={{active: false}}
             >
                 <HeaderWithBackButton
@@ -278,7 +322,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             enableEdgeToEdgeBottomSafeAreaPadding
-            testID={NewChatSelectorPage.displayName}
+            testID="NewChatSelectorPage"
             focusTrapSettings={{active: false}}
         >
             <HeaderWithBackButton
@@ -286,41 +330,22 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                 onBackButtonPress={Navigation.goBack}
             />
             <SelectionList<Transaction & ListItem>
+                data={unreportedExpenses}
                 ref={selectionListRef}
-                onSelectRow={(item) => {
-                    setSelectedIds((prevIds) => {
-                        const newIds = new Set(prevIds);
-                        if (newIds.has(item.transactionID)) {
-                            newIds.delete(item.transactionID);
-                        } else {
-                            newIds.add(item.transactionID);
-                            if (errorMessage) {
-                                setErrorMessage('');
-                            }
-                        }
-
-                        return newIds;
-                    });
-                }}
-                isSelected={(item) => selectedIds.has(item.transactionID)}
+                onSelectRow={onSelectRow}
+                textInputOptions={textInputOptions}
                 shouldShowTextInput={shouldShowTextInput}
-                textInputValue={searchValue}
-                textInputLabel={shouldShowTextInput ? translate('iou.findExpense') : undefined}
-                onChangeText={setSearchValue}
-                headerMessage={headerMessage}
                 canSelectMultiple
-                sections={sections}
                 ListItem={UnreportedExpenseListItem}
                 onEndReached={fetchMoreUnreportedTransactions}
                 onEndReachedThreshold={0.75}
                 addBottomSafeAreaPadding
                 listFooterContent={shouldShowUnreportedTransactionsSkeletons ? <UnreportedExpensesSkeleton fixedNumberOfItems={3} /> : undefined}
                 footerContent={footerContent}
+                disableMaintainingScrollPosition
             />
         </ScreenWrapper>
     );
 }
-
-AddUnreportedExpense.displayName = 'AddUnreportedExpense';
 
 export default AddUnreportedExpense;

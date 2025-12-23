@@ -30,6 +30,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Subrate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SafeString from '@src/utils/SafeString';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -87,7 +88,7 @@ function IOURequestStepSubrate({
 
     const onChangeQuantity = useCallback((newValue: string) => {
         // replace all characters that are not spaces or digits
-        let validQuantity = newValue.replace(/[^0-9]/g, '');
+        let validQuantity = newValue.replaceAll(/[^0-9]/g, '');
         validQuantity = validQuantity.match(/(?:\d *){1,12}/)?.[0] ?? '';
         setQuantityValue(validQuantity);
     }, []);
@@ -113,7 +114,7 @@ function IOURequestStepSubrate({
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>): Partial<Record<string, TranslationPaths>> => {
         const errors = {};
-        const quantityVal = String(values[`quantity${pageIndex}`] ?? '');
+        const quantityVal = SafeString(values[`quantity${pageIndex}`]);
         const subrateVal = values[`subrate${pageIndex}`] ?? '';
         const quantityInt = parseInt(quantityVal, 10);
         if (subrateVal === '' || !validOptions.some(({value}) => value === subrateVal)) {
@@ -131,8 +132,8 @@ function IOURequestStepSubrate({
     };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>) => {
-        const quantityVal = String(values[`quantity${pageIndex}`] ?? '');
-        const subrateVal = String(values[`subrate${pageIndex}`] ?? '');
+        const quantityVal = SafeString(values[`quantity${pageIndex}`]);
+        const subrateVal = SafeString(values[`subrate${pageIndex}`]);
         const quantityInt = parseInt(quantityVal, 10);
         const selectedSubrate = allPossibleSubrates.find(({id}) => id === subrateVal);
         const name = selectedSubrate?.name ?? '';
@@ -175,7 +176,7 @@ function IOURequestStepSubrate({
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={IOURequestStepSubrate.displayName}
+            testID="IOURequestStepSubrate"
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
@@ -253,7 +254,5 @@ function IOURequestStepSubrate({
         </ScreenWrapper>
     );
 }
-
-IOURequestStepSubrate.displayName = 'IOURequestStepSubrate';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepSubrate));

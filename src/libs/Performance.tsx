@@ -1,7 +1,7 @@
 import {deepEqual} from 'fast-equals';
 import isObject from 'lodash/isObject';
 import lodashTransform from 'lodash/transform';
-import React, {forwardRef, Profiler} from 'react';
+import React, {Profiler} from 'react';
 import {Alert, InteractionManager} from 'react-native';
 import performance, {PerformanceObserver, setResourceLoggingEnabled} from 'react-native-performance';
 import type {PerformanceEntry, PerformanceMark, PerformanceMeasure} from 'react-native-performance';
@@ -66,7 +66,7 @@ function measureTTI(endMark?: string): void {
  * Monitor native marks that we want to put on the timeline
  */
 const nativeMarksObserver = new PerformanceObserver((list, _observer) => {
-    list.getEntries().forEach((entry) => {
+    for (const entry of list.getEntries()) {
         if (entry.name === 'nativeLaunchEnd') {
             measureFailSafe('nativeLaunch', 'nativeLaunchStart', 'nativeLaunchEnd');
         }
@@ -89,7 +89,7 @@ const nativeMarksObserver = new PerformanceObserver((list, _observer) => {
         if (entry.name === 'runJsBundleEnd' || entry.name === 'downloadEnd') {
             _observer.disconnect();
         }
-    });
+    }
 });
 
 function setNativeMarksObserverEnabled(enabled = false): void {
@@ -106,10 +106,10 @@ function setNativeMarksObserverEnabled(enabled = false): void {
  * Monitor for "_end" marks and capture "_start" to "_end" measures, including events recorded in the native layer before the app fully initializes.
  */
 const customMarksObserver = new PerformanceObserver((list) => {
-    list.getEntriesByType('mark').forEach((mark) => {
+    for (const mark of list.getEntriesByType('mark')) {
         if (mark.name.endsWith('_end')) {
             const end = mark.name;
-            const name = end.replace(/_end$/, '');
+            const name = end.replaceAll(/_end$/g, '');
             const start = `${name}_start`;
             measureFailSafe(name, start, end);
         }
@@ -119,7 +119,7 @@ const customMarksObserver = new PerformanceObserver((list) => {
             measureFailSafe('contentAppeared_To_screenTTI', 'contentAppeared', mark.name);
             measureTTI(mark.name);
         }
-    });
+    }
 });
 
 function setCustomMarksObserverEnabled(enabled = false): void {
@@ -165,7 +165,9 @@ function printPerformanceMetrics(): void {
 
 function subscribeToMeasurements(callback: (entry: PerformanceEntry) => void): () => void {
     const observer = new PerformanceObserver((list) => {
-        list.getEntriesByType('measure').forEach(callback);
+        for (const entry of list.getEntriesByType('measure')) {
+            callback(entry);
+        }
     });
 
     observer.observe({type: 'measure', buffered: true});
@@ -221,19 +223,20 @@ function withRenderTrace({id}: WrappedComponentConfig) {
         return <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P> => WrappedComponent;
     }
 
-    return <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P & React.RefAttributes<unknown>> => {
-        const WithRenderTrace: React.ComponentType<P & React.RefAttributes<unknown>> = forwardRef((props: P, ref) => (
-            <Profiler
-                id={id}
-                onRender={traceRender}
-            >
-                <WrappedComponent
-                    // eslint-disable-next-line react/jsx-props-no-spreading
-                    {...props}
-                    ref={ref}
-                />
-            </Profiler>
-        ));
+    return <P extends Record<string, unknown>>(WrappedComponent: React.ComponentType<P>): React.ComponentType<P> => {
+        function WithRenderTrace(props: P) {
+            return (
+                <Profiler
+                    id={id}
+                    onRender={traceRender}
+                >
+                    <WrappedComponent
+                        // eslint-disable-next-line react/jsx-props-no-spreading
+                        {...props}
+                    />
+                </Profiler>
+            );
+        }
 
         WithRenderTrace.displayName = `withRenderTrace(${getComponentDisplayName(WrappedComponent as React.ComponentType)})`;
         return WithRenderTrace;

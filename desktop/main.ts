@@ -7,6 +7,7 @@ import log from 'electron-log';
 import {autoUpdater} from 'electron-updater';
 import type {AuthType, PermissionType} from 'node-mac-permissions';
 import {machineId} from 'node-machine-id';
+import type {ValueOf} from 'type-fest';
 import checkForUpdates from '@libs/checkForUpdates';
 import {translate} from '@libs/Localize';
 import Log from '@libs/Log';
@@ -14,13 +15,19 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
-import type {LocationPermissionState} from '@src/libs/getCurrentPosition/locationPermission';
-import {LOCATION_PERMISSION_STATES} from '@src/libs/getCurrentPosition/locationPermission';
 import type PlatformSpecificUpdater from '@src/setup/platformSetup/types';
 import type {Locale} from '@src/types/onyx';
 import type {CreateDownloadQueueModule, DownloadItem} from './createDownloadQueue';
 import serve from './electron-serve';
 import ELECTRON_EVENTS from './ELECTRON_EVENTS';
+
+const LOCATION_PERMISSION_STATES = {
+    GRANTED: 'granted',
+    DENIED: 'denied',
+    PROMPT: 'prompt',
+} as const;
+
+type LocationPermissionState = ValueOf<typeof LOCATION_PERMISSION_STATES>;
 
 const createDownloadQueue = require<CreateDownloadQueueModule>('./createDownloadQueue').default;
 
@@ -173,13 +180,13 @@ const EXPECTED_UPDATE_VERSION_FLAG = '--expected-update-version';
 const APP_DOMAIN = __DEV__ ? `https://dev.new.expensify.com:${port}` : 'app://-';
 
 let expectedUpdateVersion: string;
-process.argv.forEach((arg) => {
+for (const arg of process.argv) {
     if (!arg.startsWith(`${EXPECTED_UPDATE_VERSION_FLAG}=`)) {
-        return;
+        continue;
     }
 
     expectedUpdateVersion = arg.slice(`${EXPECTED_UPDATE_VERSION_FLAG}=`.length);
-});
+}
 
 // Add the listeners and variables required to ensure that auto-updating
 // happens correctly.
@@ -404,6 +411,8 @@ const mainWindow = (): Promise<void> => {
                     backgroundColor: '#FAFAFA',
                     width: 1200,
                     height: 900,
+                    minWidth: 375,
+                    minHeight: 600,
                     webPreferences: {
                         preload: `${__dirname}/contextBridge.js`,
                         contextIsolation: true,

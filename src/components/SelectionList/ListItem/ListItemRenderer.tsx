@@ -16,6 +16,7 @@ type ListItemRendererProps<TItem extends ListItem> = Omit<BaseListItemProps<TIte
         singleExecution: ReturnType<typeof useSingleExecution>['singleExecution'];
         titleStyles?: StyleProp<TextStyle>;
         titleContainerStyles?: StyleProp<ViewStyle>;
+        shouldHighlightSelectedItem: boolean;
     };
 
 function ListItemRenderer<TItem extends ListItem>({
@@ -45,6 +46,9 @@ function ListItemRenderer<TItem extends ListItem>({
     singleExecution,
     titleContainerStyles,
     shouldUseDefaultRightHandSideCheckmark,
+    shouldHighlightSelectedItem,
+    shouldDisableHoverStyle,
+    shouldStopMouseLeavePropagation,
 }: ListItemRendererProps<TItem>) {
     const handleOnCheckboxPress = () => {
         if (isTransactionGroupListItemType(item)) {
@@ -95,12 +99,13 @@ function ListItemRenderer<TItem extends ListItem>({
                 titleStyles={titleStyles}
                 titleContainerStyles={titleContainerStyles}
                 shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
+                shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+                shouldDisableHoverStyle={shouldDisableHoverStyle}
+                shouldStopMouseLeavePropagation={shouldStopMouseLeavePropagation}
             />
             {item.footerContent && item.footerContent}
         </>
     );
 }
-
-ListItemRenderer.displayName = 'BaseSelectionListItemRenderer';
 
 export default ListItemRenderer;

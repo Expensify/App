@@ -10,7 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {upgradeToCorporate} from '@libs/actions/Policy/Policy';
-import {canModifyPlan, getOwnedPaidPolicies} from '@libs/PolicyUtils';
+import {getOwnedPaidPolicies, isPolicyAdmin} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -52,7 +52,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         if (!firstPolicy || ownerPolicies.length > 1) {
             return [false, undefined];
         }
-        return [canModifyPlan(firstPolicy.id), firstPolicy];
+        return [isPolicyAdmin(firstPolicy), firstPolicy];
     }, [ownerPolicies]);
 
     const handlePlanPress = (planType: PersonalPolicyTypeExcludedProps) => {

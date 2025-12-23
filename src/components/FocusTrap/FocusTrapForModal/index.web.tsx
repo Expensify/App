@@ -5,7 +5,7 @@ import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import type FocusTrapForModalProps from './FocusTrapForModalProps';
 
-function FocusTrapForModal({children, active, initialFocus = false, shouldPreventScroll = false}: FocusTrapForModalProps) {
+function FocusTrapForModal({children, active, initialFocus = false, shouldPreventScroll = false, shouldReturnFocus = true}: FocusTrapForModalProps) {
     return (
         <FocusTrap
             active={active}
@@ -20,7 +20,10 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
                     if (ReportActionComposeFocusManager.isFocused()) {
                         return false;
                     }
-                    return element;
+                    if (shouldReturnFocus) {
+                        return element;
+                    }
+                    return false;
                 },
             }}
         >
@@ -28,7 +31,5 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
         </FocusTrap>
     );
 }
-
-FocusTrapForModal.displayName = 'FocusTrapForModal';
 
 export default FocusTrapForModal;

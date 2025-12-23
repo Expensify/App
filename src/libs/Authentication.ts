@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
@@ -14,6 +15,7 @@ import {post} from './Network';
 import {getCredentials, hasReadRequiredDataFromStorage, setAuthToken, setIsAuthenticating} from './Network/NetworkStore';
 import requireParameters from './requireParameters';
 import {checkIfShouldUseNewPartnerName} from './SessionUtils';
+import trackAuthenticationError from './telemetry/trackAuthenticationError';
 
 type Parameters = {
     useExpensifyLogin?: boolean;
@@ -36,6 +38,11 @@ Onyx.connectWithoutView({
     callback: (value) => {
         isAuthenticatingWithShortLivedToken = !!value?.isAuthenticatingWithShortLivedToken;
         isSupportAuthTokenUsed = !!value?.isSupportAuthTokenUsed;
+
+        Sentry.setUser({
+            id: value?.accountID,
+            email: value?.email,
+        });
     },
 });
 
@@ -56,6 +63,12 @@ function Authenticate(parameters: Parameters): Promise<Response | void> {
         requireParameters(['partnerName', 'partnerPassword', 'partnerUserID', 'partnerUserSecret'], parameters, commandName);
     } catch (error) {
         const errorMessage = (error as Error).message;
+        trackAuthenticationError(error as Error, {
+            errorType: 'missing_params',
+            functionName: 'Authenticate',
+            commandName,
+            providedParameters: Object.keys(parameters),
+        });
         Log.hmmm('Redirecting to Sign In because we failed to reauthenticate', {
             error: errorMessage,
         });
@@ -141,12 +154,27 @@ function reauthenticate(command = ''): Promise<boolean> {
             if (response.jsonCode === CONST.JSON_CODE.UNABLE_TO_RETRY) {
                 // When a fetch() fails due to a network issue and an error is thrown we won't log the user out. Most likely they
                 // have a spotty connection and will need to retry reauthenticate when they come back online. Error so it can be handled by the retry mechanism.
-                throw new Error('Unable to retry Authenticate request');
+                const error = new Error('Unable to retry Authenticate request');
+                trackAuthenticationError(error, {
+                    errorType: 'network_retry',
+                    functionName: 'reauthenticate',
+                    jsonCode: response.jsonCode,
+                    command,
+                });
+                throw error;
             }
 
             // If authentication fails and we are online then log the user out
             if (response.jsonCode !== 200) {
                 const errorMessage = getAuthenticateErrorMessage(response);
+
+                trackAuthenticationError(new Error('Authentication failed'), {
+                    errorType: 'auth_failure',
+                    functionName: 'reauthenticate',
+                    jsonCode: response.jsonCode,
+                    command,
+                    errorMessage,
+                });
                 setIsAuthenticating(false);
                 Log.hmmm('Redirecting to Sign In because we failed to reauthenticate', {
                     command,

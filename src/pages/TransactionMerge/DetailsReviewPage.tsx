@@ -19,6 +19,7 @@ import {
     buildMergeFieldsData,
     getMergeableDataAndConflictFields,
     getMergeFieldErrorText,
+    getMergeFieldUpdatedValues,
     getMergeFieldValue,
     getSourceTransactionFromMergeTransaction,
     getTargetTransactionFromMergeTransaction,
@@ -31,12 +32,11 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getCurrency} from '@libs/TransactionUtils';
 import {createTransactionThreadReport, openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {ReportMetadata, Transaction} from '@src/types/onyx';
+import type {ReportActions, ReportMetadata, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import MergeFieldReview from './MergeFieldReview';
@@ -50,7 +50,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const styles = useThemeStyles();
     const {transactionID, backTo} = route.params;
 
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
     const [targetTransaction = getTargetTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.targetTransactionID}`, {
         canBeMissing: true,
     });
@@ -61,25 +61,30 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     });
     const targetTransactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const [iouReportForTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {canBeMissing: true});
+    const iouActionForTargetTransactionSelector = useCallback(
+        (value: OnyxEntry<ReportActions>) => {
+            if (!hasOnceLoadedTransactionThreadReportActions || !!targetTransactionThreadReportID || !targetTransaction?.transactionID) {
+                return undefined;
+            }
+            return getIOUActionForTransactionID(Object.values(value ?? {}), targetTransaction?.transactionID);
+        },
+        [hasOnceLoadedTransactionThreadReportActions, targetTransaction?.transactionID, targetTransactionThreadReportID],
+    );
+
     const [iouActionForTargetTransaction] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetTransaction?.reportID}`,
         {
-            selector: (value) => {
-                if (!hasOnceLoadedTransactionThreadReportActions || !!targetTransactionThreadReportID || !targetTransaction?.transactionID) {
-                    return undefined;
-                }
-                return getIOUActionForTransactionID(Object.values(value ?? {}), targetTransaction?.transactionID);
-            },
+            selector: iouActionForTargetTransactionSelector,
             canBeMissing: true,
         },
-        [hasOnceLoadedTransactionThreadReportActions, targetTransactionThreadReportID, targetTransaction?.transactionID],
+        [iouActionForTargetTransactionSelector],
     );
     const [sourceTransaction = getSourceTransactionFromMergeTransaction(mergeTransaction)] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${mergeTransaction?.sourceTransactionID}`, {
         canBeMissing: true,
     });
+    const [originalTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
     const [targetTransactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransactionThreadReportID}`, {canBeMissing: true});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
-
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
     const [isCheckingDataBeforeGoNext, setIsCheckingDataBeforeGoNext] = useState<boolean>(false);
@@ -89,11 +94,11 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
             return;
         }
 
-        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, localeCompare);
+        const {conflictFields: detectedConflictFields, mergeableData} = getMergeableDataAndConflictFields(targetTransaction, sourceTransaction, originalTargetTransaction, localeCompare);
 
         setMergeTransactionKey(transactionID, mergeableData);
         setConflictFields(detectedConflictFields as MergeFieldKey[]);
-    }, [targetTransaction, sourceTransaction, transactionID, localeCompare]);
+    }, [targetTransaction, sourceTransaction, originalTargetTransaction, transactionID, localeCompare]);
 
     useEffect(() => {
         if (!isCheckingDataBeforeGoNext) {
@@ -151,16 +156,17 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
+            const updatedValues = getMergeFieldUpdatedValues(transaction, field, fieldValue);
+
             setMergeTransactionKey(transactionID, {
-                [field]: fieldValue,
-                ...(field === 'amount' && {currency: getCurrency(transaction)}),
+                ...updatedValues,
                 selectedTransactionByField: {
                     ...currentSelections,
                     [field]: transaction.transactionID,
                 } as Partial<Record<MergeFieldKey, string>>,
             });
         },
-        [mergeTransaction, transactionID],
+        [mergeTransaction?.selectedTransactionByField, transactionID],
     );
 
     // Handle continue
@@ -170,13 +176,13 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         }
 
         const newHasErrors: Partial<Record<MergeFieldKey, boolean>> = {};
-        conflictFields.forEach((field) => {
+        for (const field of conflictFields) {
             if (!isEmptyMergeValue(mergeTransaction[field])) {
-                return;
+                continue;
             }
 
             newHasErrors[field] = true;
-        });
+        }
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
@@ -199,7 +205,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     return (
         <ScreenWrapper
-            testID={DetailsReviewPage.displayName}
+            testID="DetailsReviewPage"
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
         >
@@ -244,7 +250,5 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         </ScreenWrapper>
     );
 }
-
-DetailsReviewPage.displayName = 'DetailsReviewPage';
 
 export default DetailsReviewPage;

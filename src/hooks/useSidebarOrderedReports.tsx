@@ -78,7 +78,7 @@ function SidebarOrderedReportsContextProvider({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
-    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
+    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
@@ -111,14 +111,14 @@ function SidebarOrderedReportsContextProvider({
         } else if (reportsDraftsUpdates) {
             reportsToUpdate = Object.keys(reportsDraftsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ONYXKEYS.COLLECTION.REPORT));
         } else if (policiesUpdates) {
-            const updatedPolicies = Object.keys(policiesUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY, ''));
+            const updatedPolicies = new Set(Object.keys(policiesUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY, '')));
             reportsToUpdate = Object.entries(chatReports ?? {})
                 .filter(([, value]) => {
                     if (!value?.policyID) {
                         return;
                     }
 
-                    return updatedPolicies.includes(value.policyID);
+                    return updatedPolicies.has(value.policyID);
                 })
                 .map(([key]) => key);
         }

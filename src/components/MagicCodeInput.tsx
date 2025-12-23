@@ -1,6 +1,6 @@
 import type {ForwardedRef, KeyboardEvent} from 'react';
-import React, {forwardRef, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {NativeSyntheticEvent, TextInput as RNTextInput, TextInputFocusEventData, TextInputKeyPressEventData} from 'react-native';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import type {FocusEvent, TextInput as RNTextInput, TextInputKeyPressEvent} from 'react-native';
 import {StyleSheet, View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
@@ -99,6 +99,9 @@ type MagicCodeInputProps = {
 
     /** TestID for test */
     testID?: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<MagicCodeInputHandle>;
 };
 
 type MagicCodeInputHandle = {
@@ -132,25 +135,23 @@ const composeToString = (value: string[]): string => value.map((v) => v ?? CONST
 
 const getInputPlaceholderSlots = (length: number): number[] => Array.from(Array(length).keys());
 
-function MagicCodeInput(
-    {
-        value = '',
-        name = '',
-        autoFocus = true,
-        errorText = '',
-        shouldSubmitOnComplete = true,
-        onChangeText: onChangeTextProp = () => {},
-        onFocus: onFocusProps,
-        maxLength = CONST.MAGIC_CODE_LENGTH,
-        onFulfill = () => {},
-        isDisableKeyboard = false,
-        lastPressedDigit = '',
-        autoComplete,
-        hasError = false,
-        testID = '',
-    }: MagicCodeInputProps,
-    ref: ForwardedRef<MagicCodeInputHandle>,
-) {
+function MagicCodeInput({
+    value = '',
+    name = '',
+    autoFocus = true,
+    errorText = '',
+    shouldSubmitOnComplete = true,
+    onChangeText: onChangeTextProp = () => {},
+    onFocus: onFocusProps,
+    maxLength = CONST.MAGIC_CODE_LENGTH,
+    onFulfill = () => {},
+    isDisableKeyboard = false,
+    lastPressedDigit = '',
+    autoComplete,
+    hasError = false,
+    testID = '',
+    ref,
+}: MagicCodeInputProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const inputRef = useRef<BaseTextInputRef | null>(null);
@@ -164,11 +165,9 @@ function MagicCodeInput(
     const lastValue = useRef<string | number>(TEXT_INPUT_EMPTY_STATE);
     const valueRef = useRef(value);
 
-    useMagicCodePaste(inputRef, onChangeTextProp);
-
     useEffect(() => {
         lastValue.current = input.length;
-    }, [input]);
+    }, [input.length]);
 
     useEffect(() => {
         // Note: there are circumstances where the value state isn't updated yet
@@ -183,7 +182,7 @@ function MagicCodeInput(
             return;
         }
         setWasSubmitted(false);
-    }, [value, maxLength]);
+    }, [value.length, maxLength]);
 
     const blurMagicCodeInput = () => {
         inputRef.current?.blur();
@@ -256,13 +255,13 @@ function MagicCodeInput(
     /**
      * Focuses on the input when it is pressed.
      */
-    const onFocus = (event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+    const onFocus = (e: FocusEvent) => {
         if (shouldFocusLast.current) {
             lastValue.current = TEXT_INPUT_EMPTY_STATE;
             setInputAndIndex(lastFocusedIndex.current);
         }
         onFocusProps?.();
-        event.preventDefault();
+        e.preventDefault();
     };
 
     /**
@@ -327,13 +326,15 @@ function MagicCodeInput(
         valueRef.current = finalInput;
     };
 
+    useMagicCodePaste(inputRef, onChangeText);
+
     /**
      * Handles logic related to certain key presses.
      *
      * NOTE: when using Android Emulator, this can only be tested using
      * hardware keyboard inputs.
      */
-    const onKeyPress = (event: Partial<NativeSyntheticEvent<TextInputKeyPressEventData>>) => {
+    const onKeyPress = (event: Partial<TextInputKeyPressEvent>) => {
         const keyValue = event?.nativeEvent?.key;
         if (keyValue === 'Backspace' || keyValue === '<') {
             let numbers = decomposeString(value, maxLength);
@@ -538,7 +539,5 @@ function MagicCodeInput(
     );
 }
 
-MagicCodeInput.displayName = 'MagicCodeInput';
-
-export default forwardRef(MagicCodeInput);
+export default MagicCodeInput;
 export type {AutoCompleteVariant, MagicCodeInputHandle, MagicCodeInputProps};

@@ -1,6 +1,7 @@
 import debounce from 'lodash/debounce';
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import AppStateMonitor from '@libs/AppStateMonitor';
 import memoize from '@libs/memoize';
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
@@ -103,6 +104,11 @@ Onyx.connectWithoutView({
 });
 
 navigationRef?.addListener?.('state', () => {
+    triggerUnreadUpdate();
+});
+
+// Listen for app state changes to update unread count when app becomes active
+AppStateMonitor.addBecameActiveListener(() => {
     triggerUnreadUpdate();
 });
 

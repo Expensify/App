@@ -2,7 +2,9 @@ import {findFocusedRoute, StackActions, useNavigationState} from '@react-navigat
 import reportsSelector from '@selectors/Attributes';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import FloatingCameraButton from '@components/FloatingCameraButton';
 import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
 // import * as Expensicons from '@components/Icon/Expensicons';
@@ -30,10 +32,12 @@ import isRoutePreloaded from '@libs/Navigation/helpers/isRoutePreloaded';
 import navigateToWorkspacesPage, {getWorkspaceNavigationRouteState} from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {getDefaultActionableSearchMenuItem} from '@libs/SearchUIUtils';
+import {startSpan} from '@libs/telemetry/activeSpans';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
-import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {DomainSplitNavigatorParamList, RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/home/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
@@ -42,14 +46,16 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {Domain, Policy} from '@src/types/onyx';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isTopLevelBar?: boolean;
+    shouldShowFloatingCameraButton?: boolean;
 };
 
-function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingCameraButton = true}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -74,22 +80,52 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
     const initialNavigationRouteState = getWorkspaceNavigationRouteState();
     const [lastWorkspacesTabNavigatorRoute, setLastWorkspacesTabNavigatorRoute] = useState(initialNavigationRouteState.lastWorkspacesTabNavigatorRoute);
     const [workspacesTabState, setWorkspacesTabState] = useState(initialNavigationRouteState.workspacesTabState);
-    const params = workspacesTabState?.routes?.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
+    const params = workspacesTabState?.routes?.at(0)?.params as
+        | WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL]
+        | DomainSplitNavigatorParamList[typeof SCREENS.DOMAIN.INITIAL];
     const {typeMenuSections} = useSearchTypeMenuSections();
     const subscriptionPlan = useSubscriptionPlan();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Inbox', 'MoneySearch', 'Buildings']);
+
+    const paramsPolicyID = params && 'policyID' in params ? params.policyID : undefined;
+    const paramsDomainAccountID = params && 'domainAccountID' in params ? params.domainAccountID : undefined;
+
+    const lastViewedPolicySelector = useCallback(
+        (policies: OnyxCollection<Policy>) => {
+            if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || !paramsPolicyID) {
+                return undefined;
+            }
+
+            return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${paramsPolicyID}`];
+        },
+        [paramsPolicyID, lastWorkspacesTabNavigatorRoute],
+    );
 
     const [lastViewedPolicy] = useOnyx(
         ONYXKEYS.COLLECTION.POLICY,
         {
             canBeMissing: true,
-            selector: (val) => {
-                if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR || !params?.policyID) {
-                    return undefined;
-                }
+            selector: lastViewedPolicySelector,
+        },
+        [navigationState],
+    );
 
-                return val?.[`${ONYXKEYS.COLLECTION.POLICY}${params.policyID}`];
-            },
+    const lastViewedDomainSelector = useCallback(
+        (domains: OnyxCollection<Domain>) => {
+            if (!lastWorkspacesTabNavigatorRoute || lastWorkspacesTabNavigatorRoute.name !== NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR || !paramsDomainAccountID) {
+                return undefined;
+            }
+
+            return domains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${paramsDomainAccountID}`];
+        },
+        [paramsDomainAccountID, lastWorkspacesTabNavigatorRoute],
+    );
+
+    const [lastViewedDomain] = useOnyx(
+        ONYXKEYS.COLLECTION.DOMAIN,
+        {
+            canBeMissing: true,
+            selector: lastViewedDomainSelector,
         },
         [navigationState],
     );
@@ -122,8 +158,14 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
             return;
         }
 
+        startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
+            name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+            op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
+        });
         Navigation.navigate(ROUTES.HOME);
     }, [selectedTab]);
+
+    const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
 
     const navigateToSearch = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SEARCH) {
@@ -131,6 +173,16 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
+            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB, {
+                name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
+                op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB,
+            });
+
+            startSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS, {
+                name: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
+                op: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
+            });
+
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
             const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
             const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
@@ -151,23 +203,28 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                 }
             }
 
-            const nonExploreTypeQuery = typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+            const flattenedMenuItems = typeMenuSections.flatMap((section) => section.menuItems);
+            const defaultActionableSearchQuery =
+                getDefaultActionableSearchMenuItem(flattenedMenuItems)?.searchQuery ?? flattenedMenuItems.at(0)?.searchQuery ?? typeMenuSections.at(0)?.menuItems.at(0)?.searchQuery;
+
             const savedSearchQuery = Object.values(savedSearches ?? {}).at(0)?.query;
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: nonExploreTypeQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
+            const lastQueryFromOnyx = lastSearchParams?.queryJSON ? buildSearchQueryString(lastSearchParams.queryJSON) : undefined;
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultActionableSearchQuery ?? savedSearchQuery ?? buildCannedSearchQuery()}));
         });
-    }, [selectedTab, typeMenuSections, savedSearches]);
+    }, [selectedTab, typeMenuSections, savedSearches, lastSearchParams?.queryJSON]);
 
     const navigateToSettings = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SETTINGS) {
             return;
         }
         interceptAnonymousUser(() => {
+            const accountTabPayload = getAccountTabScreenToOpen(subscriptionPlan);
+
             if (isRoutePreloaded(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR)) {
                 // We use dispatch here because the correct screens and params are preloaded and set up in usePreloadFullScreenNavigators.
-                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}});
+                navigationRef.dispatch({type: CONST.NAVIGATION.ACTION_TYPE.PUSH, payload: {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, params: accountTabPayload}});
                 return;
             }
-            const accountTabPayload = getAccountTabScreenToOpen(subscriptionPlan);
             navigationRef.dispatch(StackActions.push(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, accountTabPayload));
         });
     }, [selectedTab, subscriptionPlan]);
@@ -179,8 +236,8 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
      * If the user clicks on the settings tab while on this tab, this button should go back to the previous screen within the tab.
      */
     const showWorkspaces = useCallback(() => {
-        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy});
-    }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy]);
+        navigateToWorkspacesPage({shouldUseNarrowLayout, currentUserLogin, policy: lastViewedPolicy, domain: lastViewedDomain});
+    }, [shouldUseNarrowLayout, currentUserLogin, lastViewedPolicy, lastViewedDomain]);
 
     if (!shouldUseNarrowLayout) {
         return (
@@ -191,7 +248,10 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                         chatTabBrickRoad={chatTabBrickRoad}
                     />
                 )}
-                <View style={styles.leftNavigationTabBarContainer}>
+                <View
+                    style={styles.leftNavigationTabBarContainer}
+                    testID="NavigationTabBar"
+                >
                     <HeaderGap />
                     <View style={styles.flex1}>
                         <PressableWithFeedback
@@ -201,6 +261,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                             testID="ExpensifyLogoButton"
                             onPress={navigateToChats}
                             wrapperStyle={styles.leftNavigationTabBarItem}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSIFY_LOGO}
                         >
                             <ImageSVG
                                 style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
@@ -212,6 +273,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.inbox')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
                         >
                             {({hovered}) => (
                                 <>
@@ -252,6 +314,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.reports')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                         >
                             {({hovered}) => (
                                 <>
@@ -283,6 +346,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.workspacesTabTitle')}
                             style={({hovered}) => [styles.leftNavigationTabBarItem, hovered && styles.navigationTabBarItemHovered]}
+                            sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
                         >
                             {({hovered}) => (
                                 <>
@@ -340,13 +404,17 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                     chatTabBrickRoad={chatTabBrickRoad}
                 />
             )}
-            <View style={styles.navigationTabBarContainer}>
+            <View
+                style={styles.navigationTabBarContainer}
+                testID="NavigationTabBar"
+            >
                 <PressableWithFeedback
                     onPress={navigateToChats}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.inbox')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
                 >
                     <View>
                         <Icon
@@ -383,6 +451,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                     accessibilityLabel={translate('common.reports')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                 >
                     <View>
                         <Icon
@@ -414,6 +483,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                     accessibilityLabel={translate('common.workspacesTabTitle')}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
+                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
                 >
                     <View>
                         <Icon
@@ -443,10 +513,9 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false}: NavigationTabBar
                     onPress={navigateToSettings}
                 />
             </View>
+            {shouldShowFloatingCameraButton && <FloatingCameraButton />}
         </>
     );
 }
-
-NavigationTabBar.displayName = 'NavigationTabBar';
 
 export default memo(NavigationTabBar);

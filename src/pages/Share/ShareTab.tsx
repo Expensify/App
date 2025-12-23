@@ -1,9 +1,11 @@
 import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
+import {View} from 'react-native';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionListWithSections';
-import InviteMemberListItem from '@components/SelectionListWithSections/InviteMemberListItem';
-import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
+import Text from '@components/Text';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -44,8 +46,10 @@ function ShareTab({ref}: ShareTabProps) {
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+    const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
@@ -65,6 +69,7 @@ function ShareTab({ref}: ShareTabProps) {
         return getSearchOptions({
             options,
             draftComments,
+            nvpDismissedProductTraining,
             betas: betas ?? [],
             isUsedInChatFinder: false,
             includeReadOnly: false,
@@ -72,8 +77,9 @@ function ShareTab({ref}: ShareTabProps) {
             maxResults: 20,
             includeUserToInvite: true,
             countryCode,
+            loginList,
         });
-    }, [areOptionsInitialized, betas, draftComments, options, textInputValue, countryCode]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, loginList]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {
@@ -95,19 +101,20 @@ function ShareTab({ref}: ShareTabProps) {
         searchInServer(debouncedTextInputValue.trim());
     }, [debouncedTextInputValue]);
 
-    const styledRecentReports = recentReportsOptions.map((item) => ({
-        ...item,
-        pressableStyle: styles.br2,
-        text: StringUtils.lineBreaksToSpaces(item.text),
-        wrapperStyle: [styles.pr3, styles.pl3],
-    }));
+    const styledRecentReports = useMemo(() => {
+        return recentReportsOptions.map((item, index) => ({
+            ...item,
+            pressableStyle: styles.br2,
+            text: StringUtils.lineBreaksToSpaces(item.text),
+            wrapperStyle: [styles.pr3, styles.pl3],
+            keyForList: `${item.reportID}-${index}`,
+        }));
+    }, [recentReportsOptions, styles]);
 
-    const [sections, header] = useMemo(() => {
-        const newSections = [];
-        newSections.push({title: textInputValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
-        const headerMessage = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), false, countryCode);
-        return [newSections, headerMessage];
-    }, [textInputValue, styledRecentReports, translate, countryCode]);
+    const header = useMemo(() => {
+        const headerMessage = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
+        return headerMessage;
+    }, [textInputValue, styledRecentReports.length, countryCode]);
 
     const onSelectRow = (item: OptionData) => {
         let reportID = item?.reportID ?? CONST.DEFAULT_NUMBER_ID;
@@ -126,21 +133,39 @@ function ShareTab({ref}: ShareTabProps) {
         }
     };
 
+    const textInputOptions = useMemo(
+        () => ({
+            value: textInputValue,
+            label: translate('selectionList.nameEmailOrPhoneNumber'),
+            hint: offlineMessage,
+            onChangeText: setTextInputValue,
+            headerMessage: header,
+            disableAutoFocus: true,
+        }),
+        [textInputValue, setTextInputValue, translate, offlineMessage, header],
+    );
+
+    const customListHeader = useMemo(
+        () =>
+            textInputValue.trim() === '' ? (
+                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('search.recentChats')}</Text>
+                </View>
+            ) : undefined,
+        [textInputValue, styles, translate],
+    );
+
     return (
         <SelectionList
-            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-            textInputValue={textInputValue}
-            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-            textInputHint={offlineMessage}
-            onChangeText={setTextInputValue}
-            headerMessage={header}
-            sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
+            data={areOptionsInitialized ? styledRecentReports : (CONST.EMPTY_ARRAY as unknown as never[])}
+            customListHeaderContent={customListHeader}
+            textInputOptions={textInputOptions}
+            style={{listStyle: [styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}}
             ListItem={InviteMemberListItem}
             showLoadingPlaceholder={showLoadingPlaceholder}
             shouldSingleExecuteRowSelect
             onSelectRow={onSelectRow}
             isLoadingNewOptions={!!isSearchingForReports}
-            textInputAutoFocus={false}
             ref={selectionListRef}
         />
     );
