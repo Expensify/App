@@ -9,11 +9,13 @@ jest.mock('@libs/ReportActionsUtils', () => ({
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     getReportTransactions: jest.fn(),
 }));
 
 jest.mock('@libs/CurrencyUtils', () => ({
+    // eslint-disable-next-line @typescript-eslint/consistent-type-imports
     ...jest.requireActual<typeof CurrencyUtils>('@libs/CurrencyUtils'),
     isValidCurrencyCode: jest.fn(),
 }));
