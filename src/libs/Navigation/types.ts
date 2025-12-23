@@ -2488,6 +2488,10 @@ type DomainSplitNavigatorParamList = {
     [SCREENS.DOMAIN.ADMINS]: {
         domainAccountID: number;
     };
+    [SCREENS.DOMAIN.RESET_DOMAIN]: {
+        domainAccountID: number;
+        accountID: number;
+    };
 };
 
 type OnboardingModalNavigatorParamList = {

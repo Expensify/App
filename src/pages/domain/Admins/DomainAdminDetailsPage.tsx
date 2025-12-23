@@ -1,3 +1,4 @@
+import {adminAccountIDsSelector, domainSettingsPrimaryContactSelector} from '@selectors/Domain';
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
@@ -6,14 +7,17 @@ import Avatar from '@components/Avatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {revokeDomainAdminAccess} from '@libs/actions/Domain';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -31,7 +35,17 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {domainAccountID, accountID} = route.params;
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Info'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Info', 'ClosedSign'] as const);
+
+    const [primaryContact] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+        selector: domainSettingsPrimaryContactSelector,
+        canBeMissing: false,
+    });
+
+    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminAccountIDsSelector,
+    });
 
     // eslint-disable-next-line rulesdir/no-inline-useOnyx-selector
     const [adminPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
@@ -41,9 +55,27 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
 
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(adminPersonalDetails));
     const memberLogin = adminPersonalDetails?.login ?? '';
+    const isCurrentUserPrimaryContact = primaryContact === memberLogin;
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(adminPersonalDetails);
     const fallbackIcon = adminPersonalDetails?.fallbackIcon ?? '';
+
+    const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
+    const {showConfirmModal} = useConfirmModal();
+
+    const handleRevokeAdminAccess = async () => {
+        const confirmResult = await showConfirmModal({
+            title: translate('domain.admins.revokeAdminAccess'),
+            prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+        if (confirmResult.action !== ModalActions.CONFIRM) {
+            return;
+        }
+        revokeDomainAdminAccess(route.params.domainAccountID, route.params.accountID);
+        Navigation.dismissModal();
+    };
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -83,6 +115,24 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                                 interactive={false}
                                 copyable
                             />
+                            {domainHasOnlyOneAdmin && (
+                                <MenuItem
+                                    disabled={isCurrentUserPrimaryContact}
+                                    style={styles.mb5}
+                                    title={translate('domain.admins.resetDomain')}
+                                    icon={icons.ClosedSign}
+                                    onPress={() => Navigation.navigate(ROUTES.DOMAIN_RESET_DOMAIN.getRoute(domainAccountID, accountID))}
+                                />
+                            )}
+                            {!domainHasOnlyOneAdmin && (
+                                <MenuItem
+                                    disabled={isCurrentUserPrimaryContact}
+                                    style={styles.mb5}
+                                    title={translate('domain.admins.revokeAdminAccess')}
+                                    icon={icons.ClosedSign}
+                                    onPress={handleRevokeAdminAccess}
+                                />
+                            )}
                             <MenuItem
                                 style={styles.mb5}
                                 title={translate('common.profile')}
