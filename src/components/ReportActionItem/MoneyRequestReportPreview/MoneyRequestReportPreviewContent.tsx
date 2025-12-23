@@ -450,7 +450,7 @@ function MoneyRequestReportPreviewContent({
 
         // Sometimes scrollToIndex might be called before the item is rendered so we will re-call scrollToIndex after a small delay.
         setTimeout(() => {
-            carouselRef.current?.scrollToIndex({index, animated: true});
+            carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2 * styles.gap2.gap});
         }, 100);
         numberOfScrollToIndexFailed.current++;
     }, []);
@@ -463,7 +463,7 @@ function MoneyRequestReportPreviewContent({
         }
         setTimeout(() => {
             numberOfScrollToIndexFailed.current = 0;
-            carouselRef.current?.scrollToIndex({index, viewOffset: 15, animated: true});
+            carouselRef.current?.scrollToIndex({index, viewOffset: 2 * styles.gap2.gap, animated: true});
         }, CONST.ANIMATED_TRANSITION);
 
         // eslint-disable-next-line react-compiler/react-compiler
