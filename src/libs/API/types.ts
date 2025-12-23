@@ -491,6 +491,7 @@ const WRITE_COMMANDS = {
     UPDATE_INVOICE_COMPANY_WEBSITE: 'UpdateInvoiceCompanyWebsite',
     GET_CORPAY_BANK_ACCOUNT_FIELDS: 'GetCorpayBankAccountFields',
     BANK_ACCOUNT_CREATE_CORPAY: 'BankAccount_CreateCorpay',
+    SHARE_BANK_ACCOUNT: 'ShareBankAccount',
     UPDATE_WORKSPACE_CUSTOM_UNIT: 'UpdateWorkspaceCustomUnit',
     GET_ACCESSIBLE_POLICIES: 'GetAccessibleDomainPoliciesForOnyx',
     VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'ValidateUserAndGetAccessiblePolicies',
@@ -529,6 +530,7 @@ const WRITE_COMMANDS = {
     CREATE_DOMAIN: 'CreateDomain',
     SET_TECHNICAL_CONTACT_EMAIL: 'SetTechnicalContactEmail',
     TOGGLE_CONSOLIDATED_DOMAIN_BILLING: 'ToggleConsolidatedDomainBilling',
+    ADD_DOMAIN_ADMIN: 'AddDomainAdmin',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -699,6 +701,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_POLICY_TAG]: Parameters.CreatePolicyTagsParams;
     [WRITE_COMMANDS.RENAME_POLICY_TAG]: Parameters.RenamePolicyTagsParams;
     [WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE]: Parameters.UpdatePolicyTagGLCodeParams;
+    [WRITE_COMMANDS.SHARE_BANK_ACCOUNT]: Parameters.ShareBankAccountParams;
     [WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED]: Parameters.SetPolicyTagsEnabled;
     [WRITE_COMMANDS.DELETE_POLICY_TAGS]: Parameters.DeletePolicyTagsParams;
     [WRITE_COMMANDS.CREATE_TASK]: Parameters.CreateTaskParams;
@@ -1079,6 +1082,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.CREATE_DOMAIN]: Parameters.DomainParams;
     [WRITE_COMMANDS.SET_TECHNICAL_CONTACT_EMAIL]: Parameters.SetTechnicalContactEmailParams;
     [WRITE_COMMANDS.TOGGLE_CONSOLIDATED_DOMAIN_BILLING]: Parameters.ToggleConsolidatedDomainBillingParams;
+    [WRITE_COMMANDS.ADD_DOMAIN_ADMIN]: Parameters.AddAdminToDomainParams;
 };
 
 const READ_COMMANDS = {
@@ -1094,6 +1098,7 @@ const READ_COMMANDS = {
     OPEN_WORKSPACE_VIEW: 'OpenWorkspaceView',
     GET_MAPBOX_ACCESS_TOKEN: 'GetMapboxAccessToken',
     OPEN_PAYMENTS_PAGE: 'OpenPaymentsPage',
+    OPEN_BANK_ACCOUNT_SHARE_PAGE: 'OpenBankAccountSharePage',
     OPEN_PERSONAL_DETAILS: 'OpenPersonalDetailsPage',
     OPEN_PUBLIC_PROFILE_PAGE: 'OpenPublicProfilePage',
     OPEN_PLAID_BANK_LOGIN: 'OpenPlaidBankLogin',
@@ -1175,6 +1180,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.OPEN_WORKSPACE_VIEW]: Parameters.OpenWorkspaceViewParams;
     [READ_COMMANDS.GET_MAPBOX_ACCESS_TOKEN]: null;
     [READ_COMMANDS.OPEN_PAYMENTS_PAGE]: Parameters.OpenPaymentsPageParams | null;
+    [READ_COMMANDS.OPEN_BANK_ACCOUNT_SHARE_PAGE]: null;
     [READ_COMMANDS.OPEN_PERSONAL_DETAILS]: null;
     [READ_COMMANDS.OPEN_PUBLIC_PROFILE_PAGE]: Parameters.OpenPublicProfilePageParams;
     [READ_COMMANDS.OPEN_PLAID_BANK_LOGIN]: Parameters.OpenPlaidBankLoginParams;

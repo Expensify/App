@@ -1660,11 +1660,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>解决问题。`;
+                        return `正在等待<strong>你</strong>解决这些问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `正在等待 <strong>${actor}</strong> 解决问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `正在等待管理员修复问题。`;
+                        return `正在等待管理员修复这些问题。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2174,6 +2174,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: '确认您的银行账户',
         personalBankAccounts: '个人银行账户',
         businessBankAccounts: '企业银行账户',
+        shareBankAccount: '共享银行账户',
+        bankAccountShared: '已共享银行账户',
+        shareBankAccountTitle: '选择要共享此银行账户的管理员：',
+        shareBankAccountSuccess: '已共享银行账户！',
+        shareBankAccountSuccessDescription: '选定的管理员将收到来自礼宾部的确认消息。',
+        shareBankAccountFailure: '尝试共享银行账户时发生意外错误。请重试。',
+        shareBankAccountEmptyTitle: '暂无管理员可用',
+        shareBankAccountEmptyDescription: '没有可与您共享此银行账户的工作区管理员。',
+        shareBankAccountNoAdminsSelected: '请先选择一位管理员再继续',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2318,23 +2327,7 @@ ${amount}，商户：${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '无法更改审批人。请重试或联系支持。',
-        title: '发送给该成员以供审批：',
-        description: '此人将审批费用。',
-    },
-    workflowsApprovalLimitPage: {
-        title: '审批人',
-        header: '（可选）是否添加审批限额？',
-        description: ({approverName}: {approverName: string}) =>
-            approverName ? `当<strong>${approverName}</strong>为审批人且报告超过以下金额时，添加另一位审批人：` : '当报告超过以下金额时，添加另一位审批人：',
-        reportAmountLabel: '报告金额',
-        additionalApproverLabel: '额外审批人',
-        skip: '跳过',
-        next: '下一步',
-        removeLimit: '移除限额',
-        enterAmountError: '请输入有效金额',
-        enterApproverError: '设置报告限额时需要审批人',
-        enterBothError: '请输入报告金额和额外审批人',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `超过${approvalLimit}的报告将转发给${approverName}`,
+        header: '发送给该成员以供审批：',
     },
     workflowsPayerPage: {
         title: '授权付款人',
@@ -2884,6 +2877,7 @@ ${
             containsReservedWord: '名称不能包含“Expensify”或“Concierge”',
             hasInvalidCharacter: '名称不能包含逗号或分号',
             requiredFirstName: '名字不能为空',
+            cannotContainSpecialCharacters: '名称不能包含特殊字符',
         },
     },
     privatePersonalDetails: {
@@ -3873,7 +3867,6 @@ ${
                 monthly: '每月',
             },
             planType: '计划类型',
-            submitExpense: '请在下方提交您的报销：',
             defaultCategory: '默认类别',
             viewTransactions: '查看交易',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName} 的报销`,
@@ -7843,11 +7836,15 @@ ${reportName}
             findAdmin: '查找管理员',
             primaryContact: '主要联系人',
             addPrimaryContact: '添加主要联系人',
+            setPrimaryContactError: '无法设置主要联系人。请稍后重试。',
             settings: '设置',
             consolidatedDomainBilling: '合并域名结算',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>启用后，主要联系人将为<strong>${domainName}</strong>成员拥有的所有工作区付款，并接收所有账单收据。</muted-text-label></comment>`,
             consolidatedDomainBillingError: '无法更改合并域账单。请稍后重试。',
+            addAdmin: '添加管理员',
+            invite: '邀请',
+            addAdminError: '无法将此成员添加为管理员。请重试。',
         },
     },
     desktopAppRetiredPage: {title: '桌面应用程序已停用', body: '新的 Expensify Mac 桌面应用已停用。今后，请使用网页版应用访问您的账户。', goToWeb: '前往网页'},

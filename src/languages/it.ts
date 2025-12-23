@@ -1686,11 +1686,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> risolva il/i problema/i.`;
+                        return `In attesa che <strong>tu</strong> risolva i problemi.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> risolva il/i problema/i.`;
+                        return `In attesa che <strong>${actor}</strong> risolva i problemi.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `In attesa che un amministratore risolva il/i problema/i.`;
+                        return `In attesa che un amministratore risolva i problemi.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2206,6 +2206,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Conferma il tuo conto bancario',
         personalBankAccounts: 'Conti bancari personali',
         businessBankAccounts: 'Conti bancari aziendali',
+        shareBankAccount: 'Condividi conto bancario',
+        bankAccountShared: 'Conto bancario condiviso',
+        shareBankAccountTitle: 'Seleziona gli amministratori con cui condividere questo conto bancario:',
+        shareBankAccountSuccess: 'Conto bancario condiviso!',
+        shareBankAccountSuccessDescription: 'Gli amministratori selezionati riceveranno un messaggio di conferma da Concierge.',
+        shareBankAccountFailure: 'Si è verificato un errore imprevisto durante il tentativo di condividere il conto bancario. Riprova.',
+        shareBankAccountEmptyTitle: 'Nessun amministratore disponibile',
+        shareBankAccountEmptyDescription: "Non ci sono amministratori dell'area di lavoro con cui puoi condividere questo conto bancario.",
+        shareBankAccountNoAdminsSelected: 'Seleziona un amministratore prima di continuare',
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',
@@ -2355,26 +2364,7 @@ ${amount} per ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.",
-        title: 'Invia a questo membro per approvazione:',
-        description: 'Questa persona approverà le spese.',
-    },
-    workflowsApprovalLimitPage: {
-        title: 'Approvatore',
-        header: '(Opzionale) Vuoi aggiungere un limite di approvazione?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Aggiungi un altro approvatore quando <strong>${approverName}</strong> è approvatore e il report supera l'importo seguente:`
-                : "Aggiungi un altro approvatore quando il report supera l'importo seguente:",
-        reportAmountLabel: 'Importo del report',
-        additionalApproverLabel: 'Approvatore aggiuntivo',
-        skip: 'Salta',
-        next: 'Avanti',
-        removeLimit: 'Rimuovi limite',
-        enterAmountError: 'Inserisci un importo valido',
-        enterApproverError: 'Un approvatore è richiesto quando imposti un limite di report',
-        enterBothError: 'Inserisci un importo del report e un approvatore aggiuntivo',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
-            `I report superiori a ${approvalLimit} vengono inoltrati a ${approverName}`,
+        header: 'Invia a questo membro per approvazione:',
     },
     workflowsPayerPage: {
         title: 'Pagatore autorizzato',
@@ -2929,6 +2919,7 @@ ${
             containsReservedWord: 'Il nome non può contenere le parole Expensify o Concierge',
             hasInvalidCharacter: 'Il nome non può contenere virgole o punti e virgola',
             requiredFirstName: 'Il nome non può essere vuoto',
+            cannotContainSpecialCharacters: 'Il nome non può contenere caratteri speciali',
         },
     },
     privatePersonalDetails: {
@@ -3938,7 +3929,6 @@ ${
                 monthly: 'Mensile',
             },
             planType: 'Tipo di piano',
-            submitExpense: 'Invia le tue spese qui sotto:',
             defaultCategory: 'Categoria predefinita',
             viewTransactions: 'Visualizza transazioni',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Spese di ${displayName}`,
@@ -8045,11 +8035,15 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             findAdmin: 'Trova amministratore',
             primaryContact: 'Contatto principale',
             addPrimaryContact: 'Aggiungi contatto principale',
+            setPrimaryContactError: 'Impossibile impostare il contatto principale. Riprova più tardi.',
             settings: 'Impostazioni',
             consolidatedDomainBilling: 'Fatturazione consolidata del dominio',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Quando abilitata, il contatto principale pagherà per tutti gli spazi di lavoro di proprietà dei membri di <strong>${domainName}</strong> e riceverà tutte le ricevute di fatturazione.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'La fatturazione dominio consolidata non può essere modificata. Riprova più tardi.',
+            addAdmin: 'Aggiungi amministratore',
+            invite: 'Invita',
+            addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
         },
     },
     desktopAppRetiredPage: {
