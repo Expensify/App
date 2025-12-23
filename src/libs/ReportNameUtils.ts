@@ -25,6 +25,7 @@ import {convertToDisplayString} from './CurrencyUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
+// eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
@@ -71,6 +72,7 @@ import {
     isTransactionThread,
     isUnapprovedAction,
 } from './ReportActionsUtils';
+// eslint-disable-next-line import/no-cycle
 import {
     formatReportLastMessageText,
     getDisplayNameForParticipant,
@@ -617,7 +619,7 @@ function computeChatThreadReportName(report: Report, reportNameValuePairs: Repor
     return reportActionMessage;
 }
 
-function computeReportName(
+function computeReportNameWithoutFormula(
     report?: Report,
     reports?: OnyxCollection<Report>,
     policies?: OnyxCollection<Policy>,
@@ -739,7 +741,7 @@ function getReportName(report?: Report, reportAttributesDerivedValue?: ReportAtt
 }
 
 export {
-    computeReportName,
+    computeReportNameWithoutFormula,
     getReportName,
     generateArchivedReportName,
     getInvoiceReportName,
