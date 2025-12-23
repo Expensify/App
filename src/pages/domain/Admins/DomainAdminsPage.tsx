@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {adminAccountIDsSelector, technicalContactEmailSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -34,14 +34,55 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
-    const [technicalContactEmail] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
+    const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,
-        selector: technicalContactEmailSelector,
+        selector: technicalContactSettingsSelector,
     });
 
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
 
+    const data: AdminOption[] = [];
+    for (const accountID of adminAccountIDs ?? []) {
+        const details = personalDetails?.[accountID];
+        const isPrimaryContact = technicalContactSettings?.technicalContactEmail === details?.login;
+        data.push({
+            keyForList: String(accountID),
+            accountID,
+            login: details?.login ?? '',
+            text: formatPhoneNumber(getDisplayNameOrDefault(details)),
+            alternateText: formatPhoneNumber(details?.login ?? ''),
+            icons: [
+                {
+                    source: details?.avatar ?? icons.FallbackAvatar,
+                    name: formatPhoneNumber(details?.login ?? ''),
+                    type: CONST.ICON_TYPE_AVATAR,
+                    id: accountID,
+                },
+            ],
+            rightElement: isPrimaryContact && <Badge text={translate('domain.admins.primaryContact')} />,
+        });
+    }
+
+    const filterMember = (adminOption: AdminOption, searchQuery: string) => {
+        const results = tokenizedSearch([adminOption], searchQuery, (option) => [option.text ?? '', option.alternateText ?? '']);
+        return results.length > 0;
+    };
+    const sortMembers = (adminOptions: AdminOption[]) => sortAlphabetically(adminOptions, 'text', localeCompare);
+    const [inputValue, setInputValue, filteredData] = useSearchResults(data, filterMember, sortMembers);
+
+    const getCustomListHeader = () => {
+        if (filteredData.length === 0) {
+            return null;
+        }
+
+        return (
+            <CustomListHeader
+                canSelectMultiple={false}
+                leftHeaderText={translate('domain.admins.title')}
+            />
+        );
+    };
     const getCustomRightElement = useCallback(
         (accountID: number) => {
             const login = personalDetails?.[accountID]?.login;

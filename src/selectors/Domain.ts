@@ -69,6 +69,19 @@ function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
     return [...new Set(memberIDs)].filter((id) => !Number.isNaN(id)) ?? getEmptyArray<number>();
 }
 
-const technicalContactEmailSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => domainMemberSharedNVP?.settings?.technicalContactEmail;
+const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => {
+    return {
+        technicalContactEmail: domainMemberSharedNVP?.settings?.technicalContactEmail,
+        useTechnicalContactBillingCard: domainMemberSharedNVP?.settings?.useTechnicalContactBillingCard,
+    };
+};
 
-export {domainMemberSamlSettingsSelector, domainSamlSettingsStateSelector, domainNameSelector, metaIdentitySelector, adminAccountIDsSelector, technicalContactEmailSelector, selectMemberIDs};
+export {
+    domainMemberSamlSettingsSelector,
+    domainSamlSettingsStateSelector,
+    domainNameSelector,
+    metaIdentitySelector,
+    adminAccountIDsSelector,
+    technicalContactSettingsSelector,
+    selectMemberIDs,
+};
