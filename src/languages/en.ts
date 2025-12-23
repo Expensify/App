@@ -2844,7 +2844,7 @@ const translations = {
     },
     personalDetails: {
         error: {
-            cannotContainSpecialCharacters: 'Name cannot contain special characters.',
+            cannotContainSpecialCharacters: 'Name cannot contain special characters',
             containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
             requiredFirstName: 'First name cannot be empty',

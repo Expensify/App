@@ -2876,7 +2876,7 @@ ${
             containsReservedWord: 'Il nome non può contenere le parole Expensify o Concierge',
             hasInvalidCharacter: 'Il nome non può contenere virgole o punti e virgola',
             requiredFirstName: 'Il nome non può essere vuoto',
-            cannotContainSpecialCharacters: 'Il nome non può contenere caratteri speciali.',
+            cannotContainSpecialCharacters: 'Il nome non può contenere caratteri speciali',
         },
     },
     privatePersonalDetails: {
