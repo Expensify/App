@@ -75,7 +75,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const isLoadingPage = !isOffline && (isLoadingFeed || isLoadingOnyxValue(personalDetailsMetadata));
 
     const showCards = !isInitiallyLoadingFeeds && !isFeedPending && !isNoFeed && !isLoadingFeed;
-    const showTableControls = showCards && !!selectedFeed && !isFeedPending;
+    const showTableControls = showCards && !!selectedFeed && !isLoadingCards;
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
     const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
@@ -279,6 +279,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
                 <View style={shouldUseNarrowTableLayout && styles.mb5}>
                     <WorkspaceCompanyCardsTableHeaderButtons
                         isLoading={isLoadingPage}
+                        isFeedPending={isFeedPending}
                         policyID={policy?.id}
                         feedName={feedName}
                         showTableControls={showTableControls}
