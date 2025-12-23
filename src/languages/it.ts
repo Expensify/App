@@ -343,6 +343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'Nome',
         lastName: 'Cognome',
         scanning: 'Scansione',
+        analyzing: 'Analisi in corso...',
         addCardTermsOfService: 'Termini di servizio di Expensify',
         perPerson: 'per persona',
         phone: 'Telefono',
@@ -2308,26 +2309,7 @@ ${amount} per ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.",
-        title: 'Invia a questo membro per approvazione:',
-        description: 'Questa persona approverà le spese.',
-    },
-    workflowsApprovalLimitPage: {
-        title: 'Approvatore',
-        header: '(Opzionale) Vuoi aggiungere un limite di approvazione?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Aggiungi un altro approvatore quando <strong>${approverName}</strong> è approvatore e il report supera l'importo seguente:`
-                : "Aggiungi un altro approvatore quando il report supera l'importo seguente:",
-        reportAmountLabel: 'Importo del report',
-        additionalApproverLabel: 'Approvatore aggiuntivo',
-        skip: 'Salta',
-        next: 'Avanti',
-        removeLimit: 'Rimuovi limite',
-        enterAmountError: 'Inserisci un importo valido',
-        enterApproverError: 'Un approvatore è richiesto quando imposti un limite di report',
-        enterBothError: 'Inserisci un importo del report e un approvatore aggiuntivo',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
-            `I report superiori a ${approvalLimit} vengono inoltrati a ${approverName}`,
+        header: 'Invia a questo membro per approvazione:',
     },
     workflowsPayerPage: {
         title: 'Pagatore autorizzato',
@@ -2882,6 +2864,7 @@ ${
             containsReservedWord: 'Il nome non può contenere le parole Expensify o Concierge',
             hasInvalidCharacter: 'Il nome non può contenere virgole o punti e virgola',
             requiredFirstName: 'Il nome non può essere vuoto',
+            cannotContainSpecialCharacters: 'Il nome non può contenere caratteri speciali',
         },
     },
     privatePersonalDetails: {
@@ -7997,11 +7980,15 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             findAdmin: 'Trova amministratore',
             primaryContact: 'Contatto principale',
             addPrimaryContact: 'Aggiungi contatto principale',
+            setPrimaryContactError: 'Impossibile impostare il contatto principale. Riprova più tardi.',
             settings: 'Impostazioni',
             consolidatedDomainBilling: 'Fatturazione consolidata del dominio',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Quando abilitata, il contatto principale pagherà per tutti gli spazi di lavoro di proprietà dei membri di <strong>${domainName}</strong> e riceverà tutte le ricevute di fatturazione.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'La fatturazione dominio consolidata non può essere modificata. Riprova più tardi.',
+            addAdmin: 'Aggiungi amministratore',
+            invite: 'Invita',
+            addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
         },
     },
     desktopAppRetiredPage: {

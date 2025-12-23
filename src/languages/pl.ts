@@ -343,6 +343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'Imię',
         lastName: 'Nazwisko',
         scanning: 'Skanowanie',
+        analyzing: 'Analizowanie...',
         addCardTermsOfService: 'Warunki korzystania z usługi Expensify',
         perPerson: 'na osobę',
         phone: 'Telefon',
@@ -2303,25 +2304,7 @@ ${amount} dla ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Nie można było zmienić osoby zatwierdzającej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
-        title: 'Wyślij do tego członka do zatwierdzenia:',
-        description: 'Ta osoba zatwierdzi wydatki.',
-    },
-    workflowsApprovalLimitPage: {
-        title: 'Zatwierdzający',
-        header: '(Opcjonalnie) Czy chcesz dodać limit zatwierdzenia?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Dodaj innego zatwierdzającego, gdy <strong>${approverName}</strong> jest zatwierdzającym, a raport przekracza poniższą kwotę:`
-                : 'Dodaj innego zatwierdzającego, gdy raport przekracza poniższą kwotę:',
-        reportAmountLabel: 'Kwota raportu',
-        additionalApproverLabel: 'Dodatkowy zatwierdzający',
-        skip: 'Pomiń',
-        next: 'Dalej',
-        removeLimit: 'Usuń limit',
-        enterAmountError: 'Wprowadź prawidłową kwotę',
-        enterApproverError: 'Zatwierdzający jest wymagany, gdy ustawisz limit raportu',
-        enterBothError: 'Wprowadź kwotę raportu i dodatkowego zatwierdzającego',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Raporty powyżej ${approvalLimit} są przekazywane do ${approverName}`,
+        header: 'Wyślij do tego członka do zatwierdzenia:',
     },
     workflowsPayerPage: {
         title: 'Upoważniony płatnik',
@@ -2876,6 +2859,7 @@ ${
             containsReservedWord: 'Nazwa nie może zawierać słów Expensify ani Concierge',
             hasInvalidCharacter: 'Nazwa nie może zawierać przecinka ani średnika',
             requiredFirstName: 'Imię nie może być puste',
+            cannotContainSpecialCharacters: 'Nazwa nie może zawierać znaków specjalnych',
         },
     },
     privatePersonalDetails: {
@@ -7967,11 +7951,15 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             findAdmin: 'Znajdź administratora',
             primaryContact: 'Główny kontakt',
             addPrimaryContact: 'Dodaj główny kontakt',
+            setPrimaryContactError: 'Nie można ustawić głównego kontaktu. Spróbuj ponownie później.',
             settings: 'Ustawienia',
             consolidatedDomainBilling: 'Skonsolidowane rozliczanie domen',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Gdy ta opcja jest włączona, główny kontakt będzie opłacać wszystkie przestrzenie robocze należące do członków <strong>${domainName}</strong> i otrzymywać wszystkie potwierdzenia rozliczeń.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Nie udało się zmienić zbiorczego rozliczania domeny. Spróbuj ponownie później.',
+            addAdmin: 'Dodaj administratora',
+            invite: 'Zaproś',
+            addAdminError: 'Nie można dodać tego członka jako administratora. Spróbuj ponownie.',
         },
     },
     desktopAppRetiredPage: {
