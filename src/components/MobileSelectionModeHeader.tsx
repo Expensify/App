@@ -20,7 +20,7 @@ import {queueExportSearchWithTemplate} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
-import {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
+import type {KYCFlowEvent, TriggerKYCFlow} from '@libs/PaymentUtils';
 import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -28,9 +28,9 @@ import type SCREENS from '@src/SCREENS';
 import type {Policy, Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {KYCWallContext} from './KYCWall/KYCWallContext';
-import {PaymentMethodType} from './KYCWall/types';
+import type {PaymentMethodType} from './KYCWall/types';
 import MoneyReportHeaderKYCDropdown from './MoneyReportHeaderKYCDropdown';
-import {PaymentActionParams} from './SettlementButton/types';
+import type {PaymentActionParams} from './SettlementButton/types';
 
 type MobileSelectionModeHeaderProps = {
     /** All transactions in the report */

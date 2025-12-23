@@ -117,7 +117,6 @@ function MoneyRequestReportActionsList({
     hasOlderActions,
     hasPendingDeletionTransaction,
     showReportActionsLoadingState,
-    reportPendingAction: _reportPendingAction,
 }: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate, getLocalDateFromDatetime} = useLocalize();

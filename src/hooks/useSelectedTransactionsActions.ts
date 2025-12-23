@@ -1,5 +1,5 @@
 import {useCallback, useMemo, useState} from 'react';
-import {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
