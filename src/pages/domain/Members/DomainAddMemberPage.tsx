@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo, useState, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -12,11 +12,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import {addMemberToDomain} from '@userActions/Domain';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {addMemberToDomain} from '@userActions/Domain';
 
 type DomainAddMemberProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_MEMBER>;
 
@@ -40,38 +40,44 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
 
     const maxCursorPosition = Math.max(0, email.length - domainSuffix.length);
 
-    const handleInputChange = useCallback((value: string) => {
-        if (!domainName) {
-            setEmail(value);
-            return;
-        }
+    const handleInputChange = useCallback(
+        (value: string) => {
+            if (!domainName) {
+                setEmail(value);
+                return;
+            }
 
-        const loginPart = value.replace(domainSuffix, '').split('@').at(0) ?? '';
+            const loginPart = value.replace(domainSuffix, '').split('@').at(0) ?? '';
 
-        if (loginPart === '') {
-            setEmail(domainSuffix);
-            setSelection({start: 0, end: 0});
-        } else {
-            setEmail(`${loginPart}${domainSuffix}`);
-        }
-    }, [domainName, domainSuffix]);
+            if (loginPart === '') {
+                setEmail(domainSuffix);
+                setSelection({start: 0, end: 0});
+            } else {
+                setEmail(`${loginPart}${domainSuffix}`);
+            }
+        },
+        [domainName, domainSuffix],
+    );
 
-    const handleSelectionChange = useCallback((event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-        const {start, end} = event.nativeEvent.selection;
+    const handleSelectionChange = useCallback(
+        (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+            const {start, end} = event.nativeEvent.selection;
 
-        if (start > maxCursorPosition || end > maxCursorPosition) {
-            const constrainedPosition = Math.min(start, end, maxCursorPosition);
-            setSelection({
-                start: constrainedPosition,
-                end: constrainedPosition,
-            });
-        } else {
-            setSelection({start, end});
-        }
-    }, [maxCursorPosition]);
+            if (start > maxCursorPosition || end > maxCursorPosition) {
+                const constrainedPosition = Math.min(start, end, maxCursorPosition);
+                setSelection({
+                    start: constrainedPosition,
+                    end: constrainedPosition,
+                });
+            } else {
+                setSelection({start, end});
+            }
+        },
+        [maxCursorPosition],
+    );
 
     const inviteUser = useCallback(() => {
-        addMemberToDomain(domainAccountID,email)
+        addMemberToDomain(domainAccountID, email);
         Navigation.dismissModal();
     }, []);
 
