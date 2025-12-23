@@ -46,6 +46,29 @@ function adminAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
     );
 }
 
+/**
+ * Extracts a list of member IDs (accountIDs) from the domain object.
+ * * It iterates through the security groups in the domain, extracts account IDs from the 'shared' property,
+ * and returns a unique list of numbers.
+ *
+ * @param domain - The domain object from Onyx
+ * @returns An array of unique member account IDs
+ */
+function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
+    if (!domain) {
+        return [];
+    }
+
+    const memberIDs = Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
+        if (key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX)) {
+            Object.keys((value as any)?.shared ?? {}).forEach((id) => acc.push(Number(id)));
+        }
+        return acc;
+    }, []);
+
+    return [...new Set(memberIDs)].filter((id) => !Number.isNaN(id)) ?? getEmptyArray<number>();
+}
+
 const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => {
     return {
         technicalContactEmail: domainMemberSharedNVP?.settings?.technicalContactEmail,
@@ -63,4 +86,5 @@ export {
     adminAccountIDsSelector,
     technicalContactSettingsSelector,
     domainEmailSelector,
+    selectMemberIDs,
 };
