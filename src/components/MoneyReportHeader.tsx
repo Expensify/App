@@ -226,7 +226,6 @@ function MoneyReportHeader({
         'Info',
         'Export',
         'Document',
-        'MoneyBag',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
     const {translate} = useLocalize();
@@ -943,27 +942,6 @@ function MoneyReportHeader({
 
     // Build list of available report-level actions (Submit, Approve, Pay) to show when all expenses are selected
     const availableReportLevelActions = useMemo((): PopoverMenuItem[] => {
-        // Build the list of payment submenu items
-        const paymentSubMenuItems = Object.values(paymentButtonOptions).map((option) => {
-            // If the option has submenu items, return the option as is
-            if (option.subMenuItems && option.subMenuItems.length > 0) {
-                return {
-                    text: option.text,
-                    icon: option.icon,
-                    rightIcon: option.rightIcon,
-                    backButtonText: option.backButtonText,
-                    subMenuItems: option.subMenuItems,
-                };
-            }
-
-            // For simple options without subMenuItems, add onSelected callback to execute payment
-            return {
-                text: option.text,
-                icon: option.icon,
-                onSelected: () => confirmPayment(option.value as PaymentMethodType),
-            };
-        });
-
         // Define action configurations with their primary/secondary action types and menu item properties
         const actionConfigs = [
             {
@@ -984,10 +962,10 @@ function MoneyReportHeader({
                 primaryActionType: CONST.REPORT.PRIMARY_ACTIONS.PAY,
                 secondaryActionType: CONST.REPORT.SECONDARY_ACTIONS.PAY,
                 text: translate('iou.settlePayment', {formattedAmount: totalAmount}),
-                icon: expensifyIcons.MoneyBag,
+                icon: expensifyIcons.Cash,
                 rightIcon: expensifyIcons.ArrowRight,
                 backButtonText: translate('iou.settlePayment', {formattedAmount: totalAmount}),
-                subMenuItems: paymentSubMenuItems,
+                subMenuItems: paymentButtonOptions,
             },
         ];
 
