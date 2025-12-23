@@ -83,6 +83,7 @@ function WalletPage() {
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
+    const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
     const kycWallRef = useContext(KYCWallContext);
 
     const hasWallet = !isEmpty(userWallet);
