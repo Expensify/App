@@ -600,6 +600,8 @@ function isMergeActionForSelectedTransactions(transactions: Transaction[], repor
         return false;
     }
 
+    // Prevent Merge from showing for admins/managers when selecting transactions
+    // belonging to different users
     if (transactions.length === 2) {
         const currentUserAccountID = getCurrentUserAccountID();
 
