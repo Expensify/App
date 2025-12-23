@@ -1607,11 +1607,11 @@ const translations = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to fix the issue(s).`;
+                        return `Waiting for <strong>you</strong> to fix the issues.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to fix the issue(s).`;
+                        return `Waiting for <strong>${actor}</strong> to fix the issues.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to fix the issue(s).`;
+                        return `Waiting for an admin to fix the issues.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2125,6 +2125,15 @@ const translations = {
         confirmYourBankAccount: 'Confirm your bank account',
         personalBankAccounts: 'Personal bank accounts',
         businessBankAccounts: 'Business bank accounts',
+        shareBankAccount: 'Share bank account',
+        bankAccountShared: 'Bank account shared',
+        shareBankAccountTitle: 'Select the admins to share this bank account with:',
+        shareBankAccountSuccess: 'Bank account shared!',
+        shareBankAccountSuccessDescription: 'The selected admins will receive a confirmation message from Concierge.',
+        shareBankAccountFailure: 'An unexpected error occurred while trying to share bank account. Please try again.',
+        shareBankAccountEmptyTitle: 'No admins available',
+        shareBankAccountEmptyDescription: 'There are no workspace admins you can share this bank account with.',
+        shareBankAccountNoAdminsSelected: 'Please select an admin before continuing',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2824,6 +2833,7 @@ const translations = {
     },
     personalDetails: {
         error: {
+            cannotContainSpecialCharacters: 'Name cannot contain special characters',
             containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
             requiredFirstName: 'First name cannot be empty',
@@ -3832,7 +3842,6 @@ const translations = {
                 monthly: 'Monthly',
             },
             planType: 'Plan type',
-            submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expenses`,
@@ -7842,7 +7851,15 @@ const translations = {
             findAdmin: 'Find admin',
             primaryContact: 'Primary contact',
             addPrimaryContact: 'Add primary contact',
+            setPrimaryContactError: 'Unable to set primary contact. Please try again later.',
             settings: 'Settings',
+            consolidatedDomainBilling: 'Consolidated domain billing',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>When enabled, the primary contact will pay for all workspaces owned by <strong>${domainName}</strong> members and receive all billing receipts.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: "Consolidated domain billing couldn't be changed. Please try again later.",
+            addAdmin: 'Add admin',
+            invite: 'Invite',
+            addAdminError: 'Unable to add this member as an admin. Please try again.',
         },
     },
 };
