@@ -788,6 +788,7 @@ function WorkspacesListPage() {
                         keyboardShouldPersistTaps="handled"
                         contentContainerStyle={styles.pb20}
                         onScroll={onScroll}
+                        initialNumToRender={data.length}
                     />
                 )}
             </View>
