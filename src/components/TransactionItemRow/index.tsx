@@ -100,6 +100,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 };
 
 type TransactionItemRowProps = {
+    hash?: number;
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
     shouldUseNarrowLayout: boolean;
@@ -125,7 +126,6 @@ type TransactionItemRowProps = {
     shouldShowErrors?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
-    areAllOptionalColumnsHidden?: boolean;
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: () => void;
@@ -146,6 +146,7 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
 }
 
 function TransactionItemRow({
+    hash,
     transactionItem,
     report,
     shouldUseNarrowLayout,
@@ -171,7 +172,6 @@ function TransactionItemRow({
     shouldShowErrors = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
-    areAllOptionalColumnsHidden = false,
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
@@ -275,7 +275,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.DATE}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false, areAllOptionalColumnsHidden)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false)]}
                 >
                     <DateCell
                         date={createdAt}
@@ -287,7 +287,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.SUBMITTED}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, isDateColumnWide, false, false, areAllOptionalColumnsHidden, isSubmittedColumnWide)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, isDateColumnWide, false, false, isSubmittedColumnWide)]}
                 >
                     <DateCell
                         date={report?.submitted ?? ''}
@@ -299,7 +299,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.APPROVED}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, areAllOptionalColumnsHidden, false, isApprovedColumnWide)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, isApprovedColumnWide)]}
                 >
                     <DateCell
                         date={report?.approved ?? ''}
@@ -311,7 +311,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.POSTED]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.POSTED}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, false, false, false, areAllOptionalColumnsHidden, false, false, isPostedColumnWide)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, false, false, false, false, false, isPostedColumnWide)]}
                 >
                     <DateCell
                         date={transactionItem.posted ?? ''}
@@ -323,19 +323,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.EXPORTED}
-                    style={[
-                        StyleUtils.getReportTableColumnStyles(
-                            CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
-                            false,
-                            false,
-                            false,
-                            areAllOptionalColumnsHidden,
-                            false,
-                            false,
-                            false,
-                            isExportedColumnWide,
-                        ),
-                    ]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, isExportedColumnWide)]}
                 >
                     <DateCell
                         date={transactionItem.exported ?? ''}
@@ -552,7 +540,10 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
-                    <ExportedIconCell reportID={transactionItem.reportID} />
+                    <ExportedIconCell
+                        hash={hash}
+                        reportID={transactionItem.reportID}
+                    />
                 </View>
             ),
         }),
@@ -563,7 +554,6 @@ function TransactionItemRow({
             shouldUseNarrowLayout,
             isSelected,
             isDateColumnWide,
-            areAllOptionalColumnsHidden,
             createdAt,
             isSubmittedColumnWide,
             report?.submitted,
