@@ -1,6 +1,6 @@
 import React from 'react';
-import FlatList from '@components/FlatList';
-import useFlatListScrollKey from '@hooks/useFlatListScrollKey';
+import FlatList from '@components/FlatList/FlatList';
+import useFlatListScrollKey from '@components/FlatList/hooks/useFlatListScrollKey';
 import CellRendererComponent from './CellRendererComponent';
 import shouldRemoveClippedSubviews from './shouldRemoveClippedSubviews';
 import type {InvertedFlatListProps} from './types';

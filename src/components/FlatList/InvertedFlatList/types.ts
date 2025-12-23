@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
 import type {ListRenderItem, FlatList as RNFlatList} from 'react-native';
-import type {CustomFlatListProps} from '@components/FlatList/types';
+import type {CustomFlatListProps} from '@components/FlatList/FlatList/types';
 
 type InvertedFlatListProps<T> = Omit<CustomFlatListProps<T>, 'data' | 'renderItem' | 'initialScrollIndex'> & {
     shouldEnableAutoScrollToTopThreshold?: boolean;
