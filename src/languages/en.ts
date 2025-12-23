@@ -127,6 +127,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -1484,6 +1485,7 @@ const translations = {
             },
         },
         chooseWorkspace: 'Choose a workspace',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `report routed to ${to} due to custom approval workflow`,
     },
     transactionMerge: {
         listPage: {
@@ -1605,11 +1607,11 @@ const translations = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to fix the issue(s).`;
+                        return `Waiting for <strong>you</strong> to fix the issues.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to fix the issue(s).`;
+                        return `Waiting for <strong>${actor}</strong> to fix the issues.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to fix the issue(s).`;
+                        return `Waiting for an admin to fix the issues.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2123,6 +2125,15 @@ const translations = {
         confirmYourBankAccount: 'Confirm your bank account',
         personalBankAccounts: 'Personal bank accounts',
         businessBankAccounts: 'Business bank accounts',
+        shareBankAccount: 'Share bank account',
+        bankAccountShared: 'Bank account shared',
+        shareBankAccountTitle: 'Select the admins to share this bank account with:',
+        shareBankAccountSuccess: 'Bank account shared!',
+        shareBankAccountSuccessDescription: 'The selected admins will receive a confirmation message from Concierge.',
+        shareBankAccountFailure: 'An unexpected error occurred while trying to share bank account. Please try again.',
+        shareBankAccountEmptyTitle: 'No admins available',
+        shareBankAccountEmptyDescription: 'There are no workspace admins you can share this bank account with.',
+        shareBankAccountNoAdminsSelected: 'Please select an admin before continuing',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2258,7 +2269,25 @@ const translations = {
     },
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
-        header: 'Send to this member for approval:',
+        title: 'Set approver',
+        description: 'This person will approve the expenses.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Approver',
+        header: '(Optional) Want to add an approval limit?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Add another approver when <strong>${approverName}</strong> is approver and report exceeds the amount below:`
+                : 'Add another approver when a report exceeds the amount below:',
+        reportAmountLabel: 'Report amount',
+        additionalApproverLabel: 'Additional approver',
+        skip: 'Skip',
+        next: 'Next',
+        removeLimit: 'Remove limit',
+        enterAmountError: 'Please enter a valid amount',
+        enterApproverError: 'Approver is required when you set a report limit',
+        enterBothError: 'Enter a report amount and additional approver',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Reports above ${approvalLimit} forward to ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -3830,7 +3859,6 @@ const translations = {
                 monthly: 'Monthly',
             },
             planType: 'Plan type',
-            submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expenses`,
@@ -7841,6 +7869,10 @@ const translations = {
             primaryContact: 'Primary contact',
             addPrimaryContact: 'Add primary contact',
             settings: 'Settings',
+            consolidatedDomainBilling: 'Consolidated domain billing',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>When enabled, the primary contact will pay for all workspaces owned by <strong>${domainName}</strong> members and receive all billing receipts.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: "Consolidated domain billing couldn't be changed. Please try again later.",
         },
     },
 };

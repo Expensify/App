@@ -5316,6 +5316,7 @@ function getReportPreviewMessage(
             return translateLocal(translatePhraseKey, payerDisplayName ?? '');
         }
         if (translatePhraseKey === 'iou.payerPaidAmount') {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return translateLocal(translatePhraseKey, '', payerDisplayName ?? '');
         }
     }
@@ -7596,11 +7597,18 @@ function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: s
  * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
  *
  */
-function buildOptimisticSubmittedReportAction(amount: number, currency: string, expenseReportID: string, adminAccountID: number | undefined): OptimisticSubmittedReportAction {
+function buildOptimisticSubmittedReportAction(
+    amount: number,
+    currency: string,
+    expenseReportID: string,
+    adminAccountID: number | undefined,
+    workflow: ValueOf<typeof CONST.POLICY.APPROVAL_MODE> | undefined,
+): OptimisticSubmittedReportAction {
     const originalMessage = {
         amount,
         currency,
         expenseReportID,
+        workflow,
     };
 
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
@@ -10353,9 +10361,11 @@ function getTaskAssigneeChatOnyxData(
     let optimisticChatCreatedReportAction: OptimisticCreatedReportAction | undefined;
     const assigneeChatReportMetadata = getReportMetadata(assigneeChatReportID);
     const currentTime = DateUtils.getDBTime();
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [];
 
     // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
     // Only add the assignee chat report to onyx if we haven't already set it optimistically
@@ -10521,6 +10531,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
 
                 if (automaticAction) {
                     if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         return translateLocal('iou.automaticallyPaidWithExpensify', '');
                     }
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -10528,6 +10539,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
                 }
                 break;
             default:
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return translateLocal('iou.payerPaidAmount', '', '');
         }
         if (translationKey === 'iou.businessBankAccount') {
@@ -10826,6 +10838,7 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, isThr
     const isReportPreviewActionLocal = isReportPreviewAction(reportAction);
     const isIOUAction = isMoneyRequestAction(reportAction);
     const isWhisperActionLocal = isWhisperAction(reportAction) || isActionableTrackExpense(reportAction);
+    const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
     const isActionDisabled = CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName);
     const isManagerMcTestOwner = reportAction?.actorAccountID === CONST.ACCOUNT_ID.MANAGER_MCTEST;
 
@@ -10836,7 +10849,8 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, isThr
         (isDeletedActionLocal && !reportAction?.childVisibleActionCount) ||
         (isReportArchived && !reportAction?.childVisibleActionCount) ||
         (isWhisperActionLocal && !isReportPreviewActionLocal && !isIOUAction) ||
-        isThreadReportParentAction
+        isThreadReportParentAction ||
+        isDynamicWorkflowRoutedAction
     );
 }
 
