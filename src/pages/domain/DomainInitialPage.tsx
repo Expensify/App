@@ -68,6 +68,20 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_SAML.getRoute(domainAccountID)))),
                 screenName: SCREENS.DOMAIN.SAML,
             },
+            // --- DEV only below this line
+            {
+                translationKey: 'domain.admins.title',
+                icon: icons.UserLock,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID)))),
+                screenName: SCREENS.DOMAIN.ADMINS,
+            },
+            {
+                translationKey: 'domain.members.title',
+                icon: icons.UserLock,
+                action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.DOMAIN_MEMBERS.getRoute(domainAccountID)))),
+                screenName: SCREENS.DOMAIN.MEMBERS,
+            },
+            // --- DEV only above this line
         ];
 
         return menuItems;
@@ -118,7 +132,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                 />
 
                 <ScrollView contentContainerStyle={[styles.flexColumn]}>
-                    <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+                    <View style={[styles.pb4, styles.mh3, styles.mt3, styles.gap2]}>
                         {/*
                             Ideally we should use MenuList component for MenuItems with singleExecution/Navigation actions.
                             In this case where user can click on menu items, we need to have a check for `isExecuting`. So, we are directly mapping menuItems.
