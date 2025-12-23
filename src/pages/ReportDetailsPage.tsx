@@ -1002,7 +1002,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             />
                             <MenuItemWithTopDescription
                                 title={report.reportID}
-                                description={translate('common.longID')}
+                                description={translate('common.longReportID')}
                                 copyValue={report.reportID}
                                 interactive={false}
                                 shouldBlockSelection
