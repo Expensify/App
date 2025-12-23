@@ -1,12 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
 import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchResults from '@hooks/useSearchResults';
@@ -37,6 +37,7 @@ function IOURequestStepPerDiemWorkspace({
     },
     transaction,
 }: IOURequestStepPerDiemWorkspaceProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {login: currentUserLogin, accountID} = useCurrentUserPersonalDetails();
@@ -64,14 +65,14 @@ function IOURequestStepPerDiemWorkspace({
                     {
                         id: policy.id,
                         source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        fallbackIcon: icons.FallbackWorkspaceAvatar,
                         name: policy.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
                     },
                 ],
                 isSelected: selectedWorkspace?.policyID === policy.id,
             }));
-    }, [allPolicies, currentUserLogin, selectedWorkspace?.policyID, localeCompare]);
+    }, [allPolicies, currentUserLogin, selectedWorkspace?.policyID, localeCompare, icons.FallbackWorkspaceAvatar]);
 
     const filterWorkspace = useCallback((workspaceOption: WorkspaceListItem, searchInput: string) => {
         const results = tokenizedSearch([workspaceOption], searchInput, (option) => [option.text ?? '']);

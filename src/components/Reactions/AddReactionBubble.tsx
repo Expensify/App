@@ -2,10 +2,10 @@ import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,6 +50,7 @@ type AddReactionBubbleProps = {
 };
 
 function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWillShowPicker = () => {}, isContextMenu = false, setIsEmojiPickerActive}: AddReactionBubbleProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const ref = useRef<View | HTMLDivElement>(null);
@@ -117,7 +118,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                         <Text style={[styles.opacity0, StyleUtils.getEmojiReactionBubbleTextStyle(isContextMenu)]}>{'\u2800\u2800'}</Text>
                         <View style={styles.pAbsolute}>
                             <Icon
-                                src={Expensicons.AddReaction}
+                                src={icons.AddReaction}
                                 width={isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
                                 height={isContextMenu ? variables.iconSizeNormal : variables.iconSizeSmall}
                                 fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}

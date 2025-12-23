@@ -69,7 +69,7 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Cash']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Cash', 'FallbackAvatar']);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -116,7 +116,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     let svgLogoFillColor: string | undefined;
 
     if (!logo && policy && !policy.avatarURL) {
-        svgLogo = getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
+        svgLogo = getDefaultWorkspaceAvatar(policy.name) || icons.FallbackAvatar;
 
         const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id);
         logoBackgroundColor = defaultWorkspaceAvatarColors.backgroundColor?.toString();

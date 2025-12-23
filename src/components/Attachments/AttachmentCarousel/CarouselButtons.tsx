@@ -2,8 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import type {Attachment} from '@components/Attachments/types';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -34,6 +34,7 @@ type CarouselButtonsProps = {
 };
 
 function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward, cancelAutoHideArrow, autoHideArrow}: CarouselButtonsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const isBackDisabled = page === 0;
@@ -49,7 +50,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                         <Button
                             small
                             innerStyles={[styles.arrowIcon]}
-                            icon={Expensicons.BackArrow}
+                            icon={icons.BackArrow}
                             iconFill={theme.text}
                             onPress={onBack}
                             onPressIn={cancelAutoHideArrow}
@@ -65,7 +66,7 @@ function CarouselButtons({page, attachments, shouldShowArrows, onBack, onForward
                         <Button
                             small
                             innerStyles={[styles.arrowIcon]}
-                            icon={Expensicons.ArrowRight}
+                            icon={icons.ArrowRight}
                             iconFill={theme.text}
                             onPress={onForward}
                             onPressIn={cancelAutoHideArrow}
