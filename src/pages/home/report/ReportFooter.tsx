@@ -74,7 +74,169 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
+
+    /** Whether the report is displayed in the Concierge side panel */
+    isInSidePanel?: boolean;
 };
+
+/**
+ * Extracts page information in a simplified XML-like format for LLM understanding
+ * Uses semantic tags to describe what each element represents
+ */
+function extractPageContext(element: Element, depth = 0): string[] {
+    const context: string[] = [];
+    const indent = '  '.repeat(depth);
+
+    // Skip hidden elements
+    if (element instanceof HTMLElement) {
+        const style = window.getComputedStyle(element);
+        if (style.display === 'none' || style.visibility === 'hidden' || element.getAttribute('aria-hidden') === 'true') {
+            return context;
+        }
+    }
+
+    const tagName = element.tagName.toLowerCase();
+
+    // Skip non-content elements
+    if (['script', 'style', 'noscript', 'svg', 'iframe', 'canvas', 'img', 'video', 'audio', 'input', 'textarea'].includes(tagName)) {
+        return context;
+    }
+
+    // Get direct text content (not from children)
+    const directText = Array.from(element.childNodes)
+        .filter((node) => node.nodeType === Node.TEXT_NODE)
+        .map((node) => node.textContent?.trim())
+        .filter((text) => text && text.length > 0)
+        .join(' ')
+        .trim();
+
+    // Get relevant attributes for context
+    const role = element.getAttribute('role') || '';
+    const ariaLabel = element.getAttribute('aria-label') || '';
+    const testId = element.getAttribute('data-testid') || '';
+    const className = element.className || '';
+
+    // Determine semantic tag based on element type and attributes
+    let semanticTag = '';
+    let hasChildren = element.children.length > 0;
+
+    if (tagName === 'button' || role === 'button') {
+        semanticTag = 'button';
+    } else if (tagName === 'a' || role === 'link') {
+        semanticTag = 'link';
+    } else if (tagName.match(/^h[1-6]$/)) {
+        semanticTag = `heading level="${tagName.slice(1)}"`;
+    } else if (tagName === 'li') {
+        semanticTag = 'list-item';
+    } else if (role === 'navigation' || tagName === 'nav') {
+        semanticTag = 'navigation';
+    } else if (role === 'menu' || role === 'menubar') {
+        semanticTag = 'menu';
+    } else if (role === 'table' || tagName === 'table') {
+        semanticTag = 'table';
+    } else if (testId.includes('report') || className.includes('report')) {
+        semanticTag = 'report-section';
+    } else if (testId || ariaLabel) {
+        // Use data-testid or aria-label as semantic hint
+        const hint = testId || ariaLabel;
+        semanticTag = `section name="${hint.replace(/"/g, "'")}"`;
+    } else if (['section', 'article', 'aside', 'main', 'header', 'footer'].includes(tagName)) {
+        semanticTag = tagName;
+    } else if (hasChildren && directText) {
+        semanticTag = 'group';
+    } else if (directText && directText.length > 2) {
+        semanticTag = 'text';
+    }
+
+    // Output opening tag with text if meaningful
+    if (semanticTag && directText && directText.length > 2) {
+        // Self-closing tag with content
+        context.push(`${indent}<${semanticTag}>${directText}</${semanticTag.split(' ')[0]}>`);
+    } else if (semanticTag && hasChildren) {
+        // Opening tag for container
+        context.push(`${indent}<${semanticTag}>`);
+        
+        // Process children
+        Array.from(element.children).forEach((child) => {
+            context.push(...extractPageContext(child, depth + 1));
+        });
+        
+        // Closing tag
+        context.push(`${indent}</${semanticTag.split(' ')[0]}>`);
+        return context;
+    } else if (directText && directText.length > 2) {
+        // Plain text without semantic meaning
+        context.push(`${indent}${directText}`);
+    }
+
+    // Process children if we didn't already (for non-container semantic elements)
+    if (!hasChildren || !semanticTag) {
+        Array.from(element.children).forEach((child) => {
+            context.push(...extractPageContext(child, depth));
+        });
+    }
+
+    return context;
+}
+
+/**
+ * Captures simplified, structured text of the main page content (excluding the side panel)
+ * This is used to provide context to the LLM when the user sends a message from the Concierge side panel
+ * Only works on web - returns empty string on native platforms
+ */
+function captureSimplifiedPageHTML(): string {
+    // Only works on web where document exists
+    if (typeof document === 'undefined') {
+        return '';
+    }
+
+    try {
+        // The side panel is rendered in a ModalPortal (outside #root), so querying #root gives us the main content
+        const rootElement = document.getElementById('root');
+        if (!rootElement) {
+            return '';
+        }
+
+        // Get the current page URL/path
+        const currentPath = window.location.pathname + window.location.search;
+
+        // Extract all context items with hierarchy (starting at depth 1 for page content)
+        const contextItems = extractPageContext(rootElement, 1);
+
+        // Filter out only truly meaningless items
+        const filtered = contextItems.filter((item) => {
+            const trimmed = item.trim();
+            // Remove empty lines
+            if (trimmed.length === 0) {
+                return false;
+            }
+            // Remove single-character items
+            if (trimmed.length === 1) {
+                return false;
+            }
+            // Keep everything else (including duplicates since indentation provides context)
+            return true;
+        });
+
+        // Wrap in a page tag with URL attribute, using XML-like structure
+        const structuredText = [`<page url="${currentPath}">`, ...filtered, '</page>'].join('\n');
+
+        // Limit to ~10KB to avoid sending too much data to the LLM
+        const maxLength = 10000;
+        if (structuredText.length > maxLength) {
+            return `${structuredText.substring(0, maxLength)}\n... [truncated]`;
+        }
+
+        // Only return if we have meaningful content
+        if (structuredText.length < 50) {
+            return '';
+        }
+
+        return structuredText;
+    } catch (error) {
+        return '';
+    }
+}
 
 function ReportFooter({
     lastReportAction,
@@ -87,6 +249,7 @@ function ReportFooter({
     onComposerFocus,
     reportTransactions,
     transactionThreadReportID,
+    isInSidePanel = false,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -191,10 +354,14 @@ function ReportFooter({
             // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
             // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
             const targetReportID = transactionThreadReportID ?? report.reportID;
-            addComment(targetReportID, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
+
+            // When sending from the Concierge side panel, capture the HTML of the main page to provide context to the LLM
+            const pageHTML = isInSidePanel ? captureSimplifiedPageHTML() : undefined;
+
+            addComment(targetReportID, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true, pageHTML);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [report.reportID, handleCreateTask, transactionThreadReportID, targetReportAncestors],
+        [report.reportID, handleCreateTask, transactionThreadReportID, targetReportAncestors, isInSidePanel],
     );
 
     const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
