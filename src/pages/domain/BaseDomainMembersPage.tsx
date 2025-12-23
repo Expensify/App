@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
@@ -165,7 +164,7 @@ function BaseDomainMembersPage({
                     onSelectRow={onSelectRow}
                     onDismissError={onDismissError}
                     shouldShowListEmptyContent={false}
-                    listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
+                    listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : styles.pr3}
                     showScrollIndicator={false}
                     addBottomSafeAreaPadding
                     customListHeader={getCustomListHeader()}

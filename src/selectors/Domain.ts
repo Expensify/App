@@ -55,7 +55,7 @@ const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardF
 
 /**
  * Extracts a list of member IDs (accountIDs) from the domain object.
- * * It iterates through the security groups in the domain, extracts account IDs from the 'shared' property,
+ * It iterates through the security groups in the domain, extracts account IDs from the 'shared' property,
  * and returns a unique list of numbers.
  *
  * @param domain - The domain object from Onyx
@@ -63,7 +63,7 @@ const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardF
  */
 function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
     if (!domain) {
-        return [];
+        return getEmptyArray<number>();;
     }
 
     const memberIDs = Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
