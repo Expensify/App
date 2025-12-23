@@ -2821,6 +2821,7 @@ ${
             containsReservedWord: '名称不能包含“Expensify”或“Concierge”',
             hasInvalidCharacter: '名称不能包含逗号或分号',
             requiredFirstName: '名字不能为空',
+            cannotContainSpecialCharacters: '名称不能包含特殊字符',
         },
     },
     privatePersonalDetails: {
