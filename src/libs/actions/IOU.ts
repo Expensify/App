@@ -238,6 +238,9 @@ import {
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import {startBackgroundReceiptUpload} from '@libs/Network/BackgroundReceiptUpload';
+import {getApiRoot, getCommandURL} from '@libs/ApiUtils';
+import {Platform} from 'react-native';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -6523,6 +6526,48 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                 guidedSetupData: guidedSetupData ? JSON.stringify(guidedSetupData) : undefined,
                 testDriveCommentReportActionID,
             };
+            if (Platform.OS === CONST.PLATFORM.ANDROID && isFileUploadable(receipt)) {
+                try {
+                    const session = getSession();
+                    const authToken = session?.authToken ?? '';
+                    const apiRoot = getApiRoot({
+                        shouldUseSecure: true,
+                        shouldSkipWebProxy: false,
+                    } as unknown as any);
+                    const url = `${apiRoot}api?command=${WRITE_COMMANDS.REQUEST_MONEY}`;
+                    const fields: Record<string, string> = {};
+                    Object.entries(parameters).forEach(([key, value]) => {
+                        if (key === 'receipt' || value === undefined || value === null) {
+                            return;
+                        }
+                        fields[key] = typeof value === 'string' ? value : JSON.stringify(value);
+                    });
+                    const filePath = (receipt as Receipt)?.source ?? (receipt as Receipt)?.uri ?? '';
+                    startBackgroundReceiptUpload({
+                        url,
+                        filePath,
+                        fileName: (receipt as Receipt)?.name ?? '',
+                        mimeType: (receipt as Receipt)?.type ?? 'application/octet-stream',
+                        transactionID: transaction.transactionID,
+                        fields: {
+                            ...fields,
+                            authToken,
+                        },
+                        headers: {
+                            'X-Auth-Token': authToken,
+                        },
+                    }).catch((error) => {
+                        Log.hmmm('[RequestMoney] Failed to enqueue background upload', {error});
+                    });
+                    Log.info('[RequestMoney] Enqueued background upload', false, {
+                        transactionID: transaction.transactionID,
+                        filePath,
+                    });
+                }
+                catch (error) {
+                    Log.hmmm('[RequestMoney] Error preparing background upload', {error});
+                }
+            }
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
         }

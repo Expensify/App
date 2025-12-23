@@ -144,6 +144,14 @@ function process(): Promise<void> {
         return Promise.resolve();
     }
 
+    Log.info('[SequentialQueue] Handling request', false, {
+        command: requestToProcess.command,
+        requestID: requestToProcess.requestID,
+        transactionID: requestToProcess.data?.transactionID,
+        receiptState: requestToProcess.data?.receipt?.state,
+        initiatedOffline: requestToProcess.initiatedOffline,
+    });
+
     // Set the current request to a promise awaiting its processing so that getCurrentRequest can be used to take some action after the current request has processed.
     currentRequestPromise = processWithMiddleware(requestToProcess, true)
         .then((response) => {
@@ -153,6 +161,15 @@ function process(): Promise<void> {
                 Log.info("[SequentialQueue] Handled 'shouldPauseQueue' in response. Pausing the queue.");
                 pause();
             }
+
+            Log.info('[SequentialQueue] Received response for request', false, {
+                command: requestToProcess.command,
+                requestID: requestToProcess.requestID,
+                transactionID: requestToProcess.data?.transactionID,
+                receiptState: requestToProcess.data?.receipt?.state,
+                jsonCode: response?.jsonCode,
+                shouldPauseQueue: response?.shouldPauseQueue,
+            });
 
             Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
@@ -186,8 +203,10 @@ function process(): Promise<void> {
                 return process();
             }
             rollbackOngoingPersistedRequest();
+            const hasReceipt = !!requestToProcess.data?.receipt || !!requestToProcess.data?.receiptState;
+            const maxRetries = hasReceipt ? CONST.NETWORK.MAX_RECEIPT_UPLOAD_RETRIES : undefined;
             return sequentialQueueRequestThrottle
-                .sleep(error, requestToProcess.command)
+                .sleep(error, requestToProcess.command, maxRetries)
                 .then(process)
                 .catch(() => {
                     Onyx.update(requestToProcess.failureData ?? []);

@@ -4,6 +4,7 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.Callback
+import com.facebook.react.bridge.ReadableMap
 import android.app.job.JobScheduler
 import android.app.job.JobInfo
 import android.content.BroadcastReceiver
@@ -17,6 +18,10 @@ import android.util.Log
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.bridge.Arguments
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 
 class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplicationContext) :
   ReactNativeBackgroundTaskSpec(context) {
@@ -37,6 +42,22 @@ class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplica
     }
   }
 
+  private val uploadResultReceiver = object : BroadcastReceiver() {
+    override fun onReceive(context: Context?, intent: Intent?) {
+      if (intent?.action != UploadWorker.ACTION_UPLOAD_RESULT) return
+      val params = Arguments.createMap()
+      params.putString("transactionID", intent.getStringExtra(UploadWorker.KEY_TRANSACTION_ID))
+      params.putBoolean("success", intent.getBooleanExtra(UploadWorker.KEY_RESULT_SUCCESS, false))
+      params.putInt("code", intent.getIntExtra(UploadWorker.KEY_RESULT_CODE, -1))
+      val message = intent.getStringExtra(UploadWorker.KEY_RESULT_MESSAGE)
+      if (message != null) {
+        params.putString("message", message)
+      }
+      Log.d(NAME, "Upload result received ${params.toString()}")
+      sendEvent("onReceiptUploadResult", params)
+    }
+  }
+
   init {
     val filter = IntentFilter("com.expensify.reactnativebackgroundtask.TASK_ACTION")
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -45,6 +66,15 @@ class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplica
           filter,
           Context.RECEIVER_EXPORTED
         )
+    } else {
+      reactApplicationContext.registerReceiver(taskReceiver, filter)
+    }
+
+    val uploadFilter = IntentFilter(UploadWorker.ACTION_UPLOAD_RESULT)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+      reactApplicationContext.registerReceiver(uploadResultReceiver, uploadFilter, Context.RECEIVER_NOT_EXPORTED)
+    } else {
+      reactApplicationContext.registerReceiver(uploadResultReceiver, uploadFilter)
     }
   }
 
@@ -59,6 +89,12 @@ class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplica
           Log.d("ReactNativeBackgroundTaskModule", "BroadcastReceiver unregistered")
       } catch (e: IllegalArgumentException) {
           Log.w("ReactNativeBackgroundTaskModule", "Receiver not registered or already unregistered")
+      }
+    try {
+          reactApplicationContext.unregisterReceiver(uploadResultReceiver)
+          Log.d("ReactNativeBackgroundTaskModule", "Upload result receiver unregistered")
+      } catch (e: IllegalArgumentException) {
+          Log.w("ReactNativeBackgroundTaskModule", "Upload result receiver not registered or already unregistered")
       }
   }
 
@@ -81,6 +117,7 @@ class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplica
 
       val resultCode = jobScheduler.schedule(jobInfo)
       if (resultCode == JobScheduler.RESULT_SUCCESS) {
+        Log.d(NAME, "Scheduled background task: $taskName")
 
         promise.resolve(null);
       } else {
@@ -97,6 +134,55 @@ class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplica
 
   override fun removeListeners(count: Double) {
     // no-op
+  }
+
+  @ReactMethod
+  override fun startReceiptUpload(options: ReadableMap, promise: Promise) {
+    try {
+      val url = options.getString("url") ?: run {
+        promise.reject("INVALID_ARGS", "Missing url")
+        return
+      }
+      val filePath = options.getString("filePath") ?: run {
+        promise.reject("INVALID_ARGS", "Missing filePath")
+        return
+      }
+      val fileName = options.getString("fileName") ?: ""
+      val mimeType = options.getString("mimeType") ?: "application/octet-stream"
+      val transactionId = options.getString("transactionID") ?: ""
+      val fields = options.getMap("fields")?.toHashMap()?.mapValues { it.value.toString() } ?: emptyMap()
+      val headers = options.getMap("headers")?.toHashMap()?.mapValues { it.value.toString() } ?: emptyMap()
+
+      Log.d(NAME, "Enqueue receipt upload tx=$transactionId file=$filePath url=$url")
+
+      val inputData: Data = UploadWorker.buildInputData(
+        url = url,
+        filePath = filePath,
+        fileName = fileName,
+        mimeType = mimeType,
+        transactionId = transactionId,
+        fields = fields,
+        headers = headers
+      )
+
+      val request = OneTimeWorkRequestBuilder<UploadWorker>()
+        .setInputData(inputData)
+        .addTag("receipt_upload")
+        .addTag(transactionId.ifEmpty { "receipt_upload_generic" })
+        .build()
+
+      WorkManager.getInstance(reactApplicationContext)
+        .enqueueUniqueWork(
+          "receipt_upload_$transactionId",
+          ExistingWorkPolicy.REPLACE,
+          request
+        )
+
+      promise.resolve(null)
+    } catch (e: Exception) {
+      Log.e(NAME, "Failed to enqueue receipt upload", e)
+      promise.reject("UPLOAD_ENQUEUE_FAILED", e)
+    }
   }
 
   companion object {
