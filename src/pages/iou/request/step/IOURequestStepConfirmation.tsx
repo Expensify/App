@@ -761,6 +761,7 @@ function IOURequestStepConfirmation({
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     isASAPSubmitBetaEnabled,
+                    quickAction,
                 });
             }
         },
@@ -782,6 +783,7 @@ function IOURequestStepConfirmation({
             isOdometerDistanceRequest,
             archivedReportsIdSet,
             isASAPSubmitBetaEnabled,
+            quickAction,
         ],
     );
 
