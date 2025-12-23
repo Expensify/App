@@ -870,7 +870,7 @@ const SCREENS = {
         ADMINS_SETTINGS: 'Admins_Settings',
         ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
         MEMBERS: 'Domain_Members',
-        MEMBER_DETAILS:'Member_Details',
+        MEMBER_DETAILS: 'Member_Details',
     },
 } as const;
 

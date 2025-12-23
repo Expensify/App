@@ -16,15 +16,18 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Info'] as const);
 
-    const menuItems = useMemo((): MemberDetailsMenuItem[] => [
-        {
-            key: 'profile',
-            title: translate('common.profile'),
-            icon: icons.Info,
-            onPress: () => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute())),
-            shouldShowRightIcon: true,
-        },
-    ], [accountID, icons.Info, translate]);
+    const menuItems = useMemo(
+        (): MemberDetailsMenuItem[] => [
+            {
+                key: 'profile',
+                title: translate('common.profile'),
+                icon: icons.Info,
+                onPress: () => Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute())),
+                shouldShowRightIcon: true,
+            },
+        ],
+        [accountID, icons.Info, translate],
+    );
 
     return (
         <BaseDomainMemberDetailsComponent

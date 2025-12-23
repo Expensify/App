@@ -13,11 +13,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
-import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 
 type MemberDetailsMenuItem = {
     key: string;
@@ -44,13 +44,7 @@ type BaseDomainMemberDetailsComponentProps = {
     children?: React.ReactNode;
 };
 
-function BaseDomainMemberDetailsComponent({
-                                              domainAccountID,
-                                              accountID,
-                                              menuItems,
-                                              actionButton,
-                                              children,
-                                          }: BaseDomainMemberDetailsComponentProps) {
+function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems, actionButton, children}: BaseDomainMemberDetailsComponentProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
 

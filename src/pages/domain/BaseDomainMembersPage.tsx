@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchBar from '@components/SearchBar';
@@ -7,6 +8,7 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import SelectionList from '@components/SelectionListWithSections';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -16,12 +18,10 @@ import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
+import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
-import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 
 type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
     accountID: number;
@@ -58,16 +58,16 @@ type BaseDomainMembersPageProps = {
 };
 
 function BaseDomainMembersPage({
-                                   domainAccountID,
-                                   accountIDs,
-                                   headerTitle,
-                                   searchPlaceholder,
-                                   headerContent,
-                                   onSelectRow,
-                                   headerIcon,
-                                   getCustomRightElement,
-                                   isLoading = false,
-                               }: BaseDomainMembersPageProps) {
+    domainAccountID,
+    accountIDs,
+    headerTitle,
+    searchPlaceholder,
+    headerContent,
+    onSelectRow,
+    headerIcon,
+    getCustomRightElement,
+    isLoading = false,
+}: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -114,12 +114,22 @@ function BaseDomainMembersPage({
         if (filteredData.length === 0) {
             return null;
         }
-        return <CustomListHeader canSelectMultiple={false} leftHeaderText={headerTitle} />;
+        return (
+            <CustomListHeader
+                canSelectMultiple={false}
+                leftHeaderText={headerTitle}
+            />
+        );
     };
 
     const listHeaderContent =
         data.length > CONST.SEARCH_ITEM_LIMIT ? (
-            <SearchBar inputValue={inputValue} onChangeText={setInputValue} label={searchPlaceholder} shouldShowEmptyState={!filteredData.length} />
+            <SearchBar
+                inputValue={inputValue}
+                onChangeText={setInputValue}
+                label={searchPlaceholder}
+                shouldShowEmptyState={!filteredData.length}
+            />
         ) : null;
 
     if (isLoading) {
@@ -134,7 +144,12 @@ function BaseDomainMembersPage({
                 shouldShowOfflineIndicatorInWideScreen
                 testID={BaseDomainMembersPage.displayName}
             >
-                <HeaderWithBackButton title={headerTitle} onBackButtonPress={Navigation.popToSidebar} icon={headerIcon} shouldShowBackButton={shouldUseNarrowLayout}>
+                <HeaderWithBackButton
+                    title={headerTitle}
+                    onBackButtonPress={Navigation.popToSidebar}
+                    icon={headerIcon}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                >
                     {!shouldUseNarrowLayout && !!headerContent && <View style={[styles.flexRow, styles.gap2]}>{headerContent}</View>}
                 </HeaderWithBackButton>
 

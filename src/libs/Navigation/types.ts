@@ -2503,7 +2503,7 @@ type DomainSplitNavigatorParamList = {
     [SCREENS.DOMAIN.MEMBER_DETAILS]: {
         domainAccountID: number;
         accountID: number;
-    }
+    };
 };
 
 type OnboardingModalNavigatorParamList = {
