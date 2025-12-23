@@ -963,9 +963,7 @@ function MoneyReportHeader({
                 secondaryActionType: CONST.REPORT.SECONDARY_ACTIONS.PAY,
                 text: translate('iou.settlePayment', {formattedAmount: totalAmount}),
                 icon: expensifyIcons.Cash,
-                rightIcon: expensifyIcons.ArrowRight,
-                backButtonText: translate('iou.settlePayment', {formattedAmount: totalAmount}),
-                subMenuItems: paymentButtonOptions,
+                onSelected: confirmPayment,
             },
         ];
 
@@ -977,16 +975,13 @@ function MoneyReportHeader({
                 acc.push({
                     text: config.text,
                     icon: config.icon,
-                    ...(config.onSelected && {onSelected: config.onSelected}),
-                    ...(config.rightIcon && {rightIcon: config.rightIcon}),
-                    ...(config.backButtonText && {backButtonText: config.backButtonText}),
-                    ...(config.subMenuItems && {subMenuItems: config.subMenuItems}),
+                    onSelected: config.onSelected,
                 });
             }
 
             return acc;
         }, []);
-    }, [primaryAction, secondaryActions, translate, handleSubmitReport, confirmApproval, confirmPayment, totalAmount, paymentButtonOptions]);
+    }, [primaryAction, secondaryActions, translate, handleSubmitReport, confirmApproval, confirmPayment, totalAmount]);
 
     const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
         report: moneyRequestReport,
