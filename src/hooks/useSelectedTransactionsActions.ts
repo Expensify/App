@@ -34,6 +34,8 @@ import useLocalize from './useLocalize';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import useReportIsArchived from './useReportIsArchived';
+import { ValueOf } from 'type-fest';
+import { DropdownOption } from '@components/ButtonWithDropdownMenu/types';
 
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ignored.
 const HOLD = 'HOLD';
@@ -51,6 +53,7 @@ function useSelectedTransactionsActions({
     onExportOffline,
     policy,
     beginExportWithTemplate,
+    reportLevelActions,
 }: {
     report?: Report;
     reportActions: ReportAction[];
@@ -60,6 +63,7 @@ function useSelectedTransactionsActions({
     onExportOffline?: () => void;
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
+    reportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>>;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
@@ -163,6 +167,9 @@ function useSelectedTransactionsActions({
             return [];
         }
         const options = [];
+        if (allTransactionsLength === selectedTransactionIDs.length && !!reportLevelActions) {
+            options.push(...reportLevelActions);
+        }
         const isMoneyRequestReport = isMoneyRequestReportUtils(report);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
@@ -391,6 +398,7 @@ function useSelectedTransactionsActions({
         session?.accountID,
         showDeleteModal,
         expensifyIcons,
+        reportLevelActions,
     ]);
 
     return {
