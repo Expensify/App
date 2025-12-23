@@ -1065,7 +1065,7 @@ function handleBulkPayItemSelected(
     latestBankItems: BankAccountMenuItem[] | undefined,
     activeAdminPolicies: Policy[],
     isUserValidated: boolean | undefined,
-    userAccountID: number | undefined;
+    userAccountID: number | undefined,
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void,
 ) {
     const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);

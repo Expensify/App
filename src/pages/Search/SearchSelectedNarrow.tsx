@@ -84,7 +84,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                                 latestBankItems,
                                 activeAdminPolicies,
                                 isUserValidated,
-                                userAccountID: accountID,
+                                accountID,
                                 confirmPayment,
                             )
                         }

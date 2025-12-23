@@ -853,7 +853,7 @@ function SearchFiltersBar({
                                         latestBankItems,
                                         activeAdminPolicies,
                                         isUserValidated,
-                                        userAccountID: accountID,
+                                        accountID,
                                         confirmPayment,
                                     )
                                 }
