@@ -341,8 +341,14 @@ const ONYXKEYS = {
     /** Set when we are loading payment methods */
     IS_LOADING_PAYMENT_METHODS: 'isLoadingPaymentMethods',
 
+    /** Stores information about the share bank account during setup */
+    SHARE_BANK_ACCOUNT: 'shareBankAccount',
+
     /** Is report data loading? */
     IS_LOADING_REPORT_DATA: 'isLoadingReportData',
+
+    /** Set when we are loading bank accounts for share page */
+    IS_LOADING_SHARE_BANK_ACCOUNTS: 'isLoadingShareBankAccounts',
 
     /** Is report data loading? */
     IS_LOADING_APP: 'isLoadingApp',
@@ -532,6 +538,9 @@ const ONYXKEYS = {
     /** Stores the information about the recent searches */
     RECENT_SEARCHES: 'nvp_recentSearches',
 
+    /** Stores the current search page context (e.g., whether to show the search query) */
+    SEARCH_CONTEXT: 'searchContext',
+
     /** Stores recently used currencies */
     RECENTLY_USED_CURRENCIES: 'nvp_recentlyUsedCurrencies',
 
@@ -706,6 +715,9 @@ const ONYXKEYS = {
          */
         WORKSPACE_CARDS_LIST: 'cards_',
 
+        /** Collection of objects where each object represents the card assignment that failed because we can't store errors in cardList or card feed due to server-provided IDs that aren't optimistic. */
+        FAILED_COMPANY_CARDS_ASSIGNMENTS: 'failedCompanyCardsAssignments_',
+
         /** Expensify cards settings */
         PRIVATE_EXPENSIFY_CARD_SETTINGS: 'private_expensifyCardSettings_',
 
@@ -737,6 +749,9 @@ const ONYXKEYS = {
 
         /** Used for identifying user as admin of a domain */
         SHARED_NVP_PRIVATE_ADMIN_ACCESS: 'sharedNVP_private_admin_access_',
+
+        /** Stored the user information with whom bank account is being shared */
+        BANK_ACCOUNT_SHARE_DETAILS: 'expensify_bankAccountShare_',
 
         /** SAML login metadata for a domain */
         SAML_METADATA: 'saml_metadata_',
@@ -1102,6 +1117,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS]: OnyxTypes.ReportActionsDrafts;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES]: OnyxTypes.Pages;
     [ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS]: OnyxTypes.ReportActionReactions;
+    [ONYXKEYS.COLLECTION.BANK_ACCOUNT_SHARE_DETAILS]: OnyxTypes.BankAccountShareDetails;
     [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: string;
     [ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE]: boolean;
     [ONYXKEYS.COLLECTION.REPORT_USER_IS_TYPING]: OnyxTypes.ReportUserIsTyping;
@@ -1130,6 +1146,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA]: OnyxTypes.ExpensifyCardBankAccountMetadata;
     [ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING]: boolean;
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
+    [ONYXKEYS.COLLECTION.FAILED_COMPANY_CARDS_ASSIGNMENTS]: OnyxTypes.FailedCompanyCardAssignments;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: OnyxTypes.CardContinuousReconciliation;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: OnyxTypes.CompanyCardFeedWithDomainID;
@@ -1153,6 +1170,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_TRY_NEW_DOT]: OnyxTypes.TryNewDot;
     [ONYXKEYS.RECENT_SEARCHES]: Record<string, OnyxTypes.RecentSearchItem>;
     [ONYXKEYS.SAVED_SEARCHES]: OnyxTypes.SaveSearch;
+    [ONYXKEYS.SEARCH_CONTEXT]: OnyxTypes.SearchContext;
     [ONYXKEYS.RECENTLY_USED_CURRENCIES]: string[];
     [ONYXKEYS.ACTIVE_CLIENTS]: string[];
     [ONYXKEYS.DEVICE_ID]: string;
@@ -1238,12 +1256,14 @@ type OnyxValuesMapping = {
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
     [ONYXKEYS.PURCHASE_LIST]: OnyxTypes.PurchaseList;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
+    [ONYXKEYS.SHARE_BANK_ACCOUNT]: OnyxTypes.ShareBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_OPTION_PRESSED]: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>;
     [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: number;
     [ONYXKEYS.FREQUENTLY_USED_EMOJIS]: OnyxTypes.FrequentlyUsedEmoji[];
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT_WORKSPACE_ID]: string;
     [ONYXKEYS.IS_LOADING_PAYMENT_METHODS]: boolean;
+    [ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS]: boolean;
     [ONYXKEYS.IS_LOADING_REPORT_DATA]: boolean;
     [ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN]: boolean;
     [ONYXKEYS.APP_PROFILING_IN_PROGRESS]: boolean;

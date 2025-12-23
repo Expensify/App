@@ -16,9 +16,16 @@ import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUt
 import {getUrlWithParams} from './libs/Url';
 import SCREENS from './SCREENS';
 import type {Screen} from './SCREENS';
+import type {CompanyCardFeedWithDomainID} from './types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
 import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
+
+type WorkspaceCompanyCardsAssignCardParams = {
+    policyID: string;
+    feed: CompanyCardFeedWithDomainID;
+    cardID: string;
+};
 
 // This is a file containing constants for all the routes we want to be able to go to
 
@@ -340,6 +347,10 @@ const ROUTES = {
     SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS: {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/enable-global-reimbursements` as const,
+    },
+    SETTINGS_WALLET_SHARE_BANK_ACCOUNT: {
+        route: 'settings/wallet/:bankAccountID/share-bank-account',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account` as const,
     },
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
         route: 'settings/wallet/card/:domain/digital-details/update-address',
@@ -1723,15 +1734,23 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM: {
         route: 'workspaces/:policyID/workflows/approvals/expenses-from',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/workflows/approvals/expenses-from` as const, backTo),
+        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/approvals/expenses-from` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_APPROVER: {
         route: 'workspaces/:policyID/workflows/approvals/approver',
-        getRoute: (policyID: string, approverIndex: number, backTo?: string) =>
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/workflows/approvals/approver?approverIndex=${approverIndex}` as const, backTo),
+        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approver?approverIndex=${approverIndex}` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE: {
+        route: 'workspaces/:policyID/workflows/approvals/approver-change',
+        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approver-change?approverIndex=${approverIndex}` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT: {
+        route: 'workspaces/:policyID/workflows/approvals/approval-limit',
+        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/approval-limit?approverIndex=${approverIndex}` as const,
+    },
+    WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER: {
+        route: 'workspaces/:policyID/workflows/approvals/over-limit-approver',
+        getRoute: (policyID: string, approverIndex: number) => `workspaces/${policyID}/workflows/approvals/over-limit-approver?approverIndex=${approverIndex}` as const,
     },
     WORKSPACE_WORKFLOWS_PAYER: {
         route: 'workspaces/:policyID/workflows/payer',
@@ -2160,14 +2179,14 @@ const ROUTES = {
         },
     },
     WORKSPACE_COMPANY_CARDS_BANK_CONNECTION: {
-        route: 'workspaces/:policyID/company-cards/:bankName/bank-connection',
-        getRoute: (policyID: string | undefined, bankName: string, backTo: string) => {
+        route: 'workspaces/:policyID/company-cards/:feed/bank-connection',
+        getRoute: (policyID: string | undefined, feed: CompanyCardFeedWithDomainID, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_COMPANY_CARDS_BANK_CONNECTION route');
             }
 
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${bankName}/bank-connection`, backTo);
+            return getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${feed}/bank-connection`, backTo);
         },
     },
     WORKSPACE_COMPANY_CARDS_ADD_NEW: {
@@ -2180,21 +2199,53 @@ const ROUTES = {
         route: 'workspaces/:policyID/company-cards/select-feed',
         getRoute: (policyID: string) => `workspaces/${policyID}/company-cards/select-feed` as const,
     },
-    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD: {
-        route: 'workspaces/:policyID/company-cards/:feed/assign-card',
-
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, feed: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/assign-card`, backTo),
+    WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION: {
+        route: 'workspaces/:policyID/company-cards/:feed/broken-card-feed-connection',
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID) => `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/broken-card-feed-connection` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/assignee',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams, backTo?: string) =>
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            getUrlWithBackToParam(`workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/assignee`, backTo),
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/card-selection',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams) =>
+            `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/card-selection` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/transaction-start-date',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams) =>
+            `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/transaction-start-date` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_NAME: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/card-name',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams) =>
+            `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/card-name` as const,
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/confirmation',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams, backTo?: string) =>
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            getUrlWithBackToParam(`workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/confirmation`, backTo),
+    },
+    WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER: {
+        route: 'workspaces/:policyID/company-cards/:feed/assign-card/:cardID/invite-new-member',
+        getRoute: (params: WorkspaceCompanyCardsAssignCardParams) =>
+            `workspaces/${params.policyID}/company-cards/${encodeURIComponent(params.feed)}/assign-card/${encodeURIComponent(params.cardID)}/invite-new-member` as const,
     },
     WORKSPACE_COMPANY_CARD_DETAILS: {
-        route: 'workspaces/:policyID/company-cards/:bank/:cardID',
+        route: 'workspaces/:policyID/company-cards/:feed/:cardID',
 
-        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-        getRoute: (policyID: string, cardID: string, bank: string, backTo?: string) => getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${bank}/${cardID}`, backTo),
+        getRoute: (policyID: string, feed: CompanyCardFeedWithDomainID, cardID: string, backTo?: string) =>
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}`, backTo),
     },
-    WORKSPACE_COMPANY_CARD_NAME: {
-        route: 'workspaces/:policyID/company-cards/:bank/:cardID/edit/name',
-        getRoute: (policyID: string, cardID: string, bank: string) => `workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/name` as const,
+    WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME: {
+        route: 'workspaces/:policyID/company-cards/:feed/:cardID/edit/name',
+        getRoute: (policyID: string, cardID: string, feed: CompanyCardFeedWithDomainID) =>
+            `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}/edit/name` as const,
     },
     WORKSPACE_COMPANY_CARD_EXPORT: {
         route: 'workspaces/:policyID/company-cards/:bank/:cardID/edit/export',
@@ -2794,34 +2845,26 @@ const ROUTES = {
     MERGE_TRANSACTION_LIST_PAGE: {
         route: 'r/:transactionID/merge',
 
-        getRoute: (transactionID: string, backTo: string) => {
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${transactionID}/merge` as const, backTo);
-        },
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (transactionID: string | undefined, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge` as const, backTo),
     },
     MERGE_TRANSACTION_RECEIPT_PAGE: {
         route: 'r/:transactionID/merge/receipt',
 
-        getRoute: (transactionID: string, backTo: string) => {
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${transactionID}/merge/receipt` as const, backTo);
-        },
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/receipt` as const, backTo),
     },
     MERGE_TRANSACTION_DETAILS_PAGE: {
         route: 'r/:transactionID/merge/details',
 
-        getRoute: (transactionID: string, backTo: string) => {
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${transactionID}/merge/details` as const, backTo);
-        },
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/details` as const, backTo),
     },
     MERGE_TRANSACTION_CONFIRMATION_PAGE: {
         route: 'r/:transactionID/merge/confirmation',
 
-        getRoute: (transactionID: string, backTo: string) => {
-            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${transactionID}/merge/confirmation` as const, backTo);
-        },
+        // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+        getRoute: (transactionID: string, backTo?: string) => getUrlWithBackToParam(`r/${transactionID}/merge/confirmation` as const, backTo),
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {
         route: 'workspaces/:policyID/accounting/xero/import',

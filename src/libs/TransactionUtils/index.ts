@@ -2273,11 +2273,7 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
     });
 }
 
-function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction?: OnyxEntry<Transaction>): boolean {
-    if (!originalTransaction) {
-        return !!transaction?.comment?.originalTransactionID && transaction?.comment?.source === 'split';
-    }
-
+function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>): boolean {
     const {originalTransactionID, source, splits} = transaction?.comment ?? {};
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

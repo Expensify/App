@@ -1239,6 +1239,7 @@ const CONST = {
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
+                DYNAMIC_EXTERNAL_WORKFLOW_ROUTED: 'DYNAMICEXTERNALWORKFLOWROUTED',
                 EXPENSIFY_CARD_SYSTEM_MESSAGE: 'EXPENSIFYCARDSYSTEMMESSAGE',
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
@@ -3437,6 +3438,7 @@ const CONST = {
             CSV: 'ccupload',
         },
         FEED_KEY_SEPARATOR: '#',
+        CARD_NUMBER_MASK_CHAR: 'X',
         STEP_NAMES: ['1', '2', '3', '4'],
         STEP: {
             BANK_CONNECTION: 'BankConnection',
@@ -6692,7 +6694,6 @@ const CONST = {
             PAY: 'pay',
             SUBMIT: 'submit',
             HOLD: 'hold',
-            MERGE: 'merge',
             UNHOLD: 'unhold',
             DELETE: 'delete',
             REJECT: 'reject',

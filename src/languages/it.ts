@@ -139,6 +139,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -1509,6 +1510,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: 'Dividi date',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} giorni)`,
         splitByDate: 'Dividi per data',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `rapporto inoltrato a ${to} a causa del flusso di lavoro di approvazione personalizzato`,
     },
     transactionMerge: {
         listPage: {
@@ -1629,11 +1631,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> risolva il/i problema/i.`;
+                        return `In attesa che <strong>tu</strong> risolva i problemi.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> risolva il/i problema/i.`;
+                        return `In attesa che <strong>${actor}</strong> risolva i problemi.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `In attesa che un amministratore risolva il/i problema/i.`;
+                        return `In attesa che un amministratore risolva i problemi.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2149,6 +2151,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Conferma il tuo conto bancario',
         personalBankAccounts: 'Conti bancari personali',
         businessBankAccounts: 'Conti bancari aziendali',
+        shareBankAccount: 'Condividi conto bancario',
+        bankAccountShared: 'Conto bancario condiviso',
+        shareBankAccountTitle: 'Seleziona gli amministratori con cui condividere questo conto bancario:',
+        shareBankAccountSuccess: 'Conto bancario condiviso!',
+        shareBankAccountSuccessDescription: 'Gli amministratori selezionati riceveranno un messaggio di conferma da Concierge.',
+        shareBankAccountFailure: 'Si è verificato un errore imprevisto durante il tentativo di condividere il conto bancario. Riprova.',
+        shareBankAccountEmptyTitle: 'Nessun amministratore disponibile',
+        shareBankAccountEmptyDescription: "Non ci sono amministratori dell'area di lavoro con cui puoi condividere questo conto bancario.",
+        shareBankAccountNoAdminsSelected: 'Seleziona un amministratore prima di continuare',
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',
@@ -2298,7 +2309,26 @@ ${amount} per ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.",
-        header: 'Invia a questo membro per approvazione:',
+        title: 'Invia a questo membro per approvazione:',
+        description: 'Questa persona approverà le spese.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Approvatore',
+        header: '(Opzionale) Vuoi aggiungere un limite di approvazione?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Aggiungi un altro approvatore quando <strong>${approverName}</strong> è approvatore e il report supera l'importo seguente:`
+                : "Aggiungi un altro approvatore quando il report supera l'importo seguente:",
+        reportAmountLabel: 'Importo del report',
+        additionalApproverLabel: 'Approvatore aggiuntivo',
+        skip: 'Salta',
+        next: 'Avanti',
+        removeLimit: 'Rimuovi limite',
+        enterAmountError: 'Inserisci un importo valido',
+        enterApproverError: 'Un approvatore è richiesto quando imposti un limite di report',
+        enterBothError: 'Inserisci un importo del report e un approvatore aggiuntivo',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
+            `I report superiori a ${approvalLimit} vengono inoltrati a ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Pagatore autorizzato',
@@ -3862,7 +3892,6 @@ ${
                 monthly: 'Mensile',
             },
             planType: 'Tipo di piano',
-            submitExpense: 'Invia le tue spese qui sotto:',
             defaultCategory: 'Categoria predefinita',
             viewTransactions: 'Visualizza transazioni',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Spese di ${displayName}`,
@@ -4822,6 +4851,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             feedName: (feedName: string) => `Carte ${feedName}`,
             directFeed: 'Feed diretto',
             whoNeedsCardAssigned: 'Chi ha bisogno di una carta assegnata?',
+            chooseTheCardholder: 'Scegli il titolare della carta',
             chooseCard: 'Scegli una carta',
             chooseCardFor: (assignee: string) =>
                 `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <concierge-link>Facci sapere.</concierge-link>`,
@@ -4844,6 +4874,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             chooseCardFeed: 'Scegli flusso carta',
             ukRegulation:
                 'Expensify Limited è un agente di Plaid Financial Ltd., un istituto di pagamento autorizzato e regolamentato dalla Financial Conduct Authority ai sensi delle Payment Services Regulations 2017 (Numero di riferimento dell’impresa: 804718). Plaid ti fornisce servizi regolamentati di informazione sui conti tramite Expensify Limited in qualità di suo agente.',
+            assign: 'Assegna',
+            assignCardFailedError: 'Assegnazione della carta non riuscita.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Expensify Card',
@@ -5059,6 +5091,9 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 cardNumber: 'Numero carta',
                 cardholder: 'Titolare della carta',
                 cardName: 'Nome carta',
+                allCards: 'Tutte le carte',
+                assignedCards: 'Assegnato',
+                unassignedCards: 'Non assegnato',
                 integrationExport: ({integration, type}: IntegrationExportParams) =>
                     integration && type ? `esportazione ${integration} ${type.toLowerCase()}` : `Esportazione ${integration}`,
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Scegli l'account ${integration} in cui esportare le transazioni.`,
@@ -5097,6 +5132,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 pendingBankLink: 'fai clic qui',
                 giveItNameInstruction: 'Dai alla carta un nome che la distingua dalle altre.',
                 updating: 'Aggiornamento in corso...',
+                neverUpdated: 'Mai',
                 noAccountsFound: 'Nessun account trovato',
                 defaultCard: 'Carta predefinita',
                 downgradeTitle: `Impossibile effettuare il downgrade dello spazio di lavoro`,
@@ -7963,6 +7999,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             primaryContact: 'Contatto principale',
             addPrimaryContact: 'Aggiungi contatto principale',
             settings: 'Impostazioni',
+            consolidatedDomainBilling: 'Fatturazione consolidata del dominio',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>Quando abilitata, il contatto principale pagherà per tutti gli spazi di lavoro di proprietà dei membri di <strong>${domainName}</strong> e riceverà tutte le ricevute di fatturazione.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'La fatturazione dominio consolidata non può essere modificata. Riprova più tardi.',
         },
     },
     desktopAppRetiredPage: {

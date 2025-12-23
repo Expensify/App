@@ -6,14 +6,11 @@ import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
-import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -30,7 +27,6 @@ import {confirmReadyToOpenApp} from '@libs/actions/App';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {clearErrors, openPolicyInitialPage, removeWorkspace} from '@libs/actions/Policy/Policy';
-import {checkIfFeedConnectionIsBroken, flatAllCardsList, getCompanyFeeds} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -46,7 +42,7 @@ import {
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar, getPolicyExpenseChat, getReportName, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -58,6 +54,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
+import useHasWorkspaceCompanyCardErrors from './companyCards/hooks/useHasWorkspaceCompanyCardErrors';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 
@@ -113,18 +110,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     ] as const);
 
     const policy = policyDraft?.id ? policyDraft : policyProp;
-    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const hasPolicyCreationError = policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD && !isEmptyObject(policy.errors);
     const isFocused = useIsFocused();
-    const [cardFeeds] = useCardFeeds(policy?.id);
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${route.params?.policyID}`, {canBeMissing: true});
-    const cardsDomainIDs = Object.values(getCompanyFeeds(cardFeeds))
-        .map((data) => data.domainID)
-        .filter((domainID): domainID is number => !!domainID);
-    const {login, accountID} = useCurrentUserPersonalDetails();
+    const {login} = useCurrentUserPersonalDetails();
     const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress(connectionSyncProgress, policy));
     const {shouldShowEnterCredentialsError} = useGetReceiptPartnersIntegrationData(policy?.id);
     const waitForNavigate = useWaitForNavigation();
@@ -136,11 +127,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const isUberForBusinessEnabled = isBetaEnabled(CONST.BETAS.UBER_FOR_BUSINESS);
     const {isOffline} = useNetwork();
     const wasRendered = useRef(false);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const currentUserPolicyExpenseChatReportID = getPolicyExpenseChat(accountID, policy?.id, allReports)?.reportID;
-    const [currentUserPolicyExpenseChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentUserPolicyExpenseChatReportID}`, {canBeMissing: true});
-    const {reportPendingAction} = getReportOfflinePendingActionAndErrors(currentUserPolicyExpenseChat);
-    const isPolicyExpenseChatEnabled = !!policy?.isPolicyExpenseChatEnabled;
     const prevPendingFields = usePrevious(policy?.pendingFields);
     const shouldDisplayLHB = !shouldUseNarrowLayout;
     const policyFeatureStates = useMemo(
@@ -209,6 +195,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const [featureStates, setFeatureStates] = useState(policyFeatureStates);
 
     const [highlightedFeature, setHighlightedFeature] = useState<string | undefined>(undefined);
+
+    const hasCompanyCardFeedError = useHasWorkspaceCompanyCardErrors({policyID});
 
     const workspaceMenuItems: WorkspaceMenuItem[] = useMemo(() => {
         const protectedMenuItems: WorkspaceMenuItem[] = [];
@@ -330,14 +318,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         }
 
         if (featureStates?.[CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED]) {
-            const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, workspaceAccountID, cardsDomainIDs));
-
             protectedMenuItems.push({
                 translationKey: 'workspace.common.companyCards',
                 icon: expensifyIcons.CreditCard,
                 action: singleExecution(waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)))),
                 screenName: SCREENS.WORKSPACE.COMPANY_CARDS,
-                brickRoadIndicator: hasBrokenFeedConnection ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator: hasCompanyCardFeedError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                 highlighted: highlightedFeature === CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED,
             });
         }
@@ -391,7 +377,23 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
         return menuItems;
     }, [
-        expensifyIcons,
+        expensifyIcons.Document,
+        expensifyIcons.Gear,
+        expensifyIcons.Building,
+        expensifyIcons.Users,
+        expensifyIcons.Sync,
+        expensifyIcons.Receipt,
+        expensifyIcons.Folder,
+        expensifyIcons.Tag,
+        expensifyIcons.Coins,
+        expensifyIcons.Workflows,
+        expensifyIcons.Feed,
+        expensifyIcons.Car,
+        expensifyIcons.LuggageWithLines,
+        expensifyIcons.ExpensifyCard,
+        expensifyIcons.CreditCard,
+        expensifyIcons.CalendarSolid,
+        expensifyIcons.InvoiceGeneric,
         singleExecution,
         waitForNavigate,
         featureStates,
@@ -402,11 +404,9 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         policyID,
         hasSyncError,
         highlightedFeature,
-        hasPolicyCategoryError,
         shouldShowEnterCredentialsError,
-        allFeedsCards,
-        workspaceAccountID,
-        cardsDomainIDs,
+        hasPolicyCategoryError,
+        hasCompanyCardFeedError,
     ]);
 
     // We only update feature states if they aren't pending.
@@ -558,25 +558,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             ))}
                         </View>
                     </OfflineWithFeedback>
-                    {isPolicyExpenseChatEnabled && !!currentUserPolicyExpenseChatReportID && (
-                        <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                            <Text style={[styles.textSupporting, styles.fontSizeLabel, styles.ph2]}>{translate('workspace.common.submitExpense')}</Text>
-                            <OfflineWithFeedback
-                                pendingAction={reportPendingAction}
-                                shouldShowErrorMessages={false}
-                            >
-                                <MenuItem
-                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                                    title={getReportName(currentUserPolicyExpenseChat)}
-                                    description={translate('workspace.common.workspace')}
-                                    onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(currentUserPolicyExpenseChat?.reportID))}
-                                    shouldShowRightIcon
-                                    wrapperStyle={[styles.br2, styles.pl2, styles.pr0, styles.pv3, styles.mt1, styles.alignItemsCenter]}
-                                    iconReportID={currentUserPolicyExpenseChatReportID}
-                                />
-                            </OfflineWithFeedback>
-                        </View>
-                    )}
                 </ScrollView>
                 {shouldShowNavigationTabBar && shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.WORKSPACES} />}
             </FullPageNotFoundView>

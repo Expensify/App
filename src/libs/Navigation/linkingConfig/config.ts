@@ -259,6 +259,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {
                             path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                             exact: true,
@@ -710,8 +714,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.route,
                         },
-                        [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARD_NAME.route,
+                        [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.route,
                         },
                         [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.route,
@@ -761,8 +765,26 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.route,
                         },
-                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
-                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD.route,
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_NAME]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_NAME.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION.route,
+                        },
+                        [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER.route,
                         },
                         [SCREENS.WORKSPACE.INVITE]: {
                             path: ROUTES.WORKSPACE_INVITE.route,
@@ -787,6 +809,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.route,
                         },
                         [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
@@ -850,9 +881,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: {
                             path: ROUTES.WORKSPACE_CUSTOM_FIELDS.route,
-                        },
-                        [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: {
-                            path: ROUTES.WORKSPACE_MEMBER_NEW_CARD.route,
                         },
                         [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
                             path: ROUTES.WORKSPACE_OWNER_CHANGE_SUCCESS.route,

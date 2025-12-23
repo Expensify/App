@@ -139,6 +139,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -1506,6 +1507,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: 'Podziel daty',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} do ${endDate} (${count} dni)`,
         splitByDate: 'Podziel według daty',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `raport przekazany do ${to} z powodu niestandardowego procesu zatwierdzania`,
     },
     transactionMerge: {
         listPage: {
@@ -1626,11 +1628,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Oczekiwanie, aż <strong>Ty</strong> naprawisz problem(y).`;
+                        return `Oczekiwanie, aż <strong>Ty</strong> naprawisz problemy.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Oczekiwanie, aż <strong>${actor}</strong> naprawi problem(y).`;
+                        return `Oczekiwanie, aż <strong>${actor}</strong> naprawi problemy.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie na rozwiązanie problemu(-ów) przez administratora.`;
+                        return `Oczekiwanie na administratora, aby naprawił problemy.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2144,6 +2146,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Potwierdź swoje konto bankowe',
         personalBankAccounts: 'Prywatne konta bankowe',
         businessBankAccounts: 'Firmowe konta bankowe',
+        shareBankAccount: 'Udostępnij konto bankowe',
+        bankAccountShared: 'Konto bankowe udostępnione',
+        shareBankAccountTitle: 'Wybierz administratorów, z którymi chcesz udostępnić to konto bankowe:',
+        shareBankAccountSuccess: 'Konto bankowe udostępnione!',
+        shareBankAccountSuccessDescription: 'Wybrani administratorzy otrzymają wiadomość z potwierdzeniem od Concierge.',
+        shareBankAccountFailure: 'Wystąpił nieoczekiwany błąd podczas próby udostępnienia konta bankowego. Spróbuj ponownie.',
+        shareBankAccountEmptyTitle: 'Brak dostępnych administratorów',
+        shareBankAccountEmptyDescription: 'Brak administratorów obszaru roboczego, z którymi można udostępnić to konto bankowe.',
+        shareBankAccountNoAdminsSelected: 'Wybierz administratora przed kontynuowaniem',
     },
     cardPage: {
         expensifyCard: 'Karta Expensify',
@@ -2293,7 +2304,25 @@ ${amount} dla ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Nie można było zmienić osoby zatwierdzającej. Spróbuj ponownie lub skontaktuj się z pomocą techniczną.',
-        header: 'Wyślij do tego członka do zatwierdzenia:',
+        title: 'Wyślij do tego członka do zatwierdzenia:',
+        description: 'Ta osoba zatwierdzi wydatki.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Zatwierdzający',
+        header: '(Opcjonalnie) Czy chcesz dodać limit zatwierdzenia?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Dodaj innego zatwierdzającego, gdy <strong>${approverName}</strong> jest zatwierdzającym, a raport przekracza poniższą kwotę:`
+                : 'Dodaj innego zatwierdzającego, gdy raport przekracza poniższą kwotę:',
+        reportAmountLabel: 'Kwota raportu',
+        additionalApproverLabel: 'Dodatkowy zatwierdzający',
+        skip: 'Pomiń',
+        next: 'Dalej',
+        removeLimit: 'Usuń limit',
+        enterAmountError: 'Wprowadź prawidłową kwotę',
+        enterApproverError: 'Zatwierdzający jest wymagany, gdy ustawisz limit raportu',
+        enterBothError: 'Wprowadź kwotę raportu i dodatkowego zatwierdzającego',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Raporty powyżej ${approvalLimit} są przekazywane do ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Upoważniony płatnik',
@@ -3857,7 +3886,6 @@ ${
                 monthly: 'Miesięcznie',
             },
             planType: 'Typ planu',
-            submitExpense: 'Prześlij swoje wydatki poniżej:',
             defaultCategory: 'Domyślna kategoria',
             viewTransactions: 'Wyświetl transakcje',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Wydatki użytkownika ${displayName}`,
@@ -4809,6 +4837,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             feedName: (feedName: string) => `Karty ${feedName}`,
             directFeed: 'Bezpośredni kanał',
             whoNeedsCardAssigned: 'Kto potrzebuje przypisanej karty?',
+            chooseTheCardholder: 'Wybierz posiadacza karty',
             chooseCard: 'Wybierz kartę',
             chooseCardFor: (assignee: string) => `Wybierz kartę dla <strong>${assignee}</strong>. Nie możesz znaleźć karty, której szukasz? <concierge-link>Daj nam znać.</concierge-link>`,
             noActiveCards: 'Brak aktywnych kart w tym kanale',
@@ -4830,6 +4859,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             chooseCardFeed: 'Wybierz źródło kart',
             ukRegulation:
                 'Expensify Limited jest agentem Plaid Financial Ltd., autoryzowanej instytucji płatniczej regulowanej przez Financial Conduct Authority na mocy Payment Services Regulations 2017 (Numer Referencyjny Firmy: 804718). Plaid świadczy Ci regulowane usługi informacji o rachunku za pośrednictwem Expensify Limited jako swojego agenta.',
+            assign: 'Przypisz',
+            assignCardFailedError: 'Przypisanie karty nie powiodło się.',
         },
         expensifyCard: {
             issueAndManageCards: 'Wydawaj i zarządzaj swoimi kartami Expensify',
@@ -5043,6 +5074,9 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 cardNumber: 'Numer karty',
                 cardholder: 'Posiadacz karty',
                 cardName: 'Nazwa karty',
+                allCards: 'Wszystkie karty',
+                assignedCards: 'Przypisano',
+                unassignedCards: 'Nieprzypisane',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} eksport` : `Eksport ${integration}`),
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Wybierz konto ${integration}, do którego mają być eksportowane transakcje.`,
                 integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
@@ -5080,6 +5114,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 pendingBankLink: 'kliknij tutaj',
                 giveItNameInstruction: 'Nadaj karcie nazwę, która wyróżni ją spośród innych.',
                 updating: 'Aktualizowanie...',
+                neverUpdated: 'Nigdy',
                 noAccountsFound: 'Nie znaleziono kont',
                 defaultCard: 'Domyślna karta',
                 downgradeTitle: `Nie można obniżyć poziomu miejsca pracy`,
@@ -7928,7 +7963,17 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             subtitle: 'Wymagaj, aby członkowie Twojej domeny logowali się przez Single Sign-On (SSO), ograniczaj tworzenie obszarów roboczych i nie tylko.',
             enable: 'Włącz',
         },
-        admins: {title: 'Administratorzy', findAdmin: 'Znajdź administratora', primaryContact: 'Główny kontakt', addPrimaryContact: 'Dodaj główny kontakt', settings: 'Ustawienia'},
+        admins: {
+            title: 'Administratorzy',
+            findAdmin: 'Znajdź administratora',
+            primaryContact: 'Główny kontakt',
+            addPrimaryContact: 'Dodaj główny kontakt',
+            settings: 'Ustawienia',
+            consolidatedDomainBilling: 'Skonsolidowane rozliczanie domen',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>Gdy ta opcja jest włączona, główny kontakt będzie opłacać wszystkie przestrzenie robocze należące do członków <strong>${domainName}</strong> i otrzymywać wszystkie potwierdzenia rozliczeń.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'Nie udało się zmienić zbiorczego rozliczania domeny. Spróbuj ponownie później.',
+        },
     },
     desktopAppRetiredPage: {
         title: 'Aplikacja desktopowa została wycofana',

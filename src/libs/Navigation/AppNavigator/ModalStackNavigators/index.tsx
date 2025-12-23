@@ -388,6 +388,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ChooseTransferAccountPage').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/EnablePayments').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements').default,
+    [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ShareBankAccount/ShareBankAccount').default,
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddDebitCardPage').default,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/NewBankAccountVerifyAccountPage').default,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount').default,
@@ -414,6 +415,12 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsExpensesFromPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApproverPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApproverPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApprovalLimitPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsOverLimitApproverPage').default,
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInviteMessagePage').default,
     [SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInviteMessageRolePage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsPayerPage').default,
@@ -433,7 +440,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsPage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsRolePage').default,
     [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberCustomFieldPage').default,
-    [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberNewCardPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: () => require<ReactComponentModule>('@pages/workspace/members/WorkspaceOwnerChangeWrapperPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceOwnerChangeSuccessPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceOwnerChangeErrorPage').default,
@@ -697,12 +703,19 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicingDetailsName').default,
     [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicingDetailsWebsite').default,
     [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicesVerifyAccountPage').default,
-    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssignCardFeedPage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/BrokenCardFeedConnectionPage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssigneeStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/CardSelectionStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/TransactionStartDateStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/CardNameStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/ConfirmationStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/InviteNewMemberStep').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/BankConnection').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/AddNewCardPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardDetailsPage').default,
-    [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardEditCardNamePage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardEditCardNamePage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardAccountSelectCardPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/IssueNewCardPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE]: () =>
