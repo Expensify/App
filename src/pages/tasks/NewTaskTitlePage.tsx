@@ -65,7 +65,7 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={NewTaskTitlePage.displayName}
+            testID="NewTaskTitlePage"
         >
             <HeaderWithBackButton
                 title={translate('task.title')}
@@ -99,7 +99,5 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
         </ScreenWrapper>
     );
 }
-
-NewTaskTitlePage.displayName = 'NewTaskTitlePage';
 
 export default NewTaskTitlePage;

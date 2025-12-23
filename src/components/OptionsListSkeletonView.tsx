@@ -65,6 +65,4 @@ function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = fal
     );
 }
 
-OptionsListSkeletonView.displayName = 'OptionsListSkeletonView';
-
 export default OptionsListSkeletonView;

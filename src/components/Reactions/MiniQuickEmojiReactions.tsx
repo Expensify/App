@@ -69,6 +69,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
                     onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone))}
+                    sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.QUICK_REACTION}
                 >
                     <Text
                         style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}
@@ -89,6 +90,7 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                 })}
                 isDelayButtonStateComplete={false}
                 tooltipText={translate('emojiReactions.addReactionTooltip')}
+                sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.EMOJI_PICKER_BUTTON}
             >
                 {({hovered, pressed}) => (
                     <Icon
@@ -102,7 +104,5 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
         </View>
     );
 }
-
-MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
 
 export default MiniQuickEmojiReactions;

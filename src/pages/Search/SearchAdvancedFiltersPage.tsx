@@ -24,6 +24,10 @@ function SearchAdvancedFiltersPage() {
                 return false;
             }
 
+            if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS) {
+                return false;
+            }
+
             if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE) {
                 return value !== CONST.SEARCH.DATA_TYPES.EXPENSE;
             }
@@ -38,7 +42,7 @@ function SearchAdvancedFiltersPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchAdvancedFiltersPage.displayName}
+            testID="SearchAdvancedFiltersPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -50,7 +54,5 @@ function SearchAdvancedFiltersPage() {
         </ScreenWrapper>
     );
 }
-
-SearchAdvancedFiltersPage.displayName = 'SearchAdvancedFiltersPage';
 
 export default SearchAdvancedFiltersPage;
