@@ -11,6 +11,7 @@ import {canWriteInReport, isCompletedTaskReport} from '@libs/ReportUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import Button from './Button';
 
@@ -51,11 +52,10 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
                     }
                 })}
                 style={styles.flex1}
+                sentryLabel={CONST.SENTRY_LABEL.TASK.HEADER_ACTION_BUTTON}
             />
         </View>
     );
 }
-
-TaskHeaderActionButton.displayName = 'TaskHeaderActionButton';
 
 export default TaskHeaderActionButton;

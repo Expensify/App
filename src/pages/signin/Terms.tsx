@@ -15,6 +15,4 @@ function Terms() {
     );
 }
 
-Terms.displayName = 'Terms';
-
 export default Terms;
