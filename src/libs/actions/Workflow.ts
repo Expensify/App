@@ -226,19 +226,7 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
     // Check if the approver forwards to other approvers and add them to the list
     if (policy.employeeList[approver.email]?.forwardsTo) {
         const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
-
         approvers.splice(approverIndex, approvers.length, ...additionalApprovers);
-
-        // Preserve the new approvalLimit and overLimitForwardsTo values that were passed in,
-        // since calculateApprovers reads from stale policy data
-        const existingApprover = approvers.at(approverIndex);
-        if (existingApprover) {
-            approvers[approverIndex] = {
-                ...existingApprover,
-                approvalLimit: approver.approvalLimit,
-                overLimitForwardsTo: approver.overLimitForwardsTo,
-            };
-        }
     }
 
     // Always clear the additional approver error when an approver is added
@@ -281,11 +269,6 @@ function clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow}:
 /** Clear all approvers of the approval workflow that is currently edited */
 function clearApprovalWorkflowApprovers() {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: []});
-}
-
-/** Set whether the user is in the initial creation flow */
-function setApprovalWorkflowIsInitialFlow(isInitialFlow: boolean) {
-    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {isInitialFlow});
 }
 
 function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>) {
@@ -339,5 +322,4 @@ export {
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
     validateApprovalWorkflow,
-    setApprovalWorkflowIsInitialFlow,
 };

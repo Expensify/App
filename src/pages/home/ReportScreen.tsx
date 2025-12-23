@@ -949,7 +949,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     return (
         // Wide RHP overlays should be rendered only for the report screen displayed in RHP
-        <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
+        <WideRHPOverlayWrapper wrappedRoute={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route : undefined}>
             <ActionListContext.Provider value={actionListValue}>
                 <ReactionListWrapper>
                     <ScreenWrapper

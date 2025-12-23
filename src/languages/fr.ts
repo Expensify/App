@@ -343,7 +343,8 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'Prénom',
         lastName: 'Nom de famille',
         scanning: 'Numérisation',
-        addCardTermsOfService: 'Conditions d’utilisation d’Expensify',
+        analyzing: 'Analyse en cours...',
+        addCardTermsOfService: "Conditions d'utilisation d'Expensify",
         perPerson: 'par personne',
         phone: 'Téléphone',
         phoneNumber: 'Numéro de téléphone',
@@ -2319,26 +2320,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Le valideur n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
-        title: 'Définir l’approbateur',
-        description: 'Cette personne approuvera les dépenses.',
-    },
-    workflowsApprovalLimitPage: {
-        title: 'Approbateur',
-        header: "(Optionnel) Voulez-vous ajouter une limite d'approbation ?",
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Ajoutez un autre approbateur lorsque <strong>${approverName}</strong> est approbateur et que le rapport dépasse le montant ci-dessous :`
-                : 'Ajoutez un autre approbateur lorsque le rapport dépasse le montant ci-dessous :',
-        reportAmountLabel: 'Montant du rapport',
-        additionalApproverLabel: 'Approbateur supplémentaire',
-        skip: 'Passer',
-        next: 'Suivant',
-        removeLimit: 'Supprimer la limite',
-        enterAmountError: 'Veuillez entrer un montant valide',
-        enterApproverError: 'Un approbateur est requis lorsque vous définissez une limite de rapport',
-        enterBothError: 'Entrez un montant de rapport et un approbateur supplémentaire',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
-            `Les rapports supérieurs à ${approvalLimit} sont transférés à ${approverName}`,
+        header: 'Envoyer à ce membre pour approbation :',
     },
     workflowsPayerPage: {
         title: 'Payeur autorisé',
@@ -2897,6 +2879,7 @@ ${
             containsReservedWord: 'Le nom ne peut pas contenir les mots Expensify ou Concierge',
             hasInvalidCharacter: 'Le nom ne peut pas contenir de virgule ou de point-virgule',
             requiredFirstName: 'Le prénom ne peut pas être vide',
+            cannotContainSpecialCharacters: 'Le nom ne peut pas contenir de caractères spéciaux',
         },
     },
     privatePersonalDetails: {
@@ -8020,11 +8003,15 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             findAdmin: 'Trouver un admin',
             primaryContact: 'Contact principal',
             addPrimaryContact: 'Ajouter un contact principal',
+            setPrimaryContactError: 'Impossible de définir le contact principal. Veuillez réessayer plus tard.',
             settings: 'Paramètres',
             consolidatedDomainBilling: 'Facturation consolidée du domaine',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Lorsque cette option est activée, le contact principal paiera pour tous les espaces de travail appartenant aux membres de <strong>${domainName}</strong> et recevra tous les reçus de facturation.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'La facturation de domaine consolidée n’a pas pu être modifiée. Veuillez réessayer plus tard.',
+            addAdmin: 'Ajouter un administrateur',
+            invite: 'Inviter',
+            addAdminError: 'Impossible d’ajouter ce membre en tant qu’administrateur. Veuillez réessayer.',
         },
     },
     desktopAppRetiredPage: {

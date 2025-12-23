@@ -74,6 +74,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'Nombre',
         lastName: 'Apellidos',
         scanning: 'Escaneando',
+        analyzing: 'Analizando...',
         phone: 'Teléfono',
         phoneNumber: 'Número de teléfono',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -1953,25 +1954,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
-        title: 'Establecer aprobador',
-        description: 'Esta persona aprobará los gastos.',
-    },
-    workflowsApprovalLimitPage: {
-        title: 'Aprobador',
-        header: '(Opcional) ¿Quieres añadir un límite de aprobación?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Añadir otro aprobador cuando <strong>${approverName}</strong> es aprobador y el informe supera el importe indicado:`
-                : 'Añadir otro aprobador cuando el informe supera el importe indicado:',
-        reportAmountLabel: 'Importe del informe',
-        additionalApproverLabel: 'Aprobador adicional',
-        skip: 'Omitir',
-        next: 'Siguiente',
-        removeLimit: 'Eliminar límite',
-        enterAmountError: 'Por favor, introduce un importe válido',
-        enterApproverError: 'Se requiere un aprobador cuando estableces un límite de informe',
-        enterBothError: 'Introduce un importe del informe y un aprobador adicional',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Los informes superiores a ${approvalLimit} se envían a ${approverName}`,
+        header: 'Enviar a este miembro para su aprobación:',
     },
     workflowsPayerPage: {
         title: 'Pagador autorizado',
@@ -2532,6 +2515,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     personalDetails: {
         error: {
+            cannotContainSpecialCharacters: 'El nombre no puede contener caracteres especiales',
             containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge',
             hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma',
             requiredFirstName: 'El nombre no puede estar vacío',
@@ -8038,11 +8022,15 @@ ${amount} para ${merchant} - ${date}`,
             findAdmin: 'Encontrar administrador',
             primaryContact: 'Contacto principal',
             addPrimaryContact: 'Añadir contacto principal',
+            setPrimaryContactError: 'No se pudo establecer el contacto principal. Por favor, inténtalo de nuevo más tarde.',
             settings: 'Configuración',
             consolidatedDomainBilling: 'Facturación consolidada del dominio',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Cuando está habilitada, el contacto principal pagará todos los espacios de trabajo propiedad de los miembros de <strong>${domainName}</strong> y recibirá todos los recibos de facturación.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'No se pudo cambiar la facturación consolidada del dominio. Por favor, inténtalo de nuevo más tarde.',
+            addAdmin: 'Añadir administrador',
+            invite: 'Invitar',
+            addAdminError: 'No se pudo añadir a este miembro como administrador. Por favor, inténtalo de nuevo.',
         },
     },
 };

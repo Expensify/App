@@ -343,6 +343,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'Voornaam',
         lastName: 'Achternaam',
         scanning: 'Scannen',
+        analyzing: 'Analyseren...',
         addCardTermsOfService: 'Expensify-servicevoorwaarden',
         perPerson: 'per persoon',
         phone: 'Telefoon',
@@ -2306,26 +2307,7 @@ ${amount} voor ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'De fiatteur kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
-        title: 'Naar dit lid sturen ter goedkeuring:',
-        description: 'Deze persoon zal de uitgaven goedkeuren.',
-    },
-    workflowsApprovalLimitPage: {
-        title: 'Goedkeurder',
-        header: '(Optioneel) Wilt u een goedkeuringslimiet toevoegen?',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Voeg een andere goedkeurder toe wanneer <strong>${approverName}</strong> goedkeurder is en het rapport het onderstaande bedrag overschrijdt:`
-                : 'Voeg een andere goedkeurder toe wanneer het rapport het onderstaande bedrag overschrijdt:',
-        reportAmountLabel: 'Rapportbedrag',
-        additionalApproverLabel: 'Extra goedkeurder',
-        skip: 'Overslaan',
-        next: 'Volgende',
-        removeLimit: 'Limiet verwijderen',
-        enterAmountError: 'Voer een geldig bedrag in',
-        enterApproverError: 'Een goedkeurder is vereist wanneer u een rapportlimiet instelt',
-        enterBothError: 'Voer een rapportbedrag en een extra goedkeurder in',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
-            `Rapporten boven ${approvalLimit} worden doorgestuurd naar ${approverName}`,
+        header: 'Naar dit lid sturen ter goedkeuring:',
     },
     workflowsPayerPage: {
         title: 'Geautoriseerde betaler',
@@ -2879,6 +2861,7 @@ ${
             containsReservedWord: 'Naam mag de woorden Expensify of Concierge niet bevatten',
             hasInvalidCharacter: 'Naam mag geen komma of puntkomma bevatten',
             requiredFirstName: 'Voornaam mag niet leeg zijn',
+            cannotContainSpecialCharacters: 'Naam mag geen speciale tekens bevatten',
         },
     },
     privatePersonalDetails: {
@@ -7983,11 +7966,15 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             findAdmin: 'Beheerder zoeken',
             primaryContact: 'Primair contactpersoon',
             addPrimaryContact: 'Primair contactpersoon toevoegen',
+            setPrimaryContactError: 'Kan de primaire contactpersoon niet instellen. Probeer het later opnieuw.',
             settings: 'Instellingen',
             consolidatedDomainBilling: 'Geconsolideerde domeinfacturering',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Indien ingeschakeld, betaalt de primaire contactpersoon voor alle werkruimten die eigendom zijn van leden van <strong>${domainName}</strong> en ontvangt hij/zij alle factuurbewijzen.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'Geconsolideerde domeinfacturering kon niet worden gewijzigd. Probeer het later opnieuw.',
+            addAdmin: 'Beheerder toevoegen',
+            invite: 'Uitnodigen',
+            addAdminError: 'Kan dit lid niet als beheerder toevoegen. Probeer het opnieuw.',
         },
     },
     desktopAppRetiredPage: {
