@@ -60,9 +60,6 @@ type BaseDomainMembersPageProps = {
 
     /** Callback fired when the user dismisses an error message for a specific row */
     onDismissError?: (item: MemberOption) => void;
-
-    /** Whether the data is still loading */
-    isLoading?: boolean;
 };
 
 function BaseDomainMembersPage({
@@ -76,7 +73,6 @@ function BaseDomainMembersPage({
     getCustomRightElement,
     getCustomRowProps,
     onDismissError,
-    isLoading = false,
 }: BaseDomainMembersPageProps) {
     const {formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
@@ -139,10 +135,6 @@ function BaseDomainMembersPage({
                 shouldShowEmptyState={!filteredData.length}
             />
         ) : null;
-
-    if (isLoading) {
-        return <FullScreenLoadingIndicator />;
-    }
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>

@@ -17,7 +17,6 @@ import {getCurrentUserAccountID} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainAdminsPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.ADMINS>;
 
@@ -29,7 +28,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const illustrations = useMemoizedLazyIllustrations(['Members']);
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus']);
 
-    const [adminAccountIDs, domainMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
@@ -89,7 +88,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             getCustomRowProps={getCustomRowProps}
             onDismissError={(item) => clearAddAdminError(domainAccountID, item.accountID)}
             onSelectRow={(item) => Navigation.navigate(ROUTES.DOMAIN_ADMIN_DETAILS.getRoute(domainAccountID, item.accountID))}
-            isLoading={isLoadingOnyxValue(domainMetadata)}
         />
     );
 }
