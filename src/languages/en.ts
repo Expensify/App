@@ -7878,6 +7878,8 @@ const translations = {
             title: 'Members',
             findMember: 'Find member',
             closeAccount: 'Close account',
+            reportSuspiciousActivityPrompt: (email: string) =>
+                `Are you sure? This will lock <strong>${email}'s</strong> account. <br /><br /> Our team will then review the account and remove any unauthorized access. To regain access, they'll need to work with Concierge.`,
         },
     },
 };

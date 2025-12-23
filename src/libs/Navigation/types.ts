@@ -1378,6 +1378,10 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
         accountID: number;
     };
+    [SCREENS.DOMAIN.MEMBER_REPORT_SUSPICIOUS_ACTIVITY]: {
+        domainAccountID: number;
+        accountID: number;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {

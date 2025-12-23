@@ -3555,6 +3555,10 @@ const ROUTES = {
         route: 'domain/:domainAccountID/members/:accountID',
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}` as const,
     },
+    DOMAIN_MEMBER_REPORT_SUSPICIOUS_ACTIVITY: {
+        route: 'domain/:domainAccountID/members/:accountID/report-suspicious-activity',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/report-suspicious-activity` as const,
+    },
 } as const;
 
 /**

@@ -1148,6 +1148,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.MEMBER_DETAILS]: {
                             path: ROUTES.DOMAIN_MEMBER_DETAILS.route,
                         },
+                        [SCREENS.DOMAIN.MEMBER_REPORT_SUSPICIOUS_ACTIVITY]: {
+                            path: ROUTES.DOMAIN_MEMBER_REPORT_SUSPICIOUS_ACTIVITY.route,
+                        },
                     },
                 },
                 [SCREENS.RIGHT_MODAL.TWO_FACTOR_AUTH]: {

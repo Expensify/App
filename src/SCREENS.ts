@@ -871,6 +871,7 @@ const SCREENS = {
         ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
         MEMBERS: 'Domain_Members',
         MEMBER_DETAILS: 'Member_Details',
+        MEMBER_REPORT_SUSPICIOUS_ACTIVITY: 'Member_Report_Suspicious_Activity',
     },
 } as const;
 

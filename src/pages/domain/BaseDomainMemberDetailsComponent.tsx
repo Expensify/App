@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import DomainNotFoundPageWrapper from './DomainNotFoundPageWrapper';
 
 type MemberDetailsMenuItem = {
     key: string;
