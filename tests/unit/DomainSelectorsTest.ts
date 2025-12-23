@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, selectMemberIDs, technicalContactSettingsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, technicalContactSettingsSelector, selectMemberIDs, domainEmailSelector} from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, Domain} from '@src/types/onyx';
@@ -96,6 +96,26 @@ describe('domainSelectors', () => {
                 technicalContactEmail: undefined,
                 useTechnicalContactBillingCard: undefined,
             });
+        });
+    });
+
+    describe('domainEmailSelector', () => {
+        it('Should return the email when it exists in the domain object', () => {
+            const domain = {
+                email: '+@expensify.com',
+            } as OnyxEntry<Domain>;
+
+            expect(domainEmailSelector(domain)).toBe('+@expensify.com');
+        });
+
+        it('Should return undefined if the domain object is undefined', () => {
+            expect(domainEmailSelector(undefined)).toBeUndefined();
+        });
+
+        it('Should return undefined if the email property is missing', () => {
+            const domain = {} as OnyxEntry<Domain>;
+
+            expect(domainEmailSelector(domain)).toBeUndefined();
         });
     });
     describe('selectMemberIDs', () => {
