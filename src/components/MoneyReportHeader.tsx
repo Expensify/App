@@ -273,12 +273,9 @@ function MoneyReportHeader({
     // When prevent self-approval is enabled & the current user is submitter AND they're submitting to themselves, we need to show the optimistic next step
     // We should always show this optimistic message for policies with preventSelfApproval
     // to avoid any flicker during transitions between online/offline states
-    const nextApproverAccountID = useMemo(() => getNextApproverAccountID(moneyRequestReport), [moneyRequestReport]);
-    const isSubmitterSameAsNextApprover = useMemo(
-        () => isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID),
-        [moneyRequestReport, nextApproverAccountID],
-    );
-    const isBlockSubmitDueToPreventSelfApproval = useMemo(() => isSubmitterSameAsNextApprover && policy?.preventSelfApproval, [isSubmitterSameAsNextApprover, policy?.preventSelfApproval]);
+    const nextApproverAccountID = getNextApproverAccountID(moneyRequestReport);
+    const isSubmitterSameAsNextApprover = isReportOwner(moneyRequestReport) && (nextApproverAccountID === moneyRequestReport?.ownerAccountID || moneyRequestReport?.managerID === moneyRequestReport?.ownerAccountID);
+    const isBlockSubmitDueToPreventSelfApproval = isSubmitterSameAsNextApprover && policy?.preventSelfApproval;
     const isBlockSubmitDueToStrictPolicyRules = useMemo(() => {
         return shouldBlockSubmitDueToStrictPolicyRules(moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, accountID, email ?? '', transactions);
     }, [moneyRequestReport?.reportID, violations, areStrictPolicyRulesEnabled, accountID, email, transactions]);
