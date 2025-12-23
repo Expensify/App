@@ -71,9 +71,9 @@ function IOURequestStepTimeHours({
         setMoneyRequestTimeRate(transactionID, rate, isTransactionDraft);
         setMoneyRequestTimeCount(transactionID, count, isTransactionDraft);
 
-        setMoneyRequestParticipantsFromReport(transactionID, report, accountID).then(() => {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-        });
+        setMoneyRequestParticipantsFromReport(transactionID, report, accountID).then(() =>
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)),
+        );
     };
 
     return (
@@ -115,7 +115,7 @@ function IOURequestStepTimeHours({
 }
 
 // eslint-disable-next-line rulesdir/no-negated-variables
-const IOURequestStepHoursWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTimeHours, true);
+const IOURequestStepHoursWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTimeHours);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepHoursWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepHoursWithWritableReportOrNotFound);
 
