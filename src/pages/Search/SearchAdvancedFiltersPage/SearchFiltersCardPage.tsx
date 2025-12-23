@@ -4,6 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import CardListItem from '@components/SelectionListWithSections/Search/CardListItem';
 import {useCompanyCardFeedIcons} from '@hooks/useCompanyCardIcons';
