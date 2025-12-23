@@ -743,6 +743,8 @@ type GetTrackExpenseInformationTransactionParams = {
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     attendees?: Attendee[];
     distance?: number;
+    odometerStart?: number | null;
+    odometerEnd?: number | null;
 };
 
 type GetTrackExpenseInformationParticipantParams = {
