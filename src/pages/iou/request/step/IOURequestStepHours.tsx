@@ -1,6 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
+import React, {useRef} from 'react';
 import Button from '@components/Button';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
@@ -63,17 +62,15 @@ function IOURequestStepTimeHours({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
-    useFocusEffect(
-        useCallback(() => {
-            focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
-            return () => {
-                if (!focusTimeoutRef.current) {
-                    return;
-                }
-                clearTimeout(focusTimeoutRef.current);
-            };
-        }, []),
-    );
+    useFocusEffect(() => {
+        focusTimeoutRef.current = setTimeout(() => textInputRef.current?.focus(), CONST.ANIMATED_TRANSITION);
+        return () => {
+            if (!focusTimeoutRef.current) {
+                return;
+            }
+            clearTimeout(focusTimeoutRef.current);
+        };
+    });
 
     const saveTime = (count: number) => {
         setMoneyRequestAmount(transactionID, computeTimeAmount(rate, count), currency);
@@ -91,7 +88,7 @@ function IOURequestStepTimeHours({
         <StepScreenWrapper
             headerTitle={translate('iou.time')}
             onBackButtonPress={() => Navigation.goBack()}
-            testID={IOURequestStepTimeHours.displayName}
+            testID="IOURequestStepTimeHours"
             shouldShowWrapper={false}
             includeSafeAreaPaddingBottom
             shouldShowNotFoundPage={shouldShowNotFoundPage}
@@ -100,6 +97,7 @@ function IOURequestStepTimeHours({
                 <NumberWithSymbolForm
                     symbol={translate('iou.timeTracking.hrs')}
                     symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX}
+                    isSymbolPressable={false}
                     decimals={CONST.HOURS_DECIMAL_PLACES}
                     autoGrowExtraSpace={variables.w80}
                     shouldShowBigNumberPad={canUseTouchScreen}
@@ -107,28 +105,22 @@ function IOURequestStepTimeHours({
                     numberFormRef={moneyRequestTimeInputRef}
                     style={styles.iouAmountTextInput}
                     containerStyle={styles.iouAmountTextInputContainer}
-                    touchableInputWrapperStyle={styles.heightUndefined}
-                    testID="moneyRequestTimeFormInput"
                     footer={
-                        <View style={styles.w100}>
-                            <Button
-                                success
-                                pressOnEnter
-                                medium={isExtraSmallScreenHeight}
-                                large={!isExtraSmallScreenHeight}
-                                style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
-                                onPress={() => saveTime(parseFloat(moneyRequestTimeInputRef.current?.getNumber() ?? ''))}
-                                text={translate('common.next')}
-                            />
-                        </View>
+                        <Button
+                            success
+                            pressOnEnter
+                            medium={isExtraSmallScreenHeight}
+                            large={!isExtraSmallScreenHeight}
+                            style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
+                            onPress={() => saveTime(parseFloat(moneyRequestTimeInputRef.current?.getNumber() ?? ''))}
+                            text={translate('common.next')}
+                        />
                     }
                 />
             </ScrollView>
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepTimeHours.displayName = 'IOURequestStepTimeHours';
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepHoursWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTimeHours, true);
