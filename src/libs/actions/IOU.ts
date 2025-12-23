@@ -10172,10 +10172,17 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
  * @param targetReportID - The ID of the new partial expense report to copy actions to
  * @returns A tuple of [optimisticData, successData, failureData] OnyxUpdate arrays
  */
-function getDuplicateActionsForPartialReport(sourceReportID: string | undefined, targetReportID: string | undefined): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+function getDuplicateActionsForPartialReport(
+    sourceReportID: string | undefined,
+    targetReportID: string | undefined,
+): [
+    Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>,
+    Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>,
+    Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>,
+] {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
 
     if (!sourceReportID || !targetReportID) {
         return [optimisticData, successData, failureData];
