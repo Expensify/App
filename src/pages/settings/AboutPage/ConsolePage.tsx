@@ -42,7 +42,7 @@ const filterBy = {
 type FilterBy = (typeof filterBy)[keyof typeof filterBy];
 
 function ConsolePage() {
-    const icons = useMemoizedLazyExpensifyIcons(['All', 'Download', 'Globe', 'UploadAlt'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['All', 'Download', 'Globe', 'UploadAlt']);
     const [capturedLogs] = useOnyx(ONYXKEYS.LOGS, {canBeMissing: false});
     const [shouldStoreLogs] = useOnyx(ONYXKEYS.SHOULD_STORE_LOGS, {canBeMissing: true});
     const [input, setInput] = useState('');
@@ -130,7 +130,7 @@ function ConsolePage() {
     const saveLogs = () => {
         const logsWithParsedMessages = parseStringifiedMessages(filteredLogsList);
 
-        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2));
+        localFileDownload('logs', JSON.stringify(logsWithParsedMessages, null, 2), translate);
     };
 
     const shareLogs = () => {
@@ -169,7 +169,7 @@ function ConsolePage() {
 
     return (
         <ScreenWrapper
-            testID={ConsolePage.displayName}
+            testID="ConsolePage"
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -227,7 +227,5 @@ function ConsolePage() {
         </ScreenWrapper>
     );
 }
-
-ConsolePage.displayName = 'ConsolePage';
 
 export default ConsolePage;

@@ -78,7 +78,7 @@ function LockAccountPage() {
         <HeaderPageLayout
             onBackButtonPress={() => Navigation.goBack()}
             title={translate('lockAccountPage.reportSuspiciousActivity')}
-            testID={LockAccountPage.displayName}
+            testID="LockAccountPage"
             footer={lockAccountButton}
             childrenContainerStyles={[styles.pt3, styles.gap6]}
             shouldShowOfflineIndicatorInWideScreen
@@ -91,5 +91,4 @@ function LockAccountPage() {
     );
 }
 
-LockAccountPage.displayName = 'LockAccountPage';
 export default LockAccountPage;

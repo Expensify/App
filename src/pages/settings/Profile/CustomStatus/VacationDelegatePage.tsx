@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -139,7 +140,7 @@ function VacationDelegatePage() {
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
             })),
         }));
-    }, [vacationDelegate, delegatePersonalDetails, availableOptions.personalDetails, availableOptions.recentReports, translate, availableOptions.userToInvite]);
+    }, [vacationDelegate, delegatePersonalDetails, translate, availableOptions.recentReports, availableOptions.personalDetails, availableOptions.userToInvite, icons.FallbackAvatar]);
 
     const onSelectRow = useCallback(
         (option: Participant) => {
@@ -183,7 +184,7 @@ function VacationDelegatePage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={VacationDelegatePage.displayName}
+            testID="VacationDelegatePage"
         >
             <HeaderWithBackButton
                 title={translate('statusPage.vacationDelegate')}
@@ -207,7 +208,5 @@ function VacationDelegatePage() {
         </ScreenWrapper>
     );
 }
-
-VacationDelegatePage.displayName = 'VacationDelegatePage';
 
 export default VacationDelegatePage;

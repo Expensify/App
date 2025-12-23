@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import RenderHTML from '@components/RenderHTML';
@@ -46,8 +45,8 @@ function CardSection() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'Bill', 'CreditCard']);
+    const illustrations = useMemoizedLazyIllustrations(['CreditCardEyes']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const privateSubscription = usePrivateSubscription();
     const [privateStripeCustomerID] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
@@ -202,7 +201,7 @@ function CardSection() {
                 {!isEmptyObject(defaultCard?.accountData) && (
                     <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
                         <Icon
-                            src={Expensicons.CreditCard}
+                            src={expensifyIcons.CreditCard}
                             additionalStyles={styles.subscriptionAddedCardIcon}
                             fill={theme.icon}
                             medium
@@ -258,7 +257,7 @@ function CardSection() {
             {!!(subscriptionPlan && account?.isEligibleForRefund) && (
                 <MenuItem
                     shouldShowRightIcon
-                    icon={Expensicons.Bill}
+                    icon={expensifyIcons.Bill}
                     wrapperStyle={styles.sectionMenuItemTopDescription}
                     title={translate('subscription.cardSection.requestRefund')}
                     titleStyle={styles.textStrong}
@@ -278,7 +277,5 @@ function CardSection() {
         </Section>
     );
 }
-
-CardSection.displayName = 'CardSection';
 
 export default CardSection;

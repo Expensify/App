@@ -20,7 +20,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
-    const icons = useMemoizedLazyExpensifyIcons(['Document', 'GalleryNotFound'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'GalleryNotFound']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -129,6 +129,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
                             shouldUseHapticsOnLongPress
                             role={getButtonRole(true)}
                             accessibilityLabel={translate('accessibilityHints.viewAttachment')}
+                            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.IMAGE}
                         >
                             {thumbnailImageComponent}
                         </PressableWithoutFocus>
@@ -138,7 +139,5 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
         </ShowContextMenuContext.Consumer>
     );
 }
-
-ImageRenderer.displayName = 'ImageRenderer';
 
 export default memo(ImageRenderer, (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes);

@@ -81,6 +81,4 @@ function EnabledPage() {
     );
 }
 
-EnabledPage.displayName = 'EnabledPage';
-
 export default EnabledPage;

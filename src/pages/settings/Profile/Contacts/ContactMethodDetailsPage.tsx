@@ -6,7 +6,6 @@ import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Star, Trashcan} from '@components/Icon/Expensicons';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import MenuItem from '@components/MenuItem';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -17,6 +16,7 @@ import Text from '@components/Text';
 import ValidateCodeActionForm from '@components/ValidateCodeActionForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -63,6 +63,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     const {formatPhoneNumber, translate} = useLocalize();
     const themeStyles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
 
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const backTo = route.params.backTo;
@@ -187,13 +188,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         const menuItems = [];
         if (isValidateCodeFormVisible && !isDefaultContactMethod) {
             menuItems.push({
-                icon: Trashcan,
+                icon: icons.Trashcan,
                 text: translate('common.remove'),
                 onSelected: () => close(turnOnDeleteModal),
             });
         }
         return menuItems;
-    }, [isValidateCodeFormVisible, translate, turnOnDeleteModal, isDefaultContactMethod]);
+    }, [isValidateCodeFormVisible, translate, turnOnDeleteModal, isDefaultContactMethod, icons.Trashcan]);
 
     if (isLoadingOnyxValues || (isLoadingReportData && isEmptyObject(loginList))) {
         return <FullscreenLoadingIndicator />;
@@ -201,7 +202,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
 
     if (!contactMethod || !loginData) {
         return (
-            <ScreenWrapper testID={ContactMethodDetailsPage.displayName}>
+            <ScreenWrapper testID="ContactMethodDetailsPage">
                 <FullPageNotFoundView
                     shouldShow
                     linkTranslationKey="contacts.goBackContactMethods"
@@ -229,7 +230,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 >
                     <MenuItem
                         title={translate('contacts.setAsDefault')}
-                        icon={Star}
+                        icon={icons.Star}
                         onPress={isAccountLocked ? showLockedAccountModal : setAsDefault}
                     />
                 </OfflineWithFeedback>
@@ -252,7 +253,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 >
                     <MenuItem
                         title={translate('common.remove')}
-                        icon={Trashcan}
+                        icon={icons.Trashcan}
                         onPress={() => {
                             if (isActingAsDelegate) {
                                 showDelegateNoAccessModal();
@@ -275,7 +276,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     validateCodeFormRef.current?.focus?.();
                 });
             }}
-            testID={ContactMethodDetailsPage.displayName}
+            testID="ContactMethodDetailsPage"
             focusTrapSettings={{
                 focusTrapOptions: isMobileSafari()
                     ? undefined
@@ -318,12 +319,11 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                     <ErrorMessageRow
                         errors={getLatestErrorField(loginData, 'addedLogin')}
                         errorRowStyles={[themeStyles.mh5, themeStyles.mv3]}
-                        onClose={() => {
+                        onDismiss={() => {
                             clearContactMethod(contactMethod);
                             clearUnvalidatedNewContactMethodAction();
                             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
                         }}
-                        canDismissError
                     />
                 )}
                 {isValidateCodeFormVisible && !!loginData && !loginData.validatedDate && (
@@ -356,7 +356,5 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
         </ScreenWrapper>
     );
 }
-
-ContactMethodDetailsPage.displayName = 'ContactMethodDetailsPage';
 
 export default ContactMethodDetailsPage;
