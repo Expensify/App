@@ -190,6 +190,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                 const shouldShowBottomBorder = !isLastTransaction(index) && !isLargeScreenWidth;
                 const transactionRow = (
                     <TransactionItemRow
+                        hash={transactionsQueryJSON?.hash}
                         report={transaction.report}
                         transactionItem={transaction}
                         violations={getTransactionViolations(transaction, violations, currentUserDetails.email ?? '', currentUserDetails.accountID, transaction.report, transaction.policy)}
