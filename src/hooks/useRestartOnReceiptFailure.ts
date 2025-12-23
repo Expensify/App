@@ -20,7 +20,7 @@ const useRestartOnReceiptFailure = (transaction: OnyxEntry<Transaction>, reportI
         if (!transaction || action !== CONST.IOU.ACTION.CREATE) {
             return;
         }
-        const itemReceiptFilename = transaction.filename;
+        const itemReceiptFilename = transaction.receipt?.filename;
         const itemReceiptPath = transaction.receipt?.source;
         const itemReceiptType = transaction.receipt?.type;
         const isLocalFile = isLocalFileUtil(itemReceiptPath);

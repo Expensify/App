@@ -57,6 +57,5 @@ function AddAttachmentModalCarouselView({fileToDisplay, files}: AttachmentConten
         />
     );
 }
-AddAttachmentModalCarouselView.displayName = 'AddAttachmentModalCarouselView';
 
 export default AddAttachmentModalCarouselView;

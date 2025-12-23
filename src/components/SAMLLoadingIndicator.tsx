@@ -1,20 +1,19 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from './Icon/Expensicons';
 import Text from './Text';
 
 function SAMLLoadingIndicator() {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['RocketBlue'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['RocketBlue']);
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     return (
         <View style={[StyleSheet.absoluteFillObject, styles.deeplinkWrapperContainer]}>
             <View style={styles.deeplinkWrapperMessage}>
@@ -40,13 +39,11 @@ function SAMLLoadingIndicator() {
                     width={154}
                     height={34}
                     fill={theme.success}
-                    src={Expensicons.ExpensifyWordmark}
+                    src={icons.ExpensifyWordmark}
                 />
             </View>
         </View>
     );
 }
-
-SAMLLoadingIndicator.displayName = 'SAMLLoadingIndicator';
 
 export default SAMLLoadingIndicator;

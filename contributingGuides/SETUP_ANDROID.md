@@ -59,6 +59,13 @@ If you haven't done any intentional edits outside of `src/` (like adding new dep
 2. **React Native Environment Setup**
    - Go through the official React-Native instructions on [this page](https://reactnative.dev/docs/environment-setup?guide=native&platform=android) to start running the app on android.
 
+3. **ccache Setup (Optional)**
+   - The Android project can utilize [ccache](https://ccache.dev/) to significantly reduce compilation times. Since C/C++ code doesn't change as frequently, ccache can cache compilation results and reuse them across builds.
+   - Install ccache via Homebrew: `brew install ccache`
+   - Once installed, the build system will automatically detect and use ccache when available.
+   - To view cumulative statistics on cache usage, run: `ccache --show-stats`
+   - **Note:** If you encounter any issues with the ccache cache, our clean command (via Rock CLI) will automatically clean the ccache directory as well.
+
 ## Running the Android App
 
 ### Development Emulator

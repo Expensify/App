@@ -38,24 +38,26 @@ function HybridAppHandler() {
             return;
         }
 
-        startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, {
-            name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
-            op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
-        });
-
         getHybridAppSettings().then((hybridAppSettings: HybridAppSettings | null) => {
             if (!hybridAppSettings) {
                 // Native method can send non-null value only once per NewDot lifecycle. It prevents issues with multiple initializations during reloads on debug builds.
                 Log.info('[HybridApp] `getHybridAppSettings` called more than once during single NewDot lifecycle. Skipping initialization.');
                 return;
             }
+
+            if (hybridAppSettings.hybridApp.pressedTryNewExpensify) {
+                startSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION, {
+                    name: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
+                    op: CONST.TELEMETRY.SPAN_OD_ND_TRANSITION,
+                    startTime: hybridAppSettings.hybridApp.transitionStartTimestamp,
+                });
+            }
+
             finalizeTransitionFromOldDot(hybridAppSettings);
         });
     }, [finalizeTransitionFromOldDot, isLoadingTryNewDot]);
 
     return null;
 }
-
-HybridAppHandler.displayName = 'HybridAppHandler';
 
 export default HybridAppHandler;
