@@ -85,12 +85,6 @@ Onyx.connect({
     },
 });
 
-let allTransactionViolations: TransactionViolations = [];
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (val) => (allTransactionViolations = val ?? []),
-});
-
 // Helper to safely check for a string 'name' property
 function isViolationWithName(violation: unknown): violation is {name: string} {
     return !!(violation && typeof violation === 'object' && typeof (violation as {name?: unknown}).name === 'string');
