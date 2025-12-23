@@ -350,13 +350,13 @@ function MoneyRequestConfirmationListFooter({
         return [reportIDToUse, reportToUse];
     }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
 
-    const reportName = useMemo(() => {
+    const reportName = (() => {
         const name = computeReportName(selectedReport, allReports, allPolicies, undefined, reportNameValuePairs);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
         return name;
-    }, [allPolicies, allReports, isUnreported, reportNameValuePairs, selectedReport, translate]);
+    })();
 
     const shouldReportBeEditableFromFAB = isUnreported ? allOutstandingReports.length >= 1 : allOutstandingReports.length > 1;
 

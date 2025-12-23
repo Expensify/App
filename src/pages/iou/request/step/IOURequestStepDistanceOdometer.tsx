@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {useIsFocused} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -112,29 +112,17 @@ function IOURequestStepDistanceOdometer({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
-    const shouldUseDefaultExpensePolicy = useMemo(
-        () =>
-            iouType === CONST.IOU.TYPE.CREATE &&
-            isPaidGroupPolicy(defaultExpensePolicy) &&
-            defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-            !shouldRestrictUserBillableActions(defaultExpensePolicy.id),
-        [iouType, defaultExpensePolicy],
-    );
+    const shouldUseDefaultExpensePolicy =
+        iouType === CONST.IOU.TYPE.CREATE &&
+        isPaidGroupPolicy(defaultExpensePolicy) &&
+        defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+        !shouldRestrictUserBillableActions(defaultExpensePolicy.id);
 
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
-    const shouldSkipConfirmation: boolean = useMemo(() => {
-        if (!skipConfirmation || !report?.reportID) {
-            return false;
-        }
+    const shouldSkipConfirmation: boolean = !skipConfirmation || !report?.reportID ? false : !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChatUtils(report));
 
-        return !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChatUtils(report));
-    }, [report, skipConfirmation, reportNameValuePairs]);
-
-    const confirmationRoute = useMemo(
-        () => ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, backToReport),
-        [action, backToReport, iouType, reportID, transactionID],
-    );
+    const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, backToReport);
 
     // Reset component state when transaction has no odometer data (happens when switching tabs)
     // In Phase 1, we don't persist data from transaction since users can't save and exit
@@ -228,7 +216,7 @@ function IOURequestStepDistanceOdometer({
     }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd, isEditing]);
 
     // Calculate total distance - updated live after every input change
-    const totalDistance = useMemo(() => {
+    const totalDistance = (() => {
         const start = parseFloat(startReading);
         const end = parseFloat(endReading);
         if (Number.isNaN(start) || Number.isNaN(end) || !startReading || !endReading) {
@@ -237,68 +225,62 @@ function IOURequestStepDistanceOdometer({
         const distance = end - start;
         // Show 0 if distance is negative
         return distance <= 0 ? 0 : distance;
-    }, [startReading, endReading]);
+    })();
 
-    const buttonText = useMemo(() => {
+    const buttonText = (() => {
         if (shouldSkipConfirmation) {
             return translate('iou.createExpense');
         }
         const shouldShowSave = isEditing || isEditingConfirmation;
         return shouldShowSave ? translate('common.save') : translate('common.next');
-    }, [shouldSkipConfirmation, isEditing, isEditingConfirmation, translate]);
+    })();
 
-    const handleStartReadingChange = useCallback(
-        (text: string) => {
-            // Allow digits and one decimal point or comma
-            // Remove all characters except digits, dots, and commas
-            let cleaned = text.replaceAll(/[^0-9.,]/g, '');
-            // Replace comma with dot for consistency
-            cleaned = cleaned.replaceAll(',', '.');
-            // Allow only one decimal point
-            const parts = cleaned.split('.');
-            if (parts.length > 2) {
-                cleaned = `${parts.at(0) ?? ''}.${parts.slice(1).join('')}`;
-            }
-            // Don't allow decimal point at the start
-            if (cleaned.startsWith('.')) {
-                cleaned = `0${cleaned}`;
-            }
-            setStartReading(cleaned);
-            startReadingRef.current = cleaned;
-            if (formError) {
-                setFormError('');
-            }
-        },
-        [formError],
-    );
+    const handleStartReadingChange = (text: string) => {
+        // Allow digits and one decimal point or comma
+        // Remove all characters except digits, dots, and commas
+        let cleaned = text.replaceAll(/[^0-9.,]/g, '');
+        // Replace comma with dot for consistency
+        cleaned = cleaned.replaceAll(',', '.');
+        // Allow only one decimal point
+        const parts = cleaned.split('.');
+        if (parts.length > 2) {
+            cleaned = `${parts.at(0) ?? ''}.${parts.slice(1).join('')}`;
+        }
+        // Don't allow decimal point at the start
+        if (cleaned.startsWith('.')) {
+            cleaned = `0${cleaned}`;
+        }
+        setStartReading(cleaned);
+        startReadingRef.current = cleaned;
+        if (formError) {
+            setFormError('');
+        }
+    };
 
-    const handleEndReadingChange = useCallback(
-        (text: string) => {
-            // Allow digits and one decimal point or comma
-            // Remove all characters except digits, dots, and commas
-            let cleaned = text.replaceAll(/[^0-9.,]/g, '');
-            // Replace comma with dot for consistency
-            cleaned = cleaned.replaceAll(',', '.');
-            // Allow only one decimal point
-            const parts = cleaned.split('.');
-            if (parts.length > 2) {
-                cleaned = `${parts.at(0) ?? ''}.${parts.slice(1).join('')}`;
-            }
-            // Don't allow decimal point at the start
-            if (cleaned.startsWith('.')) {
-                cleaned = `0${cleaned}`;
-            }
-            setEndReading(cleaned);
-            endReadingRef.current = cleaned;
-            if (formError) {
-                setFormError('');
-            }
-        },
-        [formError],
-    );
+    const handleEndReadingChange = (text: string) => {
+        // Allow digits and one decimal point or comma
+        // Remove all characters except digits, dots, and commas
+        let cleaned = text.replaceAll(/[^0-9.,]/g, '');
+        // Replace comma with dot for consistency
+        cleaned = cleaned.replaceAll(',', '.');
+        // Allow only one decimal point
+        const parts = cleaned.split('.');
+        if (parts.length > 2) {
+            cleaned = `${parts.at(0) ?? ''}.${parts.slice(1).join('')}`;
+        }
+        // Don't allow decimal point at the start
+        if (cleaned.startsWith('.')) {
+            cleaned = `0${cleaned}`;
+        }
+        setEndReading(cleaned);
+        endReadingRef.current = cleaned;
+        if (formError) {
+            setFormError('');
+        }
+    };
 
     // Navigate to confirmation page helper - following Manual tab pattern
-    const navigateToConfirmationPage = useCallback(() => {
+    const navigateToConfirmationPage = () => {
         if (!transactionID || !reportID) {
             return;
         }
@@ -309,37 +291,31 @@ function IOURequestStepDistanceOdometer({
             default:
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
         }
-    }, [iouType, transactionID, reportID, backToReport]);
+    };
 
     const allowNavigationRef = useRef(false);
-    const allowNavigation = useCallback(() => {
+    const allowNavigation = () => {
         allowNavigationRef.current = true;
-    }, []);
+    };
 
     useEffect(() => {
         allowNavigationRef.current = false;
     }, [isFocused, isEditingConfirmation]);
 
-    useBeforeRemove(
-        useCallback(
-            (event) => {
-                if (!isEditingConfirmation || !isFocused || allowNavigationRef.current) {
-                    return;
-                }
-                event.preventDefault();
-                allowNavigationRef.current = true;
-                if (confirmationRoute) {
-                    Navigation.goBack(confirmationRoute);
-                    return;
-                }
-                Navigation.goBack();
-            },
-            [confirmationRoute, isEditingConfirmation, isFocused],
-        ),
-        isEditingConfirmation && isFocused,
-    );
+    useBeforeRemove((event) => {
+        if (!isEditingConfirmation || !isFocused || allowNavigationRef.current) {
+            return;
+        }
+        event.preventDefault();
+        allowNavigationRef.current = true;
+        if (confirmationRoute) {
+            Navigation.goBack(confirmationRoute);
+            return;
+        }
+        Navigation.goBack();
+    }, isEditingConfirmation && isFocused);
 
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         if (isEditingConfirmation) {
             allowNavigation();
         }
@@ -348,10 +324,10 @@ function IOURequestStepDistanceOdometer({
             return;
         }
         Navigation.goBack();
-    }, [allowNavigation, confirmationRoute, isEditingConfirmation]);
+    };
 
     // Navigate to next page following Manual tab pattern
-    const navigateToNextPage = useCallback(() => {
+    const navigateToNextPage = () => {
         const start = parseFloat(startReading);
         const end = parseFloat(endReading);
 
@@ -523,41 +499,10 @@ function IOURequestStepDistanceOdometer({
         } else if (transactionID && reportID) {
             navigateToParticipantPage(iouType, transactionID, reportID);
         }
-    }, [
-        startReading,
-        endReading,
-        transaction,
-        transactionID,
-        isTransactionDraft,
-        isEditing,
-        report,
-        reportNameValuePairs,
-        iouType,
-        currentUserPersonalDetails.accountID,
-        reportAttributesDerived,
-        personalDetails,
-        shouldSkipConfirmation,
-        lastSelectedDistanceRates,
-        transactionViolations,
-        quickAction,
-        policyRecentlyUsedCurrencies,
-        backToReport,
-        shouldUseDefaultExpensePolicy,
-        defaultExpensePolicy,
-        personalPolicy?.autoReporting,
-        navigateToConfirmationPage,
-        reportID,
-        policy,
-        currentUserAccountIDParam,
-        currentUserEmailParam,
-        isEditingConfirmation,
-        allowNavigation,
-        confirmationRoute,
-        translate,
-    ]);
+    };
 
     // Handle form submission with validation
-    const handleNext = useCallback(() => {
+    const handleNext = () => {
         // Validation: Start and end readings must not be empty
         if (!startReading || !endReading) {
             setFormError(translate('distance.odometer.readingRequired'));
@@ -581,7 +526,7 @@ function IOURequestStepDistanceOdometer({
 
         // When validation passes, call navigateToNextPage
         navigateToNextPage();
-    }, [startReading, endReading, navigateToNextPage, translate]);
+    };
 
     const shouldEnableDiscardConfirmation = !isEditingConfirmation && !shouldSkipConfirmation;
 
