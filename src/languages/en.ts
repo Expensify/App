@@ -7074,8 +7074,6 @@ const translations = {
         odometer: {
             startReading: 'Start reading',
             endReading: 'End reading',
-            startReadingPlaceholder: 'Enter start reading',
-            endReadingPlaceholder: 'Enter end reading',
             saveForLater: 'Save for later',
             totalDistance: 'Total distance',
             readingRequired: 'Start and end readings are required',

@@ -7237,8 +7237,6 @@ ${amount} para ${merchant} - ${date}`,
         odometer: {
             startReading: 'Lectura inicial',
             endReading: 'Lectura final',
-            startReadingPlaceholder: 'Introduce la lectura inicial',
-            endReadingPlaceholder: 'Introduce la lectura final',
             saveForLater: 'Guardar para después',
             totalDistance: 'Distancia total',
             readingRequired: 'Se requieren las lecturas inicial y final',
