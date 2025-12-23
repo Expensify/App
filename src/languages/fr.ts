@@ -1603,7 +1603,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Aucune autre action requise !`,
+            [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Aucune autre action requise!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
                 // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
@@ -1637,11 +1637,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente que <strong>vous</strong> corrigiez le(s) problème(s).`;
+                        return `En attente que <strong>vous</strong> corrigiez les problèmes.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `En attente que <strong>${actor}</strong> corrige le(s) problème(s).`;
+                        return `En attente que <strong>${actor}</strong> corrige les problèmes.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `En attente qu’un administrateur corrige le(s) problème(s).`;
+                        return `En attente qu’un administrateur corrige les problèmes.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2161,6 +2161,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Confirmez votre compte bancaire',
         personalBankAccounts: 'Comptes bancaires personnels',
         businessBankAccounts: 'Comptes bancaires professionnels',
+        shareBankAccount: 'Partager le compte bancaire',
+        bankAccountShared: 'Compte bancaire partagé',
+        shareBankAccountTitle: 'Sélectionnez les administrateurs avec lesquels partager ce compte bancaire:',
+        shareBankAccountSuccess: 'Compte bancaire partagé!',
+        shareBankAccountSuccessDescription: 'Les administrateurs sélectionnés recevront un message de confirmation de Concierge.',
+        shareBankAccountFailure: "Une erreur inattendue s'est produite lors de la tentative de partage du compte bancaire. Veuillez réessayer.",
+        shareBankAccountEmptyTitle: 'Aucun administrateur disponible',
+        shareBankAccountEmptyDescription: "Aucun administrateur d'espace de travail n'est disponible pour partager ce compte bancaire.",
+        shareBankAccountNoAdminsSelected: 'Veuillez sélectionner un administrateur avant de continuer',
     },
     cardPage: {
         expensifyCard: 'Carte Expensify',
@@ -3903,7 +3912,6 @@ ${
                 monthly: 'Mensuel',
             },
             planType: 'Type d’abonnement',
-            submitExpense: 'Soumettez vos notes de frais ci-dessous :',
             defaultCategory: 'Catégorie par défaut',
             viewTransactions: 'Afficher les transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Notes de frais de ${displayName}`,

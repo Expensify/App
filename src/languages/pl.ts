@@ -1627,11 +1627,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Oczekiwanie, aż <strong>Ty</strong> naprawisz problem(y).`;
+                        return `Oczekiwanie, aż <strong>Ty</strong> naprawisz problemy.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Oczekiwanie, aż <strong>${actor}</strong> naprawi problem(y).`;
+                        return `Oczekiwanie, aż <strong>${actor}</strong> naprawi problemy.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie na rozwiązanie problemu(-ów) przez administratora.`;
+                        return `Oczekiwanie na administratora, aby naprawił problemy.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2145,6 +2145,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Potwierdź swoje konto bankowe',
         personalBankAccounts: 'Prywatne konta bankowe',
         businessBankAccounts: 'Firmowe konta bankowe',
+        shareBankAccount: 'Udostępnij konto bankowe',
+        bankAccountShared: 'Konto bankowe udostępnione',
+        shareBankAccountTitle: 'Wybierz administratorów, z którymi chcesz udostępnić to konto bankowe:',
+        shareBankAccountSuccess: 'Konto bankowe udostępnione!',
+        shareBankAccountSuccessDescription: 'Wybrani administratorzy otrzymają wiadomość z potwierdzeniem od Concierge.',
+        shareBankAccountFailure: 'Wystąpił nieoczekiwany błąd podczas próby udostępnienia konta bankowego. Spróbuj ponownie.',
+        shareBankAccountEmptyTitle: 'Brak dostępnych administratorów',
+        shareBankAccountEmptyDescription: 'Brak administratorów obszaru roboczego, z którymi można udostępnić to konto bankowe.',
+        shareBankAccountNoAdminsSelected: 'Wybierz administratora przed kontynuowaniem',
     },
     cardPage: {
         expensifyCard: 'Karta Expensify',
@@ -3876,7 +3885,6 @@ ${
                 monthly: 'Miesięcznie',
             },
             planType: 'Typ planu',
-            submitExpense: 'Prześlij swoje wydatki poniżej:',
             defaultCategory: 'Domyślna kategoria',
             viewTransactions: 'Wyświetl transakcje',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Wydatki użytkownika ${displayName}`,
