@@ -958,6 +958,14 @@ Onyx.connect({
     },
 });
 
+let lastDistanceExpenseTypeValue: ValueOf<typeof CONST.IOU.REQUEST_TYPE> | undefined;
+Onyx.connect({
+    key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
+    callback: (value) => {
+        lastDistanceExpenseTypeValue = value;
+    },
+});
+
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -1677,7 +1685,10 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_MANUAL;
     }
 
-    if (isDistanceRequestTransactionUtils(transaction)) {
+    // Odometer drafts may lack iouRequestType; detect via odometer fields or last saved distance type.
+    const isOdometerDraft = transaction?.comment?.odometerStart !== undefined || transaction?.comment?.odometerEnd !== undefined;
+    const lastDistanceIsDistance = lastDistanceExpenseTypeValue?.startsWith('distance');
+    if (isDistanceRequestTransactionUtils(transaction) || isOdometerDraft || lastDistanceIsDistance) {
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
     }
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import reportsSelector from '@selectors/Attributes';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -23,10 +24,15 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import {
+    createDistanceRequest,
+    getMoneyRequestParticipantsFromReport,
     setCustomUnitRateID,
     setMoneyRequestDistance,
+    setMoneyRequestMerchant,
     setMoneyRequestOdometerReading,
     setMoneyRequestParticipantsFromReport,
+    setMoneyRequestPendingFields,
+    trackExpense,
     updateMoneyRequestDistance,
 } from '@libs/actions/IOU';
 import {setTransactionReport} from '@libs/actions/Transaction';
@@ -34,9 +40,11 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {navigateToParticipantPage, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat, isArchivedReport} from '@libs/ReportUtils';
+import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -92,6 +100,12 @@ function IOURequestStepDistanceOdometer({
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -113,6 +127,14 @@ function IOURequestStepDistanceOdometer({
     );
 
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
+
+    const shouldSkipConfirmation: boolean = useMemo(() => {
+        if (!skipConfirmation || !report?.reportID) {
+            return false;
+        }
+
+        return !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChatUtils(report));
+    }, [report, skipConfirmation, reportNameValuePairs]);
 
     const confirmationRoute = useMemo(
         () => ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, backToReport),
@@ -224,9 +246,12 @@ function IOURequestStepDistanceOdometer({
     }, [startReading, endReading]);
 
     const buttonText = useMemo(() => {
+        if (shouldSkipConfirmation) {
+            return translate('iou.createExpense');
+        }
         const shouldShowSave = isEditing || isEditingConfirmation;
         return shouldShowSave ? translate('common.save') : translate('common.next');
-    }, [isEditing, isEditingConfirmation, translate]);
+    }, [shouldSkipConfirmation, isEditing, isEditingConfirmation, translate]);
 
     const handleStartReadingChange = useCallback(
         (text: string) => {
@@ -391,6 +416,85 @@ function IOURequestStepDistanceOdometer({
         // If a reportID exists in the report object, use it to set participants and navigate to confirmation
         // Following Manual tab pattern
         if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+            const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
+            const derivedReports = (reportAttributesDerived as ReportAttributesDerivedValue | undefined)?.reports;
+            const participants = selectedParticipants.map((participant) => {
+                const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, derivedReports);
+            });
+
+            if (shouldSkipConfirmation) {
+                setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+                setMoneyRequestMerchant(transactionID, translate('iou.fieldPending'), false);
+
+                const participant = participants.at(0);
+                const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({
+                    reportID: report.reportID,
+                    isPolicyExpenseChat: !!participant?.isPolicyExpenseChat,
+                    policy,
+                    lastSelectedDistanceRates,
+                });
+
+                if (iouType === CONST.IOU.TYPE.TRACK && participant) {
+                    trackExpense({
+                        report,
+                        isDraftPolicy: false,
+                        participantParams: {
+                            payeeEmail: currentUserEmailParam,
+                            payeeAccountID: currentUserAccountIDParam,
+                            participant,
+                        },
+                        policyParams: {
+                            policy,
+                        },
+                        transactionParams: {
+                            amount: 0,
+                            distance: calculatedDistance,
+                            currency: transaction?.currency ?? 'USD',
+                            created: transaction?.created ?? '',
+                            merchant: translate('iou.fieldPending'),
+                            receipt: {},
+                            billable: false,
+                            customUnitRateID,
+                            attendees: transaction?.comment?.attendees,
+                            odometerStart: start,
+                            odometerEnd: end,
+                        },
+                        isASAPSubmitBetaEnabled: false,
+                    });
+                    return;
+                }
+
+                createDistanceRequest({
+                    report,
+                    participants,
+                    currentUserLogin: currentUserEmailParam,
+                    currentUserAccountID: currentUserAccountIDParam,
+                    iouType,
+                    existingTransaction: transaction,
+                    transactionParams: {
+                        amount: 0,
+                        distance: calculatedDistance,
+                        comment: '',
+                        created: transaction?.created ?? '',
+                        currency: transaction?.currency ?? 'USD',
+                        merchant: translate('iou.fieldPending'),
+                        billable: !!policy?.defaultBillable,
+                        customUnitRateID,
+                        splitShares: transaction?.splitShares,
+                        attendees: transaction?.comment?.attendees,
+                        odometerStart: start,
+                        odometerEnd: end,
+                    },
+                    backToReport,
+                    isASAPSubmitBetaEnabled: false,
+                    transactionViolations,
+                    quickAction,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                });
+                return;
+            }
+
             setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID).then(() => {
                 navigateToConfirmationPage();
             });
@@ -436,20 +540,24 @@ function IOURequestStepDistanceOdometer({
         currentUserPersonalDetails.accountID,
         navigateToConfirmationPage,
         reportID,
-        transaction?.transactionID,
-        transaction?.comment?.customUnit?.quantity,
         policy,
         currentUserAccountIDParam,
         currentUserEmailParam,
         allowNavigation,
         isEditingConfirmation,
         confirmationRoute,
-        transaction?.comment?.odometerEnd,
-        transaction?.comment?.odometerStart,
         shouldUseDefaultExpensePolicy,
         defaultExpensePolicy,
         personalPolicy?.autoReporting,
         lastSelectedDistanceRates,
+        personalDetails,
+        reportAttributesDerived,
+        shouldSkipConfirmation,
+        translate,
+        transactionViolations,
+        quickAction,
+        policyRecentlyUsedCurrencies,
+        backToReport,
     ]);
 
     // Handle form submission with validation
@@ -479,7 +587,7 @@ function IOURequestStepDistanceOdometer({
         navigateToNextPage();
     }, [startReading, endReading, navigateToNextPage, translate]);
 
-    const shouldEnableDiscardConfirmation = !isEditingConfirmation;
+    const shouldEnableDiscardConfirmation = !isEditingConfirmation && !shouldSkipConfirmation;
 
     return (
         <StepScreenWrapper
