@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, Domain, SamlMetadata} from '@src/types/onyx';
+import type {CardFeeds, Domain, DomainSecurityGroup, SamlMetadata} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
@@ -46,6 +46,13 @@ function adminAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
     );
 }
 
+const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => {
+    return {
+        technicalContactEmail: domainMemberSharedNVP?.settings?.technicalContactEmail,
+        useTechnicalContactBillingCard: domainMemberSharedNVP?.settings?.useTechnicalContactBillingCard,
+    };
+};
+
 /**
  * Extracts a list of member IDs (accountIDs) from the domain object.
  * * It iterates through the security groups in the domain, extracts account IDs from the 'shared' property,
@@ -61,14 +68,37 @@ function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
 
     const memberIDs = Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
         if (key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX)) {
-            Object.keys((value as any)?.shared ?? {}).forEach((id) => acc.push(Number(id)));
+            const securityGroup = value as DomainSecurityGroup;
+
+            const sharedMembers = securityGroup?.shared ?? {};
+
+            for (const id of Object.keys(sharedMembers)) {
+                const accountID = Number(id);
+                if (!Number.isNaN(accountID)) {
+                    acc.push(accountID);
+                }
+            }
         }
         return acc;
     }, []);
 
-    return [...new Set(memberIDs)].filter((id) => !Number.isNaN(id)) ?? getEmptyArray<number>();
+    const uniqueIDs = [...new Set(memberIDs)];
+
+    return uniqueIDs.length > 0 ? uniqueIDs : getEmptyArray<number>();
 }
 
 const technicalContactEmailSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => domainMemberSharedNVP?.settings?.technicalContactEmail;
 
-export {domainMemberSamlSettingsSelector, domainSamlSettingsStateSelector, domainNameSelector, metaIdentitySelector, adminAccountIDsSelector, technicalContactEmailSelector, selectMemberIDs};
+const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
+
+export {
+    domainMemberSamlSettingsSelector,
+    domainSamlSettingsStateSelector,
+    domainNameSelector,
+    metaIdentitySelector,
+    adminAccountIDsSelector,
+    technicalContactEmailSelector,
+    selectMemberIDs,
+    domainEmailSelector,
+    technicalContactSettingsSelector,
+};
