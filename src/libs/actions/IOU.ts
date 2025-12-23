@@ -10086,27 +10086,23 @@ function getHoldReportActionsAndTransactions(reportID: string | undefined) {
 }
 
 /**
- * Copies submission/approval related report actions from a source report to a target report.
- * This includes actions like SUBMITTED, APPROVED, FORWARDED, UNAPPROVED, RETRACTED, and REJECTED.
+ * Gets duplicate workflow actions for a partial expense report.
+ * Used when splitting held expenses into a new partial report to maintain action history.
  *
- * @param sourceReportID - The ID of the report to copy actions from
- * @param targetReportID - The ID of the report to copy actions to
- * @returns An object containing the copied actions with their optimistic, success, and failure states
+ * @param sourceReportID - The ID of the original report to copy actions from
+ * @param targetReportID - The ID of the new partial expense report to copy actions to
+ * @returns A tuple of [optimisticData, successData, failureData] OnyxUpdate arrays
  */
-function copySubmissionApprovalActionsForReport(
+function getDuplicateActionsForPartialReport(
     sourceReportID: string | undefined,
     targetReportID: string | undefined,
-): {
-    copiedActions: Record<string, OnyxTypes.ReportAction>;
-    copiedActionsSuccess: OnyxCollection<NullishDeep<ReportAction>>;
-    copiedActionsFailure: Record<string, null>;
-} {
-    const copiedActions: Record<string, OnyxTypes.ReportAction> = {};
-    const copiedActionsSuccess: OnyxCollection<NullishDeep<ReportAction>> = {};
-    const copiedActionsFailure: Record<string, null> = {};
+): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
 
     if (!sourceReportID || !targetReportID) {
-        return {copiedActions, copiedActionsSuccess, copiedActionsFailure};
+        return [optimisticData, successData, failureData];
     }
 
     const sourceReportActions = getAllReportActions(sourceReportID);
@@ -10126,6 +10122,10 @@ function copySubmissionApprovalActionsForReport(
         CONST.REPORT.ACTIONS.TYPE.REROUTE,
     ] as const;
 
+    const copiedActions: Record<string, OnyxTypes.ReportAction> = {};
+    const copiedActionsSuccess: OnyxCollection<NullishDeep<ReportAction>> = {};
+    const copiedActionsFailure: Record<string, null> = {};
+
     for (const action of Object.values(sourceReportActions)) {
         if (action && (workflowActionTypes as readonly string[]).includes(action.actionName)) {
             const newActionID = NumberUtils.rand64();
@@ -10142,7 +10142,27 @@ function copySubmissionApprovalActionsForReport(
         }
     }
 
-    return {copiedActions, copiedActionsSuccess, copiedActionsFailure};
+    if (Object.keys(copiedActions).length > 0) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+            value: copiedActions,
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+            value: copiedActionsSuccess,
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${targetReportID}`,
+            value: copiedActionsFailure,
+        });
+    }
+
+    return [optimisticData, successData, failureData];
 }
 
 function getReportFromHoldRequestsOnyxData(
@@ -10247,13 +10267,6 @@ function getReportFromHoldRequestsOnyxData(
         };
     }
 
-    // Copy submission/approval actions to the new report
-    const {
-        copiedActions: copiedSubmissionApprovalActions,
-        copiedActionsSuccess: copiedSubmissionApprovalActionsSuccess,
-        copiedActionsFailure: copiedSubmissionApprovalActionsFailure,
-    } = copySubmissionApprovalActionsForReport(iouReport?.reportID, optimisticExpenseReport.reportID);
-
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -10291,7 +10304,7 @@ function getReportFromHoldRequestsOnyxData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
-            value: {...addHoldReportActions, ...copiedSubmissionApprovalActions},
+            value: addHoldReportActions,
         },
         // update held reports with new parentReportActionID
         {
@@ -10330,7 +10343,7 @@ function getReportFromHoldRequestsOnyxData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
-            value: {...addHoldReportActionsSuccess, ...copiedSubmissionApprovalActionsSuccess},
+            value: addHoldReportActionsSuccess,
         },
     ];
 
@@ -10363,12 +10376,6 @@ function getReportFromHoldRequestsOnyxData(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: bringReportActionsBack,
         },
-        // remove hold report actions from the new iou report
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
-            value: {...copiedSubmissionApprovalActionsFailure},
-        },
         // add hold transactions back to old iou report
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -10376,6 +10383,12 @@ function getReportFromHoldRequestsOnyxData(
             value: bringHeldTransactionsBack,
         },
     ];
+
+    // Copy submission/approval actions to the new report
+    const [copiedActionsOptimistic, copiedActionsSuccess, copiedActionsFailure] = getDuplicateActionsForPartialReport(iouReport?.reportID, optimisticExpenseReport.reportID);
+    optimisticData.push(...copiedActionsOptimistic);
+    successData.push(...copiedActionsSuccess);
+    failureData.push(...copiedActionsFailure);
 
     return {
         optimisticData,
