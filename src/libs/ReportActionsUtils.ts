@@ -38,6 +38,7 @@ import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
+import {getReportActionActorAccountID} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
 
@@ -742,20 +743,21 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
         return false;
     }
 
+    const currentActionActorAccountID = getReportActionActorAccountID(currentAction, undefined, undefined);
+    const adjacentActionActorAccountID = getReportActionActorAccountID(adjacentAction, undefined, undefined);
+
     if (isSubmittedAction(currentAction) || isSubmittedAndClosedAction(currentAction)) {
         const currentActionAdminAccountID = currentAction.adminAccountID;
-        return typeof currentActionAdminAccountID === 'number'
-            ? currentActionAdminAccountID === adjacentAction.actorAccountID
-            : currentAction.actorAccountID === adjacentAction.actorAccountID;
+        return typeof currentActionAdminAccountID === 'number' ? currentActionAdminAccountID === adjacentActionActorAccountID : currentActionActorAccountID === adjacentActionActorAccountID;
     }
 
     if (isSubmittedAction(adjacentAction) || isSubmittedAndClosedAction(adjacentAction)) {
         return typeof adjacentAction.adminAccountID === 'number'
-            ? currentAction.actorAccountID === adjacentAction.adminAccountID
-            : currentAction.actorAccountID === adjacentAction.actorAccountID;
+            ? currentActionActorAccountID === adjacentAction.adminAccountID
+            : currentActionActorAccountID === adjacentActionActorAccountID;
     }
 
-    return currentAction.actorAccountID === adjacentAction.actorAccountID;
+    return currentActionActorAccountID === adjacentActionActorAccountID;
 }
 function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportAction>, isChronosReport: boolean): boolean {
     const isAutomaticStartTimerAction = () => /start(?:ed|ing)?(?:\snow)?/i.test(getReportActionText(reportAction));
