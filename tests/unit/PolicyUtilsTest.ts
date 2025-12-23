@@ -7,6 +7,7 @@ import DateUtils from '@libs/DateUtils';
 import {
     getActivePolicies,
     getCustomUnitsForDuplication,
+    getEligibleBankAccountShareRecipients,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
     getPolicyNameByID,
@@ -1480,6 +1481,93 @@ describe('PolicyUtils', () => {
             };
             const result = hasOnlyPersonalPolicies(policies);
             expect(result).toBe(true);
+        });
+    });
+
+    describe('getEligibleBankAccountShareRecipients', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return empty array if no admins in policies', () => {
+            const policies = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
+            expect(result).toHaveLength(0);
+        });
+        it('should return array with admins', () => {
+            const currentUserLogin = adminEmail;
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
+            expect(result).toHaveLength(1);
+        });
+        it('should not return user with already shared bank account', async () => {
+            const bankAccountID = '1';
+            const currentUserLogin = adminEmail;
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        sharees: [adminEmail],
+                    },
+                },
+            });
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
+            expect(result).toHaveLength(0);
+        });
+        it('should not return current user for sharing account', async () => {
+            const bankAccountID = '1';
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                '2': {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, bankAccountID);
+            expect(result).toHaveLength(1);
         });
     });
 
