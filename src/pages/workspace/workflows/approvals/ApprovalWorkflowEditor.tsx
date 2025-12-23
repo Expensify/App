@@ -90,10 +90,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 if (!previousApprover || !approver) {
                     return;
                 }
-                return translate('workflowsPage.approverCircularReference', {
-                    name1: Str.removeSMSDomain(approver.displayName),
-                    name2: Str.removeSMSDomain(previousApprover.displayName),
-                });
+                return translate('workflowsPage.approverCircularReference', Str.removeSMSDomain(approver.displayName), Str.removeSMSDomain(previousApprover.displayName));
             }
 
             return translate(error);

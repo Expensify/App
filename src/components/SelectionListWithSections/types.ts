@@ -16,6 +16,7 @@ import type {
 } from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
+import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
@@ -468,11 +469,25 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         allActions?: SearchTransactionAction[];
     };
 
-type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails & SearchMemberGroup;
+type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.FROM} & PersonalDetails &
+    SearchMemberGroup & {
+        /** Final and formatted "from" value used for displaying and sorting */
+        formattedFrom?: string;
+    };
 
-type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails & SearchCardGroup;
+type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
+    SearchCardGroup & {
+        /** Final and formatted "cardName" value used for displaying and sorting */
+        formattedCardName?: string;
 
-type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup;
+        /** Final and formatted "feedName" value used for displaying and sorting */
+        formattedFeedName?: string;
+    };
+
+type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup & {
+        /** Final and formatted "withdrawalID" value used for displaying and sorting */
+        formattedWithdrawalID?: string;
+    };
 
 type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** The section list item */
@@ -580,8 +595,16 @@ type SplitListItemType = ListItem &
         /** Indicates whether a split wasn't approved, paid etc. when report.statusNum < CONST.REPORT.STATUS_NUM.CLOSED */
         isEditable: boolean;
 
-        /** Function for updating amount */
-        onSplitExpenseAmountChange: (currentItemTransactionID: string, value: number) => void;
+        /** Current mode for the split editor: amount or percentage */
+        mode: ValueOf<typeof CONST.TAB.SPLIT>;
+
+        /** Percentage value to show when in percentage mode (0-100) */
+        percentage: number;
+
+        /**
+         * Function for updating value (amount or percentage based on mode)
+         */
+        onSplitExpenseValueChange: (transactionID: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => void;
     };
 
 type SplitListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
@@ -609,7 +632,6 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
     columns?: SearchColumnType[];
-    areAllOptionalColumnsHidden?: boolean;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
@@ -643,7 +665,6 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
     policies?: OnyxCollection<Policy>;
     accountID?: number;
     columns?: SearchColumnType[];
-    areAllOptionalColumnsHidden?: boolean;
     newTransactionID?: string;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     /** Callback to fire when DEW modal should be opened */
@@ -652,7 +673,7 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations' | 'areAllOptionalColumnsHidden'
+    'showTooltip' | 'canSelectMultiple' | 'onCheckboxPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'violations'
 > & {
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
@@ -951,6 +972,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Styles applied for the title of the list item */
     listItemTitleStyles?: StyleProp<TextStyle>;
 
+    /** Styles applied for the select all text */
+    selectAllStyle?: StyleProp<TextStyle>;
+
     /** Styles applied for the title container of the list item */
     listItemTitleContainerStyles?: StyleProp<ViewStyle>;
 
@@ -1064,6 +1088,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether hover style should be disabled */
     shouldDisableHoverStyle?: boolean;
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
+
+    /** Whether the list is percentage mode (for scroll offset calculation) */
+    isPercentageMode?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
