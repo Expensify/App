@@ -306,7 +306,8 @@ function MoneyRequestConfirmationListFooter({
     const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowMap = isDistanceRequest && !isManualDistanceRequest && !isOdometerDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
+    const shouldShowMap =
+        isDistanceRequest && !isManualDistanceRequest && !isOdometerDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
     const senderWorkspace = useMemo(() => {

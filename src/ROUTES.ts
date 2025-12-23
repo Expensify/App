@@ -1169,13 +1169,7 @@ const ROUTES = {
     },
     MONEY_REQUEST_STEP_DISTANCE_ODOMETER: {
         route: ':action/:iouType/distance-odometer/:transactionID/:reportID/:isEditingFromConfirmation(editing)?',
-        getRoute: (
-            action: IOUAction,
-            iouType: IOUType,
-            transactionID: string | undefined,
-            reportID: string | undefined,
-            isEditingFromConfirmation = false,
-        ) => {
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, isEditingFromConfirmation = false) => {
             if (!transactionID || !reportID) {
                 Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_ODOMETER route');
             }

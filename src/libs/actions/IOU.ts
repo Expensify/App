@@ -226,8 +226,8 @@ import {
     isDuplicate,
     isFetchingWaypointsFromServer,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
-    isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isMapDistanceRequest,
+    isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isOnHold,
     isPending,
     isPendingCardOrScanningTransaction,
@@ -1110,7 +1110,12 @@ function initMoneyRequest({
     let requestCategory: string | null = null;
 
     // Set up initial distance expense state
-    if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
+    if (
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
+    ) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
             const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
@@ -4200,8 +4205,25 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams, isASAPSubmitBetaEnabled} = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {comment, amount, currency, created, distance, merchant, receipt, category, tag, taxCode, taxAmount, billable, reimbursable, linkedTrackedExpenseReportAction, attendees, odometerStart, odometerEnd} =
-        transactionParams;
+    const {
+        comment,
+        amount,
+        currency,
+        created,
+        distance,
+        merchant,
+        receipt,
+        category,
+        tag,
+        taxCode,
+        taxAmount,
+        billable,
+        reimbursable,
+        linkedTrackedExpenseReportAction,
+        attendees,
+        odometerStart,
+        odometerEnd,
+    } = transactionParams;
 
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];

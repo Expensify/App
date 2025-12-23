@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import reportsSelector from '@selectors/Attributes';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -13,6 +13,7 @@ import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -22,7 +23,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import {
     createDistanceRequest,
     getMoneyRequestParticipantsFromReport,
@@ -44,12 +44,12 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ReportAttributes, ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type Transaction from '@src/types/onyx/Transaction';
 import DiscardChangesConfirmation from './DiscardChangesConfirmation';
 import StepScreenWrapper from './StepScreenWrapper';
@@ -163,13 +163,13 @@ function IOURequestStepDistanceOdometer({
         // This happens when switching tabs - transaction data is cleared but local state persists
         // Also reset if transaction is empty (component remounted after tab switch)
         // Don't reset in edit mode as we want to preserve user's changes
-        const shouldReset = 
-            hasInitializedRefs.current && 
-            !isEditing && 
+        const shouldReset =
+            hasInitializedRefs.current &&
+            !isEditing &&
             !isEditingConfirmation &&
-            !hasTransactionData && 
+            !hasTransactionData &&
             (wasCleared || (prevTransactionStartRef.current === undefined && prevTransactionEndRef.current === undefined));
-        
+
         if (shouldReset) {
             setStartReading('');
             setEndReading('');
@@ -231,7 +231,6 @@ function IOURequestStepDistanceOdometer({
             }
         }
     }, [transaction?.comment?.odometerStart, transaction?.comment?.odometerEnd, isEditing]);
-
 
     // Calculate total distance - updated live after every input change
     const totalDistance = useMemo(() => {

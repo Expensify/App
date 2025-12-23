@@ -37,7 +37,21 @@ type IconTitleAndTestID = {
     testID?: string;
 };
 
-const MEMOIZED_LAZY_TAB_SELECTOR_ICONS = ['CalendarSolid', 'UploadAlt', 'User', 'Car', 'Hashtag', 'Map', 'Pencil', 'ReceiptScan', 'Receipt', 'MoneyCircle', 'Percent', 'Crosshair', 'Meter'] as const;
+const MEMOIZED_LAZY_TAB_SELECTOR_ICONS = [
+    'CalendarSolid',
+    'UploadAlt',
+    'User',
+    'Car',
+    'Hashtag',
+    'Map',
+    'Pencil',
+    'ReceiptScan',
+    'Receipt',
+    'MoneyCircle',
+    'Percent',
+    'Crosshair',
+    'Meter',
+] as const;
 
 function getIconTitleAndTestID(
     icons: Record<TupleToUnion<typeof MEMOIZED_LAZY_TAB_SELECTOR_ICONS>, IconAsset>,
