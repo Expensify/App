@@ -67,7 +67,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
     const handleGoBack = () => {
         if (isEditing) {
-            Navigation.dismissToSuperWideRHP();
+            Navigation.dismissModal();
         } else {
             Navigation.goBack(backTo);
         }
@@ -166,7 +166,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!transaction) {
             return;
         }
-        Navigation.dismissToSuperWideRHP();
+        Navigation.dismissModal();
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             changeTransactionsReport([transaction.transactionID], isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
@@ -233,7 +233,5 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         </>
     );
 }
-
-IOURequestStepReport.displayName = 'IOURequestStepReport';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepReport));
