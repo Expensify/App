@@ -368,7 +368,10 @@ function ReportActionAvatarMultipleHorizontal({
         return [firstRow, secondRow];
     }, [icons, maxAvatarsInRow, shouldDisplayAvatarsInRows]);
 
-    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']), [shouldShowTooltip, icons, formatPhoneNumber]);
+    const tooltipTexts = useMemo(
+        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']),
+        [shouldShowTooltip, icons, formatPhoneNumber],
+    );
 
     return avatarRows.map((avatars, rowIndex) => (
         <View
@@ -480,7 +483,10 @@ function ReportActionAvatarMultipleDiagonal({
     const StyleUtils = useStyleUtils();
     const {formatPhoneNumber} = useLocalize();
 
-    const tooltipTexts = useMemo(() => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']), [shouldShowTooltip, icons, formatPhoneNumber]);
+    const tooltipTexts = useMemo(
+        () => (shouldShowTooltip ? icons.map((icon) => getUserDetailTooltipText(Number(icon.id), formatPhoneNumber, icon.name)) : ['']),
+        [shouldShowTooltip, icons, formatPhoneNumber],
+    );
     const removeRightMargin = icons.length === 2 && size === CONST.AVATAR_SIZE.X_LARGE;
     const avatarContainerStyles = StyleUtils.getContainerStyles(size, isInReportAction);
 
