@@ -6,8 +6,8 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import SelectionList from '@components/SelectionListWithSections';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
@@ -180,13 +180,12 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                     <Text style={[styles.ph5, styles.pb3]}>{translate('walletPage.shareBankAccountTitle')}</Text>
                     <SelectionList
                         canSelectMultiple
-                        textInputOptions={{
-                            headerMessage,
-                            value: searchTerm,
-                            label: textInputLabel,
-                            onChangeText: setSearchTerm,
-                        }}
-                        data={adminsList}
+                        sections={sections}
+                        textInputValue={searchTerm}
+                        textInputLabel={textInputLabel}
+                        onChangeText={setSearchTerm}
+                        headerMessage={headerMessage}
+                        shouldClearInputOnSelect={false}
                         onSelectAll={toggleSelectAll}
                         shouldUpdateFocusedIndex
                         listEmptyContent={
@@ -200,6 +199,7 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
                         }
                         ListItem={UserListItem}
                         shouldUseDefaultRightHandSideCheckmark
+                        onCheckboxPress={toggleOption}
                         onSelectRow={toggleOption}
                         footerContent={
                             <FormAlertWithSubmitButton
