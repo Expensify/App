@@ -157,7 +157,7 @@ function useAgentZeroStatusIndicator(reportID: string, isConciergeChat: boolean)
 
     useEffect(() => {
         setServerLabelVersion((version) => version + 1);
-    }, [reportNameValuePairs, reportNameValuePairs?.agentZeroProcessingRequestIndicator]);
+    }, [reportNameValuePairs]);
 
     const clearTimer = useCallback(() => {
         if (!timerRef.current) {
