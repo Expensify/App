@@ -346,8 +346,8 @@ function SettlementButton({
                     }
 
                     return createWorkspace({
-                        introSelectedParam: introSelected,
-                        activePolicyIDParam: activePolicyID,
+                        introSelected,
+                        activePolicyID,
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                         currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                     }).policyID;

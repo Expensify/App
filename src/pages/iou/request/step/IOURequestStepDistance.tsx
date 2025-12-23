@@ -96,6 +96,8 @@ function IOURequestStepDistance({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const waypoints = useMemo(
         () =>
             optimisticWaypoints ??
@@ -352,6 +354,10 @@ function IOURequestStepDistance({
                             attendees: transaction?.comment?.attendees,
                         },
                         isASAPSubmitBetaEnabled,
+                        currentUserAccountIDParam,
+                        currentUserEmailParam,
+                        introSelected,
+                        activePolicyID,
                     });
                     return;
                 }
@@ -451,6 +457,8 @@ function IOURequestStepDistance({
         transactionViolations,
         currentUserPersonalDetails.accountID,
         quickAction,
+        introSelected,
+        activePolicyID,
     ]);
 
     const getError = () => {

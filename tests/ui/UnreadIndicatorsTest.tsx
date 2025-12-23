@@ -711,6 +711,10 @@ describe('Unread Indicators', () => {
                 created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             },
             isASAPSubmitBetaEnabled: true,
+            currentUserAccountIDParam: USER_A_ACCOUNT_ID,
+            currentUserEmailParam: USER_A_EMAIL,
+            introSelected: undefined,
+            activePolicyID: undefined,
         });
         await waitForBatchedUpdates();
 
