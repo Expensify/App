@@ -56,7 +56,8 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
 
     const cardholder = getPersonalDetailByEmail(cardToAssign?.email ?? '');
     const cardholderName = Str.removeSMSDomain(cardholder?.displayName ?? '');
-    const cardholderEmail = cardToAssign?.email ?? '';
+
+    const cardholderEmail = Str.removeSMSDomain(cardToAssign?.email ?? '');
     const cardholderAccountID = cardholder?.accountID;
 
     useEffect(() => {

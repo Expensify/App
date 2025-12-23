@@ -55,15 +55,25 @@ const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardF
     };
 };
 
+const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
+
 const adminPendingActionSelector = (pendingAction: OnyxEntry<DomainPendingActions>) => pendingAction?.admin ?? {};
 
 export {
+    
     domainMemberSamlSettingsSelector,
+   
     domainSettingsPrimaryContactSelector,
     domainSamlSettingsStateSelector,
+   
     domainNameSelector,
+   
     metaIdentitySelector,
+   
     adminAccountIDsSelector,
+   
     technicalContactSettingsSelector,
+    domainEmailSelector,
+,
     adminPendingActionSelector,
 };
