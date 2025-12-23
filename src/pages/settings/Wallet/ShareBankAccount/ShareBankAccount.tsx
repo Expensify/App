@@ -127,17 +127,19 @@ function ShareBankAccount({route}: ShareBankAccountProps) {
     const adminsList = getAdminList();
 
     const toggleSelectAll = () => {
-        const hasSelectedOptions = selectedOptions.length > 0;
         setIsAlertVisible(false);
 
-        if (hasSelectedOptions) {
-            setSelectedOptions([]);
+        const areAllFilteredOptionsSelected = adminsList.length > 0 && adminsList.every((admin) => selectedOptions.some((selected) => selected.login === admin.login));
+
+        if (areAllFilteredOptionsSelected) {
+            const filteredLogins = new Set(adminsList.map((admin) => admin.login));
+            setSelectedOptions(selectedOptions.filter((option) => !filteredLogins.has(option.login)));
         } else {
-            const selectedAllOptions = adminsList?.map((member) => ({
-                ...member,
-                isSelected: true,
-            }));
-            setSelectedOptions(selectedAllOptions);
+            const existingLogins = new Set(selectedOptions.map((option) => option.login));
+            const newSelections = adminsList
+                .filter((admin) => !existingLogins.has(admin.login))
+                .map((admin) => ({...admin, isSelected: true}));
+            setSelectedOptions([...selectedOptions, ...newSelections]);
         }
     };
 
