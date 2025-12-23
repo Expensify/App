@@ -3,6 +3,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,10 +23,10 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const {email, ...currentUserPersonalDetails} = useCurrentUserPersonalDetails();
     // sometimes primaryLogin can be empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const contactMethod = (account?.primaryLogin || session?.email) ?? '';
+    const contactMethod = (account?.primaryLogin || email) ?? '';
     const {translate, formatPhoneNumber} = useLocalize();
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
@@ -35,9 +36,9 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
 
     const handleSubmitForm = useCallback(
         (validateCode: string) => {
-            validateSecondaryLogin(loginList, contactMethod, validateCode, formatPhoneNumber, true);
+            validateSecondaryLogin(currentUserPersonalDetails, loginList, contactMethod, validateCode, formatPhoneNumber, true);
         },
-        [loginList, contactMethod, formatPhoneNumber],
+        [currentUserPersonalDetails, loginList, contactMethod, formatPhoneNumber],
     );
 
     const handleCloseWithFallback = useCallback(() => {
