@@ -163,6 +163,7 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
             ENABLE_GLOBAL_REIMBURSEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements',
+            SHARE_BANK_ACCOUNT: 'Settings_Wallet_Share_Bank_Account',
         },
 
         EXIT_SURVEY: {
@@ -665,9 +666,6 @@ const SCREENS = {
         WORKFLOWS_APPROVALS_EDIT: 'Workspace_Approvals_Edit',
         WORKFLOWS_APPROVALS_EXPENSES_FROM: 'Workspace_Workflows_Approvals_Expenses_From',
         WORKFLOWS_APPROVALS_APPROVER: 'Workspace_Workflows_Approvals_Approver',
-        WORKFLOWS_APPROVALS_APPROVER_CHANGE: 'Workspace_Workflows_Approvals_Approver_Change',
-        WORKFLOWS_APPROVALS_APPROVAL_LIMIT: 'Workspace_Workflows_Approvals_Approval_Limit',
-        WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER: 'Workspace_Workflows_Approvals_Over_Limit_Approver',
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
         WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
         WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: 'Workspace_Workflows_Connect_Existing_Bank_Account',
@@ -868,6 +866,7 @@ const SCREENS = {
         ADMIN_DETAILS: 'Domain_Admin_Details',
         ADMINS_SETTINGS: 'Admins_Settings',
         ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
+        ADD_ADMIN: 'Domain_Add_Admin',
         RESET_DOMAIN: 'Domain_Reset',
     },
 } as const;
