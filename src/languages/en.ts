@@ -7868,11 +7868,15 @@ const translations = {
             findAdmin: 'Find admin',
             primaryContact: 'Primary contact',
             addPrimaryContact: 'Add primary contact',
+            setPrimaryContactError: 'Unable to set primary contact. Please try again later.',
             settings: 'Settings',
             consolidatedDomainBilling: 'Consolidated domain billing',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>When enabled, the primary contact will pay for all workspaces owned by <strong>${domainName}</strong> members and receive all billing receipts.</muted-text-label></comment>`,
             consolidatedDomainBillingError: "Consolidated domain billing couldn't be changed. Please try again later.",
+            addAdmin: 'Add admin',
+            invite: 'Invite',
+            addAdminError: 'Unable to add this member as an admin. Please try again.',
         },
     },
 };
