@@ -259,6 +259,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {
                             path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                             exact: true,
@@ -805,6 +809,15 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: {
                             path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER_CHANGE.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.route,
+                        },
+                        [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER]: {
+                            path: ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER.route,
                         },
                         [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
