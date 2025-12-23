@@ -3,7 +3,7 @@ import type * as OnyxCommon from './OnyxCommon';
 /**
  * General pending action structure for domain admins
  */
-type GeneralDomainAdminPendingAction = {
+type GeneralDomainPendingAction = {
     /**
      * Base pending actions
      */
@@ -17,7 +17,7 @@ type DomainPendingAction = {
     /**
      * Pending actions for specific administrators, keyed by their accountID
      */
-    admin?: Record<number, GeneralDomainAdminPendingAction>;
+    admin?: Record<number, GeneralDomainPendingAction>;
 
     /**
      * Pending action for the technical contact email
@@ -32,7 +32,7 @@ type DomainPendingAction = {
     /**
      * Pending actions for specific member, keyed by their accountID
      */
-    member?: Record<number, OnyxCommon.PendingAction>;
+    member?: Record<number, GeneralDomainAdminPendingAction>;
 };
 
 export default DomainPendingAction;

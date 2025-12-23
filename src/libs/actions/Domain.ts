@@ -789,7 +789,6 @@ function addMemberToDomain(domainAccountID: number, targetEmail: string) {
         authToken,
         targetEmail,
     };
-
     API.write(WRITE_COMMANDS.ADD_DOMAIN_MEMBER, params, {optimisticData, successData, failureData});
 }
 

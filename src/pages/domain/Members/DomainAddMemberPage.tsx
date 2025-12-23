@@ -28,7 +28,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
 
     const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
-    const domainSuffix = useMemo(() => (domainName ? `@${domainName}` : ''), [domainName]);
+    const domainSuffix = domainName ? `@${domainName}` : '';
 
     const [email, setEmail] = useState(domainSuffix);
     const [selection, setSelection] = useState({start: 0, end: 0});
@@ -40,7 +40,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
 
     const maxCursorPosition = Math.max(0, email.length - domainSuffix.length);
 
-    const handleInputChange = useCallback(
+    const handleInputChange =
         (value: string) => {
             if (!domainName) {
                 setEmail(value);
@@ -55,11 +55,9 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
             } else {
                 setEmail(`${loginPart}${domainSuffix}`);
             }
-        },
-        [domainName, domainSuffix],
-    );
+        }
 
-    const handleSelectionChange = useCallback(
+    const handleSelectionChange =
         (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
             const {start, end} = event.nativeEvent.selection;
 
@@ -72,14 +70,13 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
             } else {
                 setSelection({start, end});
             }
-        },
-        [maxCursorPosition],
-    );
+        }
 
-    const inviteUser = useCallback(() => {
+    const inviteUser = () => {
+        debugger;
         addMemberToDomain(domainAccountID, email);
         Navigation.dismissModal();
-    }, []);
+    }
 
     const isButtonDisabled = !email || email === domainSuffix || !email.includes('@');
 
