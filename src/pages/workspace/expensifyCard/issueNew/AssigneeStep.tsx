@@ -42,7 +42,6 @@ type AssigneeStepProps = {
 };
 
 function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
