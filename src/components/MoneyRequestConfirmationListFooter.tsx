@@ -22,7 +22,8 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
+import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -305,8 +306,11 @@ function MoneyRequestConfirmationListFooter({
 
     const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
-    const shouldShowMapConditions = [hasErrors, hasPendingWaypoints, iouType !== CONST.IOU.TYPE.SPLIT, !isReadOnly].some(Boolean);
-    const shouldShowMap = isDistanceRequest && !isManualDistanceRequest && !isOdometerDistanceRequest && shouldShowMapConditions;
+    const shouldShowMap =
+        isDistanceRequest &&
+        !isManualDistanceRequest &&
+        !isOdometerDistanceRequest &&
+        [hasErrors, hasPendingWaypoints, iouType !== CONST.IOU.TYPE.SPLIT, !isReadOnly].some(Boolean);
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
     const senderWorkspace = useMemo(() => {
@@ -326,7 +330,6 @@ function MoneyRequestConfirmationListFooter({
      */
     const transactionReport = transaction?.reportID ? Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID) : undefined;
     const policyID = selectedParticipants?.at(0)?.policyID;
-    const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, policyID, undefined, false)) || isUnreported;
 
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
@@ -351,12 +354,12 @@ function MoneyRequestConfirmationListFooter({
     }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
 
     const reportName = useMemo(() => {
-        const name = getReportName(selectedReport, selectedPolicy);
+        const name = computeReportName(selectedReport, allReports, allPolicies, undefined, reportNameValuePairs);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
         return name;
-    }, [isUnreported, selectedReport, selectedPolicy, translate]);
+    }, [allPolicies, allReports, isUnreported, reportNameValuePairs, selectedReport, translate]);
 
     const shouldReportBeEditableFromFAB = isUnreported ? allOutstandingReports.length >= 1 : allOutstandingReports.length > 1;
 
