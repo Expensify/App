@@ -42,6 +42,7 @@ function DomainReportSuspiciousActivityPage({route}: DomainReportSuspiciousActiv
                 confirmModalPrompt={confirmModalPrompt}
                 lockAccountPagePrompt={lockAccountPagePrompt}
                 handleLockRequestFinish={handleLockRequestFinish}
+                accountID={accountID}
             />
         </DomainNotFoundPageWrapper>
     );

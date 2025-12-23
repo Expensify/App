@@ -18,8 +18,9 @@ type BaseLockAccountComponentProps = {
     testID: string;
     onBackButtonPress: () => void;
     handleLockRequestFinish: (response: void | Response) => void;
+    accountID?: number;
 };
-function BaseLockAccountComponent({confirmModalPrompt, lockAccountPagePrompt, testID, onBackButtonPress, handleLockRequestFinish}: BaseLockAccountComponentProps) {
+function BaseLockAccountComponent({confirmModalPrompt, lockAccountPagePrompt, testID, onBackButtonPress, handleLockRequestFinish, accountID}: BaseLockAccountComponentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -29,7 +30,7 @@ function BaseLockAccountComponent({confirmModalPrompt, lockAccountPagePrompt, te
     const {showConfirmModal} = useConfirmModal();
 
     const handleReportSuspiciousActivity = async () => {
-        if (session?.accountID === -1) {
+        if (!accountID && session?.accountID === -1) {
             return;
         }
         const modalResult = await showConfirmModal({
@@ -41,6 +42,7 @@ function BaseLockAccountComponent({confirmModalPrompt, lockAccountPagePrompt, te
             cancelText: translate('common.cancel'),
             shouldDisableConfirmButtonWhenOffline: true,
             shouldShowCancelButton: true,
+            isConfirmLoading: isLoading,
         });
 
         if (modalResult.action !== ModalActions.CONFIRM) {
@@ -48,7 +50,7 @@ function BaseLockAccountComponent({confirmModalPrompt, lockAccountPagePrompt, te
         }
 
         setIsLoading(true);
-        const response = await lockAccount();
+        const response = await lockAccount(accountID);
         setIsLoading(false);
 
         handleLockRequestFinish(response);
