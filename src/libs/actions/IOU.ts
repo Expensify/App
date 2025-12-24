@@ -97,6 +97,7 @@ import {
     isSubmitAndClose,
 } from '@libs/PolicyUtils';
 import {
+    buildOptimisticCreatedReportForUnapprovedAction,
     getAllReportActions,
     getIOUActionForReportID,
     getLastVisibleAction,
@@ -113,7 +114,6 @@ import {
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
-import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
 import {
     buildOptimisticActionableTrackExpenseWhisper,
@@ -10215,11 +10215,7 @@ function getReportFromHoldRequestsOnyxData(
         newParentReportActionID,
     );
 
-    const optimisticCreatedReportForUnapprovedAction = buildOptimisticCreatedReportForUnapprovedAction(
-        optimisticExpenseReport.reportID,
-        iouReport?.reportID ?? chatReport.reportID,
-        optimisticExpenseReport.created,
-    );
+    const optimisticCreatedReportForUnapprovedAction = buildOptimisticCreatedReportForUnapprovedAction(optimisticExpenseReport.reportID, iouReport?.reportID ?? chatReport.reportID);
 
     const updateHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID' | 'parentReportID' | 'chatReportID'>> = {};
     const addHoldReportActions: OnyxTypes.ReportActions = {};

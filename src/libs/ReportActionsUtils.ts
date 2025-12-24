@@ -34,10 +34,9 @@ import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
-import * as NumberUtils from './NumberUtils';
+import {rand64} from './NumberUtils';
 import Parser from './Parser';
-import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
-import {getAccountIDsByLogins} from './PersonalDetailsUtils';
+import {arePersonalDetailsMissing, getAccountIDsByLogins, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -241,7 +240,7 @@ function buildOptimisticCreatedReportForUnapprovedAction(reportID: string, origi
         originalMessage: {
             originalID: originalReportID,
         },
-        reportActionID: NumberUtils.rand64(),
+        reportActionID: rand64(),
         reportID: reportID,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         isOptimisticAction: true,
