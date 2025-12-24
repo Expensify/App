@@ -1,3 +1,4 @@
+import type * as ReactNavigationNative from '@react-navigation/native';
 import {NavigationContainer} from '@react-navigation/native';
 import {cleanup, render, screen} from '@testing-library/react-native';
 import React from 'react';
@@ -12,6 +13,11 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
+    useNavigationState: () => undefined,
+}));
 
 jest.mock('@src/hooks/useRootNavigationState', () => {
     return jest.fn(() => ({
