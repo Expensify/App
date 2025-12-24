@@ -237,11 +237,11 @@ function MoneyRequestReportPreviewContent({
     }, [chatReport, policy, hasReportBeenRetracted, iouReport]);
 
     const confirmPayment = useCallback(
-        ({paymentType, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
-            if (!paymentType) {
+        ({paymentType: selectedPaymentType, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
+            if (!selectedPaymentType) {
                 return;
             }
-            setPaymentType(paymentType);
+            setPaymentType(selectedPaymentType);
             setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
@@ -251,7 +251,7 @@ function MoneyRequestReportPreviewContent({
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
                     payInvoice({
-                        paymentMethodType: paymentType,
+                        paymentMethodType: selectedPaymentType,
                         chatReport,
                         invoiceReport: iouReport,
                         introSelected,
@@ -264,7 +264,7 @@ function MoneyRequestReportPreviewContent({
                         activePolicy,
                     });
                 } else {
-                    payMoneyRequest(paymentType, chatReport, iouReport, introSelected, undefined, true, activePolicy);
+                    payMoneyRequest(selectedPaymentType, chatReport, iouReport, introSelected, undefined, true, activePolicy);
                 }
             }
         },
