@@ -3146,15 +3146,13 @@ function getPolicyChangeLogDefaultReimbursableMessage(action: ReportAction): str
 }
 
 function getPolicyChangeLogDefaultTitleMessage(action: ReportAction): string {
-    const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE>) as
-        | {oldDefaultTitle?: string; newDefaultTitle?: string}
-        | undefined;
+    const {oldDefaultTitle, newDefaultTitle} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE>) ?? {};
 
-    if (originalMessage?.newDefaultTitle !== undefined) {
+    if (typeof oldDefaultTitle === 'string' && typeof newDefaultTitle === 'string') {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.changedCustomReportNameFormula', {
-            newValue: originalMessage.newDefaultTitle,
-            oldValue: originalMessage.oldDefaultTitle ?? '',
+            newValue: newDefaultTitle,
+            oldValue: oldDefaultTitle,
         });
     }
 
