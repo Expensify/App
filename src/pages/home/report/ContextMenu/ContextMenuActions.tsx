@@ -881,7 +881,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const harvestReportName = getReportName(harvestReport);
                     const displayMessage = getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate);
                     setClipboardMessage(displayMessage);
-                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATEDREPORTFORUNAPPROVEDTRANSACTIONS)) {
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
                     const {originalID} = getOriginalMessage(reportAction) ?? {};
                     const reportName = getReportName(getReportOrDraftReport(originalID));
                     const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translate);
