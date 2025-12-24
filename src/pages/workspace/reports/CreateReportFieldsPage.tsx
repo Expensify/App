@@ -123,6 +123,18 @@ function WorkspaceCreateReportFieldsPage({
         [availableListValuesLength, policy?.fieldList, translate],
     );
 
+    const validateName = useCallback(
+        (values: Record<string, string>) => {
+            const errors: Record<string, string> = {};
+            const name = values[INPUT_IDS.NAME];
+            if (Object.values(policy?.fieldList ?? {}).some((reportField) => reportField.name === name)) {
+                errors[INPUT_IDS.NAME] = translate('workspace.reportFields.existingReportFieldNameError');
+            }
+            return errors;
+        },
+        [policy?.fieldList, translate],
+    );
+
     const handleOnValueCommitted = useCallback(
         (inputValues: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => (initialValue: string) => {
             // Mirror optimisticType logic from createReportField: if user enters a formula
@@ -193,6 +205,7 @@ function WorkspaceCreateReportFieldsPage({
                                 multiline={false}
                                 role={CONST.ROLE.PRESENTATION}
                                 required
+                                customValidate={validateName}
                             />
                             <InputWrapper
                                 InputComponent={TypeSelector}
