@@ -9,7 +9,7 @@ import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMess
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
-import {getCardIssuedMessage, getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
+import {getCardIssuedMessage, getCompanyAddressUpdateMessage, getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -1867,5 +1867,76 @@ describe('ReportActionsUtils', () => {
             const expected = translateLocal('iou.routedDueToDEW', {to});
             expect(actual).toBe(expected);
         });
+    });
+
+    describe('getCompanyAddressUpdateMessage', () => {
+        it('should return "set" message when setting address for first time (no old address)', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '2024-01-01',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St',
+                        city: 'San Francisco',
+                        state: 'CA',
+                        zipCode: '94102',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = ReportActionsUtils.getCompanyAddressUpdateMessage(action);
+            expect(result).toBe('set the company address to "123 Main St, San Francisco, CA 94102"');
+        });
+
+        it('should return "changed" message when updating existing address', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '2024-01-01',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '456 New Ave',
+                        city: 'Los Angeles',
+                        state: 'CA',
+                        zipCode: '90001',
+                        country: 'US',
+                    },
+                    oldAddress: {
+                        addressStreet: '123 Old St',
+                        city: 'San Francisco',
+                        state: 'CA',
+                        zipCode: '94102',
+                        country: 'US',
+                    },
+                },
+            } as ReportAction;
+
+            const result = ReportActionsUtils.getCompanyAddressUpdateMessage(action);
+            expect(result).toBe('changed the company address to "456 New Ave, Los Angeles, CA 90001" (previously "123 Old St, San Francisco, CA 94102")');
+        });
+        it('should handle address with street2 (newline separated)', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
+                reportActionID: '1',
+                created: '2024-01-01',
+                originalMessage: {
+                    newAddress: {
+                        addressStreet: '123 Main St\nSuite 500',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCode: '10001',
+                        country: 'US',
+                    },
+                    oldAddress: null,
+                },
+            } as ReportAction;
+
+            const result = ReportActionsUtils.getCompanyAddressUpdateMessage(action);
+            expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+
     });
 });
