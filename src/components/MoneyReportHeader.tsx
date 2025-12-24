@@ -476,11 +476,11 @@ function MoneyReportHeader({
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const confirmPayment = useCallback(
-        ({paymentType, payAsBusiness, methodID, paymentMethod, skipAnimation}: PaymentActionParams) => {
-            if (!paymentType || !chatReport) {
+        ({paymentType: selectedPaymentType, payAsBusiness, methodID, paymentMethod, skipAnimation}: PaymentActionParams) => {
+            if (!selectedPaymentType || !chatReport) {
                 return;
             }
-            setPaymentType(paymentType);
+            setPaymentType(selectedPaymentType);
             setRequestType(CONST.IOU.REPORT_ACTION_TYPE.PAY);
             if (isDelegateAccessRestricted) {
                 showDelegateNoAccessModal();
@@ -497,7 +497,7 @@ function MoneyReportHeader({
                     startAnimation();
                 }
                 payInvoice({
-                    paymentMethodType: paymentType,
+                    paymentMethodType: selectedPaymentType,
                     chatReport,
                     invoiceReport: moneyRequestReport,
                     introSelected,
@@ -514,7 +514,7 @@ function MoneyReportHeader({
                 if (!skipAnimation) {
                     startAnimation();
                 }
-                payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy);
+                payMoneyRequest(selectedPaymentType, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy);
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
@@ -1460,10 +1460,10 @@ function MoneyReportHeader({
     const applicableTransactionActions = useMemo(() => {
         const allowedActions = [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT, CONST.REPORT.PRIMARY_ACTIONS.APPROVE, CONST.REPORT.PRIMARY_ACTIONS.PAY];
         return allowedActions
-            .filter((action_type) => {
-                return action_type === primaryAction || secondaryActions.includes(action_type);
+            .filter((actionType) => {
+                return actionType === primaryAction || secondaryActions.includes(actionType);
             })
-            .map((action_type) => secondaryActionsImplementation[action_type]);
+            .map((actionType) => secondaryActionsImplementation[actionType]);
     }, [primaryAction, secondaryActions, secondaryActionsImplementation]);
 
     const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
@@ -1628,7 +1628,7 @@ function MoneyReportHeader({
                                 chatReportID={chatReport?.reportID}
                                 iouReport={moneyRequestReport}
                                 onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(paymentType) => confirmPayment({paymentType})}
+                                onSuccessfulKYC={(kycPaymentType) => confirmPayment({paymentType: kycPaymentType})}
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}
@@ -1639,7 +1639,7 @@ function MoneyReportHeader({
                                 chatReportID={chatReport?.reportID}
                                 iouReport={moneyRequestReport}
                                 onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(paymentType) => confirmPayment({paymentType, skipAnimation: true})}
+                                onSuccessfulKYC={(kycPaymentType) => confirmPayment({paymentType: kycPaymentType, skipAnimation: true})}
                                 options={selectedTransactionsOptions}
                                 customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                                 ref={kycWallRef}
@@ -1655,7 +1655,7 @@ function MoneyReportHeader({
                             chatReportID={chatReport?.reportID}
                             iouReport={moneyRequestReport}
                             onPaymentSelect={onPaymentSelect}
-                            onSuccessfulKYC={(paymentType) => confirmPayment({paymentType, skipAnimation: true})}
+                            onSuccessfulKYC={(kycPaymentType) => confirmPayment({paymentType: kycPaymentType, skipAnimation: true})}
                             options={selectedTransactionsOptions}
                             customText={translate('workspace.common.selected', {count: selectedTransactionIDs.length})}
                             ref={kycWallRef}
@@ -1669,7 +1669,7 @@ function MoneyReportHeader({
                                 chatReportID={chatReport?.reportID}
                                 iouReport={moneyRequestReport}
                                 onPaymentSelect={onPaymentSelect}
-                                onSuccessfulKYC={(paymentType) => confirmPayment({paymentType})}
+                                onSuccessfulKYC={(kycPaymentType) => confirmPayment({paymentType: kycPaymentType})}
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}
