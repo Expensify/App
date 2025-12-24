@@ -151,6 +151,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 shouldShowBackButton
                 progressBarPercentage={60}
                 onBackButtonPress={handleBackButtonPress}
+                shouldDisplayHelpButton={false}
             />
             <SelectionList
                 data={policyIDItems}
@@ -180,7 +181,5 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingWorkspaces.displayName = 'BaseOnboardingWorkspaces';
 
 export default BaseOnboardingWorkspaces;

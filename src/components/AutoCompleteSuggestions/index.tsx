@@ -165,6 +165,4 @@ function AutoCompleteSuggestions<TSuggestion>({measureParentContainerAndReportCu
     );
 }
 
-AutoCompleteSuggestions.displayName = 'AutoCompleteSuggestions';
-
 export default AutoCompleteSuggestions;

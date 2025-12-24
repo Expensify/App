@@ -1,7 +1,6 @@
-import {isModalCenteredVisibleSelector} from '@selectors/Modal';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useLocalize from './useLocalize';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
+import useEnvironment from './useEnvironment';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
 
@@ -10,28 +9,26 @@ import useResponsiveLayout from './useResponsiveLayout';
  */
 function useSidePanelDisplayStatus() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {preferredLocale} = useLocalize();
     const [sidePanelNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL, {canBeMissing: true});
-    const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
+    const {isProduction} = useEnvironment();
+    const [isOnboardingCompleted = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasCompletedGuidedSetupFlowSelector,
         canBeMissing: true,
-        selector: isModalCenteredVisibleSelector,
     });
-
-    const isLanguageUnsupported = preferredLocale !== CONST.LOCALES.EN;
     const isSidePanelVisible = isExtraLargeScreenWidth ? sidePanelNVP?.open : sidePanelNVP?.openNarrowScreen;
 
     // The Side Panel is hidden when:
     // - NVP is not set or it is false
-    // - language is unsupported
-    // - modal centered is visible
-    const shouldHideSidePanel = !isSidePanelVisible || isLanguageUnsupported || isModalCenteredVisible || !sidePanelNVP;
-    const isSidePanelHiddenOrLargeScreen = !isSidePanelVisible || isLanguageUnsupported || isExtraLargeScreenWidth || !sidePanelNVP;
+    // - Production environment (will be removed in the future once it's tested on staging)
+    // - Onboarding is not completed
+    const shouldHideSidePanel = !isSidePanelVisible || !sidePanelNVP || isProduction || !isOnboardingCompleted;
+    const isSidePanelHiddenOrLargeScreen = !isSidePanelVisible || isExtraLargeScreenWidth || isProduction || !sidePanelNVP;
 
     // The help button is hidden when:
-    // - side pane nvp is not set
     // - Side Panel is displayed currently
-    // - language is unsupported
-    const shouldHideHelpButton = !sidePanelNVP || !shouldHideSidePanel || isLanguageUnsupported;
+    // - Production environment (will be removed in the future once it's tested on staging)
+    // - Onboarding is not completed
+    const shouldHideHelpButton = !shouldHideSidePanel || isProduction || !isOnboardingCompleted;
     const shouldHideSidePanelBackdrop = shouldHideSidePanel || isExtraLargeScreenWidth || shouldUseNarrowLayout;
 
     return {

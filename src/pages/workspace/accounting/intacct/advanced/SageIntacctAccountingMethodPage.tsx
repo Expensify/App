@@ -61,7 +61,7 @@ function SageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <SelectionScreen
-            displayName={SageIntacctAccountingMethodPage.displayName}
+            displayName="SageIntacctAccountingMethodPage"
             headerTitleAlreadyTranslated={translate('workspace.sageIntacct.accountingMethods.label')}
             headerContent={headerContent}
             sections={[{data}]}
@@ -78,7 +78,5 @@ function SageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-SageIntacctAccountingMethodPage.displayName = 'SageIntacctAccountingMethodPage';
 
 export default withPolicyConnections(SageIntacctAccountingMethodPage);

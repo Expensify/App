@@ -27,6 +27,4 @@ function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps
     );
 }
 
-EditedRenderer.displayName = 'EditedRenderer';
-
 export default EditedRenderer;

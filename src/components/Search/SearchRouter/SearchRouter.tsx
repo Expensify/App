@@ -40,6 +40,7 @@ import Navigation from '@navigation/Navigation';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
 import {navigateToAndOpenReport, searchInServer} from '@userActions/Report';
+import {setSearchContext} from '@userActions/Search';
 import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -294,6 +295,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
 
             backHistory(() => {
                 onRouterClose();
+                setSearchContext(true);
                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: updatedQuery}));
             });
 
@@ -496,7 +498,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     return (
         <View
             style={[styles.flex1, modalWidth, styles.h100, !shouldUseNarrowLayout && styles.mh85vh]}
-            testID={SearchRouter.displayName}
+            testID="SearchRouter"
             ref={ref}
         >
             {shouldUseNarrowLayout && (
@@ -561,7 +563,5 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         </View>
     );
 }
-
-SearchRouter.displayName = 'SearchRouter';
 
 export default SearchRouter;
