@@ -9,7 +9,14 @@ import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMess
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
-import {getCardIssuedMessage, getCompanyAddressUpdateMessage, getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
+import {
+    getCardIssuedMessage,
+    getCompanyAddressUpdateMessage,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getSendMoneyFlowAction,
+    isIOUActionMatchingTransactionList,
+} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -1939,6 +1946,5 @@ describe('ReportActionsUtils', () => {
             // The new line should be replaced with a comma
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
         });
-
     });
 });
