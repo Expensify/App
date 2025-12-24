@@ -1,5 +1,5 @@
 import {Keyboard} from 'react-native';
-import {isMobile, isSafari} from '@libs/Browser';
+import {isMobile, isMobileSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
 
 let isVisible = false;
@@ -36,7 +36,7 @@ window.visualViewport?.addEventListener('resize', handleResize);
 
 const dismiss = (shouldSkipSafari = false): Promise<void> => {
     return new Promise((resolve) => {
-        if (shouldSkipSafari && isSafari()) {
+        if (shouldSkipSafari && isMobileSafari()) {
             resolve();
             return;
         }
