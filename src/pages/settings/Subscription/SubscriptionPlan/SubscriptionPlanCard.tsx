@@ -90,11 +90,12 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const subscriptionPlanCardActionButtonWrapStyles = (() => {
         if (shouldHideSubscriptionSettingsButton) {
             return shouldUseNarrowLayout ? [] : styles.pb2;
-        } else if (shouldUseNarrowLayout) {
-            return styles.pb5;
-        } else {
-            return styles.pb8;
         }
+        if (shouldUseNarrowLayout) {
+            return styles.pb5;
+        }
+
+        return styles.pb8;
     })();
 
     return (
