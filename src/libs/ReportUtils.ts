@@ -2949,7 +2949,7 @@ function canDeleteMoneyRequestReport(report: Report, reportTransactions: Transac
     const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
-        return (isOwner || transaction?.managerID === currentUserAccountID) && canCardTransactionBeDeleted;
+        return canCardTransactionBeDeleted;
     }
 
     if (isInvoiceReport(report)) {

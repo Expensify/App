@@ -472,9 +472,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Used during the creation flow before the transaction is saved to the server */
         iouRequestType?: IOURequestType;
 
-        /** The manager of transaction */
-        managerID?: number;
-
         /** The original merchant name */
         merchant: string;
 
