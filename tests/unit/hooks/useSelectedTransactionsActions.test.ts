@@ -620,6 +620,8 @@ describe('useSelectedTransactionsActions', () => {
         const reportActions: ReportAction[] = [];
         const transaction = createRandomTransaction(1);
         transaction.transactionID = transactionID;
+        transaction.managedCard = false;
+        transaction.cardName = CONST.EXPENSE.TYPE.CASH_CARD_NAME;
 
         mockSelectedTransactionIDs.push(transactionID);
 
