@@ -34,8 +34,8 @@ function UserInfoAndActionButtonRow({
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
     const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
     const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
-    const participantFromDisplayName = item?.from?.displayName ?? item?.from?.login ?? translate('common.hidden');
-    const participantToDisplayName = item?.to?.displayName ?? item?.to?.login ?? translate('common.hidden');
+    const participantFromDisplayName = item.formattedFrom ?? '';
+    const participantToDisplayName = item.formattedTo ?? '';
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
     return (
         <View

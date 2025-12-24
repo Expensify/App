@@ -88,7 +88,7 @@ function WorkspaceCompanyCardTableItem({
 }: WorkspaceCompanyCardTableItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const {failedCompanyCardAssignment} = item;
@@ -108,10 +108,10 @@ function WorkspaceCompanyCardTableItem({
     }
 
     const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
-    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? cardholder?.login : undefined;
+    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? formatPhoneNumber(cardholder?.login ?? '') : undefined;
     const narrowWidthCardName = isAssigned ? `${customCardName ?? ''}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : cardName;
 
-    const leftColumnTitle = isAssigned ? (cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
+    const leftColumnTitle = isAssigned ? (cardholder?.displayName ? formatPhoneNumber(cardholder.displayName) : '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const leftColumnSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
 
     const resetFailedCompanyCardAssignment = () => {
