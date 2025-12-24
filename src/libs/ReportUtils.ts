@@ -6977,10 +6977,11 @@ function buildOptimisticExpenseReport(
             policy,
             allTransactions: reportTransactions ?? {},
         };
+        // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
         // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
         const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
         const computedName = Formula.compute(titleReportField.defaultValue, formulaContext);
-        expenseReport.reportName = computedName || expenseReport.reportName;
+        expenseReport.reportName = computedName ?? expenseReport.reportName;
     }
 
     expenseReport.fieldList = policy?.fieldList;
@@ -7020,16 +7021,16 @@ function buildOptimisticEmptyReport(
         managerID: getManagerAccountID(policy, {ownerAccountID: accountID}),
     };
 
-    const formula = titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN;
     const formulaContext: FormulaContext = {
         report: optimisticEmptyReport as Report,
         policy,
         allTransactions: reportTransactions ?? {},
     };
+    // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
     const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
-    const optimisticReportName = Formula.compute(formula, formulaContext);
-    optimisticEmptyReport.reportName = optimisticReportName || '';
+    const optimisticReportName = Formula.compute(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, formulaContext);
+    optimisticEmptyReport.reportName = optimisticReportName ?? '';
 
     optimisticEmptyReport.participants = accountID
         ? {
