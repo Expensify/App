@@ -1870,7 +1870,7 @@ function getMemberSections(
     for (const key in data) {
         if (isGroupEntry(key)) {
             const memberGroup = data[key] as SearchMemberGroup;
-            const personalDetails = data.personalDetailsList[memberGroup.accountID];
+            const personalDetails = data.personalDetailsList?.[memberGroup.accountID] ?? emptyPersonalDetails;
             let transactionsQueryJSON: SearchQueryJSON | undefined;
             if (queryJSON && memberGroup.accountID) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
@@ -1911,8 +1911,7 @@ function getCardSections(
     for (const key in data) {
         if (isGroupEntry(key)) {
             const cardGroup = data[key] as SearchCardGroup;
-            const personalDetails = data.personalDetailsList[cardGroup.accountID];
-
+            const personalDetails = data.personalDetailsList?.[cardGroup.accountID] ?? emptyPersonalDetails;
             let transactionsQueryJSON: SearchQueryJSON | undefined;
             if (queryJSON && cardGroup.cardID) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
