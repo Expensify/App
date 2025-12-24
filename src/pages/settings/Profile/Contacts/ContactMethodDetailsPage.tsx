@@ -60,7 +60,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const {email, ...currentUserPersonalDetails} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const {formatPhoneNumber, translate} = useLocalize();
     const themeStyles = useThemeStyles();

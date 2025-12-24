@@ -23,10 +23,10 @@ function VerifyAccountPageBase({navigateBackTo, navigateForwardTo, handleClose}:
     const styles = useThemeStyles();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-    const {email, ...currentUserPersonalDetails} = useCurrentUserPersonalDetails();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     // sometimes primaryLogin can be empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const contactMethod = (account?.primaryLogin || email) ?? '';
+    const contactMethod = (account?.primaryLogin || currentUserPersonalDetails.email) ?? '';
     const {translate, formatPhoneNumber} = useLocalize();
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
