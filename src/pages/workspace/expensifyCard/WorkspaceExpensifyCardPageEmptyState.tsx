@@ -18,7 +18,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
+import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES, hasInProgressUSDVBBA} from '@libs/ReimbursementAccountUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -49,7 +49,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
     const reimbursementAccountStatus = reimbursementAccount?.achData?.state ?? '';
-    const isSetupUnfinished = isEmptyObject(bankAccountList) && reimbursementAccountStatus && reimbursementAccountStatus !== CONST.BANK_ACCOUNT.STATE.OPEN;
+    const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
 
     const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountList);
