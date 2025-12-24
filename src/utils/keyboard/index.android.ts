@@ -20,7 +20,7 @@ const subscribeKeyboardVisibilityChange = (cb: (isVisible: boolean) => void) => 
     return () => {};
 };
 
-const dismiss = (): Promise<void> => {
+const dismiss = (shouldSkipSafari: boolean): Promise<void> => {
     return new Promise((resolve) => {
         if (!isVisible) {
             resolve();
