@@ -74,6 +74,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'Nombre',
         lastName: 'Apellidos',
         scanning: 'Escaneando',
+        analyzing: 'Analizando...',
         phone: 'Teléfono',
         phoneNumber: 'Número de teléfono',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -1310,11 +1311,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Esperando a que <strong>tú</strong> soluciones el(los) problema(s).`;
+                        return `Esperando a que <strong>tú</strong> soluciones ellos problemas.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Esperando a que <strong>${actor}</strong> solucione el(los) problema(s).`;
+                        return `Esperando a que <strong>${actor}</strong> solucione ellos problemas.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Esperando a que un administrador solucione el(los) problema(s).`;
+                        return `Esperando a que un administrador solucione ellos problemas.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}) => {
@@ -1823,6 +1824,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Confirma tu cuenta bancaria',
         personalBankAccounts: 'Cuentas bancarias personales',
         businessBankAccounts: 'Cuentas bancarias empresariales',
+        shareBankAccount: 'Compartir cuenta bancaria',
+        bankAccountShared: 'Cuenta bancaria compartida',
+        shareBankAccountTitle: 'Seleccionar los administradores con quienes compartir esta cuenta bancaria:',
+        shareBankAccountSuccess: '¡Cuenta bancaria compartida!',
+        shareBankAccountSuccessDescription: 'Los administradores seleccionados recibirán un mensaje de confirmación de Concierge.',
+        shareBankAccountFailure: 'Se produjo un error inesperado al intentar compartir la cuenta bancaria. Inténtelo de nuevo.',
+        shareBankAccountEmptyTitle: 'No hay administradores disponibles',
+        shareBankAccountEmptyDescription: 'No hay administradores del espacio de trabajo con los que puedas compartir esta cuenta bancaria',
+        shareBankAccountNoAdminsSelected: 'Seleccione un administrador antes de continuar',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -2519,6 +2529,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     personalDetails: {
         error: {
+            cannotContainSpecialCharacters: 'El nombre no puede contener caracteres especiales',
             containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge',
             hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma',
             requiredFirstName: 'El nombre no puede estar vacío',
@@ -3534,7 +3545,6 @@ ${amount} para ${merchant} - ${date}`,
                 monthly: 'Mensual',
             },
             planType: 'Tipo de plan',
-            submitExpense: 'Envía tus gastos a continuación:',
             defaultCategory: 'Categoría predeterminada',
             viewTransactions: 'Ver transacciones',
             policyExpenseChatName: ({displayName}) => `${displayName}'s gastos`,
@@ -4467,6 +4477,7 @@ ${amount} para ${merchant} - ${date}`,
             ukRegulation:
                 'Expensify Limited es un agente de Plaid Financial Ltd., una institución de pago autorizada y regulada por la Financial Conduct Authority conforme al Reglamento de Servicios de Pago de 2017 (Número de Referencia de la Firma: 804718). Plaid te proporciona servicios regulados de información de cuentas a través de Expensify Limited como su agente.',
             assignCardFailedError: 'Error al asignar la tarjeta.',
+            cardAlreadyAssignedError: 'Esta tarjeta ya está asignada a un usuario en otro espacio de trabajo.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
@@ -7678,12 +7689,8 @@ ${amount} para ${merchant} - ${date}`,
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación?',
             renewsOn: ({date}) => `Se renovará el ${date}.`,
             pricingConfiguration: 'El precio depende de la configuración. Para obtener el precio más bajo, elige una suscripción anual y obtén la Tarjeta Expensify.',
-            learnMore: {
-                part1: 'Obtén más información en nuestra ',
-                pricingPage: 'página de precios',
-                part2: ' o chatea con nuestro equipo en tu ',
-                adminsRoom: 'sala #admins.',
-            },
+            learnMore: ({hasAdminsRoom}) =>
+                `<muted-text>Obtén más información en nuestra <a href="${CONST.PRICING}">página de precios</a> o chatea con nuestro equipo en tu ${hasAdminsRoom ? `<a href="adminsRoom">sala #admins.</a>` : '#admins room.'}</muted-text>`,
             estimatedPrice: 'Precio estimado',
             changesBasedOn: 'Esto varía según el uso de tu Tarjeta Expensify y las opciones de suscripción que elijas a continuación.',
         },
@@ -8026,7 +8033,15 @@ ${amount} para ${merchant} - ${date}`,
             findAdmin: 'Encontrar administrador',
             primaryContact: 'Contacto principal',
             addPrimaryContact: 'Añadir contacto principal',
+            setPrimaryContactError: 'No se pudo establecer el contacto principal. Por favor, inténtalo de nuevo más tarde.',
             settings: 'Configuración',
+            consolidatedDomainBilling: 'Facturación consolidada del dominio',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>Cuando está habilitada, el contacto principal pagará todos los espacios de trabajo propiedad de los miembros de <strong>${domainName}</strong> y recibirá todos los recibos de facturación.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'No se pudo cambiar la facturación consolidada del dominio. Por favor, inténtalo de nuevo más tarde.',
+            addAdmin: 'Añadir administrador',
+            invite: 'Invitar',
+            addAdminError: 'No se pudo añadir a este miembro como administrador. Por favor, inténtalo de nuevo.',
         },
     },
 };

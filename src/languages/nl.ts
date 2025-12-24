@@ -167,6 +167,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -343,6 +344,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'Voornaam',
         lastName: 'Achternaam',
         scanning: 'Scannen',
+        analyzing: 'Analyseren...',
         addCardTermsOfService: 'Expensify-servicevoorwaarden',
         perPerson: 'per persoon',
         phone: 'Telefoon',
@@ -1636,11 +1638,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Wachten tot <strong>jij</strong> het/de probleem(en) oplost.`;
+                        return `Wachten tot <strong>jij</strong> de problemen oplost.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Wachten tot <strong>${actor}</strong> de problemen oplost.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Wachten tot een admin het/de probleem(en) oplost.`;
+                        return `Wachten op een beheerder om de problemen op te lossen.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2154,6 +2156,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Bevestig je bankrekening',
         personalBankAccounts: 'Persoonlijke bankrekeningen',
         businessBankAccounts: 'Zakelijke bankrekeningen',
+        shareBankAccount: 'Bankrekening delen',
+        bankAccountShared: 'Bankrekening gedeeld',
+        shareBankAccountTitle: 'Selecteer de beheerders waarmee u deze bankrekening wilt delen:',
+        shareBankAccountSuccess: 'Bankrekening gedeeld!',
+        shareBankAccountSuccessDescription: 'De geselecteerde beheerders ontvangen een bevestigingsbericht van Concierge.',
+        shareBankAccountFailure: 'Er is een onverwachte fout opgetreden bij het delen van de bankrekening. Probeer het opnieuw.',
+        shareBankAccountEmptyTitle: 'Geen beheerders beschikbaar',
+        shareBankAccountEmptyDescription: 'Er zijn geen werkruimtebeheerders waarmee u deze bankrekening kunt delen.',
+        shareBankAccountNoAdminsSelected: 'Selecteer een beheerder voordat u verdergaat',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2857,6 +2868,7 @@ ${
             containsReservedWord: 'Naam mag de woorden Expensify of Concierge niet bevatten',
             hasInvalidCharacter: 'Naam mag geen komma of puntkomma bevatten',
             requiredFirstName: 'Voornaam mag niet leeg zijn',
+            cannotContainSpecialCharacters: 'Naam mag geen speciale tekens bevatten',
         },
     },
     privatePersonalDetails: {
@@ -3868,7 +3880,6 @@ ${
                 monthly: 'Maandelijks',
             },
             planType: 'Abonnementstype',
-            submitExpense: 'Dien hieronder je onkosten in:',
             defaultCategory: 'Standaardcategorie',
             viewTransactions: 'Transacties weergeven',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Declaraties van ${displayName}`,
@@ -4849,6 +4860,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 'Expensify Limited is een agent van Plaid Financial Ltd., een erkende betalingsinstelling die wordt gereguleerd door de Financial Conduct Authority onder de Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid biedt u gereguleerde rekeninginformatiediensten via Expensify Limited als haar agent.',
             assign: 'Toewijzen',
             assignCardFailedError: 'Toewijzing van kaart mislukt.',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
             issueAndManageCards: 'Uw Expensify Cards uitgeven en beheren',
@@ -7614,12 +7626,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             whatsMainReason: 'Wat is de belangrijkste reden waarom je automatische verlenging uitschakelt?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Wordt verlengd op ${date}.`,
             pricingConfiguration: 'De prijs is afhankelijk van de configuratie. Voor de laagste prijs kies je een jaarlijks abonnement en schaf je de Expensify Card aan.',
-            learnMore: {
-                part1: 'Kom meer te weten op onze',
-                pricingPage: 'Prijzenpagina',
-                part2: 'of chat met ons team in jouw',
-                adminsRoom: '#admins-kamer.',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `<muted-text>Lees meer op onze <a href="${CONST.PRICING}">prijspagina</a> of chat met ons team in je ${hasAdminsRoom ? `<a href="adminsRoom">#admins-kamer.</a>` : '#admins-kamer.'}</muted-text>`,
             estimatedPrice: 'Geschatte prijs',
             changesBasedOn: 'Dit verandert op basis van je gebruik van de Expensify Card en de abonnementsopties hieronder.',
         },
@@ -7962,7 +7970,15 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             findAdmin: 'Beheerder zoeken',
             primaryContact: 'Primair contactpersoon',
             addPrimaryContact: 'Primair contactpersoon toevoegen',
+            setPrimaryContactError: 'Kan de primaire contactpersoon niet instellen. Probeer het later opnieuw.',
             settings: 'Instellingen',
+            consolidatedDomainBilling: 'Geconsolideerde domeinfacturering',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>Indien ingeschakeld, betaalt de primaire contactpersoon voor alle werkruimten die eigendom zijn van leden van <strong>${domainName}</strong> en ontvangt hij/zij alle factuurbewijzen.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'Geconsolideerde domeinfacturering kon niet worden gewijzigd. Probeer het later opnieuw.',
+            addAdmin: 'Beheerder toevoegen',
+            invite: 'Uitnodigen',
+            addAdminError: 'Kan dit lid niet als beheerder toevoegen. Probeer het opnieuw.',
         },
     },
     desktopAppRetiredPage: {
