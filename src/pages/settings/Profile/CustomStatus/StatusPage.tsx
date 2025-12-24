@@ -283,6 +283,7 @@ function StatusPage() {
                                         iconType={CONST.ICON_TYPE_AVATAR}
                                         numberOfLinesDescription={1}
                                         containerStyle={[styles.pr2, styles.mt1]}
+                                        interactive={false}
                                     />
                                 );
                             })}
