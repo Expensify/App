@@ -105,7 +105,9 @@ function CalendarPicker({
      */
     const onDayPressed = (day: number) => {
         setCurrentDateView((prev) => {
-            const newCurrentDateView = setDate(new Date(prev), day);
+            // convert to UTC to avoid timezone issues
+            const date = new Date(Date.UTC(prev.getFullYear(), prev.getMonth(), prev.getDate()));
+            const newCurrentDateView = setDate(date, day);
             onSelected?.(format(new Date(newCurrentDateView), CONST.DATE.FNS_FORMAT_STRING));
             return newCurrentDateView;
         });
