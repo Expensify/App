@@ -1870,7 +1870,7 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('getCompanyAddressUpdateMessage', () => {
-        it('should return "set" message when setting address for first time (no old address)', () => {
+        it('should return "set" message when setting address for first time', () => {
             const action = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
                 reportActionID: '1',
@@ -1935,6 +1935,8 @@ describe('ReportActionsUtils', () => {
             } as ReportAction;
 
             const result = ReportActionsUtils.getCompanyAddressUpdateMessage(action);
+
+            // The new line should be replaced with a comma
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
         });
 
