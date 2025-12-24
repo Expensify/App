@@ -1,5 +1,5 @@
-import type {InputType} from '@storybook/csf';
-import type {Meta, StoryFn} from '@storybook/react';
+import type {InputType} from 'storybook/internal/csf';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
