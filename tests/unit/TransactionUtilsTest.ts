@@ -1335,6 +1335,102 @@ describe('TransactionUtils', () => {
         });
     });
 
+    describe('isCategoryBeingAnalyzed', () => {
+        it('should return false for undefined transaction', () => {
+            expect(TransactionUtils.isCategoryBeingAnalyzed(undefined)).toBe(false);
+        });
+
+        it('should return false when category is not missing', () => {
+            const transaction = generateTransaction({
+                category: 'Food',
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false for partial transactions (empty merchant and zero amount)', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return true when pendingAction is ADD and category is missing', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
+        });
+
+        it('should return true when within auto-categorization grace period', () => {
+            // Set pendingAutoCategorizationTime to 30 seconds ago (within 1 minute grace period)
+            const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
+            const pendingAutoCategorizationTime = thirtySecondsAgo.toISOString().replace('T', ' ').replace('Z', '');
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                comment: {
+                    pendingAutoCategorizationTime,
+                },
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
+        });
+
+        it('should return false when auto-categorization grace period has passed', () => {
+            // Set pendingAutoCategorizationTime to 2 minutes ago (outside 1 minute grace period)
+            const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+            const pendingAutoCategorizationTime = twoMinutesAgo.toISOString().replace('T', ' ').replace('Z', '');
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: undefined,
+                comment: {
+                    pendingAutoCategorizationTime,
+                },
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false when pendingAutoCategorizationTime is invalid', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: undefined,
+                comment: {
+                    pendingAutoCategorizationTime: 'invalid-date',
+                },
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false when category is Uncategorized but no pending action or auto-categorization', () => {
+            const transaction = generateTransaction({
+                category: 'Uncategorized',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: undefined,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+    });
+
     describe('shouldReuseInitialTransaction', () => {
         const initialTransaction = generateTransaction({
             transactionID: '1',

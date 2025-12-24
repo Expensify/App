@@ -28,7 +28,6 @@ import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperW
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, RightModalNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -83,7 +82,7 @@ function SecondaryOverlay() {
     return null;
 }
 
-const loadReportScreen = () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default;
+const loadReportScreen = () => require<ReactComponentModule>('../../../../pages/home/RHPReportScreen').default;
 
 function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -341,7 +340,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
                             getComponent={loadReportScreen}
-                            options={{...modalStackScreenOptions, animation: Animations.NONE}}
+                            options={modalStackScreenOptions}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}

@@ -2,7 +2,7 @@ import {PortalHost} from '@gorhom/portal';
 import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
 import {deepEqual} from 'fast-equals';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
@@ -20,7 +20,6 @@ import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestRe
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWideRHPVersion';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
@@ -174,9 +173,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
 
-    const {wideRHPRouteKeys, superWideRHPRouteKeys} = useContext(WideRHPContext);
-    const isDisplayedInWidePaneModal = wideRHPRouteKeys.includes(route.key) || superWideRHPRouteKeys.includes(route.key);
-    const isWideRHPOpened = wideRHPRouteKeys.length > 0 || superWideRHPRouteKeys.length > 0;
     const currentReportIDValue = useCurrentReportID();
 
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {canBeMissing: true});
@@ -388,8 +384,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 closeSidePanel();
                 return;
             }
-
-            if (backTo === SCREENS.RIGHT_MODAL.SEARCH_REPORT || isDisplayedInWidePaneModal || isWideRHPOpened) {
+            if (backTo === SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
                 Navigation.goBack();
                 return;
             }
@@ -411,7 +406,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
             }
             Navigation.goBack();
         },
-        [isInSidePanel, backTo, isDisplayedInWidePaneModal, isWideRHPOpened, isInNarrowPaneModal, closeSidePanel],
+        [isInSidePanel, backTo, isInNarrowPaneModal, closeSidePanel],
     );
 
     let headerView = (
@@ -954,7 +949,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     return (
         // Wide RHP overlays should be rendered only for the report screen displayed in RHP
-        <WideRHPOverlayWrapper shouldWrap={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT}>
+        <WideRHPOverlayWrapper wrappedRoute={route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? route : undefined}>
             <ActionListContext.Provider value={actionListValue}>
                 <ReactionListWrapper>
                     <ScreenWrapper
@@ -1052,6 +1047,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 reportTransactions={reportTransactions}
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
+                                                isInSidePanel={isInSidePanel}
                                             />
                                         ) : null}
                                     </View>
