@@ -10,7 +10,7 @@ type TotalCellProps = {
     isScanning?: boolean;
 };
 
-function TotalCell({total, currency, isScanning}: TotalCellProps) {
+function TotalCell({total, currency, isScanning = false}: TotalCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const displayText = isScanning ? translate('iou.receiptStatusTitle') : convertToDisplayString(total, currency);
