@@ -31,6 +31,7 @@ import {
     getChangedApproverActionMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
+    getDynamicExternalWorkflowRoutedMessage,
     getExportIntegrationMessageHTML,
     getForwardsToUpdateMessage,
     getHarvestCreatedExpenseReportMessage,
@@ -150,6 +151,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
@@ -242,7 +244,7 @@ type ContextMenuActionWithContent = {
     renderContent: RenderContent;
 };
 
-type ContextMenuActionWithIcon = {
+type ContextMenuActionWithIcon = WithSentryLabel & {
     textTranslateKey: TranslationPaths;
     icon:
         | IconAsset
@@ -273,7 +275,6 @@ type ContextMenuActionWithIcon = {
           >;
     onPress: OnPress;
     getDescription: GetDescription;
-    sentryLabel?: string;
 };
 
 type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIcon) & {
@@ -287,7 +288,10 @@ type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIc
 const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
-        shouldShow: ({type, reportAction}) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !isMessageDeleted(reportAction),
+        shouldShow: ({type, reportAction}) => {
+            const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
+            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
+        },
         renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu, setIsEmojiPickerActive}) => {
             const isMini = !closePopover;
 
@@ -347,7 +351,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !reportID) {
                 return false;
             }
-            return !shouldDisableThread(reportAction, reportID, isThreadReportParentAction, isArchivedRoom);
+            return !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -369,7 +373,10 @@ const ContextMenuActions: ContextMenuAction[] = [
         textTranslateKey: 'reportActionContextMenu.markAsUnread',
         icon: 'ChatBubbleUnread',
         successIcon: 'Checkmark',
-        shouldShow: ({type, isUnreadChat}) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
+        shouldShow: ({type, reportAction, isUnreadChat}) => {
+            const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
+            return (type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isDynamicWorkflowRoutedAction) || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat);
+        },
         onPress: (closePopover, {reportAction, reportID}) => {
             markCommentAsUnread(reportID, reportAction);
             if (closePopover) {
@@ -493,6 +500,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
             const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
+            const shouldDisableJoinThread = shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
             return (
                 !subscribed &&
                 !isWhisperAction &&
@@ -500,6 +508,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 !isExpenseReportAction &&
                 !isThreadReportParentAction &&
                 !isHarvestCreatedExpenseReportAction &&
+                !shouldDisableJoinThread &&
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
@@ -864,6 +873,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionableJoinRequest(reportAction)) {
                     const displayMessage = getJoinRequestMessage(reportAction);
                     Clipboard.setString(displayMessage);
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
+                    setClipboardMessage(getDynamicExternalWorkflowRoutedMessage(reportAction, translate));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestReport) {
                     const harvestReportName = getReportName(harvestReport);
                     const displayMessage = getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate);
@@ -898,7 +909,8 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             // Only hide the copy link menu item when context menu is opened over img element.
             const isAttachmentTarget = menuTarget?.current && 'tagName' in menuTarget.current && menuTarget?.current.tagName === 'IMG' && isAttachment;
-            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !isMessageDeleted(reportAction);
+            const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
+            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -981,7 +993,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isUploading = html.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE);
             return isAttachment && !isUploading && !!reportAction?.reportActionID && !isMessageDeleted(reportAction) && !isOffline;
         },
-        onPress: (closePopover, {reportAction}) => {
+        onPress: (closePopover, {reportAction, translate}) => {
             const html = getActionHtml(reportAction);
             const {originalFileName, sourceURL} = getAttachmentDetails(html);
             const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '');
@@ -989,7 +1001,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             setDownload(sourceID, true);
             const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
             const isAnchorTag = anchorRegex.test(html);
-            fileDownload(sourceURLWithAuth, originalFileName ?? '', '', isAnchorTag && isMobileSafari()).then(() => setDownload(sourceID, false));
+            fileDownload(translate, sourceURLWithAuth, originalFileName ?? '', '', isAnchorTag && isMobileSafari()).then(() => setDownload(sourceID, false));
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }

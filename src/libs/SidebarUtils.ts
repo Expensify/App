@@ -312,6 +312,7 @@ function updateReportsToDisplayInLHN({
     for (const reportID of updatedReportsKeys) {
         const report = reports?.[reportID];
         if (!report?.reportID && report?.pendingFields?.reportID !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            delete displayedReportsCopy[reportID];
             continue;
         }
 
@@ -1013,6 +1014,7 @@ function getOptionData({
 
     result.icons = getIcons(
         report,
+        formatPhoneNumberPhoneUtils,
         personalDetails,
         personalDetail?.avatar,
         personalDetail?.login,
@@ -1056,10 +1058,11 @@ function getWelcomeMessage(
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         } else {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryPolicyExpenseChat', {
-                submitterDisplayName: getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
-                workspaceName: getPolicyName({report}),
-            });
+            welcomeMessage.messageHtml = translateLocal(
+                'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
+                getPolicyName({report}),
+                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}),
+            );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         }
         return welcomeMessage;
@@ -1087,7 +1090,7 @@ function getWelcomeMessage(
     const usersHtml = formatList(userTags);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    let messageHtml = translateLocal('reportActionsView.beginningOfChatHistory', {users: usersHtml});
+    let messageHtml = translateLocal('reportActionsView.beginningOfChatHistory', usersHtml);
 
     // Append additional text for plus button or Concierge
     if (shouldShowUsePlusButtonText) {
@@ -1121,7 +1124,7 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
 
     if (isReportArchived) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfArchivedRoom', {reportName, reportDetailsLink});
+        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfArchivedRoom', reportName, reportDetailsLink);
     } else if (isDomainRoom(report)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryDomainRoom', report?.reportName ?? '');
@@ -1140,14 +1143,11 @@ function getRoomWelcomeMessage(report: OnyxEntry<Report>, isReportArchived = fal
                   getPolicy(report?.invoiceReceiver?.policyID)?.name;
         const receiver = getPolicyName({report});
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoom', {
-            invoicePayer: payer ?? '',
-            invoiceReceiver: receiver,
-        });
+        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
     } else {
         // Message for user created rooms or other room types.
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryUserRoom', {reportName, reportDetailsLink});
+        welcomeMessage.messageHtml = translateLocal('reportActionsView.beginningOfChatHistoryUserRoom', reportName, reportDetailsLink);
     }
     welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
 

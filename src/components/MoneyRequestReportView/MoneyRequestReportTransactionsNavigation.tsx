@@ -7,12 +7,11 @@ import {WideRHPContext} from '@components/WideRHPContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
-import type {SearchReportParamList} from '@libs/Navigation/types';
+import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -106,7 +105,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
     useEffect(() => {
         return () => {
             const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-            if (focusedRoute?.name === SCREENS.SEARCH.REPORT_RHP || focusedRoute?.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW) {
+            if (focusedRoute?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT || focusedRoute?.name === SCREENS.TRANSACTION_DUPLICATE.REVIEW) {
                 return;
             }
             clearActiveTransactionIDs();
@@ -123,7 +122,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         let backTo = Navigation.getActiveRoute();
         if (isFromReviewDuplicates) {
             const currentRoute = navigationRef.getCurrentRoute();
-            const params = currentRoute?.params as SearchReportParamList[typeof SCREENS.SEARCH.REPORT_RHP] | undefined;
+            const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
             backTo = params?.backTo ?? backTo;
         }
         const nextThreadReportID = nextParentReportAction?.childReportID;
@@ -142,7 +141,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
-        requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(navigationParams), {forceReplace: true}));
+        requestAnimationFrame(() => Navigation.setParams(navigationParams));
     };
 
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -151,7 +150,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
         let backTo = Navigation.getActiveRoute();
         if (isFromReviewDuplicates) {
             const currentRoute = navigationRef.getCurrentRoute();
-            const params = currentRoute?.params as SearchReportParamList[typeof SCREENS.SEARCH.REPORT_RHP] | undefined;
+            const params = currentRoute?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined;
             backTo = params?.backTo ?? backTo;
         }
         const prevThreadReportID = prevParentReportAction?.childReportID;
@@ -170,7 +169,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
-        requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(navigationParams), {forceReplace: true}));
+        requestAnimationFrame(() => Navigation.setParams(navigationParams));
     };
 
     return (
