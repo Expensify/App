@@ -1,4 +1,3 @@
-import Log from '@libs/Log';
 import type GetActiveElement from './types';
 
 const getActiveElement: GetActiveElement = () => document.activeElement;
@@ -60,45 +59,9 @@ const getAutofilledInputStyle = (inputTextColor: string, cssSelector = '') => `
     }
 `;
 
-/**
- * Force Safari to recalculate textarea text line wrapping.
- *
- * Safari Bug: When textarea height decreases via CSS, Safari's text layout engine does not immediately
- * recalculate line wrapping. Words that should reflow to fewer lines remain on their original lines until
- * Safari's deferred layout pass runs (3-4 seconds later).
- *
- * This function temporarily clears and restores the textarea value, which forces Safari to rebuild the
- * text layout from scratch. It also preserves the cursor position and scroll state.
- */
-const forceSafariTextReflow = (element: HTMLInputElement) => {
-    try {
-        const currentValue = element.value;
-        const selectionStart = element.selectionStart;
-        const selectionEnd = element.selectionEnd;
-        const scrollTop = element.scrollTop;
-
-        // Force layout recalculation
-        // eslint-disable-next-line no-param-reassign
-        element.value = '';
-        // eslint-disable-next-line no-param-reassign
-        element.value = currentValue;
-
-        // Restore state
-        if (selectionStart !== null && selectionEnd !== null) {
-            element.setSelectionRange(selectionStart, selectionEnd);
-        }
-        // eslint-disable-next-line no-param-reassign
-        element.scrollTop = scrollTop;
-    } catch (error) {
-        // Fail silently - textarea will still work, just with delayed updates
-        Log.warn('[DomUtils] Safari text reflow fix failed:', {error});
-    }
-};
-
 export default {
     addCSS,
     getAutofilledInputStyle,
     getActiveElement,
     requestAnimationFrame: window.requestAnimationFrame.bind(window),
-    forceSafariTextReflow,
 };
