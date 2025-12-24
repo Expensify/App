@@ -1386,7 +1386,7 @@ function shouldShowViolation(
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
     const isReportOpen = isOpenExpenseReport(iouReport);
     const isOpenOrProcessingReport = isReportOpen || isProcessingReport(iouReport);
-    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? false;
+    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? true;
 
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
         return isSubmitter || isPolicyAdmin(policy);

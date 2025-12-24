@@ -37,7 +37,7 @@ function CategoryRequiredFieldsPage({
     const policyCategory = policyCategories?.[categoryName];
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const areAttendeesRequired = policyCategory?.areAttendeesRequired ?? false;
-    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? false;
+    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? true;
 
     return (
         <AccessOrNotFoundWrapper
