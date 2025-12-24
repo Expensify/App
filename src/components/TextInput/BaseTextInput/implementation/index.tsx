@@ -28,7 +28,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
-import DomUtils from '@libs/DomUtils';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
@@ -173,23 +172,6 @@ function BaseTextInput({
         isLabelActive.current = false;
     }, [animateLabel, forceActiveLabel, prefixCharacter, suffixCharacter, value]);
 
-    const handleTextInputHeightChange = useCallback(
-        (height: number) => {
-            setTextInputHeight(height);
-
-            // Safari-specific: Force text layout recalculation when height changes
-            if ((isSafari() || isMobileSafari()) && height !== textInputHeight) {
-                requestAnimationFrame(() => {
-                    if (!input.current) {
-                        return;
-                    }
-                    DomUtils.forceSafariTextReflow(input.current);
-                });
-            }
-        },
-        [textInputHeight],
-    );
-
     const onFocus = (event: FocusEvent) => {
         inputProps.onFocus?.(event);
         setIsFocused(true);
@@ -274,6 +256,27 @@ function BaseTextInput({
             hasValueRef.current = false;
         }
     };
+
+    /**
+     * Forces Safari to recalculate text layout when input height changes.
+     * Safari's Shadow DOM doesn't reflow text automatically when container height
+     * changes, causing text to remain stuck on the previous number of lines.
+     * https://github.com/Expensify/App/issues/76785
+     */
+    useEffect(() => {
+        if (!input.current || !(isSafari() || isMobileSafari()) || textInputHeight === 0) {
+            return;
+        }
+
+        const element = input.current;
+        const originalWhiteSpace = element.style.whiteSpace;
+
+        element.style.whiteSpace = 'nowrap';
+        // Force synchronous layout calculation
+        // eslint-disable-next-line no-void
+        void element.offsetHeight;
+        element.style.whiteSpace = originalWhiteSpace || '';
+    }, [textInputHeight]);
 
     const togglePasswordVisibility = useCallback(() => {
         setPasswordHidden((prevPasswordHidden: boolean | undefined) => !prevPasswordHidden);
@@ -559,7 +562,7 @@ function BaseTextInput({
                 autoGrow={autoGrow}
                 isAutoGrowHeightMarkdown={isAutoGrowHeightMarkdown}
                 onSetTextInputWidth={setTextInputWidth}
-                onSetTextInputHeight={handleTextInputHeightChange}
+                onSetTextInputHeight={setTextInputHeight}
                 isPrefixCharacterPaddingCalculated={isPrefixCharacterPaddingCalculated}
                 // Since the hidden input is absolutely positioned, container styles don't automatically apply.
                 // We pass the container styles directly to match the visible input's dimensions.
