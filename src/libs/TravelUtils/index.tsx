@@ -19,12 +19,12 @@ function isTravelLink(url: string): boolean {
         const {hostname, pathname} = new URL(url.toLowerCase());
 
         // Any travel subdomain (prod, staging, dev, etc.)
-        if (hostname.includes('travel.expensify.com')) {
+        if (hostname.endsWith('travel.expensify.com')) {
             return true;
         }
 
         // Trip pages hosted on any expensify domain
-        if (hostname.includes('expensify.com') && pathname.includes('/trips/')) {
+        if (hostname.endsWith('expensify.com') && pathname.includes('/trips/')) {
             return true;
         }
 
