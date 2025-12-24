@@ -246,7 +246,7 @@ type OriginalMessageCreated = {
     submittedTo?: number;
 };
 
-/** Model of `createdreportforunapprovedtransactions` report action */
+/** Model of `created report for unapproved transactions` report action */
 type OriginalMessageCreatedReportForUnapprovedTransactions = {
     /** The original report ID that the held expenses were moved from */
     originalID?: string;

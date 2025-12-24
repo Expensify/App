@@ -224,7 +224,7 @@ function isReportPreviewAction(reportAction: OnyxInputOrEntry<ReportAction>): re
 }
 
 /**
- * Builds an optimistic CREATEDREPORTFORUNAPPROVEDTRANSACTIONS system report action.
+ * Builds an optimistic CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS system report action.
  * Used to inform users that a new report was created for held/unapproved transactions.
  */
 function buildOptimisticCreatedReportForUnapprovedAction(reportID: string, originalReportID: string): ReportAction {
