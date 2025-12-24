@@ -1874,7 +1874,7 @@ describe('ReportActionsUtils', () => {
             const action = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
                 reportActionID: '1',
-                created: '2024-01-01',
+                created: '',
                 originalMessage: {
                     newAddress: {
                         addressStreet: '123 Main St',
@@ -1895,7 +1895,7 @@ describe('ReportActionsUtils', () => {
             const action = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
                 reportActionID: '1',
-                created: '2024-01-01',
+                created: '',
                 originalMessage: {
                     newAddress: {
                         addressStreet: '456 New Ave',
@@ -1921,7 +1921,7 @@ describe('ReportActionsUtils', () => {
             const action = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS,
                 reportActionID: '1',
-                created: '2024-01-01',
+                created: '',
                 originalMessage: {
                     newAddress: {
                         addressStreet: '123 Main St\nSuite 500',
