@@ -364,20 +364,6 @@ Onyx.connect({
     callback: (value) => (allReportDraftComments = value),
 });
 
-let allTransactions: OnyxCollection<Transaction> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allTransactions = {};
-            return;
-        }
-
-        allTransactions = value;
-    },
-});
-
 let environment: EnvironmentType;
 getEnvironment().then((env) => {
     environment = env;
@@ -1076,7 +1062,7 @@ function openReport(
         const submitterPersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(submitterEmail);
 
         const optimisticIOUAction = buildOptimisticIOUReportAction({
-            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            type: isSelfDM(parentReport) ? CONST.IOU.REPORT_ACTION_TYPE.TRACK : CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             amount: Math.abs(transaction.amount),
             currency: transaction.currency,
             comment: transaction.comment?.comment ?? '',
@@ -1409,8 +1395,7 @@ function createTransactionThreadReport(
     const selfDMReportID = isTrackExpense || isUnreportedTransaction ? findSelfDMReportID() : undefined;
 
     let reportToUse = iouReport;
-    // For track expenses without iouReport, get the selfDM report
-    if (isTrackExpense && selfDMReportID) {
+    if (selfDMReportID) {
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
     }
 
@@ -4930,7 +4915,7 @@ function clearDeleteTransactionNavigateBackUrl() {
 }
 
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
-function deleteAppReport(reportID: string | undefined, currentUserEmailParam: string) {
+function deleteAppReport(reportID: string | undefined, currentUserEmailParam: string, reportAllTransactions: Transaction[]) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
         return;
@@ -5042,7 +5027,7 @@ function deleteAppReport(reportID: string | undefined, currentUserEmailParam: st
 
         // 1. Update the transaction and its violations
         if (transactionID) {
-            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const transaction = reportAllTransactions.find((t) => t.transactionID === transactionID);
             const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
             optimisticData.push(
