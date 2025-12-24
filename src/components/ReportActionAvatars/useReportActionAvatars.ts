@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import RandomAvatarUtils from '@libs/RandomAvatarUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDelegateAccountIDFromReportAction, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
@@ -21,6 +21,7 @@ import {
     isTripRoom,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
+import {getDefaultAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
@@ -130,7 +131,7 @@ function useReportActionAvatars({
             type: CONST.ICON_TYPE_AVATAR,
             source: personalDetails?.[id]?.avatar ?? FallbackAvatar,
             name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
-            fallbackIcon: shouldUseCustomFallbackAvatar ? RandomAvatarUtils.getAvatarForContact(String(id)) : undefined,
+            fallbackIcon: shouldUseCustomFallbackAvatar ? getDefaultAvatar({accountID: id, accountEmail: addSMSDomainIfPhoneNumber(invitedEmail ?? '')}) : undefined,
         };
     });
 
@@ -223,7 +224,7 @@ function useReportActionAvatars({
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
     const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
-        getIcons(onyxReport, personalDetails, avatar ?? fallbackIcon ?? FallbackAvatar, defaultDisplayName, accountID, policy, invoiceReceiverPolicy);
+        getIcons(onyxReport, formatPhoneNumber, personalDetails, avatar ?? fallbackIcon ?? FallbackAvatar, defaultDisplayName, accountID, policy, invoiceReceiverPolicy);
 
     const reportIcons = getIconsWithDefaults(chatReport?.reportID ? chatReport : iouReport);
 
