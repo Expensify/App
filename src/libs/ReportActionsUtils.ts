@@ -2645,7 +2645,7 @@ function getWorkspaceTaxUpdateMessage(action: ReportAction): string {
 }
 
 function getCustomTaxNameUpdateMessage(action: ReportAction): string {
-    const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME>) ?? {};
+    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME>) ?? {};
 
     if (newName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2656,7 +2656,7 @@ function getCustomTaxNameUpdateMessage(action: ReportAction): string {
 }
 
 function getCurrencyDefaultTaxUpdateMessage(action: ReportAction): string {
-    const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX>) ?? {};
+    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX>) ?? {};
 
     if (newName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -2667,7 +2667,7 @@ function getCurrencyDefaultTaxUpdateMessage(action: ReportAction): string {
 }
 
 function getForeignCurrencyDefaultTaxUpdateMessage(action: ReportAction): string {
-    const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX>) ?? {};
+    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX>) ?? {};
 
     if (newName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
