@@ -38,6 +38,7 @@ import {
     getReportOrDraftReport,
     getReportTransactions,
     isCurrentUserSubmitter,
+    isInvoiceReport,
     isOpenExpenseReport,
     isProcessingReport,
     isReportApproved,
@@ -1185,6 +1186,11 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
 
     // Don't consider partial transactions (empty merchant and zero amount) as analyzing
     if (isMerchantMissing(transaction) && transaction.amount === 0) {
+        return false;
+    }
+
+    // Invoice expense is not auto-categorized
+    if (isInvoiceReport(transaction.reportID)) {
         return false;
     }
 
