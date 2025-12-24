@@ -139,6 +139,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -1482,6 +1483,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: '拆分日期',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} 至 ${endDate}（${count} 天）`,
         splitByDate: '按日期拆分',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `报告因自定义审批工作流而转发至 ${to}`,
     },
     transactionMerge: {
         listPage: {
@@ -1602,11 +1604,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `正在等待<strong>你</strong>解决问题。`;
+                        return `正在等待<strong>你</strong>解决这些问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `正在等待 <strong>${actor}</strong> 解决问题。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `正在等待管理员修复问题。`;
+                        return `正在等待管理员修复这些问题。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2260,7 +2262,23 @@ ${amount}，商户：${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '无法更改审批人。请重试或联系支持。',
-        header: '发送给该成员以供审批：',
+        title: '发送给该成员以供审批：',
+        description: '此人将审批费用。',
+    },
+    workflowsApprovalLimitPage: {
+        title: '审批人',
+        header: '（可选）是否添加审批限额？',
+        description: ({approverName}: {approverName: string}) =>
+            approverName ? `当<strong>${approverName}</strong>为审批人且报告超过以下金额时，添加另一位审批人：` : '当报告超过以下金额时，添加另一位审批人：',
+        reportAmountLabel: '报告金额',
+        additionalApproverLabel: '额外审批人',
+        skip: '跳过',
+        next: '下一步',
+        removeLimit: '移除限额',
+        enterAmountError: '请输入有效金额',
+        enterApproverError: '设置报告限额时需要审批人',
+        enterBothError: '请输入报告金额和额外审批人',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `超过${approvalLimit}的报告将转发给${approverName}`,
     },
     workflowsPayerPage: {
         title: '授权付款人',
@@ -7764,7 +7782,17 @@ ${reportName}
         addDomain: {title: '添加域', subtitle: '请输入您想访问的私有域名（例如：expensify.com）。', domainName: '域名', newDomain: '新域名'},
         domainAdded: {title: '已添加域名', description: '接下来，您需要验证域名的所有权并调整您的安全设置。', configure: '配置'},
         enhancedSecurity: {title: '增强的安全性', subtitle: '要求您域内的成员使用单点登录登录、限制工作区创建等。', enable: '启用'},
-        admins: {title: '管理员', findAdmin: '查找管理员', primaryContact: '主要联系人', addPrimaryContact: '添加主要联系人', settings: '设置'},
+        admins: {
+            title: '管理员',
+            findAdmin: '查找管理员',
+            primaryContact: '主要联系人',
+            addPrimaryContact: '添加主要联系人',
+            settings: '设置',
+            consolidatedDomainBilling: '合并域名结算',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>启用后，主要联系人将为<strong>${domainName}</strong>成员拥有的所有工作区付款，并接收所有账单收据。</muted-text-label></comment>`,
+            consolidatedDomainBillingError: '无法更改合并域账单。请稍后重试。',
+        },
     },
     desktopAppRetiredPage: {title: '桌面应用程序已停用', body: '新的 Expensify Mac 桌面应用已停用。今后，请使用网页版应用访问您的账户。', goToWeb: '前往网页'},
 };
