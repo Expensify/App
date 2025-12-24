@@ -39,6 +39,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     navigateToStartMoneyRequestStep,
+    shouldRequireMerchant,
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
@@ -424,6 +425,13 @@ function IOURequestStepConfirmation({
             return;
         }
 
+        const isMerchantRequired = shouldRequireMerchant(transaction, report, undefined, false);
+
+        if (isMerchantRequired) {
+            Navigation.goBack();
+            return;
+        }
+
         if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
@@ -433,11 +441,6 @@ function IOURequestStepConfirmation({
                 });
                 return;
             }
-
-            // If the participant was auto-assigned, we need to keep the reportID that is already on the stack.
-            // This will allow the user to edit the participant field after going back and forward.
-            Navigation.goBack();
-            return;
         }
 
         // If the user came from Test Drive modal, we need to take him back there
@@ -448,23 +451,7 @@ function IOURequestStepConfirmation({
 
         // This has selected the participants from the beginning and the participant field shouldn't be editable.
         navigateToStartMoneyRequestStep(requestType, iouType, initialTransactionID, reportID, action);
-    }, [
-        action,
-        isPerDiemRequest,
-        transaction?.isFromGlobalCreate,
-        transaction?.receipt?.isTestReceipt,
-        transaction?.receipt?.isTestDriveReceipt,
-        transaction?.participants,
-        transaction?.participantsAutoAssigned,
-        transaction?.reportID,
-        requestType,
-        iouType,
-        initialTransactionID,
-        reportID,
-        isMovingTransactionFromTrackExpense,
-        participantsAutoAssignedFromRoute,
-        backTo,
-    ]);
+    }, [backTo, action, isPerDiemRequest, transaction, report, requestType, iouType, initialTransactionID, reportID, isMovingTransactionFromTrackExpense, participantsAutoAssignedFromRoute]);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
     // This is because until the request is saved, the receipt file is only stored in the browsers memory as a blob:// and if the browser is refreshed, then

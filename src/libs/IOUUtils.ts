@@ -328,7 +328,12 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
  * @param isEditingSplitBill - Whether this is editing a split bill
  * @returns true if merchant is required and missing, false otherwise
  */
-function shouldRequireMerchant(transaction: OnyxInputOrEntry<Transaction> | undefined, report: OnyxInputOrEntry<Report> | undefined, isEditingSplitBill = false): boolean {
+function shouldRequireMerchant(
+    transaction: OnyxInputOrEntry<Transaction> | undefined,
+    report: OnyxInputOrEntry<Report> | undefined,
+    isEditingSplitBill = false,
+    shouldCheckMerchantMissing = true,
+): boolean {
     if (!transaction) {
         return false;
     }
@@ -341,7 +346,7 @@ function shouldRequireMerchant(transaction: OnyxInputOrEntry<Transaction> | unde
         return false;
     }
 
-    return isMerchantRequired && isMerchantMissing(transaction);
+    return isMerchantRequired && (isMerchantMissing(transaction) || !shouldCheckMerchantMissing);
 }
 
 export {
