@@ -348,6 +348,10 @@ const ROUTES = {
         route: 'settings/wallet/:bankAccountID/enable-global-reimbursements',
         getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/enable-global-reimbursements` as const,
     },
+    SETTINGS_WALLET_SHARE_BANK_ACCOUNT: {
+        route: 'settings/wallet/:bankAccountID/share-bank-account',
+        getRoute: (bankAccountID: number | undefined) => `settings/wallet/${bankAccountID}/share-bank-account` as const,
+    },
     SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS: {
         route: 'settings/wallet/card/:domain/digital-details/update-address',
         getRoute: (domain: string) => `settings/wallet/card/${domain}/digital-details/update-address` as const,
@@ -2236,10 +2240,10 @@ const ROUTES = {
             `workspaces/${policyID}/company-cards/${encodeURIComponent(feed)}/${encodeURIComponent(cardID)}/edit/name` as const,
     },
     WORKSPACE_COMPANY_CARD_EXPORT: {
-        route: 'workspaces/:policyID/company-cards/:bank/:cardID/edit/export',
-        getRoute: (policyID: string, cardID: string, bank: string, backTo?: string) =>
+        route: 'workspaces/:policyID/company-cards/:feed/:cardID/edit/export',
+        getRoute: (policyID: string, cardID: string, feed: CompanyCardFeedWithDomainID, backTo?: string) =>
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/export`, backTo, false),
+            getUrlWithBackToParam(`workspaces/${policyID}/company-cards/${feed}/${cardID}/edit/export`, backTo, false),
     },
     WORKSPACE_EXPENSIFY_CARD: {
         route: 'workspaces/:policyID/expensify-card',
@@ -3534,6 +3538,10 @@ const ROUTES = {
     DOMAIN_ADD_PRIMARY_CONTACT: {
         route: 'domain/:domainAccountID/admins/settings/primary-contact',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/settings/primary-contact` as const,
+    },
+    DOMAIN_ADD_ADMIN: {
+        route: 'domain/:domainAccountID/admins/invite',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/invite` as const,
     },
 } as const;
 

@@ -191,6 +191,7 @@ function SearchAutocompleteList({
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -213,8 +214,9 @@ function SearchAutocompleteList({
             countryCode,
             shouldShowGBR: false,
             shouldUnreadBeBold: true,
+            loginList,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, loginList]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -421,6 +423,7 @@ function SearchAutocompleteList({
                     includeRecentReports: false,
                     includeCurrentUser: true,
                     countryCode,
+                    loginList,
                     shouldShowGBR: true,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
@@ -432,6 +435,12 @@ function SearchAutocompleteList({
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
+                // If autocompleteValue is empty or just whitespace and we have already completed keys,
+                // return empty array to hide suggestion list (consistent with group-by behavior)
+                if (!autocompleteValue.trim() && alreadyAutocompletedKeys.size > 0) {
+                    return [];
+                }
+
                 const filteredReports = getSearchOptions({
                     options,
                     draftComments,
@@ -445,8 +454,14 @@ function SearchAutocompleteList({
                     includeRecentReports: true,
                     includeCurrentUser: false,
                     countryCode,
+                    loginList,
                     shouldShowGBR: true,
-                }).recentReports;
+                }).recentReports.filter((chat) => {
+                    if (!chat.text) {
+                        return false;
+                    }
+                    return !alreadyAutocompletedKeys.has(chat.text.toLowerCase());
+                });
 
                 return filteredReports.map((chat) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
@@ -609,6 +624,7 @@ function SearchAutocompleteList({
         nvpDismissedProductTraining,
         betas,
         countryCode,
+        loginList,
         currentUserLogin,
         groupByAutocompleteList,
         statusAutocompleteList,
