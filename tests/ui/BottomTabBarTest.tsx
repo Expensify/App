@@ -1,10 +1,10 @@
+import type * as ReactNavigationNative from '@react-navigation/native';
 import {NavigationContainer} from '@react-navigation/native';
 import {cleanup, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import DebugTabView from '@components/Navigation/DebugTabView';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -13,6 +13,11 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
+    useNavigationState: () => undefined,
+}));
 
 jest.mock('@src/hooks/useRootNavigationState', () => {
     return jest.fn(() => ({
@@ -96,7 +101,7 @@ describe('NavigationTabBar', () => {
 
                     renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
             describe('Has RBR', () => {
@@ -116,7 +121,7 @@ describe('NavigationTabBar', () => {
 
                     renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
         });
@@ -143,7 +148,7 @@ describe('NavigationTabBar', () => {
 
                     renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
             describe('Has RBR', () => {
@@ -162,7 +167,7 @@ describe('NavigationTabBar', () => {
 
                     renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
         });

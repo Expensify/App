@@ -70,7 +70,7 @@ function useSelectedTransactionsActions({
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit', 'ThumbsDown'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'Trashcan', 'ArrowRight', 'Table', 'DocumentMerge', 'Export', 'ArrowCollapse', 'ArrowSplit', 'ThumbsDown']);
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(selectedTransactionIDs);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const {deleteTransactions} = useDeleteTransactions({report, reportActions, policy});
@@ -130,6 +130,7 @@ function useSelectedTransactionsActions({
 
     const {translate} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    // eslint-disable-next-line  @typescript-eslint/no-deprecated
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
 
@@ -247,9 +248,13 @@ function useSelectedTransactionsActions({
                             onExportOffline?.();
                             return;
                         }
-                        exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
-                            onExportFailed?.();
-                        });
+                        exportReportToCSV(
+                            {reportID: report.reportID, transactionIDList: selectedTransactionIDs},
+                            () => {
+                                onExportFailed?.();
+                            },
+                            translate,
+                        );
                         clearSelectedTransactions(true);
                     },
                 },
