@@ -55,6 +55,9 @@ function AttachmentModalBaseContent({
     shouldDisableSendButton = false,
     shouldDisplayHelpButton = false,
     shouldMinimizeMenuButton = true,
+    shouldShowRotateButton = false,
+    onRotateButtonPress,
+    isRotating = false,
     submitRef,
     onDownloadAttachment,
     onClose,
@@ -295,6 +298,9 @@ function AttachmentModalBaseContent({
                 title={headerTitle ?? translate('common.attachment')}
                 shouldShowBorderBottom
                 shouldShowDownloadButton={shouldShowDownloadButton}
+                shouldShowRotateButton={shouldShowRotateButton}
+                onRotateButtonPress={onRotateButtonPress}
+                isRotating={isRotating}
                 shouldDisplayHelpButton={shouldDisplayHelpButton}
                 onDownloadButtonPress={() => onDownloadAttachment?.({file: fileToDisplay, source})}
                 shouldShowCloseButton={!shouldUseNarrowLayout}

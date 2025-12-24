@@ -150,6 +150,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             <HeaderWithBackButton
                 progressBarPercentage={10}
                 shouldShowBackButton={false}
+                shouldDisplayHelpButton={false}
             />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
