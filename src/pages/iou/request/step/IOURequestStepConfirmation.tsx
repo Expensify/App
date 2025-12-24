@@ -700,6 +700,7 @@ function IOURequestStepConfirmation({
             recentlyUsedDestinations,
             isASAPSubmitBetaEnabled,
             hasViolations,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
