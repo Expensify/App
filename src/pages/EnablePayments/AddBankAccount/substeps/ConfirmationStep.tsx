@@ -38,6 +38,7 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
         <ScrollView
             style={styles.pt0}
             contentContainerStyle={styles.flexGrow1}
+            addBottomSafeAreaPadding={!isOffline}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('walletPage.confirmYourBankAccount')}</Text>
             <Text style={[styles.mt3, styles.mb3, styles.ph5, styles.textSupporting]}>{translate('bankAccount.letsDoubleCheck')}</Text>
@@ -68,7 +69,5 @@ function ConfirmationStep({onNext, onMove}: ConfirmationStepProps) {
         </ScrollView>
     );
 }
-
-ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default ConfirmationStep;

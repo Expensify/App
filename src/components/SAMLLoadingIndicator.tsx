@@ -46,6 +46,4 @@ function SAMLLoadingIndicator() {
     );
 }
 
-SAMLLoadingIndicator.displayName = 'SAMLLoadingIndicator';
-
 export default SAMLLoadingIndicator;

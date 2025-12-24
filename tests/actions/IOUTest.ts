@@ -517,6 +517,7 @@ describe('actions/IOU', () => {
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -610,6 +611,7 @@ describe('actions/IOU', () => {
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -688,6 +690,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -735,6 +738,7 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -808,6 +812,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -855,6 +860,7 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1958,6 +1964,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
 
             mockFetch?.resume?.();
@@ -2018,6 +2025,7 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -6467,6 +6475,60 @@ describe('actions/IOU', () => {
                 });
             });
         });
+
+        it('should remove all existing category violations when the transaction Category is unset', async () => {
+            const transactionID = '1';
+            const policyID = '2';
+            const transactionThreadReportID = '3';
+            const category = '';
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                requiresCategory: true,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                amount: 100,
+                transactionID,
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [
+                {
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+                    data: {},
+                    showInReview: true,
+                },
+            ]);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID});
+
+            // When updating a money request category
+            updateMoneyRequestCategory({
+                transactionID,
+                transactionThreadReportID,
+                category,
+                policy: fakePolicy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                policyRecentlyUsedCategories: [],
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'existing@example.com',
+                isASAPSubmitBetaEnabled: false,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Any existing category violations will be removed, leaving only the MISSING_CATEGORY violation in the end
+            await new Promise<void>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                    callback: (transactionViolations) => {
+                        Onyx.disconnect(connection);
+                        expect(transactionViolations).toHaveLength(1);
+                        expect(transactionViolations?.at(0)?.name).toEqual(CONST.VIOLATIONS.MISSING_CATEGORY);
+                        resolve();
+                    },
+                });
+            });
+        });
     });
 
     describe('setDraftSplitTransaction', () => {
@@ -6683,6 +6745,7 @@ describe('actions/IOU', () => {
                 },
                 accountantParams: action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}} : undefined,
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -8297,6 +8360,7 @@ describe('actions/IOU', () => {
                     reimbursable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -10884,6 +10948,7 @@ describe('actions/IOU', () => {
                 mockOptimisticChatReportID,
                 mockOptimisticIOUReportID,
                 mockIsASAPSubmitBetaEnabled,
+                undefined,
                 mockPolicy,
                 fakePolicyCategories,
                 policyExpenseChat,

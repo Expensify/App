@@ -164,6 +164,4 @@ function DatePicker({
     );
 }
 
-DatePicker.displayName = 'DatePicker';
-
 export default DatePicker;

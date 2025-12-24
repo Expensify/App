@@ -378,20 +378,21 @@ function PaymentMethodList({
         isLoadingBankAccountList,
         bankAccountList,
         styles,
+        translate,
         isOffline,
         filterType,
         filterCurrency,
         isLoadingCardList,
         cardList,
         illustrations,
-        translate,
-        getCardBrickRoadIndicator,
+        companyCardFeedIcons,
         onPress,
+        getCardBrickRoadIndicator,
         shouldShowRightIcon,
         itemIconRight,
+        expensifyIcons.ThreeDots,
         activePaymentMethodID,
         actionPaymentMethodType,
-        expensifyIcons.ThreeDots,
         onThreeDotsMenuPress,
     ]);
 
@@ -492,7 +493,5 @@ function PaymentMethodList({
         </View>
     );
 }
-
-PaymentMethodList.displayName = 'PaymentMethodList';
 
 export default PaymentMethodList;

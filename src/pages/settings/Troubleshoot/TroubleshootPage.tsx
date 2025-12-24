@@ -167,7 +167,7 @@ function TroubleshootPage() {
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={TroubleshootPage.displayName}
+            testID="TroubleshootPage"
         >
             <HeaderWithBackButton
                 title={translate('initialSettingsPage.aboutPage.troubleshoot')}
@@ -198,7 +198,7 @@ function TroubleshootPage() {
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>
-                                <RecordTroubleshootDataToolMenu />
+                                {!isProduction && <RecordTroubleshootDataToolMenu />}
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                     <Switch
                                         accessibilityLabel={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}
@@ -244,7 +244,5 @@ function TroubleshootPage() {
         </ScreenWrapper>
     );
 }
-
-TroubleshootPage.displayName = 'TroubleshootPage';
 
 export default TroubleshootPage;

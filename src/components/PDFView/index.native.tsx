@@ -196,6 +196,4 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     );
 }
 
-PDFView.displayName = 'PDFView';
-
 export default PDFView;
