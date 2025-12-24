@@ -61,7 +61,7 @@ type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typ
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
 
@@ -278,6 +278,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             const date = DateUtils.formatWithUTCTimeZone(
                 item.created,
                 DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+                preferredLocale,
             );
             previewHeaderText.unshift({text: date}, dotSeparator);
 
@@ -325,6 +326,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         translate,
         getTranslatedText,
         onSplitExpenseValueChange,
+        preferredLocale,
     ]);
 
     const isInitialSplit = useMemo(() => childTransactions.length === 0, [childTransactions.length]);

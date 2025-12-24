@@ -9,6 +9,7 @@ import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {getWaypointIndex, hasReceipt, isFetchingWaypointsFromServer} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -29,10 +30,15 @@ type DistanceEReceiptProps = {
 
 function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     const thumbnail = hasReceipt(transaction) ? getThumbnailAndImageURIs(transaction).thumbnail : null;
-    const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = getTransactionDetails(transaction) ?? {};
+    const {
+        amount: transactionAmount,
+        currency: transactionCurrency,
+        merchant: transactionMerchant,
+        created: transactionDate,
+    } = getTransactionDetails(transaction, CONST.DATE.FNS_FORMAT_STRING, undefined, undefined, undefined, undefined, preferredLocale) ?? {};
     const formattedTransactionAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
     const waypoints = useMemo(() => transaction?.comment?.waypoints ?? {}, [transaction?.comment?.waypoints]);

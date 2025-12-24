@@ -1,5 +1,5 @@
 import {format, subDays} from 'date-fns';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
@@ -13,20 +13,23 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
-import CONST from '@src/CONST';
+import CONST, {DATE_TIME_FORMAT_OPTIONS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function TransactionStartDateStep() {
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
 
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const isEditing = assignCard?.isEditing;
     const cardToAssign = assignCard?.cardToAssign;
+    const formatter = useMemo(() => {
+        return new Intl.DateTimeFormat(preferredLocale, DATE_TIME_FORMAT_OPTIONS[CONST.DATE.FNS_FORMAT_STRING]);
+    }, [preferredLocale]);
 
     const [dateOptionSelected, setDateOptionSelected] = useState(cardToAssign?.dateOption ?? CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM);
     const [errorText, setErrorText] = useState('');
-    const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+    const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? cardToAssign?.startDate ?? formatter.format());
 
     const handleBackButtonPress = () => {
         if (isEditing) {
@@ -43,7 +46,7 @@ function TransactionStartDateStep() {
         if (dateOption === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING) {
             return;
         }
-        setStartDate(format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
+        setStartDate(formatter.format());
     };
 
     const submit = () => {
