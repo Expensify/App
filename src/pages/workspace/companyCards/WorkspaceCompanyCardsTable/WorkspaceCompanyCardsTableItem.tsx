@@ -111,7 +111,7 @@ function WorkspaceCompanyCardTableItem({
     const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? formatPhoneNumber(cardholder?.login ?? '') : undefined;
     const narrowWidthCardName = isAssigned ? `${customCardName ?? ''}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : cardName;
 
-    const leftColumnTitle = isAssigned ? (cardholder?.displayName ? formatPhoneNumber(cardholder.displayName) : '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
+    const leftColumnTitle = isAssigned ? formatPhoneNumber(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const leftColumnSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
 
     const resetFailedCompanyCardAssignment = () => {

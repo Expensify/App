@@ -29,13 +29,12 @@ function UserInfoAndActionButtonRow({
 }) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {translate} = useLocalize();
     const transactionItem = item as unknown as TransactionListItemType;
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
     const hasFromSender = !!item?.from && !!item?.from?.accountID && !!item?.from?.displayName;
     const hasToRecipient = !!item?.to && !!item?.to?.accountID && !!item?.to?.displayName;
-    const participantFromDisplayName = item.formattedFrom ?? '';
-    const participantToDisplayName = item.formattedTo ?? '';
+    const participantFromDisplayName = item.formattedFrom ?? item?.from?.displayName ?? '';
+    const participantToDisplayName = item.formattedTo ?? item?.to?.displayName ?? '';
     const shouldShowToRecipient = hasFromSender && hasToRecipient && !!item?.to?.accountID && !!isCorrectSearchUserName(participantToDisplayName);
     return (
         <View
