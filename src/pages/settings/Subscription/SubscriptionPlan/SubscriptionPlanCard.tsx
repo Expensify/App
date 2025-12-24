@@ -87,15 +87,15 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
         !isFromComparisonModal &&
         ((subscriptionPlan === CONST.POLICY.TYPE.TEAM && !hasTeam2025Pricing) || subscriptionPlan !== CONST.POLICY.TYPE.TEAM);
 
-    let subscriptionPlanCardActionButtonWrapStyles;
-
-    if (shouldHideSubscriptionSettingsButton) {
-        subscriptionPlanCardActionButtonWrapStyles = shouldUseNarrowLayout ? [] : styles.pb2;
-    } else if (shouldUseNarrowLayout) {
-        subscriptionPlanCardActionButtonWrapStyles = styles.pb5;
-    } else {
-        subscriptionPlanCardActionButtonWrapStyles = styles.pb8;
-    }
+    const subscriptionPlanCardActionButtonWrapStyles = (() => {
+        if (shouldHideSubscriptionSettingsButton) {
+            return shouldUseNarrowLayout ? [] : styles.pb2;
+        } else if (shouldUseNarrowLayout) {
+            return styles.pb5;
+        } else {
+            return styles.pb8;
+        }
+    })();
 
     return (
         <View style={[styles.borderedContentCard, styles.borderRadiusComponentLarge, styles.mt5, styles.flex1, isSelected && styles.borderColorFocus, styles.justifyContentBetween]}>
