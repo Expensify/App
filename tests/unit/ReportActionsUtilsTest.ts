@@ -1887,7 +1887,7 @@ describe('ReportActionsUtils', () => {
                 },
             } as ReportAction;
 
-            const result = ReportActionsUtils.getCompanyAddressUpdateMessage(action);
+            const result = getCompanyAddressUpdateMessage(action);
             expect(result).toBe('set the company address to "123 Main St, San Francisco, CA 94102"');
         });
 
@@ -1914,7 +1914,7 @@ describe('ReportActionsUtils', () => {
                 },
             } as ReportAction;
 
-            const result = ReportActionsUtils.getCompanyAddressUpdateMessage(action);
+            const result = getCompanyAddressUpdateMessage(action);
             expect(result).toBe('changed the company address to "456 New Ave, Los Angeles, CA 90001" (previously "123 Old St, San Francisco, CA 94102")');
         });
         it('should handle address with street2 (newline separated)', () => {
@@ -1934,7 +1934,7 @@ describe('ReportActionsUtils', () => {
                 },
             } as ReportAction;
 
-            const result = ReportActionsUtils.getCompanyAddressUpdateMessage(action);
+            const result = getCompanyAddressUpdateMessage(action);
 
             // The new line should be replaced with a comma
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
