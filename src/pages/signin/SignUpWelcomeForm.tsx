@@ -51,6 +51,5 @@ function SignUpWelcomeForm() {
         </>
     );
 }
-SignUpWelcomeForm.displayName = 'SignUpWelcomeForm';
 
 export default SignUpWelcomeForm;

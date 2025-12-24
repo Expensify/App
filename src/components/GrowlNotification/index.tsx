@@ -32,7 +32,7 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
     const [duration, setDuration] = useState<number>();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Exclamation', 'Checkmark']);
 
     type GrowlIconTypes = Record<
         /** String representing the growl type, all type strings
@@ -148,7 +148,5 @@ function GrowlNotification({ref}: GrowlNotificationProps) {
         </View>
     );
 }
-
-GrowlNotification.displayName = 'GrowlNotification';
 
 export default GrowlNotification;
