@@ -38,6 +38,7 @@ import {
     getReportOrDraftReport,
     getReportTransactions,
     isCurrentUserSubmitter,
+    isInvoiceReport,
     isOpenExpenseReport,
     isProcessingReport,
     isReportApproved,
@@ -1174,6 +1175,11 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
  */
 function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
     if (!transaction) {
+        return false;
+    }
+
+    // Invoice expense is not auto-categorized
+    if (isInvoiceReport(transaction.reportID)) {
         return false;
     }
 
