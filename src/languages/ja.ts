@@ -3011,6 +3011,7 @@ ${
         whenClearStatus: 'ステータスをいつクリアしますか？',
         vacationDelegate: '休暇代理人',
         setVacationDelegate: `休暇中に代理承認者を設定して、不在の間にあなたの代わりにレポートを承認してもらいましょう。`,
+        cannotSetVacationDelegate: `現在、次のメンバーの代理人になっているため、休暇代理人を設定できません：`,
         vacationDelegateError: '休暇代理人の更新中にエラーが発生しました。',
         asVacationDelegate: ({nameOrEmail}: VacationDelegateParams) => `${nameOrEmail} の休暇代理として`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `${vacationDelegateName} の休暇代理人として ${submittedToName} に`,

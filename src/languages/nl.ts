@@ -3015,6 +3015,7 @@ ${
         whenClearStatus: 'Wanneer moeten we je status wissen?',
         vacationDelegate: 'Vakantie-gemachtigde',
         setVacationDelegate: `Stel een vervangende goedkeurder in om rapporten namens jou te accorderen terwijl je afwezig bent.`,
+        cannotSetVacationDelegate: `Je kunt geen vakantiedelegaat instellen omdat je momenteel de delegaat bent voor de volgende leden:`,
         vacationDelegateError: 'Er is een fout opgetreden bij het bijwerken van je vervanger tijdens vakantie.',
         asVacationDelegate: ({nameOrEmail}: VacationDelegateParams) => `als ${nameOrEmail}'s plaatsvervanger tijdens vakantie`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `aan ${submittedToName} als vakantiemachtiging voor ${vacationDelegateName}`,

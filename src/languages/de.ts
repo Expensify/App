@@ -3030,6 +3030,7 @@ ${
         whenClearStatus: 'Wann sollen wir deinen Status löschen?',
         vacationDelegate: 'Urlaubsvertreter',
         setVacationDelegate: `Legen Sie eine Urlaubsvertretung fest, die Berichte in Ihrer Abwesenheit in Ihrem Namen genehmigt.`,
+        cannotSetVacationDelegate: `Du kannst keinen Urlaubsvertreter festlegen, da du derzeit der Vertreter für die folgenden Mitglieder bist:`,
         vacationDelegateError: 'Beim Aktualisieren deines Urlaubsvertreters ist ein Fehler aufgetreten.',
         asVacationDelegate: ({nameOrEmail}: VacationDelegateParams) => `als Urlaubsvertretung von ${nameOrEmail}`,
         toAsVacationDelegate: ({submittedToName, vacationDelegateName}: SubmittedToVacationDelegateParams) => `an ${submittedToName} als Urlaubsvertreter für ${vacationDelegateName}`,
