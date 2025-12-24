@@ -5109,6 +5109,12 @@ const staticStyles = (theme: ThemeColors) =>
             height: 170,
         },
 
+        successBankSharedCardIllustration: {
+            width: 164,
+            height: 164,
+            marginBottom: 12,
+        },
+
         emptyStateMoneyRequestReport: {
             maxHeight: 85,
             minHeight: 85,
@@ -5465,6 +5471,7 @@ const staticStyles = (theme: ThemeColors) =>
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
+            flex: 1,
         },
 
         receiptCellLoadingContainer: {
