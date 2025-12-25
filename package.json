@@ -336,7 +336,7 @@
     "jest-circus": "29.7.0",
     "jest-cli": "29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "jest-expo": "54.0.12",
+    "jest-expo": "54.0.16",
     "jest-transformer-svg": "^2.0.1",
     "jest-when": "^3.5.2",
     "link": "^2.1.1",
