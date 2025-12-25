@@ -354,6 +354,7 @@ function IOURequestStepDistanceMap({
                             attendees: transaction?.comment?.attendees,
                         },
                         isASAPSubmitBetaEnabled,
+                        quickAction,
                     });
                     return;
                 }
