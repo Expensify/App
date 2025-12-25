@@ -128,6 +128,9 @@ type OptionRowLHNDataProps = {
     /** Function to compare locale strings */
     localeCompare: LocaleContextProps['localeCompare'];
 
+    /** Function to translate locale strings */
+    translate: LocaleContextProps['translate'];
+
     /** TestID of the row, indicating order */
     testID: number;
 
