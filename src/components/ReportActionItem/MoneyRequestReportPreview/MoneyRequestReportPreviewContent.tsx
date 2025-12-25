@@ -442,7 +442,7 @@ function MoneyRequestReportPreviewContent({
         return {itemVisiblePercentThreshold: 100};
     }, []);
     const numberOfScrollToIndexFailed = useRef(0);
-    const onScrollToIndexFailed: (info: {index: number; highestMeasuredFrameIndex: number; averageItemLength: number}) => void = useCallback(({index}) => {
+    const onScrollToIndexFailed: (info: {index: number; highestMeasuredFrameIndex: number; averageItemLength: number}) => void = ({index}) => {
         // There is a probability of infinite loop so we want to make sure that it is not called more than 5 times.
         if (numberOfScrollToIndexFailed.current > 4) {
             return;
@@ -453,7 +453,7 @@ function MoneyRequestReportPreviewContent({
             carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2 * styles.gap2.gap});
         }, 100);
         numberOfScrollToIndexFailed.current++;
-    }, []);
+    };
 
     useEffect(() => {
         const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.includes(transaction.transactionID));
@@ -466,8 +466,7 @@ function MoneyRequestReportPreviewContent({
             carouselRef.current?.scrollToIndex({index, viewOffset: 2 * styles.gap2.gap, animated: true});
         }, CONST.ANIMATED_TRANSITION);
 
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [newTransactionIDs]);
 
     // eslint-disable-next-line react-compiler/react-compiler
