@@ -198,7 +198,6 @@ function parsePart(definition: string): FormulaPart {
     return part;
 }
 
-
 /**
  * Check if the report field formula value is containing circular references, e.g example:  A -> A,  A->B->A,  A->B->C->A, etc
  */
