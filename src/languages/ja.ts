@@ -139,6 +139,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -166,6 +167,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -342,6 +344,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: '名',
         lastName: '姓',
         scanning: 'スキャン中',
+        analyzing: '分析中...',
         addCardTermsOfService: 'Expensify 利用規約',
         perPerson: '1人あたり',
         phone: '電話番号',
@@ -1508,6 +1511,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDates: '日付を分割',
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} から ${endDate} まで（${count} 日間）`,
         splitByDate: '日付で分割',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `カスタム承認ワークフローにより、${to} 宛にルーティングされたレポート`,
     },
     transactionMerge: {
         listPage: {
@@ -1628,7 +1632,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `問題を解決するのを<strong>あなた</strong>が行うのを待っています。`;
+                        return `問題を修正するのを<strong>あなた</strong>が行うのを待機中です。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `<strong>${actor}</strong> が問題を修正するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -2144,6 +2148,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: '銀行口座を確認',
         personalBankAccounts: '個人銀行口座',
         businessBankAccounts: 'ビジネス銀行口座',
+        shareBankAccount: '銀行口座を共有',
+        bankAccountShared: '銀行口座を共有しました',
+        shareBankAccountTitle: 'この銀行口座を共有する管理者を選択してください',
+        shareBankAccountSuccess: '銀行口座を共有しました！',
+        shareBankAccountSuccessDescription: '選択した管理者にはコンシェルジュから確認メッセージが届きます',
+        shareBankAccountFailure: '銀行口座の共有中に予期しないエラーが発生しました。もう一度お試しください。',
+        shareBankAccountEmptyTitle: '管理者がいません',
+        shareBankAccountEmptyDescription: 'この銀行口座を共有できるワークスペース管理者がいません',
+        shareBankAccountNoAdminsSelected: '続行する前に管理者を選択してください',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2845,6 +2858,7 @@ ${
             containsReservedWord: '名前に「Expensify」または「Concierge」という単語を含めることはできません',
             hasInvalidCharacter: '名前にコンマまたはセミコロンを含めることはできません',
             requiredFirstName: '名は空欄にできません',
+            cannotContainSpecialCharacters: '名前に特殊文字を含めることはできません',
         },
     },
     privatePersonalDetails: {
@@ -3851,7 +3865,6 @@ ${
                 monthly: '毎月',
             },
             planType: 'プランの種類',
-            submitExpense: '経費を以下から提出してください。',
             defaultCategory: 'デフォルトのカテゴリ',
             viewTransactions: '取引を表示',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName} の経費`,
@@ -4820,6 +4833,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 'Expensify Limited は、Plaid Financial Ltd. の代理人であり、Payment Services Regulations 2017 に基づき Financial Conduct Authority によって規制されている認可支払機関です（企業登録番号：804718）。Plaid は、その代理人である Expensify Limited を通じて、規制対象の口座情報サービスをお客様に提供します。',
             assign: '割り当て',
             assignCardFailedError: 'カードの割り当てに失敗しました。',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードの発行と管理',
@@ -7565,12 +7579,8 @@ ${reportName}
             whatsMainReason: '自動更新を無効にする主な理由は何ですか？',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `更新日：${date}`,
             pricingConfiguration: '料金は構成によって異なります。最もお得にご利用いただくには、年額サブスクリプションを選択し、Expensify Card をご利用ください。',
-            learnMore: {
-                part1: '詳しくは、当社の',
-                pricingPage: '料金ページ',
-                part2: 'または、お使いの言語で当社のチームとチャットする',
-                adminsRoom: '#admins ルーム',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `<muted-text>詳しくは<a href="${CONST.PRICING}">料金ページ</a>をご覧いただくか、${hasAdminsRoom ? `<a href="adminsRoom">#admins ルーム。</a>` : '#admins ルーム'}で当社チームにチャットでお問い合わせください</muted-text>`,
             estimatedPrice: '見積価格',
             changesBasedOn: 'これは、Expensify Card の利用状況と、以下のサブスクリプションオプションによって変わります。',
         },
@@ -7901,7 +7911,21 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             subtitle: 'ドメインのメンバーにシングルサインオンでのログインを必須化し、ワークスペースの作成を制限するなど、さらに多くのことができます。',
             enable: '有効にする',
         },
-        admins: {title: '管理者', findAdmin: '管理者を検索', primaryContact: '主要連絡先', addPrimaryContact: '主要連絡先を追加', settings: '設定'},
+        admins: {
+            title: '管理者',
+            findAdmin: '管理者を検索',
+            primaryContact: '主要連絡先',
+            addPrimaryContact: '主要連絡先を追加',
+            setPrimaryContactError: 'メインの連絡先を設定できませんでした。後でもう一度お試しください。',
+            settings: '設定',
+            consolidatedDomainBilling: '統合ドメイン請求',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>有効にすると、<strong>${domainName}</strong> メンバーが所有するすべてのワークスペースの支払いを代表連絡先が行い、すべての請求書の領収書を受け取ります。</muted-text-label></comment>`,
+            consolidatedDomainBillingError: '統合ドメイン請求を変更できませんでした。後でもう一度お試しください。',
+            addAdmin: '管理者を追加',
+            invite: '招待',
+            addAdminError: 'このメンバーを管理者として追加できません。もう一度お試しください。',
+        },
     },
     desktopAppRetiredPage: {
         title: 'デスクトップアプリは廃止されました',

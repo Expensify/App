@@ -470,6 +470,8 @@ type SubscriptionSettingsSummaryParams = {subscriptionType: string; subscription
 
 type SubscriptionSettingsRenewsOnParams = {date: string};
 
+type SubscriptionSettingsLearnMoreParams = {hasAdminsRoom: boolean};
+
 type UnapproveWithIntegrationWarningParams = {accountingIntegration: string};
 
 type IncorrectZipFormatParams = {zipFormat?: string} | undefined;
@@ -771,6 +773,10 @@ type FocusModeUpdateParams = {
     priorityModePageUrl: string;
 };
 
+type RoutedDueToDEWParams = {
+    to: string;
+};
+
 type ExpenseRuleUpdateToParams = {
     rule: ExpenseRule;
 };
@@ -1021,11 +1027,13 @@ export type {
     SignerInfoMessageParams,
     PayAndDowngradeDescriptionParams,
     WalletAgreementParams,
+    SubscriptionSettingsLearnMoreParams,
     ErrorODIntegrationParams,
     MergeAccountIntoParams,
     NextStepParams,
     ReportFieldParams,
     FocusModeUpdateParams,
+    RoutedDueToDEWParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
     ExpenseRuleUpdateToParams,
