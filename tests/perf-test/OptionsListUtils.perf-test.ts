@@ -90,6 +90,8 @@ const ValidOptionsConfig = {
     includeOwnedWorkspaceChats: true,
 };
 
+const loginList = {};
+
 /* GetOption is the private function and is never called directly, we are testing the functions which call getOption with different params */
 describe('OptionsListUtils', () => {
     beforeAll(() => {
@@ -110,22 +112,22 @@ describe('OptionsListUtils', () => {
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getSearchOptions({options, betas: mockedBetas, draftComments: {}, nvpDismissedProductTraining}));
+        await measureFunction(() => getSearchOptions({options, betas: mockedBetas, draftComments: {}, nvpDismissedProductTraining, loginList}));
     });
 
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, ValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, loginList, ValidOptionsConfig);
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, ValidOptionsConfig);
+        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, loginList, ValidOptionsConfig);
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE);
+            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList);
         });
     });
 
@@ -133,7 +135,7 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, {
+            getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, loginList, {
                 betas: mockedBetas,
                 includeMultipleParticipantReports: true,
                 showChatPreviewLine: true,
@@ -153,7 +155,7 @@ describe('OptionsListUtils', () => {
     /* Testing getMemberInviteOptions */
     test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, mockedBetas));
+        await measureFunction(() => getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, loginList, mockedBetas));
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {
