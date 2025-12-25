@@ -819,6 +819,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
+    console.log('test');
     // This helps in tracking from the moment 'route' triggers useMemo until isLoadingInitialReportActions becomes true. It prevents blinking when loading reportActions from cache.
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
