@@ -18,20 +18,21 @@ import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types'
 import type {SearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import {isSearchQueryItem} from '@components/SelectionListWithSections/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
-import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
+import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryString, getQueryWithUpdatedValues, isDefaultExpensesQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -66,14 +67,15 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
     const {inputQuery: originalInputQuery} = queryJSON;
-    const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID, true);
 
-    // The actual input text that the user sees
-    const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
+    const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT, {canBeMissing: true});
+    const shouldShowQuery = searchContext?.shouldShowSearchQuery ?? false;
+
+    const [textInputValue, setTextInputValue] = useState('');
     // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
-    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(isDefaultQuery ? '' : queryText);
+    const [autocompleteQueryValue, setAutocompleteQueryValue] = useState('');
     const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
 
     const [autocompleteSubstitutions, setAutocompleteSubstitutions] = useState<SubstitutionMap>({});
@@ -107,9 +109,11 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [isFocused, registerSearchPageInput, displayNarrowHeader]);
 
     useEffect(() => {
-        setTextInputValue(isDefaultQuery ? '' : queryText);
-        setAutocompleteQueryValue(isDefaultQuery ? '' : queryText);
-    }, [isDefaultQuery, queryText]);
+        const newValue = shouldShowQuery ? queryText : '';
+
+        setTextInputValue(newValue);
+        setAutocompleteQueryValue(newValue);
+    }, [queryText, shouldShowQuery]);
 
     useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, allFeeds, policies, currentUserAccountID);
@@ -204,6 +208,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 return;
             }
 
+            setSearchContext(true);
             Navigation.navigate(
                 ROUTES.SEARCH_ROOT.getRoute({
                     query: updatedQuery,
@@ -479,7 +484,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                     )}
                 </View>
             </View>
-            <HelpButton style={[styles.mt1Half]} />
+            <SidePanelButton style={styles.mt1Half} />
         </View>
     );
 }
