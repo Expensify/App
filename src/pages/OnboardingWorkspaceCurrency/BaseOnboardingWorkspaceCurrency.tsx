@@ -18,7 +18,6 @@ import type {Route} from '@src/ROUTES';
 import type {BaseOnboardingWorkspaceCurrencyProps} from './types';
 
 function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnboardingWorkspaceCurrencyProps) {
-    console.log('test');
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
