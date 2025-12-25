@@ -1,4 +1,6 @@
 import type ONYXKEYS from '@src/ONYXKEYS';
+import type * as OnyxTypes from '@src/types/onyx/index';
+import type SecurityGroup from '@src/types/onyx/SecurityGroup';
 import type * as OnyxCommon from './OnyxCommon';
 
 /**
@@ -47,8 +49,8 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether setting SAML required setting has failed and why */
     samlRequiredError?: OnyxCommon.Errors;
 }> &
-    PrefixedRecord<typeof ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX, number>;
-
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX, number> &
+    PrefixedRecord<typeof ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX, OnyxTypes.DomainSecurityGroup>;
 /** Model of SAML metadata */
 type SamlMetadata = {
     /**
@@ -94,6 +96,16 @@ type SamlMetadata = {
     samlMetadataError: OnyxCommon.Errors;
 };
 
-export {type SamlMetadata};
+/** Model of Security Group data */
+type DomainSecurityGroup = SecurityGroup & {
+    /**
+     * A map of member account IDs to their permission level within the group.
+     * Key: The accountID of the member.
+     * Value: The permission level (e.g. "read").
+     */
+    shared: Record<string, string>;
+};
+
+export {type SamlMetadata, type DomainSecurityGroup};
 
 export default Domain;
