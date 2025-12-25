@@ -400,7 +400,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     return;
                 }
 
-                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare);
+                const isOnSearch = route.name.toLowerCase().startsWith('search');
+                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, [], false, isOnSearch);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {

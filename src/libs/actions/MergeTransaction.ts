@@ -47,6 +47,7 @@ function setupMergeTransactionDataAndNavigate(
     localeCompare: LocaleContextProps['localeCompare'],
     searchReports?: Report[],
     isSelectingSourceTransaction?: boolean,
+    isOnSearch?: boolean,
 ) {
     if (!transactions.length || transactions.length > 2) {
         return;
@@ -56,7 +57,7 @@ function setupMergeTransactionDataAndNavigate(
         const transaction = transactions.at(0);
         if (transaction) {
             setupMergeTransactionData(navigationTransactionID, {targetTransactionID: transaction.transactionID});
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(transaction.transactionID, Navigation.getActiveRoute(), isOnSearch));
             return;
         }
     }
@@ -74,7 +75,7 @@ function setupMergeTransactionDataAndNavigate(
     }
     if (shouldNavigateToReceiptReview([targetTransaction, sourceTransaction])) {
         // Navigate to the receipt review page if both transactions have a receipt
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_RECEIPT_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute(), isOnSearch));
     } else {
         const receipt = targetTransaction.receipt?.receiptID ? targetTransaction.receipt : sourceTransaction.receipt;
         if (receipt) {
@@ -86,11 +87,11 @@ function setupMergeTransactionDataAndNavigate(
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
             setMergeTransactionKey(navigationTransactionID, mergeableData);
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute(), isOnSearch));
             return;
         }
 
-        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute()));
+        Navigation.navigate(ROUTES.MERGE_TRANSACTION_DETAILS_PAGE.getRoute(navigationTransactionID, Navigation.getActiveRoute(), isOnSearch));
     }
 }
 

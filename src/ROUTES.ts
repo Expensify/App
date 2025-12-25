@@ -2833,35 +2833,39 @@ const ROUTES = {
         getRoute: (threadReportID: string, backTo?: string) => getUrlWithBackToParam(`r/${threadReportID}/duplicates/confirm` as const, backTo),
     },
     MERGE_TRANSACTION_LIST_PAGE: {
-        route: 'r/:transactionID/merge',
+        route: 'merge/:transactionID',
 
-        getRoute: (transactionID: string, backTo: string) => {
+        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${transactionID}/merge` as const, backTo);
+            const url = getUrlWithBackToParam(`merge/${transactionID}` as const, backTo);
+            return isOnSearch ? `${url}&isOnSearch=true` : url;
         },
     },
     MERGE_TRANSACTION_RECEIPT_PAGE: {
-        route: 'r/:transactionID/merge/receipt',
+        route: 'merge/:transactionID/receipt',
 
-        getRoute: (transactionID: string, backTo: string) => {
+        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${transactionID}/merge/receipt` as const, backTo);
+            const url = getUrlWithBackToParam(`merge/${transactionID}/receipt` as const, backTo);
+            return isOnSearch ? `${url}&isOnSearch=true` : url;
         },
     },
     MERGE_TRANSACTION_DETAILS_PAGE: {
-        route: 'r/:transactionID/merge/details',
+        route: 'merge/:transactionID/details',
 
-        getRoute: (transactionID: string, backTo: string) => {
+        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${transactionID}/merge/details` as const, backTo);
+            const url = getUrlWithBackToParam(`merge/${transactionID}/details` as const, backTo);
+            return isOnSearch ? `${url}&isOnSearch=true` : url;
         },
     },
     MERGE_TRANSACTION_CONFIRMATION_PAGE: {
-        route: 'r/:transactionID/merge/confirmation',
+        route: 'merge/:transactionID/confirmation',
 
-        getRoute: (transactionID: string, backTo: string) => {
+        getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
-            return getUrlWithBackToParam(`r/${transactionID}/merge/confirmation` as const, backTo);
+            const url = getUrlWithBackToParam(`merge/${transactionID}/confirmation` as const, backTo);
+            return isOnSearch ? `${url}&isOnSearch=true` : url;
         },
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {

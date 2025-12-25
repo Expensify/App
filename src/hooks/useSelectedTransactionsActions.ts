@@ -51,6 +51,7 @@ function useSelectedTransactionsActions({
     onExportOffline,
     policy,
     beginExportWithTemplate,
+    isOnSearch,
 }: {
     report?: Report;
     reportActions: ReportAction[];
@@ -60,6 +61,7 @@ function useSelectedTransactionsActions({
     onExportOffline?: () => void;
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
+    isOnSearch?: boolean;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
@@ -296,6 +298,19 @@ function useSelectedTransactionsActions({
             return canMoveExpense;
         });
 
+        const canMergeTransaction = selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy]);
+        if (canMergeTransaction) {
+            const transactionID = selectedTransactionsList.at(0)?.transactionID;
+            if (transactionID) {
+                options.push({
+                    text: translate('common.merge'),
+                    icon: expensifyIcons.ArrowCollapse,
+                    value: MERGE,
+                    onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, selectedTransactionsList, localeCompare, [], false, isOnSearch),
+                });
+            }
+        }
+
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
         if (canSelectedExpensesBeMoved && canUserPerformWriteAction && !hasTransactionsFromMultipleOwners) {
             options.push({
@@ -310,18 +325,6 @@ function useSelectedTransactionsActions({
             });
         }
 
-        const canMergeTransaction = selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy]);
-        if (canMergeTransaction) {
-            const transactionID = selectedTransactionsList.at(0)?.transactionID;
-            if (transactionID) {
-                options.push({
-                    text: translate('common.merge'),
-                    icon: expensifyIcons.ArrowCollapse,
-                    value: MERGE,
-                    onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, selectedTransactionsList, localeCompare),
-                });
-            }
-        }
         const firstTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionIDs.at(0)}`];
         const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction?.comment?.originalTransactionID}`];
 
@@ -394,6 +397,7 @@ function useSelectedTransactionsActions({
         expensifyIcons.ArrowCollapse,
         expensifyIcons.Trashcan,
         localeCompare,
+        isOnSearch,
     ]);
 
     return {

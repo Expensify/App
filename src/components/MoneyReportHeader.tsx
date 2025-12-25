@@ -424,6 +424,7 @@ function MoneyReportHeader({
     );
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    const isOnSearch = route.name.toLowerCase().startsWith('search');
     const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
         report: moneyRequestReport,
         reportActions,
@@ -433,6 +434,7 @@ function MoneyReportHeader({
         onExportOffline: () => setOfflineModalVisible(true),
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
+        isOnSearch,
     });
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
