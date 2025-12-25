@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import CONST from '@src/CONST';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
@@ -51,4 +52,41 @@ function getIsMissingAttendeesViolation(
     return false;
 }
 
-export {formatRequiredFieldsTitle, getIsMissingAttendeesViolation};
+/**
+ * Syncs the missingAttendees violation with current policy settings.
+ * - Adds the violation when it should show but isn't present from BE
+ * - Removes stale BE violation when policy settings changed (e.g., category no longer requires attendees)
+ */
+function syncMissingAttendeesViolation<T extends {name: string}>(
+    violations: T[],
+    policyCategories: PolicyCategories | undefined,
+    category: string,
+    attendees: Attendee[] | undefined,
+    userPersonalDetails: CurrentUserPersonalDetails,
+    isAttendeeTrackingEnabled: boolean,
+    isControlPolicy: boolean,
+): T[] {
+    const hasMissingAttendeesViolation = violations.some((v) => v.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
+    const shouldShowMissingAttendees =
+        isControlPolicy && getIsMissingAttendeesViolation(policyCategories ?? {}, category ?? '', attendees ?? [], userPersonalDetails, isAttendeeTrackingEnabled);
+
+    if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
+        // Add violation when it should show but isn't present from BE
+        return [
+            ...violations,
+            {
+                name: CONST.VIOLATIONS.MISSING_ATTENDEES,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                showInReview: true,
+            } as unknown as T,
+        ];
+    }
+    if (hasMissingAttendeesViolation && !shouldShowMissingAttendees) {
+        // Remove stale BE violation when policy settings changed
+        return violations.filter((v) => v.name !== CONST.VIOLATIONS.MISSING_ATTENDEES);
+    }
+
+    return violations;
+}
+
+export {formatRequiredFieldsTitle, getIsMissingAttendeesViolation, syncMissingAttendeesViolation};
