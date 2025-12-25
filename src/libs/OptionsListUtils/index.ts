@@ -1408,7 +1408,7 @@ function optionsOrderBy<T = SearchOptionData>(options: T[], comparator: (option:
             if (!peekedValue) {
                 throw new Error('Heap is empty, cannot peek value');
             }
-            if (comparator(option) > comparator(peekedValue)) {
+            if (reversed ? comparator(option) < comparator(peekedValue) : comparator(option) > comparator(peekedValue)) {
                 heap.pop();
                 heap.push(option);
             }
