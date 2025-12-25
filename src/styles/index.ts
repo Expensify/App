@@ -5281,11 +5281,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.border,
         },
 
-        workflowApprovalLimitText: {
-            marginLeft: 32,
-            paddingBottom: 0,
-        },
-
         integrationIcon: {
             overflow: 'hidden',
             borderRadius: variables.buttonBorderRadius,
@@ -5476,6 +5471,7 @@ const staticStyles = (theme: ThemeColors) =>
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
+            flex: 1,
         },
 
         receiptCellLoadingContainer: {
