@@ -211,9 +211,6 @@ function MoneyRequestView({
     } else if (isExpenseUnreported && isPerDiemRequest) {
         policy = perDiemOriginalPolicy;
         policyID = perDiemOriginalPolicy?.id;
-    } else if (mergeTransactionID) {
-        policy = isPerDiemRequest ? perDiemOriginalPolicy : policyForMovingExpenses;
-        policyID = policy?.id;
     } else {
         policy = expensePolicy;
         policyID = parentReport?.policyID;
