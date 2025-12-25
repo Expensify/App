@@ -2856,7 +2856,7 @@ const ROUTES = {
         getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             const url = getUrlWithBackToParam(`merge/${transactionID}/details` as const, backTo);
-            return isOnSearch ? (`${url}&isOnSearch=true` as const) : url;
+            return isOnSearch ? (`${url}&isOnSearch=true`) : url;
         },
     },
     MERGE_TRANSACTION_CONFIRMATION_PAGE: {
