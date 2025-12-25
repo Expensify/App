@@ -276,12 +276,8 @@ function getReportsToDisplayInLHN(
 
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
-            const shouldUpdate = requiresAttention || hasErrorsOtherThanFailedReceipt;
-            if (shouldUpdate) {
-                reportsToDisplay[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt};
-            } else {
-                reportsToDisplay[reportID] = report;
-            }
+            const hasAttentionOrError = requiresAttention || hasErrorsOtherThanFailedReceipt;
+            reportsToDisplay[reportID] = hasAttentionOrError ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt} : report;
         }
     }
 
@@ -339,12 +335,8 @@ function updateReportsToDisplayInLHN({
 
         if (shouldDisplay) {
             const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
-            const shouldUpdate = requiresAttention || hasErrorsOtherThanFailedReceipt;
-            if (shouldUpdate) {
-                displayedReportsCopy[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt};
-            } else {
-                displayedReportsCopy[reportID] = report;
-            }
+            const hasAttentionOrError = requiresAttention || hasErrorsOtherThanFailedReceipt;
+            displayedReportsCopy[reportID] = hasAttentionOrError ? {...report, requiresAttention, hasErrorsOtherThanFailedReceipt} : report;
         } else {
             delete displayedReportsCopy[reportID];
         }
