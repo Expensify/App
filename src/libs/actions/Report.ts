@@ -1409,10 +1409,18 @@ function createTransactionThreadReport(
     const isTrackExpense = !iouReport && ReportActionsUtils.isTrackExpenseAction(iouReportAction);
     const isUnreportedTransaction = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const selfDMReportID = isTrackExpense || isUnreportedTransaction ? findSelfDMReportID() : undefined;
-
+    
+    let optimisticSelfDMReport: Report | undefined;
     let reportToUse = iouReport;
     if (selfDMReportID) {
         reportToUse = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`];
+
+        // selfDMReportID may be set but the report is filtered out.
+        // Create an optimistic report if needed to proceed with the transaction thread.
+        if (!reportToUse) {
+            optimisticSelfDMReport = buildOptimisticSelfDMReport(DateUtils.getDBTime(), selfDMReportID);
+            reportToUse = optimisticSelfDMReport;
+        }
     }
 
     if (!reportToUse) {
@@ -1442,6 +1450,7 @@ function createTransactionThreadReport(
         transaction,
         transactionViolations,
         selfDMReportID,
+        optimisticSelfDMReport,
     );
     return optimisticTransactionThread;
 }
