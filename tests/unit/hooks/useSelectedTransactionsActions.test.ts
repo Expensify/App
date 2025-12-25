@@ -637,7 +637,7 @@ describe('useSelectedTransactionsActions', () => {
                 allTransactionsLength: 1,
                 policy,
                 beginExportWithTemplate: mockBeginExportWithTemplate,
-                isOnSearch: false
+                isOnSearch: false,
             }),
         );
 
