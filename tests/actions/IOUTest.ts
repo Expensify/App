@@ -16,6 +16,7 @@ import {
     approveMoneyRequest,
     calculateDiffAmount,
     canApproveIOU,
+    canCancelPayment,
     cancelPayment,
     canIOUBePaid,
     canUnapproveIOU,
@@ -517,6 +518,7 @@ describe('actions/IOU', () => {
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -610,6 +612,7 @@ describe('actions/IOU', () => {
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -688,6 +691,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -735,6 +739,7 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -808,6 +813,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -855,6 +861,7 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1958,6 +1965,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
 
             mockFetch?.resume?.();
@@ -2018,6 +2026,7 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -6737,6 +6746,7 @@ describe('actions/IOU', () => {
                 },
                 accountantParams: action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}} : undefined,
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -6998,6 +7008,21 @@ describe('actions/IOU', () => {
                 managerID: RORY_ACCOUNT_ID,
             };
             expect(canUnapproveIOU(fakeReport, undefined)).toBeFalsy();
+        });
+    });
+
+    describe('canCancelPayment', () => {
+        it('should return true if the report is waiting for a bank account', () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: 'A',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: true,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            expect(canCancelPayment(fakeReport, {accountID: RORY_ACCOUNT_ID})).toBeTruthy();
         });
     });
 
@@ -8336,6 +8361,7 @@ describe('actions/IOU', () => {
                     reimbursable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -10923,6 +10949,7 @@ describe('actions/IOU', () => {
                 mockOptimisticChatReportID,
                 mockOptimisticIOUReportID,
                 mockIsASAPSubmitBetaEnabled,
+                undefined,
                 mockPolicy,
                 fakePolicyCategories,
                 policyExpenseChat,
