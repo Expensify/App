@@ -637,6 +637,7 @@ describe('useSelectedTransactionsActions', () => {
                 allTransactionsLength: 1,
                 policy,
                 beginExportWithTemplate: mockBeginExportWithTemplate,
+                isOnSearch: false
             }),
         );
 
@@ -650,6 +651,6 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare);
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, false);
     });
 });

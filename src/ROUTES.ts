@@ -2838,7 +2838,7 @@ const ROUTES = {
         getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             const url = getUrlWithBackToParam(`merge/${transactionID}` as const, backTo);
-            return isOnSearch ? `${url}&isOnSearch=true` : url;
+            return isOnSearch ? `${url}&isOnSearch=true` as const : url;
         },
     },
     MERGE_TRANSACTION_RECEIPT_PAGE: {
@@ -2847,7 +2847,7 @@ const ROUTES = {
         getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             const url = getUrlWithBackToParam(`merge/${transactionID}/receipt` as const, backTo);
-            return isOnSearch ? `${url}&isOnSearch=true` : url;
+            return isOnSearch ? `${url}&isOnSearch=true` as const : url;
         },
     },
     MERGE_TRANSACTION_DETAILS_PAGE: {
@@ -2856,7 +2856,7 @@ const ROUTES = {
         getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             const url = getUrlWithBackToParam(`merge/${transactionID}/details` as const, backTo);
-            return isOnSearch ? `${url}&isOnSearch=true` : url;
+            return isOnSearch ? `${url}&isOnSearch=true` as const : url;
         },
     },
     MERGE_TRANSACTION_CONFIRMATION_PAGE: {
@@ -2865,7 +2865,7 @@ const ROUTES = {
         getRoute: (transactionID: string, backTo: string, isOnSearch = false) => {
             // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
             const url = getUrlWithBackToParam(`merge/${transactionID}/confirmation` as const, backTo);
-            return isOnSearch ? `${url}&isOnSearch=true` : url;
+            return isOnSearch ? `${url}&isOnSearch=true` as const : url;
         },
     },
     POLICY_ACCOUNTING_XERO_IMPORT: {
