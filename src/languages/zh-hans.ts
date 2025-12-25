@@ -167,6 +167,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -4761,6 +4762,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 'Expensify Limited 是 Plaid Financial Ltd. 的代理机构，Plaid Financial Ltd. 是一家在《2017 年支付服务条例》下受金融行为监管局（Financial Conduct Authority）监管并获授权的支付机构（公司参考编号：804718）。Plaid 通过其代理 Expensify Limited 向您提供受监管的账户信息服务。',
             assign: '分配',
             assignCardFailedError: '卡片分配失败。',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
             issueAndManageCards: '发放和管理您的 Expensify 卡',
@@ -7452,12 +7454,8 @@ ${reportName}
             whatsMainReason: '你取消自动续费的主要原因是什么？',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `将在 ${date} 续订。`,
             pricingConfiguration: '价格取决于配置。要获得最低价格，请选择年度订阅并申请 Expensify Card。',
-            learnMore: {
-                part1: '在我们的…上了解更多',
-                pricingPage: '定价页面',
-                part2: '或使用您的语言与我们的团队聊天',
-                adminsRoom: '#admins 房间',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `<muted-text>在我们的<a href="${CONST.PRICING}">定价页面</a>了解更多，或在您的 ${hasAdminsRoom ? `<a href="adminsRoom">#admins 聊天室。</a>` : '#admins 房间。'} 中与我们的团队聊天</muted-text>`,
             estimatedPrice: '预估价格',
             changesBasedOn: '这将根据你使用 Expensify Card 的情况以及下面的订阅选项而变化。',
         },
