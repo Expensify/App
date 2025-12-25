@@ -794,7 +794,7 @@ function SearchAutocompleteList({
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
     const styledRecentReports = recentReportsOptions.map((option) => {
-        const report = getReportOrDraftReport(option.reportID ?? '');
+        const report = getReportOrDraftReport(option.reportID);
         const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
         const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
         return {
