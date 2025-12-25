@@ -1168,7 +1168,13 @@ function getDisplayQueryFiltersForKey({
     }));
 }
 
-function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: OnyxCollection<OnyxTypes.Policy>, reports?: OnyxCollection<OnyxTypes.Report>) {
+function formatDefaultRawFilterSegment(
+    rawFilter: RawQueryFilter,
+    policies: OnyxCollection<OnyxTypes.Policy>,
+    reports?: OnyxCollection<OnyxTypes.Report>,
+    type?: SearchDataTypes,
+    translate?: LocaleContextProps['translate'],
+) {
     const rawValues = Array.isArray(rawFilter.value) ? rawFilter.value : [rawFilter.value];
     const cleanedValues = rawValues.map((val) => (typeof val === 'string' ? val.trim() : '')).filter((val) => val.length > 0);
 
@@ -1212,7 +1218,19 @@ function formatDefaultRawFilterSegment(rawFilter: RawQueryFilter, policies: Onyx
             break;
     }
 
-    const formattedValues = cleanedValues.map((val) => sanitizeSearchValue(getUserFriendlyValue(val)));
+    // Translate status values if translate function is available
+    const formattedValues = cleanedValues.map((val) => {
+        if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS && translate && type) {
+            const statusOptions = getStatusOptions(translate, type);
+            const statusOption = statusOptions.find((option) => option.value === val);
+            if (statusOption) {
+                const translatedText = statusOption.text.toLowerCase();
+                // Replace regular spaces with thin spaces (U+2009) to keep multi-word values together
+                return sanitizeSearchValue(translatedText.replaceAll(' ', '\u2009'));
+            }
+        }
+        return sanitizeSearchValue(getUserFriendlyValue(val));
+    });
 
     if (!formattedValues.length) {
         return;
@@ -1271,7 +1289,7 @@ function buildUserReadableQueryString(
             }
 
             if (rawFilter.isDefault) {
-                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies, reports);
+                const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies, reports, type, translate);
                 if (defaultSegment) {
                     segments.push(defaultSegment);
                 }
