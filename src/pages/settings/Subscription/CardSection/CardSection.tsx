@@ -81,6 +81,7 @@ function CardSection() {
     const viewPurchases = useCallback(() => {
         const query = buildQueryStringFromFilterFormValues({
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             merchant: CONST.EXPENSIFY_MERCHANT,
         });
 
