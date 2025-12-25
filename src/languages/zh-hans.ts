@@ -672,6 +672,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: '可报销总额',
         nonReimbursableTotal: '不可报销总额',
         originalAmount: '原始金额',
+        insights: '洞察',
     },
     supportalNoAccess: {
         title: '先别急',
@@ -6688,6 +6689,7 @@ ${reportName}
             selectAllMatchingItems: '选择所有匹配的项目',
             allMatchingItemsSelected: '已选择所有匹配的项目',
         },
+        topSpenders: '最高支出者',
     },
     genericErrorPage: {
         title: '哎呀，出错了！',

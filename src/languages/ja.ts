@@ -675,6 +675,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: '経費精算対象の合計',
         nonReimbursableTotal: '非払い戻し合計',
         originalAmount: '元の金額',
+        insights: 'インサイト',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -6790,6 +6791,7 @@ ${reportName}
             selectAllMatchingItems: '一致する項目をすべて選択',
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
         },
+        topSpenders: 'トップ支出者',
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',

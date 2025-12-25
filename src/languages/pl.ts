@@ -676,6 +676,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: 'Łączna kwota podlegająca zwrotowi',
         nonReimbursableTotal: 'Suma niepodlegająca zwrotowi',
         originalAmount: 'Kwota pierwotna',
+        insights: 'Analizy',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -6821,6 +6822,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             selectAllMatchingItems: 'Zaznacz wszystkie pasujące elementy',
             allMatchingItemsSelected: 'Wybrano wszystkie pasujące elementy',
         },
+        topSpenders: 'Najwięksi wydający',
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',

@@ -677,6 +677,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: 'Total remboursable',
         nonReimbursableTotal: 'Total non remboursable',
         originalAmount: 'Montant d’origine',
+        insights: 'Analyses',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -6872,6 +6873,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             selectAllMatchingItems: 'Sélectionner tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
         },
+        topSpenders: 'Plus gros dépensiers',
     },
     genericErrorPage: {
         title: 'Oh oh, quelque chose s’est mal passé !',

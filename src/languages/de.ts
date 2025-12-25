@@ -675,6 +675,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: 'Erstattungsfähiger Gesamtbetrag',
         nonReimbursableTotal: 'Nicht erstattungsfähiger Gesamtbetrag',
         originalAmount: 'Ursprünglicher Betrag',
+        insights: 'Einblicke',
     },
     supportalNoAccess: {
         title: 'Nicht so schnell',
@@ -6862,6 +6863,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             selectAllMatchingItems: 'Alle passenden Elemente auswählen',
             allMatchingItemsSelected: 'Alle passenden Elemente ausgewählt',
         },
+        topSpenders: 'Top-Ausgaben',
     },
     genericErrorPage: {
         title: 'Oh je, etwas ist schiefgelaufen!',
