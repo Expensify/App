@@ -1,26 +1,22 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
-import type {ReportsSplitNavigatorParamList, RootNavigatorParamList, SearchReportParamList} from './types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, RootNavigatorParamList} from './types';
 
 // This function is in a separate file than Navigation.ts to avoid cyclic dependency.
 
 type State = NavigationState | NavigationState<RootNavigatorParamList> | PartialState<NavigationState>;
 
-function getReportRHPParams(state: State): SearchReportParamList[typeof SCREENS.SEARCH.REPORT_RHP] | undefined {
+function getReportRHPParams(state: State): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT] | undefined {
     const lastRoute = state?.routes?.at(-1);
     if (!lastRoute || lastRoute.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
         return;
     }
-    const searchReportRoute = lastRoute.state?.routes?.findLast((route) => route?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
-    if (!searchReportRoute) {
-        return;
-    }
-    const topmostRHPReport = searchReportRoute.state?.routes?.findLast((route) => route?.name === SCREENS.SEARCH.REPORT_RHP);
+    const topmostRHPReport = lastRoute.state?.routes?.findLast((route) => route?.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
     if (!topmostRHPReport) {
         return;
     }
-    return topmostRHPReport?.params as SearchReportParamList[typeof SCREENS.SEARCH.REPORT_RHP];
+    return topmostRHPReport?.params as RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT];
 }
 
 /**
