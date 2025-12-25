@@ -23,6 +23,7 @@ import type {
     FlagCommentParams,
     GetNewerActionsParams,
     GetOlderActionsParams,
+    GetOutstandingReportsParams,
     GetReportPrivateNoteParams,
     InviteToGroupChatParams,
     InviteToRoomParams,
@@ -4507,6 +4508,46 @@ function searchInServer(searchInput: string, policyID?: string) {
     searchForReports(isOffline, searchInput, policyID);
 }
 
+/**
+ * Fetch all outstanding reports for a workspace to ensure they are available in Onyx
+ */
+function fetchOutstandingReportsForWorkspace(policyID: string, accountID: number) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS,
+            value: true,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS,
+            value: false,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS,
+            value: false,
+        },
+    ];
+
+    const parameters: GetOutstandingReportsParams = {
+        policyID,
+        accountID,
+    };
+
+    API.read(READ_COMMANDS.GET_OUTSTANDING_REPORTS, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
 function updateLastVisitTime(reportID: string) {
     if (!isValidReportIDFromPath(reportID)) {
         return;
@@ -6333,6 +6374,7 @@ export {
     saveReportActionDraft,
     saveReportDraftComment,
     searchInServer,
+    fetchOutstandingReportsForWorkspace,
     setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,
