@@ -965,6 +965,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
         case 'taxValue':
         case 'groupCurrency':
         case 'transactionType':
+        case 'transactionThreadReportID':
             return validateString(value);
         case 'created':
         case 'modifiedCreated':
@@ -1076,6 +1077,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                     participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                    transactionThreadReportID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     routes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                     transactionID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
