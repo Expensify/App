@@ -505,6 +505,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The receipt object associated with the transaction */
         receipt?: Receipt;
 
+        /** The transaction thread reportID - usually set for transactions in the search snapshot */
+        transactionThreadReportID?: string | undefined;
+
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
 

@@ -316,6 +316,9 @@ function getReportIDForExpense(transaction: OnyxEntry<Transaction>) {
  * @returns The report ID for the transaction thread
  */
 function getTransactionThreadReportID(transaction: OnyxEntry<Transaction>) {
+    if (transaction?.transactionThreadReportID) {
+        return transaction.transactionThreadReportID;
+    }
     const iouActionOfTargetTransaction = getIOUActionForReportID(getReportIDForExpense(transaction), transaction?.transactionID);
     return iouActionOfTargetTransaction?.childReportID;
 }
