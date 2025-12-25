@@ -1398,7 +1398,7 @@ function shouldShowViolation(
     }
 
     if (violationName === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT) {
-        return isPolicyAdmin(policy) && !isSubmitter && isOpenOrProcessingReport;
+        return isPolicyAdmin(policy) && !isSubmitter && !isReportOpen;
     }
 
     if (violationName === CONST.VIOLATIONS.RTER) {
