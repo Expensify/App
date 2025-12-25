@@ -6699,9 +6699,10 @@ function buildOptimisticTaskCommentReportAction(
     return reportAction;
 }
 
-function buildOptimisticSelfDMReport(created: string): Report {
+function buildOptimisticSelfDMReport(created: string, reportID?: string): Report {
     return {
-        reportID: generateReportID(),
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        reportID: reportID || generateReportID(),
         participants: {
             [currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
