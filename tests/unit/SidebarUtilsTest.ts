@@ -2186,7 +2186,7 @@ describe('SidebarUtils', () => {
     describe('sortReportsToDisplayInLHN', () => {
         describe('categorizeReportsForLHN', () => {
             it('should categorize reports into correct groups', () => {
-                const {reports, reportNameValuePairs, reportAttributes} = createSidebarTestData();
+                const {reports, reportNameValuePairs} = createSidebarTestData();
 
                 // Given reportsDrafts contains a draft comment for report '2'
                 const reportsDrafts = {
