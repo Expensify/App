@@ -49,6 +49,4 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     );
 }
 
-SearchTypeMenuPopover.displayName = 'SearchTypeMenuPopover';
-
 export default SearchTypeMenuPopover;

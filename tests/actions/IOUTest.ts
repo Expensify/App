@@ -517,6 +517,7 @@ describe('actions/IOU', () => {
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -610,6 +611,7 @@ describe('actions/IOU', () => {
                     customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
             await mockFetch?.resume?.();
@@ -688,6 +690,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -735,6 +738,7 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -808,6 +812,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -855,6 +860,7 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -1958,6 +1964,7 @@ describe('actions/IOU', () => {
                     billable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
 
             mockFetch?.resume?.();
@@ -2018,6 +2025,7 @@ describe('actions/IOU', () => {
                     accountant,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -6468,13 +6476,13 @@ describe('actions/IOU', () => {
             });
         });
 
-        it('should remove all existing category violations when the transaction "Category" is unset', async () => {
+        it('should remove all existing category violations when the transaction Category is unset', async () => {
             const transactionID = '1';
             const policyID = '2';
             const transactionThreadReportID = '3';
             const category = '';
             const fakePolicy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
                 requiresCategory: true,
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
@@ -6737,6 +6745,7 @@ describe('actions/IOU', () => {
                 },
                 accountantParams: action === CONST.IOU.ACTION.SHARE ? {accountant: {accountID: VIT_ACCOUNT_ID, login: VIT_EMAIL}} : undefined,
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
 
             await waitForBatchedUpdates();
@@ -8351,6 +8360,7 @@ describe('actions/IOU', () => {
                     reimbursable: false,
                 },
                 isASAPSubmitBetaEnabled: false,
+                quickAction: undefined,
             });
             await getOnyxData({
                 key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -10938,6 +10948,7 @@ describe('actions/IOU', () => {
                 mockOptimisticChatReportID,
                 mockOptimisticIOUReportID,
                 mockIsASAPSubmitBetaEnabled,
+                undefined,
                 mockPolicy,
                 fakePolicyCategories,
                 policyExpenseChat,

@@ -232,6 +232,4 @@ function SearchFiltersAmountBase({title, filterKey, testID}: {title: Translation
     );
 }
 
-SearchFiltersAmountBase.displayName = 'SearchFiltersAmountBase';
-
 export default SearchFiltersAmountBase;

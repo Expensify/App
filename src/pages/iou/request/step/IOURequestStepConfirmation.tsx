@@ -398,7 +398,7 @@ function IOURequestStepConfirmation({
             if (!isDistanceRequest || !!item?.category) {
                 continue;
             }
-            setMoneyRequestCategory(item.transactionID, defaultCategory, policy, isMovingTransactionFromTrackExpense);
+            setMoneyRequestCategory(item.transactionID, defaultCategory, policy);
         }
         // Prevent resetting to default when unselect category
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -757,6 +757,7 @@ function IOURequestStepConfirmation({
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     isASAPSubmitBetaEnabled,
+                    quickAction,
                 });
             }
         },
@@ -777,6 +778,7 @@ function IOURequestStepConfirmation({
             isManualDistanceRequest,
             archivedReportsIdSet,
             isASAPSubmitBetaEnabled,
+            quickAction,
         ],
     );
 
@@ -1269,7 +1271,7 @@ function IOURequestStepConfirmation({
     return (
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
-            testID={IOURequestStepConfirmation.displayName}
+            testID="IOURequestStepConfirmation"
             headerGapStyles={isDraggingOver ? [styles.dropWrapper] : []}
         >
             <DragAndDropProvider
@@ -1373,8 +1375,6 @@ function IOURequestStepConfirmation({
         </ScreenWrapper>
     );
 }
-
-IOURequestStepConfirmation.displayName = 'IOURequestStepConfirmation';
 
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepConfirmationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepConfirmation);
