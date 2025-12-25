@@ -26,7 +26,9 @@ import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions} from '@lib
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
+import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
@@ -791,13 +793,17 @@ function SearchAutocompleteList({
     if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
-
-    const styledRecentReports = recentReportsOptions.map((item) => ({
-        ...item,
-        pressableStyle: styles.br2,
-        text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(item.text ?? '')),
-        wrapperStyle: [styles.pr3, styles.pl3],
-    }));
+    const styledRecentReports = recentReportsOptions.map((option) => {
+        const report = getReportOrDraftReport(option.reportID ?? '');
+        const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+        const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+        return {
+            ...option,
+            pressableStyle: styles.br2,
+            text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
+            wrapperStyle: [styles.pr3, styles.pl3],
+        };
+    });
     sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
