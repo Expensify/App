@@ -44,7 +44,7 @@ import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetai
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
-import {getStatusOptions, getHasOptions} from './SearchUIUtils';
+import {getHasOptions, getStatusOptions} from './SearchTranslationUtils';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
@@ -1056,19 +1056,33 @@ function getFilterDisplayValue(
     return filterValue;
 }
 
-function getDisplayQueryFiltersForKey(
-    key: string,
-    queryFilter: QueryFilter[],
-    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    reports: OnyxCollection<OnyxTypes.Report>,
-    taxRates: Record<string, string[]>,
-    cardList: OnyxTypes.CardList,
-    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>,
-    policies: OnyxCollection<OnyxTypes.Policy>,
-    currentUserAccountID: number,
-    type?: SearchDataTypes,
-    translate?: LocaleContextProps['translate'],
-) {
+type GetDisplayQueryFiltersForKeyParams = {
+    key: string;
+    queryFilter: QueryFilter[];
+    personalDetails: OnyxTypes.PersonalDetailsList | undefined;
+    reports: OnyxCollection<OnyxTypes.Report>;
+    taxRates: Record<string, string[]>;
+    cardList: OnyxTypes.CardList;
+    cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
+    policies: OnyxCollection<OnyxTypes.Policy>;
+    currentUserAccountID: number;
+    type?: SearchDataTypes;
+    translate?: LocaleContextProps['translate'];
+};
+
+function getDisplayQueryFiltersForKey({
+    key,
+    queryFilter,
+    personalDetails,
+    reports,
+    taxRates,
+    cardList,
+    cardFeeds,
+    policies,
+    currentUserAccountID,
+    type,
+    translate,
+}: GetDisplayQueryFiltersForKeyParams) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
         const taxRateNames = taxRateIDs
@@ -1277,7 +1291,19 @@ function buildUserReadableQueryString(
                 continue;
             }
 
-            const displayQueryFilters = getDisplayQueryFiltersForKey(rawFilter.key, queryFilters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID, type, translate);
+            const displayQueryFilters = getDisplayQueryFiltersForKey({
+                key: rawFilter.key,
+                queryFilter: queryFilters,
+                personalDetails: PersonalDetails,
+                reports,
+                taxRates,
+                cardList,
+                cardFeeds,
+                policies,
+                currentUserAccountID,
+                type,
+                translate,
+            });
 
             if (!displayQueryFilters.length) {
                 continue;
@@ -1309,7 +1335,19 @@ function buildUserReadableQueryString(
 
     for (const filterObject of filters) {
         const key = filterObject.key;
-        const displayQueryFilters = getDisplayQueryFiltersForKey(key, filterObject.filters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID, type, translate);
+        const displayQueryFilters = getDisplayQueryFiltersForKey({
+            key,
+            queryFilter: filterObject.filters,
+            personalDetails: PersonalDetails,
+            reports,
+            taxRates,
+            cardList,
+            cardFeeds,
+            policies,
+            currentUserAccountID,
+            type,
+            translate,
+        });
 
         if (!displayQueryFilters.length) {
             continue;
