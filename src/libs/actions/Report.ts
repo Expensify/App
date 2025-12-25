@@ -952,6 +952,7 @@ function clearAvatarErrors(reportID: string) {
  * @param transaction The transaction object for legacy transactions that don't have a transaction thread or money request preview yet
  * @param transactionViolations The violations for the transaction, if any
  * @param parentReportID The parent report ID for the transaction thread (optional, defaults to transaction.reportID)
+ * @param optimisticSelfDMReport The optimistic selfDM report when it exists on the server but was filtered out from OpenApp response (e.g., no actions yet)
  */
 // eslint-disable-next-line @typescript-eslint/max-params
 function openReport(
@@ -967,6 +968,7 @@ function openReport(
     transaction?: Transaction,
     transactionViolations?: TransactionViolations,
     parentReportID?: string,
+    optimisticSelfDMReport?: Report,
 ) {
     if (!reportID) {
         return;
@@ -1050,13 +1052,27 @@ function openReport(
         transactionID: transaction?.transactionID,
     };
 
+    if (optimisticSelfDMReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticSelfDMReport.reportID}`,
+            value: optimisticSelfDMReport,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticSelfDMReport.reportID}`,
+            value: null,
+        });
+    }
+
     // This is a legacy transactions that doesn't have either a transaction thread or a money request preview
     if (transaction && !parentReportActionID) {
         const transactionParentReportID = parentReportID ?? transaction?.reportID;
         const iouReportActionID = rand64();
 
         // Get the parent report to determine the actual submitter/owner of the expense
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionParentReportID}`];
+        // Use optimisticSelfDMReport if provided (when selfDM exists but wasn't in allReports)
+        const parentReport = transactionParentReportID === optimisticSelfDMReport?.reportID ? optimisticSelfDMReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionParentReportID}`];
         const submitterAccountID = parentReport?.ownerAccountID ?? currentUserAccountID;
         const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([submitterAccountID]).at(0) ?? currentUserEmail ?? '';
         const submitterPersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(submitterEmail);
