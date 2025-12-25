@@ -2194,7 +2194,7 @@ describe('SidebarUtils', () => {
                 };
 
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, reportsDrafts, reportNameValuePairs, reportAttributes);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, reportsDrafts, reportNameValuePairs);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);
@@ -2216,21 +2216,12 @@ describe('SidebarUtils', () => {
                         reportName: 'Attention Report',
                         isPinned: false,
                         hasErrorsOtherThanFailedReceipt: false,
+                        requiresAttention: true,
                     },
                 ]);
 
-                const reportAttributes = {
-                    '0': {
-                        requiresAttention: true,
-                        reportName: 'Test Report',
-                        isEmpty: false,
-                        brickRoadStatus: undefined,
-                        reportErrors: {} as Record<string, string | null>,
-                    },
-                };
-
                 // When the reports are categorized
-                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, undefined, reportAttributes);
+                const result = SidebarUtils.categorizeReportsForLHN(reports, undefined, undefined);
 
                 // Then the reports are categorized into the correct groups
                 expect(result.pinnedAndGBRReports).toHaveLength(1);

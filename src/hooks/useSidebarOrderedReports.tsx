@@ -33,7 +33,7 @@ type SidebarOrderedReportsContextValue = {
     policyMemberAccountIDs: number[];
 };
 
-type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean}>;
+type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean; requiresAttention?: boolean}>;
 
 const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextValue>({
     orderedReports: [],

@@ -275,7 +275,13 @@ function getReportsToDisplayInLHN(
         );
 
         if (shouldDisplay) {
-            reportsToDisplay[reportID] = hasErrorsOtherThanFailedReceipt ? {...report, hasErrorsOtherThanFailedReceipt: true} : report;
+            const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
+            const shouldUpdate = requiresAttention || hasErrorsOtherThanFailedReceipt;
+            if (shouldUpdate) {
+                reportsToDisplay[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt};
+            } else {
+                reportsToDisplay[reportID] = report;
+            }
         }
     }
 
@@ -332,7 +338,13 @@ function updateReportsToDisplayInLHN({
         );
 
         if (shouldDisplay) {
-            displayedReportsCopy[reportID] = hasErrorsOtherThanFailedReceipt ? {...report, hasErrorsOtherThanFailedReceipt: true} : report;
+            const requiresAttention = reportAttributes?.[report?.reportID]?.requiresAttention ?? false;
+            const shouldUpdate = requiresAttention || hasErrorsOtherThanFailedReceipt;
+            if (shouldUpdate) {
+                displayedReportsCopy[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt};
+            } else {
+                displayedReportsCopy[reportID] = report;
+            }
         } else {
             delete displayedReportsCopy[reportID];
         }
@@ -343,12 +355,7 @@ function updateReportsToDisplayInLHN({
 /**
  * Categorizes reports into their respective LHN groups
  */
-function categorizeReportsForLHN(
-    reportsToDisplay: ReportsToDisplayInLHN,
-    reportsDrafts: OnyxCollection<string> | undefined,
-    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
-    reportAttributes?: ReportAttributesDerivedValue['reports'],
-) {
+function categorizeReportsForLHN(reportsToDisplay: ReportsToDisplayInLHN, reportsDrafts: OnyxCollection<string> | undefined, reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>) {
     const pinnedAndGBRReports: MiniReport[] = [];
     const errorReports: MiniReport[] = [];
     const draftReports: MiniReport[] = [];
@@ -382,7 +389,7 @@ function categorizeReportsForLHN(
         };
 
         const isPinned = !!report.isPinned;
-        const requiresAttention = !!reportAttributes?.[reportID]?.requiresAttention;
+        const requiresAttention = !!report?.requiresAttention;
         const draftComment = reportsDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`];
         const hasDraft = !!draftComment;
         const reportNameValuePairsKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`;
@@ -528,7 +535,7 @@ function sortReportsToDisplayInLHN(
     //      - Sorted by reportDisplayName in GSD (focus) view mode
 
     // Step 1: Categorize reports
-    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportNameValuePairs, reportAttributes);
+    const categories = categorizeReportsForLHN(reportsToDisplay, reportsDrafts, reportNameValuePairs);
 
     // Step 2: Sort each category
     const sortedCategories = sortCategorizedReports(categories, isInDefaultMode, localeCompare);
