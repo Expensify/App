@@ -113,15 +113,7 @@ import {
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
-import {
-    getExpenseReportedStatusOptions,
-    getExpenseStatusOptions,
-    getHasOptions,
-    getInvoiceStatusOptions,
-    getStatusOptions,
-    getTaskStatusOptions,
-    getTripStatusOptions,
-} from './SearchTranslationUtils';
+import {getStatusOptions, getHasOptions} from './SearchTranslationUtils';
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
