@@ -4,7 +4,6 @@ import type {ValueOf} from 'type-fest';
 import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {MenuItemWithLink} from '@components/MenuItemList';
-import type {MultiSelectItem} from '@components/Search/FilterDropdowns/MultiSelectPopup';
 import type {SingleSelectItem} from '@components/Search/FilterDropdowns/SingleSelectPopup';
 import type {
     SearchAction,
@@ -16,7 +15,6 @@ import type {
     SearchQueryJSON,
     SearchStatus,
     SearchWithdrawalType,
-    SingularSearchStatus,
     SortOrder,
 } from '@components/Search/types';
 import ChatListItem from '@components/SelectionListWithSections/ChatListItem';
@@ -113,7 +111,7 @@ import {
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
-import {getStatusOptions, getHasOptions} from './SearchTranslationUtils';
+import {getHasOptions, getStatusOptions} from './SearchTranslationUtils';
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
