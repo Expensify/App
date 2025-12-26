@@ -9,10 +9,10 @@ function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TP
     let style;
     if ('islarge' in tnode.attributes) {
         style = [styleProp as TextStyle, styles.onlyEmojisText];
-    }
-
-    if ('ismedium' in tnode.attributes) {
+    } else if ('ismedium' in tnode.attributes) {
         style = [styleProp as TextStyle, styles.emojisWithTextFontSize, styles.verticalAlignTopText];
+    } else {
+        style = null;
     }
 
     return (
