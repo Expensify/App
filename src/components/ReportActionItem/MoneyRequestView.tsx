@@ -582,7 +582,8 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit) {
+                        // Only navigate to split expense page if split is both detected and available
+                        if (isExpenseSplit && isSplitAvailable) {
                             initSplitExpense(allTransactions, allReports, transaction);
                             return;
                         }
@@ -614,7 +615,8 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit) {
+                        // Only navigate to split expense page if split is both detected and available
+                        if (isExpenseSplit && isSplitAvailable) {
                             initSplitExpense(allTransactions, allReports, transaction);
                             return;
                         }
@@ -793,7 +795,9 @@ function MoneyRequestView({
                                 return;
                             }
 
-                            if (isExpenseSplit) {
+                            // Only navigate to split expense page if split is both detected and available
+                            // When expense is moved to personal space, isSplitAvailable will be false
+                            if (isExpenseSplit && isSplitAvailable) {
                                 initSplitExpense(allTransactions, allReports, transaction);
                                 return;
                             }
