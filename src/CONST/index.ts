@@ -3576,6 +3576,9 @@ const CONST = {
         CARD_NAME: {
             CASH: '__CASH__',
         },
+        BANK_NAME: {
+            UPLOAD: 'upload',
+        },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
         EXPORT_CARD_TYPES: {
