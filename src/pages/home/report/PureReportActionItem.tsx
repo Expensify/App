@@ -57,6 +57,7 @@ import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
@@ -1317,7 +1318,7 @@ function PureReportActionItem({
             // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
             const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport;
             const htmlContent = isPendingDelete
-                ? `<del><comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment></del>`
+                ? `<del><comment><muted-text>${Parser.htmlToText(getMovedTransactionMessage(action))}</muted-text></comment></del>`
                 : `<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`;
             // When expenses are merged multiple times, the previous fromReportID may reference a deleted report,
             // making it impossible to retrieve the report name for display
@@ -1327,10 +1328,7 @@ function PureReportActionItem({
             } else {
                 children = (
                     <ReportActionItemBasicMessage message="">
-                        <RenderHTML
-                            html={htmlContent}
-                            onLinkPress={isPendingDelete ? () => {} : undefined}
-                        />
+                        <RenderHTML html={htmlContent} />
                     </ReportActionItemBasicMessage>
                 );
             }
@@ -1353,15 +1351,12 @@ function PureReportActionItem({
             const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
             const unreportedTransactionMessage = getUnreportedTransactionMessage(action);
             const htmlContent = isPendingDelete
-                ? `<del><comment><muted-text>${unreportedTransactionMessage}</muted-text></comment></del>`
+                ? `<del><comment><muted-text>${Parser.htmlToText(unreportedTransactionMessage)}</muted-text></comment></del>`
                 : `<comment><muted-text>${unreportedTransactionMessage}</muted-text></comment>`;
 
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML
-                        html={htmlContent}
-                        onLinkPress={isPendingDelete ? () => {} : undefined}
-                    />
+                    <RenderHTML html={htmlContent} />
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
