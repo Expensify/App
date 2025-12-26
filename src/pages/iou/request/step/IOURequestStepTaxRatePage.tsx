@@ -63,7 +63,23 @@ function IOURequestStepTaxRatePage({
 
     const taxRateTitle = getTaxName(policy, currentTransaction);
 
-    const updateTaxRates = (taxes: TaxRatesOption) => {
+    const updateTaxRates = (taxes: TaxRatesOption, isTaxDeleted?: boolean) => {
+        if (isTaxDeleted && isEditing) {
+            updateMoneyRequestTaxRate({
+                transactionID: currentTransaction?.transactionID,
+                optimisticReportActionID: report?.reportID,
+                taxCode: '',
+                taxAmount: convertToBackendAmount(0),
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+            });
+            navigateBack();
+            return;
+        }
         if (!currentTransaction || !taxes.code || !taxRates) {
             Navigation.goBack();
             return;
