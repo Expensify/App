@@ -90,6 +90,7 @@ import {
 import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canUserPerformWriteAction,
+    findSelfDMReportID,
     generateReportID,
     getIcons,
     getPersonalDetailsForAccountID,
@@ -1557,7 +1558,8 @@ function createAndOpenSearchTransactionThread(
     transactionPreviewData?: TransactionPreviewData,
     shouldNavigate = true,
 ) {
-    const iouReportAction = getIOUActionForReportID(item.reportID, item.transactionID);
+    const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    const iouReportAction = getIOUActionForReportID(isFromSelfDM ? findSelfDMReportID() : item.reportID, item.transactionID);
     const moneyRequestReportActionID = item.reportAction?.reportActionID ?? undefined;
     const previewData = transactionPreviewData
         ? {...transactionPreviewData, hasTransactionThreadReport: true}
@@ -1582,7 +1584,6 @@ function createAndOpenSearchTransactionThread(
     if (shouldNavigate) {
         // Navigate to transaction thread if there are multiple transactions in the report, or to the parent report if it's the only transaction
         const isFromOneTransactionReport = isOneTransactionReport(item.report);
-        const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const shouldNavigateToTransactionThread = (!isFromOneTransactionReport || isFromSelfDM) && transactionThreadReport?.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
         const targetReportID = shouldNavigateToTransactionThread ? transactionThreadReport?.reportID : item.reportID;
 

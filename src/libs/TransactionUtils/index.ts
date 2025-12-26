@@ -38,6 +38,7 @@ import {
     getReportOrDraftReport,
     getReportTransactions,
     isCurrentUserSubmitter,
+    isInvoiceReport,
     isOpenExpenseReport,
     isProcessingReport,
     isReportApproved,
@@ -1134,14 +1135,27 @@ function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean 
 }
 
 /**
- * Determine whether the transaction is coming from any card (Expensify/Corporate/personal cards)
+ * Determine whether a transaction is imported from a credit card.
+ * This includes managed cards (Expensify/Company cards) and personal cards imported via bank connection.
  */
-function isCardTransaction(transaction: OnyxEntry<Transaction>, cardList?: CardList): boolean {
-    if (transaction?.managedCard) {
+function isFromCreditCardImport(transaction: OnyxEntry<Transaction>): boolean {
+    if (transaction?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD) {
+        return false;
+    }
+
+    if (isManagedCardTransaction(transaction)) {
         return true;
     }
-    const transactionType = transaction?.transactionType ?? getTransactionType(transaction, cardList);
-    return transactionType === CONST.SEARCH.TRANSACTION_TYPE.CARD;
+
+    if (transaction?.cardNumber) {
+        return true;
+    }
+
+    if (transaction?.bank) {
+        return true;
+    }
+
+    return false;
 }
 
 function getCardName(transaction: OnyxEntry<Transaction>): string {
@@ -1196,6 +1210,11 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
 
     // Don't consider partial transactions (empty merchant and zero amount) as analyzing
     if (isMerchantMissing(transaction) && transaction.amount === 0) {
+        return false;
+    }
+
+    // Invoice expense is not auto-categorized
+    if (isInvoiceReport(transaction.reportID)) {
         return false;
     }
 
@@ -2456,7 +2475,6 @@ export {
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
-    isCardTransaction,
     isDuplicate,
     isPending,
     isPosted,
@@ -2525,6 +2543,7 @@ export {
     mergeProhibitedViolations,
     getOriginalAttendees,
     getReportOwnerAsAttendee,
+    isFromCreditCardImport,
     getExchangeRate,
     shouldReuseInitialTransaction,
     getOriginalAmountForDisplay,
