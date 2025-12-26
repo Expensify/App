@@ -3076,7 +3076,7 @@ function createNewReport(
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
 
-    const {optimisticReportName, parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData(
+    const {parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData(
         policy,
         optimisticReportID,
         reportActionID,
@@ -3093,7 +3093,6 @@ function createNewReport(
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
         {
-            reportName: optimisticReportName,
             type: CONST.REPORT.TYPE.EXPENSE,
             policyID,
             reportID: optimisticReportID,
