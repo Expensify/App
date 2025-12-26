@@ -297,7 +297,7 @@ function mergeTransactionRequest({
         tag: string;
         receiptID: number | undefined;
         reportID: string;
-        iouReportActionID?: string;
+        createdIOUReportActionID?: string;
     } = {
         transactionID: mergeTransaction.targetTransactionID,
         transactionIDList: [mergeTransaction.sourceTransactionID],
@@ -528,7 +528,7 @@ function mergeTransactionRequest({
                 [newIOUAction.reportActionID]: null,
             },
         });
-        params.iouReportActionID = newIOUAction.reportActionID;
+        params.createdIOUReportActionID = newIOUAction.reportActionID;
     }
 
     API.write(WRITE_COMMANDS.MERGE_TRANSACTION, params, {optimisticData, failureData, successData});
