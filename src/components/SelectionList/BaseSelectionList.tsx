@@ -41,6 +41,7 @@ function BaseSelectionList<TItem extends ListItem>({
     initiallyFocusedItemKey,
     onSelectRow,
     onSelectAll,
+    onLongPressRow,
     onCheckboxPress,
     onScrollBeginDrag,
     onDismissError,
@@ -56,7 +57,7 @@ function BaseSelectionList<TItem extends ListItem>({
     listFooterContent,
     rightHandSideComponent,
     alternateNumberOfSupportedLines,
-    selectedItems = CONST.EMPTY_ARRAY,
+    selectedItems = CONST.EMPTY_ARRAY as unknown as string[],
     style,
     isSelected,
     isDisabled = false,
@@ -74,6 +75,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldShowTooltips = true,
     shouldIgnoreFocus = false,
     shouldStopPropagation = false,
+    shouldHeaderBeInsideList = false,
     shouldScrollToFocusedIndex = true,
     shouldDebounceScrolling = false,
     shouldUpdateFocusedIndex = false,
@@ -312,6 +314,7 @@ function BaseSelectionList<TItem extends ListItem>({
         const isItemDisabled = isDisabled || item.isDisabled;
         const selected = isItemSelected(item);
         const isItemFocused = (!isDisabled || selected) && focusedIndex === index;
+        const isItemHighlighted = !!itemsToHighlight?.has(item.keyForList);
 
         return (
             <View
@@ -327,7 +330,11 @@ function BaseSelectionList<TItem extends ListItem>({
                     selectRow={selectRow}
                     keyForList={item.keyForList}
                     showTooltip={shouldShowTooltips}
-                    item={item}
+                    item={{
+                        shouldAnimateInHighlight: isItemHighlighted,
+                        isSelected: selected,
+                        ...item,
+                    }}
                     setFocusedIndex={setFocusedIndex}
                     index={index}
                     normalizedIndex={index}
@@ -335,6 +342,8 @@ function BaseSelectionList<TItem extends ListItem>({
                     isDisabled={isItemDisabled}
                     canSelectMultiple={canSelectMultiple}
                     onDismissError={onDismissError}
+                    onLongPressRow={onLongPressRow}
+                    onCheckboxPress={onCheckboxPress}
                     shouldSingleExecuteRowSelect={shouldSingleExecuteRowSelect}
                     shouldUseDefaultRightHandSideCheckmark={shouldUseDefaultRightHandSideCheckmark}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
@@ -343,8 +352,9 @@ function BaseSelectionList<TItem extends ListItem>({
                     isAlternateTextMultilineSupported={(alternateNumberOfSupportedLines ?? 0) > 1}
                     alternateTextNumberOfLines={alternateNumberOfSupportedLines}
                     shouldIgnoreFocus={shouldIgnoreFocus}
-                    wrapperStyle={style?.listItemWrapperStyle}
                     titleStyles={style?.listItemTitleStyles}
+                    wrapperStyle={style?.listItemWrapperStyle}
+                    titleContainerStyles={style?.listItemTitleContainerStyles}
                     singleExecution={singleExecution}
                     shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
@@ -481,6 +491,18 @@ function BaseSelectionList<TItem extends ListItem>({
         updateFocusedIndex,
     ]);
 
+    const header = (
+        <ListHeader
+            dataDetails={dataDetails}
+            customListHeader={customListHeader}
+            canSelectMultiple={canSelectMultiple}
+            onSelectAll={handleSelectAll}
+            headerStyle={style?.listHeaderWrapperStyle}
+            shouldShowSelectAllButton={!!onSelectAll}
+            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+        />
+    );
+
     return (
         <View style={[styles.flex1, addBottomSafeAreaPadding && !hasFooter && paddingBottomStyle, style?.containerStyle]}>
             {textInputComponent({shouldBeInsideList: false})}
@@ -488,14 +510,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 renderListEmptyContent()
             ) : (
                 <>
-                    <ListHeader
-                        dataDetails={dataDetails}
-                        customListHeader={customListHeader}
-                        canSelectMultiple={canSelectMultiple}
-                        onSelectAll={handleSelectAll}
-                        shouldShowSelectAllButton={!!onSelectAll}
-                        shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
-                    />
+                    {!shouldHeaderBeInsideList && header}
                     <FlashList
                         data={data}
                         renderItem={renderItem}
@@ -516,6 +531,7 @@ function BaseSelectionList<TItem extends ListItem>({
                             <>
                                 {customListHeaderContent}
                                 {textInputComponent({shouldBeInsideList: true})}
+                                {shouldHeaderBeInsideList && header}
                             </>
                         }
                     />

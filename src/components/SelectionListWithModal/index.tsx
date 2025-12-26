@@ -3,9 +3,8 @@ import type {ForwardedRef} from 'react';
 import React, {useMemo, useState} from 'react';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
-// eslint-disable-next-line no-restricted-imports
-import SelectionList from '@components/SelectionListWithSections';
-import type {ListItem, SelectionListHandle, SelectionListProps} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import type {ListItem, SelectionListHandle, SelectionListProps} from '@components/SelectionList/types';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -17,7 +16,6 @@ import CONST from '@src/CONST';
 type SelectionListWithModalProps<TItem extends ListItem> = SelectionListProps<TItem> & {
     turnOnSelectionModeOnLongPress?: boolean;
     onTurnOnSelectionMode?: (item: TItem | null) => void;
-    isScreenFocused?: boolean;
     ref?: ForwardedRef<SelectionListHandle>;
 };
 
@@ -25,8 +23,7 @@ function SelectionListWithModal<TItem extends ListItem>({
     turnOnSelectionModeOnLongPress,
     onTurnOnSelectionMode,
     onLongPressRow,
-    isScreenFocused = false,
-    sections,
+    data,
     isSelected,
     selectedItems: selectedItemsProp,
     ref,
@@ -44,25 +41,24 @@ function SelectionListWithModal<TItem extends ListItem>({
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
-    const sectionData = sections[0]?.data;
     const selectedItems = useMemo(
         () =>
             selectedItemsProp ??
-            sectionData?.filter((item) => {
+            data.filter((item) => {
                 if (isSelected) {
                     return isSelected(item);
                 }
                 return !!item.isSelected;
             }) ??
             [],
-        [isSelected, sectionData, selectedItemsProp],
+        [isSelected, data, selectedItemsProp],
     );
 
     useHandleSelectionMode(selectedItems);
 
     const handleLongPressRow = (item: TItem) => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || (!isFocused && !isScreenFocused)) {
+        if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
             return;
         }
         if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
@@ -91,11 +87,12 @@ function SelectionListWithModal<TItem extends ListItem>({
         <>
             <SelectionList
                 ref={ref}
-                sections={sections}
+                data={data}
+                addBottomSafeAreaPadding
                 selectedItems={selectedItemsProp}
                 onLongPressRow={handleLongPressRow}
-                isScreenFocused={isScreenFocused}
                 isSmallScreenWidth={isSmallScreenWidth}
+                disableMaintainingScrollPosition
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
             />
