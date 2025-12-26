@@ -26,6 +26,9 @@ type SingleSelectPopupProps<T> = {
     /** The currently selected item */
     value: SingleSelectItem<T> | null;
 
+    /** The default value to set when reset is clicked */
+    defaultValue: string | undefined;
+
     /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
 
@@ -39,7 +42,7 @@ type SingleSelectPopupProps<T> = {
     searchPlaceholder?: string;
 };
 
-function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder}: SingleSelectPopupProps<T>) {
+function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder, defaultValue}: SingleSelectPopupProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -93,9 +96,9 @@ function SingleSelectPopup<T extends string>({label, value, items, closeOverlay,
     }, [closeOverlay, onChange, selectedItem]);
 
     const resetChanges = useCallback(() => {
-        onChange(null);
+        onChange(defaultValue ? (items.find((item) => item.value === defaultValue) ?? null) : null);
         closeOverlay();
-    }, [closeOverlay, onChange]);
+    }, [closeOverlay, onChange, defaultValue, items]);
 
     const textInputOptions = useMemo(
         () => ({
