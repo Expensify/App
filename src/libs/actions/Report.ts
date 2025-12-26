@@ -1535,16 +1535,34 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
 }
 
 /**
+ * Creates an explanation thread for a report action with reasoning
+ * Adds a "Please explain this to me." comment from the user
+ */
+function explain(reportAction: OnyxEntry<ReportAction>, originalReportID: string | undefined, translate: LocalizedTranslate) {
+    if (!originalReportID || !reportAction) {
+        return;
+    }
+
+    const childReportID = navigateToAndOpenChildReport(reportAction.childReportID, reportAction, originalReportID);
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    InteractionManager.runAfterInteractions(() => {
+        addComment(childReportID, childReportID, [], translate('reportActionContextMenu.explainMessage'), CONST.DEFAULT_TIME_ZONE);
+    });
+}
+
+/**
  * This will navigate to an existing thread, or create a new one if necessary
  *
  * @param childReportID The reportID we are trying to open
  * @param parentReportAction the parent comment of a thread
  * @param parentReportID The reportID of the parent
  */
-function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
+function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string): string {
     const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
     if (childReport?.reportID) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
+        return childReport.reportID;
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
         const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
@@ -1571,6 +1589,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
         }
 
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID, undefined, undefined, Navigation.getActiveRoute()));
+        return newChat.reportID;
     }
 }
 
@@ -6314,6 +6333,7 @@ export {
     doneCheckingPublicRoom,
     downloadReportPDF,
     editReportComment,
+    explain,
     expandURLPreview,
     exportReportToCSV,
     exportReportToPDF,
