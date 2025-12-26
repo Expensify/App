@@ -191,6 +191,32 @@ function StatusPage() {
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
     const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
 
+    const renderDelegatorList = () => {
+        if (!vacationDelegate?.delegatorFor) {
+            return null;
+        }
+
+        return vacationDelegate.delegatorFor.map((delegatorEmail) => {
+            const delegatorDetails = getPersonalDetailByEmail(delegatorEmail);
+            const formattedLogin = formatPhoneNumber(delegatorDetails?.login ?? '');
+            const displayLogin = formattedLogin || delegatorEmail;
+
+            return (
+                <MenuItem
+                    key={delegatorEmail}
+                    title={delegatorDetails?.displayName ?? displayLogin}
+                    description={displayLogin}
+                    avatarID={delegatorDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                    icon={delegatorDetails?.avatar ?? Expensicons.FallbackAvatar}
+                    iconType={CONST.ICON_TYPE_AVATAR}
+                    numberOfLinesDescription={1}
+                    containerStyle={[styles.pr2, styles.mt1]}
+                    interactive={false}
+                />
+            );
+        });
+    };
+
     return (
         <ScreenWrapper
             style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.PROFILE.STATUS].backgroundColor)]}
@@ -269,24 +295,7 @@ function StatusPage() {
                     {hasActiveDelegations ? (
                         <View>
                             <Text style={[styles.mh5, styles.mb4]}>{translate('statusPage.cannotSetVacationDelegate')}</Text>
-                            {vacationDelegate?.delegatorFor?.map((delegatorEmail) => {
-                                const delegatorPersonalDetails = getPersonalDetailByEmail(delegatorEmail);
-                                const formattedDelegatorLogin = formatPhoneNumber(delegatorPersonalDetails?.login ?? '');
-                                const delegatorDisplayText = formattedDelegatorLogin === '' ? delegatorEmail : formattedDelegatorLogin;
-                                return (
-                                    <MenuItem
-                                        key={delegatorEmail}
-                                        title={delegatorPersonalDetails?.displayName ?? delegatorDisplayText}
-                                        description={delegatorDisplayText}
-                                        avatarID={delegatorPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                        icon={delegatorPersonalDetails?.avatar ?? Expensicons.FallbackAvatar}
-                                        iconType={CONST.ICON_TYPE_AVATAR}
-                                        numberOfLinesDescription={1}
-                                        containerStyle={[styles.pr2, styles.mt1]}
-                                        interactive={false}
-                                    />
-                                );
-                            })}
+                            {renderDelegatorList()}
                         </View>
                     ) : (
                         <View>
