@@ -17,6 +17,14 @@ type PayMoneyRequestParams = {
      * }>
      */
     optimisticHoldReportExpenseActionIDs?: string;
+    /**
+     * Stringified JSON object with type of following structure:
+     * Array<{
+     *   optimisticReportActionID: string;
+     *   oldReportActionID: string;
+     * }>
+     */
+    duplicatedReportActionIDs?: string;
 };
 
 export default PayMoneyRequestParams;
