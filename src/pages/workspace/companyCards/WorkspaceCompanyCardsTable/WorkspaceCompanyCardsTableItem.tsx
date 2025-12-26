@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
@@ -88,7 +89,7 @@ function WorkspaceCompanyCardTableItem({
 }: WorkspaceCompanyCardTableItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const {failedCompanyCardAssignment} = item;
@@ -108,10 +109,10 @@ function WorkspaceCompanyCardTableItem({
     }
 
     const lastCardNumbers = isPlaidCardFeed ? lastFourNumbersFromCardName(cardName) : splitMaskedCardNumber(cardName)?.lastDigits;
-    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? formatPhoneNumber(cardholder?.login ?? '') : undefined;
+    const cardholderLoginText = !shouldUseNarrowTableLayout && isAssigned ? Str.removeSMSDomain(cardholder?.login ?? '') : undefined;
     const narrowWidthCardName = isAssigned ? `${customCardName ?? ''}${lastCardNumbers ? ` - ${lastCardNumbers}` : ''}` : cardName;
 
-    const leftColumnTitle = isAssigned ? formatPhoneNumber(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
+    const leftColumnTitle = isAssigned ? Str.removeSMSDomain(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const leftColumnSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
 
     const resetFailedCompanyCardAssignment = () => {
