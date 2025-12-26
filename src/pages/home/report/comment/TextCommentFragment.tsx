@@ -76,7 +76,6 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const containsOnlyEmojis = containsOnlyEmojisUtil(text ?? '');
     const containsOnlyCustomEmoji = containsOnlyCustomEmojiUtil(text);
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
-
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
         // We need to replace the space at the beginning of each line with &nbsp;

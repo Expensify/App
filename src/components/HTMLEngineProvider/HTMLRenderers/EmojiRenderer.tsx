@@ -6,19 +6,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
 
-    const getStyle = (): TextStyle[] | null => {
-        if ('islarge' in tnode.attributes) {
-            return [styleProp as TextStyle, styles.onlyEmojisText];
-        }
+    let style;
+    if ('islarge' in tnode.attributes) {
+        style = [styleProp as TextStyle, styles.onlyEmojisText];
+    }
 
-        if ('ismedium' in tnode.attributes) {
-            return [styleProp as TextStyle, styles.emojisWithTextFontSize, styles.verticalAlignTopText];
-        }
+    if ('ismedium' in tnode.attributes) {
+        style = [styleProp as TextStyle, styles.emojisWithTextFontSize, styles.verticalAlignTopText];
+    }
 
-        return null;
-    };
-
-    const style = getStyle();
     return (
         <EmojiWithTooltip
             oneLine={'oneline' in tnode.attributes}
