@@ -793,13 +793,8 @@ function IOURequestStepScan({
         if (!dismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
             setShouldShowMultiScanEducationalPopup(true);
         }
-        if (isMultiScanEnabled) {
-            removeDraftTransactions(true);
-        }
-
-        for (const transaction of optimisticTransactions ?? []) {
-            removeTransactionReceipt(transaction?.transactionID);
-        }
+        removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+        removeDraftTransactions(true);
         setIsMultiScanEnabled?.(!isMultiScanEnabled);
     };
 
