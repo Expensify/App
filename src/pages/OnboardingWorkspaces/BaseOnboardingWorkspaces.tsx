@@ -154,6 +154,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 shouldShowBackButton={!isRestrictedPolicyCreation}
                 progressBarPercentage={isRestrictedPolicyCreation ? 100 : 60}
                 onBackButtonPress={handleBackButtonPress}
+                shouldDisplayHelpButton={false}
             />
             <SelectionList
                 data={policyIDItems}
