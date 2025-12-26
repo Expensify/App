@@ -167,6 +167,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -343,6 +344,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'First name',
         lastName: 'Sobrenome',
         scanning: 'Escaneando',
+        analyzing: 'Analisando...',
         addCardTermsOfService: 'Termos de Serviço da Expensify',
         perPerson: 'por pessoa',
         phone: 'Telefone',
@@ -4844,6 +4846,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 'Expensify Limited é um agente da Plaid Financial Ltd., uma instituição de pagamento autorizada e regulada pela Financial Conduct Authority sob as Payment Services Regulations 2017 (Número de Referência da Empresa: 804718). A Plaid fornece a você serviços regulados de informações de conta por meio da Expensify Limited como seu agente.',
             assign: 'Atribuir',
             assignCardFailedError: 'Falha na atribuição do cartão.',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir e gerenciar seus Cartões Expensify',
@@ -7609,12 +7612,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             whatsMainReason: 'Qual é o principal motivo para você desativar a renovação automática?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Renova em ${date}.`,
             pricingConfiguration: 'O preço depende da configuração. Para obter o menor preço, escolha uma assinatura anual e peça o Expensify Card.',
-            learnMore: {
-                part1: 'Saiba mais em nossa',
-                pricingPage: 'página de preços',
-                part2: 'ou converse com nossa equipe no seu',
-                adminsRoom: 'Sala #admins.',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `<muted-text>Saiba mais em nossa <a href="${CONST.PRICING}">página de preços</a> ou converse com nossa equipe no seu ${hasAdminsRoom ? `<a href="adminsRoom">sala #admins.</a>` : '#sala dos admins.'}</muted-text>`,
             estimatedPrice: 'Preço estimado',
             changesBasedOn: 'Isso muda com base no uso do seu Expensify Card e nas opções de assinatura abaixo.',
         },
