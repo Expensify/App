@@ -124,7 +124,6 @@ function QuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConne
                     key={index}
                     errors={section.errors}
                     errorRowStyles={[styles.ph5]}
-                    canDismissError={false}
                 >
                     <MenuItemWithTopDescription
                         title={section.title}

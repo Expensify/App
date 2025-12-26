@@ -1,5 +1,10 @@
 {
     "language": "en",
+    "enableGlobDot": false,
+    "cache": {
+        "useCache": true,
+        "cacheLocation": ".cspellcache"
+    },
     "words": [
         "--longpress",
         "Accelo",
@@ -20,6 +25,7 @@
         "alrt",
         "Amal",
         "Amal's",
+        "americanexpress",
         "americanexpressfdx",
         "Amina",
         "androiddebugkey",
@@ -95,6 +101,7 @@
         "Bronn",
         "BROWSABLE",
         "buildscript",
+        "shareeEmail",
         "Buildscript",
         "Bushwick",
         "BYOC",
@@ -241,6 +248,7 @@
         "falso",
         "favicons",
         "Ferroalloy",
+        "FinancialForce",
         "firebaselogging",
         "firstname",
         "Fiscale",
