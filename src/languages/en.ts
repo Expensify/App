@@ -411,6 +411,7 @@ const translations = {
         conjunctionTo: 'to',
         genericErrorMessage: 'Oops... something went wrong and your request could not be completed. Please try again later.',
         percentage: 'Percentage',
+        converted: 'Converted',
         error: {
             invalidAmount: 'Invalid amount',
             acceptTerms: 'You must accept the Terms of Service to continue',

@@ -419,6 +419,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: '到',
         genericErrorMessage: '哎呀……出现了一些问题，无法完成您的请求。请稍后再试。',
         percentage: '百分比',
+        converted: '已转换',
         error: {
             invalidAmount: '金额无效',
             acceptTerms: '您必须接受服务条款才能继续',
