@@ -69,7 +69,7 @@ import {
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
 import type {GpsPoint} from '@userActions/IOU';
-import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions, removeTransactionReceipt} from '@userActions/TransactionEdit';
+import {buildOptimisticTransactionAndCreateDraft, removeDraftTransactions} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
