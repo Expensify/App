@@ -125,6 +125,7 @@ import {
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
     getReportName as getReportNameDeprecated,
+    getReportOrDraftReport,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
@@ -137,6 +138,7 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils
 import {setDownload} from '@userActions/Download';
 import {
     deleteReportActionDraft,
+    explain,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
     openReport,
@@ -150,6 +152,8 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
+import {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -250,7 +254,21 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
         | IconAsset
         | Extract<
               ExpensifyIconName,
-              'Download' | 'ThreeDots' | 'ChatBubbleReply' | 'ChatBubbleUnread' | 'Mail' | 'Pencil' | 'Stopwatch' | 'Bell' | 'Copy' | 'LinkCopy' | 'Pin' | 'Flag' | 'Bug' | 'Trashcan'
+              | 'Download'
+              | 'ThreeDots'
+              | 'ChatBubbleReply'
+              | 'ChatBubbleUnread'
+              | 'Mail'
+              | 'Pencil'
+              | 'Stopwatch'
+              | 'Bell'
+              | 'Copy'
+              | 'LinkCopy'
+              | 'Pin'
+              | 'Flag'
+              | 'Bug'
+              | 'Trashcan'
+              | 'QuestionMark'
           >;
     successTextTranslateKey?: TranslationPaths;
     successIcon?:
@@ -272,6 +290,7 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
               | 'Bug'
               | 'Trashcan'
               | 'ThreeDots'
+              | 'QuestionMark'
           >;
     onPress: OnPress;
     getDescription: GetDescription;
@@ -385,6 +404,45 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MARK_AS_UNREAD,
+    },
+    {
+        isAnonymousAction: false,
+        textTranslateKey: 'reportActionContextMenu.explain',
+        icon: 'QuestionMark',
+        shouldShow: ({type, reportAction, isArchivedRoom}): boolean => {
+            if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || isArchivedRoom || !reportAction) {
+                return false;
+            }
+
+            const isExplainableAction = [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, CONST.REPORT.ACTIONS.TYPE.AUTO_SUBMITTED].some((actionType) => reportAction?.actionName === actionType);
+            if (!isExplainableAction) {
+                return false;
+            }
+
+            const originalMessage = getOriginalMessage(reportAction);
+            const hasReasoning = !!(originalMessage && typeof originalMessage === 'object' && 'reasoning' in originalMessage && originalMessage.reasoning);
+
+            return hasReasoning;
+        },
+        onPress: (closePopover, {reportAction, reportID, translate}) => {
+            if (!reportID) {
+                return;
+            }
+
+            const originalReportID = getOriginalReportID(reportID, reportAction);
+            if (closePopover) {
+                hideContextMenu(false, () => {
+                    KeyboardUtils.dismiss().then(() => {
+                        explain(reportAction, originalReportID, translate);
+                    });
+                });
+                return;
+            }
+
+            explain(reportAction, originalReportID, translate);
+        },
+        getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EXPLAIN,
     },
     {
         isAnonymousAction: false,
