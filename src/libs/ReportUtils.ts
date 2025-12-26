@@ -3996,7 +3996,7 @@ function getReimbursementDeQueuedOrCanceledActionMessage(
     }
     const submitterDisplayName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.canceledRequest', {submitterDisplayName, amount: formattedAmount});
+    return translateLocal('iou.canceledRequest', formattedAmount, submitterDisplayName);
 }
 
 /**
@@ -7144,10 +7144,7 @@ function getPolicyChangeMessage(action: ReportAction) {
     const PolicyChangeOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
     const {fromPolicy: fromPolicyID, toPolicy: toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const message = translateLocal('report.actions.type.changeReportPolicy', {
-        fromPolicyName: fromPolicyID ? getPolicyNameByID(fromPolicyID) : undefined,
-        toPolicyName: getPolicyNameByID(toPolicyID),
-    });
+    const message = translateLocal('report.actions.type.changeReportPolicy', getPolicyNameByID(toPolicyID), fromPolicyID ? getPolicyNameByID(fromPolicyID) : undefined);
     return message;
 }
 
