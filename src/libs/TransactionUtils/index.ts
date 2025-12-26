@@ -181,9 +181,9 @@ function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return hasDistanceCustomUnit(transaction);
 }
 
-function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedMergeTransaction = false): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
+    if (lodashHas(transaction, 'iouRequestType') && !isUpdatedMergeTransaction) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     }
 
@@ -1132,6 +1132,17 @@ function isExpensifyCardTransaction(transaction: OnyxEntry<Transaction>): boolea
  */
 function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return !!transaction?.managedCard;
+}
+
+/**
+ * Determine whether the transaction is coming from any card (Expensify/Corporate/personal cards)
+ */
+function isCardTransaction(transaction: OnyxEntry<Transaction>, cardList?: CardList): boolean {
+    if (transaction?.managedCard) {
+        return true;
+    }
+    const transactionType = transaction?.transactionType ?? getTransactionType(transaction, cardList);
+    return transactionType === CONST.SEARCH.TRANSACTION_TYPE.CARD;
 }
 
 function getCardName(transaction: OnyxEntry<Transaction>): string {
@@ -2279,7 +2290,11 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
     });
 }
 
-function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>): boolean {
+function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction?: OnyxEntry<Transaction>): boolean {
+    if (!originalTransaction) {
+        return !!transaction?.comment?.originalTransactionID && transaction?.comment?.source === 'split';
+    }
+
     const {originalTransactionID, source, splits} = transaction?.comment ?? {};
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -2447,6 +2462,7 @@ export {
     isFetchingWaypointsFromServer,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
+    isCardTransaction,
     isDuplicate,
     isPending,
     isPosted,
