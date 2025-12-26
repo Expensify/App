@@ -105,6 +105,9 @@ type AttachmentModalBaseContentProps = {
     /** Whether to display help button */
     shouldDisplayHelpButton?: boolean;
 
+    /** Whether to minimize menu button */
+    shouldMinimizeMenuButton?: boolean;
+
     /** The link of the attachment */
     attachmentLink?: string;
 
