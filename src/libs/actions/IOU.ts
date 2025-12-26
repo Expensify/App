@@ -10478,7 +10478,10 @@ function getReportFromHoldRequestsOnyxData(
     ];
 
     // Copy submission/approval actions to the new report
-    const [copiedActionsOptimistic, copiedActionsSuccess, copiedActionsFailure, optimisticDuplicatedReportActionIDs] = getDuplicateActionsForPartialReport(iouReport?.reportID, optimisticExpenseReport.reportID);
+    const [copiedActionsOptimistic, copiedActionsSuccess, copiedActionsFailure, optimisticDuplicatedReportActionIDs] = getDuplicateActionsForPartialReport(
+        iouReport?.reportID,
+        optimisticExpenseReport.reportID,
+    );
     optimisticData.push(...copiedActionsOptimistic);
     successData.push(...copiedActionsSuccess);
     failureData.push(...copiedActionsFailure);
