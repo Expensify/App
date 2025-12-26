@@ -907,6 +907,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `この${type}を削除してもよろしいですか？`;
         },
         onlyVisible: 'にのみ表示',
+        explain: '説明する',
+        explainMessage: 'これを説明してください。',
         replyInThread: 'スレッドに返信',
         joinThread: 'スレッドに参加',
         leaveThread: 'スレッドから退出',

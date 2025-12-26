@@ -907,6 +907,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Czy na pewno chcesz usunąć ten element typu ${type}?`;
         },
         onlyVisible: 'Widoczne tylko dla',
+        explain: 'Wyjaśnij',
+        explainMessage: 'Proszę, wyjaśnij mi to.',
         replyInThread: 'Odpowiedz w wątku',
         joinThread: 'Dołącz do wątku',
         leaveThread: 'Opuść wątek',

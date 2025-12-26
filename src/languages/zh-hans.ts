@@ -901,6 +901,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `您确定要删除此${type}吗？`;
         },
         onlyVisible: '仅对…可见',
+        explain: '解释',
+        explainMessage: '请为我解释一下。',
         replyInThread: '在线程中回复',
         joinThread: '加入话题',
         leaveThread: '离开会话',

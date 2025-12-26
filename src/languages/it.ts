@@ -908,6 +908,8 @@ const translations: TranslationDeepObject<typeof en> = {
             return `Sei sicuro di voler eliminare questo ${type}?`;
         },
         onlyVisible: 'Visibile solo a',
+        explain: 'Spiega',
+        explainMessage: 'Per favore, spiegami questo.',
         replyInThread: 'Rispondi nel thread',
         joinThread: 'Unisciti al thread',
         leaveThread: 'Abbandona conversazione',
