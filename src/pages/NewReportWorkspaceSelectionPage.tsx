@@ -3,7 +3,6 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
@@ -13,6 +12,7 @@ import Text from '@components/Text';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -50,6 +50,7 @@ type WorkspaceListItem = {
 type NewReportWorkspaceSelectionPageProps = PlatformStackScreenProps<NewReportWorkspaceSelectionNavigatorParamList, typeof SCREENS.NEW_REPORT_WORKSPACE_SELECTION.ROOT>;
 
 function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const {isMovingExpenses, backTo} = route.params ?? {};
     const {isOffline} = useNetwork();
     const {selectedTransactions, selectedTransactionIDs, clearSelectedTransactions} = useSearchContext();
@@ -59,6 +60,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP, {canBeMissing: true});
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -122,16 +124,18 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
                 const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
                 setNavigationActionToMicrotaskQueue(() => {
-                    changeTransactionsReport(
-                        selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
+                    changeTransactionsReport({
+                        transactionIDs: selectedTransactionsKeys.length ? selectedTransactionsKeys : selectedTransactionIDs,
+                        newReport: optimisticReport,
                         isASAPSubmitBetaEnabled,
-                        currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                        currentUserPersonalDetails?.email ?? '',
-                        optimisticReport,
-                        policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                        accountID: currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        email: currentUserPersonalDetails?.email ?? '',
+                        policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                         reportNextStep,
-                        undefined,
-                    );
+                        allReportsCollection: allReports,
+                        allTransactionsCollection: allTransactions,
+                        allTransactionViolationsCollection: transactionViolations,
+                    });
 
                     // eslint-disable-next-line rulesdir/no-default-id-values
                     setNameValuePair(ONYXKEYS.NVP_ACTIVE_POLICY_ID, policyID, activePolicyID ?? '');
@@ -151,7 +155,6 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             navigateToNewReport(optimisticReport.reportID);
         },
         [
-            activePolicyID,
             currentUserPersonalDetails,
             isASAPSubmitBetaEnabled,
             hasViolations,
@@ -160,9 +163,13 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             selectedTransactionIDs,
             navigateToNewReport,
             allReportNextSteps,
-            policies,
-            clearSelectedTransactions,
             backTo,
+            policies,
+            allReports,
+            allTransactions,
+            transactionViolations,
+            activePolicyID,
+            clearSelectedTransactions,
         ],
     );
 
@@ -263,7 +270,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 icons: [
                     {
                         source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy?.name),
-                        fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
+                        fallbackIcon: icons.FallbackWorkspaceAvatar,
                         name: policy?.name,
                         type: CONST.ICON_TYPE_WORKSPACE,
                         id: policy?.id,
@@ -274,7 +281,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 shouldSyncFocus: true,
             }))
             .sort((a, b) => localeCompare(a.text, b.text));
-    }, [policies, currentUserPersonalDetails?.login, localeCompare, hasPerDiemTransactions]);
+    }, [policies, currentUserPersonalDetails?.login, hasPerDiemTransactions, icons.FallbackWorkspaceAvatar, localeCompare]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
         () => usersWorkspaces.filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? '')),

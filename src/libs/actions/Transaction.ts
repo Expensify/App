@@ -73,18 +73,6 @@ Onyx.connect({
     },
 });
 
-let allReports: OnyxCollection<Report> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReports = value;
-    },
-});
-
 const allTransactionViolation: OnyxCollection<TransactionViolation[]> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
@@ -95,12 +83,6 @@ Onyx.connect({
         const transactionID = CollectionUtils.extractCollectionItemID(key);
         allTransactionViolation[transactionID] = transactionViolation;
     },
-});
-
-let allTransactionViolations: TransactionViolations = [];
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    callback: (val) => (allTransactionViolations = val ?? []),
 });
 
 // Helper to safely check for a string 'name' property
@@ -689,19 +671,36 @@ function setTransactionReport(transactionID: string, transaction: Partial<Transa
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 }
 
-function changeTransactionsReport(
-    transactionIDs: string[],
-    isASAPSubmitBetaEnabled: boolean,
-    accountID: number,
-    email: string,
-    newReport?: OnyxEntry<Report>,
-    policy?: OnyxEntry<Policy>,
-    reportNextStep?: OnyxEntry<ReportNextStepDeprecated>,
-    policyCategories?: OnyxEntry<PolicyCategories>,
-) {
+type ChangeTransactionsReportProps = {
+    transactionIDs: string[];
+    newReport?: OnyxEntry<Report>;
+    isASAPSubmitBetaEnabled: boolean;
+    accountID: number;
+    email: string;
+    policy?: OnyxEntry<Policy>;
+    reportNextStep?: OnyxEntry<ReportNextStepDeprecated>;
+    policyCategories?: OnyxEntry<PolicyCategories>;
+    allReportsCollection: OnyxCollection<Report>;
+    allTransactionsCollection: OnyxCollection<Transaction>;
+    allTransactionViolationsCollection: OnyxCollection<TransactionViolation[]>;
+};
+
+function changeTransactionsReport({
+    transactionIDs,
+    newReport,
+    isASAPSubmitBetaEnabled,
+    accountID,
+    email,
+    policy,
+    reportNextStep,
+    policyCategories,
+    allReportsCollection,
+    allTransactionsCollection,
+    allTransactionViolationsCollection,
+}: ChangeTransactionsReportProps) {
     const reportID = newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
-    const transactions = transactionIDs.map((id) => allTransactions?.[id]).filter((t): t is NonNullable<typeof t> => t !== undefined);
+    const transactions = transactionIDs.map((id) => allTransactionsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is NonNullable<typeof t> => t !== undefined);
     const transactionIDToReportActionAndThreadData: Record<string, TransactionThreadInfo> = {};
     const updatedReportTotals: Record<string, number> = {};
     const updatedReportNonReimbursableTotals: Record<string, number> = {};
@@ -709,8 +708,9 @@ function changeTransactionsReport(
 
     // Store current violations for each transaction to restore on failure
     const currentTransactionViolations: Record<string, TransactionViolation[]> = {};
+
     for (const id of transactionIDs) {
-        currentTransactionViolations[id] = allTransactionViolation?.[id] ?? [];
+        currentTransactionViolations[id] = allTransactionViolationsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
     }
 
     const optimisticData: OnyxUpdate[] = [];
@@ -835,7 +835,7 @@ function changeTransactionsReport(
         transactionsMoved = true;
 
         const oldReportID = isUnreportedExpense ? CONST.REPORT.UNREPORTED_REPORT_ID : transaction.reportID;
-        const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
+        const oldReport = allReportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
 
         const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const optimisticMoneyRequestReportActionID = rand64();
@@ -892,11 +892,12 @@ function changeTransactionsReport(
             const duplicateTransactionIDs = duplicateViolation?.data?.duplicates;
             if (duplicateTransactionIDs) {
                 for (const id of duplicateTransactionIDs) {
+                    const duplicateTransactionViolations = allTransactionViolationsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
                     optimisticData.push({
                         onyxMethod: Onyx.METHOD.SET,
                         key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
                         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-                        value: allTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+                        value: duplicateTransactionViolations.filter((violation: TransactionViolation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
                     });
                 }
             }
@@ -936,7 +937,7 @@ function changeTransactionsReport(
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
-                value: allTransactionViolation?.[transaction.transactionID],
+                value: allTransactionViolationsCollection?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`],
             });
             const transactionHasViolations = Array.isArray(violationData.value) && violationData.value.length > 0;
             const hasOtherViolationsBesideDuplicates =
@@ -990,7 +991,9 @@ function changeTransactionsReport(
         if (targetReportID) {
             const targetReportKey = `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`;
             const targetReport =
-                allReports?.[targetReportKey] ?? (targetReportID === newReport?.reportID ? newReport : undefined) ?? (targetReportID === selfDMReport?.reportID ? selfDMReport : undefined);
+                allReportsCollection?.[targetReportKey] ??
+                (targetReportID === newReport?.reportID ? newReport : undefined) ??
+                (targetReportID === selfDMReport?.reportID ? selfDMReport : undefined);
 
             if (transactionCurrency === targetReport?.currency) {
                 const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
@@ -1069,7 +1072,7 @@ function changeTransactionsReport(
         }
 
         const shouldRemoveOtherParticipants = !isManagedCardTransaction(transaction);
-        const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`];
+        const childReport = allReportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${newIOUAction.childReportID}`];
         if (childReport) {
             const participants = childReport.participants;
             // 5. Optimistically update the transaction thread and all threads in the transaction thread
@@ -1093,7 +1096,7 @@ function changeTransactionsReport(
                 value: {
                     parentReportID: isUnreportedExpense ? selfDMReportID : oldReportID,
                     optimisticMoneyRequestReportActionID: oldIOUAction.reportActionID,
-                    policyID: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.reportActionID}`]?.policyID,
+                    policyID: allReportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${oldIOUAction.reportActionID}`]?.policyID,
                 },
             });
         }
@@ -1248,7 +1251,7 @@ function changeTransactionsReport(
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
-            value: {total: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.total},
+            value: {total: allReportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.total},
         });
     }
 
@@ -1262,7 +1265,7 @@ function changeTransactionsReport(
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
-            value: {nonReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.nonReimbursableTotal},
+            value: {nonReimbursableTotal: allReportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.nonReimbursableTotal},
         });
     }
 
@@ -1277,7 +1280,7 @@ function changeTransactionsReport(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`,
             value: {
-                unheldNonReimbursableTotal: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.unheldNonReimbursableTotal,
+                unheldNonReimbursableTotal: allReportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDToUpdate}`]?.unheldNonReimbursableTotal,
             },
         });
     }
@@ -1323,7 +1326,7 @@ function changeTransactionsReport(
 
     for (const affectedReportID of affectedReportIDs) {
         const affectedReport =
-            allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`] ??
+            allReportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${affectedReportID}`] ??
             (affectedReportID === newReport?.reportID ? newReport : undefined) ??
             (affectedReportID === selfDMReport?.reportID ? selfDMReport : undefined);
 
@@ -1340,7 +1343,7 @@ function changeTransactionsReport(
 
         const predictedNextStatus = updatedReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN;
 
-        const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolation, accountID, email ?? '');
+        const hasViolations = hasViolationsReportUtils(updatedReport.reportID, allTransactionViolationsCollection, accountID, email ?? '');
         const isDestinationReport = affectedReportID === destinationReportID;
         const shouldFixViolationsForReport = isDestinationReport ? shouldFixViolations : false;
         const shouldUseUnreportedNextStepKey = reportID === CONST.REPORT.UNREPORTED_REPORT_ID && isDestinationReport;

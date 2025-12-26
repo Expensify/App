@@ -44,6 +44,7 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
     const session = useSession();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`, {canBeMissing: true});
+    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const hasPerDiemTransactions = useHasPerDiemTransactions(selectedTransactionIDs);
 
@@ -59,22 +60,23 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         }
 
         const newReport = report ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.value}`];
-
         setNavigationActionToMicrotaskQueue(() => {
-            changeTransactionsReport(
-                selectedTransactionIDs,
-                isASAPSubmitBetaEnabled,
-                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                session?.email ?? '',
+            changeTransactionsReport({
+                transactionIDs: selectedTransactionIDs,
                 newReport,
-                allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
+                isASAPSubmitBetaEnabled,
+                accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                email: session?.email ?? '',
+                policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`],
                 reportNextStep,
-                allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
-            );
+                policyCategories: allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${item.policyID}`],
+                allReportsCollection: allReports,
+                allTransactionsCollection: allTransactions,
+                allTransactionViolationsCollection: transactionViolations,
+            });
             turnOffMobileSelectionMode();
             clearSelectedTransactions(true);
         });
-
         Navigation.dismissModal();
     };
 
@@ -82,7 +84,16 @@ function IOURequestEditReport({route}: IOURequestEditReportProps) {
         if (!selectedReport || selectedTransactionIDs.length === 0) {
             return;
         }
-        changeTransactionsReport(selectedTransactionIDs, isASAPSubmitBetaEnabled, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
+        changeTransactionsReport({
+            transactionIDs: selectedTransactionIDs,
+            isASAPSubmitBetaEnabled,
+            accountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            email: session?.email ?? '',
+            allReportsCollection: allReports,
+            allTransactionsCollection: allTransactions,
+            allTransactionViolationsCollection: transactionViolations,
+        });
+
         if (shouldTurnOffSelectionMode) {
             turnOffMobileSelectionMode();
         }
