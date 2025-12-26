@@ -1,7 +1,5 @@
 #!/usr/bin/env ts-node
-
 /* eslint-disable @typescript-eslint/naming-convention */
-
 /**
  * This script helps to symbolicate a .cpuprofile file that was obtained from a specific (staging) app version (usually provided by a user using the app).
  *
