@@ -298,6 +298,7 @@ function getSmallSizeAvatar(args: GetAvatarArgsType): AvatarSource | undefined {
 export {
     getAvatar,
     getAvatarURL,
+    getDefaultAvatar,
     getDefaultAvatarName,
     getDefaultAvatarURL,
     getPresetAvatarNameFromURL,
