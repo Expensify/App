@@ -518,7 +518,7 @@ function MoneyReportHeader({
                 });
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy);
+                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy, policy);
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
@@ -543,6 +543,7 @@ function MoneyReportHeader({
             existingB2BInvoiceReport,
             shouldCalculateTotals,
             activePolicy,
+            policy,
             currentSearchQueryJSON,
             currentSearchKey,
             isOffline,
