@@ -50,7 +50,7 @@ function ThirdPartySignInPage({signInProvider}: ThirdPartySignInPageProps) {
                 >
                     {signInProvider === CONST.SIGN_IN_METHOD.APPLE ? <AppleSignIn isDesktopFlow /> : <GoogleSignIn isDesktopFlow />}
                     <Text style={[styles.mt5]}>{translate('thirdPartySignIn.redirectToDesktopMessage')}</Text>
-                    <Text style={[styles.mt5]}>{translate('thirdPartySignIn.goBackMessage', {provider: signInProvider})}</Text>
+                    <Text style={[styles.mt5]}>{translate('thirdPartySignIn.goBackMessage', signInProvider)}</Text>
                     <TextLink
                         style={[styles.link]}
                         onPress={goBack}
