@@ -14,6 +14,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
+import {isScanning as isTransactionScanning} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
@@ -70,6 +71,24 @@ function ExpenseReportListItemRow({
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(item);
+
+    const isScanning = (() => {
+        if (!item.transactions || item.transactions.length === 0) {
+            return false;
+        }
+
+        // Check if all transactions are scanning
+        const allScanning = item.transactions.every((transaction) => isTransactionScanning(transaction as Parameters<typeof isTransactionScanning>[0]));
+
+        // Check if any transaction has a non-zero amount (not scanning or has amount)
+        const hasTransactionWithAmount = item.transactions.some((transaction) => {
+            const amount = transaction.modifiedAmount ?? transaction.amount ?? 0;
+            return amount !== 0;
+        });
+
+        // Show "Scanning..." only if all are scanning AND none have amounts
+        return allScanning && !hasTransactionWithAmount;
+    })();
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
@@ -151,6 +170,7 @@ function ExpenseReportListItemRow({
                 <TotalCell
                     total={reimbursableSpend}
                     currency={currency}
+                    isScanning={isScanning}
                 />
             </View>
         ),
@@ -159,6 +179,7 @@ function ExpenseReportListItemRow({
                 <TotalCell
                     total={nonReimbursableSpend}
                     currency={currency}
+                    isScanning={isScanning}
                 />
             </View>
         ),
@@ -167,6 +188,7 @@ function ExpenseReportListItemRow({
                 <TotalCell
                     total={totalDisplaySpend}
                     currency={currency}
+                    isScanning={isScanning}
                 />
             </View>
         ),
@@ -257,6 +279,7 @@ function ExpenseReportListItemRow({
                         <TotalCell
                             total={totalDisplaySpend}
                             currency={currency}
+                            isScanning={isScanning}
                         />
                     </View>
                 </View>
