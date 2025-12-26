@@ -304,6 +304,14 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     return reportAction.originalMessage;
 }
 
+function getMarkedReimbursedComment(reportAction: OnyxInputOrEntry<ReportAction>): string | undefined {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+        return undefined;
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    return originalMessage?.message?.trim();
+}
+
 function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
     if (!reportAction) {
         return undefined;
@@ -3583,6 +3591,7 @@ export {
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
+    getMarkedReimbursedComment,
     getMemberChangeMessageFragment,
     getUpdateRoomDescriptionFragment,
     getReportActionMessageFragments,

@@ -847,6 +847,9 @@ type OriginalMessageMarkedReimbursed = {
 
     /** Type of payment method */
     type?: string;
+
+    /** Optional comment/reason for the manual payment */
+    message?: string;
 };
 
 /** Model of `trip room preview` report action */
@@ -1178,6 +1181,7 @@ export type {
     OriginalMessageChangePolicy,
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
+    OriginalMessageMarkedReimbursed,
     OriginalMessageConciergeAutoMapMccGroups,
     OriginalMessageReimbursementDirectorInformationRequired,
 };
