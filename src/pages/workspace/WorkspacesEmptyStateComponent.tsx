@@ -24,8 +24,8 @@ function WorkspacesEmptyStateComponent() {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...illustration}
             SkeletonComponent={WorkspaceRowSkeleton}
-            title={translate('workspace.emptyWorkspace.title')}
-            subtitle={translate('workspace.emptyWorkspace.subtitle')}
+            title={isRestrictedPolicyCreation ? translate('workspace.emptyWorkspace.restrictedPolicyTitle') : translate('workspace.emptyWorkspace.title')}
+            subtitle={isRestrictedPolicyCreation ? translate('workspace.emptyWorkspace.restrictedPolicySubtitle') : translate('workspace.emptyWorkspace.subtitle')}
             titleStyles={styles.pt2}
             headerStyles={[styles.overflowHidden, StyleUtils.getBackgroundColorStyle(colors.pink800), StyleUtils.getHeight(variables.sectionIllustrationHeight)]}
             buttons={
