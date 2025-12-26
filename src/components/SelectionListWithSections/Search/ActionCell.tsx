@@ -3,7 +3,7 @@ import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
-import type {PaymentMethod} from '@components/KYCWall/types';
+import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {SearchScopeProvider} from '@components/Search/SearchScopeProvider';
 import SettlementButton from '@components/SettlementButton';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -84,12 +84,12 @@ function ActionCell({
     const {currency} = iouReport ?? {};
 
     const confirmPayment = useCallback(
-        (type: ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined, payAsBusiness?: boolean, methodID?: number, paymentMethod?: PaymentMethod | undefined) => {
-            if (!type || !reportID || !hash || !amount) {
+        ({paymentType, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
+            if (!paymentType || !reportID || !hash || !amount) {
                 return;
             }
             const invoiceParams = getPayMoneyOnSearchInvoiceParams(policyID, payAsBusiness, methodID, paymentMethod);
-            payMoneyRequestOnSearch(hash, [{amount, paymentType: type, reportID, ...(isInvoiceReport(iouReport) ? invoiceParams : {})}]);
+            payMoneyRequestOnSearch(hash, [{amount, paymentType: paymentType as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, reportID, ...(isInvoiceReport(iouReport) ? invoiceParams : {})}]);
         },
         [reportID, hash, amount, policyID, iouReport],
     );
@@ -156,7 +156,7 @@ function ActionCell({
                     iouReport={iouReport}
                     chatReportID={iouReport?.chatReportID}
                     enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                    onPress={(type, payAsBusiness, methodID, paymentMethod) => confirmPayment(type as ValueOf<typeof CONST.IOU.PAYMENT_TYPE>, payAsBusiness, methodID, paymentMethod)}
+                    onPress={confirmPayment}
                     style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
                     wrapperStyle={[styles.w100]}
                     shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
