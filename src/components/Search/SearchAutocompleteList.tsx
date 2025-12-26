@@ -793,17 +793,21 @@ function SearchAutocompleteList({
     if (!autocompleteQueryValue && recentSearchesData && recentSearchesData.length > 0) {
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
-    const styledRecentReports = recentReportsOptions.map((option) => {
-        const report = getReportOrDraftReport(option.reportID);
-        const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-        const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-        return {
-            ...option,
-            pressableStyle: styles.br2,
-            text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
-            wrapperStyle: [styles.pr3, styles.pl3],
-        };
-    });
+    const styledRecentReports = useMemo(
+        () =>
+            recentReportsOptions.map((option) => {
+                const report = getReportOrDraftReport(option.reportID);
+                const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+                const shouldParserToHTML = reportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
+                return {
+                    ...option,
+                    pressableStyle: styles.br2,
+                    text: StringUtils.lineBreaksToSpaces(shouldParserToHTML ? Parser.htmlToText(option.text ?? '') : (option.text ?? '')),
+                    wrapperStyle: [styles.pr3, styles.pl3],
+                };
+            }),
+        [recentReportsOptions, styles.br2, styles.pr3, styles.pl3],
+    );
     sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
