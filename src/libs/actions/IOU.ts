@@ -97,6 +97,7 @@ import {
     isSubmitAndClose,
 } from '@libs/PolicyUtils';
 import {
+    buildOptimisticCreatedReportForUnapprovedAction,
     getAllReportActions,
     getIOUActionForReportID,
     getLastVisibleAction,
@@ -10171,6 +10172,7 @@ function getReportFromHoldRequestsOnyxData(
 ): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
+    optimisticCreatedReportForUnapprovedTransactionsActionID: string;
     optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[];
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
@@ -10212,6 +10214,8 @@ function getReportFromHoldRequestsOnyxData(
         optimisticExpenseReport.reportID,
         newParentReportActionID,
     );
+
+    const optimisticCreatedReportForUnapprovedAction = buildOptimisticCreatedReportForUnapprovedAction(optimisticExpenseReport.reportID, iouReport?.reportID ?? chatReport.reportID);
 
     const updateHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID' | 'parentReportID' | 'chatReportID'>> = {};
     const addHoldReportActions: OnyxTypes.ReportActions = {};
@@ -10293,6 +10297,14 @@ function getReportFromHoldRequestsOnyxData(
                 [optimisticExpenseReportPreview.reportActionID]: optimisticExpenseReportPreview,
             },
         },
+        // add optimistic system message explaining the created report for unapproved transactions
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
+            value: {
+                [optimisticCreatedReportForUnapprovedAction.reportActionID]: optimisticCreatedReportForUnapprovedAction,
+            },
+        },
         // remove hold report actions from old iou report
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -10342,6 +10354,16 @@ function getReportFromHoldRequestsOnyxData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
+            value: {
+                [optimisticCreatedReportForUnapprovedAction.reportActionID]: {
+                    pendingAction: null,
+                    isOptimisticAction: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
             value: addHoldReportActionsSuccess,
         },
     ];
@@ -10369,6 +10391,14 @@ function getReportFromHoldRequestsOnyxData(
                 [optimisticExpenseReportPreview.reportActionID]: null,
             },
         },
+        // remove optimistic created-report-for-unapproved action from the main chat
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
+            value: {
+                [optimisticCreatedReportForUnapprovedAction.reportActionID]: null,
+            },
+        },
         // add hold report actions back to old iou report
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -10392,6 +10422,7 @@ function getReportFromHoldRequestsOnyxData(
     return {
         optimisticData,
         optimisticHoldActionID: optimisticExpenseReportPreview.reportActionID,
+        optimisticCreatedReportForUnapprovedTransactionsActionID: optimisticCreatedReportForUnapprovedAction.reportActionID,
         failureData,
         successData,
         optimisticHoldReportID: optimisticExpenseReport.reportID,
@@ -11163,6 +11194,7 @@ function approveMoneyRequest(
     let optimisticHoldReportID;
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
+    let optimisticCreatedReportForUnapprovedTransactionsActionID;
     if (!full && !!chatReport && !!expenseReport) {
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID});
 
@@ -11171,6 +11203,7 @@ function approveMoneyRequest(
         failureData.push(...holdReportOnyxData.failureData);
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
+        optimisticCreatedReportForUnapprovedTransactionsActionID = holdReportOnyxData.optimisticCreatedReportForUnapprovedTransactionsActionID;
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
     }
 
@@ -11214,6 +11247,7 @@ function approveMoneyRequest(
         optimisticHoldReportID,
         optimisticHoldActionID,
         optimisticHoldReportExpenseActionIDs,
+        optimisticCreatedReportForUnapprovedTransactionsActionID,
     };
 
     playSound(SOUNDS.SUCCESS);

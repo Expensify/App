@@ -172,6 +172,7 @@ import {
     getAllReportActions,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getCreatedReportForUnapprovedTransactionsMessage,
     getDefaultApproverUpdateMessage,
     getDismissedViolationMessageText,
     getExportIntegrationLastMessageText,
@@ -5993,6 +5994,14 @@ function getReportName(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
         return getWorkspaceCustomUnitRateDeletedMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS)) {
+        const {originalID} = getOriginalMessage(parentReportAction) ?? {};
+        const originalReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${originalID}`];
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const reportName = getReportName(originalReport);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translateLocal);
     }
 
     if (isChatThread(report)) {
