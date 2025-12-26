@@ -796,9 +796,7 @@ function IOURequestStepScan({
             removeDraftTransactions(true);
         }
 
-        for (const transaction of optimisticTransactions ?? []) {
-            removeTransactionReceipt(transaction?.transactionID);
-        }
+        removeDraftTransactions(true);
         setIsMultiScanEnabled?.(!isMultiScanEnabled);
     };
 
