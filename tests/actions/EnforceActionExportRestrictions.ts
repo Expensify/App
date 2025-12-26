@@ -6,6 +6,7 @@ import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
 import * as Policy from '@userActions/Policy/Policy';
+import * as Report from '@userActions/Report';
 import * as Task from '@userActions/Task';
 
 // There are some methods that are OK to use inside an action file, but should not be exported. These are typically methods that look up and return Onyx data.
@@ -103,6 +104,13 @@ describe('Policy', () => {
     it('does not export getPolicy', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(Policy.getPolicy).toBeUndefined();
+    });
+});
+
+describe('Report', () => {
+    it('does not export isOneTransactionReport', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(Report.isOneTransactionReport).toBeUndefined();
     });
 });
 

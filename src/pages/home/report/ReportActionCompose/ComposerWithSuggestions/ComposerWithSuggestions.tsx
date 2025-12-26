@@ -144,6 +144,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
 
 type SwitchToCurrentReportProps = {
     preexistingReportID: string;
+    reportToCopyDraftTo: string;
     callback: () => void;
 };
 
@@ -280,6 +281,14 @@ function ComposerWithSuggestions({
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
 
+    // The ref to check whether we're transitioning to a preexisting report
+    const isTransitioningToPreExistingReport = useRef(false);
+
+    // Callback to clear the transitioning flag - passed to SilentCommentUpdater to avoid prop mutation
+    const handleTransitionToPreExistingReportComplete = useCallback(() => {
+        isTransitioningToPreExistingReport.current = false;
+    }, []);
+
     const animatedRef = useAnimatedRef();
     /**
      * Set the TextInput Ref
@@ -312,12 +321,16 @@ function ComposerWithSuggestions({
     );
 
     useEffect(() => {
-        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({preexistingReportID, callback}: SwitchToCurrentReportProps) => {
+        const switchToCurrentReport = DeviceEventEmitter.addListener(`switchToPreExistingReport_${reportID}`, ({reportToCopyDraftTo, callback}: SwitchToCurrentReportProps) => {
             if (!commentRef.current) {
                 callback();
                 return;
             }
-            saveReportDraftComment(preexistingReportID, commentRef.current, callback);
+
+            // Mark that we're transitioning to a preexisting report
+            // This prevents SilentCommentUpdater from overwriting the draft
+            isTransitioningToPreExistingReport.current = true;
+            saveReportDraftComment(reportToCopyDraftTo, commentRef.current, callback);
         });
 
         return () => {
@@ -896,6 +909,8 @@ function ComposerWithSuggestions({
                     updateComment={updateComment}
                     commentRef={commentRef}
                     isCommentPendingSaved={isCommentPendingSaved}
+                    isTransitioningToPreExistingReport={isTransitioningToPreExistingReport}
+                    onTransitionToPreExistingReportComplete={handleTransitionToPreExistingReportComplete}
                 />
             )}
 
