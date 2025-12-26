@@ -1743,12 +1743,11 @@ function getReportSections(
                         shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](reportItem) : false;
                     }
                 }
-            }
+                const actionFromQuery = queryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)?.filters?.at(0)?.value;
 
-            const actionFromQuery = queryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)?.filters?.at(0)?.value;
-
-            if (actionFromQuery && isValidActionFilter(actionFromQuery)) {
-                shouldShow = shouldShow && actionFilterMapping[actionFromQuery](reportItem);
+                if (actionFromQuery && isValidActionFilter(actionFromQuery)) {
+                    shouldShow = shouldShow && actionFilterMapping[actionFromQuery](reportItem);
+                }
             }
 
             if (shouldShow) {
