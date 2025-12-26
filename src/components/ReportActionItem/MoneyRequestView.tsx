@@ -285,7 +285,8 @@ function MoneyRequestView({
         : convertToDisplayString(Math.abs(transactionTaxAmount ?? 0), transactionCurrency);
 
     const taxRatesDescription = taxRates?.name;
-    const taxRateTitle = updatedTransaction ? getTaxName(policy, updatedTransaction) : getTaxName(policy, transaction);
+    const transactionWithTax = updatedTransaction ?? transaction;
+    const taxRateTitle = transactionWithTax?.taxCode ? getTaxName(policy, transactionWithTax) : '';
 
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
@@ -557,7 +558,7 @@ function MoneyRequestView({
     const decodedCategoryName = getDecodedCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
     const cardCopyValue = cardProgramName;
-    const taxRateValue = taxRateTitle ?? fallbackTaxRateTitle;
+    const taxRateValue = taxRateTitle ?? fallbackTaxRateTitle ?? '';
     const taxRateCopyValue = !canEditTaxFields ? taxRateValue : undefined;
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
     const taxAmountCopyValue = !canEditTaxFields ? taxAmountTitle : undefined;

@@ -27,7 +27,7 @@ type TaxPickerProps = {
     transactionID?: string;
 
     /** Callback to fire when a tax is pressed */
-    onSubmit: (tax: TaxRatesOption) => void;
+    onSubmit: (tax: TaxRatesOption, isTaxDeleted?: boolean) => void;
 
     /** The action to take */
     action?: IOUAction;
@@ -69,6 +69,9 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
+    const isTaxDeleted =
+        !!transaction?.taxCode && transaction?.taxValue !== undefined && Object.keys(taxRates?.taxes ?? {}).find((taxCode) => taxCode === transaction?.taxCode) === undefined;
+
     const selectedOptions = useMemo<Tax[]>(() => {
         if (!selectedTaxRate) {
             return [];
@@ -83,17 +86,34 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
         ];
     }, [selectedTaxRate]);
 
-    const sections = useMemo(
-        () =>
-            getTaxRatesSection({
-                policy,
-                searchValue,
-                localeCompare,
-                selectedOptions,
-                transaction: currentTransaction,
-            }),
-        [searchValue, selectedOptions, policy, currentTransaction, localeCompare],
-    );
+    const sections = useMemo(() => {
+        const baseSections = getTaxRatesSection({
+            policy,
+            searchValue,
+            localeCompare,
+            selectedOptions,
+            transaction: currentTransaction,
+        });
+
+        if (!isTaxDeleted) {
+            return baseSections;
+        }
+
+        const deletedTaxOption = {
+            code: transaction?.taxCode,
+            text: transaction?.taxValue ?? '',
+            keyForList: transaction?.taxCode ?? '',
+            searchText: transaction?.taxValue ?? '',
+            tooltipText: transaction?.taxValue ?? '',
+            isDisabled: true,
+            isSelected: true,
+        };
+
+        return baseSections.map((section) => ({
+            ...section,
+            data: [...section.data, deletedTaxOption],
+        }));
+    }, [isTaxDeleted, policy, searchValue, localeCompare, selectedOptions, currentTransaction, transaction?.taxCode, transaction?.taxValue]);
 
     const headerMessage = getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);
 
@@ -105,9 +125,9 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
                 onDismiss();
                 return;
             }
-            onSubmit(newSelectedOption);
+            onSubmit(newSelectedOption, isTaxDeleted);
         },
-        [onSubmit, onDismiss, selectedOptionKey],
+        [selectedOptionKey, onSubmit, isTaxDeleted, onDismiss],
     );
 
     return (
