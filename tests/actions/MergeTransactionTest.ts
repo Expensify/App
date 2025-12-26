@@ -405,6 +405,9 @@ describe('mergeTransactionRequest', () => {
             policy: undefined,
             policyTags: undefined,
             policyCategories: undefined,
+            currentUserAccountIDParam: 123,
+            currentUserEmailParam: 'existing@example.com',
+            isASAPSubmitBetaEnabled: false,
         });
 
         await mockFetch?.resume?.();

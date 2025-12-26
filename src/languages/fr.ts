@@ -167,6 +167,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -343,7 +344,8 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'Prénom',
         lastName: 'Nom de famille',
         scanning: 'Numérisation',
-        addCardTermsOfService: 'Conditions d’utilisation d’Expensify',
+        analyzing: 'Analyse en cours...',
+        addCardTermsOfService: "Conditions d'utilisation d'Expensify",
         perPerson: 'par personne',
         phone: 'Téléphone',
         phoneNumber: 'Numéro de téléphone',
@@ -2319,26 +2321,7 @@ ${amount} pour ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Le valideur n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
-        title: 'Définir l’approbateur',
-        description: 'Cette personne approuvera les dépenses.',
-    },
-    workflowsApprovalLimitPage: {
-        title: 'Approbateur',
-        header: "(Optionnel) Voulez-vous ajouter une limite d'approbation ?",
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `Ajoutez un autre approbateur lorsque <strong>${approverName}</strong> est approbateur et que le rapport dépasse le montant ci-dessous :`
-                : 'Ajoutez un autre approbateur lorsque le rapport dépasse le montant ci-dessous :',
-        reportAmountLabel: 'Montant du rapport',
-        additionalApproverLabel: 'Approbateur supplémentaire',
-        skip: 'Passer',
-        next: 'Suivant',
-        removeLimit: 'Supprimer la limite',
-        enterAmountError: 'Veuillez entrer un montant valide',
-        enterApproverError: 'Un approbateur est requis lorsque vous définissez une limite de rapport',
-        enterBothError: 'Entrez un montant de rapport et un approbateur supplémentaire',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
-            `Les rapports supérieurs à ${approvalLimit} sont transférés à ${approverName}`,
+        header: 'Envoyer à ce membre pour approbation :',
     },
     workflowsPayerPage: {
         title: 'Payeur autorisé',
@@ -2897,6 +2880,7 @@ ${
             containsReservedWord: 'Le nom ne peut pas contenir les mots Expensify ou Concierge',
             hasInvalidCharacter: 'Le nom ne peut pas contenir de virgule ou de point-virgule',
             requiredFirstName: 'Le prénom ne peut pas être vide',
+            cannotContainSpecialCharacters: 'Le nom ne peut pas contenir de caractères spéciaux',
         },
     },
     privatePersonalDetails: {
@@ -4897,6 +4881,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 'Expensify Limited est un agent de Plaid Financial Ltd., un établissement de paiement agréé réglementé par la Financial Conduct Authority en vertu des Payment Services Regulations 2017 (numéro de référence de l’entreprise : 804718). Plaid vous fournit des services réglementés d’information sur les comptes par l’intermédiaire de Expensify Limited en tant que son agent.',
             assign: 'Assigner',
             assignCardFailedError: 'L’attribution de la carte a échoué.',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',
@@ -7674,12 +7659,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             whatsMainReason: 'Quelle est la principale raison pour laquelle vous désactivez le renouvellement automatique ?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Se renouvelle le ${date}.`,
             pricingConfiguration: 'Le prix dépend de la configuration. Pour le prix le plus bas, choisissez un abonnement annuel et obtenez la carte Expensify.',
-            learnMore: {
-                part1: 'En savoir plus sur notre',
-                pricingPage: 'page de tarification',
-                part2: 'ou discutez avec notre équipe dans votre',
-                adminsRoom: 'Salon #admins.',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `<muted-text>En savoir plus sur notre <a href="${CONST.PRICING}">page de tarification</a> ou discutez avec notre équipe dans votre ${hasAdminsRoom ? `<a href="adminsRoom">Salon #admins.</a>` : 'Salle #admins.'}</muted-text>`,
             estimatedPrice: 'Prix estimé',
             changesBasedOn: 'Cela change en fonction de votre utilisation de la carte Expensify et des options d’abonnement ci-dessous.',
         },
@@ -8020,11 +8001,15 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             findAdmin: 'Trouver un admin',
             primaryContact: 'Contact principal',
             addPrimaryContact: 'Ajouter un contact principal',
+            setPrimaryContactError: 'Impossible de définir le contact principal. Veuillez réessayer plus tard.',
             settings: 'Paramètres',
             consolidatedDomainBilling: 'Facturation consolidée du domaine',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>Lorsque cette option est activée, le contact principal paiera pour tous les espaces de travail appartenant aux membres de <strong>${domainName}</strong> et recevra tous les reçus de facturation.</muted-text-label></comment>`,
             consolidatedDomainBillingError: 'La facturation de domaine consolidée n’a pas pu être modifiée. Veuillez réessayer plus tard.',
+            addAdmin: 'Ajouter un administrateur',
+            invite: 'Inviter',
+            addAdminError: 'Impossible d’ajouter ce membre en tant qu’administrateur. Veuillez réessayer.',
         },
     },
     desktopAppRetiredPage: {
