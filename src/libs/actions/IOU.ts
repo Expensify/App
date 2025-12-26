@@ -5283,6 +5283,7 @@ function updateMoneyRequestDate({
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
     const {params, onyxData} = data;
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, params, onyxData);
 }
 
@@ -5384,6 +5385,7 @@ function updateMoneyRequestMerchant(
         });
     }
     const {params, onyxData} = data;
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, params, onyxData);
 }
 
@@ -5447,6 +5449,7 @@ function updateMoneyRequestTag(
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
     });
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
 
@@ -5668,6 +5671,7 @@ function updateMoneyRequestCategory({
         isASAPSubmitBetaEnabled,
         hash,
     });
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
 
@@ -5708,6 +5712,7 @@ function updateMoneyRequestDescription(
     }
     const {params, onyxData} = data;
     params.description = parsedComment;
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
 }
 
@@ -8872,6 +8877,7 @@ function updateMoneyRequestAmountAndCurrency({
         removeTransactionFromDuplicateTransactionViolation(data.onyxData, transactionID, transactions, transactionViolations);
     }
     const {params, onyxData} = data;
+    notifyNewAction(Navigation.getSearchTopmostReportId(), currentUserAccountIDParam);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
