@@ -1202,6 +1202,10 @@ function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
 
+    if (isExpenseUnreported(transaction)) {
+        return false;
+    }
+
     // Only consider analyzing if category is actually missing
     const category = getCategory(transaction);
     if (!isCategoryMissing(category)) {
