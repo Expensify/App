@@ -1,6 +1,8 @@
 import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
+import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
+import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -15,8 +17,8 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
 import SplitAmountDisplay from './SplitExpense/SplitAmountDisplay';
-import SplitListItemInput from './SplitListItemInput';
-import type {ListItem, SplitListItemProps, SplitListItemType} from './types';
+import SplitListItemInput from './SplitExpense/SplitListItemInput';
+import type {SplitListItemProps, SplitListItemType} from './types';
 
 function SplitListItem<TItem extends ListItem>({
     item,
@@ -27,7 +29,6 @@ function SplitListItem<TItem extends ListItem>({
     shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     onFocus,
-    index,
     onInputFocus,
     onInputBlur,
 }: SplitListItemProps<TItem>) {
@@ -59,15 +60,8 @@ function SplitListItem<TItem extends ListItem>({
     const contentWidth = (formattedOriginalAmount.length + 1) * CONST.CHARACTER_WIDTH;
     const [percentageDraft, setPercentageDraft] = useState<string | undefined>();
     const focusHandler = useCallback(() => {
-        if (!onInputFocus) {
-            return;
-        }
-
-        if (!index && index !== 0) {
-            return;
-        }
-        onInputFocus(index);
-    }, [onInputFocus, index]);
+        onInputFocus?.(item);
+    }, [onInputFocus, item]);
 
     // Auto-focus input when item is selected and screen transition ends
     useLayoutEffect(() => {

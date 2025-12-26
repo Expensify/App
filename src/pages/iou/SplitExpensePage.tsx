@@ -1,5 +1,5 @@
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -11,7 +11,8 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
-import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
+import SplitListItem from '@components/SelectionList/ListItem/SplitListItem';
+import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useAllTransactions from '@hooks/useAllTransactions';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -58,6 +59,8 @@ import SplitAmountList from './SplitAmountList';
 import SplitPercentageList from './SplitPercentageList';
 
 type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
+
+type SplitListItemProps = React.ComponentProps<typeof SplitListItem>;
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
@@ -119,6 +122,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const splitFieldDataFromOriginalTransaction = useMemo(() => initSplitExpenseItemData(transaction), [transaction]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+
     const icons = useMemoizedLazyExpensifyIcons(['ArrowsLeftRight', 'Plus'] as const);
 
     const {isBetaEnabled} = usePermissions();
@@ -257,7 +261,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
     const getTranslatedText = useCallback((item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? '')), [translate]);
 
-    const sections = useMemo(() => {
+    const options = useMemo(() => {
         const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
         const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
         const showCashOrCard: TranslationPathOrText = {translationPath: isTransactionMadeWithCard ? 'iou.card' : 'iou.cash'};
@@ -311,9 +315,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             };
         });
 
-        const newSections: Array<SectionListDataType<SplitListItemType>> = [{data: items}];
-
-        return newSections;
+        return items;
     }, [
         transaction,
         draftTransaction?.comment?.splitExpenses,
@@ -327,6 +329,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         onSplitExpenseValueChange,
     ]);
 
+    const initiallyFocusedOptionKey = useMemo(() => options.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList, [options, splitExpenseTransactionID]);
     const isInitialSplit = useMemo(() => childTransactions.length === 0, [childTransactions.length]);
 
     const listFooterContent = useMemo(() => {
@@ -419,11 +422,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         );
     }, [styles.pb3, styles.moneyRequestMenuItem, styles.flex1, translate, splitDatesTitle, handleDatePress]);
 
-    const initiallyFocusedOptionKey = useMemo(
-        () => sections.at(0)?.data.find((option) => option.transactionID === splitExpenseTransactionID)?.keyForList,
-        [sections, splitExpenseTransactionID],
-    );
-
     const headerTitle = useMemo(() => {
         if (Number(splitExpenseTransactionID)) {
             return translate('iou.editSplits');
@@ -482,7 +480,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                         <TabScreenWithFocusTrapWrapper>
                                             <View style={styles.flex1}>
                                                 <SplitAmountList
-                                                    sections={sections}
+                                                    data={options}
                                                     initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
                                                     onSelectRow={onSelectRow}
                                                     listFooterContent={listFooterContent}
@@ -497,7 +495,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                         <TabScreenWithFocusTrapWrapper>
                                             <View style={styles.flex1}>
                                                 <SplitPercentageList
-                                                    sections={sections}
+                                                    data={options}
                                                     initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
                                                     onSelectRow={onSelectRow}
                                                     listFooterContent={listFooterContent}
@@ -513,7 +511,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                                             <View style={styles.flex1}>
                                                 {headerDateContent}
                                                 <SplitAmountList
-                                                    sections={sections}
+                                                    data={options}
                                                     initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
                                                     onSelectRow={onSelectRow}
                                                     listFooterContent={<View style={[shouldUseNarrowLayout && styles.mb3]} />}
@@ -528,7 +526,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                     ) : (
                         <View style={styles.flex1}>
                             <SplitAmountList
-                                sections={sections}
+                                data={options}
                                 initiallyFocusedOptionKey={initiallyFocusedOptionKey ?? undefined}
                                 onSelectRow={onSelectRow}
                                 listFooterContent={listFooterContent}
