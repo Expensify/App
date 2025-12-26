@@ -470,6 +470,8 @@ type SubscriptionSettingsSummaryParams = {subscriptionType: string; subscription
 
 type SubscriptionSettingsRenewsOnParams = {date: string};
 
+type SubscriptionSettingsLearnMoreParams = {hasAdminsRoom: boolean};
+
 type UnapproveWithIntegrationWarningParams = {accountingIntegration: string};
 
 type IncorrectZipFormatParams = {zipFormat?: string} | undefined;
@@ -1021,6 +1023,7 @@ export type {
     SignerInfoMessageParams,
     PayAndDowngradeDescriptionParams,
     WalletAgreementParams,
+    SubscriptionSettingsLearnMoreParams,
     ErrorODIntegrationParams,
     MergeAccountIntoParams,
     NextStepParams,
