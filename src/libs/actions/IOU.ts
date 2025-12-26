@@ -7307,7 +7307,10 @@ function createSplitsAndOnyxData({
     splitChatReport.lastActorAccountID = currentUserAccountID;
     splitChatReport.lastVisibleActionCreated = splitIOUReportAction.created;
 
-    if (splitChatReport.participants && getReportNotificationPreference(splitChatReport) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+    if (
+        splitChatReport.participants &&
+        (getReportNotificationPreference(splitChatReport) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN || !getReportNotificationPreference(splitChatReport))
+    ) {
         splitChatReport.participants[currentUserAccountID] = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
     }
 
