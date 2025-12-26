@@ -26,9 +26,6 @@ type SingleSelectPopupProps<T> = {
     /** The currently selected item */
     value: SingleSelectItem<T> | null;
 
-    /** The default value to set when reset is clicked */
-    defaultValue: string | undefined;
-
     /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
 
@@ -40,6 +37,9 @@ type SingleSelectPopupProps<T> = {
 
     /** Search input place holder */
     searchPlaceholder?: string;
+
+    /** The default value to set when reset is clicked */
+    defaultValue?: string;
 };
 
 function SingleSelectPopup<T extends string>({label, value, items, closeOverlay, onChange, isSearchable, searchPlaceholder, defaultValue}: SingleSelectPopupProps<T>) {
