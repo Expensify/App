@@ -1143,6 +1143,10 @@ function isFromCreditCardImport(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
 
+    if (transaction?.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
+        return false;
+    }
+
     if (isManagedCardTransaction(transaction)) {
         return true;
     }
