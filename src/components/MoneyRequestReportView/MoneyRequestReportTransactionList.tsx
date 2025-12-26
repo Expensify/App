@@ -628,12 +628,14 @@ function MoneyRequestReportTransactionList({
                         </View>
                     )}
 
-                    <MoneyRequestReportTotalSpend
-                        isEmptyTransactions={isEmptyTransactions}
-                        totalDisplaySpend={totalDisplaySpend}
-                        report={report}
-                        hasPendingAction={hasPendingAction}
-                    />
+                    <OfflineWithFeedback pendingAction={report?.pendingFields?.total}>
+                        <MoneyRequestReportTotalSpend
+                            isEmptyTransactions={isEmptyTransactions}
+                            totalDisplaySpend={totalDisplaySpend}
+                            report={report}
+                            hasPendingAction={hasPendingAction}
+                        />
+                    </OfflineWithFeedback>
                 </View>
             </View>
             <Modal

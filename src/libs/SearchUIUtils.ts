@@ -3389,6 +3389,16 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+type OnyxSnapshotKey = `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
+
+function getSnapshotKeys(allSnapshots: OnyxCollection<OnyxTypes.SearchResults>) {
+    if (!allSnapshots) {
+        return [];
+    }
+
+    return Object.keys(allSnapshots || {}) as OnyxSnapshotKey[];
+}
+
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -3434,6 +3444,7 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getTransactionFromTransactionListItem,
+    getSnapshotKeys,
     getSearchColumnTranslationKey,
     getTableMinWidth,
     getCustomColumns,
