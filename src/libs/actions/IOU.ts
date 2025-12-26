@@ -10184,10 +10184,10 @@ function getDuplicateActionsForPartialReport(
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
-    const duplicatedReportActionIDs: OptimisticHoldReportExpenseActionID[] = [];
+    const optimisticDuplicatedReportActionIDs: OptimisticHoldReportExpenseActionID[] = [];
 
     if (!sourceReportID || !targetReportID) {
-        return [optimisticData, successData, failureData, duplicatedReportActionIDs];
+        return [optimisticData, successData, failureData, optimisticDuplicatedReportActionIDs];
     }
 
     const sourceReportActions = getAllReportActions(sourceReportID);
@@ -10224,7 +10224,7 @@ function getDuplicateActionsForPartialReport(
                 pendingAction: null,
             };
             copiedActionsFailure[newActionID] = null;
-            duplicatedReportActionIDs.push({optimisticReportActionID: newActionID, oldReportActionID: action.reportActionID});
+            optimisticDuplicatedReportActionIDs.push({optimisticReportActionID: newActionID, oldReportActionID: action.reportActionID});
         }
     }
 
@@ -10248,7 +10248,7 @@ function getDuplicateActionsForPartialReport(
         });
     }
 
-    return [optimisticData, successData, failureData, duplicatedReportActionIDs];
+    return [optimisticData, successData, failureData, optimisticDuplicatedReportActionIDs];
 }
 
 function getReportFromHoldRequestsOnyxData(
@@ -10259,7 +10259,7 @@ function getReportFromHoldRequestsOnyxData(
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
     optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[];
-    duplicatedReportActionIDs: OptimisticHoldReportExpenseActionID[];
+    optimisticDuplicatedReportActionIDs: OptimisticHoldReportExpenseActionID[];
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
@@ -10478,7 +10478,7 @@ function getReportFromHoldRequestsOnyxData(
     ];
 
     // Copy submission/approval actions to the new report
-    const [copiedActionsOptimistic, copiedActionsSuccess, copiedActionsFailure, duplicatedReportActionIDs] = getDuplicateActionsForPartialReport(iouReport?.reportID, optimisticExpenseReport.reportID);
+    const [copiedActionsOptimistic, copiedActionsSuccess, copiedActionsFailure, optimisticDuplicatedReportActionIDs] = getDuplicateActionsForPartialReport(iouReport?.reportID, optimisticExpenseReport.reportID);
     optimisticData.push(...copiedActionsOptimistic);
     successData.push(...copiedActionsSuccess);
     failureData.push(...copiedActionsFailure);
@@ -10490,7 +10490,7 @@ function getReportFromHoldRequestsOnyxData(
         successData,
         optimisticHoldReportID: optimisticExpenseReport.reportID,
         optimisticHoldReportExpenseActionIDs,
-        duplicatedReportActionIDs,
+        optimisticDuplicatedReportActionIDs,
     };
 }
 
@@ -10810,7 +10810,7 @@ function getPayMoneyRequestParams({
     let optimisticHoldReportID;
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
-    let duplicatedReportActionIDs;
+    let optimisticDuplicatedReportActionIDs;
     if (!full) {
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, iouReport, recipient);
 
@@ -10820,7 +10820,7 @@ function getPayMoneyRequestParams({
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
-        duplicatedReportActionIDs = JSON.stringify(holdReportOnyxData.duplicatedReportActionIDs);
+        optimisticDuplicatedReportActionIDs = JSON.stringify(holdReportOnyxData.optimisticDuplicatedReportActionIDs);
     }
 
     return {
@@ -10834,7 +10834,7 @@ function getPayMoneyRequestParams({
             optimisticHoldReportID,
             optimisticHoldActionID,
             optimisticHoldReportExpenseActionIDs,
-            duplicatedReportActionIDs,
+            optimisticDuplicatedReportActionIDs,
             ...policyParams,
         },
         optimisticData,
@@ -11261,6 +11261,7 @@ function approveMoneyRequest(
     let optimisticHoldReportID;
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
+    let optimisticDuplicatedReportActionIDs;
     if (!full && !!chatReport && !!expenseReport) {
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID});
 
@@ -11270,6 +11271,7 @@ function approveMoneyRequest(
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
+        optimisticDuplicatedReportActionIDs = JSON.stringify(holdReportOnyxData.optimisticDuplicatedReportActionIDs);
     }
 
     // Remove duplicates violations if we approve the report
@@ -11312,6 +11314,7 @@ function approveMoneyRequest(
         optimisticHoldReportID,
         optimisticHoldActionID,
         optimisticHoldReportExpenseActionIDs,
+        optimisticDuplicatedReportActionIDs,
     };
 
     playSound(SOUNDS.SUCCESS);

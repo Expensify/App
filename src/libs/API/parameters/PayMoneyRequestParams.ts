@@ -24,7 +24,7 @@ type PayMoneyRequestParams = {
      *   oldReportActionID: string;
      * }>
      */
-    duplicatedReportActionIDs?: string;
+    optimisticDuplicatedReportActionIDs?: string;
 };
 
 export default PayMoneyRequestParams;
