@@ -1,5 +1,4 @@
 #!/usr/bin/env ts-node
-
 /* eslint-disable max-classes-per-file */
 /**
  * React Compiler Compliance Checker
