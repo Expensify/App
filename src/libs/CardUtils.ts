@@ -903,6 +903,27 @@ function isMaskedCardNumberEqual(a: string | undefined, b: string | undefined, m
     return areFirstDigitsEqual && areLastDigitsEqual;
 }
 
+function isCardAlreadyAssigned(cardNumber: string, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList>): boolean {
+    if (!cardNumber || !workspaceCardFeeds) {
+        return false;
+    }
+    for (const workspaceCards of Object.values(workspaceCardFeeds)) {
+        if (!workspaceCards) {
+            continue;
+        }
+        const {cardList, ...assignedCards} = workspaceCards;
+        for (const card of Object.values(assignedCards)) {
+            if (card?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                continue;
+            }
+            if (card?.cardName === cardNumber) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 export {
     getAssignedCardSortKey,
     isExpensifyCard,
@@ -970,6 +991,7 @@ export {
     COMPANY_CARD_BANK_ICON_NAMES,
     isMaskedCardNumberEqual,
     splitMaskedCardNumber,
+    isCardAlreadyAssigned,
 };
 
 export type {CompanyCardFeedIcons, CompanyCardBankIcons};

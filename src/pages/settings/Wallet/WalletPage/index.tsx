@@ -130,9 +130,7 @@ function WalletPage() {
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
-            if (accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
-                setShouldShowShareButton(accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN);
-            }
+            setShouldShowShareButton(accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN);
             setPaymentMethod({
                 isSelectedPaymentMethodDefault: !!isDefault,
                 selectedPaymentMethod: accountData ?? {},
