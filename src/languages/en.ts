@@ -7853,6 +7853,7 @@ const translations = {
             addAdmin: 'Add admin',
             invite: 'Invite',
             addAdminError: 'Unable to add this member as an admin. Please try again.',
+            revokeAdminAccess: 'Revoke admin access',
         },
     },
 };
