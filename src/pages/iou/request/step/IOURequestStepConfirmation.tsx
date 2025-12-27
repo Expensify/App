@@ -686,6 +686,7 @@ function IOURequestStepConfirmation({
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations,
+                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             });
         },
         [
@@ -699,6 +700,7 @@ function IOURequestStepConfirmation({
             recentlyUsedDestinations,
             isASAPSubmitBetaEnabled,
             hasViolations,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
@@ -983,18 +985,17 @@ function IOURequestStepConfirmation({
                 const invoiceChatReport =
                     !isEmptyObject(report) && report?.reportID && doesReportReceiverMatchParticipant(report, receiverParticipantAccountID) ? report : existingInvoiceReport;
 
-                sendInvoice(
-                    currentUserPersonalDetails.accountID,
+                sendInvoice({
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
                     transaction,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     invoiceChatReport,
-                    currentTransactionReceiptFile,
+                    receiptFile: currentTransactionReceiptFile,
                     policy,
-                    policyTags,
+                    policyTagList: policyTags,
                     policyCategories,
-                    undefined,
-                    undefined,
                     policyRecentlyUsedCategories,
-                );
+                });
                 return;
             }
 

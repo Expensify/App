@@ -461,6 +461,12 @@ function MoneyRequestView({
     if (isExpenseSplit) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
     }
+    if (currency !== moneyRequestReport?.currency && !isCardTransaction) {
+        const convertedAmount = isPaidGroupPolicy(moneyRequestReport) ? -(transaction?.convertedAmount ?? 0) : (transaction?.convertedAmount ?? 0);
+        if (convertedAmount) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(convertedAmount, moneyRequestReport?.currency)}`;
+        }
+    }
 
     if (isFromMergeTransaction) {
         // Because we lack the necessary data in policy.customUnits to determine the rate in merge flow,

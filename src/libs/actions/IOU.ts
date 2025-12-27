@@ -498,6 +498,7 @@ type PerDiemExpenseInformation = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
+    policyRecentlyUsedCurrencies: string[];
 };
 
 type PerDiemExpenseInformationParams = {
@@ -511,6 +512,7 @@ type PerDiemExpenseInformationParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     hasViolations: boolean;
+    policyRecentlyUsedCurrencies: string[];
 };
 
 type RequestMoneyInformation = {
@@ -3364,19 +3366,34 @@ function getReceiverType(receiverParticipant: Participant | InvoiceReceiver | un
     return CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
 }
 
+type SendInvoiceOptions = {
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    currentUserAccountID: number;
+    policyRecentlyUsedCurrencies: string[];
+    invoiceChatReport?: OnyxEntry<OnyxTypes.Report>;
+    receiptFile?: Receipt;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    companyName?: string;
+    companyWebsite?: string;
+    policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
+};
+
 /** Gathers all the data needed to create an invoice. */
-function getSendInvoiceInformation(
-    transaction: OnyxEntry<OnyxTypes.Transaction>,
-    currentUserAccountID: number,
-    invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
-    receipt?: Receipt,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    companyName?: string,
-    companyWebsite?: string,
-    policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>,
-): SendInvoiceInformation {
+function getSendInvoiceInformation({
+    transaction,
+    currentUserAccountID,
+    policyRecentlyUsedCurrencies,
+    invoiceChatReport,
+    receiptFile,
+    policy,
+    policyTagList,
+    policyCategories,
+    companyName,
+    companyWebsite,
+    policyRecentlyUsedCategories,
+}: SendInvoiceOptions): SendInvoiceInformation {
     const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
     const trimmedComment = (comment?.comment ?? '').trim();
     const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
@@ -3419,7 +3436,7 @@ function getSendInvoiceInformation(
             comment: trimmedComment,
             created,
             merchant,
-            receipt,
+            receipt: receiptFile,
             category,
             tag,
             taxCode,
@@ -3437,8 +3454,7 @@ function getSendInvoiceInformation(
         policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(optimisticInvoiceReport.policyID),
         transactionTags: tag,
     });
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
+    const optimisticRecentlyUsedCurrencies = mergePolicyRecentlyUsedCurrencies(currency, policyRecentlyUsedCurrencies);
 
     // STEP 4: Add optimistic personal details for participant
     const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[receiverAccountID];
@@ -3927,6 +3943,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        policyRecentlyUsedCurrencies,
     } = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
@@ -4027,8 +4044,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(iouReport.policyID),
         transactionTags: tag,
     });
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticPolicyRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
+    const optimisticPolicyRecentlyUsedCurrencies = mergePolicyRecentlyUsedCurrencies(currency, policyRecentlyUsedCurrencies);
     const optimisticPolicyRecentlyUsedDestinations = customUnit.customUnitRateID ? [...new Set([customUnit.customUnitRateID, ...(recentlyUsedDestinations ?? [])])] : [];
 
     // STEP 4: Build optimistic reportActions. We need:
@@ -6598,6 +6614,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        policyRecentlyUsedCurrencies,
     } = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
     const {currency, comment = '', category, tag, created, customUnit, attendees} = transactionParams;
@@ -6642,6 +6659,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         currentUserAccountIDParam,
         currentUserEmailParam,
         hasViolations,
+        policyRecentlyUsedCurrencies,
     });
     const activeReportID = isMoneyRequestReport && Navigation.getTopmostReportId() === report?.reportID ? report?.reportID : chatReport.reportID;
 
@@ -6691,18 +6709,19 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
     }
 }
 
-function sendInvoice(
-    currentUserAccountID: number,
-    transaction: OnyxEntry<OnyxTypes.Transaction>,
-    invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
-    receiptFile?: Receipt,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    companyName?: string,
-    companyWebsite?: string,
-    policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>,
-) {
+function sendInvoice({
+    currentUserAccountID,
+    transaction,
+    policyRecentlyUsedCurrencies,
+    invoiceChatReport,
+    receiptFile,
+    policy,
+    policyTagList,
+    policyCategories,
+    companyName,
+    companyWebsite,
+    policyRecentlyUsedCategories,
+}: SendInvoiceOptions) {
     const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
     if (transaction?.comment) {
         // eslint-disable-next-line no-param-reassign
@@ -6721,9 +6740,10 @@ function sendInvoice(
         createdReportActionIDForThread,
         reportActionID,
         onyxData,
-    } = getSendInvoiceInformation(
+    } = getSendInvoiceInformation({
         transaction,
         currentUserAccountID,
+        policyRecentlyUsedCurrencies,
         invoiceChatReport,
         receiptFile,
         policy,
@@ -6732,7 +6752,7 @@ function sendInvoice(
         companyName,
         companyWebsite,
         policyRecentlyUsedCategories,
-    );
+    });
 
     const parameters: SendInvoiceParams = {
         createdIOUReportActionID,
