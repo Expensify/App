@@ -1,6 +1,6 @@
 /* eslint-disable max-lines */
 import {eachDayOfInterval, format} from 'date-fns';
-import {fastMerge, Str} from 'expensify-common';
+import {fastMerge} from 'expensify-common';
 import cloneDeep from 'lodash/cloneDeep';
 // eslint-disable-next-line you-dont-need-lodash-underscore/union-by
 import lodashUnionBy from 'lodash/unionBy';
