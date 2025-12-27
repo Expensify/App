@@ -1535,6 +1535,25 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
 }
 
 /**
+ * Creates an explanation thread for a report action with reasoning
+ * Adds a "Please explain this to me." comment from the user
+ */
+function explain(reportAction: OnyxEntry<ReportAction>, originalReportID: string | undefined, translate: LocalizedTranslate, timezone: Timezone = CONST.DEFAULT_TIME_ZONE) {
+    if (!originalReportID || !reportAction) {
+        return;
+    }
+
+    // Get or create the explanation thread report
+    const {reportID} = getOrCreateOptimisticChildReport(reportAction.childReportID, reportAction, originalReportID);
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, Navigation.getActiveRoute()));
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    InteractionManager.runAfterInteractions(() => {
+        addComment(reportID, reportID, [], translate('reportActionContextMenu.explainMessage'), timezone);
+    });
+}
+
+/**
  * This will navigate to an existing thread, or create a new one if necessary
  *
  * @param childReportID The reportID we are trying to open
@@ -1542,36 +1561,45 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
  * @param parentReportID The reportID of the parent
  */
 function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
+    // Get or create the optimistic child thread report
+    const {reportID} = getOrCreateOptimisticChildReport(childReportID, parentReportAction, parentReportID);
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, Navigation.getActiveRoute()));
+}
+
+/**
+ * Gets an existing child thread report or creates an optimistic one if it doesn’t exist.
+ * Returns the resolved thread report without performing any navigation.
+ */
+function getOrCreateOptimisticChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string): Report {
     const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
     if (childReport?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
-    } else {
-        const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
-        const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-        // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
-        const childReportChatType = parentReport && isSelfDM(parentReport) ? undefined : parentReport?.chatType;
-        const newChat = buildOptimisticChatReport({
-            participantList: participantAccountIDs,
-            reportName: ReportActionsUtils.getReportActionText(parentReportAction),
-            chatType: childReportChatType,
-            policyID: parentReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
-            ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
-            oldPolicyName: parentReport?.policyName ?? '',
-            notificationPreference: getChildReportNotificationPreference(parentReportAction),
-            parentReportActionID: parentReportAction.reportActionID,
-            parentReportID,
-            optimisticReportID: childReportID,
-        });
-
-        if (!childReportID) {
-            const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
-        } else {
-            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
-        }
-
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID, undefined, undefined, Navigation.getActiveRoute()));
+        return childReport;
     }
+    const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+    // Threads from DMs and selfDMs don't have a chatType. All other threads inherit the chatType from their parent
+    const childReportChatType = parentReport && isSelfDM(parentReport) ? undefined : parentReport?.chatType;
+    const newChat = buildOptimisticChatReport({
+        participantList: participantAccountIDs,
+        reportName: ReportActionsUtils.getReportActionText(parentReportAction),
+        chatType: childReportChatType,
+        policyID: parentReport?.policyID ?? CONST.POLICY.OWNER_EMAIL_FAKE,
+        ownerAccountID: CONST.POLICY.OWNER_ACCOUNT_ID_FAKE,
+        oldPolicyName: parentReport?.policyName ?? '',
+        notificationPreference: getChildReportNotificationPreference(parentReportAction),
+        parentReportActionID: parentReportAction.reportActionID,
+        parentReportID,
+        optimisticReportID: childReportID,
+    });
+
+    if (!childReportID) {
+        const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
+        openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
+    } else {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
+    }
+
+    return newChat;
 }
 
 /**
@@ -6314,6 +6342,7 @@ export {
     doneCheckingPublicRoom,
     downloadReportPDF,
     editReportComment,
+    explain,
     expandURLPreview,
     exportReportToCSV,
     exportReportToPDF,
@@ -6338,6 +6367,7 @@ export {
     markAsManuallyExported,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
+    getOrCreateOptimisticChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToConciergeChat,
