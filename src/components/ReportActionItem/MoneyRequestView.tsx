@@ -31,7 +31,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
-import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getCompanyCardDescription} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
@@ -47,16 +46,17 @@ import {
     getPolicyByCustomUnitID,
     getTagLists,
     hasDependentTags as hasDependentTagsPolicyUtils,
+    isPolicyAccessible,
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {computeReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
-    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getReportName,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,
@@ -82,7 +82,8 @@ import {
     hasMissingSmartscanFields,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
-    isManagedCardTransaction as isCardTransactionTransactionUtils,
+    isFromCreditCardImport as isCardTransactionTransactionUtils,
+    isCategoryBeingAnalyzed,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -160,7 +161,6 @@ function MoneyRequestView({
     const {getReportRHPActiveRoute} = useActiveRoute();
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: true});
 
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
 
     const parentReportID = report?.parentReportID;
@@ -310,9 +310,17 @@ function MoneyRequestView({
     const canEditAmount =
         isEditable && (canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, isChatReportArchived) || (isExpenseSplit && isSplitAvailable));
     const canEditMerchant = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.MERCHANT, undefined, isChatReportArchived);
+
     const canEditDate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DATE, undefined, isChatReportArchived);
-    const canEditDistance = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived);
-    const canEditDistanceRate = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived);
+
+    const canEditDistance =
+        isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE, undefined, isChatReportArchived) && isPolicyAccessible(policy, currentUserEmailParam);
+
+    const canEditDistanceRate =
+        isEditable &&
+        canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE, undefined, isChatReportArchived) &&
+        isPolicyAccessible(policy, currentUserEmailParam);
+
     const canEditReport =
         isEditable &&
         canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REPORT, undefined, isChatReportArchived, outstandingReportsByPolicyID) &&
@@ -453,6 +461,12 @@ function MoneyRequestView({
     if (isExpenseSplit) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
     }
+    if (currency !== moneyRequestReport?.currency && !isCardTransaction) {
+        const convertedAmount = isPaidGroupPolicy(moneyRequestReport) ? -(transaction?.convertedAmount ?? 0) : (transaction?.convertedAmount ?? 0);
+        if (convertedAmount) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(convertedAmount, moneyRequestReport?.currency)}`;
+        }
+    }
 
     if (isFromMergeTransaction) {
         // Because we lack the necessary data in policy.customUnits to determine the rate in merge flow,
@@ -464,13 +478,6 @@ function MoneyRequestView({
     const hasErrors = hasMissingSmartscanFields(transaction);
     // Need to return undefined when we have pendingAction to avoid the duplicate pending action
     const getPendingFieldAction = (fieldPath: TransactionPendingFieldsKey) => (pendingAction ? undefined : transaction?.pendingFields?.[fieldPath]);
-    const isMissingAttendeesViolation = getIsMissingAttendeesViolation(
-        policyCategories,
-        updatedTransaction?.category ?? categoryForDisplay,
-        actualAttendees,
-        currentUserPersonalDetails,
-        policy?.isAttendeeTrackingEnabled,
-    );
 
     const getErrorForField = useCallback(
         (field: ViolationField, data?: OnyxTypes.TransactionViolation['data'], policyHasDependentTags = false, tagValue?: string) => {
@@ -500,10 +507,6 @@ function MoneyRequestView({
             // Return form errors if there are any
             if (hasErrors && isError && translationPath) {
                 return translate(translationPath);
-            }
-
-            if (field === 'attendees' && isMissingAttendeesViolation) {
-                return translate('violations.missingAttendees');
             }
 
             if (isCustomUnitOutOfPolicy && field === 'customUnitRateID') {
@@ -536,7 +539,6 @@ function MoneyRequestView({
             canEdit,
             isCustomUnitOutOfPolicy,
             companyCardPageURL,
-            isMissingAttendeesViolation,
         ],
     );
 
@@ -732,11 +734,11 @@ function MoneyRequestView({
         );
     });
 
-    const reportNameToDisplay = isFromMergeTransaction
-        ? updatedTransaction?.reportName
-        : computeReportName(parentReport, allReports, allPolicies, allTransactions) || parentReport?.reportName;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const reportNameToDisplay = isFromMergeTransaction ? updatedTransaction?.reportName : getReportName(parentReport) || parentReport?.reportName;
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport ? reportNameToDisplay : undefined;
+    const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
 
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -873,7 +875,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
-                            title={decodedCategoryName}
+                            title={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
                             numberOfLinesTitle={2}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
@@ -980,8 +982,6 @@ function MoneyRequestView({
                             onPress={() => {
                                 Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID));
                             }}
-                            brickRoadIndicator={getErrorForField('attendees') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            errorText={getErrorForField('attendees')}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             shouldRenderAsHTML
