@@ -578,11 +578,11 @@ function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.C
 }
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeedWithDomainID>, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithDomainID | undefined {
-    const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0) as CompanyCardFeedWithDomainID | undefined;
-    if (!lastSelectedFeed?.includes(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR)) {
-        return defaultFeed;
-    }
-    return lastSelectedFeed;
+    const availableFeeds = getCompanyFeeds(cardFeeds, true);
+    const defaultFeed = Object.keys(availableFeeds).at(0) as CompanyCardFeedWithDomainID | undefined;
+    const isValidLastFeed = !!lastSelectedFeed && lastSelectedFeed.includes(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR) && availableFeeds[lastSelectedFeed];
+
+    return isValidLastFeed ? lastSelectedFeed : defaultFeed;
 }
 
 function getCompanyCardFeedWithDomainID(feedName: CompanyCardFeed, domainID: number | string): CompanyCardFeedWithDomainID {
