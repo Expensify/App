@@ -42,6 +42,26 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
     return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD));
 }
 
+function formatRequireItemizedReceiptsOverText(translate: LocaleContextProps['translate'], policy: Policy, categoryMaxAmountNoItemizedReceipt?: number | null) {
+    const isAlwaysSelected = categoryMaxAmountNoItemizedReceipt === 0;
+    const isNeverSelected = categoryMaxAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
+
+    if (isAlwaysSelected) {
+        return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.always`);
+    }
+
+    if (isNeverSelected) {
+        return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`);
+    }
+
+    const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoItemizedReceipt;
+
+    return translate(
+        `workspace.rules.categoryRules.requireItemizedReceiptsOverList.default`,
+        convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+    );
+}
+
 function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: string) {
     const approverRule = approvalRules?.find((rule) =>
         rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY && value === categoryName),
@@ -114,6 +134,7 @@ function getDecodedCategoryName(categoryName: string) {
 export {
     formatDefaultTaxRateText,
     formatRequireReceiptsOverText,
+    formatRequireItemizedReceiptsOverText,
     getCategoryApproverRule,
     getCategoryExpenseRule,
     getCategoryDefaultTaxRate,
