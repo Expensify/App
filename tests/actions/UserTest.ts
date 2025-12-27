@@ -380,7 +380,7 @@ describe('actions/User', () => {
                         partnerUserID: contactMethod,
                         validatedDate: '',
                         errorFields: {
-                            "addedLogin": null,
+                            addedLogin: null,
                         },
                     },
                 },
