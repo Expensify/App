@@ -6,6 +6,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+import {setSearchContext} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
@@ -119,6 +120,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
             return {
                 ...baseMenuItem,
                 onSelected: () => {
+                    setSearchContext(false);
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
                 },
                 rightComponent: (
@@ -191,6 +193,7 @@ export default function useSearchTypeMenu(queryJSON: SearchQueryJSON) {
                             containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
                             shouldCallAfterModalHide: true,
                             onSelected: singleExecution(() => {
+                                setSearchContext(false);
                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                             }),
                         });

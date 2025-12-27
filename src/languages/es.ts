@@ -74,6 +74,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'Nombre',
         lastName: 'Apellidos',
         scanning: 'Escaneando',
+        analyzing: 'Analizando...',
         phone: 'Teléfono',
         phoneNumber: 'Número de teléfono',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -142,13 +143,14 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         percentage: 'Porcentaje',
+        converted: 'Convertido',
         error: {
             invalidAmount: 'Importe no válido',
             acceptTerms: 'Debes aceptar los Términos de Servicio para continuar',
             phoneNumber: `Por favor, introduce un número de teléfono completo\n(ej. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio',
             requestModified: 'Esta solicitud está siendo modificada por otro miembro',
-            characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
+            characterLimitExceedCounter: (length, limit) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
             invalidDateShouldBeFuture: 'Por favor, elige una fecha igual o posterior a hoy',
             invalidTimeShouldBeFuture: 'Por favor, elige una hora al menos un minuto en el futuro',
@@ -981,7 +983,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'rechazó este informe',
         waitingOnBankAccount: ({submitterDisplayName}) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: 'canceló el pago',
-        canceledRequest: ({amount, submitterDisplayName}) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
+        canceledRequest: (amount, submitterDisplayName) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhere: (payer) => `${payer ? `${payer} ` : ''}marcó como pagado`,
         paidWithExpensify: (payer) => `${payer ? `${payer} ` : ''}pagó con la billetera`,
@@ -1299,11 +1301,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Esperando a que <strong>tú</strong> soluciones el(los) problema(s).`;
+                        return `Esperando a que <strong>tú</strong> soluciones ellos problemas.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Esperando a que <strong>${actor}</strong> solucione el(los) problema(s).`;
+                        return `Esperando a que <strong>${actor}</strong> solucione ellos problemas.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Esperando a que un administrador solucione el(los) problema(s).`;
+                        return `Esperando a que un administrador solucione ellos problemas.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}) => {
@@ -1809,6 +1811,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Confirma tu cuenta bancaria',
         personalBankAccounts: 'Cuentas bancarias personales',
         businessBankAccounts: 'Cuentas bancarias empresariales',
+        shareBankAccount: 'Compartir cuenta bancaria',
+        bankAccountShared: 'Cuenta bancaria compartida',
+        shareBankAccountTitle: 'Seleccionar los administradores con quienes compartir esta cuenta bancaria:',
+        shareBankAccountSuccess: '¡Cuenta bancaria compartida!',
+        shareBankAccountSuccessDescription: 'Los administradores seleccionados recibirán un mensaje de confirmación de Concierge.',
+        shareBankAccountFailure: 'Se produjo un error inesperado al intentar compartir la cuenta bancaria. Inténtelo de nuevo.',
+        shareBankAccountEmptyTitle: 'No hay administradores disponibles',
+        shareBankAccountEmptyDescription: 'No hay administradores del espacio de trabajo con los que puedas compartir esta cuenta bancaria',
+        shareBankAccountNoAdminsSelected: 'Seleccione un administrador antes de continuar',
     },
     cardPage: {
         expensifyCard: 'Tarjeta Expensify',
@@ -2505,6 +2516,7 @@ ${amount} para ${merchant} - ${date}`,
     },
     personalDetails: {
         error: {
+            cannotContainSpecialCharacters: 'El nombre no puede contener caracteres especiales',
             containsReservedWord: 'El nombre no puede contener las palabras Expensify o Concierge',
             hasInvalidCharacter: 'El nombre no puede contener una coma o un punto y coma',
             requiredFirstName: 'El nombre no puede estar vacío',
@@ -3520,7 +3532,6 @@ ${amount} para ${merchant} - ${date}`,
                 monthly: 'Mensual',
             },
             planType: 'Tipo de plan',
-            submitExpense: 'Envía tus gastos a continuación:',
             defaultCategory: 'Categoría predeterminada',
             viewTransactions: 'Ver transacciones',
             policyExpenseChatName: ({displayName}) => `${displayName}'s gastos`,
@@ -4453,6 +4464,7 @@ ${amount} para ${merchant} - ${date}`,
             ukRegulation:
                 'Expensify Limited es un agente de Plaid Financial Ltd., una institución de pago autorizada y regulada por la Financial Conduct Authority conforme al Reglamento de Servicios de Pago de 2017 (Número de Referencia de la Firma: 804718). Plaid te proporciona servicios regulados de información de cuentas a través de Expensify Limited como su agente.',
             assignCardFailedError: 'Error al asignar la tarjeta.',
+            cardAlreadyAssignedError: 'Esta tarjeta ya está asignada a un usuario en otro espacio de trabajo.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
@@ -5487,11 +5499,11 @@ ${amount} para ${merchant} - ${date}`,
                 `La cuenta propietaria de este espacio de trabajo (${email}) tiene un saldo pendiente de un mes anterior.\n\n¿Desea transferir este monto (${amount}) para hacerse cargo de la facturación de este espacio de trabajo? tu tarjeta de pago se cargará inmediatamente.`,
             subscriptionTitle: 'Asumir la suscripción anual',
             subscriptionButtonText: 'Transferir suscripción',
-            subscriptionText: ({usersCount, finalCount}) =>
+            subscriptionText: (usersCount, finalCount) =>
                 `Al hacerse cargo de este espacio de trabajo se fusionará tu suscripción anual asociada con tu suscripción actual. Esto aumentará el tamaño de tu suscripción en ${usersCount} miembros, lo que hará que tu nuevo tamaño de suscripción sea ${finalCount}. ¿Te gustaria continuar?`,
             duplicateSubscriptionTitle: 'Alerta de suscripción duplicada',
             duplicateSubscriptionButtonText: 'Continuar',
-            duplicateSubscriptionText: ({email, workspaceName}) =>
+            duplicateSubscriptionText: (email, workspaceName) =>
                 `Parece que estás intentando hacerte cargo de la facturación de los espacios de trabajo de ${email}, pero para hacerlo, primero debes ser administrador de todos sus espacios de trabajo.\n\nHaz clic en "Continuar" si solo quieres tomar sobrefacturación para el espacio de trabajo ${workspaceName}.\n\nSi desea hacerse cargo de la facturación de toda tu suscripción, pídales que lo agreguen como administrador a todos sus espacios de trabajo antes de hacerse cargo de la facturación.`,
             hasFailedSettlementsTitle: 'No se puede transferir la propiedad',
             hasFailedSettlementsButtonText: 'Entiendo',
@@ -6535,13 +6547,13 @@ ${amount} para ${merchant} - ${date}`,
             type: {
                 changeField: ({oldValue, newValue, fieldName}) => `cambió ${fieldName} a "${newValue}" (previamente "${oldValue}")`,
                 changeFieldEmpty: ({newValue, fieldName}) => `estableció ${fieldName} a ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}) => {
+                changeReportPolicy: (toPolicyName, fromPolicyName) => {
                     if (!toPolicyName) {
                         return `cambió el espacio de trabajo${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;
                     }
                     return `cambió el espacio de trabajo a ${toPolicyName}${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;
                 },
-                changeType: ({oldType, newType}) => `cambió type de ${oldType} a ${newType}`,
+                changeType: (oldType, newType) => `cambió type de ${oldType} a ${newType}`,
                 exportedToCSV: `exportado a CSV`,
                 exportedToIntegration: {
                     automatic: ({label}) => {
@@ -7548,9 +7560,9 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Pago',
             subtitle: 'Añade una tarjeta para pagar tu suscripción a Expensify.',
             addCardButton: 'Añade tarjeta de pago',
+            cardInfo: (name, expiration, currency) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
             cardNextPayment: (nextPaymentDate) => `Tu próxima fecha de pago es ${nextPaymentDate}.`,
             cardEnding: (cardNumber) => `Tarjeta terminada en ${cardNumber}`,
-            cardInfo: ({name, expiration, currency}) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
             changeCard: 'Cambiar tarjeta de pago',
             changeCurrency: 'Cambiar moneda de pago',
             cardNotFound: 'No se ha añadido ninguna tarjeta de pago',
@@ -7665,12 +7677,8 @@ ${amount} para ${merchant} - ${date}`,
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación?',
             renewsOn: ({date}) => `Se renovará el ${date}.`,
             pricingConfiguration: 'El precio depende de la configuración. Para obtener el precio más bajo, elige una suscripción anual y obtén la Tarjeta Expensify.',
-            learnMore: {
-                part1: 'Obtén más información en nuestra ',
-                pricingPage: 'página de precios',
-                part2: ' o chatea con nuestro equipo en tu ',
-                adminsRoom: 'sala #admins.',
-            },
+            learnMore: ({hasAdminsRoom}) =>
+                `<muted-text>Obtén más información en nuestra <a href="${CONST.PRICING}">página de precios</a> o chatea con nuestro equipo en tu ${hasAdminsRoom ? `<a href="adminsRoom">sala #admins.</a>` : '#admins room.'}</muted-text>`,
             estimatedPrice: 'Precio estimado',
             changesBasedOn: 'Esto varía según el uso de tu Tarjeta Expensify y las opciones de suscripción que elijas a continuación.',
         },
@@ -8013,7 +8021,15 @@ ${amount} para ${merchant} - ${date}`,
             findAdmin: 'Encontrar administrador',
             primaryContact: 'Contacto principal',
             addPrimaryContact: 'Añadir contacto principal',
+            setPrimaryContactError: 'No se pudo establecer el contacto principal. Por favor, inténtalo de nuevo más tarde.',
             settings: 'Configuración',
+            consolidatedDomainBilling: 'Facturación consolidada del dominio',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>Cuando está habilitada, el contacto principal pagará todos los espacios de trabajo propiedad de los miembros de <strong>${domainName}</strong> y recibirá todos los recibos de facturación.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'No se pudo cambiar la facturación consolidada del dominio. Por favor, inténtalo de nuevo más tarde.',
+            addAdmin: 'Añadir administrador',
+            invite: 'Invitar',
+            addAdminError: 'No se pudo añadir a este miembro como administrador. Por favor, inténtalo de nuevo.',
         },
     },
 };
