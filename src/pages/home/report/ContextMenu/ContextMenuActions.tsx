@@ -125,7 +125,6 @@ import {
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
     getReportName as getReportNameDeprecated,
-    getReportOrDraftReport,
     getReportPreviewMessage,
     getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
@@ -152,8 +151,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
-import {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
@@ -414,7 +411,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return false;
             }
 
-            const isExplainableAction = [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, CONST.REPORT.ACTIONS.TYPE.AUTO_SUBMITTED].some((actionType) => reportAction?.actionName === actionType);
+            const isExplainableAction = [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, CONST.REPORT.ACTIONS.TYPE.AUTO_SUBMITTED].some((actionType) => reportAction.actionName === actionType);
             if (!isExplainableAction) {
                 return false;
             }
