@@ -100,11 +100,7 @@ function IOURequestStepDescription({
             const errors = {};
 
             if (values.moneyRequestComment.length > CONST.DESCRIPTION_LIMIT) {
-                addErrorMessage(
-                    errors,
-                    'moneyRequestComment',
-                    translate('common.error.characterLimitExceedCounter', {length: values.moneyRequestComment.length, limit: CONST.DESCRIPTION_LIMIT}),
-                );
+                addErrorMessage(errors, 'moneyRequestComment', translate('common.error.characterLimitExceedCounter', values.moneyRequestComment.length, CONST.DESCRIPTION_LIMIT));
             }
 
             if (isDescriptionRequired && !values.moneyRequestComment) {
@@ -177,7 +173,7 @@ function IOURequestStepDescription({
             headerTitle={translate('common.description')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepDescription.displayName}
+            testID="IOURequestStepDescription"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <FormProvider
@@ -227,8 +223,6 @@ function IOURequestStepDescription({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepDescription.displayName = 'IOURequestStepDescription';
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescription);

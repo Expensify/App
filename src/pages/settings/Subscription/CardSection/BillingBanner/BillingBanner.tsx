@@ -125,7 +125,5 @@ function BillingBanner({
     );
 }
 
-BillingBanner.displayName = 'BillingBanner';
-
 export default BillingBanner;
 export type {BillingBannerProps};

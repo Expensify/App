@@ -5,7 +5,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,8 +40,8 @@ function IOURequestStepTaxRatePage({
     report,
 }: IOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
-    const {policy} = usePolicyForTransaction({transaction, report, action, iouType});
 
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
@@ -115,7 +114,7 @@ function IOURequestStepTaxRatePage({
             headerTitle={translate('iou.taxRate')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepTaxRatePage.displayName}
+            testID="IOURequestStepTaxRatePage"
         >
             <TaxPicker
                 selectedTaxRate={taxRateTitle}
@@ -129,8 +128,6 @@ function IOURequestStepTaxRatePage({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepTaxRatePage.displayName = 'IOURequestStepTaxRatePage';
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTaxRatePageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxRatePage);
