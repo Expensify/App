@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,6 +33,7 @@ type Props = {
 function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, shouldShowRBR = false, isLoading = false}: Props) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
 
     if (isLoading) {
@@ -49,7 +51,7 @@ function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, sho
 
             <View style={styles.flex1}>
                 <View style={[styles.flexRow, styles.gap1, styles.alignItemsCenter]}>
-                    <CaretWrapper>
+                    <CaretWrapper style={[shouldUseNarrowLayout && styles.flex1]}>
                         <Text
                             numberOfLines={1}
                             style={[styles.textStrong, styles.flexShrink1]}

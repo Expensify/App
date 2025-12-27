@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -101,15 +101,12 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
         }
     };
 
-    const getBadgeText = useCallback(
-        (listItem: PaymentMethodItem) => {
-            if (isAccountInSetupState(listItem)) {
-                return translate('common.actionRequired');
-            }
-            return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
-        },
-        [shouldShowDefaultBadge, translate],
-    );
+    const getBadgeText = (listItem: PaymentMethodItem) => {
+        if (isAccountInSetupState(listItem)) {
+            return translate('common.actionRequired');
+        }
+        return shouldShowDefaultBadge ? translate('paymentMethodList.defaultPaymentMethod') : undefined;
+    };
 
     return (
         <OfflineWithFeedback
@@ -117,7 +114,8 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             pendingAction={item.pendingAction}
             errors={item.errors}
             errorRowStyles={styles.ph6}
-            shouldShowErrorMessages={false}
+            canDismissError={item.canDismissError}
+            shouldShowErrorMessages={!!item.errors}
         >
             <MenuItem
                 onPress={handleRowPress}
