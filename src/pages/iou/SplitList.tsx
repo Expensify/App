@@ -1,5 +1,6 @@
 import React, {useMemo} from 'react';
 import {KeyboardAwareScrollView} from 'react-native-keyboard-controller';
+import type {ValueOf} from 'type-fest';
 // eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {SectionListDataType, SplitListItemType} from '@components/SelectionListWithSections/types';
@@ -7,7 +8,7 @@ import useDisplayFocusedInputUnderKeyboard from '@hooks/useDisplayFocusedInputUn
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
-type SplitPercentageListProps = {
+type SplitListProps = {
     /** The split expense sections data. */
     sections: Array<SectionListDataType<SplitListItemType>>;
     /** The initially focused option key. */
@@ -16,25 +17,30 @@ type SplitPercentageListProps = {
     onSelectRow: (item: SplitListItemType) => void;
     /** Footer content to render at the bottom of the list. */
     listFooterContent?: React.JSX.Element | null;
+    /** The split mode to use (amount, percentage, or date). */
+    mode: ValueOf<typeof CONST.TAB.SPLIT>;
 };
 
 /**
- * Dedicated component for the Percentage tab in Split Expense flow.
- * Renders split items with percentage inputs, managing its own scroll/height state.
+ * Unified component for split expense tabs (Amount, Percentage, Date).
+ * Renders split items with the appropriate input type based on mode,
+ * managing its own scroll/height state.
  */
-function SplitPercentageList({sections, initiallyFocusedOptionKey, onSelectRow, listFooterContent}: SplitPercentageListProps) {
+function SplitList({sections, initiallyFocusedOptionKey, onSelectRow, listFooterContent, mode}: SplitListProps) {
     const styles = useThemeStyles();
     const {listRef, bottomOffset, scrollToFocusedInput, SplitListItem} = useDisplayFocusedInputUnderKeyboard();
 
-    const percentageSections = useMemo(() => {
+    const splitSections = useMemo(() => {
         return sections.map((section) => ({
             ...section,
             data: section.data.map((item) => ({
                 ...item,
-                mode: CONST.TAB.SPLIT.PERCENTAGE,
+                mode,
             })),
         }));
-    }, [sections]);
+    }, [sections, mode]);
+
+    const isPercentageMode = mode === CONST.TAB.SPLIT.PERCENTAGE;
 
     return (
         <SelectionList
@@ -48,7 +54,7 @@ function SplitPercentageList({sections, initiallyFocusedOptionKey, onSelectRow, 
             )}
             onSelectRow={onSelectRow}
             ref={listRef}
-            sections={percentageSections}
+            sections={splitSections}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
             ListItem={SplitListItem}
             containerStyle={[styles.flexBasisAuto]}
@@ -59,11 +65,9 @@ function SplitPercentageList({sections, initiallyFocusedOptionKey, onSelectRow, 
             shouldPreventDefaultFocusOnSelectRow
             removeClippedSubviews={false}
             shouldHideListOnInitialRender={false}
-            isPercentageMode
+            shouldSkipContentHeaderHeightOffset={isPercentageMode}
         />
     );
 }
 
-SplitPercentageList.displayName = 'SplitPercentageList';
-
-export default SplitPercentageList;
+export default SplitList;
