@@ -9814,7 +9814,7 @@ function getSendMoneyParams({
             receipt,
         },
     });
-    const optimisticTransactionData: OnyxUpdate = {
+    const optimisticTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
         value: optimisticTransaction,
@@ -9838,7 +9838,7 @@ function getSendMoneyParams({
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
     // and we need the data to be available when we navigate to the chat page
-    const optimisticChatReportData: OnyxUpdate = isNewChat
+    const optimisticChatReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = isNewChat
         ? {
               onyxMethod: Onyx.METHOD.SET,
               key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
@@ -9859,7 +9859,7 @@ function getSendMoneyParams({
                   lastVisibleActionCreated: reportPreviewAction.created,
               },
           };
-    const optimisticQuickActionData: OnyxUpdate = {
+    const optimisticQuickActionData: OnyxUpdate<typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE> = {
         onyxMethod: Onyx.METHOD.SET,
         key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
         value: {
@@ -9868,7 +9868,7 @@ function getSendMoneyParams({
             isFirstQuickAction: isEmptyObject(quickAction),
         },
     };
-    const optimisticIOUReportData: OnyxUpdate = {
+    const optimisticIOUReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
         value: {
@@ -9880,12 +9880,12 @@ function getSendMoneyParams({
             },
         },
     };
-    const optimisticTransactionThreadData: OnyxUpdate = {
+    const optimisticTransactionThreadData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThread.reportID}`,
         value: optimisticTransactionThread,
     };
-    const optimisticIOUReportActionsData: OnyxUpdate = {
+    const optimisticIOUReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
         value: {
@@ -9896,14 +9896,14 @@ function getSendMoneyParams({
             },
         },
     };
-    const optimisticChatReportActionsData: OnyxUpdate = {
+    const optimisticChatReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
         value: {
             [reportPreviewAction.reportActionID]: reportPreviewAction,
         },
     };
-    const optimisticTransactionThreadReportActionsData: OnyxUpdate | undefined = optimisticCreatedActionForTransactionThread
+    const optimisticTransactionThreadReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> | undefined = optimisticCreatedActionForTransactionThread
         ? {
               onyxMethod: Onyx.METHOD.MERGE,
               key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
@@ -11055,7 +11055,7 @@ function approveMoneyRequest(
     });
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
-    const optimisticReportActionsData: OnyxUpdate = {
+    const optimisticReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
         value: {
@@ -11078,7 +11078,7 @@ function approveMoneyRequest(
             nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
         },
     };
-    const optimisticIOUReportData: OnyxUpdate = {
+    const optimisticIOUReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: updatedExpenseReport,
@@ -11095,7 +11095,7 @@ function approveMoneyRequest(
         };
     }
 
-    const optimisticNextStepData: OnyxUpdate = {
+    const optimisticNextStepData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: optimisticNextStepDeprecated,
@@ -11279,7 +11279,7 @@ function reopenReport(
         isASAPSubmitBetaEnabled,
         isReopen: true,
     });
-    const optimisticReportActionsData: OnyxUpdate = {
+    const optimisticReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
         value: {
@@ -11289,7 +11289,7 @@ function reopenReport(
             },
         },
     };
-    const optimisticIOUReportData: OnyxUpdate = {
+    const optimisticIOUReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: {
@@ -11307,7 +11307,7 @@ function reopenReport(
         },
     };
 
-    const optimisticNextStepData: OnyxUpdate = {
+    const optimisticNextStepData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: optimisticNextStepDeprecated,
@@ -11438,7 +11438,7 @@ function retractReport(
         hasViolations,
         isASAPSubmitBetaEnabled,
     });
-    const optimisticReportActionsData: OnyxUpdate = {
+    const optimisticReportActionsData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
         value: {
@@ -11448,7 +11448,7 @@ function retractReport(
             },
         },
     };
-    const optimisticIOUReportData: OnyxUpdate = {
+    const optimisticIOUReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: {
@@ -11466,7 +11466,7 @@ function retractReport(
         },
     };
 
-    const optimisticNextStepData: OnyxUpdate = {
+    const optimisticNextStepData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: optimisticNextStepDeprecated,
@@ -11615,7 +11615,7 @@ function unapproveExpenseReport(
         isUnapprove: true,
     });
 
-    const optimisticReportActionData: OnyxUpdate = {
+    const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
         value: {
@@ -11625,7 +11625,7 @@ function unapproveExpenseReport(
             },
         },
     };
-    const optimisticIOUReportData: OnyxUpdate = {
+    const optimisticIOUReportData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: {
@@ -11643,7 +11643,7 @@ function unapproveExpenseReport(
         },
     };
 
-    const optimisticNextStepData: OnyxUpdate = {
+    const optimisticNextStepData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.NEXT_STEP> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: optimisticNextStepDeprecated,
@@ -13115,7 +13115,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
-    const optimisticTransactionData: OnyxUpdate = {
+    const optimisticTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
         value: {
@@ -13133,7 +13133,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         },
     };
 
-    const failureTransactionData: OnyxUpdate = {
+    const failureTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
@@ -13181,14 +13181,14 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
     }, 0);
 
     const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
-    const expenseReportOptimisticData: OnyxUpdate = {
+    const expenseReportOptimisticData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
         value: {
             total: (expenseReport?.total ?? 0) - duplicateTransactionTotals,
         },
     };
-    const expenseReportFailureData: OnyxUpdate = {
+    const expenseReportFailureData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
         value: {
@@ -13199,7 +13199,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
     const iouActionsToDelete = params.reportID ? getIOUActionForTransactions(params.transactionIDList, params.reportID) : [];
 
     const deletedTime = DateUtils.getDBTime();
-    const expenseReportActionsOptimisticData: OnyxUpdate = {
+    const expenseReportActionsOptimisticData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
         value: iouActionsToDelete.reduce<Record<string, PartialDeep<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>((val, reportAction) => {
@@ -13227,7 +13227,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
             return val;
         }, {}),
     };
-    const expenseReportActionsFailureData: OnyxUpdate = {
+    const expenseReportActionsFailureData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
         value: iouActionsToDelete.reduce<Record<string, NullishDeep<PartialDeep<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>>((val, reportAction) => {
@@ -13246,7 +13246,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
 
     const transactionThreadReportID =
         optimisticTransactionThreadReportID ?? (params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined);
-    const optimisticReportActionData: OnyxUpdate = {
+    const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         value: {
@@ -13254,7 +13254,7 @@ function mergeDuplicates({transactionThreadReportID: optimisticTransactionThread
         },
     };
 
-    const failureReportActionData: OnyxUpdate = {
+    const failureReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         value: {
@@ -13375,7 +13375,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
 
     const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
 
-    const optimisticTransactionData: OnyxUpdate = {
+    const optimisticTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
         value: {
@@ -13393,7 +13393,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         },
     };
 
-    const failureTransactionData: OnyxUpdate = {
+    const failureTransactionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
@@ -13481,7 +13481,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     });
 
-    const optimisticReportActionData: OnyxUpdate = {
+    const optimisticReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         value: {
@@ -13489,7 +13489,7 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
         },
     };
 
-    const failureReportActionData: OnyxUpdate = {
+    const failureReportActionData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS> = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         value: {
