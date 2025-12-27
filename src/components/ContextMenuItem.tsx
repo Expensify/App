@@ -7,11 +7,12 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import getButtonState from '@libs/getButtonState';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import BaseMiniContextMenuItem from './BaseMiniContextMenuItem';
 import FocusableMenuItem from './FocusableMenuItem';
 import Icon from './Icon';
 
-type ContextMenuItemProps = {
+type ContextMenuItemProps = WithSentryLabel & {
     /** Icon Component */
     icon: IconAsset;
 
@@ -64,9 +65,6 @@ type ContextMenuItemProps = {
 
     /** Reference to the outer element */
     ref?: ForwardedRef<ContextMenuItemHandle>;
-
-    /** Label for Sentry tracking */
-    sentryLabel?: string;
 };
 
 type ContextMenuItemHandle = {

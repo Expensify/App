@@ -4,9 +4,10 @@ import type Account from './Account';
 import type AccountData from './AccountData';
 import type AppReview from './AppReview';
 import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
-import type {AssignCard} from './AssignCard';
+import type {AssignCard, AssignCardData} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
+import type BankAccountShareDetails from './BankAccountShareDetails';
 import type Beta from './Beta';
 import type BetaConfiguration from './BetaConfiguration';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
@@ -15,7 +16,7 @@ import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
-import type {CardList, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
+import type {CardList, FailedCompanyCardAssignment, FailedCompanyCardAssignments, IssueNewCard, ProvisioningCardData, WorkspaceCardsList} from './Card';
 import type CardContinuousReconciliation from './CardContinuousReconciliation';
 import type CardFeeds from './CardFeeds';
 import type {AddNewCompanyCardFeed, CompanyCardFeed, CompanyCardFeedWithDomainID, DomainSettings, FundID} from './CardFeeds';
@@ -109,10 +110,12 @@ import type ReviewDuplicates from './ReviewDuplicates';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
+import type SearchContext from './SearchContext';
 import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
+import type ShareBankAccount from './ShareBankAccount';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
@@ -162,6 +165,8 @@ export type {
     Download,
     DuplicateWorkspace,
     WorkspaceCardsList,
+    FailedCompanyCardAssignment,
+    FailedCompanyCardAssignments,
     ExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
@@ -171,6 +176,7 @@ export type {
     GpsDraftDetails,
     IntroSelected,
     IssueNewCard,
+    AssignCardData,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
     CardContinuousReconciliation,
@@ -206,6 +212,7 @@ export type {
     PolicyTagLists,
     PrivatePersonalDetails,
     QuickAction,
+    ShareBankAccount,
     RecentWaypoint,
     RecentlyUsedCategories,
     RecentlyUsedTags,
@@ -275,7 +282,9 @@ export type {
     DomainSettings,
     SaveSearch,
     RecentSearchItem,
+    SearchContext,
     ImportedSpreadsheet,
+    BankAccountShareDetails,
     ImportedSpreadsheetMemberData,
     Onboarding,
     OnboardingPurpose,

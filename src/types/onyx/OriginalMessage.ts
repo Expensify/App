@@ -235,6 +235,9 @@ type OriginalMessageSubmitted = {
 
     /** Carbon copy list */
     cc?: string;
+
+    /** The workflow the report is submitted on */
+    workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 };
 
 /** Model of `created` report action */
@@ -828,6 +831,12 @@ type OriginalMessageDismissedViolation = {
     violationName: string;
 };
 
+/** Model of DYNAMIC_EXTERNAL_WORKFLOW_ROUTED report action */
+type OriginalMessageDynamicExternalWorkflowRouted = {
+    /** The approver of the report is submitted to */
+    to: string;
+};
+
 /** Model of `marked reimbursed` report action */
 type OriginalMessageMarkedReimbursed = {
     /** Whether this action was created from NewDot */
@@ -883,6 +892,12 @@ type OriginalMessageForwarded = {
 
     /** Report ID of the expense */
     expenseReportID: string;
+
+    /** The login the approver who is acting on behalf of the vacationer */
+    to?: string;
+
+    /** The workflow the report is approved on */
+    workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 };
 
 /**
@@ -1064,6 +1079,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CLOSED]: OriginalMessageClosed;
     [CONST.REPORT.ACTIONS.TYPE.CREATED]: OriginalMessageCreated;
     [CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION]: OriginalMessageDismissedViolation;
+    [CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED]: OriginalMessageDynamicExternalWorkflowRouted;
     [CONST.REPORT.ACTIONS.TYPE.EXPENSIFY_CARD_SYSTEM_MESSAGE]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: OriginalMessageExportIntegration;

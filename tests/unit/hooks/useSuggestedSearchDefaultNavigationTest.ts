@@ -1,6 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
 import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
-import {clearAllFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
@@ -8,10 +7,6 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-jest.mock('@libs/actions/Search', () => ({
-    clearAllFilters: jest.fn(),
-}));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -123,7 +118,6 @@ describe('useSuggestedSearchDefaultNavigation', () => {
             clearSelectedTransactions,
         });
 
-        expect(clearAllFilters).toHaveBeenCalledTimes(1);
         expect(clearSelectedTransactions).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approveMenuItem.searchQuery}));
     });
@@ -170,7 +164,6 @@ describe('useSuggestedSearchDefaultNavigation', () => {
             },
         });
 
-        expect(clearAllFilters).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
@@ -190,7 +183,6 @@ describe('useSuggestedSearchDefaultNavigation', () => {
             },
         });
 
-        expect(clearAllFilters).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
@@ -217,7 +209,6 @@ describe('useSuggestedSearchDefaultNavigation', () => {
             shouldSkipNavigation: true,
         });
 
-        expect(clearAllFilters).not.toHaveBeenCalled();
         expect(clearSelectedTransactions).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });

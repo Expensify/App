@@ -106,6 +106,13 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
     return parse(initialValue).some((part) => part.type !== FORMULA_PART_TYPES.FREETEXT);
 }
 
+/**
+ * Checks if a report field name already exists in the policy's field list (case-insensitive).
+ */
+function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string): boolean {
+    return Object.values(fieldList ?? {}).some((reportField) => reportField.name.toLowerCase() === fieldName.toLowerCase());
+}
+
 export {
     getReportFieldTypeTranslationKey,
     getReportFieldAlternativeTextTranslationKey,
@@ -113,4 +120,5 @@ export {
     generateFieldID,
     getReportFieldInitialValue,
     hasFormulaPartsInInitialValue,
+    isReportFieldNameExisting,
 };

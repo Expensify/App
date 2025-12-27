@@ -26,7 +26,7 @@ import {setNameValuePair} from '@libs/actions/User';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, SearchReportParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getOriginalMessage, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {getTransactionThreadPrimaryAction, isMarkAsResolvedAction} from '@libs/ReportPrimaryActionUtils';
 import {getSecondaryTransactionThreadActions} from '@libs/ReportSecondaryActionUtils';
@@ -72,6 +72,7 @@ import HeaderWithBackButton from './HeaderWithBackButton';
 import HoldOrRejectEducationalModal from './HoldOrRejectEducationalModal';
 import HoldSubmitterEducationalModal from './HoldSubmitterEducationalModal';
 import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import LoadingBar from './LoadingBar';
 import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusBar';
@@ -98,7 +99,9 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT> | PlatformStackRouteProp<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>>();
+    const route = useRoute<
+        PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT> | PlatformStackRouteProp<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>
+    >();
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {
         canBeMissing: false,
     });
@@ -128,6 +131,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['CreditCardHourglass', 'ReceiptScan']);
     const {login: currentUserLogin, email, accountID} = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
@@ -143,7 +147,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
+    const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const isFromReviewDuplicates = !!route.params.backTo?.replaceAll(/\?.*/g, '').endsWith('/duplicates/review');
     const shouldDisplayTransactionNavigation = !!(reportID && isReportInRHP);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
@@ -153,13 +157,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationTransactionUtils(parentReport, policy, transactionViolations);
     const isReportSubmitter = isCurrentUserSubmitter(chatIOUReport);
-    const isParentReportDM = isDM(parentReport);
+    const isParentChatReportDM = isDM(chatIOUReport);
 
     // If the parent report is a selfDM, it should always be opened in the Inbox tab
     const shouldOpenParentReportInCurrentTab = !isSelfDM(parentReport);
 
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
@@ -182,13 +187,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     optimisticChatReportID,
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
+                    quickAction,
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,
                     activePolicyExpenseChat,
                 );
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled],
+        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction],
     );
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
@@ -213,7 +219,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         }
 
         if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {
-            return {icon: getStatusIcon(Expensicons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
+            return {icon: getStatusIcon(icons.CreditCardHourglass), description: translate('iou.transactionPendingDescription')};
         }
         if (!!transaction?.transactionID && !!transactionViolations.length && shouldShowBrokenConnectionViolation) {
             return {
@@ -231,7 +237,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             return {icon: getStatusIcon(Expensicons.Hourglass), description: translate('iou.pendingMatchWithCreditCardDescription')};
         }
         if (isScanning(transaction)) {
-            return {icon: getStatusIcon(Expensicons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
+            return {icon: getStatusIcon(icons.ReceiptScan), description: translate('iou.receiptScanInProgressDescription')};
         }
     };
 
@@ -356,8 +362,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 }
 
                 const isDismissed = isReportSubmitter ? dismissedHoldUseExplanation : dismissedRejectUseExplanation;
-
-                if (isDismissed || isParentReportDM) {
+                if (isDismissed || isParentChatReportDM) {
                     changeMoneyRequestHoldStatus(parentReportAction);
                 } else if (isReportSubmitter) {
                     setIsHoldEducationalModalVisible(true);

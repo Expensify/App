@@ -3,7 +3,7 @@ import {FlashList} from '@shopify/flash-list';
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
 import {deepEqual} from 'fast-equals';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {TextInputKeyPressEvent, ViewStyle} from 'react-native';
+import type {TextInputKeyPressEvent} from 'react-native';
 import {View} from 'react-native';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -80,6 +80,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
+    shouldClearInputOnSelect = false,
     shouldHighlightSelectedItem = true,
     shouldUseDefaultRightHandSideCheckmark,
     shouldDisableHoverStyle = false,
@@ -187,7 +188,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 return;
             }
             if (canSelectMultiple) {
-                if (shouldShowTextInput) {
+                if (shouldShowTextInput && shouldClearInputOnSelect) {
                     textInputOptions?.onChangeText?.('');
                 } else if (isSmallScreenWidth) {
                     if (!item.isDisabledCheckbox) {
@@ -211,6 +212,7 @@ function BaseSelectionList<TItem extends ListItem>({
             shouldUpdateFocusedIndex,
             onSelectRow,
             shouldShowTextInput,
+            shouldClearInputOnSelect,
             shouldPreventDefaultFocusOnSelectRow,
             isSmallScreenWidth,
             textInputOptions,
@@ -506,7 +508,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         showsVerticalScrollIndicator={showScrollIndicator}
                         onEndReached={onEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
-                        style={style?.listStyle as ViewStyle}
+                        style={style?.listStyle}
                         initialScrollIndex={initialFocusedIndex}
                         onScrollBeginDrag={onScrollBeginDrag}
                         maintainVisibleContentPosition={{disabled: disableMaintainingScrollPosition}}

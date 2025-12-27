@@ -514,7 +514,7 @@ Considerations when removing `backTo` from a URL:
 ```ts
 type ReportScreenNavigationProps =
     | PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>
-    | PlatformStackScreenProps<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>;
+    | PlatformStackScreenProps<RightModalNavigatorParamList, typeof SCREENS.RIGHT_MODAL.SEARCH_REPORT>;
 ```
 
 An example of a screen that is reused in several flows is `VerifyAccountPage`.

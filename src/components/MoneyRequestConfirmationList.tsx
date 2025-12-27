@@ -30,7 +30,6 @@ import {
     setMoneyRequestTaxRate,
     setSplitShares,
 } from '@libs/actions/IOU';
-import {getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isCategoryDescriptionRequired} from '@libs/CategoryUtils';
 import {convertToBackendAmount, convertToDisplayString, convertToDisplayStringWithoutCurrency, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -75,6 +74,7 @@ import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import MoneyRequestConfirmationListFooter from './MoneyRequestConfirmationListFooter';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
 import type {SectionListDataType} from './SelectionListWithSections/types';
 import UserListItem from './SelectionListWithSections/UserListItem';
@@ -429,7 +429,7 @@ function MoneyRequestConfirmationList({
         setFormError('');
 
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run if it's just setFormError that changes
-    }, [isFocused, transaction, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
+    }, [isFocused, shouldDisplayFieldError, hasSmartScanFailed, didConfirmSplit]);
 
     useEffect(() => {
         // We want this effect to run only when the transaction is moving from Self DM to a expense chat
@@ -920,12 +920,6 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            const isMissingAttendeesViolation = getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
-            if (isMissingAttendeesViolation) {
-                setFormError('violations.missingAttendees');
-                return;
-            }
-
             if (isPerDiemRequest && (transaction.comment?.customUnit?.subRates ?? []).length === 0) {
                 setFormError('iou.error.invalidSubrateLength');
                 return;
@@ -999,8 +993,6 @@ function MoneyRequestConfirmationList({
             showDelegateNoAccessModal,
             iouCategory,
             policyCategories,
-            iouAttendees,
-            currentUserPersonalDetails,
         ],
     );
 
@@ -1023,10 +1015,6 @@ function MoneyRequestConfirmationList({
         }
         if (isTypeSplit && !shouldShowReadOnlySplits) {
             return debouncedFormError && translate(debouncedFormError);
-        }
-        // Don't show error at the bottom of the form for missing attendees
-        if (formError === 'violations.missingAttendees') {
-            return;
         }
         return formError && translate(formError);
     }, [routeError, isTypeSplit, shouldShowReadOnlySplits, debouncedFormError, formError, translate]);

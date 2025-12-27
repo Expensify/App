@@ -303,9 +303,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         return;
                     }
                     close(() =>
-                        downloadPerDiemCSV(policyID, () => {
-                            setIsDownloadFailureModalVisible(true);
-                        }),
+                        downloadPerDiemCSV(
+                            policyID,
+                            () => {
+                                setIsDownloadFailureModalVisible(true);
+                            },
+                            translate,
+                        ),
                     );
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,

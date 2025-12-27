@@ -132,7 +132,10 @@ function BaseOnboardingWorkspaceConfirmation({shouldUseNativeStyles}: BaseOnboar
             testID="BaseOnboardingWorkspaceConfirmation"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <HeaderWithBackButton progressBarPercentage={100} />
+            <HeaderWithBackButton
+                progressBarPercentage={100}
+                shouldDisplayHelpButton={false}
+            />
             <FormProvider
                 style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 formID={ONYXKEYS.FORMS.ONBOARDING_WORKSPACE_DETAILS_FORM}

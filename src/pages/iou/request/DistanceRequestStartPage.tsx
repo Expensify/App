@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {Keyboard, Platform, View} from 'react-native';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -8,6 +8,7 @@ import TabSelector from '@components/TabSelector/TabSelector';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +29,7 @@ import type SCREENS from '@src/SCREENS';
 import type {SelectedTabRequest} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import IOURequestStepDistanceGPS from './step/IOURequestStepDistanceGPS';
 import IOURequestStepDistanceManual from './step/IOURequestStepDistanceManual';
 import IOURequestStepDistanceMap from './step/IOURequestStepDistanceMap';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
@@ -57,6 +59,8 @@ function DistanceRequestStartPage({
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
+    const {isBetaEnabled} = usePermissions();
+    const showGPSTab = isBetaEnabled(CONST.BETAS.GPS_MILEAGE) && (Platform.OS === 'android' || Platform.OS === 'ios');
 
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -221,6 +225,18 @@ function DistanceRequestStartPage({
                                 </TabScreenWithFocusTrapWrapper>
                             )}
                         </TopTab.Screen>
+                        {showGPSTab && (
+                            <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_GPS}>
+                                {() => (
+                                    <TabScreenWithFocusTrapWrapper>
+                                        <IOURequestStepDistanceGPS
+                                            route={route}
+                                            navigation={navigation}
+                                        />
+                                    </TabScreenWithFocusTrapWrapper>
+                                )}
+                            </TopTab.Screen>
+                        )}
                     </OnyxTabNavigator>
                 </View>
             </ScreenWrapper>
