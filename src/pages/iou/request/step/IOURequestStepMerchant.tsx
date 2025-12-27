@@ -19,6 +19,7 @@ import {isValidInputLength} from '@libs/ValidationUtils';
 import {setDraftSplitTransaction, setMoneyRequestMerchant, updateMoneyRequestMerchant} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -106,6 +107,10 @@ function IOURequestStepMerchant({
         // In case the merchant hasn't been changed, do not make the API request.
         // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
         if (newMerchant === merchant || (newMerchant === '' && merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
+            if (!isEditing && !backTo) {
+                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, undefined, undefined, Navigation.getActiveRoute()));
+                return;
+            }
             navigateBack();
             return;
         }
@@ -123,7 +128,15 @@ function IOURequestStepMerchant({
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
             );
+            navigateBack();
+            return;
         }
+
+        if (!backTo) {
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID));
+            return;
+        }
+
         navigateBack();
     };
 
