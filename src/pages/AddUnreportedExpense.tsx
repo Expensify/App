@@ -61,6 +61,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const session = useSession();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {canBeMissing: true});
     const shouldShowUnreportedTransactionsSkeletons = isLoadingUnreportedTransactions && hasMoreUnreportedTransactionsResults && !isOffline;
 
     const getUnreportedTransactions = useCallback(
@@ -182,6 +183,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     isASAPSubmitBetaEnabled,
                     session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     session?.email ?? '',
+                    allSnapshots,
                     reportToConfirm,
                     policy,
                     reportNextStep,
@@ -190,7 +192,20 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             }
         });
         setErrorMessage('');
-    }, [selectedIds, translate, report, isASAPSubmitBetaEnabled, session?.accountID, session?.email, transactionViolations, reportToConfirm, policy, reportNextStep, policyCategories]);
+    }, [
+        selectedIds,
+        translate,
+        report,
+        isASAPSubmitBetaEnabled,
+        session?.accountID,
+        session?.email,
+        transactionViolations,
+        reportToConfirm,
+        policy,
+        reportNextStep,
+        policyCategories,
+        allSnapshots,
+    ]);
 
     const footerContent = useMemo(() => {
         return (
