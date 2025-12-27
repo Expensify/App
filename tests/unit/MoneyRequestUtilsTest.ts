@@ -77,6 +77,30 @@ describe('ReportActionsUtils', () => {
             expect(validatePercentage('7.55', true, true)).toBe(false);
             expect(validatePercentage('abc', true, true)).toBe(false);
         });
+
+        it('accepts comma as decimal separator for locale support (e.g., Spanish)', () => {
+            // With allowDecimal=true and comma separator
+            expect(validatePercentage('7,5', false, true)).toBe(true);
+            expect(validatePercentage('0,1', false, true)).toBe(true);
+            expect(validatePercentage('99,9', false, true)).toBe(true);
+            expect(validatePercentage('100,0', false, true)).toBe(true);
+
+            // With allowExceedingHundred=true and allowDecimal=true
+            expect(validatePercentage('150,5', true, true)).toBe(true);
+            expect(validatePercentage('7,5', true, true)).toBe(true);
+            expect(validatePercentage(',5', true, true)).toBe(true);
+
+            // Invalid: more than one decimal place with comma
+            expect(validatePercentage('7,55', true, true)).toBe(false);
+            expect(validatePercentage('100,01', false, true)).toBe(false);
+
+            // Invalid: mixed comma and period (should not accept both)
+            expect(validatePercentage('7,5.5', true, true)).toBe(false);
+            expect(validatePercentage('7.5,5', true, true)).toBe(false);
+            expect(validatePercentage('1,234.56', true, true)).toBe(false);
+            expect(validatePercentage('1.234,56', true, true)).toBe(false);
+            expect(validatePercentage('10,5.0', false, true)).toBe(false);
+        });
     });
 
     describe('handleNegativeAmountFlipping', () => {
