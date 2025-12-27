@@ -10,7 +10,7 @@ import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import type useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';

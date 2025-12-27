@@ -1162,7 +1162,7 @@ type OriginalMessageMap = {
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>, OriginalMessagePolicyChangeLog> &
     Record<ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG>, OriginalMessageChangeLog>;
 
-type OriginalMessage<T extends ReportActionName> = OriginalMessageMap[T];
+type OriginalMessage<T extends ReportActionName> = T extends keyof OriginalMessageMap ? OriginalMessageMap[T] : never;
 
 export default OriginalMessage;
 export type {
