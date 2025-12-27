@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
-import type {OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
+import type {ExpenseRule, OnyxInputOrEntry, ReportAction} from '@src/types/onyx';
 import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
@@ -760,6 +760,10 @@ type RoutedDueToDEWParams = {
     to: string;
 };
 
+type ExpenseRuleUpdateToParams = {
+    rule: ExpenseRule;
+};
+
 export type {
     SettlementAccountReconciliationParams,
     ToggleImportTitleParams,
@@ -1008,4 +1012,5 @@ export type {
     RoutedDueToDEWParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
+    ExpenseRuleUpdateToParams,
 };
