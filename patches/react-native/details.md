@@ -196,3 +196,13 @@
 - Upstream PR/issue: There won't be any upstream changes. We need to get rid of InteractionManager
 - E/App issue: https://github.com/Expensify/App/issues/71913
 - PR introducing patch: https://github.com/Expensify/App/pull/69535
+
+### [react-native+0.81.4+026+invert-scroll-to-top.patch](react-native+0.81.4+026+invert-scroll-to-top.patch)
+
+- Reason: React Native simply uses a scale transform of -1 to create the "effect" of the inverted FlatList, it doesn't attempt to normalize the scroll direction. It also doesn't expose an API for us to intercept the scroll so we can change the direction. However, React Native does have access to `scrollViewShouldScrollToTop` on iOS which intercepts the scroll, so this patch uses that event to invert the scroll direction when the the list is inverted.
+
+Upstream PR/issue: https://github.com/facebook/react-native/pull/54831
+
+E/App issue: https://github.com/Expensify/App/issues/75143
+
+PR introducing patch: https://github.com/Expensify/App/pull/76174
