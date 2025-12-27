@@ -3,6 +3,8 @@ import type {ForwardedRef, RefObject} from 'react';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
+import useFlatListHandle from '@components/FlatList/hooks/useFlatListHandle';
+import type {FlatListInnerRefType} from '@components/FlatList/types';
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
@@ -44,7 +46,7 @@ function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
     return flatList?.getScrollableNode() as HTMLElement | undefined;
 }
 
-function MVCPFlatList<TItem>({
+function MVCPFlatList<T>({
     maintainVisibleContentPosition,
     horizontal = false,
     onScroll: onScrollProp,
@@ -52,10 +54,10 @@ function MVCPFlatList<TItem>({
     shouldHideContent = false,
     ref,
     ...restProps
-}: CustomFlatListProps<TItem>) {
+}: CustomFlatListProps<T>) {
     const styles = useThemeStyles();
     const {minIndexForVisible: mvcpMinIndexForVisible, autoscrollToTopThreshold: mvcpAutoscrollToTopThreshold} = maintainVisibleContentPosition ?? {};
-    const scrollRef = useRef<FlatList | null>(null);
+    const listRef = useRef<FlatListInnerRefType<T> | null>(null);
     const prevFirstVisibleOffsetRef = useRef(0);
     const firstVisibleViewRef = useRef<HTMLElement | null>(null);
     const mutationObserverRef = useRef<MutationObserver | null>(null);
@@ -66,18 +68,18 @@ function MVCPFlatList<TItem>({
     mvcpAutoscrollToTopThresholdRef.current = mvcpAutoscrollToTopThreshold;
 
     const getScrollOffset = useCallback((): number => {
-        if (!scrollRef.current) {
+        if (!listRef.current) {
             return 0;
         }
-        return horizontal ? (getScrollableNode(scrollRef.current)?.scrollLeft ?? 0) : (getScrollableNode(scrollRef.current)?.scrollTop ?? 0);
+        return horizontal ? (getScrollableNode(listRef.current)?.scrollLeft ?? 0) : (getScrollableNode(listRef.current)?.scrollTop ?? 0);
     }, [horizontal]);
 
-    const getContentView = useCallback(() => getScrollableNode(scrollRef.current)?.childNodes[0], []);
+    const getContentView = useCallback(() => getScrollableNode(listRef.current)?.childNodes[0], []);
 
     const scrollToOffset = useCallback(
         (offset: number, animated: boolean, interrupt: boolean) => {
             const behavior = animated ? 'smooth' : 'instant';
-            const node = getScrollableNode(scrollRef.current);
+            const node = getScrollableNode(listRef.current);
             if (node == null) {
                 return;
             }
@@ -180,7 +182,7 @@ function MVCPFlatList<TItem>({
 
             // When the list is hidden, the size will be 0.
             // Ignore the callback if the list is hidden because scrollOffset will always be 0.
-            if (!getScrollableNode(scrollRef.current)?.clientHeight) {
+            if (!getScrollableNode(listRef.current)?.clientHeight) {
                 return;
             }
 
@@ -209,12 +211,12 @@ function MVCPFlatList<TItem>({
         };
     }, [prepareForMaintainVisibleContentPosition, setupMutationObserver]);
 
-    const setMergedRef = useMergeRefs(scrollRef, ref as ForwardedRef<FlatList>);
+    const setMergedRef = useMergeRefs(listRef, ref as ForwardedRef<FlatList>);
 
     const onRef = useCallback(
         (newRef: FlatList) => {
             // Make sure to only call refs and re-attach listeners if the node changed.
-            if (newRef == null || newRef === scrollRef.current) {
+            if (newRef == null || newRef === listRef.current) {
                 return;
             }
 
@@ -224,6 +226,14 @@ function MVCPFlatList<TItem>({
         },
         [prepareForMaintainVisibleContentPosition, setMergedRef, setupMutationObserver],
     );
+
+    useFlatListHandle<T>({
+        ref,
+        listRef,
+        remainingItemsToDisplay: 0,
+        setCurrentDataId: () => {},
+        onScrollToIndexFailed: () => {},
+    });
 
     useEffect(() => {
         const mutationObserver = mutationObserverRef.current;
@@ -242,7 +252,6 @@ function MVCPFlatList<TItem>({
         },
         [emitComposerScrollEvents, onScrollProp, prepareForMaintainVisibleContentPosition],
     );
-
     return (
         <FlatList
             // eslint-disable-next-line react/jsx-props-no-spreading

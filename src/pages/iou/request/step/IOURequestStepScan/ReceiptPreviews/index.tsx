@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import type {FlatList as FlatListType} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
-import FlatList from '@components/FlatList';
+import FlatList from '@components/FlatList/FlatList';
 import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
 import {PressableWithFeedback} from '@components/Pressable';
