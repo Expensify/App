@@ -1,7 +1,7 @@
 import {format, parseISO, subDays} from 'date-fns';
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
