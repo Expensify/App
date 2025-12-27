@@ -10924,6 +10924,7 @@ function canIOUBePaid(
         iouReport,
         onlyShowPayElsewhere,
         policy,
+        chatReport,
     );
 
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
