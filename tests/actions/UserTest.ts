@@ -280,22 +280,24 @@ describe('actions/User', () => {
 
             // Mock API.write to apply optimisticData
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            (mockAPI.write as jest.Mock).mockImplementation((
-                command: unknown,
-                params: unknown,
-                options?: {
-                    optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: string; value: unknown}>;
-                },
-            ) => {
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key as OnyxKey, update.value as OnyxMergeInput<OnyxKey>);
+            (mockAPI.write as jest.Mock).mockImplementation(
+                (
+                    command: unknown,
+                    params: unknown,
+                    options?: {
+                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: string; value: unknown}>;
+                    },
+                ) => {
+                    if (options?.optimisticData) {
+                        for (const update of options.optimisticData) {
+                            if (update.onyxMethod === Onyx.METHOD.MERGE) {
+                                Onyx.merge(update.key as OnyxKey, update.value as OnyxMergeInput<OnyxKey>);
+                            }
                         }
                     }
-                }
-                return Promise.resolve();
-            });
+                    return Promise.resolve();
+                },
+            );
 
             // When verifyAddSecondaryLoginCode is called
             UserActions.verifyAddSecondaryLoginCode(validateCode);
@@ -505,22 +507,24 @@ describe('actions/User', () => {
 
             // Mock API.write to apply optimisticData
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            (mockAPI.write as jest.Mock).mockImplementation((
-                command: unknown,
-                params: unknown,
-                options?: {
-                    optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: string; value: unknown}>;
-                },
-            ) => {
-                if (options?.optimisticData) {
-                    for (const update of options.optimisticData) {
-                        if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key as OnyxKey, update.value as OnyxMergeInput<OnyxKey>);
+            (mockAPI.write as jest.Mock).mockImplementation(
+                (
+                    command: unknown,
+                    params: unknown,
+                    options?: {
+                        optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: string; value: unknown}>;
+                    },
+                ) => {
+                    if (options?.optimisticData) {
+                        for (const update of options.optimisticData) {
+                            if (update.onyxMethod === Onyx.METHOD.MERGE) {
+                                Onyx.merge(update.key as OnyxKey, update.value as OnyxMergeInput<OnyxKey>);
+                            }
                         }
                     }
-                }
-                return Promise.resolve();
-            });
+                    return Promise.resolve();
+                },
+            );
 
             // When addNewContactMethod is called
             UserActions.addNewContactMethod(contactMethod);
