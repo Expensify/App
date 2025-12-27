@@ -1,0 +1,17 @@
+diff --git a/node_modules/@sentry/react-native/android/src/main/java/io/sentry/react/RNSentryModuleImpl.java b/node_modules/@sentry/react-native/android/src/main/java/io/sentry/react/RNSentryModuleImpl.java
+index b4738aa..822d794 100644
+--- a/node_modules/@sentry/react-native/android/src/main/java/io/sentry/react/RNSentryModuleImpl.java
++++ b/node_modules/@sentry/react-native/android/src/main/java/io/sentry/react/RNSentryModuleImpl.java
+@@ -945,9 +945,9 @@ public class RNSentryModuleImpl {
+ 
+   public WritableMap startProfiling(boolean platformProfilers) {
+     final WritableMap result = new WritableNativeMap();
+-    if (androidProfiler == null && platformProfilers) {
+-      initializeAndroidProfiler();
+-    }
++    // if (androidProfiler == null && platformProfilers) {
++    //   initializeAndroidProfiler();
++    // }
+ 
+     try {
+       HermesSamplingProfiler.enable();
