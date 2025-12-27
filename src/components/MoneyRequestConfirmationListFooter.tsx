@@ -22,7 +22,8 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
+import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -40,6 +41,7 @@ import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
@@ -112,6 +114,9 @@ type MoneyRequestConfirmationListFooterProps = {
 
     /** Flag indicating if it is a manual distance request */
     isManualDistanceRequest: boolean;
+
+    /** Flag indicating if it is an odometer distance request */
+    isOdometerDistanceRequest?: boolean;
 
     /** Flag indicating if it is a per diem request */
     isPerDiemRequest: boolean;
@@ -230,6 +235,7 @@ function MoneyRequestConfirmationListFooter({
     isCategoryRequired,
     isDistanceRequest,
     isManualDistanceRequest,
+    isOdometerDistanceRequest = false,
     isPerDiemRequest,
     isMerchantEmpty,
     isMerchantRequired,
@@ -300,8 +306,8 @@ function MoneyRequestConfirmationListFooter({
 
     const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const shouldShowMap = isDistanceRequest && !isManualDistanceRequest && !!(hasErrors || hasPendingWaypoints || iouType !== CONST.IOU.TYPE.SPLIT || !isReadOnly);
+    const shouldShowMap =
+        isDistanceRequest && !isManualDistanceRequest && !isOdometerDistanceRequest && [hasErrors, hasPendingWaypoints, iouType !== CONST.IOU.TYPE.SPLIT, !isReadOnly].some(Boolean);
     const isFromGlobalCreate = !!transaction?.isFromGlobalCreate;
 
     const senderWorkspace = useMemo(() => {
@@ -321,7 +327,6 @@ function MoneyRequestConfirmationListFooter({
      */
     const transactionReport = transaction?.reportID ? Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID) : undefined;
     const policyID = selectedParticipants?.at(0)?.policyID;
-    const selectedPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
     const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, policyID, undefined, false)) || isUnreported;
 
     const ownerAccountID = selectedParticipants?.at(0)?.ownerAccountID;
@@ -345,13 +350,13 @@ function MoneyRequestConfirmationListFooter({
         return [reportIDToUse, reportToUse];
     }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
 
-    const reportName = useMemo(() => {
-        const name = getReportName(selectedReport, selectedPolicy);
+    const reportName = (() => {
+        const name = computeReportName(selectedReport, allReports, allPolicies, undefined, reportNameValuePairs);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
         return name;
-    }, [isUnreported, selectedReport, selectedPolicy, translate]);
+    })();
 
     const shouldReportBeEditableFromFAB = isUnreported ? allOutstandingReports.length >= 1 : allOutstandingReports.length > 1;
 
@@ -501,6 +506,11 @@ function MoneyRequestConfirmationListFooter({
 
                         if (isManualDistanceRequest) {
                             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                            return;
+                        }
+
+                        if (isOdometerDistanceRequest) {
+                            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action, iouType, transactionID, reportID, true) as Route);
                             return;
                         }
 
@@ -1029,7 +1039,7 @@ function MoneyRequestConfirmationListFooter({
                     <View style={styles.dividerLine} />
                 </>
             )}
-            {(!shouldShowMap || isManualDistanceRequest) && (
+            {(!shouldShowMap || isManualDistanceRequest || isOdometerDistanceRequest) && (
                 <View style={!hasReceiptImageOrThumbnail && !showReceiptEmptyState ? undefined : styles.mv3}>
                     {hasReceiptImageOrThumbnail
                         ? receiptThumbnailContent

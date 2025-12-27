@@ -1167,6 +1167,16 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance-manual/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
+    MONEY_REQUEST_STEP_DISTANCE_ODOMETER: {
+        route: ':action/:iouType/distance-odometer/:transactionID/:reportID/:isEditingFromConfirmation(editing)?',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, isEditingFromConfirmation = false) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_ODOMETER route');
+            }
+
+            return `${action as string}/${iouType as string}/distance-odometer/${transactionID}/${reportID}${isEditingFromConfirmation ? '/editing' : ''}` as const;
+        },
+    },
     MONEY_REQUEST_STEP_DISTANCE_RATE: {
         route: ':action/:iouType/distanceRate/:transactionID/:reportID/:reportActionID?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
@@ -1285,6 +1295,11 @@ const ROUTES = {
         route: 'distance-gps',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backToReport?: string) =>
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-gps` as const,
+    },
+    DISTANCE_REQUEST_CREATE_TAB_ODOMETER: {
+        route: 'distance-odometer',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-odometer` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',

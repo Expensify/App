@@ -119,6 +119,12 @@ type Comment = {
 
     /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
     pendingAutoCategorizationTime?: string;
+
+    /** Odometer start reading for distance expenses */
+    odometerStart?: number | null;
+
+    /** Odometer end reading for distance expenses */
+    odometerEnd?: number | null;
 };
 
 /** Model of transaction custom unit */

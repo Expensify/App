@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import type {NavigationAction} from '@react-navigation/native';
 import React, {memo, useCallback, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
@@ -6,15 +7,16 @@ import useLocalize from '@hooks/useLocalize';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type DiscardChangesConfirmationProps from './types';
 
-function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfirmationProps) {
+function DiscardChangesConfirmation({getHasUnsavedChanges, isEnabled = true}: DiscardChangesConfirmationProps) {
     const {translate} = useLocalize();
+    const isFocused = useIsFocused();
     const [isVisible, setIsVisible] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
 
     useBeforeRemove(
         useCallback(
             (e) => {
-                if (!getHasUnsavedChanges()) {
+                if (!isEnabled || !isFocused || !getHasUnsavedChanges()) {
                     return;
                 }
 
@@ -22,8 +24,9 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
                 blockedNavigationAction.current = e.data.action;
                 setIsVisible(true);
             },
-            [getHasUnsavedChanges],
+            [getHasUnsavedChanges, isFocused, isEnabled],
         ),
+        isEnabled && isFocused,
     );
 
     return (

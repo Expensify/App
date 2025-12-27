@@ -1721,6 +1721,15 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
+    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER]: {
+        action: IOUAction;
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backToReport?: string;
+        reportActionID?: string;
+        isEditingFromConfirmation?: boolean | string;
+    };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
         reportID: string;
@@ -1920,6 +1929,7 @@ type MoneyRequestNavigatorParamList = {
         pageIndex?: string;
         backToReport?: string;
         reportActionID?: string;
+        isEditingFromConfirmation?: boolean | string;
     };
     [SCREENS.SET_DEFAULT_WORKSPACE]: {
         navigateTo?: Routes;

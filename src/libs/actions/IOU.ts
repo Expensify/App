@@ -227,6 +227,7 @@ import {
     isFetchingWaypointsFromServer,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isMapDistanceRequest,
+    isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isOnHold,
     isPending,
     isPendingCardOrScanningTransaction,
@@ -615,6 +616,8 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     splitShares?: SplitShares;
     distance?: number;
     receipt?: Receipt;
+    odometerStart?: number | null;
+    odometerEnd?: number | null;
 };
 
 type CreateDistanceRequestInformation = {
@@ -674,6 +677,8 @@ type TrackExpenseTransactionParams = {
     customUnitRateID?: string;
     attendees?: Attendee[];
     isLinkedTrackedExpenseReportArchived?: boolean;
+    odometerStart?: number | null;
+    odometerEnd?: number | null;
 };
 
 type TrackExpenseAccountantParams = {
@@ -740,6 +745,8 @@ type GetTrackExpenseInformationTransactionParams = {
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     attendees?: Attendee[];
     distance?: number;
+    odometerStart?: number | null;
+    odometerEnd?: number | null;
 };
 
 type GetTrackExpenseInformationParticipantParams = {
@@ -957,6 +964,14 @@ Onyx.connect({
     },
 });
 
+let lastDistanceExpenseTypeValue: ValueOf<typeof CONST.IOU.REQUEST_TYPE> | undefined;
+Onyx.connect({
+    key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
+    callback: (value) => {
+        lastDistanceExpenseTypeValue = value;
+    },
+});
+
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
@@ -1101,7 +1116,12 @@ function initMoneyRequest({
     let requestCategory: string | null = null;
 
     // Set up initial distance expense state
-    if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL) {
+    if (
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ||
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP ||
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL ||
+        newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER
+    ) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
             const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
@@ -1112,13 +1132,18 @@ function initMoneyRequest({
         if (comment.customUnit) {
             comment.customUnit.quantity = null;
         }
-        if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL) {
+        if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
             comment.waypoints = undefined;
         } else {
             comment.waypoints = {
                 waypoint0: {keyForList: 'start_waypoint'},
                 waypoint1: {keyForList: 'stop_waypoint'},
             };
+        }
+        // Initialize odometer readings for odometer type
+        if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
+            comment.odometerStart = null;
+            comment.odometerEnd = null;
         }
     }
 
@@ -1467,6 +1492,18 @@ function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number,
 }
 
 /**
+ * Set the odometer readings for a transaction
+ */
+function setMoneyRequestOdometerReading(transactionID: string, startReading: number, endReading: number, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            odometerStart: startReading,
+            odometerEnd: endReading,
+        },
+    });
+}
+
+/**
  * Set the distance rate of a transaction.
  * Used when creating a new transaction or moving an existing one from Self DM
  */
@@ -1659,7 +1696,10 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_MANUAL;
     }
 
-    if (isDistanceRequestTransactionUtils(transaction)) {
+    // Odometer drafts may lack iouRequestType; detect via odometer fields or last saved distance type.
+    const isOdometerDraft = transaction?.comment?.odometerStart !== undefined || transaction?.comment?.odometerEnd !== undefined;
+    const lastDistanceIsDistance = lastDistanceExpenseTypeValue?.startsWith('distance');
+    if (isDistanceRequestTransactionUtils(transaction) || isOdometerDraft || lastDistanceIsDistance) {
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
     }
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
@@ -4197,8 +4237,25 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     } = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {comment, amount, currency, created, distance, merchant, receipt, category, tag, taxCode, taxAmount, billable, reimbursable, linkedTrackedExpenseReportAction, attendees} =
-        transactionParams;
+    const {
+        comment,
+        amount,
+        currency,
+        created,
+        distance,
+        merchant,
+        receipt,
+        category,
+        tag,
+        taxCode,
+        taxAmount,
+        billable,
+        reimbursable,
+        linkedTrackedExpenseReportAction,
+        attendees,
+        odometerStart,
+        odometerEnd,
+    } = transactionParams;
 
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -4354,6 +4411,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
     const isDistanceRequest = existingTransaction && isDistanceRequestTransactionUtils(existingTransaction);
     const isManualDistanceRequest = existingTransaction && isManualDistanceRequestTransactionUtils(existingTransaction);
+    const isOdometerDistanceRequest = existingTransaction && isOdometerDistanceRequestTransactionUtils(existingTransaction);
     let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID,
         existingTransaction,
@@ -4376,6 +4434,8 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             reimbursable,
             filename: existingTransaction?.receipt?.filename,
             attendees,
+            odometerStart: isOdometerDistanceRequest ? odometerStart : undefined,
+            odometerEnd: isOdometerDistanceRequest ? odometerEnd : undefined,
         },
     });
     if (iouReport) {
@@ -6834,6 +6894,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
         linkedTrackedExpenseReportID,
         customUnitRateID,
         attendees,
+        odometerStart,
+        odometerEnd,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
     const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
@@ -6922,6 +6984,8 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 reimbursable,
                 linkedTrackedExpenseReportAction,
                 attendees,
+                odometerStart,
+                odometerEnd,
             },
             policyParams: {
                 policy,
@@ -8644,6 +8708,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         splitShares = {},
         attendees,
         receipt,
+        odometerStart,
+        odometerEnd,
     } = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -8716,6 +8782,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             chatType: splitData.chatType,
             description: parsedComment,
             attendees: attendees ? JSON.stringify(attendees) : undefined,
+            odometerStart,
+            odometerEnd,
         };
     } else {
         const participant = participants.at(0) ?? {};
@@ -8791,6 +8859,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             waypoints: JSON.stringify(sanitizedWaypoints),
             distance,
             receipt,
+            odometerStart,
+            odometerEnd,
             created,
             category,
             tag,
@@ -15587,6 +15657,7 @@ export {
     setMoneyRequestDescription,
     setMoneyRequestDistance,
     setMoneyRequestDistanceRate,
+    setMoneyRequestOdometerReading,
     setMoneyRequestMerchant,
     setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,

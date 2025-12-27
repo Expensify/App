@@ -1006,15 +1006,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: 'Abonnement',
         domains: 'Domeinen',
     },
-    tabSelector: {
-        chat: 'Chat',
-        room: 'Kamer',
-        distance: 'Afstand',
-        manual: 'Handmatig',
-        scan: 'Scannen',
-        map: 'Kaart',
-        gps: 'GPS',
-    },
+    tabSelector: {chat: 'Chat', room: 'Kamer', distance: 'Afstand', manual: 'Handmatig', scan: 'Scannen', map: 'Kaart', gps: 'GPS', odometer: 'Kilometerteller'},
     spreadsheet: {
         upload: 'Een spreadsheet uploaden',
         import: 'Spreadsheet importeren',
@@ -1354,6 +1346,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Tarief is niet geldig voor deze workspace. Selecteer een beschikbaar tarief uit de workspace.',
             endDateBeforeStartDate: 'De einddatum kan niet vóór de startdatum liggen',
             endDateSameAsStartDate: 'De einddatum mag niet hetzelfde zijn als de startdatum',
+            odometerReadingRequired: 'Voer zowel de begin- als eindstand in',
+            negativeDistanceNotAllowed: 'Eindstand moet groter zijn dan beginstand',
         },
         dismissReceiptError: 'Foutmelding sluiten',
         dismissReceiptErrorConfirmation: 'Let op! Als je deze foutmelding negeert, wordt je geüploade bon volledig verwijderd. Weet je het zeker?',
@@ -7174,6 +7168,14 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         },
         error: {
             selectSuggestedAddress: 'Selecteer een voorgesteld adres of gebruik huidige locatie',
+        },
+        odometer: {
+            startReading: 'Begin met lezen',
+            endReading: 'Lezen beëindigen',
+            saveForLater: 'Later opslaan',
+            totalDistance: 'Totale afstand',
+            readingRequired: 'Begin- en eindstanden zijn vereist',
+            negativeDistanceNotAllowed: 'Eindstand moet groter zijn dan beginstand',
         },
     },
     reportCardLostOrDamaged: {
