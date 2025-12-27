@@ -6580,17 +6580,9 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             }
         },
         changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
-            oldValue
-                ? `alterou o nome da empresa da fatura para "${
-                      newValue //_/\__/_/  \_,_/\__/\__/\_,_/
-                  }" (anteriormente "${oldValue}")`
-                : `definir o nome da empresa da fatura como "${newValue}"`,
+            oldValue ? `alterou o nome da empresa da fatura para "${newValue}" (anteriormente "${oldValue}")` : `definir o nome da empresa da fatura como "${newValue}"`,
         changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
-            oldValue
-                ? `alterou o site da empresa na fatura para "${
-                      newValue //_/\__/_/  \_,_/\__/\__/\_,_/
-                  }" (anteriormente "${oldValue}")`
-                : `definir o site da empresa na fatura como "${newValue}"`,
+            oldValue ? `alterou o site da empresa na fatura para "${newValue}" (anteriormente "${oldValue}")` : `definir o site da empresa na fatura como "${newValue}"`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
