@@ -1978,7 +1978,7 @@ function handlePreexistingReport(report: Report) {
 
         // Only re-route them if they are still looking at the optimistically created report
         const activeRoute = Navigation.getActiveRoute();
-        if (activeRoute.includes(`/r/${reportID}`) || activeRoute.includes(`/search/view/${reportID}`)) {
+        if (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(reportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID}))) {
             const currCallback = callback;
             callback = () => {
                 currCallback();
