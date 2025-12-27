@@ -1,7 +1,7 @@
 ---
 title: Connect a Business Bank Account
 description: How to connect a business bank account to New Expensify in supported currencies (USD, CAD, GBP, EUR, AUD).
-keywords: [New Expensify, business bank account, verified business bank account, send reimbursement, micro transactions, test deposits, verification amounts, bank verification]
+keywords: [New Expensify, business bank account, verified business bank account, send reimbursement, micro transactions, test deposits, verification amounts, bank verification, share bank account, share business bank account]
 ---
 
 <div id="new-expensify" markdown="1">
@@ -16,15 +16,15 @@ Follow the steps below to connect your business bank account and enable payment 
 
 ## Step 1: Enable Make or Track Payments
 
-1. Click **Workspaces** in the navigation tabs
+1. Click **Workspaces** in the navigation tabs.
 2. Navigate to **[Workspace Name] > More Features**.
 3. Click **Enable Workflows**.
 4. A **Workflows** setting will appear in the left-hand menu.
 5. Click **Workflows** and enable **Make or Track Payments**.
 
-![Workflows screen with Connect Bank Account button]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_1_Light.png){:width="100%"}
+![Enable workflows from the more features page]({{site.url}}/assets/images/Help-ConnectBusinessBankAccount-1.png){:width="100%"}
 
-![Workflows screen with Connect Bank Account button]({{site.url}}/assets/images/ExpensifyHelp_ConnectBankAccount_2_Light.png){:width="100%"}
+![Workflows screen with Connect Bank Account button]({{site.url}}/assets/images/Help-ConnectBusinessBankAccount-2.png){:width="100%"}
 
 ---
 
@@ -33,6 +33,8 @@ Follow the steps below to connect your business bank account and enable payment 
 1. Click **Connect Bank Account**.
 2. Select either **Connect online with Plaid (preferred)** or **Connect manually**.
 3. Enter your bank details.
+
+**Note:** If your business bank account already exists in Expensify, an admin with access can **share it with you** — no need to complete the setup process again. [Learn how to share a business bank account](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Share-a-Business-Bank-Account).
 
 ---
 
@@ -43,8 +45,8 @@ After entering your personal details, you’ll be prompted to complete identity 
 2. Use your device to take a **selfie** and record a **short video** of yourself.
 
 **Your ID must be:**
-- Issued in the **US**.
-- Current (**expiration date must be in the future**).
+- Issued in the **US**
+- Current (**expiration date must be in the future**)
 
 ---
 
@@ -65,15 +67,21 @@ Add your company details, including:
    - If no individual owns **25% or more**, leave both boxes **unchecked**.
 2. Accept the agreement terms and verify that all details are **true and accurate**.
 
+---
+
 ## Step 6: Wait for documentation review
 
 In some cases, Concierge may request additional documents (e.g., business address verification or a bank letter). If this happens, Concierge will follow up directly.
+
+---
 
 ## Step 7: Watch for the test transaction message
 
 Once your account is nearly ready, you’ll see the message: **“Your bank account is almost set up!”**
 
 This means Expensify has sent **three test transactions** (usually arriving within 1–2 business days). You’ll need these to complete setup.
+
+---
 
 ## Step 8: Validate the test transactions
 
@@ -135,3 +143,4 @@ Once completed, contact **Concierge** to re-trigger the microtransactions.
 ## Is my data safe?
 Yes! Expensify uses **bank-level security measures** and is **tested daily** by **McAfee**. Learn more about our security policies [here](https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security).
 
+</div>
