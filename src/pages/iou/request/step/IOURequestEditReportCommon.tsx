@@ -1,5 +1,5 @@
 import {createPoliciesSelector} from '@selectors/Policy';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 // eslint-disable-next-line no-restricted-imports
@@ -17,6 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
+import {fetchOutstandingReportsForWorkspace} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {
@@ -104,6 +105,8 @@ function IOURequestEditReportCommon({
 
     const [allPoliciesID] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: false});
 
+    const [isLoadingOutstandingReports] = useOnyx(ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS);
+
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isSelectedReportUnreported = useMemo(() => !!(isUnreported ?? selectedReportID === CONST.REPORT.UNREPORTED_REPORT_ID), [isUnreported, selectedReportID]);
     const isOwner = useMemo(
@@ -125,6 +128,15 @@ function IOURequestEditReportCommon({
 
     const shouldShowRemoveFromReport =
         !!(selectedReportID && selectedReportID !== CONST.REPORT.UNREPORTED_REPORT_ID && selectedReport) && isEditing && isOwner && !isReportIOU && !isCardTransaction;
+
+    // Fetch all outstanding reports for the workspace when the component mounts
+    useEffect(() => {
+        if (!selectedPolicyID || !resolvedReportOwnerAccountID) {
+            return;
+        }
+        // Fetch all outstanding reports for this policy and owner
+        fetchOutstandingReportsForWorkspace(selectedPolicyID, resolvedReportOwnerAccountID);
+    }, [selectedPolicyID, resolvedReportOwnerAccountID]);
 
     const expenseReports = useMemo(() => {
         // Early return if no reports are available to prevent useless loop
@@ -317,6 +329,7 @@ function IOURequestEditReportCommon({
             <SelectionList
                 data={reportOptions}
                 onSelectRow={handleSelectReport}
+                isLoadingNewOptions={isLoadingOutstandingReports}
                 shouldShowTextInput={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT}
                 textInputOptions={{
                     value: searchValue,
