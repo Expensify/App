@@ -219,7 +219,7 @@ describe('useSuggestedSearchDefaultNavigation', () => {
         const submitMenuItem = createSubmitMenuItem();
         const parsedQueryJSON = buildSearchQueryJSON('in:checking');
         expect(parsedQueryJSON).toBeTruthy();
-        const inlineContextQueryJSON = {...parsedQueryJSON ?? {}, rawFilterList: undefined};
+        const inlineContextQueryJSON = {...(parsedQueryJSON ?? {}), rawFilterList: undefined};
         const shouldSkipNavigation = shouldSkipSuggestedSearchNavigationForQuery(inlineContextQueryJSON);
 
         const {rerender} = renderHook((props: Parameters<typeof useSuggestedSearchDefaultNavigation>[0]) => useSuggestedSearchDefaultNavigation(props), {
