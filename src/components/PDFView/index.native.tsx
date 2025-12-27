@@ -141,8 +141,8 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             isUsedAsChatAttachment || (shouldRequestPassword && shouldUseNarrowLayout) ? [themeStyles.w100, themeStyles.flex1] : [themeStyles.alignItemsCenter, themeStyles.flex1];
         const loadingIndicatorStyles = isUsedAsChatAttachment
-            ? [themeStyles.pRelative, themeStyles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT)]
-            : [themeStyles.pRelative];
+            ? [themeStyles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT)]
+            : [];
 
         return (
             <View style={containerStyles}>
