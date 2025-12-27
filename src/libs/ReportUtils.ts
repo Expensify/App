@@ -8511,9 +8511,9 @@ function buildOptimisticDismissedViolationReportAction(
 ): OptimisticDismissedViolationReportAction {
     let text = '';
     if (originalMessage) {
-        const reason = originalMessage.reason as keyof typeof CONST.VIOLATION_DISMISSAL;
-        const violationName = originalMessage.violationName as keyof (typeof CONST.VIOLATION_DISMISSAL)[typeof reason];
-        text = CONST.VIOLATION_DISMISSAL[reason][violationName];
+        const violationName = originalMessage.violationName as keyof typeof CONST.VIOLATION_DISMISSAL;
+        const reason = originalMessage.reason as keyof (typeof CONST.VIOLATION_DISMISSAL)[typeof violationName];
+        text = CONST.VIOLATION_DISMISSAL[violationName][reason];
     }
     return {
         actionName: CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION,
