@@ -62,9 +62,11 @@ function buildMessageFragmentForValue(
     removalFragments: string[],
     changeFragments: string[],
     shouldConvertToLowercase = true,
-    isCategoryField = false,
 ) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const isCategoryField = valueName.includes(translateLocal('common.category').toLowerCase());
 
     let oldValueToDisplay;
     if (isCategoryField && isCategoryMissing(oldValue)) {
@@ -354,7 +356,6 @@ function getForReportAction({
             changeFragments,
             // Don't convert to lowercase when we have source attribution (to preserve any HTML links)
             false,
-            true,
         );
     }
 
@@ -620,7 +621,6 @@ function getForReportActionTemp({
             changeFragments,
             // Don't convert to lowercase when we have source attribution (to preserve any HTML links)
             false,
-            true,
         );
     }
 
