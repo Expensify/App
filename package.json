@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.2.87-4",
+  "version": "9.2.87-7",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -109,7 +109,7 @@
     "@onfido/react-native-sdk": "15.1.0",
     "@pusher/pusher-websocket-react-native": "^1.3.1",
     "@react-native-camera-roll/camera-roll": "7.4.0",
-    "@react-native-clipboard/clipboard": "^1.15.0",
+    "@react-native-clipboard/clipboard": "^1.16.3",
     "@react-native-community/netinfo": "11.2.1",
     "@react-native-documents/picker": "^10.1.3",
     "@react-native-firebase/analytics": "^22.2.1",
