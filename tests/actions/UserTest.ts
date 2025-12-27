@@ -1,7 +1,9 @@
 /* eslint-disable no-restricted-syntax */
 import Onyx from 'react-native-onyx';
+import type {OnyxMergeInput} from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as UserActions from '../../src/libs/actions/User';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -174,9 +176,9 @@ describe('actions/User', () => {
                 WRITE_COMMANDS.VERIFY_ADD_SECONDARY_LOGIN_CODE,
                 {validateCode},
                 expect.objectContaining({
-                    optimisticData: expect.any(Array),
-                    successData: expect.any(Array),
-                    failureData: expect.any(Array),
+                    optimisticData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    successData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    failureData: expect.any(Array) as Array<{key: string; value: unknown}>,
                 }),
             );
 
@@ -205,11 +207,11 @@ describe('actions/User', () => {
             // Then verify the optimisticData structure
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (mockAPI.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls[0] as [unknown, unknown, {optimisticData?: Array<{key: string; value: unknown}>}];
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, {optimisticData?: Array<{key: string; value: unknown}>}];
             const optimisticData = onyxData.optimisticData ?? [];
 
             expect(optimisticData).toHaveLength(1);
-            expect(optimisticData[0]).toEqual({
+            expect(optimisticData.at(0)).toEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PENDING_CONTACT_ACTION,
                 value: {
@@ -233,11 +235,11 @@ describe('actions/User', () => {
             // Then verify the successData structure
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (mockAPI.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls[0] as [unknown, unknown, {successData?: Array<{key: string; value: unknown}>}];
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, {successData?: Array<{key: string; value: unknown}>}];
             const successData = onyxData.successData ?? [];
 
             expect(successData).toHaveLength(1);
-            expect(successData[0]).toEqual({
+            expect(successData.at(0)).toEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PENDING_CONTACT_ACTION,
                 value: {
@@ -258,11 +260,11 @@ describe('actions/User', () => {
             // Then verify the failureData structure
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (mockAPI.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls[0] as [unknown, unknown, {failureData?: Array<{key: string; value: unknown}>}];
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, {failureData?: Array<{key: string; value: unknown}>}];
             const failureData = onyxData.failureData ?? [];
 
             expect(failureData).toHaveLength(1);
-            expect(failureData[0]).toEqual({
+            expect(failureData.at(0)).toEqual({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PENDING_CONTACT_ACTION,
                 value: {
@@ -278,11 +280,17 @@ describe('actions/User', () => {
 
             // Mock API.write to apply optimisticData
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            (mockAPI.write as jest.Mock).mockImplementation((command, params, options) => {
+            (mockAPI.write as jest.Mock).mockImplementation((
+                command: unknown,
+                params: unknown,
+                options?: {
+                    optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: string; value: unknown}>;
+                },
+            ) => {
                 if (options?.optimisticData) {
                     for (const update of options.optimisticData) {
                         if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
+                            Onyx.merge(update.key as OnyxKey, update.value as OnyxMergeInput<OnyxKey>);
                         }
                     }
                 }
@@ -327,9 +335,9 @@ describe('actions/User', () => {
                 WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD,
                 {partnerUserID: contactMethod, validateCode},
                 expect.objectContaining({
-                    optimisticData: expect.any(Array),
-                    successData: expect.any(Array),
-                    failureData: expect.any(Array),
+                    optimisticData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    successData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    failureData: expect.any(Array) as Array<{key: string; value: unknown}>,
                 }),
             );
         });
@@ -347,9 +355,9 @@ describe('actions/User', () => {
                 WRITE_COMMANDS.ADD_NEW_CONTACT_METHOD,
                 {partnerUserID: contactMethod, validateCode: ''},
                 expect.objectContaining({
-                    optimisticData: expect.any(Array),
-                    successData: expect.any(Array),
-                    failureData: expect.any(Array),
+                    optimisticData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    successData: expect.any(Array) as Array<{key: string; value: unknown}>,
+                    failureData: expect.any(Array) as Array<{key: string; value: unknown}>,
                 }),
             );
         });
@@ -365,7 +373,7 @@ describe('actions/User', () => {
             // Then verify the optimisticData structure
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (mockAPI.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls[0] as [unknown, unknown, {optimisticData?: Array<{key: string; value: unknown}>}];
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, {optimisticData?: Array<{key: string; value: unknown}>}];
             const optimisticData = onyxData.optimisticData ?? [];
 
             expect(optimisticData).toHaveLength(3);
@@ -420,7 +428,7 @@ describe('actions/User', () => {
             // Then verify the successData structure
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (mockAPI.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls[0] as [unknown, unknown, {successData?: Array<{key: string; value: unknown}>}];
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, {successData?: Array<{key: string; value: unknown}>}];
             const successData = onyxData.successData ?? [];
 
             expect(successData).toHaveLength(2);
@@ -458,7 +466,7 @@ describe('actions/User', () => {
             // Then verify the failureData structure
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             const calls = (mockAPI.write as jest.Mock).mock.calls;
-            const [, , onyxData] = calls[0] as [unknown, unknown, {failureData?: Array<{key: string; value: unknown}>}];
+            const [, , onyxData] = calls.at(0) as [unknown, unknown, {failureData?: Array<{key: string; value: unknown}>}];
             const failureData = onyxData.failureData ?? [];
 
             expect(failureData).toHaveLength(3);
@@ -497,11 +505,17 @@ describe('actions/User', () => {
 
             // Mock API.write to apply optimisticData
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            (mockAPI.write as jest.Mock).mockImplementation((command, params, options) => {
+            (mockAPI.write as jest.Mock).mockImplementation((
+                command: unknown,
+                params: unknown,
+                options?: {
+                    optimisticData?: Array<{onyxMethod: typeof Onyx.METHOD.MERGE; key: string; value: unknown}>;
+                },
+            ) => {
                 if (options?.optimisticData) {
                     for (const update of options.optimisticData) {
                         if (update.onyxMethod === Onyx.METHOD.MERGE) {
-                            Onyx.merge(update.key, update.value);
+                            Onyx.merge(update.key as OnyxKey, update.value as OnyxMergeInput<OnyxKey>);
                         }
                     }
                 }
