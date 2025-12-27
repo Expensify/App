@@ -9,6 +9,12 @@ import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, Tran
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import {translateLocal} from '../utils/TestHelper';
 
+// Mock getCurrentUserEmail from Report actions
+const MOCK_CURRENT_USER_EMAIL = 'test@expensify.com';
+jest.mock('@libs/actions/Report', () => ({
+    getCurrentUserEmail: jest.fn(() => MOCK_CURRENT_USER_EMAIL),
+}));
+
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
     type: CONST.VIOLATION_TYPES.VIOLATION,
@@ -594,6 +600,142 @@ describe('getViolationsOnyxData', () => {
             transaction.tag = undefined;
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, true, false);
             expect(result.value).toEqual(expect.arrayContaining([missingDepartmentTag, missingRegionTag, missingProjectTag]));
+        });
+    });
+
+    describe('missingAttendees violation', () => {
+        const missingAttendeesViolation = {
+            name: CONST.VIOLATIONS.MISSING_ATTENDEES,
+            type: CONST.VIOLATION_TYPES.VIOLATION,
+            showInReview: true,
+        };
+
+        const ownerAccountID = 123;
+        const otherAccountID = 456;
+
+        let iouReport: Report;
+
+        beforeEach(() => {
+            policy.type = CONST.POLICY.TYPE.CORPORATE;
+            policy.isAttendeeTrackingEnabled = true;
+            policyCategories = {
+                Meals: {
+                    name: 'Meals',
+                    enabled: true,
+                    areAttendeesRequired: true,
+                },
+            };
+            transaction.category = 'Meals';
+            iouReport = {
+                reportID: '1234',
+                ownerAccountID,
+            } as Report;
+        });
+
+        it('should add missingAttendees violation when no attendees are present', () => {
+            transaction.comment = {attendees: []};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        it('should add missingAttendees violation when only owner is an attendee', () => {
+            transaction.comment = {
+                attendees: [{email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID}],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        it('should not add missingAttendees violation when there is at least one non-owner attendee', () => {
+            transaction.comment = {
+                attendees: [
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                ],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        it('should remove missingAttendees violation when attendees are added', () => {
+            transactionViolations = [missingAttendeesViolation];
+            transaction.comment = {
+                attendees: [
+                    {email: 'owner@example.com', displayName: 'Owner', avatarUrl: '', accountID: ownerAccountID},
+                    {email: 'other@example.com', displayName: 'Other', avatarUrl: '', accountID: otherAccountID},
+                ],
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        it('should not add missingAttendees violation when attendee tracking is disabled', () => {
+            policy.isAttendeeTrackingEnabled = false;
+            transaction.comment = {attendees: []};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        it('should not add missingAttendees violation when category does not require attendees', () => {
+            policyCategories.Meals.areAttendeesRequired = false;
+            transaction.comment = {attendees: []};
+            const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, iouReport);
+            expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+        });
+
+        describe('optimistic / offline scenarios (iouReport is undefined)', () => {
+            // In offline scenarios, iouReport is undefined so we can't get ownerAccountID.
+            // The code falls back to using getCurrentUserEmail() to identify the owner by login/email.
+            it('should correctly calculate violation when iouReport is undefined but attendees have matching email', () => {
+                // When iouReport is undefined, we use getCurrentUserEmail() as fallback
+                // If only the current user (matching MOCK_CURRENT_USER_EMAIL) is an attendee, violation should show
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: MOCK_CURRENT_USER_EMAIL, displayName: 'Test User', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // Violation should be added since the only attendee is the current user (owner)
+                expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should not add violation when iouReport is undefined but there are non-owner attendees (by email)', () => {
+                // When there are attendees with different emails than the current user, no violation
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [
+                        {email: MOCK_CURRENT_USER_EMAIL, displayName: 'Test User', avatarUrl: ''},
+                        {email: 'other@example.com', displayName: 'Other User', avatarUrl: ''},
+                    ],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // Violation should NOT be added since there's a non-owner attendee
+                expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should remove violation when non-owner attendee is added (offline)', () => {
+                // If violation existed and a non-owner attendee is added, violation should be removed
+                transactionViolations = [missingAttendeesViolation];
+                transaction.comment = {
+                    attendees: [
+                        {email: MOCK_CURRENT_USER_EMAIL, displayName: 'Test User', avatarUrl: ''},
+                        {email: 'other@example.com', displayName: 'Other User', avatarUrl: ''},
+                    ],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // Violation should be removed
+                expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should preserve violation when only owner attendee remains (offline)', () => {
+                // If violation existed and only owner attendee remains, violation stays
+                transactionViolations = [missingAttendeesViolation];
+                transaction.comment = {
+                    attendees: [{email: MOCK_CURRENT_USER_EMAIL, displayName: 'Test User', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // Violation should be preserved
+                expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
         });
     });
 });
