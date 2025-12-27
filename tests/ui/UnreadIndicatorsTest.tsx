@@ -711,6 +711,7 @@ describe('Unread Indicators', () => {
                 created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             },
             isASAPSubmitBetaEnabled: true,
+            quickAction: undefined,
         });
         await waitForBatchedUpdates();
 
