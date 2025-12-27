@@ -670,7 +670,7 @@ function insertZWNJBetweenDigitAndEmoji(input: string): string {
     if (!isSafari()) {
         return input;
     }
-    return input.replaceAll(/(\d)([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu, '$1\u200C$2');
+    return input.replaceAll(CONST.REGEX.DIGIT_FOLLOWED_BY_EMOJI, '$1\u200C$2');
 }
 
 /**
