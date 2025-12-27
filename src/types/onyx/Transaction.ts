@@ -75,6 +75,18 @@ type Comment = {
     /** Type of the transaction */
     type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 
+    /** Contains information pertaining to time tracking */
+    units?: {
+        /** Count of the unit */
+        count?: number;
+
+        /** Rate of the unit in cents */
+        rate?: number;
+
+        /** Unit of the unit (e.g. 'h' for hours) */
+        unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
+    };
+
     /** In custom unit transactions this holds the information of the custom unit */
     customUnit?: TransactionCustomUnit;
 
@@ -104,6 +116,9 @@ type Comment = {
 
     /** Defines the type of liability for the transaction */
     liabilityType?: ValueOf<typeof CONST.TRANSACTION.LIABILITY_TYPE>;
+
+    /** Timestamp when auto-categorization was initiated (format: "YYYY-MM-DD HH:MM:SS") */
+    pendingAutoCategorizationTime?: string;
 };
 
 /** Model of transaction custom unit */
