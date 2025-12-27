@@ -1538,16 +1538,18 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
  * Creates an explanation thread for a report action with reasoning
  * Adds a "Please explain this to me." comment from the user
  */
-function explain(reportAction: OnyxEntry<ReportAction>, originalReportID: string | undefined, translate: LocalizedTranslate) {
+function explain(reportAction: OnyxEntry<ReportAction>, originalReportID: string | undefined, translate: LocalizedTranslate, timezone: Timezone = CONST.DEFAULT_TIME_ZONE) {
     if (!originalReportID || !reportAction) {
         return;
     }
 
-    const childReportID = navigateToAndOpenChildReport(reportAction.childReportID, reportAction, originalReportID);
+    // Get or create the explanation thread report
+    const {reportID} = getOrCreateOptimisticChildReport(reportAction.childReportID, reportAction, originalReportID);
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, Navigation.getActiveRoute()));
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     InteractionManager.runAfterInteractions(() => {
-        addComment(childReportID, childReportID, [], translate('reportActionContextMenu.explainMessage'), CONST.DEFAULT_TIME_ZONE);
+        addComment(reportID, reportID, [], translate('reportActionContextMenu.explainMessage'), timezone);
     });
 }
 
@@ -1558,11 +1560,20 @@ function explain(reportAction: OnyxEntry<ReportAction>, originalReportID: string
  * @param parentReportAction the parent comment of a thread
  * @param parentReportID The reportID of the parent
  */
-function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string): string {
+function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
+    // Get or create the optimistic child thread report
+    const {reportID} = getOrCreateOptimisticChildReport(childReportID, parentReportAction, parentReportID);
+    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, Navigation.getActiveRoute()));
+}
+
+/**
+ * Gets an existing child thread report or creates an optimistic one if it doesn’t exist.
+ * Returns the resolved thread report without performing any navigation.
+ */
+function getOrCreateOptimisticChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string): Report {
     const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
     if (childReport?.reportID) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, Navigation.getActiveRoute()));
-        return childReport.reportID;
+        return childReport;
     }
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
@@ -1588,8 +1599,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
         Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
     }
 
-    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID, undefined, undefined, Navigation.getActiveRoute()));
-    return newChat.reportID;
+    return newChat;
 }
 
 /**
@@ -6357,6 +6367,7 @@ export {
     markAsManuallyExported,
     markCommentAsUnread,
     navigateToAndOpenChildReport,
+    getOrCreateOptimisticChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
     navigateToConciergeChat,
