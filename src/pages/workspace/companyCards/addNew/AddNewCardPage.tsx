@@ -49,13 +49,17 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
 
     useEffect(() => {
-        if (!policyID || !isBlockedToAddNewFeeds) {
+        // Only redirect if blocked AND user is trying to start a new flow (currentStep is SELECT_BANK or undefined/initial state)
+        // Don't redirect if user is already in the middle of adding a feed (other steps)
+        // Don't redirect if user just successfully added a feed (isNewFeedConnected would be true in BankConnection)
+        const isInitialStep = !currentStep || currentStep === CONST.COMPANY_CARDS.STEP.SELECT_BANK;
+        if (!policyID || !isBlockedToAddNewFeeds || !isInitialStep) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
             forceReplace: true,
         });
-    }, [isBlockedToAddNewFeeds, policyID]);
+    }, [isBlockedToAddNewFeeds, policyID, currentStep]);
 
     useEffect(() => {
         return () => {
