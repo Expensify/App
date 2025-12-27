@@ -217,7 +217,8 @@ function NumberWithSymbolForm({
 
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
-            if (!validateAmount(finalNumber, decimals, maxLength)) {
+            const shouldAllowNegative = allowFlippingAmount || finalNumber.startsWith('-');
+            if (!validateAmount(finalNumber, decimals, maxLength, shouldAllowNegative)) {
                 setSelection((prevSelection) => ({...prevSelection}));
                 return;
             }
@@ -252,7 +253,8 @@ function NumberWithSymbolForm({
 
         const withLeadingZero = addLeadingZero(replacedCommasNumber);
 
-        if (!validateAmount(withLeadingZero, decimals, maxLength)) {
+        const shouldAllowNegative = allowFlippingAmount || withLeadingZero.startsWith('-');
+        if (!validateAmount(withLeadingZero, decimals, maxLength, shouldAllowNegative)) {
             setSelection((prevSelection) => ({...prevSelection}));
             return;
         }
