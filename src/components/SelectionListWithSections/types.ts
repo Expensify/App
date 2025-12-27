@@ -20,6 +20,7 @@ import type {ValueOf} from 'type-fest';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+import type {OptionData} from '@libs/ReportUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 // eslint-disable-next-line no-restricted-imports
@@ -739,6 +740,8 @@ type Section<TItem extends ListItem> = {
     shouldShow?: boolean;
 };
 
+type Sections = Array<SectionListData<OptionData, Section<OptionData>>>;
+
 type LoadingPlaceholderComponentProps = {
     shouldStyleAsTable?: boolean;
     fixedNumItems?: number;
@@ -1178,4 +1181,5 @@ export type {
     SplitListItemType,
     SearchListItem,
     UnreportedExpenseListItemType,
+    Sections,
 };
