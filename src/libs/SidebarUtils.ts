@@ -52,6 +52,7 @@ import {
     getRenamedAction,
     getReopenedMessage,
     getReportAction,
+    getReportActionActorAccountID,
     getReportActionMessageText,
     getRetractedMessage,
     getRoomAvatarUpdatedMessage,
@@ -102,7 +103,6 @@ import {
     getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
-    getReportActionActorAccountID,
     getReportDescription,
     getReportMetadata, // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
