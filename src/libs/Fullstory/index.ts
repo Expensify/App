@@ -20,7 +20,7 @@ const FS: Fullstory = {
     onReady: () =>
         new Promise((resolve) => {
             if (!isInitialized()) {
-                init({orgId: 'o-1WN56P-na1'}, resolve);
+                init({orgId: 'o-1WN56P-na1', debug: true}, resolve);
 
                 // FS init function might have a race condition with the head snippet. If the head snipped is loaded first,
                 // then the init function will not call the resolve function, and we'll never identify the user logging in,
@@ -88,11 +88,11 @@ const FS: Fullstory = {
 
     anonymize: () => FullStory(CONST.FULLSTORY.OPERATION.SET_IDENTITY, {anonymous: true}),
 
-    getSessionId: async () => {
+    getSessionUrl: async () => {
         if (!isInitialized()) {
             return;
         }
-        return FullStory('getSessionAsync', {format: 'id'});
+        return FullStory('getSessionAsync', {format: 'url.now'});
     },
 };
 
