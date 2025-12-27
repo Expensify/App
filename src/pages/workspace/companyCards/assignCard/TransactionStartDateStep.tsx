@@ -31,15 +31,11 @@ function TransactionStartDateStep() {
     const [startDate, setStartDate] = useState(() => assignCard?.startDate ?? cardToAssign?.startDate ?? format(new Date(), CONST.DATE.FNS_FORMAT_STRING));
 
     useEffect(() => {
-        if (!cardToAssign) {
-            return;
-        }
-
-        if (cardToAssign.dateOption) {
+        if (cardToAssign?.dateOption) {
             setDateOptionSelected(cardToAssign.dateOption);
         }
 
-        if (cardToAssign.startDate) {
+        if (cardToAssign?.startDate) {
             setStartDate(cardToAssign.startDate);
         }
     }, [cardToAssign?.dateOption, cardToAssign?.startDate]);
