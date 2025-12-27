@@ -9,10 +9,17 @@ import {calculateApprovers, convertApprovalWorkflowToPolicyEmployees} from '@lib
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@src/types/onyx';
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {completeTask} from './Task';
+
+type CreateApprovalWorkflowParams = {
+    approvalWorkflow: ApprovalWorkflow;
+    policy: OnyxEntry<Policy>;
+    addExpenseApprovalsTaskReport: OnyxEntry<Report>;
+};
 
 type SetApprovalWorkflowApproverParams = {
     approver: Approver;
@@ -27,7 +34,7 @@ type ClearApprovalWorkflowApproverParams = {
     currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
 };
 
-function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: OnyxEntry<Policy>) {
+function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTaskReport}: CreateApprovalWorkflowParams) {
     if (!policy) {
         return;
     }
@@ -80,6 +87,13 @@ function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
 
     const parameters: CreateWorkspaceApprovalParams = {policyID: policy.id, employees: JSON.stringify(Object.values(updatedEmployees))};
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL, parameters, {optimisticData, failureData, successData});
+
+    if (
+        addExpenseApprovalsTaskReport &&
+        (addExpenseApprovalsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || addExpenseApprovalsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)
+    ) {
+        completeTask(addExpenseApprovalsTaskReport, false, false, undefined);
+    }
 }
 
 function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRemove: Member[], approversToRemove: Approver[], policy: OnyxEntry<Policy>) {
