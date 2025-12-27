@@ -485,7 +485,7 @@ function IOURequestStepScan({
                 iouType === CONST.IOU.TYPE.CREATE &&
                 isPaidGroupPolicy(defaultExpensePolicy) &&
                 defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-                !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
+                !shouldRestrictUserBillableActions(defaultExpensePolicy.id, currentUserPersonalDetails.accountID)
             ) {
                 const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
                 const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;

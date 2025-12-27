@@ -27,6 +27,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const reportId = report.reportID;
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus']);
@@ -40,7 +41,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                 if (!reportId) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, session?.accountID)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -55,7 +56,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
                 if (!reportId) {
                     return;
                 }
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, session?.accountID)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }
@@ -67,7 +68,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
             text: translate('iou.addUnreportedExpense'),
             icon: icons.ReceiptPlus,
             onSelected: () => {
-                if (policy && shouldRestrictUserBillableActions(policy.id)) {
+                if (policy && shouldRestrictUserBillableActions(policy.id, session?.accountID)) {
                     Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
                     return;
                 }

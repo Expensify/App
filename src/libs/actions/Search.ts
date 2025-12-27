@@ -1065,6 +1065,7 @@ function handleBulkPayItemSelected(
     latestBankItems: BankAccountMenuItem[] | undefined,
     activeAdminPolicies: Policy[],
     isUserValidated: boolean | undefined,
+    userAccountID: number | undefined,
     confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void,
 ) {
     const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
@@ -1077,7 +1078,7 @@ function handleBulkPayItemSelected(
         return;
     }
 
-    if (policy && shouldRestrictUserBillableActions(policy?.id)) {
+    if (policy && shouldRestrictUserBillableActions(policy?.id, userAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy?.id));
         return;
     }
