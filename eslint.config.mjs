@@ -606,6 +606,15 @@ const config = defineConfig([
         '**/vendor',
         'modules/group-ib-fp/**/*',
         'web/snippets/gib.js',
+        // Generated language files - excluded from ESLint but still type-checked
+        'src/languages/de.ts',
+        'src/languages/fr.ts',
+        'src/languages/it.ts',
+        'src/languages/ja.ts',
+        'src/languages/nl.ts',
+        'src/languages/pl.ts',
+        'src/languages/pt-BR.ts',
+        'src/languages/zh-hans.ts',
     ]),
 ]);
 
