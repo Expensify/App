@@ -6152,6 +6152,12 @@ ${amount} para ${merchant} - ${date}`,
             previousForwardsTo
                 ? `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados (anteriormente reenviados a ${previousForwardsTo})`
                 : `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados`,
+        changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `cambió el nombre de la empresa de la factura a "${newValue}" (previamente "${oldValue}")` : `estableció el nombre de la empresa de la factura como "${newValue}"`,
+        changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue
+                ? `cambió el sitio web de la empresa de la factura a "${newValue}" (previamente "${oldValue}")`
+                : `estableció el sitio web de la empresa de la factura como "${newValue}"`,
         addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
         deleteTax: ({taxName}) => `eliminó el impuesto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}) => {

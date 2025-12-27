@@ -3076,6 +3076,28 @@ function getForwardsToUpdateMessage(action: ReportAction): string {
     return translateLocal('workspaceActions.changedForwardsTo', {approver: approvers, forwardsTo: forwardsToEmail, previousForwardsTo});
 }
 
+function getInvoiceCompanyNameUpdateMessage(action: ReportAction): string {
+    const {newValue, oldValue} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME>) ?? {};
+
+    if (typeof newValue === 'string' && typeof oldValue === 'string') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.changedInvoiceCompanyName', {newValue, oldValue});
+    }
+
+    return getReportActionText(action);
+}
+
+function getInvoiceCompanyWebsiteUpdateMessage(action: ReportAction): string {
+    const {newValue, oldValue} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE>) ?? {};
+
+    if (typeof newValue === 'string' && typeof oldValue === 'string') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.changedInvoiceCompanyWebsite', {newValue, oldValue});
+    }
+
+    return getReportActionText(action);
+}
+
 function getWorkspaceReimbursementUpdateMessage(action: ReportAction): string {
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED>) ?? {};
 
@@ -3717,6 +3739,8 @@ export {
     getDefaultApproverUpdateMessage,
     getSubmitsToUpdateMessage,
     getForwardsToUpdateMessage,
+    getInvoiceCompanyNameUpdateMessage,
+    getInvoiceCompanyWebsiteUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceTaxUpdateMessage,
