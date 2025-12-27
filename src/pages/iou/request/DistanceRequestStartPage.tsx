@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -97,6 +98,8 @@ function DistanceRequestStartPage({
     const navigateBack = () => {
         Navigation.closeRHPFlow();
     };
+    const {policyForMovingExpenses} = usePolicyForMovingExpenses();
+    const isTrackDistanceExpense = iouType === CONST.IOU.TYPE.TRACK;
 
     // This useEffect is used to initialize the money request, so that currency will be reset to default currency on page reload.
     useEffect(() => {
@@ -127,8 +130,9 @@ function DistanceRequestStartPage({
             }
             initMoneyRequest({
                 reportID,
-                policy,
+                policy: isTrackDistanceExpense ? policyForMovingExpenses : policy,
                 isFromGlobalCreate,
+                isTrackDistanceExpense,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
                 report,
@@ -149,6 +153,8 @@ function DistanceRequestStartPage({
             currentDate,
             lastSelectedDistanceRates,
             currentUserPersonalDetails,
+            isTrackDistanceExpense,
+            policyForMovingExpenses,
             hasOnlyPersonalPolicies,
         ],
     );

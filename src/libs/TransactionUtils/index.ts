@@ -2533,7 +2533,6 @@ export {
     createUnreportedExpenses,
     isDemoTransaction,
     shouldShowViolation,
-    isUnreportedAndHasInvalidDistanceRateTransaction,
     getTransactionViolationsOfTransaction,
     hasTransactionBeenRejected,
     isExpenseSplit,
