@@ -835,6 +835,13 @@ function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFe
     return feed as CompanyCardFeed;
 }
 
+/**
+ * Filter out personal (including cash) cards from the card list.
+ */
+function filterPersonalCards(cards: CardList | undefined): CardList {
+    return filterObject(cards ?? {}, (key, card) => !!card?.fundID && card.fundID !== '0');
+}
+
 type SplitMaskedCardNumberResult = {
     firstDigits?: string;
     lastDigits?: string;
@@ -979,6 +986,7 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    filterPersonalCards,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
     isMaskedCardNumberEqual,
