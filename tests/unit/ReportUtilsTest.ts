@@ -665,7 +665,7 @@ describe('ReportUtils', () => {
 
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
-            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false, localeCompare);
+            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false, localeCompare, formatPhoneNumber);
             expect(participants).toHaveLength(5);
 
             expect(participants.at(0)?.displayName).toBe('(833) 240-3627');

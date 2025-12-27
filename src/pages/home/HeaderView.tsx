@@ -125,7 +125,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
@@ -137,7 +137,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isMultipleParticipant = participants.length > 1;
 
     const participantPersonalDetails = getPersonalDetailsForAccountIDs(participants, personalDetails);
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, localeCompare, undefined, isSelfDM);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, localeCompare, formatPhoneNumber, isSelfDM);
 
     const isChatThread = isChatThreadReportUtils(report);
     const isChatRoom = isChatRoomReportUtils(report);
