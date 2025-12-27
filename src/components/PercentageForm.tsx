@@ -1,7 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import {replaceAllDigits, stripSpacesFromAmount, validatePercentage, replaceCommasWithPeriod} from '@libs/MoneyRequestUtils';
+import {replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
 import CONST from '@src/CONST';
 import TextInput from './TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
