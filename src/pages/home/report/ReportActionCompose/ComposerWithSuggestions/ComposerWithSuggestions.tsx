@@ -158,6 +158,7 @@ type ComposerRef = {
      * Once the composer ahs cleared onCleared will be called with the value that was cleared.
      */
     clear: () => void;
+    reset: () => void;
 };
 
 const {RNTextInputReset} = NativeModules;
@@ -272,6 +273,7 @@ function ComposerWithSuggestions({
     const [selection, setSelection] = useState<TextSelection>(() => ({start: value.length, end: value.length, positionX: 0, positionY: 0}));
 
     const [composerHeight, setComposerHeight] = useState(0);
+    const defaultComposerHeightRef = useRef<number | null>(null);
 
     const textInputRef = useRef<TextInput | null>(null);
 
@@ -727,6 +729,12 @@ function ComposerWithSuggestions({
             replaceSelectionWithText,
             isFocused: () => !!textInputRef.current?.isFocused(),
             clear,
+            reset: () => {
+                if (!defaultComposerHeightRef.current) {
+                    return;
+                }
+                setComposerHeight(defaultComposerHeightRef.current);
+            },
             getCurrentText,
         }),
         [blur, clear, focus, replaceSelectionWithText, getCurrentText],
@@ -739,13 +747,9 @@ function ComposerWithSuggestions({
     const onLayout = useCallback(
         (e: LayoutChangeEvent) => {
             onLayoutProps?.(e);
-            const composerLayoutHeight = e.nativeEvent.layout.height;
-            if (composerHeight === composerLayoutHeight) {
-                return;
-            }
-            setComposerHeight(composerLayoutHeight);
+            setComposerHeight(0);
         },
-        [composerHeight, onLayoutProps],
+        [onLayoutProps],
     );
 
     const onClear = useCallback(
@@ -804,6 +808,12 @@ function ComposerWithSuggestions({
             const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
             const inputHeight = e.nativeEvent.contentSize.height;
             const totalHeight = inputHeight + paddingTopAndBottom;
+
+            if (defaultComposerHeightRef.current === null && inputHeight > 0 && !valueRef.current.includes('\n')) {
+                defaultComposerHeightRef.current = inputHeight;
+                setComposerHeight(inputHeight);
+            }
+
             const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
             setIsFullComposerAvailable?.(isFullComposerAvailable);
         },
@@ -849,7 +859,7 @@ function ComposerWithSuggestions({
                     onChangeText={onChangeText}
                     onKeyPress={handleKeyPress}
                     textAlignVertical="top"
-                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose]}
+                    style={[styles.textInputCompose, isComposerFullSize ? styles.textInputFullCompose : styles.textInputCollapseCompose, composerHeight ? {height: composerHeight} : null]}
                     maxLines={maxComposerLines}
                     onFocus={handleFocus}
                     onBlur={onBlur}
