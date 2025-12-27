@@ -15531,6 +15531,181 @@ function addReportApprover(
     API.write(WRITE_COMMANDS.ADD_REPORT_APPROVER, params, onyxData);
 }
 
+function updateMultipleMoneyRequests(
+    transactionChangesMap: Record<string, TransactionChanges>,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    reports: OnyxCollection<OnyxTypes.Report>,
+    transactions: OnyxCollection<OnyxTypes.Transaction>,
+) {
+    for (const [transactionID, transactionChanges] of Object.entries(transactionChangesMap)) {
+        const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction) {
+            continue;
+        }
+
+        const transactionThreadReportID = transaction.reportID;
+        const transactionThread = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+        const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
+        const isFromExpenseReport = isExpenseReport(iouReport);
+
+        const updates: Record<string, string | number> = {};
+        if (transactionChanges.merchant) {
+            updates.merchant = transactionChanges.merchant;
+        }
+        if (transactionChanges.created) {
+            updates.created = transactionChanges.created;
+        }
+        if (transactionChanges.currency) {
+            updates.currency = transactionChanges.currency;
+        }
+        if (transactionChanges.category) {
+            updates.category = transactionChanges.category;
+        }
+        if (transactionChanges.tag) {
+            updates.tag = transactionChanges.tag;
+        }
+        if (transactionChanges.comment) {
+            updates.comment = transactionChanges.comment;
+        }
+        if (transactionChanges.taxCode) {
+            updates.taxCode = transactionChanges.taxCode;
+        }
+        if (transactionChanges.amount) {
+            updates.amount = isFromExpenseReport ? -Math.abs(transactionChanges.amount) : transactionChanges.amount;
+        }
+        if (transactionChanges.billable !== undefined) {
+            updates.state = transactionChanges.billable ? 3 : 4;
+        }
+        if (transactionChanges.reimbursable !== undefined) {
+            updates.state = transactionChanges.reimbursable ? 4 : 3;
+        }
+
+        // Skip if no updates
+        if (Object.keys(updates).length === 0) {
+            continue;
+        }
+
+        // Generate optimistic report action ID
+        const modifiedExpenseReportActionID = NumberUtils.rand64();
+
+        const optimisticData: OnyxUpdate[] = [];
+        const successData: OnyxUpdate[] = [];
+        const failureData: OnyxUpdate[] = [];
+
+        // Pending fields for the transaction
+        const pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
+        const clearedPendingFields = getClearedPendingFields(transactionChanges);
+
+        const errorFields = Object.fromEntries(
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]),
+        );
+
+        // Build updated transaction
+        const updatedTransaction = getUpdatedTransaction({
+            transaction,
+            transactionChanges,
+            isFromExpenseReport,
+            policy,
+        });
+
+        // Optimistic transaction update
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                ...updatedTransaction,
+                pendingFields,
+                isLoading: false,
+                errorFields: null,
+            },
+        });
+
+        // Build optimistic modified expense report action
+        const optimisticReportAction = buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
+
+        // Optimistic report action
+        if (transactionThreadReportID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {
+                    [modifiedExpenseReportActionID]: {
+                        ...optimisticReportAction,
+                        reportActionID: modifiedExpenseReportActionID,
+                    },
+                },
+            });
+        }
+
+        // Success data - clear pending fields
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingFields: clearedPendingFields,
+            },
+        });
+
+        // Failure data - revert transaction
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                ...transaction,
+                pendingFields: clearedPendingFields,
+                errorFields,
+            },
+        });
+
+        // Failure data - remove optimistic report action
+        if (transactionThreadReportID) {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+                value: {
+                    [modifiedExpenseReportActionID]: {
+                        pendingAction: null,
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
+                    },
+                },
+            });
+        }
+
+        const params = {
+            transactionID,
+            reportActionID: modifiedExpenseReportActionID,
+            updates: JSON.stringify(updates),
+        };
+
+        API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST, params, {optimisticData, successData, failureData});
+    }
+}
+
+/**
+ * Initializes the draft transaction for bulk editing multiple expenses
+ */
+function initBulkEditDraftTransaction(currency: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {
+        transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID,
+        currency,
+    });
+}
+
+/**
+ * Clears the draft transaction used for bulk editing
+ */
+function clearBulkEditDraftTransaction() {
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, null);
+}
+
+/**
+ * Updates the draft transaction for bulk editing multiple expenses
+ */
+function updateBulkEditDraftTransaction(transactionChanges: Partial<OnyxTypes.Transaction>) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, transactionChanges);
+}
+
 export {
     adjustRemainingSplitShares,
     approveMoneyRequest,
@@ -15661,6 +15836,10 @@ export {
     getUpdateMoneyRequestParams,
     getUpdateTrackExpenseParams,
     getReportPreviewAction,
+    updateMultipleMoneyRequests,
+    initBulkEditDraftTransaction,
+    clearBulkEditDraftTransaction,
+    updateBulkEditDraftTransaction,
 };
 export type {
     GPSPoint as GpsPoint,
