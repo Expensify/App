@@ -4539,7 +4539,8 @@ describe('actions/IOU', () => {
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            openReport(thread.reportID, '', allPersonalDetails, userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -4630,7 +4631,8 @@ describe('actions/IOU', () => {
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
 
             // When Opening a thread report with the given details
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            openReport(thread.reportID, '', allPersonalDetails, userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             // Then The iou action has the transaction report id as a child report ID
@@ -4740,7 +4742,8 @@ describe('actions/IOU', () => {
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
             jest.advanceTimersByTime(10);
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            openReport(thread.reportID, '', allPersonalDetails, userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             Onyx.connect({
@@ -4841,7 +4844,8 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            openReport(thread.reportID, '', allPersonalDetails, userLogins, thread, createIOUAction?.reportActionID);
 
             await waitForBatchedUpdates();
 
@@ -5108,7 +5112,8 @@ describe('actions/IOU', () => {
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
             const userLogins = getLoginsByAccountIDs(participantAccountIDs);
-            openReport(thread.reportID, '', userLogins, thread, createIOUAction?.reportActionID);
+            const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
+            openReport(thread.reportID, '', allPersonalDetails, userLogins, thread, createIOUAction?.reportActionID);
             await waitForBatchedUpdates();
 
             const allReportActions = await new Promise<OnyxCollection<ReportActions>>((resolve) => {
