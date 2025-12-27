@@ -468,6 +468,21 @@ describe('TransactionUtils', () => {
 
             expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.CASH);
         });
+
+        it('returns time when the transaction has a comment with time type', () => {
+            const transaction = generateTransaction({
+                comment: {
+                    type: 'time',
+                    units: {
+                        count: 2,
+                        unit: 'h',
+                        rate: 50,
+                    },
+                },
+            });
+
+            expect(TransactionUtils.getTransactionType(transaction)).toBe(CONST.SEARCH.TRANSACTION_TYPE.TIME);
+        });
     });
 
     describe('calculateTaxAmount', () => {
