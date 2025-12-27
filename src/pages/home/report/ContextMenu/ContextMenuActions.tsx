@@ -10,6 +10,7 @@ import type {ExpensifyIconName} from '@components/Icon/ExpensifyIconLoader';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import MiniQuickEmojiReactions from '@components/Reactions/MiniQuickEmojiReactions';
 import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';
@@ -233,6 +234,7 @@ type ContextMenuActionPayload = {
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
     harvestReport?: OnyxEntry<ReportType>;
+    currentUserPersonalDetails: ReturnType<typeof useCurrentUserPersonalDetails>;
 };
 
 type OnPress = (closePopover: boolean, payload: ContextMenuActionPayload, selection?: string, reportID?: string, draftMessage?: string) => void;
@@ -421,7 +423,7 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             return hasReasoning;
         },
-        onPress: (closePopover, {reportAction, reportID, translate}) => {
+        onPress: (closePopover, {reportAction, reportID, translate, currentUserPersonalDetails}) => {
             if (!reportID) {
                 return;
             }
@@ -430,13 +432,13 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (closePopover) {
                 hideContextMenu(false, () => {
                     KeyboardUtils.dismiss().then(() => {
-                        explain(reportAction, originalReportID, translate);
+                        explain(reportAction, originalReportID, translate, currentUserPersonalDetails?.timezone);
                     });
                 });
                 return;
             }
 
-            explain(reportAction, originalReportID, translate);
+            explain(reportAction, originalReportID, translate, currentUserPersonalDetails?.timezone);
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EXPLAIN,
