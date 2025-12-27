@@ -90,7 +90,6 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
-    getPolicy,
     isInstantSubmitEnabled,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
@@ -3065,13 +3064,10 @@ function createNewReport(
     creatorPersonalDetails: CurrentUserPersonalDetails,
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
-    policyID?: string,
+    policy: OnyxEntry<Policy>,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
 ) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
@@ -3095,7 +3091,7 @@ function createNewReport(
         {
             reportName: optimisticReportName,
             type: CONST.REPORT.TYPE.EXPENSE,
-            policyID,
+            policyID: policy?.id,
             reportID: optimisticReportID,
             reportActionID,
             reportPreviewReportActionID,

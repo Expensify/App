@@ -225,7 +225,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
 
     const handleCreateWorkspaceReport = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
-            if (!defaultChatEnabledPolicyID) {
+            if (!defaultChatEnabledPolicy?.id) {
                 return;
             }
 
@@ -237,7 +237,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 currentUserPersonalDetails,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                defaultChatEnabledPolicyID,
+                defaultChatEnabledPolicy,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
@@ -250,7 +250,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 );
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled, isReportInSearch],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, isReportInSearch],
     );
 
     const {openCreateReportConfirmation: openFabCreateReportConfirmation, CreateReportConfirmationModal: FabCreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
