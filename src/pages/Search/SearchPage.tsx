@@ -688,7 +688,9 @@ function SearchPage({route}: SearchPageProps) {
                 icon: expensifyIcons.DocumentMerge,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP),
+                onSelected: () => {
+                    Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP);
+                },
             });
         }
 
