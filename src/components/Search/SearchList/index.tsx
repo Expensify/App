@@ -123,6 +123,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
 
+    /** Whether there are transactions not yet loaded from snapshots in group-by views */
+    hasUnloadedTransactions?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
 };
@@ -173,6 +176,7 @@ function SearchList({
     newTransactions = [],
     violations,
     onDEWModalOpen,
+    hasUnloadedTransactions,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -394,7 +398,7 @@ function SearchList({
 
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length && !hasUnloadedTransactions;
 
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
@@ -404,7 +408,7 @@ function SearchList({
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedItemsWithoutPendingDelete.length}
+                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== flattenedItemsWithoutPendingDelete.length || hasUnloadedTransactions)}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
