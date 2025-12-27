@@ -19,14 +19,7 @@ import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    CanceledRequestParams,
-    CardInfoParams,
     ChangeFieldParams,
-    ChangeOwnerDuplicateSubscriptionParams,
-    ChangeOwnerSubscriptionParams,
-    ChangeReportPolicyParams,
-    ChangeTypeParams,
-    CharacterLengthLimitParams,
     ConnectionNameParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
@@ -422,6 +415,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: '宛先',
         genericErrorMessage: 'おっと…問題が発生したため、リクエストを完了できませんでした。後でもう一度お試しください。',
         percentage: 'パーセンテージ',
+        converted: '変換済み',
         error: {
             invalidAmount: '金額が無効です',
             acceptTerms: '続行するには利用規約に同意する必要があります',
@@ -429,7 +423,7 @@ const translations: TranslationDeepObject<typeof en> = {
 （例：${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER}）`,
             fieldRequired: 'このフィールドは必須です',
             requestModified: 'このリクエストは別のメンバーによって変更されています',
-            characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `文字数制限を超えています（${length}/${limit}）`,
+            characterLimitExceedCounter: (length: number, limit: number) => `文字数制限を超えています（${length}/${limit}）`,
             dateInvalid: '有効な日付を選択してください',
             invalidDateShouldBeFuture: '今日以降の日付を選択してください',
             invalidTimeShouldBeFuture: '少なくとも1分後の時刻を選択してください',
@@ -1306,7 +1300,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'このレポートを却下しました',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `支払いを開始しましたが、${submitterDisplayName} が銀行口座を追加するのを待っています。`,
         adminCanceledRequest: '支払いをキャンセルしました',
-        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
+        canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${submitterDisplayName} が30日以内に Expensify Wallet を有効化しなかったため、${amount} の支払いはキャンセルされました`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} が銀行口座を追加しました。${amount} の支払いが行われました。`,
@@ -5861,14 +5855,14 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
 このワークスペースの請求を引き継ぐために、この金額（${amount}）を振り替えますか？お支払いカードには直ちに請求が行われます。`,
             subscriptionTitle: '年間サブスクリプションを引き継ぐ',
             subscriptionButtonText: 'サブスクリプションを移行',
-            subscriptionText: ({usersCount, finalCount}: ChangeOwnerSubscriptionParams) =>
+            subscriptionText: (usersCount: number, finalCount: number) =>
                 `このワークスペースを引き継ぐと、その年間サブスクリプションはあなたの現在のサブスクリプションと統合されます。その結果、サブスクリプションの規模は${usersCount}人分増え、新しいサブスクリプションの規模は${finalCount}人分になります。続行しますか？`,
             duplicateSubscriptionTitle: '重複サブスクリプションの警告',
             duplicateSubscriptionButtonText: '続行',
-            duplicateSubscriptionText: ({
-                email,
-                workspaceName,
-            }: ChangeOwnerDuplicateSubscriptionParams) => `${email} さんのワークスペースの請求管理を引き継ごうとしているようですが、そのためには、まずすべてのワークスペースで管理者になる必要があります。
+            duplicateSubscriptionText: (
+                email: string,
+                workspaceName: string,
+            ) => `${email} さんのワークスペースの請求管理を引き継ごうとしているようですが、そのためには、まずすべてのワークスペースで管理者になる必要があります。
 
 ワークスペース ${workspaceName} のみの請求管理を引き継ぎたい場合は、「続行」をクリックしてください。
 
@@ -6918,13 +6912,13 @@ ${reportName}
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `${fieldName} を「${newValue}」（以前は「${oldValue}」）に変更しました`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName} を「${newValue}」に設定`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `ワークスペース${fromPolicyName ? `（以前は ${fromPolicyName}）` : ''}を変更しました`;
                     }
                     return `ワークスペースを${toPolicyName}${fromPolicyName ? `（以前は ${fromPolicyName}）` : ''}に変更しました`;
                 },
-                changeType: ({oldType, newType}: ChangeTypeParams) => `${oldType} から ${newType} に変更しました`,
+                changeType: (oldType: string, newType: string) => `${oldType} から ${newType} に変更しました`,
                 exportedToCSV: `CSV にエクスポート済み`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => {
@@ -7464,9 +7458,9 @@ ${reportName}
             title: '支払い',
             subtitle: 'Expensify のサブスクリプションを支払うためのカードを追加してください。',
             addCardButton: '支払カードを追加',
+            cardInfo: (name: string, expiration: string, currency: string) => `名前: ${name}, 有効期限: ${expiration}, 通貨: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `次回のお支払い日は${nextPaymentDate}です。`,
             cardEnding: (cardNumber: string) => `末尾が${cardNumber}のカード`,
-            cardInfo: ({name, expiration, currency}: CardInfoParams) => `名前: ${name}, 有効期限: ${expiration}, 通貨: ${currency}`,
             changeCard: '支払いカードを変更',
             changeCurrency: '支払通貨を変更',
             cardNotFound: '支払カードが追加されていません',
