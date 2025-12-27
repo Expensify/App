@@ -33,6 +33,11 @@ type RequestMoneyParams = {
     isTestDrive?: boolean;
     guidedSetupData?: string;
     testDriveCommentReportActionID?: string;
+    // Time Tracking params
+    type?: 'time';
+    unit?: 'h';
+    count?: number;
+    rate?: number;
 };
 
 export default RequestMoneyParams;

@@ -1189,6 +1189,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         chooseWorkspace: 'Elige un espacio de trabajo',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `informe enviado a ${to} debido a un flujo de aprobación personalizado`,
+        timeTracking: {
+            hoursAt: (hours: number, rate: string) => `${hours} horas a ${rate} / hora`,
+            hrs: 'h',
+        },
     },
     transactionMerge: {
         listPage: {
