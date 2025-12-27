@@ -75,8 +75,8 @@ function StatusPage() {
     const customClearAfter = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const dataToShow = draftClearAfter || currentUserClearAfter;
-        return DateUtils.getLocalizedTimePeriodDescription(dataToShow);
-    }, [draftClearAfter, currentUserClearAfter]);
+        return DateUtils.getLocalizedTimePeriodDescription(translate, dataToShow);
+    }, [draftClearAfter, currentUserClearAfter, translate]);
 
     const isValidClearAfterDate = useCallback(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
