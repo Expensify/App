@@ -8,15 +8,9 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-jest.mock('@libs/actions/Search', () => ({
-    clearAllFilters: jest.fn(),
-}));
-
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
 }));
-
-const clearAllFiltersMock = jest.mocked(require('@libs/actions/Search').clearAllFilters);
 
 function createApproveMenuItem(): SearchTypeMenuItem {
     return {
@@ -124,7 +118,6 @@ describe('useSuggestedSearchDefaultNavigation', () => {
             clearSelectedTransactions,
         });
 
-        expect(clearAllFiltersMock).toHaveBeenCalledTimes(1);
         expect(clearSelectedTransactions).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approveMenuItem.searchQuery}));
     });
@@ -171,7 +164,6 @@ describe('useSuggestedSearchDefaultNavigation', () => {
             },
         });
 
-        expect(clearAllFiltersMock).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
@@ -191,7 +183,6 @@ describe('useSuggestedSearchDefaultNavigation', () => {
             },
         });
 
-        expect(clearAllFiltersMock).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
@@ -218,7 +209,6 @@ describe('useSuggestedSearchDefaultNavigation', () => {
             shouldSkipNavigation: true,
         });
 
-        expect(clearAllFiltersMock).not.toHaveBeenCalled();
         expect(clearSelectedTransactions).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
@@ -251,7 +241,6 @@ describe('useSuggestedSearchDefaultNavigation', () => {
         });
 
         expect(shouldSkipNavigation).toBe(true);
-        expect(clearAllFiltersMock).not.toHaveBeenCalled();
         expect(clearSelectedTransactions).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });

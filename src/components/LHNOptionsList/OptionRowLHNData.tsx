@@ -37,6 +37,7 @@ function OptionRowLHNData({
     transactionViolations,
     lastMessageTextFromReport,
     localeCompare,
+    translate,
     isReportArchived = false,
     lastAction,
     lastActionReport,
@@ -69,6 +70,7 @@ function OptionRowLHNData({
             invoiceReceiverPolicy,
             card,
             lastAction,
+            translate,
             localeCompare,
             isReportArchived,
             lastActionReport,
@@ -107,6 +109,7 @@ function OptionRowLHNData({
         invoiceReceiverPolicy,
         lastMessageTextFromReport,
         card,
+        translate,
         localeCompare,
         isReportArchived,
         movedFromReport,
@@ -123,8 +126,6 @@ function OptionRowLHNData({
         />
     );
 }
-
-OptionRowLHNData.displayName = 'OptionRowLHNData';
 
 /**
  * This component is rendered in a list.
