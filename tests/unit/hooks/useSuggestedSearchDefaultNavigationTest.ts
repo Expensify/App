@@ -218,8 +218,10 @@ describe('useSuggestedSearchDefaultNavigation', () => {
         const approveMenuItem = createApproveMenuItem();
         const submitMenuItem = createSubmitMenuItem();
         const parsedQueryJSON = buildSearchQueryJSON('in:checking');
-        expect(parsedQueryJSON).toBeTruthy();
-        const inlineContextQueryJSON = {...(parsedQueryJSON ?? {}), rawFilterList: undefined};
+        if (!parsedQueryJSON) {
+            throw new Error('Expected parsed query to be defined');
+        }
+        const inlineContextQueryJSON = {...parsedQueryJSON, rawFilterList: undefined};
         const shouldSkipNavigation = shouldSkipSuggestedSearchNavigationForQuery(inlineContextQueryJSON);
 
         const {rerender} = renderHook((props: Parameters<typeof useSuggestedSearchDefaultNavigation>[0]) => useSuggestedSearchDefaultNavigation(props), {
