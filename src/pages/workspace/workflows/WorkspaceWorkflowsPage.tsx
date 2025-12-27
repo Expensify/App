@@ -87,7 +87,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const [isDisableApprovalsConfirmModalOpen, setIsDisableApprovalsConfirmModalOpen] = useState(false);
     const {approvalWorkflows, availableMembers, usedApproverEmails} = useMemo(
         () =>
@@ -110,11 +109,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
     const achData = reimbursementAccount?.achData;
-    const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
 
     const shouldShowContinueModal = useMemo(() => {
-        return hasInProgressVBBA(achData, isNonUSDWorkspace, nonUSDCountryDraftValue);
-    }, [achData, isNonUSDWorkspace, nonUSDCountryDraftValue]);
+        return hasInProgressVBBA(achData, isNonUSDWorkspace);
+    }, [achData, isNonUSDWorkspace]);
 
     const onPressAutoReportingFrequency = useCallback(() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY.getRoute(route.params.policyID)), [route.params.policyID]);
 
