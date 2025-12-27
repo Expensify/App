@@ -588,8 +588,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const displayNamesWithTooltips = useMemo(() => {
         const hasMultipleParticipants = participants.length > 1;
-        return getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participants, personalDetails), hasMultipleParticipants, localeCompare);
-    }, [participants, personalDetails, localeCompare]);
+        return getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participants, personalDetails), hasMultipleParticipants, localeCompare, formatPhoneNumber);
+    }, [participants, personalDetails, localeCompare, formatPhoneNumber]);
 
     const icons = useMemo(
         () => getIcons(report, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isReportArchived),
