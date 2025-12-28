@@ -1873,7 +1873,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             return {};
         }
 
-        const composerLineHeight = styles.textInputCompose.lineHeight ?? 0;
+        const composerLineHeight = variables.lineHeightXLarge;
 
         return {
             maxHeight: maxLines * composerLineHeight,

@@ -506,7 +506,7 @@ function ReportActionItemMessageEdit({
                             onKeyPress={triggerSaveOrCancel}
                             value={draft}
                             maxLines={shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES} // This is the same that slack has
-                            style={[styles.textInputCompose, styles.flex1, styles.bgTransparent, styles.textInputCollapseCompose]}
+                            style={[styles.textInputCompose, styles.flex1, styles.bgTransparent]}
                             onFocus={() => {
                                 setIsFocused(true);
                                 if (textInputRef.current) {

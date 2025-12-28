@@ -2103,6 +2103,13 @@ const staticStyles = (theme: ThemeColors) =>
                 paddingBottom: 0,
                 alignSelf: 'center',
                 verticalAlign: 'middle',
+                ...(Platform.OS === 'android' && {
+                    height: undefined,
+                    lineHeight: undefined,
+                    alignSelf: 'stretch',
+                    flexGrow: 1,
+                    flexShrink: 1,
+                }),
             },
             0,
         ),
@@ -2112,25 +2119,11 @@ const staticStyles = (theme: ThemeColors) =>
             flex: 1,
             maxHeight: '100%',
             verticalAlign: 'top',
-            ...(Platform.OS === 'android' && {
-                height: undefined,
-                lineHeight: undefined,
-                alignSelf: 'stretch',
-                flexGrow: 1,
-                flexShrink: 1,
-            }),
         },
 
         textInputCollapseCompose: {
             maxHeight: '100%',
             flex: 4,
-            ...(Platform.OS === 'android' && {
-                height: undefined,
-                lineHeight: undefined,
-                alignSelf: 'stretch',
-                flexGrow: 1,
-                flexShrink: 1,
-            }),
         },
 
         // composer padding should not be modified unless thoroughly tested against the cases in this PR: #12669
