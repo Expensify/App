@@ -309,13 +309,6 @@ Onyx.connect({
     },
 });
 
-let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => (allTransactionViolations = value),
-});
-
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -4941,7 +4934,12 @@ function clearDeleteTransactionNavigateBackUrl() {
 }
 
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
-function deleteAppReport(reportID: string | undefined, currentUserEmailParam: string, reportAllTransactions: Transaction[]) {
+function deleteAppReport(
+    reportID: string | undefined,
+    currentUserEmailParam: string,
+    reportTransactions: Record<string, Transaction>,
+    transactionsViolations: Record<string, TransactionViolations>,
+) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
         return;
@@ -5053,8 +5051,8 @@ function deleteAppReport(reportID: string | undefined, currentUserEmailParam: st
 
         // 1. Update the transaction and its violations
         if (transactionID) {
-            const transaction = reportAllTransactions.find((t) => t.transactionID === transactionID);
-            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+            const transaction = reportTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const transactionViolations = transactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
             optimisticData.push(
                 {
@@ -5075,7 +5073,6 @@ function deleteAppReport(reportID: string | undefined, currentUserEmailParam: st
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {reportID: transaction?.reportID, comment: {hold: transaction?.comment?.hold}},
                 },
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
