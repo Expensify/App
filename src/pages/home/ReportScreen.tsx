@@ -1033,7 +1033,6 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 hasOlderActions={hasOlderActions}
                                                 hasNewerActions={hasNewerActions}
                                                 showReportActionsLoadingState={showReportActionsLoadingState}
-                                                reportPendingAction={reportPendingAction}
                                             />
                                         ) : null}
                                         {isCurrentReportLoadedFromOnyx ? (
