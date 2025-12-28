@@ -1,3 +1,4 @@
+import isNumber from 'lodash/isNumber';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
