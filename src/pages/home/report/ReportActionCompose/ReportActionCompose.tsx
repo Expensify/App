@@ -17,6 +17,7 @@ import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
@@ -48,6 +49,7 @@ import {
     getParentReport,
     getReportRecipientAccountIDs,
     isChatRoom,
+    isConciergeChatReport,
     isGroupChat,
     isInvoiceReport,
     isReportApproved,
@@ -61,7 +63,7 @@ import willBlurTextInputOnTapOutsideFunc from '@libs/willBlurTextInputOnTapOutsi
 import AgentZeroProcessingRequestIndicator from '@pages/home/report/AgentZeroProcessingRequestIndicator';
 import ParticipantLocalTime from '@pages/home/report/ParticipantLocalTime';
 import ReportTypingIndicator from '@pages/home/report/ReportTypingIndicator';
-import {hideEmojiPicker, isActive as isActiveEmojiPickerAction} from '@userActions/EmojiPickerAction';
+import {hideEmojiPicker, isActive as isActiveEmojiPickerAction, isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import {addAttachmentWithComment, setIsComposerFullSize} from '@userActions/Report';
 import Timing from '@userActions/Timing';
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
@@ -188,7 +190,7 @@ function ReportActionCompose({
     const {hasExceededMaxTaskTitleLength, validateTaskTitleMaxLength, setHasExceededMaxTitleLength} = useHandleExceedMaxTaskTitleLength();
     const [exceededMaxLength, setExceededMaxLength] = useState<number | null>(null);
 
-    const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['MessageInABottle']);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerRef | undefined>(undefined);
@@ -209,6 +211,7 @@ function ReportActionCompose({
     const userBlockedFromConcierge = useMemo(() => isBlockedFromConciergeUserAction(blockedFromConcierge), [blockedFromConcierge]);
     const isBlockedFromConcierge = useMemo(() => includesConcierge && userBlockedFromConcierge, [includesConcierge, userBlockedFromConcierge]);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const isConciergeChat = useMemo(() => isConciergeChatReport(report), [report]);
 
     const isTransactionThreadView = useMemo(() => isReportTransactionThread(report), [report]);
     const isExpensesReport = useMemo(() => reportTransactions && reportTransactions.length > 1, [reportTransactions]);
@@ -251,6 +254,8 @@ function ReportActionCompose({
         }
         return translate('reportActionCompose.writeSomething');
     }, [includesConcierge, translate, userBlockedFromConcierge]);
+
+    const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
 
     const focus = () => {
         if (composerRef.current === null) {
@@ -322,6 +327,10 @@ function ReportActionCompose({
         (newComment: string) => {
             const newCommentTrimmed = newComment.trim();
 
+            if (isConciergeChat) {
+                kickoffWaitingIndicator();
+            }
+
             if (attachmentFileRef.current) {
                 addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
                 attachmentFileRef.current = null;
@@ -339,7 +348,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, ancestors, reportID, personalDetail.timezone, transactionThreadReportID],
+        [onSubmit, ancestors, kickoffWaitingIndicator, isConciergeChat, reportID, personalDetail.timezone, transactionThreadReportID],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {
@@ -570,7 +579,7 @@ function ReportActionCompose({
                             setIsFullComposerAvailable={setIsFullComposerAvailable}
                             onPasteFile={(files) => validateAttachments({files})}
                             onCleared={submitForm}
-                            disabled={isBlockedFromConcierge}
+                            disabled={isBlockedFromConcierge || isEmojiPickerVisible()}
                             setIsCommentEmpty={setIsCommentEmpty}
                             handleSendMessage={handleSendMessage}
                             shouldShowComposeInput={shouldShowComposeInput}
@@ -633,7 +642,10 @@ function ReportActionCompose({
                         ]}
                     >
                         {!shouldUseNarrowLayout && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}
-                        <AgentZeroProcessingRequestIndicator reportID={reportID} />
+                        <AgentZeroProcessingRequestIndicator
+                            reportID={reportID}
+                            label={agentZeroDisplayLabel}
+                        />
                         <ReportTypingIndicator reportID={reportID} />
                         {!!exceededMaxLength && (
                             <ExceededCommentLength
@@ -652,8 +664,6 @@ function ReportActionCompose({
         </View>
     );
 }
-
-ReportActionCompose.displayName = 'ReportActionCompose';
 
 export default memo(ReportActionCompose);
 export {onSubmitAction};

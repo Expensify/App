@@ -97,6 +97,7 @@ function IOURequestStepDistanceMap({
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [optimisticWaypoints, setOptimisticWaypoints] = useState<WaypointCollection | null>(null);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const waypoints = useMemo(
         () =>
             optimisticWaypoints ??
@@ -353,6 +354,7 @@ function IOURequestStepDistanceMap({
                             attendees: transaction?.comment?.attendees,
                         },
                         isASAPSubmitBetaEnabled,
+                        quickAction,
                     });
                     return;
                 }
@@ -383,6 +385,7 @@ function IOURequestStepDistanceMap({
                     isASAPSubmitBetaEnabled,
                     transactionViolations,
                     quickAction,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 });
                 return;
             }
@@ -577,7 +580,7 @@ function IOURequestStepDistanceMap({
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
-            testID={IOURequestStepDistanceMap.displayName}
+            testID="IOURequestStepDistanceMap"
             shouldShowNotFoundPage={(isEditing && !transaction?.comment?.waypoints) || shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
@@ -623,8 +626,6 @@ function IOURequestStepDistanceMap({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepDistanceMap.displayName = 'IOURequestStepDistanceMap';
 
 const IOURequestStepDistanceMapWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceMap);
 // eslint-disable-next-line rulesdir/no-negated-variables

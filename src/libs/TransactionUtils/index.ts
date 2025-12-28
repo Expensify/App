@@ -9,9 +9,10 @@ import type {ValueOf} from 'type-fest';
 import type {Coordinate} from '@components/MapView/MapViewTypes';
 import utils from '@components/MapView/utils';
 import type {UnreportedExpenseListItemType} from '@components/SelectionListWithSections/types';
+import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
-import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
+import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -37,6 +38,7 @@ import {
     getReportOrDraftReport,
     getReportTransactions,
     isCurrentUserSubmitter,
+    isInvoiceReport,
     isOpenExpenseReport,
     isProcessingReport,
     isReportApproved,
@@ -109,6 +111,8 @@ type TransactionParams = {
     splitExpensesTotal?: number;
     participants?: Participant[];
     pendingAction?: PendingAction;
+    splitsStartDate?: string;
+    splitsEndDate?: string;
     distance?: number;
 };
 
@@ -345,6 +349,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         filename = '',
         customUnit,
         splitExpenses,
+        splitsStartDate,
+        splitsEndDate,
         splitExpensesTotal,
         participants,
         pendingAction = CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -365,6 +371,12 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     }
     if (splitExpenses) {
         commentJSON.splitExpenses = splitExpenses;
+    }
+    if (splitsStartDate) {
+        commentJSON.splitsStartDate = splitsStartDate;
+    }
+    if (splitsEndDate) {
+        commentJSON.splitsEndDate = splitsEndDate;
     }
     if (splitExpensesTotal) {
         commentJSON.splitExpensesTotal = splitExpensesTotal;
@@ -833,6 +845,29 @@ function getOriginalAmount(transaction: Transaction): number {
 }
 
 /**
+ * Return the original amount for display/sorting purposes.
+ * For expense reports, returns the negated value of (originalAmount || amount || modifiedAmount).
+ * For non-expense reports, returns getOriginalAmount() or Math.abs(amount) or Math.abs(modifiedAmount).
+ */
+function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmount' | 'amount' | 'modifiedAmount'>, isExpenseReport: boolean): number {
+    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+    if (isExpenseReport) {
+        return -((transaction.originalAmount || transaction.amount || transaction.modifiedAmount) ?? 0);
+    }
+    return getOriginalAmount(transaction as Transaction) || Math.abs(transaction.amount ?? 0) || Math.abs(transaction.modifiedAmount ?? 0);
+    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+}
+
+/**
+ * Return the original currency for display/sorting purposes.
+ * Falls back to originalCurrency, then currency, then modifiedCurrency.
+ */
+function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalCurrency' | 'currency' | 'modifiedCurrency' | 'amount'>): string {
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return transaction.originalCurrency || (transaction.amount === 0 ? transaction.modifiedCurrency : transaction.currency) || CONST.CURRENCY.USD;
+}
+
+/**
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
 function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction>): boolean {
@@ -870,9 +905,13 @@ function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policyParam: On
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
         const {unit, rate} = mileageRate;
         const distanceInMeters = getDistanceInMeters(transaction, unit);
-        if (policy?.customUnits && !isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) {
+        if (
+            (policy?.customUnits && !isUnreportedAndHasInvalidDistanceRateTransaction(transaction, policy)) ||
+            // If modifiedMerchant is empty but modifiedCurrency exists, recalculate the merchant
+            (!transaction?.modifiedMerchant && transaction?.modifiedCurrency)
+        ) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, translateLocal, (digit) =>
+            return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, getCurrency(transaction), translateLocal, (digit) =>
                 toLocaleDigit(IntlStore.getCurrentLocale(), digit),
             );
         }
@@ -1034,6 +1073,24 @@ function getTagArrayFromName(tagName: string): string[] {
 }
 
 /**
+ * Returns the exchange rate for a transaction, based on its group
+ */
+function getExchangeRate(transaction: TransactionWithOptionalSearchFields) {
+    const fromCurrency = getCurrency(transaction);
+    const toCurrency = transaction.groupCurrency ?? fromCurrency;
+
+    if (!transaction.groupExchangeRate) {
+        return '';
+    }
+
+    if (Number(transaction.groupExchangeRate) === 1) {
+        return '';
+    }
+
+    return transaction.groupExchangeRate ? `${transaction.groupExchangeRate} ${fromCurrency}/${toCurrency}` : '';
+}
+
+/**
  * Return the tag from the transaction. When the tagIndex is passed, return the tag based on the index.
  * This "tag" field has no "modified" complement.
  */
@@ -1077,6 +1134,30 @@ function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean 
     return !!transaction?.managedCard;
 }
 
+/**
+ * Determine whether a transaction is imported from a credit card.
+ * This includes managed cards (Expensify/Company cards) and personal cards imported via bank connection.
+ */
+function isFromCreditCardImport(transaction: OnyxEntry<Transaction>): boolean {
+    if (transaction?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD) {
+        return false;
+    }
+
+    if (isManagedCardTransaction(transaction)) {
+        return true;
+    }
+
+    if (transaction?.cardNumber) {
+        return true;
+    }
+
+    if (transaction?.bank) {
+        return true;
+    }
+
+    return false;
+}
+
 function getCardName(transaction: OnyxEntry<Transaction>): string {
     return transaction?.cardName ?? '';
 }
@@ -1111,6 +1192,56 @@ function isScanning(transaction: OnyxEntry<Transaction>): boolean {
 
 function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCAN_READY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
+}
+
+/**
+ * Check if category is being analyzed (manual request creation or auto-categorization grace period)
+ */
+function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    if (isExpenseUnreported(transaction)) {
+        return false;
+    }
+
+    // Only consider analyzing if category is actually missing
+    const category = getCategory(transaction);
+    if (!isCategoryMissing(category)) {
+        return false;
+    }
+
+    // Don't consider partial transactions (empty merchant and zero amount) as analyzing
+    if (isMerchantMissing(transaction) && transaction.amount === 0) {
+        return false;
+    }
+
+    // Invoice expense is not auto-categorized
+    if (isInvoiceReport(transaction.reportID)) {
+        return false;
+    }
+
+    const pendingAction = transaction.pendingAction;
+    const pendingAutoCategorizationTime = transaction.comment?.pendingAutoCategorizationTime;
+
+    // Check if manual request is being created
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        return true;
+    }
+
+    // Check if within auto-categorization grace period
+    if (pendingAutoCategorizationTime && typeof pendingAutoCategorizationTime === 'string') {
+        const pendingTime = new Date(`${pendingAutoCategorizationTime.replace(' ', 'T')}Z`);
+        if (!Number.isNaN(pendingTime.getTime())) {
+            const currentTime = new Date();
+            const elapsedMs = currentTime.getTime() - pendingTime.getTime();
+            const oneMinuteMs = 60 * 1000;
+            return elapsedMs < oneMinuteMs;
+        }
+    }
+
+    return false;
 }
 
 function didReceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
@@ -1245,7 +1376,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            return shouldShowViolation(report, policy, violation.name, currentUserEmail);
+            return shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction);
         });
     });
 
@@ -1283,6 +1414,7 @@ function shouldShowViolation(
     violationName: ViolationName,
     currentUserEmail: string,
     shouldShowRterForSettledReport = true,
+    transaction?: OnyxEntry<Transaction>,
 ): boolean {
     const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
@@ -1303,6 +1435,10 @@ function shouldShowViolation(
 
     if (violationName === CONST.VIOLATIONS.RECEIPT_NOT_SMART_SCANNED) {
         return isPolicyMember && !isSubmitter && !isReportOpen;
+    }
+
+    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction)) {
+        return false;
     }
 
     return true;
@@ -1328,7 +1464,7 @@ function allHavePendingRTERViolation(
         // Get violations not dismissed by current user
         const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy)?.filter((violation) =>
             // Further filter to only violations visible to the current user
-            shouldShowViolation(report, policy, violation.name, currentUserEmail),
+            shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction),
         );
         // Check if there is pending rter violation in the filtered violations
         return hasPendingRTERViolation(filteredTransactionViolations);
@@ -1451,11 +1587,18 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * Check if transaction has duplicatedTransaction violation.
  * @param transactionID - the transaction to check
  */
-function isDuplicate(transaction: OnyxEntry<Transaction>, currentUserEmail: string, currentUserAccountID: number, iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function isDuplicate(
+    transaction: OnyxEntry<Transaction>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    transactionViolation?: OnyxEntry<TransactionViolations>,
+): boolean {
     if (!transaction) {
         return false;
     }
-    const duplicatedTransactionViolation = deprecatedAllTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]?.find(
+    const duplicatedTransactionViolation = (transactionViolation ?? deprecatedAllTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`])?.find(
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
     const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
@@ -1565,13 +1708,24 @@ function hasDuplicateTransactions(
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    allReportTransactions?: SearchTransaction[],
+    allTransactionViolations: OnyxCollection<TransactionViolation[]>,
 ): boolean {
     const transactionsByIouReportID = getReportTransactions(iouReport?.reportID);
-    const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
+    const reportTransactions = transactionsByIouReportID;
 
-    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail, currentUserAccountID, iouReport, policy));
+    return (
+        reportTransactions.length > 0 &&
+        reportTransactions.some((transaction) =>
+            isDuplicate(
+                transaction,
+                currentUserEmail,
+                currentUserAccountID,
+                iouReport,
+                policy,
+                allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
+            ),
+        )
+    );
 }
 
 /**
@@ -1735,9 +1889,7 @@ function getWorkspaceTaxesSettingsName(policy: OnyxEntry<Policy>, taxCode: strin
  */
 function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transaction>) {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    // transaction?.taxCode may be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode || defaultTaxCode))?.modifiedName;
+    return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
 type FieldsToCompare = Record<string, Array<keyof Transaction>>;
@@ -2214,26 +2366,61 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, reports
 /**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
  */
-function createUnreportedExpenseSections(transactions: Array<Transaction | undefined>): Array<{shouldShow: boolean; data: UnreportedExpenseListItemType[]}> {
-    return [
-        {
-            shouldShow: true,
-            data: transactions
-                .filter((t): t is Transaction => t !== undefined)
-                .map(
-                    (transaction): UnreportedExpenseListItemType => ({
-                        ...transaction,
-                        isDisabled: isTransactionPendingDelete(transaction),
-                        keyForList: transaction.transactionID,
-                        errors: transaction.errors as Errors | undefined,
-                    }),
-                ),
-        },
-    ];
+function createUnreportedExpenses(transactions: Array<Transaction | undefined>): UnreportedExpenseListItemType[] {
+    return transactions
+        .filter((t): t is Transaction => t !== undefined)
+        .map(
+            (transaction): UnreportedExpenseListItemType => ({
+                ...transaction,
+                isDisabled: isTransactionPendingDelete(transaction),
+                keyForList: transaction.transactionID,
+                errors: transaction.errors as Errors | undefined,
+            }),
+        );
 }
 
 function isExpenseUnreported(transaction?: Transaction): transaction is UnreportedTransaction {
     return transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+}
+
+/**
+ * Check if there is a smartscan failed violation for the transaction.
+ */
+function hasSmartScanFailedViolation(
+    transaction: Transaction,
+    transactionViolations: OnyxCollection<TransactionViolations> | undefined,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+): boolean {
+    const violations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy);
+    return !!violations?.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
+}
+
+/**
+ * Check if the initial transaction should be reused for the current file being processed.
+ */
+function shouldReuseInitialTransaction(
+    initialTransaction: OnyxEntry<Transaction>,
+    shouldAcceptMultipleFiles: boolean,
+    index: number,
+    isMultiScanEnabled: boolean,
+    transactions: Transaction[],
+): boolean {
+    if (!initialTransaction) {
+        return false;
+    }
+
+    if (!shouldAcceptMultipleFiles) {
+        return true;
+    }
+
+    if (index !== 0) {
+        return false;
+    }
+
+    return !isMultiScanEnabled || (transactions.length === 1 && (!initialTransaction.receipt?.source || initialTransaction.receipt?.isTestReceipt === true));
 }
 
 export {
@@ -2310,6 +2497,7 @@ export {
     hasViolation,
     hasDuplicateTransactions,
     hasBrokenConnectionViolation,
+    hasSmartScanFailedViolation,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     hasNoticeTypeViolation,
@@ -2336,12 +2524,13 @@ export {
     isPartialTransaction,
     isPendingCardOrScanningTransaction,
     isScanning,
+    isCategoryBeingAnalyzed,
     checkIfShouldShowMarkAsCashButton,
     getOriginalTransactionWithSplitInfo,
     getTransactionPendingAction,
     isTransactionPendingDelete,
     getChildTransactions,
-    createUnreportedExpenseSections,
+    createUnreportedExpenses,
     isDemoTransaction,
     shouldShowViolation,
     isUnreportedAndHasInvalidDistanceRateTransaction,
@@ -2354,6 +2543,11 @@ export {
     mergeProhibitedViolations,
     getOriginalAttendees,
     getReportOwnerAsAttendee,
+    isFromCreditCardImport,
+    getExchangeRate,
+    shouldReuseInitialTransaction,
+    getOriginalAmountForDisplay,
+    getOriginalCurrencyForDisplay,
 };
 
 export type {TransactionChanges};

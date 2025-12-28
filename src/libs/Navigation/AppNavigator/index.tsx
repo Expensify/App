@@ -26,6 +26,4 @@ function AppNavigator({authenticated}: AppNavigatorProps) {
     );
 }
 
-AppNavigator.displayName = 'AppNavigator';
-
 export default memo(AppNavigator);
