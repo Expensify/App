@@ -321,6 +321,9 @@ type PureReportActionItemProps = {
     /** ID of the original report from which the given reportAction is first created */
     originalReportID?: string;
 
+    /** Original report from which the given reportAction is first created */
+    originalReport?: OnyxTypes.Report;
+
     /** Function to deletes the draft for a comment report action. */
     deleteReportActionDraft?: (reportID: string | undefined, action: OnyxTypes.ReportAction) => void;
 
@@ -463,6 +466,7 @@ function PureReportActionItem({
     personalDetails,
     blockedFromConcierge,
     originalReportID = '-1',
+    originalReport,
     deleteReportActionDraft = () => {},
     isArchivedRoom,
     isChronosReport,
@@ -781,7 +785,7 @@ function PureReportActionItem({
             ];
         }
 
-        const reportActionReportID = originalReportID ?? reportID;
+        const reportActionReport = originalReport ?? report;
         if (isConciergeCategoryOptions(action)) {
             const options = getOriginalMessage(action)?.options;
             if (!options) {
@@ -792,7 +796,7 @@ function PureReportActionItem({
                 return [];
             }
 
-            if (!reportActionReportID) {
+            if (!reportActionReport) {
                 return [];
             }
 
@@ -800,7 +804,7 @@ function PureReportActionItem({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
-                    resolveConciergeCategoryOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                    resolveConciergeCategoryOptions(reportActionReport, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                 },
             }));
         }
@@ -815,7 +819,7 @@ function PureReportActionItem({
                 return [];
             }
 
-            if (!reportActionReportID) {
+            if (!reportActionReport) {
                 return [];
             }
 
@@ -823,7 +827,7 @@ function PureReportActionItem({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeDescriptionOptions-${option}`,
                 onPress: () => {
-                    resolveConciergeDescriptionOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                    resolveConciergeDescriptionOptions(reportActionReport, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                 },
             }));
         }
@@ -832,6 +836,7 @@ function PureReportActionItem({
             return [];
         }
 
+        const reportActionReportID = originalReportID ?? reportID;
         if (isActionableTrackExpense(action)) {
             const transactionID = getOriginalMessage(action)?.transactionID;
             const options = [
@@ -991,7 +996,6 @@ function PureReportActionItem({
         originalReportID,
         reportID,
         isActionableWhisper,
-        report?.policyID,
         policy,
         currentUserAccountID,
         personalDetail.timezone,
@@ -1005,6 +1009,8 @@ function PureReportActionItem({
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
+        report,
+        originalReport,
     ]);
 
     /**
@@ -1922,8 +1928,9 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
         deepEqual(prevProps.action, nextProps.action) &&
         deepEqual(prevProps.report?.pendingFields, nextProps.report?.pendingFields) &&
-        deepEqual(prevProps.report?.isDeletedParentAction, nextProps.report?.isDeletedParentAction) &&
+        deepEqual(prevProps.report?.participants, nextProps.report?.participants) &&
         deepEqual(prevProps.report?.errorFields, nextProps.report?.errorFields) &&
+        prevProps.report?.isDeletedParentAction === nextProps.report?.isDeletedParentAction &&
         prevProps.report?.statusNum === nextProps.report?.statusNum &&
         prevProps.report?.stateNum === nextProps.report?.stateNum &&
         prevProps.report?.parentReportID === nextProps.report?.parentReportID &&
@@ -1954,6 +1961,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.introSelected, nextProps.introSelected) &&
         deepEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
         prevProps.originalReportID === nextProps.originalReportID &&
+        deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
         prevProps.isChronosReport === nextProps.isChronosReport &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&

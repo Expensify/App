@@ -126,6 +126,7 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         let reportActionID: string | undefined;
         const REPORT_ACTION = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -153,7 +154,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -269,6 +270,7 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const LOGGER_MAX_LOG_LINES = 50;
 
         // GIVEN a test user with initial data
@@ -283,7 +285,7 @@ describe('actions/Report', () => {
                 }
 
                 // And leave a comment on a report
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
                 // Then we should expect that there is on persisted request
                 expect(PersistedRequests.getAll().length).toBe(1);
@@ -406,7 +408,7 @@ describe('actions/Report', () => {
                 // When a new comment is added by the current user
 
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(report, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -418,7 +420,7 @@ describe('actions/Report', () => {
 
                 // When another comment is added by the current user
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Current User Comment 2', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(report, REPORT_ID, [], 'Current User Comment 2', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -429,7 +431,7 @@ describe('actions/Report', () => {
 
                 // When another comment is added by the current user
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Current User Comment 3', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(report, REPORT_ID, [], 'Current User Comment 3', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -662,6 +664,7 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const EMOJI_CODE = '👍';
         const EMOJI_SKIN_TONE = 2;
         const EMOJI_NAME = '+1';
@@ -696,7 +699,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -792,6 +795,7 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const EMOJI_CODE = '😄';
         const EMOJI_NAME = 'smile';
         const EMOJI = {
@@ -824,7 +828,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -982,12 +986,13 @@ describe('actions/Report', () => {
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1061,12 +1066,13 @@ describe('actions/Report', () => {
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(1);
@@ -1120,10 +1126,11 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
         await waitForNetworkPromises();
 
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1172,7 +1179,8 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
-        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [], file);
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], file);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1241,7 +1249,8 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [], file, 'Attachment with comment');
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], file, 'Attachment with comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1324,7 +1333,8 @@ describe('actions/Report', () => {
         const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
         const fileC = new File(['c'], 'c.txt', {type: 'text/plain'});
 
-        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [], [fileA, fileB, fileC], 'Hello world', CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], [fileA, fileB, fileC], 'Hello world', CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
         const relevant = (await relevantPromise) as OnyxTypes.Request[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(1);
@@ -1357,7 +1367,8 @@ describe('actions/Report', () => {
         const fileA = new File(['a'], 'a.txt', {type: 'text/plain'});
         const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
 
-        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [], [fileA, fileB], undefined, CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], [fileA, fileB], undefined, CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
         const relevant = (await relevantPromise) as OnyxTypes.Request[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(1);
@@ -1389,7 +1400,8 @@ describe('actions/Report', () => {
         const REPORT_ID = '1';
         const file = new File(['a'], 'a.txt', {type: 'text/plain'});
 
-        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [], file);
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], file);
         const relevant = (await relevantPromise) as OnyxTypes.Request[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(0);
@@ -1405,13 +1417,14 @@ describe('actions/Report', () => {
         }));
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await Promise.resolve();
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'reactions with comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'reactions with comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1506,10 +1519,11 @@ describe('actions/Report', () => {
         }));
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'Attachment with comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'Attachment with comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1576,13 +1590,14 @@ describe('actions/Report', () => {
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1629,12 +1644,13 @@ describe('actions/Report', () => {
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
