@@ -98,8 +98,7 @@ function MoneyRequestReportPreview({
             return false;
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
+        return transactions.some((transaction) => (isNumber(transaction?.modifiedAmount) ? transaction.modifiedAmount : transaction?.amount) < 0);
     }, [transactions, action.childType, iouReport]);
 
     const openReportFromPreview = useCallback(() => {
