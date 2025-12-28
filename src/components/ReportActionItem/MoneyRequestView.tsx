@@ -1,4 +1,5 @@
 import {Str} from 'expensify-common';
+import isNumber from 'lodash/isNumber';
 import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -270,9 +271,9 @@ function MoneyRequestView({
     // Use the updated transaction amount in merge flow to have correct positive/negative sign
     const actualAmount = isFromMergeTransaction && updatedTransaction ? updatedTransaction.amount : transactionAmount;
     const actualCurrency = updatedTransaction ? getCurrency(updatedTransaction) : transactionCurrency;
-    const shouldDisplayTransactionAmount = ((isDistanceRequest && hasRoute) || !!actualAmount) && actualAmount !== undefined;
+    const shouldDisplayTransactionAmount = (isDistanceRequest && hasRoute) || isNumber(actualAmount);
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
-    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (actualAttendees?.length ?? 1), actualCurrency) : '';
+    const formattedPerAttendeeAmount = shouldDisplayTransactionAmount && isNumber(actualAmount) ? convertToDisplayString(actualAmount / (actualAttendees?.length ?? 1), actualCurrency) : '';
 
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isCardTransaction = isCardTransactionTransactionUtils(transaction);
