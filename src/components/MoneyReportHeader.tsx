@@ -114,7 +114,6 @@ import {
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -336,6 +335,8 @@ function MoneyReportHeader({
     // eslint-disable-next-line rulesdir/no-negated-variables
     const canTriggerAutomaticPDFDownload = useRef(false);
     const hasFinishedPDFDownload = reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
+
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
     useEffect(() => {
         canTriggerAutomaticPDFDownload.current = isPDFModalVisible;
@@ -608,13 +609,14 @@ function MoneyReportHeader({
                     optimisticChatReportID,
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
+                    quickAction,
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,
                     activePolicyExpenseChat,
                 );
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled],
+        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction],
     );
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
@@ -1327,10 +1329,20 @@ function MoneyReportHeader({
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    let goBackRoute: Route | undefined;
                     if (transactionThreadReportID) {
                         if (!requestParentReportAction || !transaction?.transactionID) {
                             throw new Error('Missing data!');
+                        }
+                        const goBackRoute = getNavigationUrlOnMoneyRequestDelete(
+                            transaction.transactionID,
+                            requestParentReportAction,
+                            iouReport,
+                            chatIOUReport,
+                            isChatIOUReportArchived,
+                            false,
+                        );
+                        if (goBackRoute) {
+                            navigateOnDeleteExpense(goBackRoute);
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
@@ -1339,11 +1351,6 @@ function MoneyReportHeader({
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
                             removeTransaction(transaction.transactionID);
                         });
-                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, isChatIOUReportArchived, false);
-                    }
-
-                    if (goBackRoute) {
-                        Navigation.setNavigationActionToMicrotaskQueue(() => navigateOnDeleteExpense(goBackRoute));
                     }
                     return;
                 }
@@ -1362,7 +1369,7 @@ function MoneyReportHeader({
                 Navigation.goBack(backToRoute);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
-                    deleteAppReport(moneyRequestReport?.reportID, email ?? '');
+                    deleteAppReport(moneyRequestReport?.reportID, email ?? '', transactions);
                 });
             },
         },

@@ -82,7 +82,8 @@ import {
     hasMissingSmartscanFields,
     hasReservationList,
     hasRoute as hasRouteTransactionUtils,
-    isManagedCardTransaction as isCardTransactionTransactionUtils,
+    isFromCreditCardImport as isCardTransactionTransactionUtils,
+    isCategoryBeingAnalyzed,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -460,6 +461,12 @@ function MoneyRequestView({
     if (isExpenseSplit) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
     }
+    if (currency !== moneyRequestReport?.currency && !isCardTransaction) {
+        const convertedAmount = isPaidGroupPolicy(moneyRequestReport) ? -(transaction?.convertedAmount ?? 0) : (transaction?.convertedAmount ?? 0);
+        if (convertedAmount) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(convertedAmount, moneyRequestReport?.currency)}`;
+        }
+    }
 
     if (isFromMergeTransaction) {
         // Because we lack the necessary data in policy.customUnits to determine the rate in merge flow,
@@ -731,6 +738,7 @@ function MoneyRequestView({
     const reportNameToDisplay = isFromMergeTransaction ? updatedTransaction?.reportName : getReportName(parentReport) || parentReport?.reportName;
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport ? reportNameToDisplay : undefined;
+    const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
 
     // In this case we want to use this value. The shouldUseNarrowLayout will always be true as this case is handled when we display ReportScreen in RHP.
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -867,7 +875,7 @@ function MoneyRequestView({
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
-                            title={decodedCategoryName}
+                            title={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
                             numberOfLinesTitle={2}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
