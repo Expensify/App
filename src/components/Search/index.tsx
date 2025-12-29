@@ -131,6 +131,7 @@ function mapTransactionItemToSelectedEntry(
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
+            reportAction: item.reportAction,
         },
     ];
 }
@@ -224,6 +225,7 @@ function prepareTransactionsList(
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
+            reportAction: item.reportAction,
         },
     };
 }
@@ -572,6 +574,7 @@ function Search({
                         groupExchangeRate: transactionItem.groupExchangeRate,
                         currency: transactionItem.currency,
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
+                        reportAction: transactionItem.reportAction,
                     };
                 }
             }
@@ -624,6 +627,7 @@ function Search({
                     groupExchangeRate: transactionItem.groupExchangeRate,
                     currency: transactionItem.currency,
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
+                    reportAction: transactionItem.reportAction,
                 };
             }
         }
