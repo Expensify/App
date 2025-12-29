@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getReceiverType, getSendInvoiceInformation, sendInvoice} from '@libs/actions/IOU/SendInvoice';

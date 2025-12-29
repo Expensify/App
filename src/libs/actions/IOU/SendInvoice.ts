@@ -23,16 +23,6 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
-import {
-    BasePolicyParams,
-    getAllPersonalDetails, // TODO: Replace getPolicyRecentlyUsedTagsData with useOnyx hook (https://github.com/Expensify/App/issues/71491)
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getPolicyRecentlyUsedTagsData,
-    getReceiptError,
-    getSearchOnyxUpdate,
-    mergePolicyRecentlyUsedCategories,
-    mergePolicyRecentlyUsedCurrencies,
-} from '@userActions/IOU';
 import {buildOptimisticPolicyRecentlyUsedTags, getPolicyTagsData} from '@userActions/Policy/Tag';
 import {notifyNewAction} from '@userActions/Report';
 import {removeDraftTransaction} from '@userActions/TransactionEdit';
@@ -44,6 +34,15 @@ import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report'
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {
+    getAllPersonalDetails, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getPolicyRecentlyUsedTagsData,
+    getReceiptError,
+    getSearchOnyxUpdate,
+    mergePolicyRecentlyUsedCategories,
+    mergePolicyRecentlyUsedCurrencies,
+} from './';
+import type {BasePolicyParams} from './';
 
 type SendInvoiceInformation = {
     senderWorkspaceID: string | undefined;
