@@ -57,7 +57,7 @@ function validateReportFieldListValueName(
     } else if ([...valueName].length > CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH) {
         // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        addErrorMessage(errors, inputID, translateLocal('common.error.characterLimitExceedCounter', {length: [...valueName].length, limit: CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}));
+        addErrorMessage(errors, inputID, translateLocal('common.error.characterLimitExceedCounter', [...valueName].length, CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH));
     }
 
     return errors;
@@ -106,6 +106,13 @@ function hasFormulaPartsInInitialValue(initialValue?: string): boolean {
     return parse(initialValue).some((part) => part.type !== FORMULA_PART_TYPES.FREETEXT);
 }
 
+/**
+ * Checks if a report field name already exists in the policy's field list (case-insensitive).
+ */
+function isReportFieldNameExisting(fieldList: Record<string, PolicyReportField> | undefined, fieldName: string): boolean {
+    return Object.values(fieldList ?? {}).some((reportField) => reportField.name.toLowerCase() === fieldName.toLowerCase());
+}
+
 export {
     getReportFieldTypeTranslationKey,
     getReportFieldAlternativeTextTranslationKey,
@@ -113,4 +120,5 @@ export {
     generateFieldID,
     getReportFieldInitialValue,
     hasFormulaPartsInInitialValue,
+    isReportFieldNameExisting,
 };
