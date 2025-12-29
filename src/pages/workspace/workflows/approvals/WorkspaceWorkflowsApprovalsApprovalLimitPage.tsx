@@ -1,7 +1,9 @@
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
+import type {NumberWithSymbolFormRef} from '@components/AmountForm';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -58,8 +60,18 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
 
     const [editedApprovalLimit, setEditedApprovalLimit] = useState<string | null>(null);
     const [hasSubmitted, setHasSubmitted] = useState(false);
+    const amountFormRef = useRef<NumberWithSymbolFormRef>(null);
+    const isFocused = useIsFocused();
 
     const approvalLimit = editedApprovalLimit ?? defaultApprovalLimit;
+
+    // Clear the amount input when the screen is focused and the over-limit approver was unselected
+    useEffect(() => {
+        if (!isFocused || currentApprover?.approvalLimit != null || editedApprovalLimit !== null) {
+            return;
+        }
+        amountFormRef.current?.updateNumber('');
+    }, [isFocused, currentApprover?.approvalLimit, editedApprovalLimit]);
 
     const selectedApproverPersonalDetails = selectedApproverEmail ? personalDetailsByEmail?.[selectedApproverEmail] : undefined;
     const selectedApproverDisplayName = selectedApproverEmail ? Str.removeSMSDomain(selectedApproverPersonalDetails?.displayName ?? selectedApproverEmail) : '';
@@ -243,6 +255,7 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                     disabled={areLimitFieldsDisabled}
                                     errorText={amountError}
                                     onSubmitEditing={handleSubmit}
+                                    numberFormRef={amountFormRef}
                                 />
                             </View>
 
