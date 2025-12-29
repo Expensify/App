@@ -1,6 +1,6 @@
 import {accountIDSelector} from '@selectors/Session';
 import isEmpty from 'lodash/isEmpty';
-import React, {memo, useCallback, useMemo, useRef} from 'react';
+import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -68,15 +68,16 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
         }, []);
     }, [value, personalDetails]);
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, selectedOptionsForDisplay, onListEndReached} = useSearchSelector({
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
-        initialSelected: initialSelectedOptions,
-        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        includeUserToInvite: false,
-        includeCurrentUser: true,
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, toggleSelection, areOptionsInitialized, selectedOptionsForDisplay, onListEndReached} =
+        useSearchSelector({
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+            initialSelected: initialSelectedOptions,
+            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            includeUserToInvite: false,
+            includeCurrentUser: true,
+        });
 
     const listData = useMemo(() => {
         const personalDetailsList = availableOptions.personalDetails.map((participant) => ({
@@ -140,7 +141,15 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     }, [closeOverlay, onChange]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const totalOptionsCount = selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length;
+    const [totalOptionsCount, setTotalOptionsCount] = useState(() => selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length);
+
+    useEffect(() => {
+        if (debouncedSearchTerm.length !== 0) {
+            return;
+        }
+        setTotalOptionsCount(selectedOptionsForDisplay.length + availableOptions.personalDetails.length + availableOptions.recentReports.length);
+    }, [debouncedSearchTerm.length, selectedOptionsForDisplay.length, availableOptions.personalDetails.length, availableOptions.recentReports.length]);
+
     const shouldShowSearchInput = isSearchable ?? totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const textInputOptions = useMemo(
