@@ -646,7 +646,6 @@ function getOptionData({
     invoiceReceiverPolicy,
     card,
     lastAction,
-    translate,
     localeCompare,
     isReportArchived,
     lastActionReport,
@@ -665,7 +664,6 @@ function getOptionData({
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
     reportAttributes: OnyxEntry<ReportAttributes>;
     policyTags: OnyxEntry<PolicyTagLists>;
-    translate: LocalizedTranslate;
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     translate: LocalizedTranslate;
