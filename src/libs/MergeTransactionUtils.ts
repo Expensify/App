@@ -464,6 +464,7 @@ function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<
  * Get display value for merge transaction field
  * @param field - The merge field key to get display value for
  * @param transaction - The transaction to get the field value from
+ * @param policy - The policy that the transaction belongs to
  * @param translate - The translation function
  * @returns The formatted display string for the field value
  */
@@ -564,7 +565,7 @@ type GetMergeFieldUpdatedValuesParams<K extends MergeFieldKey> = {
 
 /**
  * Build updated values for merge transaction field selection
- * Handles special cases like currency for amount field, reportID, taxValue
+ * Handles special cases like currency for amount field, report name, tax value and additional fields for distance requests
  */
 function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
     transaction,

@@ -11,7 +11,6 @@ import {
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
     getTransactionThreadReportID,
-    MERGE_FIELDS,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
