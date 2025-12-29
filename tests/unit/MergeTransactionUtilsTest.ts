@@ -780,8 +780,8 @@ describe('MergeTransactionUtils', () => {
             const billableResult = getDisplayValue('billable', transaction, translateLocal);
 
             // Then it should return translated Yes/No values
-            expect(reimbursableResult).toBe('common.yes');
-            expect(billableResult).toBe('common.no');
+            expect(reimbursableResult).toBe('Yes');
+            expect(billableResult).toBe('No');
         });
 
         it('should format amount with currency', () => {
@@ -874,7 +874,7 @@ describe('MergeTransactionUtils', () => {
             const result = getDisplayValue('reportID', transaction, translateLocal);
 
             // Then it should return translated "None"
-            expect(result).toBe('common.none');
+            expect(result).toBe('None');
         });
 
         it("should return transaction's reportName when available for reportID", () => {

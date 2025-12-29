@@ -835,7 +835,7 @@ describe('getViolationTranslation', () => {
             isTransactionOlderThan7Days: false,
             companyCardPageURL,
         });
-        expect(ViolationsUtils.getViolationTranslation(brokenCardConnectionViolation, translateLocal)).toBe(brokenCardConnectionViolationExpected);
+        expect(ViolationsUtils.getViolationTranslation(brokenCardConnectionViolation, translateLocal, true, undefined, companyCardPageURL)).toBe(brokenCardConnectionViolationExpected);
         const brokenCardConnection530ViolationExpected = translateLocal('violations.rter', {
             brokenBankConnection: true,
             isAdmin: false,
@@ -843,7 +843,7 @@ describe('getViolationTranslation', () => {
             isTransactionOlderThan7Days: false,
             companyCardPageURL,
         });
-        expect(ViolationsUtils.getViolationTranslation(brokenCardConnection530Violation, translateLocal)).toBe(brokenCardConnection530ViolationExpected);
+        expect(ViolationsUtils.getViolationTranslation(brokenCardConnection530Violation, translateLocal, true, undefined, companyCardPageURL)).toBe(brokenCardConnection530ViolationExpected);
     });
 });
 

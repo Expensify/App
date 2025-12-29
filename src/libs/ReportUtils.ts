@@ -1211,22 +1211,10 @@ Onyx.connectWithoutView({
     callback: (value) => (cachedSelfDMReportID = value),
 });
 
-let hiddenTranslation = '';
-let unavailableTranslation = '';
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ARE_TRANSLATIONS_LOADING,
-    initWithStoredValues: false,
-    callback: (value) => {
-        if (value ?? true) {
-            return;
-        }
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        hiddenTranslation = translateLocal('common.hidden');
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        unavailableTranslation = translateLocal('workspace.common.unavailable');
-    },
-});
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+const getHiddenTranslation = () => translateLocal('common.hidden');
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+const getUnavailableTranslation = () => translateLocal('workspace.common.unavailable');
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
     return currentUserPersonalDetails?.avatar;
@@ -1368,7 +1356,7 @@ function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollectio
  * Get the policy name from a given report
  */
 function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies, reports}: GetPolicyNameParams): string {
-    const noPolicyFound = returnEmptyIfNotFound ? '' : unavailableTranslation;
+    const noPolicyFound = returnEmptyIfNotFound ? '' : getUnavailableTranslation();
     const parentReport = report ? getRootParentReport({report, reports}) : undefined;
 
     if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName && !parentReport?.policyName)) {
@@ -3310,7 +3298,7 @@ function getDisplayNameForParticipant({
     }
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
-    if (shouldFallbackToHidden && longName === hiddenTranslation) {
+    if (shouldFallbackToHidden && longName === getHiddenTranslation()) {
         return longName;
     }
 

@@ -86,10 +86,9 @@ const COLLATOR_OPTIONS: Intl.CollatorOptions = {usage: 'sort', sensitivity: 'var
 
 function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [areTranslationsLoading = true] = useOnyx(ONYXKEYS.ARE_TRANSLATIONS_LOADING, {initWithStoredValues: false, canBeMissing: true});
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: true});
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
-    const [currentLocale, setCurrentLocale] = useState<Locale | undefined>(() => IntlStore.getCurrentLocale());
+    const [currentLocale, setCurrentLocale] = useState<Locale>(() => IntlStore.getCurrentLocale());
 
     const localeToApply = useMemo(() => {
         if (isLoadingOnyxValue(nvpPreferredLocaleMetadata)) {
@@ -103,13 +102,20 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         return isSupportedLocale(deviceLocale) ? deviceLocale : CONST.LOCALES.DEFAULT;
     }, [nvpPreferredLocale, nvpPreferredLocaleMetadata]);
 
+    // Load locale synchronously during render for cached locales (like EN)
+    // This ensures translations are available immediately
+    if (localeToApply) {
+        IntlStore.load(localeToApply);
+    }
+
     useEffect(() => {
         if (!localeToApply) {
             return;
         }
 
         setLocale(localeToApply, nvpPreferredLocale);
-        IntlStore.load(localeToApply);
+        setCurrentLocale(localeToApply);
+        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
         localeEventCallback(localeToApply);
 
         // For locales without emoji support, fallback on English
@@ -118,20 +124,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
             buildEmojisTrie(normalizedLocale);
         });
     }, [localeToApply, nvpPreferredLocale]);
-
-    useEffect(() => {
-        if (areTranslationsLoading) {
-            return;
-        }
-
-        const locale = IntlStore.getCurrentLocale();
-        if (!locale) {
-            return;
-        }
-
-        setCurrentLocale(locale);
-        endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
-    }, [areTranslationsLoading]);
 
     const selectedTimezone = useMemo(() => currentUserPersonalDetails?.timezone?.selected, [currentUserPersonalDetails?.timezone?.selected]);
 

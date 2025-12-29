@@ -154,9 +154,6 @@ describe('ReportActionsView', () => {
             if (key === ONYXKEYS.IS_LOADING_APP) {
                 return [false, {status: 'loaded'}];
             }
-            if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
-                return [false, {status: 'loaded'}];
-            }
             if (key.includes('reportActions')) {
                 return [[], {status: 'loaded'}];
             }
@@ -181,9 +178,6 @@ describe('ReportActionsView', () => {
             mockUseOnyx.mockImplementation((key: string) => {
                 if (key === ONYXKEYS.IS_LOADING_APP) {
                     return [true, {status: 'loaded'}];
-                }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
-                    return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
@@ -211,9 +205,6 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.IS_LOADING_APP) {
                     return [false, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
-                    return [false, {status: 'loaded'}];
-                }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
                 }
@@ -237,9 +228,6 @@ describe('ReportActionsView', () => {
                 if (key === ONYXKEYS.IS_LOADING_APP) {
                     return [true, {status: 'loaded'}];
                 }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
-                    return [false, {status: 'loaded'}];
-                }
                 if (key.includes('reportActions')) {
                     return [[], {status: 'loaded'}];
                 }
@@ -261,9 +249,6 @@ describe('ReportActionsView', () => {
 
             mockUseOnyx.mockImplementation((key: string) => {
                 if (key === ONYXKEYS.IS_LOADING_APP) {
-                    return [false, {status: 'loaded'}];
-                }
-                if (key === ONYXKEYS.ARE_TRANSLATIONS_LOADING) {
                     return [false, {status: 'loaded'}];
                 }
                 if (key.includes('reportActions')) {

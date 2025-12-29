@@ -25,7 +25,6 @@ function clearStorageAndRedirect(errorMessage?: string): Promise<void> {
     // flashes of unwanted default state.
     const keysToPreserve: OnyxKey[] = [];
     keysToPreserve.push(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    keysToPreserve.push(ONYXKEYS.ARE_TRANSLATIONS_LOADING);
     keysToPreserve.push(ONYXKEYS.PREFERRED_THEME);
     keysToPreserve.push(ONYXKEYS.ACTIVE_CLIENTS);
     keysToPreserve.push(ONYXKEYS.DEVICE_ID);
