@@ -528,6 +528,7 @@ type RequestMoneyInformation = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    policyRecentlyUsedCurrencies: string[];
 };
 
 type MoneyRequestInformationParams = {
@@ -555,6 +556,7 @@ type MoneyRequestInformationParams = {
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    policyRecentlyUsedCurrencies: string[];
 };
 
 type MoneyRequestOptimisticParams = {
@@ -799,6 +801,7 @@ type UpdateSplitTransactionsParams = {
     isASAPSubmitBetaEnabled: boolean;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>;
+    policyRecentlyUsedCurrencies: string[];
 };
 
 type ReplaceReceipt = {
@@ -3549,6 +3552,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         currentUserAccountIDParam,
         currentUserEmailParam,
         transactionViolations,
+        policyRecentlyUsedCurrencies,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories} = policyParams;
@@ -3699,8 +3703,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         policyRecentlyUsedTags: getPolicyRecentlyUsedTagsData(iouReport.policyID),
         transactionTags: tag,
     });
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const optimisticPolicyRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
+    const optimisticPolicyRecentlyUsedCurrencies = mergePolicyRecentlyUsedCurrencies(currency, policyRecentlyUsedCurrencies);
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -6014,6 +6017,7 @@ function convertBulkTrackedExpensesToIOU(
     currentUserAccountIDParam: number,
     currentUserEmailParam: string,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
+    policyRecentlyUsedCurrencies: string[],
 ) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
 
@@ -6134,6 +6138,7 @@ function convertBulkTrackedExpensesToIOU(
             currentUserAccountIDParam,
             currentUserEmailParam,
             transactionViolations,
+            policyRecentlyUsedCurrencies,
         });
 
         const convertParams: ConvertTrackedExpenseToRequestParams = {
@@ -6360,6 +6365,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         currentUserAccountIDParam,
         currentUserEmailParam,
         transactionViolations,
+        policyRecentlyUsedCurrencies,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -6452,6 +6458,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         currentUserAccountIDParam,
         currentUserEmailParam,
         transactionViolations,
+        policyRecentlyUsedCurrencies,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -7109,6 +7116,7 @@ function duplicateExpenseTransaction(
     optimisticIOUReportID: string,
     isASAPSubmitBetaEnabled: boolean,
     quickAction: OnyxEntry<OnyxTypes.QuickAction>,
+    policyRecentlyUsedCurrencies: string[],
     targetPolicy?: OnyxEntry<OnyxTypes.Policy>,
     targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
     targetReport?: OnyxTypes.Report,
@@ -7154,6 +7162,7 @@ function duplicateExpenseTransaction(
         currentUserAccountIDParam: userAccountID,
         currentUserEmailParam: currentUserEmail,
         transactionViolations: {},
+        policyRecentlyUsedCurrencies,
     };
 
     // If no workspace is provided the expense should be unreported
@@ -8758,6 +8767,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
             transactionViolations,
+            policyRecentlyUsedCurrencies,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -14375,6 +14385,7 @@ function updateSplitTransactions({
     isASAPSubmitBetaEnabled,
     currentUserPersonalDetails,
     transactionViolations,
+    policyRecentlyUsedCurrencies,
 }: UpdateSplitTransactionsParams) {
     const transactionReport = getReportOrDraftReport(transactionData?.reportID);
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
@@ -14498,6 +14509,7 @@ function updateSplitTransactions({
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
+            policyRecentlyUsedCurrencies,
         } as MoneyRequestInformationParams;
 
         if (isReverseSplitOperation) {
@@ -14538,6 +14550,7 @@ function updateSplitTransactions({
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
+            policyRecentlyUsedCurrencies,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData = {};
