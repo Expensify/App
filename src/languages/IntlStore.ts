@@ -1,7 +1,6 @@
 import {setDefaultOptions} from 'date-fns';
 import type {Locale as DateUtilsLocale} from 'date-fns';
 import {enGB} from 'date-fns/locale/en-GB';
-import {es as esDateLocale} from 'date-fns/locale/es';
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
 import CONST from '@src/CONST';
 import {LOCALES} from '@src/CONST/LOCALES';
@@ -9,7 +8,7 @@ import type {Locale} from '@src/CONST/LOCALES';
 import type DynamicModule from '@src/types/utils/DynamicModule';
 import type de from './de';
 import en from './en';
-import es from './es';
+import type es from './es';
 import flattenObject from './flattenObject';
 import type fr from './fr';
 import type it from './it';
@@ -39,11 +38,23 @@ class IntlStore {
      * Note that this can't be trivially DRYed up because dynamic imports must use string literals in metro: https://github.com/facebook/metro/issues/52
      */
     private static loaders: Record<Locale, () => Promise<void> | void> = {
-        // EN and ES are already in cache from static initializer
+        // EN is already in cache from static initializer
         [LOCALES.EN]: () => {},
-        [LOCALES.ES]: () => {},
 
         // Lazy-loaded locales
+        [LOCALES.ES]: () => {
+            if (this.cache.has(LOCALES.ES)) {
+                return;
+            }
+            return Promise.all([
+                import('./es').then((module: DynamicModule<typeof es>) => {
+                    this.cache.set(LOCALES.ES, flattenObject(extractModuleDefaultExport(module)));
+                }),
+                import('date-fns/locale/es').then((module) => {
+                    this.dateUtilsCache.set(LOCALES.ES, module.es);
+                }),
+            ]).then(() => {});
+        },
         [LOCALES.DE]: () => {
             if (this.cache.has(LOCALES.DE)) {
                 return;
@@ -155,16 +166,14 @@ class IntlStore {
     }
 
     /**
-     * Initialize EN and ES translations.
+     * Initialize EN translations.
      */
     public static init() {
         if (this.cache.has(LOCALES.EN)) {
             return;
         }
         this.cache.set(LOCALES.EN, flattenObject(en));
-        this.cache.set(LOCALES.ES, flattenObject(es));
         this.dateUtilsCache.set(LOCALES.EN, enGB);
-        this.dateUtilsCache.set(LOCALES.ES, esDateLocale);
     }
 
     public static load(locale: Locale): Promise<void> | void {

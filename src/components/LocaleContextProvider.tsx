@@ -102,13 +102,18 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         return isSupportedLocale(deviceLocale) ? deviceLocale : CONST.LOCALES.DEFAULT;
     }, [nvpPreferredLocale, nvpPreferredLocaleMetadata]);
 
+    // Load locale synchronously during render for cached locales (like EN)
+    // This ensures translations are available immediately
+    if (localeToApply) {
+        IntlStore.load(localeToApply);
+    }
+
     useEffect(() => {
         if (!localeToApply) {
             return;
         }
 
         setLocale(localeToApply, nvpPreferredLocale);
-        IntlStore.load(localeToApply);
         setCurrentLocale(localeToApply);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
         localeEventCallback(localeToApply);

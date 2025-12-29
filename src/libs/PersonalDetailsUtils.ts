@@ -37,8 +37,10 @@ Onyx.connect({
     },
 });
 
-const hiddenTranslation = '';
-const youTranslation = '';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+const getHiddenTranslation = () => translateLocal('common.hidden');
+// eslint-disable-next-line @typescript-eslint/no-deprecated
+const getYouTranslation = () => translateLocal('common.you');
 
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
@@ -47,7 +49,7 @@ function getDisplayNameOrDefault(
     defaultValue = '',
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
-    youAfterTranslation = youTranslation,
+    youAfterTranslation?: string,
 ): string {
     let displayName = passedPersonalDetails?.displayName ?? '';
 
@@ -69,7 +71,8 @@ function getDisplayNameOrDefault(
     }
 
     if (shouldAddCurrentUserPostfix && !!displayName) {
-        displayName = `${displayName} (${youAfterTranslation})`;
+        const youTranslation = youAfterTranslation ?? getYouTranslation();
+        displayName = `${displayName} (${youTranslation})`;
     }
 
     if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
@@ -87,7 +90,7 @@ function getDisplayNameOrDefault(
     if (login) {
         return login;
     }
-    return shouldFallbackToHidden ? hiddenTranslation : '';
+    return shouldFallbackToHidden ? getHiddenTranslation() : '';
 }
 
 /**
