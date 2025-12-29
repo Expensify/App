@@ -22,7 +22,8 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, getReportName, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportNameUtils';
+import {generateReportID, getDefaultWorkspaceAvatar, getOutstandingReportsForUser, isArchivedReport, isMoneyRequestReport, isReportOutstanding} from '@libs/ReportUtils';
 import {getTagVisibility, hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -346,12 +347,12 @@ function MoneyRequestConfirmationListFooter({
     }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
 
     const reportName = useMemo(() => {
-        const name = getReportName(selectedReport, selectedPolicy);
+        const name = getReportName(selectedReport);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
         return name;
-    }, [isUnreported, selectedReport, selectedPolicy, translate]);
+    }, [isUnreported, selectedReport, translate]);
 
     const shouldReportBeEditableFromFAB = isUnreported ? allOutstandingReports.length >= 1 : allOutstandingReports.length > 1;
 
@@ -886,12 +887,12 @@ function MoneyRequestConfirmationListFooter({
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         disabled={!shouldDisplayReceipt}
                         disabledStyle={styles.cursorDefault}
-                        style={[styles.h100, styles.flex1]}
+                        style={styles.h100}
                     >
                         <PDFThumbnail
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             previewSourceURL={resolvedReceiptImage as string}
-                            style={[styles.w100, styles.h100]}
+                            style={styles.h100}
                             onLoadError={onPDFLoadError}
                             onPassword={onPDFPassword}
                         />
