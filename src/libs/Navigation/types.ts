@@ -207,6 +207,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS]: {
         bankAccountID: string;
     };
+    [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
+        bankAccountID: string;
+    };
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: {
@@ -1374,6 +1377,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
         domainAccountID: number;
     };
+    [SCREENS.DOMAIN.ADD_ADMIN]: {
+        domainAccountID: number;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {
@@ -2140,21 +2146,25 @@ type MergeTransactionNavigatorParamList = {
         transactionID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+        isOnSearch?: boolean;
     };
     [SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE]: {
         transactionID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+        isOnSearch?: boolean;
     };
     [SCREENS.MERGE_TRANSACTION.DETAILS_PAGE]: {
         transactionID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+        isOnSearch?: boolean;
     };
     [SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE]: {
         transactionID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+        isOnSearch?: boolean;
     };
 };
 
@@ -2241,6 +2251,7 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: {
         token: string;
         isTestAccount?: string;
+        redirectUrl?: string;
     };
     [SCREENS.TRAVEL.TRIP_SUMMARY]: {
         reportID: string;

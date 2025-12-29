@@ -34,7 +34,7 @@ import {maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
+import {getDescriptionForPolicyDomainCard, hasEligibleActiveAdminFromWorkspaces} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 import {deletePaymentBankAccount, openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
@@ -59,6 +59,7 @@ function WalletPage() {
         canBeMissing: true,
         selector: fundListSelector,
     });
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
@@ -68,8 +69,9 @@ function WalletPage() {
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserMinus']);
+    const icons = useMemoizedLazyExpensifyIcons(['MoneySearch', 'Wallet', 'Transfer', 'Hourglass', 'Exclamation', 'Star', 'Trashcan', 'Globe', 'UserPlus', 'UserMinus']);
     const illustrations = useMemoizedLazyIllustrations(['MoneyIntoWallet']);
     const walletIllustration = useWalletSectionIllustration();
 
@@ -82,6 +84,7 @@ function WalletPage() {
     const [shouldShowLoadingSpinner, setShouldShowLoadingSpinner] = useState(false);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
+    const [shouldShowShareButton, setShouldShowShareButton] = useState(false);
     const [shouldShowUnshareButton, setShouldShowUnshareButton] = useState(false);
     const kycWallRef = useContext(KYCWallContext);
 
@@ -91,6 +94,7 @@ function WalletPage() {
 
     const isPendingOnfidoResult = userWallet?.isPendingOnfidoResult ?? false;
     const hasFailedOnfido = userWallet?.hasFailedOnfido ?? false;
+    const hasEligibleActiveAdmin = hasEligibleActiveAdminFromWorkspaces(allPolicies, currentUserLogin, paymentMethod?.selectedPaymentMethod?.bankAccountID?.toString());
 
     const updateShouldShowLoadingSpinner = useCallback(() => {
         // In order to prevent a loop, only update state of the spinner if there is a change
@@ -128,6 +132,7 @@ function WalletPage() {
                     type: CONST.PAYMENT_METHODS.DEBIT_CARD,
                 };
             }
+            setShouldShowShareButton(accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN);
             if (accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !!accountData?.sharees?.length) {
                 const isOnlyCurrentUserInSharees = accountData.sharees.length === 1 && accountData.sharees.at(0) === currentUserPersonalDetails?.email;
                 setShouldShowUnshareButton(accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isOnlyCurrentUserInSharees);
@@ -321,6 +326,21 @@ function WalletPage() {
                       },
                   ]
                 : []),
+            ...(shouldShowShareButton && hasEligibleActiveAdmin
+                ? [
+                      {
+                          text: translate('common.share'),
+                          icon: icons.UserPlus,
+                          onSelected: () => {
+                              if (isAccountLocked) {
+                                  closeModal(() => showLockedAccountModal());
+                                  return;
+                              }
+                              closeModal(() => Navigation.navigate(ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.getRoute(paymentMethod.selectedPaymentMethod.bankAccountID)));
+                          },
+                      },
+                  ]
+                : []),
             ...(shouldShowUnshareButton
                 ? [
                       {
@@ -366,7 +386,9 @@ function WalletPage() {
         [
             shouldUseNarrowLayout,
             bottomMountItem,
+            shouldShowShareButton,
             shouldShowMakeDefaultButton,
+            hasEligibleActiveAdmin,
             translate,
             icons.Star,
             icons.UserMinus,
