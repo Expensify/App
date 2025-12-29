@@ -11,7 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
+import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, isSingleEmojiLine, splitTextWithEmojis} from '@libs/EmojiUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
@@ -91,10 +91,6 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                 htmlContent = Parser.replace(htmlContent, {filterRules: ['emoji'], shouldEscapeText: false});
             }
             const lines = htmlContent.split(/<br\s*\/?>/i);
-            function isSingleEmojiLine(line: string) {
-                const trimmed = line.replaceAll(/<br\s*\/?>/gi, '').trim();
-                return /^<emoji>.*<\/emoji>$/.test(trimmed);
-            }
             const processedLines = lines.map((line) => {
                 if (isSingleEmojiLine(line)) {
                     return line.replace('<emoji>', '<emoji ismedium oneline >');
