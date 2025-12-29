@@ -10758,6 +10758,7 @@ function approveMoneyRequest(
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
+    return optimisticHoldReportID;
 }
 
 function reopenReport(
@@ -11727,6 +11728,7 @@ function payMoneyRequest(
     playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, userAccountID);
+    return params.optimisticHoldReportID;
 }
 
 function payInvoice({
