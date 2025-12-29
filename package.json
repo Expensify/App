@@ -186,7 +186,7 @@
     "react-native-image-picker": "^7.1.2",
     "react-native-image-size": "git+https://github.com/Expensify/react-native-image-size#cb392140db4953a283590d7cf93b4d0461baa2a9",
     "react-native-key-command": "1.0.14",
-    "react-native-keyboard-controller": "1.18.5",
+    "react-native-keyboard-controller": "1.20.0",
     "react-native-launch-arguments": "^4.0.2",
     "react-native-localize": "^3.5.4",
     "react-native-nitro-modules": "0.29.4",
@@ -429,5 +429,10 @@
   "engines": {
     "node": "20.19.5",
     "npm": "10.8.2"
+  },
+  "reanimated": {
+    "staticFeatureFlags": {
+      "DISABLE_COMMIT_PAUSING_MECHANISM": true
+    }
   }
 }
