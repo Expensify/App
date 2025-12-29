@@ -79,113 +79,118 @@ type ReportFooterProps = {
     isInSidePanel?: boolean;
 };
 
+// Elements to skip entirely during page content extraction
+const SKIP_TAGS = new Set(['script', 'style', 'noscript', 'svg', 'canvas', 'iframe', 'video', 'audio', 'template', 'slot', 'meta', 'link']);
+
+// Map ARIA roles to semantic tag names for cleaner output
+const ROLE_TO_TAG: Record<string, string> = {
+    button: 'button',
+    link: 'a',
+    heading: 'h',
+    navigation: 'nav',
+    main: 'main',
+    banner: 'header',
+    contentinfo: 'footer',
+    complementary: 'aside',
+    form: 'form',
+    search: 'search',
+    list: 'ul',
+    listitem: 'li',
+    table: 'table',
+    row: 'tr',
+    cell: 'td',
+    columnheader: 'th',
+    rowheader: 'th',
+    dialog: 'dialog',
+    alert: 'alert',
+    menu: 'menu',
+    menuitem: 'menuitem',
+    tab: 'tab',
+    tabpanel: 'tabpanel',
+    textbox: 'input',
+    checkbox: 'checkbox',
+    radio: 'radio',
+    img: 'img',
+};
+
+// Native semantic HTML tags (when no role override)
+const SEMANTIC_TAGS = new Set([
+    'main', 'header', 'footer', 'nav', 'aside', 'section', 'article',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'p', 'blockquote', 'pre', 'code',
+    'ul', 'ol', 'li',
+    'table', 'thead', 'tbody', 'tr', 'th', 'td',
+    'form', 'fieldset', 'label', 'input', 'textarea', 'select', 'button',
+    'a', 'details', 'summary', 'dialog',
+    'img', 'figure', 'figcaption',
+]);
+
 /**
- * Extracts page information in a simplified XML-like format for LLM understanding
- * Uses semantic tags to describe what each element represents
+ * Get the semantic tag name for an element, considering both native tag and ARIA role
  */
-function extractPageContext(element: Element, depth = 0): string[] {
-    const context: string[] = [];
-    const indent = '  '.repeat(depth);
-
-    // Skip hidden elements
-    if (element instanceof HTMLElement) {
-        const style = window.getComputedStyle(element);
-        if (style.display === 'none' || style.visibility === 'hidden' || element.getAttribute('aria-hidden') === 'true') {
-            return context;
-        }
-    }
-
+function getSemanticTag(element: Element): string | null {
     const tagName = element.tagName.toLowerCase();
+    const role = element.getAttribute('role');
 
-    // Skip non-content elements
-    if (['script', 'style', 'noscript', 'svg', 'iframe', 'canvas', 'img', 'video', 'audio', 'input', 'textarea'].includes(tagName)) {
-        return context;
+    // Check ARIA role first (React Native Web uses these heavily)
+    if (role && ROLE_TO_TAG[role]) {
+        let mappedTag = ROLE_TO_TAG[role];
+
+        // Special handling for headings with aria-level
+        if (role === 'heading') {
+            const level = element.getAttribute('aria-level') ?? '2';
+            mappedTag = `h${level}`;
+        }
+
+        return mappedTag;
     }
 
-    // Get direct text content (not from children)
-    const directText = Array.from(element.childNodes)
-        .filter((node) => node.nodeType === Node.TEXT_NODE)
-        .map((node) => node.textContent?.trim())
-        .filter((text) => text && text.length > 0)
-        .join(' ')
-        .trim();
-
-    // Get relevant attributes for context
-    const role = element.getAttribute('role') || '';
-    const ariaLabel = element.getAttribute('aria-label') || '';
-    const testId = element.getAttribute('data-testid') || '';
-    const className = element.className || '';
-
-    // Determine semantic tag based on element type and attributes
-    let semanticTag = '';
-    let hasChildren = element.children.length > 0;
-
-    if (tagName === 'button' || role === 'button') {
-        semanticTag = 'button';
-    } else if (tagName === 'a' || role === 'link') {
-        semanticTag = 'link';
-    } else if (tagName.match(/^h[1-6]$/)) {
-        semanticTag = `heading level="${tagName.slice(1)}"`;
-    } else if (tagName === 'li') {
-        semanticTag = 'list-item';
-    } else if (role === 'navigation' || tagName === 'nav') {
-        semanticTag = 'navigation';
-    } else if (role === 'menu' || role === 'menubar') {
-        semanticTag = 'menu';
-    } else if (role === 'table' || tagName === 'table') {
-        semanticTag = 'table';
-    } else if (testId.includes('report') || className.includes('report')) {
-        semanticTag = 'report-section';
-    } else if (testId || ariaLabel) {
-        // Use data-testid or aria-label as semantic hint
-        const hint = testId || ariaLabel;
-        semanticTag = `section name="${hint.replace(/"/g, "'")}"`;
-    } else if (['section', 'article', 'aside', 'main', 'header', 'footer'].includes(tagName)) {
-        semanticTag = tagName;
-    } else if (hasChildren && directText) {
-        semanticTag = 'group';
-    } else if (directText && directText.length > 2) {
-        semanticTag = 'text';
+    // Fall back to native semantic tags
+    if (SEMANTIC_TAGS.has(tagName)) {
+        return tagName;
     }
 
-    // Output opening tag with text if meaningful
-    if (semanticTag && directText && directText.length > 2) {
-        // Self-closing tag with content
-        context.push(`${indent}<${semanticTag}>${directText}</${semanticTag.split(' ')[0]}>`);
-    } else if (semanticTag && hasChildren) {
-        // Opening tag for container
-        context.push(`${indent}<${semanticTag}>`);
-        
-        // Process children
-        Array.from(element.children).forEach((child) => {
-            context.push(...extractPageContext(child, depth + 1));
-        });
-        
-        // Closing tag
-        context.push(`${indent}</${semanticTag.split(' ')[0]}>`);
-        return context;
-    } else if (directText && directText.length > 2) {
-        // Plain text without semantic meaning
-        context.push(`${indent}${directText}`);
-    }
-
-    // Process children if we didn't already (for non-container semantic elements)
-    if (!hasChildren || !semanticTag) {
-        Array.from(element.children).forEach((child) => {
-            context.push(...extractPageContext(child, depth));
-        });
-    }
-
-    return context;
+    return null;
 }
 
 /**
- * Captures simplified, structured text of the main page content (excluding the side panel)
- * This is used to provide context to the LLM when the user sends a message from the Concierge side panel
+ * Build clean attributes string for output
+ */
+function buildCleanAttributes(element: Element, semanticTag: string): string {
+    const attrs: string[] = [];
+
+    // Add href for links
+    if (semanticTag === 'a') {
+        const href = element.getAttribute('href');
+        if (href) {
+            attrs.push(`href="${href}"`);
+        }
+    }
+
+    // Add useful attributes
+    const ariaLabel = element.getAttribute('aria-label');
+    if (ariaLabel) {
+        attrs.push(`aria-label="${ariaLabel}"`);
+    }
+
+    const alt = element.getAttribute('alt');
+    if (alt) {
+        attrs.push(`alt="${alt}"`);
+    }
+
+    const placeholder = element.getAttribute('placeholder');
+    if (placeholder) {
+        attrs.push(`placeholder="${placeholder}"`);
+    }
+
+    return attrs.length > 0 ? ` ${attrs.join(' ')}` : '';
+}
+
+/**
+ * Captures page content for LLM context using TreeWalker for reliable DOM traversal
  * Only works on web - returns empty string on native platforms
  */
 function captureSimplifiedPageHTML(): string {
-    // Only works on web where document exists
     if (typeof document === 'undefined') {
         return '';
     }
@@ -197,37 +202,66 @@ function captureSimplifiedPageHTML(): string {
             return '';
         }
 
-        // Get the current page URL/path
         const currentPath = window.location.pathname + window.location.search;
+        const output: string[] = [];
+        const seenTexts = new Set<string>();
 
-        // Extract all context items with hierarchy (starting at depth 1 for page content)
-        const contextItems = extractPageContext(rootElement, 1);
+        // Use TreeWalker for reliable traversal (SHOW_ELEMENT=1, SHOW_TEXT=4, combined=5)
+        // eslint-disable-next-line no-bitwise
+        const walker = document.createTreeWalker(rootElement, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
 
-        // Filter out only truly meaningless items
-        const filtered = contextItems.filter((item) => {
-            const trimmed = item.trim();
-            // Remove empty lines
-            if (trimmed.length === 0) {
-                return false;
+        while (walker.nextNode()) {
+            const node = walker.currentNode;
+
+            // Handle text nodes
+            if (node.nodeType === Node.TEXT_NODE) {
+                const text = node.textContent?.trim();
+                if (text && text.length > 1 && !seenTexts.has(text)) {
+                    seenTexts.add(text);
+                    output.push(text);
+                }
+                continue;
             }
-            // Remove single-character items
-            if (trimmed.length === 1) {
-                return false;
+
+            // Handle element nodes
+            const element = node as Element;
+            const tagName = element.tagName.toLowerCase();
+
+            // Skip non-content elements
+            if (SKIP_TAGS.has(tagName)) {
+                continue;
             }
-            // Keep everything else (including duplicates since indentation provides context)
-            return true;
-        });
 
-        // Wrap in a page tag with URL attribute, using XML-like structure
-        const structuredText = [`<page url="${currentPath}">`, ...filtered, '</page>'].join('\n');
+            // Get semantic info
+            const semanticTag = getSemanticTag(element);
+            if (!semanticTag) {
+                continue;
+            }
 
-        // Limit to ~10KB to avoid sending too much data to the LLM
+            // For semantic elements, output them with their direct text
+            const directText = Array.from(element.childNodes)
+                .filter((child) => child.nodeType === Node.TEXT_NODE)
+                .map((child) => child.textContent?.trim())
+                .filter((t) => t && t.length > 0)
+                .join(' ');
+
+            if (directText && !seenTexts.has(directText)) {
+                seenTexts.add(directText);
+                const attrs = buildCleanAttributes(element, semanticTag);
+                output.push(`<${semanticTag}${attrs}>${directText}</${semanticTag}>`);
+            }
+        }
+
+        // Build final output
+        const content = output.join('\n');
+        const structuredText = `<page url="${currentPath}">\n${content}\n</page>`;
+
+        // Limit to ~10KB
         const maxLength = 10000;
         if (structuredText.length > maxLength) {
             return `${structuredText.substring(0, maxLength)}\n... [truncated]`;
         }
 
-        // Only return if we have meaningful content
         if (structuredText.length < 50) {
             return '';
         }
