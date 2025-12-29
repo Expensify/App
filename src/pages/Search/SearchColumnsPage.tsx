@@ -1,14 +1,15 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
-import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import DraggableList from '@components/DraggableList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import type {SearchCustomColumnIds} from '@components/Search/types';
 import type {ListItem} from '@components/SelectionList/types';
 import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
+import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -36,12 +37,26 @@ function SearchColumnsPage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
+    const groupBy = searchAdvancedFiltersForm?.groupBy;
     const queryType = searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-    const allCustomColumns = getCustomColumns(queryType);
-    const defaultCustomColumns = getCustomColumnDefault(queryType);
 
-    // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns since it makes sense for them to show up in an expense management App and it fixes the layout issues.
-    const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL]);
+    const allTypeCustomColumns = getCustomColumns(queryType);
+    const allGroupCustomColumns = getCustomColumns(groupBy);
+    const defaultGroupCustomColumns = getCustomColumnDefault(groupBy);
+    const defaultTypeCustomColumns = getCustomColumnDefault(queryType);
+
+    const allCustomColumns = [...allGroupCustomColumns, ...allTypeCustomColumns];
+    const defaultCustomColumns = new Set([...defaultGroupCustomColumns, ...defaultTypeCustomColumns]);
+
+    // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns
+    // since it makes sense for them to show up in an expense management App and it fixes the layout issues.
+    const requiredColumns = new Set<SearchCustomColumnIds>([
+        CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+        CONST.SEARCH.TABLE_COLUMNS.TOTAL,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID,
+        CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
+    ]);
 
     const sortColumns = (columnsToSort: ColumnItem[]): ColumnItem[] => {
         const selected = columnsToSort.filter((col) => col.isSelected);
@@ -55,26 +70,29 @@ function SearchColumnsPage() {
         return [...selected, ...unselected];
     };
 
-    const [columns, setColumns] = useState<ColumnItem[]>(() => {
-        const savedColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
+    const defaultColumns = sortColumns(
+        allCustomColumns.map((columnId) => ({
+            columnId,
+            isSelected: defaultCustomColumns.has(columnId),
+        })),
+    );
 
-        if (!savedColumnIds.length) {
-            const initialColumns = allCustomColumns.map((columnId) => ({
-                columnId,
-                isSelected: defaultCustomColumns.includes(columnId),
-            }));
-            return sortColumns(initialColumns);
+    const [columns, setColumns] = useState<ColumnItem[]>(() => {
+        const selectedColumnIds = searchAdvancedFiltersForm?.columns?.filter((columnId) => allCustomColumns.includes(columnId)) ?? [];
+
+        if (!selectedColumnIds.length) {
+            return defaultColumns;
         }
 
-        const selected = savedColumnIds.map((columnId) => ({columnId, isSelected: true}));
-        const unselected = allCustomColumns.filter((columnId) => !savedColumnIds.includes(columnId)).map((columnId) => ({columnId, isSelected: false}));
+        const selected = selectedColumnIds.map((columnId) => ({columnId, isSelected: true}));
+        const unselected = allCustomColumns.filter((columnId) => !selectedColumnIds.includes(columnId)).map((columnId) => ({columnId, isSelected: false}));
 
         return sortColumns([...selected, ...unselected]);
     });
 
     const selectedColumnIds = columns.filter((col) => col.isSelected).map((col) => col.columnId);
 
-    const columnsList = columns.map(({columnId, isSelected}) => {
+    const allColumnsList = columns.map(({columnId, isSelected}) => {
         const isRequired = requiredColumns.has(columnId);
         const isEffectivelySelected = isRequired || isSelected;
         const isDragDisabled = !isEffectivelySelected;
@@ -97,12 +115,8 @@ function SearchColumnsPage() {
         };
     });
 
-    const defaultColumns = sortColumns(
-        allCustomColumns.map((columnId) => ({
-            columnId,
-            isSelected: defaultCustomColumns.includes(columnId),
-        })),
-    );
+    const typeColumnsList = allColumnsList.filter((column) => allTypeCustomColumns.includes(column.keyForList));
+    const groupColumnsList = allColumnsList.filter((column) => allGroupCustomColumns.includes(column.keyForList));
 
     const isDefaultState =
         columns.length === defaultColumns.length &&
@@ -117,6 +131,7 @@ function SearchColumnsPage() {
 
         setColumns((prevColumns) => {
             const columnToUpdate = prevColumns.find((col) => col.columnId === updatedColumnId);
+
             if (!columnToUpdate) {
                 return prevColumns;
             }
@@ -139,22 +154,30 @@ function SearchColumnsPage() {
         });
     };
 
-    const onDragEnd = ({data}: {data: typeof columnsList}) => {
-        const newColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+    const onGroupDragEnd = ({data}: {data: typeof allColumnsList}) => {
+        const newGroupColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+        const existingTypeColumns = typeColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+        const newColumns = [...existingTypeColumns, ...newGroupColumns];
         setColumns(sortColumns(newColumns));
     };
 
-    const resetColumns = () => setColumns(defaultColumns);
+    const onTypeDragEnd = ({data}: {data: typeof allColumnsList}) => {
+        const newTypeColumns = data.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+        const existingGroupColumns = groupColumnsList.map((item) => ({columnId: item.value, isSelected: item.isSelected}));
+        const newColumns = [...existingGroupColumns, ...newTypeColumns];
+        setColumns(sortColumns(newColumns));
+    };
+
+    const resetColumns = () => {
+        setColumns(defaultColumns);
+    };
 
     const applyChanges = () => {
-        if (!selectedColumnIds.length) {
-            return;
-        }
-
         const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {
             ...searchAdvancedFiltersForm,
             columns: selectedColumnIds,
         };
+
         const queryString = buildQueryStringFromFilterFormValues(updatedAdvancedFilters);
 
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
@@ -182,21 +205,42 @@ function SearchColumnsPage() {
                 {!isDefaultState && <TextLink onPress={resetColumns}>{translate('search.resetColumns')}</TextLink>}
             </HeaderWithBackButton>
             <View style={styles.flex1}>
-                <DraggableList
-                    data={columnsList}
-                    keyExtractor={(item) => item.value}
-                    onDragEnd={onDragEnd}
-                    renderItem={renderItem}
-                />
+                <ScrollView
+                    style={styles.flex1}
+                    contentContainerStyle={styles.flex1}
+                >
+                    {!!groupBy && (
+                        <>
+                            <View style={[styles.ph5, styles.pb3]}>
+                                <Text style={styles.textLabelSupporting}>{translate('search.groupColumns')}</Text>
+                            </View>
+
+                            <DraggableList
+                                disableScroll
+                                data={groupColumnsList}
+                                keyExtractor={(item) => item.value}
+                                onDragEnd={onGroupDragEnd}
+                                renderItem={renderItem}
+                            />
+
+                            <View style={styles.dividerLine} />
+
+                            <View style={[styles.ph5, styles.pv3]}>
+                                <Text style={styles.textLabelSupporting}>{translate('search.expenseColumns')}</Text>
+                            </View>
+                        </>
+                    )}
+
+                    <DraggableList
+                        disableScroll
+                        data={typeColumnsList}
+                        keyExtractor={(item) => item.value}
+                        onDragEnd={onTypeDragEnd}
+                        renderItem={renderItem}
+                    />
+                </ScrollView>
             </View>
             <View style={[styles.ph5, styles.pb5]}>
-                {!selectedColumnIds.length && (
-                    <DotIndicatorMessage
-                        type="error"
-                        style={styles.mb3}
-                        messages={{error: translate('search.noColumnsError')}}
-                    />
-                )}
                 <Button
                     large
                     success
