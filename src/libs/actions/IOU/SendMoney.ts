@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PaymentMethodType} from '@components/KYCWall/types';
-import {isEmptyObject} from '@github/libs/isEmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import * as API from '@libs/API';
 import type {SendMoneyParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
