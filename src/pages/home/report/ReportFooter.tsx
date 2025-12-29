@@ -261,10 +261,10 @@ function captureSimplifiedPageHTML(): string {
 
         // Track seen semantic elements to deduplicate (e.g. nav buttons that appear multiple times)
         const seenSemanticContent = new Set<string>();
-        const maxDepth = 50; // Prevent stack overflow on deeply nested DOMs
+        // React Native Web generates very deeply nested DOMs, so we need a high limit
+        const maxDepth = 100;
 
         const extractContent = (element: Element, depth = 0): string[] => {
-            // Safety limit for deeply nested DOMs
             if (depth > maxDepth) {
                 return [];
             }
@@ -305,16 +305,15 @@ function captureSimplifiedPageHTML(): string {
             // Non-semantic element (div, span) - capture direct text and recurse into children
             const results: string[] = [];
 
-            // Capture text nodes if element is visible and text appears in rootInnerText
-            if (isElementVisible(element)) {
-                for (const child of Array.from(element.childNodes)) {
-                    if (child.nodeType === Node.TEXT_NODE) {
-                        const rawText = child.textContent?.trim();
-                        const text = rawText ? cleanSvgGarbage(rawText) : '';
-                        // No deduplication for orphan text - same text can appear in multiple rows
-                        if (text && text.length > 1 && rootInnerText.includes(text)) {
-                            results.push(text);
-                        }
+            // Capture text nodes if text appears in rootInnerText (the browser's visible text)
+            // We trust rootInnerText as the source of truth for visibility rather than checking
+            // each parent's visibility, which can fail for complex layouts like expense tables
+            for (const child of Array.from(element.childNodes)) {
+                if (child.nodeType === Node.TEXT_NODE) {
+                    const rawText = child.textContent?.trim();
+                    const text = rawText ? cleanSvgGarbage(rawText) : '';
+                    if (text && text.length > 1 && rootInnerText.includes(text)) {
+                        results.push(text);
                     }
                 }
             }
