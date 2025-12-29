@@ -41,7 +41,6 @@ export default function createRandomTransaction(index: number): Transaction {
         receipt: {filename: randWord()},
         reimbursable: randBoolean(),
         hasEReceipt: randBoolean(),
-        modifiedAmount: 0,
     };
 }
 

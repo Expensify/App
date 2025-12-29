@@ -44,7 +44,7 @@ const createMockTransaction = (transactionID: string, reportID: string, override
         transactionID,
         reportID,
         amount: 100,
-        modifiedAmount: 0,
+        modifiedAmount: undefined,
         reimbursable: true,
         ...overrides,
     }) as Transaction;
