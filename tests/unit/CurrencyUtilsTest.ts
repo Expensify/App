@@ -225,7 +225,6 @@ describe('CurrencyUtils', () => {
         });
     });
 
-
     describe('getPreferredCurrencySymbol', () => {
         test('Uses CURRENCY_LIST.symbol when it exists and is not code-like', () => {
             const currencyListTyped = currencyList as CurrencyList;
