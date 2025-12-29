@@ -18,7 +18,7 @@ function EmojiRenderer({tnode, style: styleProp}: CustomRendererProps<TText | TP
 
     return (
         <EmojiWithTooltip
-            oneLine={'oneline' in tnode.attributes}
+            isOnSeparateLine={'oneline' in tnode.attributes}
             style={[style, styles.cursorDefault, styles.emojiDefaultStyles]}
             emojiCode={'data' in tnode ? tnode.data : ''}
             isMedium={'ismedium' in tnode.attributes}

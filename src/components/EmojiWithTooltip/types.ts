@@ -4,7 +4,7 @@ type EmojiWithTooltipProps = {
     emojiCode: string;
     style?: StyleProp<TextStyle>;
     isMedium?: boolean;
-    oneLine?: boolean;
+    isOnSeparateLine?: boolean;
 };
 
 export default EmojiWithTooltipProps;

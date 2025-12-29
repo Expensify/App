@@ -1,4 +1,4 @@
-import {isSingleEmojiLine, processFrequentlyUsedEmojis} from '@libs/EmojiUtils';
+import {isEmojiOnSeparateLine, processFrequentlyUsedEmojis} from '@libs/EmojiUtils';
 import type {FrequentlyUsedEmoji} from '@src/types/onyx';
 
 // Mock the Emojis module
@@ -303,68 +303,68 @@ describe('processFrequentlyUsedEmojis', () => {
     });
 });
 
-describe('isSingleEmojiLine', () => {
+describe('isEmojiOnSeparateLine', () => {
     it('should return true for a simple single emoji line', () => {
-        expect(isSingleEmojiLine('<emoji>😀</emoji>')).toBe(true);
+        expect(isEmojiOnSeparateLine('<emoji>😀</emoji>')).toBe(true);
     });
 
     it('should return true for emoji line with whitespace', () => {
-        expect(isSingleEmojiLine('  <emoji>😀</emoji>  ')).toBe(true);
+        expect(isEmojiOnSeparateLine('  <emoji>😀</emoji>  ')).toBe(true);
     });
 
     it('should return true for emoji line with <br> tag before', () => {
-        expect(isSingleEmojiLine('<br><emoji>😀</emoji>')).toBe(true);
+        expect(isEmojiOnSeparateLine('<br><emoji>😀</emoji>')).toBe(true);
     });
 
     it('should return true for emoji line with <br/> tag after', () => {
-        expect(isSingleEmojiLine('<emoji>😀</emoji><br/>')).toBe(true);
+        expect(isEmojiOnSeparateLine('<emoji>😀</emoji><br/>')).toBe(true);
     });
 
     it('should return true for emoji line with <br /> tag', () => {
-        expect(isSingleEmojiLine('<br /><emoji>😀</emoji><br />')).toBe(true);
+        expect(isEmojiOnSeparateLine('<br /><emoji>😀</emoji><br />')).toBe(true);
     });
 
     it('should return true for emoji line with multiple <br> tags', () => {
-        expect(isSingleEmojiLine('<br><br><emoji>😀</emoji><br><br>')).toBe(true);
+        expect(isEmojiOnSeparateLine('<br><br><emoji>😀</emoji><br><br>')).toBe(true);
     });
 
     it('should return true for emoji line with case-insensitive <BR> tags', () => {
-        expect(isSingleEmojiLine('<BR><emoji>😀</emoji><BR/>')).toBe(true);
+        expect(isEmojiOnSeparateLine('<BR><emoji>😀</emoji><BR/>')).toBe(true);
     });
 
     it('should return true for emoji with multiple characters inside', () => {
-        expect(isSingleEmojiLine('<emoji>👨‍👩‍👧‍👦</emoji>')).toBe(true);
+        expect(isEmojiOnSeparateLine('<emoji>👨‍👩‍👧‍👦</emoji>')).toBe(true);
     });
 
     it('should return false for empty string', () => {
-        expect(isSingleEmojiLine('')).toBe(false);
+        expect(isEmojiOnSeparateLine('')).toBe(false);
     });
 
     it('should return false for line with only <br> tags', () => {
-        expect(isSingleEmojiLine('<br><br/>')).toBe(false);
+        expect(isEmojiOnSeparateLine('<br><br/>')).toBe(false);
     });
 
     it('should return false for text before emoji', () => {
-        expect(isSingleEmojiLine('hello <emoji>😀</emoji>')).toBe(false);
+        expect(isEmojiOnSeparateLine('hello <emoji>😀</emoji>')).toBe(false);
     });
 
     it('should return false for text after emoji', () => {
-        expect(isSingleEmojiLine('<emoji>😀</emoji> world')).toBe(false);
+        expect(isEmojiOnSeparateLine('<emoji>😀</emoji> world')).toBe(false);
     });
 
     it('should return false for unclosed emoji tag', () => {
-        expect(isSingleEmojiLine('<emoji>😀')).toBe(false);
+        expect(isEmojiOnSeparateLine('<emoji>😀')).toBe(false);
     });
 
     it('should return false for plain text without emoji tags', () => {
-        expect(isSingleEmojiLine('just some text')).toBe(false);
+        expect(isEmojiOnSeparateLine('just some text')).toBe(false);
     });
 
     it('should return false for emoji without tags', () => {
-        expect(isSingleEmojiLine('😀')).toBe(false);
+        expect(isEmojiOnSeparateLine('😀')).toBe(false);
     });
 
     it('should return true for emoji line with whitespace and <br> combined', () => {
-        expect(isSingleEmojiLine('  <br>  <emoji>😀</emoji>  <br/>  ')).toBe(true);
+        expect(isEmojiOnSeparateLine('  <br>  <emoji>😀</emoji>  <br/>  ')).toBe(true);
     });
 });

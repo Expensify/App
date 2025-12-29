@@ -662,7 +662,7 @@ function containsOnlyCustomEmoji(text?: string): boolean {
     return privateUseAreaRegex.test(text);
 }
 
-function isSingleEmojiLine(line: string) {
+function isEmojiOnSeparateLine(line: string) {
     const trimmed = line.replaceAll(/<br\s*\/?>/gi, '').trim();
     return /^<emoji>.*<\/emoji>$/.test(trimmed);
 }
@@ -694,5 +694,5 @@ export {
     containsCustomEmoji,
     containsOnlyCustomEmoji,
     processFrequentlyUsedEmojis,
-    isSingleEmojiLine,
+    isEmojiOnSeparateLine,
 };

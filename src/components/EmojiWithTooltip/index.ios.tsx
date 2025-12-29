@@ -3,10 +3,10 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type EmojiWithTooltipProps from './types';
 
-function EmojiWithTooltip({emojiCode, style = {}, isMedium = false, oneLine = false}: EmojiWithTooltipProps) {
+function EmojiWithTooltip({emojiCode, style = {}, isMedium = false, isOnSeparateLine = false}: EmojiWithTooltipProps) {
     const styles = useThemeStyles();
     const isCustomEmoji = emojiCode === '\uE100';
-    if (oneLine) {
+    if (isOnSeparateLine) {
         return <Text style={[styles.emojisWithTextFontSizeAligned, isCustomEmoji && styles.customEmojiFontAlignment]}>{emojiCode}</Text>;
     }
 
