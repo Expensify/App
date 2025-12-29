@@ -1527,7 +1527,7 @@ function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
 }
 
 function isWaypointNullIsland(waypoint: RecentWaypoint | Waypoint): boolean {
-    return !waypoint.lat && !waypoint.lng;
+    return waypoint.lat === 0 && waypoint.lng === 0;
 }
 
 /**
