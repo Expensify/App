@@ -710,8 +710,9 @@ function SearchPage({route}: SearchPageProps) {
         const hasMultipleOwners = ownerAccountIDs.size > 1 || (hasUnknownOwner && (ownerAccountIDs.size > 0 || selectedTransactionsKeys.length > 1));
 
         const canAllTransactionsBeMoved = selectedTransactionsKeys.every((id) => selectedTransactions[id].canChangeReport);
+        const isViewingExpenseReports = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
-        if (canAllTransactionsBeMoved && !hasMultipleOwners) {
+        if (canAllTransactionsBeMoved && !hasMultipleOwners && !isViewingExpenseReports) {
             options.push({
                 text: translate('iou.moveExpenses', {count: selectedTransactionsKeys.length}),
                 icon: expensifyIcons.DocumentMerge,
