@@ -3266,6 +3266,37 @@ ${amount} para ${merchant} - ${date}`,
         weTake: 'Nos tomamos su seguridad en serio. Por favor, configure 2FA ahora para agregar una capa adicional de protección a su cuenta.',
         secure: 'Asegure su cuenta',
     },
+    documentsStep: {
+        beforeYouGo: 'Antes de continuar, necesitamos algunos documentos para verificar cierta información',
+        subheader: 'Verificación',
+        verificationFailed: 'La verificación falló, por lo que necesitaremos documentos adicionales para verificarte a ti y a tu empresa',
+        taxIDVerification: 'Verificación del ID fiscal',
+        taxIDVerificationDescription: dedent(`
+        Por favor, sube uno de los siguientes archivos:
+        • Carta de asignación de TIN/EIN del IRS
+        • Confirmación de solicitud de TIN/EIN del IRS (normalmente indica "Congratulations! The EIN has been successfully assigned")
+        • Carta de exención fiscal del IRS que incluya el nombre de la empresa y el EIN`),
+        nameChangeDocument: 'Documento de cambio de nombre',
+        nameChangeDocumentDescription: 'Si el nombre de tu empresa cambió desde que solicitaste el TIN/EIN, necesitamos este documento para verificar el número de ID fiscal proporcionado',
+        companyAddressVerification: 'Verificación de la dirección de la empresa',
+        companyAddressVerificationDescription: dedent(`
+        Por favor, sube uno de los siguientes archivos:
+        • Factura reciente de servicios públicos con nombre y dirección de la empresa
+        • Estado de cuenta bancario con nombre y dirección de la empresa
+        • Contrato de arrendamiento vigente con página de firmas que muestre el nombre y la dirección actual de la empresa
+        • Estado de seguro con nombre y dirección de la empresa
+        • Documento de asignación de TIN con nombre y dirección de la empresa`),
+        userAddressVerification: 'Verificación de dirección',
+        userAddressVerificationDescription: dedent(`
+        Por favor, sube uno de los siguientes archivos:
+        • Tarjeta de registro de votante
+        • Licencia de conducir
+        • Estado de cuenta bancario
+        • Factura de servicios públicos`),
+        userDOBVerification: 'Verificación de fecha de nacimiento',
+        userDOBVerificationDescription: 'Por favor, sube una identificación emitida en EE. UU.',
+        finishViaChat: 'Finalizar por chat',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un momento',
         explanationLine: 'Estamos verificando tu información y podrás continuar con los siguientes pasos en unos momentos.',

@@ -1,5 +1,5 @@
 type UploadUserKYBDocsParams = {
-    bankAccountID: string;
+    bankAccountID: number;
     inputs: string;
 };
 

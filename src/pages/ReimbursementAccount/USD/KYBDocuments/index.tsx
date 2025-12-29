@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import isUserAddressVerificationRequired from '@pages/ReimbursementAccount/USD/utils/isUserAddressVerificationRequired';
 import isUserDOBVerificationRequired from '@pages/ReimbursementAccount/USD/utils/isUserDOBVerificationRequired';
+import {clearReimbursementAccountUploadKYBDocuments, uploadUserKYBDocs} from '@userActions/BankAccounts';
 import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -29,8 +30,15 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const reimbursementAccountData = reimbursementAccount?.achData?.verifications?.externalApiResponse;
+    const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const submit = useCallback(() => {}, []);
+    const defaultValues = {
+        companyTaxID: reimbursementAccountDraft?.companyTaxID ?? [],
+        nameChangeDocument: reimbursementAccountDraft?.nameChangeDocument ?? [],
+        companyAddressVerification: reimbursementAccountDraft?.companyAddressVerification ?? [],
+        userAddressVerification: reimbursementAccountDraft?.userAddressVerification ?? [],
+        userDOBVerification: reimbursementAccountDraft?.userDOBVerification ?? [],
+    } as Record<string, FileObject[]>;
 
     const DOCUMENTS_CONFIG = useMemo(
         () =>
@@ -80,13 +88,7 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
         ],
     );
 
-    const [uploadedFiles, setUploadedFiles] = useState<Record<string, FileObject[]>>({
-        companyTaxID: [],
-        nameChangeDocument: [],
-        companyAddressVerification: [],
-        userAddressVerification: [],
-        userDOBVerification: [],
-    });
+    const [uploadedFiles, setUploadedFiles] = useState<Record<string, FileObject[]>>(defaultValues);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -130,6 +132,13 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
         setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: {onUpload: error}});
     }, []);
 
+    const submit = useCallback(() => {
+        uploadUserKYBDocs({
+            inputs: JSON.stringify(uploadedFiles),
+            bankAccountID,
+        });
+    }, [bankAccountID, uploadedFiles]);
+
     const requiredDocuments = DOCUMENTS_CONFIG.filter((document) => document.required);
     const footer = (
         <Button
@@ -139,6 +148,21 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
             onPress={() => {}}
         />
     );
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (reimbursementAccount?.errors || reimbursementAccount?.isUploadingKYBDocuments || !reimbursementAccount?.isSuccess) {
+            return;
+        }
+
+        if (reimbursementAccount?.isSuccess) {
+            clearReimbursementAccountUploadKYBDocuments();
+        }
+
+        return () => {
+            clearReimbursementAccountUploadKYBDocuments();
+        };
+    }, [reimbursementAccount?.errors, reimbursementAccount?.isUploadingKYBDocuments, reimbursementAccount?.isSuccess]);
 
     return (
         <InteractiveStepWrapper

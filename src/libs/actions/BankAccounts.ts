@@ -991,6 +991,10 @@ function clearReimbursementAccountSendReminderForCorpaySignerInformation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSendingReminderForCorpaySignerInformation: null});
 }
 
+function clearReimbursementAccountUploadKYBDocuments() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isUploadingKYBDocuments: null});
+}
+
 /**
  * Function to display and fetch data for Reimbursement Account step
  * @param stepToOpen - current step to open
@@ -1125,7 +1129,41 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
 }
 
 function uploadUserKYBDocs(parameters: UploadUserKYBDocsParams) {
-    API.write(WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS, parameters, getVBBADataForOnyx());
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isUploadingKYBDocuments: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isUploadingKYBDocuments: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isUploadingKYBDocuments: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS, parameters, onyxData);
 }
 
 function openWorkspaceView(policyID: string | undefined) {
@@ -1438,4 +1476,5 @@ export {
     openBankAccountSharePage,
     clearShareBankAccountErrors,
     uploadUserKYBDocs,
+    clearReimbursementAccountUploadKYBDocuments,
 };

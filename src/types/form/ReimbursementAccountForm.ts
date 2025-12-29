@@ -68,7 +68,7 @@ const INPUT_IDS = {
         SECOND_SIGNER_EMAIL: 'secondSignerEmail',
     },
     KYB_DOCUMENTS: {
-        COMPANY_TAX_ID: 'companyTaxID',
+        COMPANY_TAX_ID: 'companyTaxId',
         NAME_CHANGE_DOCUMENT: 'nameChangeDocument',
         COMPANY_ADDRESS_VERIFICATION: 'companyAddressVerification',
         USER_ADDRESS_VERIFICATION: 'userAddressVerification',
@@ -229,8 +229,8 @@ type KYBDocumentsStepProps = {
     [INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID]: FileObject[];
     [INPUT_IDS.KYB_DOCUMENTS.NAME_CHANGE_DOCUMENT]: FileObject[];
     [INPUT_IDS.KYB_DOCUMENTS.COMPANY_ADDRESS_VERIFICATION]: FileObject[];
-    [INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID]: FileObject[];
-    [INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION]: FileObject[];
 };
 
 type ReimbursementAccountProps = {
