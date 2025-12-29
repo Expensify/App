@@ -6449,6 +6449,8 @@ const translations = {
             previousForwardsTo
                 ? `changed the approval workflow for ${approver} to stop forwarding approved reports (previously forwarded to ${previousForwardsTo})`
                 : `changed the approval workflow for ${approver} to stop forwarding approved reports`,
+        changedReimburser: ({newReimburser, previousReimburser}: {newReimburser: string; previousReimburser?: string}) =>
+            previousReimburser ? `changed the authorized payer to ${newReimburser} (previously ${previousReimburser})` : `changed the authorized payer to ${newReimburser}`,
         updateReimbursementEnabled: ({enabled}: UpdatedPolicyReimbursementEnabledParams) => `${enabled ? 'enabled' : 'disabled'} reimbursements`,
         addTax: ({taxName}: UpdatedPolicyTaxParams) => `added the tax "${taxName}"`,
         deleteTax: ({taxName}: UpdatedPolicyTaxParams) => `removed the tax "${taxName}"`,
