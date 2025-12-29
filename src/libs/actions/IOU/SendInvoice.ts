@@ -41,8 +41,8 @@ import {
     getSearchOnyxUpdate,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
-} from './';
-import type {BasePolicyParams} from './';
+} from '.';
+import type {BasePolicyParams} from '.';
 
 type SendInvoiceInformation = {
     senderWorkspaceID: string | undefined;
