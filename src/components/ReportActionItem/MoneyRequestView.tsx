@@ -458,7 +458,7 @@ function MoneyRequestView({
     if (isExpenseSplit) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
     }
-    if (currency !== moneyRequestReport?.currency && !isCardTransaction) {
+    if (currency !== moneyRequestReport?.currency && !isManagedCardTransaction) {
         const convertedAmount = isPaidGroupPolicy(moneyRequestReport) ? -(transaction?.convertedAmount ?? 0) : (transaction?.convertedAmount ?? 0);
         if (convertedAmount) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(convertedAmount, moneyRequestReport?.currency)}`;
