@@ -232,7 +232,8 @@ describe('ReportUtils', () => {
 
         const policyData: PolicyData = {
             reports,
-            tags: createRandomPolicyTags('Tags', 8),
+            policyID,
+            tagLists: createRandomPolicyTags('Tags', 8),
             categories: createRandomPolicyCategories(8),
             // Current policy with categories and tags enabled but does not require them
             policy: {
