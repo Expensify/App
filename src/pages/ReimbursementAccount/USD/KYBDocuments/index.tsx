@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
@@ -40,104 +40,83 @@ function KYBDocuments({onBackButtonPress}: KYBDocumentsProps) {
         userDOBVerification: reimbursementAccountDraft?.userDOBVerification ?? [],
     } as Record<string, FileObject[]>;
 
-    const DOCUMENTS_CONFIG = useMemo(
-        () =>
-            [
-                {
-                    inputID: 'companyTaxID',
-                    title: 'documentsStep.taxIDVerification',
-                    description: 'documentsStep.taxIDVerificationDescription',
-                    required: reimbursementAccountData?.companyTaxID?.status !== 'pass',
-                },
-                {
-                    inputID: 'nameChangeDocument',
-                    title: 'documentsStep.nameChangeDocument',
-                    description: 'documentsStep.nameChangeDocumentDescription',
-                    required: reimbursementAccountData?.lexisNexisInstantIDResult?.status !== 'pass',
-                },
-                {
-                    inputID: 'companyAddressVerification',
-                    title: 'documentsStep.companyAddressVerification',
-                    description: 'documentsStep.companyAddressVerificationDescription',
-                    required: reimbursementAccountData?.lexisNexisInstantIDResult?.status !== 'pass',
-                },
-                {
-                    inputID: 'userAddressVerification',
-                    title: 'documentsStep.userAddressVerification',
-                    description: 'documentsStep.userAddressVerificationDescription',
-                    required: isUserAddressVerificationRequired(
-                        reimbursementAccountData?.requestorIdentityID?.status,
-                        reimbursementAccountData?.requestorIdentityID?.apiResult?.qualifiers?.qualifier,
-                    ),
-                },
-                {
-                    inputID: 'userDOBVerification',
-                    title: 'documentsStep.userDOBVerification',
-                    description: 'documentsStep.userDOBVerificationDescription',
-                    required: isUserDOBVerificationRequired(
-                        reimbursementAccountData?.requestorIdentityID?.status,
-                        reimbursementAccountData?.requestorIdentityID?.apiResult?.qualifiers?.qualifier,
-                    ),
-                },
-            ] as const,
-        [
-            reimbursementAccountData?.companyTaxID?.status,
-            reimbursementAccountData?.lexisNexisInstantIDResult?.status,
-            reimbursementAccountData?.requestorIdentityID?.apiResult?.qualifiers?.qualifier,
-            reimbursementAccountData?.requestorIdentityID?.status,
-        ],
-    );
+    const DOCUMENTS_CONFIG = [
+        {
+            inputID: 'companyTaxID',
+            title: 'documentsStep.taxIDVerification',
+            description: 'documentsStep.taxIDVerificationDescription',
+            required: reimbursementAccountData?.companyTaxID?.status !== 'pass',
+        },
+        {
+            inputID: 'nameChangeDocument',
+            title: 'documentsStep.nameChangeDocument',
+            description: 'documentsStep.nameChangeDocumentDescription',
+            required: reimbursementAccountData?.lexisNexisInstantIDResult?.status !== 'pass',
+        },
+        {
+            inputID: 'companyAddressVerification',
+            title: 'documentsStep.companyAddressVerification',
+            description: 'documentsStep.companyAddressVerificationDescription',
+            required: reimbursementAccountData?.lexisNexisInstantIDResult?.status !== 'pass',
+        },
+        {
+            inputID: 'userAddressVerification',
+            title: 'documentsStep.userAddressVerification',
+            description: 'documentsStep.userAddressVerificationDescription',
+            required: isUserAddressVerificationRequired(
+                reimbursementAccountData?.requestorIdentityID?.status,
+                reimbursementAccountData?.requestorIdentityID?.apiResult?.qualifiers?.qualifier,
+            ),
+        },
+        {
+            inputID: 'userDOBVerification',
+            title: 'documentsStep.userDOBVerification',
+            description: 'documentsStep.userDOBVerificationDescription',
+            required: isUserDOBVerificationRequired(reimbursementAccountData?.requestorIdentityID?.status, reimbursementAccountData?.requestorIdentityID?.apiResult?.qualifiers?.qualifier),
+        },
+    ] as const;
 
     const [uploadedFiles, setUploadedFiles] = useState<Record<string, FileObject[]>>(defaultValues);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
-            for (const document of DOCUMENTS_CONFIG.filter((documentItem) => documentItem.required)) {
-                const files = values[document.inputID] as FileObject[] | undefined;
-                if (!files || files.length === 0) {
-                    errors[document.inputID] = translate('common.error.fieldRequired');
-                }
+        for (const document of DOCUMENTS_CONFIG.filter((documentItem) => documentItem.required)) {
+            const files = values[document.inputID] as FileObject[] | undefined;
+            if (!files || files.length === 0) {
+                errors[document.inputID] = translate('common.error.fieldRequired');
             }
+        }
 
-            return errors;
-        },
-        [DOCUMENTS_CONFIG, translate],
-    );
+        return errors;
+    };
 
-    const handleSelectFile = useCallback(
-        (files: FileObject[], inputID: string) => {
-            const updatedFiles = [...uploadedFiles[inputID], ...files];
-            setUploadedFiles((prev) => ({...prev, [inputID]: updatedFiles}));
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: updatedFiles});
-        },
-        [uploadedFiles],
-    );
+    const handleSelectFile = (files: FileObject[], inputID: string) => {
+        const updatedFiles = [...uploadedFiles[inputID], ...files];
+        setUploadedFiles((prev) => ({...prev, [inputID]: updatedFiles}));
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: updatedFiles});
+    };
 
-    const handleRemoveFile = useCallback(
-        (fileName: string, inputID: string) => {
-            const updatedFiles = uploadedFiles[inputID].filter((file) => file.name !== fileName);
-            setUploadedFiles((prev) => ({...prev, [inputID]: updatedFiles}));
-            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: updatedFiles});
-        },
-        [uploadedFiles],
-    );
+    const handleRemoveFile = (fileName: string, inputID: string) => {
+        const updatedFiles = uploadedFiles[inputID].filter((file) => file.name !== fileName);
+        setUploadedFiles((prev) => ({...prev, [inputID]: updatedFiles}));
+        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: updatedFiles});
+    };
 
-    const setUploadError = useCallback((error: string, inputID: string) => {
+    const setUploadError = (error: string, inputID: string) => {
         if (!error) {
             clearErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
             return;
         }
         setErrorFields(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[inputID]: {onUpload: error}});
-    }, []);
+    };
 
-    const submit = useCallback(() => {
+    const submit = () => {
         uploadUserKYBDocs({
             inputs: JSON.stringify(uploadedFiles),
             bankAccountID,
         });
-    }, [bankAccountID, uploadedFiles]);
+    };
 
     const requiredDocuments = DOCUMENTS_CONFIG.filter((document) => document.required);
     const footer = (
