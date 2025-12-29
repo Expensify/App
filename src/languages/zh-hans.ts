@@ -19,14 +19,7 @@ import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    CanceledRequestParams,
-    CardInfoParams,
     ChangeFieldParams,
-    ChangeOwnerDuplicateSubscriptionParams,
-    ChangeOwnerSubscriptionParams,
-    ChangeReportPolicyParams,
-    ChangeTypeParams,
-    CharacterLengthLimitParams,
     ConnectionNameParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
@@ -167,6 +160,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -418,6 +412,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: '到',
         genericErrorMessage: '哎呀……出现了一些问题，无法完成您的请求。请稍后再试。',
         percentage: '百分比',
+        converted: '已转换',
         error: {
             invalidAmount: '金额无效',
             acceptTerms: '您必须接受服务条款才能继续',
@@ -425,7 +420,7 @@ const translations: TranslationDeepObject<typeof en> = {
 （例如：${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER}）`,
             fieldRequired: '此字段为必填项',
             requestModified: '此请求正在被另一位成员修改中',
-            characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `超出字符限制（${length}/${limit}）`,
+            characterLimitExceedCounter: (length: number, limit: number) => `超出字符限制（${length}/${limit}）`,
             dateInvalid: '请选择一个有效日期',
             invalidDateShouldBeFuture: '请选择今天或将来的日期',
             invalidTimeShouldBeFuture: '请选择一个至少比当前时间晚一分钟的时间',
@@ -1282,7 +1277,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: '拒绝了此报表',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `已发起付款，但正在等待 ${submitterDisplayName} 添加银行账户。`,
         adminCanceledRequest: '已取消付款',
-        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify Wallet`,
+        canceledRequest: (amount: string, submitterDisplayName: string) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify Wallet`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) => `${submitterDisplayName} 添加了一个银行账户。${amount} 付款已完成。`,
         paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}标记为已支付`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}使用钱包支付`,
@@ -4761,6 +4756,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 'Expensify Limited 是 Plaid Financial Ltd. 的代理机构，Plaid Financial Ltd. 是一家在《2017 年支付服务条例》下受金融行为监管局（Financial Conduct Authority）监管并获授权的支付机构（公司参考编号：804718）。Plaid 通过其代理 Expensify Limited 向您提供受监管的账户信息服务。',
             assign: '分配',
             assignCardFailedError: '卡片分配失败。',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
             issueAndManageCards: '发放和管理您的 Expensify 卡',
@@ -5773,14 +5769,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
 您是否要转移这笔金额（${amount}），以便接管此工作区的账单？您的支付卡将立即被扣款。`,
             subscriptionTitle: '接管年度订阅',
             subscriptionButtonText: '转移订阅',
-            subscriptionText: ({usersCount, finalCount}: ChangeOwnerSubscriptionParams) =>
+            subscriptionText: (usersCount: number, finalCount: number) =>
                 `接管此工作区将把其年度订阅与您当前的订阅合并。这样会将您的订阅人数增加 ${usersCount} 名成员，使您的新订阅人数达到 ${finalCount}。您想要继续吗？`,
             duplicateSubscriptionTitle: '重复订阅警报',
             duplicateSubscriptionButtonText: '继续',
-            duplicateSubscriptionText: ({
-                email,
-                workspaceName,
-            }: ChangeOwnerDuplicateSubscriptionParams) => `看起来你正在尝试接管 ${email} 的工作区的账单，但要做到这一点，你需要先成为他们所有工作区的管理员。
+            duplicateSubscriptionText: (email: string, workspaceName: string) => `看起来你正在尝试接管 ${email} 的工作区的账单，但要做到这一点，你需要先成为他们所有工作区的管理员。
 
 如果你只想接管工作区 ${workspaceName} 的账单，请点击“继续”。
 
@@ -6808,13 +6801,13 @@ ${reportName}
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `将 ${fieldName} 更改为 “${newValue}”（之前为 “${oldValue}”）`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `将 ${fieldName} 设置为 “${newValue}”`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `更改了工作区${fromPolicyName ? `（先前为 ${fromPolicyName}）` : ''}`;
                     }
                     return `将工作区更改为 ${toPolicyName}${fromPolicyName ? `（先前为 ${fromPolicyName}）` : ''}`;
                 },
-                changeType: ({oldType, newType}: ChangeTypeParams) => `将类型从 ${oldType} 更改为 ${newType}`,
+                changeType: (oldType: string, newType: string) => `将类型从 ${oldType} 更改为 ${newType}`,
                 exportedToCSV: `已导出为 CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => {
@@ -7337,9 +7330,9 @@ ${reportName}
             title: '付款',
             subtitle: '添加一张银行卡来支付你的 Expensify 订阅费用。',
             addCardButton: '添加付款卡',
+            cardInfo: (name: string, expiration: string, currency: string) => `名称：${name}，到期日：${expiration}，货币：${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `您的下一个付款日期是 ${nextPaymentDate}。`,
             cardEnding: (cardNumber: string) => `以 ${cardNumber} 结尾的卡片`,
-            cardInfo: ({name, expiration, currency}: CardInfoParams) => `名称：${name}，到期日：${expiration}，货币：${currency}`,
             changeCard: '更改付款卡',
             changeCurrency: '更改付款货币',
             cardNotFound: '未添加付款卡',
@@ -7452,12 +7445,8 @@ ${reportName}
             whatsMainReason: '你取消自动续费的主要原因是什么？',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `将在 ${date} 续订。`,
             pricingConfiguration: '价格取决于配置。要获得最低价格，请选择年度订阅并申请 Expensify Card。',
-            learnMore: {
-                part1: '在我们的…上了解更多',
-                pricingPage: '定价页面',
-                part2: '或使用您的语言与我们的团队聊天',
-                adminsRoom: '#admins 房间',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `<muted-text>在我们的<a href="${CONST.PRICING}">定价页面</a>了解更多，或在您的 ${hasAdminsRoom ? `<a href="adminsRoom">#admins 聊天室。</a>` : '#admins 房间。'} 中与我们的团队聊天</muted-text>`,
             estimatedPrice: '预估价格',
             changesBasedOn: '这将根据你使用 Expensify Card 的情况以及下面的订阅选项而变化。',
         },
