@@ -50,19 +50,17 @@ function useMergeTransactions({mergeTransaction}: UseMergeTransactionsProps): Us
     const targetTransaction = getTransaction(mergeTransaction, mergeTransaction?.targetTransactionID, onyxTargetTransaction, currentSearchResults);
     const sourceTransaction = getTransaction(mergeTransaction, mergeTransaction?.sourceTransactionID, onyxSourceTransaction, currentSearchResults);
 
-    const [onyxTargetTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {
+    let [targetTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`, {
         canBeMissing: true,
     });
-    const [onyxSourceTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction?.reportID}`, {
+    let [sourceTransactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction?.reportID}`, {
         canBeMissing: true,
     });
 
-    // Always use transactions from the search snapshot if we're coming from the Reports page
-    let targetTransactionReport = onyxTargetTransactionReport;
-    let sourceTransactionReport = onyxSourceTransactionReport;
+    // If we're on search and main collection reports are not available, get them from the search snapshot
     if (searchHash && currentSearchResults?.data) {
-        targetTransactionReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`] ?? onyxTargetTransactionReport;
-        sourceTransactionReport = currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction?.reportID}`] ?? onyxSourceTransactionReport;
+        targetTransactionReport = targetTransactionReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${targetTransaction?.reportID}`];
+        sourceTransactionReport = sourceTransactionReport ?? currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction?.reportID}`];
     }
 
     return {

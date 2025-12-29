@@ -314,7 +314,7 @@ function Search({
                 const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
                 if (transactionViolations) {
                     const filteredTransactionViolations = mergeProhibitedViolations(
-                        transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, email ?? '')),
+                        transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, email ?? '', true, transaction)),
                     );
 
                     if (filteredTransactionViolations.length > 0) {
@@ -454,6 +454,7 @@ function Search({
             data: searchResults.data,
             currentAccountID: accountID,
             currentUserEmail: email ?? '',
+            translate,
             formatPhoneNumber,
             groupBy: validGroupBy,
             reportActions: exportReportActions,
@@ -472,6 +473,7 @@ function Search({
         searchResults,
         type,
         archivedReportsIdSet,
+        translate,
         formatPhoneNumber,
         accountID,
         queryJSON,

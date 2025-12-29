@@ -114,7 +114,6 @@ import {
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -337,6 +336,8 @@ function MoneyReportHeader({
     const canTriggerAutomaticPDFDownload = useRef(false);
     const hasFinishedPDFDownload = reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
 
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+
     useEffect(() => {
         canTriggerAutomaticPDFDownload.current = isPDFModalVisible;
     }, [isPDFModalVisible]);
@@ -422,6 +423,7 @@ function MoneyReportHeader({
     );
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    const isOnSearch = route.name.toLowerCase().startsWith('search');
     const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
         report: moneyRequestReport,
         reportActions,
@@ -431,6 +433,7 @@ function MoneyReportHeader({
         onExportOffline: () => setOfflineModalVisible(true),
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
+        isOnSearch,
     });
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
@@ -502,7 +505,19 @@ function MoneyReportHeader({
                 }
             } else if (isInvoiceReport) {
                 startAnimation();
-                payInvoice(type, chatReport, moneyRequestReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod, activePolicy);
+                payInvoice({
+                    paymentMethodType: type,
+                    chatReport,
+                    invoiceReport: moneyRequestReport,
+                    introSelected,
+                    currentUserAccountIDParam: accountID,
+                    currentUserEmailParam: email ?? '',
+                    payAsBusiness,
+                    existingB2BInvoiceReport,
+                    methodID,
+                    paymentMethod,
+                    activePolicy,
+                });
             } else {
                 startAnimation();
                 payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy);
@@ -534,6 +549,8 @@ function MoneyReportHeader({
             currentSearchKey,
             isOffline,
             currentSearchResults?.search?.isLoading,
+            accountID,
+            email,
         ],
     );
 
@@ -594,13 +611,14 @@ function MoneyReportHeader({
                     optimisticChatReportID,
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
+                    quickAction,
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,
                     activePolicyExpenseChat,
                 );
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled],
+        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction],
     );
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
@@ -1237,7 +1255,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                setupMergeTransactionDataAndNavigate([currentTransaction], localeCompare);
+                setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {
@@ -1312,10 +1330,20 @@ function MoneyReportHeader({
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    let goBackRoute: Route | undefined;
                     if (transactionThreadReportID) {
                         if (!requestParentReportAction || !transaction?.transactionID) {
                             throw new Error('Missing data!');
+                        }
+                        const goBackRoute = getNavigationUrlOnMoneyRequestDelete(
+                            transaction.transactionID,
+                            requestParentReportAction,
+                            iouReport,
+                            chatIOUReport,
+                            isChatIOUReportArchived,
+                            false,
+                        );
+                        if (goBackRoute) {
+                            navigateOnDeleteExpense(goBackRoute);
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
@@ -1324,11 +1352,6 @@ function MoneyReportHeader({
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
                             removeTransaction(transaction.transactionID);
                         });
-                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, isChatIOUReportArchived, false);
-                    }
-
-                    if (goBackRoute) {
-                        Navigation.setNavigationActionToMicrotaskQueue(() => navigateOnDeleteExpense(goBackRoute));
                     }
                     return;
                 }
@@ -1347,7 +1370,7 @@ function MoneyReportHeader({
                 Navigation.goBack(backToRoute);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
-                    deleteAppReport(moneyRequestReport?.reportID, email ?? '');
+                    deleteAppReport(moneyRequestReport?.reportID, email ?? '', transactions);
                 });
             },
         },

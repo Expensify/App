@@ -142,12 +142,11 @@ function Confirmation() {
                         <ShowContextMenuContext.Provider value={contextValue}>
                             <MoneyRequestView
                                 allReports={allReports}
-                                report={report}
+                                transactionThreadReport={report}
                                 parentReportID={report?.parentReportID}
                                 expensePolicy={policy}
                                 shouldShowAnimatedBackground={false}
                                 readonly
-                                isFromReviewDuplicates
                                 updatedTransaction={newTransaction as OnyxEntry<Transaction>}
                             />
                         </ShowContextMenuContext.Provider>
