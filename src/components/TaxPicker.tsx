@@ -101,7 +101,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
         }
 
         const deletedTaxOption = {
-            code: transaction?.taxCode,
+            code: undefined,
             text: transaction?.taxValue ?? '',
             keyForList: transaction?.taxCode ?? '',
             searchText: transaction?.taxValue ?? '',
@@ -122,13 +122,18 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
 
     const handleSelectRow = useCallback(
         (newSelectedOption: TaxRatesOption) => {
+            if (isTaxValueChanged) {
+                onSubmit(newSelectedOption, !newSelectedOption.code);
+                return;
+            }
             if (selectedOptionKey === newSelectedOption.keyForList) {
                 onDismiss();
                 return;
             }
-            onSubmit(newSelectedOption, isTaxDeleted || isTaxValueChanged);
+
+            onSubmit(newSelectedOption, !newSelectedOption.code);
         },
-        [selectedOptionKey, onSubmit, isTaxDeleted, isTaxValueChanged, onDismiss],
+        [isTaxValueChanged, selectedOptionKey, onSubmit, onDismiss],
     );
 
     return (
