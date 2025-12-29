@@ -69,11 +69,12 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const isTaxDeleted =
-        !!transaction?.taxCode && transaction?.taxValue !== undefined && Object.keys(taxRates?.taxes ?? {}).find((taxCode) => taxCode === transaction?.taxCode) === undefined;
+    const isTaxDeleted = !!transaction?.taxCode && !!transaction?.taxValue && Object.keys(taxRates?.taxes ?? {}).find((taxCode) => taxCode === transaction?.taxCode) === undefined;
+
+    const isTaxValueChanged = !!transaction?.taxCode && !!transaction?.taxValue && !Object.values(taxRates?.taxes ?? {}).some((rate) => rate.value === transaction?.taxValue);
 
     const selectedOptions = useMemo<Tax[]>(() => {
-        if (!selectedTaxRate) {
+        if (!selectedTaxRate || isTaxValueChanged) {
             return [];
         }
 
@@ -84,7 +85,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
                 accountID: null,
             },
         ];
-    }, [selectedTaxRate]);
+    }, [selectedTaxRate, isTaxValueChanged]);
 
     const sections = useMemo(() => {
         const baseSections = getTaxRatesSection({
@@ -95,7 +96,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
             transaction: currentTransaction,
         });
 
-        if (!isTaxDeleted) {
+        if (!isTaxDeleted && !isTaxValueChanged) {
             return baseSections;
         }
 
@@ -113,7 +114,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
             ...section,
             data: [...section.data, deletedTaxOption],
         }));
-    }, [isTaxDeleted, policy, searchValue, localeCompare, selectedOptions, currentTransaction, transaction?.taxCode, transaction?.taxValue]);
+    }, [policy, searchValue, localeCompare, selectedOptions, currentTransaction, isTaxDeleted, isTaxValueChanged, transaction?.taxCode, transaction?.taxValue]);
 
     const headerMessage = getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);
 
@@ -125,9 +126,9 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
                 onDismiss();
                 return;
             }
-            onSubmit(newSelectedOption, isTaxDeleted);
+            onSubmit(newSelectedOption, isTaxDeleted || isTaxValueChanged);
         },
-        [selectedOptionKey, onSubmit, isTaxDeleted, onDismiss],
+        [selectedOptionKey, onSubmit, isTaxDeleted, isTaxValueChanged, onDismiss],
     );
 
     return (
