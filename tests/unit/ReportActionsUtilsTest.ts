@@ -2,6 +2,7 @@ import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
@@ -9,7 +10,15 @@ import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMess
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
-import {getCardIssuedMessage, getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
+import {
+    buildOptimisticCreatedReportForUnapprovedAction,
+    getCardIssuedMessage,
+    getCreatedReportForUnapprovedTransactionsMessage,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getSendMoneyFlowAction,
+    isIOUActionMatchingTransactionList,
+} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
@@ -1287,6 +1296,42 @@ describe('ReportActionsUtils', () => {
             };
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
+
+        it('should return false for CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS action with empty message array', () => {
+            const reportAction = buildOptimisticCreatedReportForUnapprovedAction('123456', '789012');
+            expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+    });
+
+    describe('buildOptimisticCreatedReportForUnapprovedAction', () => {
+        it('should build a valid optimistic report action with all required properties', () => {
+            const reportID = '123456';
+            const originalReportID = '789012';
+            const reportAction = buildOptimisticCreatedReportForUnapprovedAction(reportID, originalReportID);
+
+            // Verify action name
+            expect(reportAction.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS);
+
+            // Verify reportID and originalReportID
+            expect(reportAction.reportID).toBe(reportID);
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            expect(reportAction.originalMessage.originalID).toBe(originalReportID);
+
+            // Verify empty message array (by design for this action type)
+            expect(reportAction.message).toEqual([]);
+
+            // Verify optimistic properties
+            expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+            // Verify Concierge as actor
+            expect(reportAction.actorAccountID).toBeDefined();
+            expect(reportAction.person).toEqual([
+                {
+                    text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE,
+                    type: 'TEXT',
+                },
+            ]);
+        });
     });
 
     describe('getRenamedAction', () => {
@@ -1560,6 +1605,22 @@ describe('ReportActionsUtils', () => {
             });
 
             const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
+
+            expect(result).toBe(expectedMessage);
+        });
+    });
+
+    describe('getCreatedReportForUnapprovedTransactionsMessage', () => {
+        it('should return the correct message with a valid report ID and report name', () => {
+            const reportID = '67890';
+            const reportName = 'Original Report';
+            const reportUrl = getReportURLForCurrentContext(reportID);
+            const expectedMessage = translateLocal('reportAction.createdReportForUnapprovedTransactions', {
+                reportUrl,
+                reportName,
+            });
+
+            const result = getCreatedReportForUnapprovedTransactionsMessage(reportID, reportName, translateLocal);
 
             expect(result).toBe(expectedMessage);
         });
