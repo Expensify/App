@@ -90,6 +90,8 @@ const ValidOptionsConfig = {
     includeOwnedWorkspaceChats: true,
 };
 
+const loginList = {};
+
 /* GetOption is the private function and is never called directly, we are testing the functions which call getOption with different params */
 describe('OptionsListUtils', () => {
     beforeAll(() => {
@@ -110,7 +112,7 @@ describe('OptionsListUtils', () => {
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getSearchOptions({options, betas: mockedBetas, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined, translate: jest.fn()}));
+        await measureFunction(() => getSearchOptions({options, betas: mockedBetas, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined, translate: jest.fn(), loginList}));
     });
 
     /* Testing getFilteredOptions */
@@ -122,10 +124,11 @@ describe('OptionsListUtils', () => {
             nvpDismissedProductTraining,
             undefined,
             jest.fn(),
+            loginList,
             ValidOptionsConfig,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, jest.fn(), COUNTRY_CODE, undefined);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, jest.fn(), COUNTRY_CODE, loginList);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
@@ -136,6 +139,7 @@ describe('OptionsListUtils', () => {
             nvpDismissedProductTraining,
             undefined,
             jest.fn(),
+            loginList,
             ValidOptionsConfig,
         );
         await measureFunction(() => {
@@ -147,7 +151,7 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), {
+            getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), loginList, {
                 betas: mockedBetas,
                 includeMultipleParticipantReports: true,
                 showChatPreviewLine: true,
@@ -167,7 +171,7 @@ describe('OptionsListUtils', () => {
     /* Testing getMemberInviteOptions */
     test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, jest.fn(), mockedBetas));
+        await measureFunction(() => getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, jest.fn(), loginList, mockedBetas));
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {

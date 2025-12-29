@@ -77,8 +77,6 @@ import {
     getReceiverType,
     requestMoney as requestMoneyIOUActions,
     sendInvoice,
-    sendMoneyElsewhere,
-    sendMoneyWithWallet,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestParticipantsFromReport,
@@ -92,6 +90,7 @@ import {
     trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
+import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import {removeDraftTransaction, removeDraftTransactions, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -688,6 +687,7 @@ function IOURequestStepConfirmation({
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations,
+                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             });
         },
         [
@@ -701,6 +701,7 @@ function IOURequestStepConfirmation({
             recentlyUsedDestinations,
             isASAPSubmitBetaEnabled,
             hasViolations,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
@@ -759,6 +760,7 @@ function IOURequestStepConfirmation({
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     isASAPSubmitBetaEnabled,
+                    quickAction,
                 });
             }
         },
@@ -779,6 +781,7 @@ function IOURequestStepConfirmation({
             transactionTaxAmount,
             customUnitRateID,
             isASAPSubmitBetaEnabled,
+            quickAction,
         ],
     );
 
@@ -984,18 +987,17 @@ function IOURequestStepConfirmation({
                 const invoiceChatReport =
                     !isEmptyObject(report) && report?.reportID && doesReportReceiverMatchParticipant(report, receiverParticipantAccountID) ? report : existingInvoiceReport;
 
-                sendInvoice(
-                    currentUserPersonalDetails.accountID,
+                sendInvoice({
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
                     transaction,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                     invoiceChatReport,
-                    currentTransactionReceiptFile,
+                    receiptFile: currentTransactionReceiptFile,
                     policy,
-                    policyTags,
+                    policyTagList: policyTags,
                     policyCategories,
-                    undefined,
-                    undefined,
                     policyRecentlyUsedCategories,
-                );
+                });
                 return;
             }
 

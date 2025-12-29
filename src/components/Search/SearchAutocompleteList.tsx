@@ -192,6 +192,7 @@ function SearchAutocompleteList({
     const [recentSearches] = useOnyx(ONYXKEYS.RECENT_SEARCHES, {canBeMissing: true});
     const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['History', 'MagnifyingGlass']);
 
     const {options, areOptionsInitialized} = useOptionsList();
@@ -216,8 +217,9 @@ function SearchAutocompleteList({
             shouldShowGBR: false,
             policyTags,
             shouldUnreadBeBold: true,
+            loginList,
         });
-    }, [areOptionsInitialized, translate, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, policyTags]);
+    }, [areOptionsInitialized, translate, options, draftComments, nvpDismissedProductTraining, betas, autocompleteQueryValue, countryCode, policyTags, loginList]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);
     const parsedQuery = useMemo(() => parseForAutocomplete(autocompleteQueryValue), [autocompleteQueryValue]);
@@ -425,6 +427,7 @@ function SearchAutocompleteList({
                     includeRecentReports: false,
                     includeCurrentUser: true,
                     countryCode,
+                    loginList,
                     shouldShowGBR: true,
                     policyTags,
                 }).personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
@@ -437,6 +440,12 @@ function SearchAutocompleteList({
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
+                // If autocompleteValue is empty or just whitespace and we have already completed keys,
+                // return empty array to hide suggestion list (consistent with group-by behavior)
+                if (!autocompleteValue.trim() && alreadyAutocompletedKeys.size > 0) {
+                    return [];
+                }
+
                 const filteredReports = getSearchOptions({
                     translate,
                     options,
@@ -451,9 +460,15 @@ function SearchAutocompleteList({
                     includeRecentReports: true,
                     includeCurrentUser: false,
                     countryCode,
+                    loginList,
                     shouldShowGBR: true,
                     policyTags,
-                }).recentReports;
+                }).recentReports.filter((chat) => {
+                    if (!chat.text) {
+                        return false;
+                    }
+                    return !alreadyAutocompletedKeys.has(chat.text.toLowerCase());
+                });
 
                 return filteredReports.map((chat) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
@@ -618,6 +633,7 @@ function SearchAutocompleteList({
         betas,
         countryCode,
         policyTags,
+        loginList,
         currentUserLogin,
         groupByAutocompleteList,
         statusAutocompleteList,

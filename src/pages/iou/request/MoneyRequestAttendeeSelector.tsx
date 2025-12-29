@@ -69,6 +69,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}`, {canBeMissing: true});
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyFn(policy), [policy]);
 
@@ -242,11 +243,14 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
 
         if (
             orderedAvailableOptions.userToInvite &&
-            !isCurrentUser({
-                ...orderedAvailableOptions.userToInvite,
-                accountID: orderedAvailableOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-                status: orderedAvailableOptions.userToInvite?.status ?? undefined,
-            })
+            !isCurrentUser(
+                {
+                    ...orderedAvailableOptions.userToInvite,
+                    accountID: orderedAvailableOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    status: orderedAvailableOptions.userToInvite?.status ?? undefined,
+                },
+                loginList,
+            )
         ) {
             newSections.push({
                 title: undefined,
@@ -272,16 +276,17 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     }, [
         areOptionsInitialized,
         didScreenTransitionEnd,
+        searchTerm,
+        attendees,
         orderedAvailableOptions.recentReports,
         orderedAvailableOptions.personalDetails,
         orderedAvailableOptions.userToInvite,
-        searchTerm,
-        attendees,
         personalDetails,
-        translate,
         reportAttributesDerived,
+        loginList,
         countryCode,
         policyTags,
+        translate,
     ]);
 
     const optionLength = useMemo(() => {

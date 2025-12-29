@@ -66,6 +66,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -85,6 +86,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             nvpDismissedProductTraining,
             policyTags,
             translate,
+            loginList,
             {
                 betas,
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -108,6 +110,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         nvpDismissedProductTraining,
         policyTags,
         translate,
+        loginList,
         betas,
         action,
         countryCode,
@@ -123,12 +126,12 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, translate, countryCode, {
+        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, translate, countryCode, loginList, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, translate, countryCode]);
+    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, translate, countryCode, loginList]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -170,7 +173,10 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
 
         if (
             chatOptions.userToInvite &&
-            !isCurrentUser({...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID, status: chatOptions.userToInvite?.status ?? undefined})
+            !isCurrentUser(
+                {...chatOptions.userToInvite, accountID: chatOptions.userToInvite?.accountID ?? CONST.DEFAULT_NUMBER_ID, status: chatOptions.userToInvite?.status ?? undefined},
+                loginList,
+            )
         ) {
             newSections.push({
                 title: undefined,
@@ -204,6 +210,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         translate,
         personalDetails,
         reportAttributesDerived,
+        loginList,
         countryCode,
     ]);
 

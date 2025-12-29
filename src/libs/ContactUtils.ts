@@ -1,6 +1,7 @@
+import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {Login, PersonalDetails} from '@src/types/onyx';
 import type {DeviceContact, StringHolder} from './ContactImport/types';
 import {getUserToInviteContactOption} from './OptionsListUtils';
 import type {SearchOption} from './OptionsListUtils';
@@ -33,6 +34,7 @@ const getContacts = (
     localeCompare: LocaleContextProps['localeCompare'],
     countryCode: number,
     translate: LocalizedTranslate,
+    loginList: OnyxEntry<Login>,
 ): Array<SearchOption<PersonalDetails>> => {
     return deviceContacts
         .map((contact) => {
@@ -54,6 +56,7 @@ const getContacts = (
                 phone: phoneNumber,
                 avatar: avatarSource,
                 countryCode,
+                loginList,
             });
         })
         .filter((contact): contact is SearchOption<PersonalDetails> => contact !== null);

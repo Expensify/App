@@ -50,6 +50,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [selectedReportIDs, setSelectedReportIDs] = useState<string[]>(initialReportIDs);
@@ -76,15 +78,15 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return getSearchOptions({options, draftComments, nvpDismissedProductTraining, betas: undefined, policyTags, isUsedInChatFinder: false, countryCode, translate});
-    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, policyTags, countryCode, translate]);
+        return getSearchOptions({options, draftComments, nvpDismissedProductTraining, betas: undefined, isUsedInChatFinder: false, countryCode, loginList, policyTags, translate});
+    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList, policyTags, translate]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, translate, countryCode, {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, translate, countryCode, loginList, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         });
-    }, [defaultOptions, cleanSearchTerm, translate, countryCode, selectedOptions]);
+    }, [defaultOptions, cleanSearchTerm, translate, countryCode, loginList, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];

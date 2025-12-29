@@ -62,6 +62,7 @@ function useOptions() {
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const personalData = useCurrentUserPersonalDetails();
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
@@ -99,6 +100,7 @@ function useOptions() {
         nvpDismissedProductTraining,
         policyTags,
         translate,
+        loginList,
         {
             betas: betas ?? [],
             includeSelfDM: true,
@@ -110,7 +112,7 @@ function useOptions() {
 
     const areOptionsInitialized = !isLoading;
 
-    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, translate, countryCode, {
+    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, translate, countryCode, loginList, {
         selectedOptions,
         maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
     });
@@ -156,6 +158,7 @@ function useOptions() {
                       getUserToInviteOption({
                           searchValue: participant?.login,
                           translate,
+                          loginList,
                       });
                   if (participantOption) {
                       result.push({

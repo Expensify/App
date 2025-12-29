@@ -61,6 +61,7 @@ function RoomInvitePage({
     const {translate} = useLocalize();
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(userSearchPhrase ?? '');
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
@@ -91,7 +92,7 @@ function RoomInvitePage({
             return {recentReports: [], personalDetails: [], userToInvite: null, currentUserOption: null};
         }
 
-        const inviteOptions = getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, translate, betas ?? [], excludedUsers);
+        const inviteOptions = getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, translate, loginList, betas ?? [], excludedUsers);
         // Update selectedOptions with the latest personalDetails information
         const detailsMap: Record<string, MemberForList> = {};
         for (const detail of inviteOptions.personalDetails) {
@@ -112,16 +113,16 @@ function RoomInvitePage({
             recentReports: [],
             currentUserOption: null,
         };
-    }, [areOptionsInitialized, options.personalDetails, nvpDismissedProductTraining, translate, betas, excludedUsers, selectedOptions]);
+    }, [areOptionsInitialized, betas, excludedUsers, loginList, nvpDismissedProductTraining, options.personalDetails, selectedOptions, translate]);
 
     const inviteOptions = useMemo(() => {
         if (debouncedSearchTerm.trim() === '') {
             return defaultOptions;
         }
-        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, translate, countryCode, {excludeLogins: excludedUsers});
+        const filteredOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, translate, countryCode, loginList, {excludeLogins: excludedUsers});
 
         return filteredOptions;
-    }, [debouncedSearchTerm, defaultOptions, excludedUsers, countryCode, translate]);
+    }, [debouncedSearchTerm, defaultOptions, translate, countryCode, loginList, excludedUsers]);
 
     const sections = useMemo(() => {
         const sectionsArr: Sections = [];
