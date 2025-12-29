@@ -227,6 +227,7 @@ describe('CurrencyUtils', () => {
 
     describe('getPreferredCurrencySymbol', () => {
         test('Uses CURRENCY_LIST.symbol when it exists and is not code-like', () => {
+            const preferredLocale = CONST.LOCALES.EN;
             const currencyListTyped = currencyList as CurrencyList;
             const currencyWithNonCodeLikeSymbol = currencyCodeList.find((code) => {
                 const symbol = currencyListTyped?.[code]?.symbol;
@@ -242,14 +243,16 @@ describe('CurrencyUtils', () => {
             const expectedSymbol = CurrencyUtils.getCurrencySymbol(currencyWithNonCodeLikeSymbol);
             expect(expectedSymbol).toBeTruthy();
 
-            expect(CurrencyUtils.getPreferredCurrencySymbol(currencyWithNonCodeLikeSymbol)).toBe(expectedSymbol);
+            expect(CurrencyUtils.getPreferredCurrencySymbol(currencyWithNonCodeLikeSymbol, preferredLocale)).toBe(expectedSymbol);
         });
 
         test('Falls back to localized value when CURRENCY_LIST.symbol is code-like', async () => {
-            await IntlStore.load(CONST.LOCALES.EN);
+            const preferredLocale = CONST.LOCALES.EN;
+
+            await IntlStore.load(preferredLocale);
             await waitForBatchedUpdates();
 
-            // Force a known case: make USD symbol "USD" so it becomes code-like
+            // Force a known case: make the USD symbol "USD" so it becomes code-like
             const modifiedCurrencyList = {
                 ...currencyList,
                 USD: {
@@ -261,8 +264,8 @@ describe('CurrencyUtils', () => {
             await Onyx.set(ONYXKEYS.CURRENCY_LIST, modifiedCurrencyList);
             await waitForBatchedUpdates();
 
-            const preferred = CurrencyUtils.getPreferredCurrencySymbol(CONST.CURRENCY.USD);
-            const localized = CurrencyUtils.getLocalizedCurrencySymbol(IntlStore.getCurrentLocale(), CONST.CURRENCY.USD);
+            const preferred = CurrencyUtils.getPreferredCurrencySymbol(CONST.CURRENCY.USD, preferredLocale);
+            const localized = CurrencyUtils.getLocalizedCurrencySymbol(preferredLocale, CONST.CURRENCY.USD);
 
             expect(preferred).toBe(localized);
             expect(preferred).not.toBe('USD');
@@ -273,7 +276,9 @@ describe('CurrencyUtils', () => {
         });
 
         test('Falls back to localized value when CURRENCY_LIST.symbol is missing', async () => {
-            await IntlStore.load(CONST.LOCALES.EN);
+            const preferredLocale = CONST.LOCALES.EN;
+
+            await IntlStore.load(preferredLocale);
             await waitForBatchedUpdates();
 
             const modifiedCurrencyList = {
@@ -287,8 +292,8 @@ describe('CurrencyUtils', () => {
             await Onyx.set(ONYXKEYS.CURRENCY_LIST, modifiedCurrencyList);
             await waitForBatchedUpdates();
 
-            const preferred = CurrencyUtils.getPreferredCurrencySymbol(CONST.CURRENCY.USD);
-            const localized = CurrencyUtils.getLocalizedCurrencySymbol(IntlStore.getCurrentLocale(), CONST.CURRENCY.USD);
+            const preferred = CurrencyUtils.getPreferredCurrencySymbol(CONST.CURRENCY.USD, preferredLocale);
+            const localized = CurrencyUtils.getLocalizedCurrencySymbol(preferredLocale, CONST.CURRENCY.USD);
 
             expect(preferred).toBe(localized);
             expect(preferred).toBeTruthy();
@@ -299,7 +304,9 @@ describe('CurrencyUtils', () => {
         });
 
         test.each([['USD'], [' usd '], ['Usd']])('Falls back to localized value when CURRENCY_LIST.symbol is code-like (%s)', async (codeLikeSymbol) => {
-            await IntlStore.load(CONST.LOCALES.EN);
+            const preferredLocale = CONST.LOCALES.EN;
+
+            await IntlStore.load(preferredLocale);
             await waitForBatchedUpdates();
 
             const modifiedCurrencyList = {
@@ -313,8 +320,8 @@ describe('CurrencyUtils', () => {
             await Onyx.set(ONYXKEYS.CURRENCY_LIST, modifiedCurrencyList);
             await waitForBatchedUpdates();
 
-            const preferred = CurrencyUtils.getPreferredCurrencySymbol(CONST.CURRENCY.USD);
-            const localized = CurrencyUtils.getLocalizedCurrencySymbol(IntlStore.getCurrentLocale(), CONST.CURRENCY.USD);
+            const preferred = CurrencyUtils.getPreferredCurrencySymbol(CONST.CURRENCY.USD, preferredLocale);
+            const localized = CurrencyUtils.getLocalizedCurrencySymbol(preferredLocale, CONST.CURRENCY.USD);
 
             expect(preferred).toBe(localized);
             expect(preferred).not.toBe(codeLikeSymbol);

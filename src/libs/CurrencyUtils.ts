@@ -228,14 +228,15 @@ function isCurrencyCodeLikeSymbol(symbol?: string, currencyCode?: string): boole
  * - Uses the symbol from CURRENCY_LIST when it exists and is not code-like.
  * - Otherwise falls back to the localized Intl-derived currency value (existing behavior).
  */
-function getPreferredCurrencySymbol(currencyCode: string = CONST.CURRENCY.USD): string | undefined {
+function getPreferredCurrencySymbol(currencyCode: string = CONST.CURRENCY.USD, preferredLocale?: Locale | undefined): string | undefined {
     const symbolFromList = getCurrencySymbol(currencyCode);
 
     if (symbolFromList && !isCurrencyCodeLikeSymbol(symbolFromList, currencyCode)) {
         return symbolFromList;
     }
 
-    return getLocalizedCurrencySymbol(IntlStore.getCurrentLocale(), currencyCode);
+    const locale = preferredLocale ?? IntlStore.getCurrentLocale()
+    return getLocalizedCurrencySymbol(locale, currencyCode);
 }
 
 function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {
