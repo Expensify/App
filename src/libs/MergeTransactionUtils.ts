@@ -297,7 +297,7 @@ function getMergeableDataAndConflictFields(
             const updatedValues = getMergeFieldUpdatedValues({
                 transaction: selectedTransaction,
                 field,
-                fieldValue: selectedFieldValue as MergeTransaction[typeof field], searchReports,
+                fieldValue: selectedFieldValue as MergeTransaction[typeof field],
                 mergeTransaction: mergeableData as MergeTransaction,
                 searchReports,
             });
@@ -566,7 +566,13 @@ type GetMergeFieldUpdatedValuesParams<K extends MergeFieldKey> = {
  * Build updated values for merge transaction field selection
  * Handles special cases like currency for amount field, reportID, taxValue
  */
-function getMergeFieldUpdatedValues<K extends MergeFieldKey>({transaction, field, fieldValue, mergeTransaction, searchReports}: GetMergeFieldUpdatedValuesParams<K>): MergeTransactionUpdateValues {
+function getMergeFieldUpdatedValues<K extends MergeFieldKey>({
+    transaction,
+    field,
+    fieldValue,
+    mergeTransaction,
+    searchReports,
+}: GetMergeFieldUpdatedValuesParams<K>): MergeTransactionUpdateValues {
     const updatedValues: MergeTransactionUpdateValues = {
         [field]: fieldValue,
     };

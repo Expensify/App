@@ -114,8 +114,22 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(
-        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate, [targetTransactionReport, sourceTransactionReport]),
-        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy, translate],
+        () =>
+            buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate, [
+                targetTransactionReport,
+                sourceTransactionReport,
+            ]),
+        [
+            conflictFields,
+            targetTransaction,
+            sourceTransaction,
+            mergeTransaction,
+            targetTransactionReport,
+            sourceTransactionReport,
+            targetTransactionPolicy,
+            sourceTransactionPolicy,
+            translate,
+        ],
     );
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button
