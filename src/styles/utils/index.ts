@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {StyleSheet, Platform} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {AnimatableNumericValue, Animated, ColorValue, ImageStyle, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -1873,7 +1873,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             return {};
         }
 
-        const composerLineHeight = variables.lineHeightXLarge;
+        const composerLineHeight = Platform.OS === 'android' ? variables.lineHeightXLarge : styles.textInputCompose.lineHeight ?? 0;
 
         return {
             maxHeight: maxLines * composerLineHeight,
