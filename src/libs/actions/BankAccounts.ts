@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
@@ -14,6 +14,7 @@ import type {
     OpenReimbursementAccountPageParams,
     SaveCorpayOnboardingBeneficialOwnerParams,
     SendReminderForCorpaySignerInformationParams,
+    ShareBankAccountParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -23,6 +24,7 @@ import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parame
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import type {MemberForList} from '@libs/OptionsListUtils';
 import {getFormattedStreet} from '@libs/PersonalDetailsUtils';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -1298,6 +1300,62 @@ function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm
     return API.write(WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY, parameters, onyxData);
 }
 
+function clearShareBankAccount() {
+    Onyx.set(ONYXKEYS.SHARE_BANK_ACCOUNT, null);
+}
+
+function clearShareBankAccountErrors() {
+    Onyx.merge(ONYXKEYS.SHARE_BANK_ACCOUNT, {errors: null});
+}
+
+function setShareBankAccountAdmins(admins?: MemberForList[]) {
+    Onyx.merge(ONYXKEYS.SHARE_BANK_ACCOUNT, {admins});
+}
+
+function shareBankAccount(bankAccountID: number, emailList: string[]) {
+    const parameters: ShareBankAccountParams = {
+        bankAccountID,
+        emailList,
+    };
+
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SHARE_BANK_ACCOUNT,
+                value: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SHARE_BANK_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: null,
+                    admins: null,
+                    shouldShowSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.SHARE_BANK_ACCOUNT,
+                value: {
+                    isLoading: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('walletPage.shareBankAccountFailure'),
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.SHARE_BANK_ACCOUNT, parameters, onyxData);
+}
+
 /**
  * Get bank account from bankAccountID
  */
@@ -1306,6 +1364,36 @@ function getBankAccountFromID(bankAccountID: number | undefined) {
         return undefined;
     }
     return bankAccountList?.[bankAccountID];
+}
+
+function openBankAccountSharePage() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS,
+            value: true,
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS,
+            value: false,
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_SHARE_BANK_ACCOUNTS,
+            value: false,
+        },
+    ];
+
+    return API.read(READ_COMMANDS.OPEN_BANK_ACCOUNT_SHARE_PAGE, null, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 export {
@@ -1336,6 +1424,9 @@ export {
     clearPersonalBankAccountSetupType,
     validatePlaidSelection,
     fetchCorpayFields,
+    shareBankAccount,
+    setShareBankAccountAdmins,
+    clearShareBankAccount,
     clearReimbursementAccountBankCreation,
     getCorpayBankAccountFields,
     createCorpayBankAccountForWalletFlow,
@@ -1358,4 +1449,6 @@ export {
     clearPersonalBankAccountErrors,
     clearReimbursementAccountSendReminderForCorpaySignerInformation,
     getBankAccountFromID,
+    openBankAccountSharePage,
+    clearShareBankAccountErrors,
 };

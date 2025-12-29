@@ -200,11 +200,12 @@ function CardSection() {
                             <View style={styles.flex1}>
                                 <Text style={styles.textStrong}>{getPaymentMethodDescription(defaultCard?.accountType, defaultCard?.accountData, translate)}</Text>
                                 <Text style={styles.mutedNormalTextLabel}>
-                                    {translate('subscription.cardSection.cardInfo', {
-                                        name: defaultCard?.accountData?.addressName ?? '',
-                                        expiration: `${cardMonth} ${defaultCard?.accountData?.cardYear}`,
-                                        currency: defaultCard?.accountData?.currency ?? '',
-                                    })}
+                                    {translate(
+                                        'subscription.cardSection.cardInfo',
+                                        defaultCard?.accountData?.addressName ?? '',
+                                        `${cardMonth} ${defaultCard?.accountData?.cardYear}`,
+                                        defaultCard?.accountData?.currency ?? '',
+                                    )}
                                 </Text>
                             </View>
                             <CardSectionActions />
