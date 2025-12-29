@@ -267,7 +267,6 @@ Onyx.connect({
             allSortedReportActions[reportID] = sortedReportActions;
             const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
             const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
 
             // If the report is a one-transaction report and has , we need to return the combined reportActions so that the LHN can display modifications
             // to the transaction thread or the report itself
@@ -293,7 +292,7 @@ Onyx.connect({
             const reportActionsForDisplay = sortedReportActions.filter(
                 (reportAction, actionKey) =>
                     (!(isWhisperAction(reportAction) && !isReportPreviewAction(reportAction) && !isMoneyRequestAction(reportAction)) || isActionableMentionWhisper(reportAction)) &&
-                    shouldReportActionBeVisible(reportAction, actionKey, isWriteActionAllowed, policy) &&
+                    shouldReportActionBeVisible(reportAction, actionKey, isWriteActionAllowed) &&
                     reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED &&
                     reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             );
