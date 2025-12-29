@@ -277,7 +277,8 @@ function NumberWithSymbolForm({
     // Modifies the number to match changed decimals.
     useEffect(() => {
         // If the number supports decimals, we can return
-        if (validateAmount(currentNumber, decimals, maxLength, allowFlippingAmount)) {
+        const shouldAllowNegative = allowFlippingAmount || currentNumber.startsWith('-');
+        if (validateAmount(currentNumber, decimals, maxLength, shouldAllowNegative)) {
             return;
         }
 
