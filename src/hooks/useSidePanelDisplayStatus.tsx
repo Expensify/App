@@ -1,6 +1,7 @@
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import useEnvironment from './useEnvironment';
+import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
 
@@ -15,6 +16,7 @@ function useSidePanelDisplayStatus() {
         selector: hasCompletedGuidedSetupFlowSelector,
         canBeMissing: true,
     });
+    const isAnonymousUser = useIsAnonymousUser();
     const isSidePanelVisible = isExtraLargeScreenWidth ? sidePanelNVP?.open : sidePanelNVP?.openNarrowScreen;
 
     // The Side Panel is hidden when:
@@ -28,7 +30,8 @@ function useSidePanelDisplayStatus() {
     // - Side Panel is displayed currently
     // - Production environment (will be removed in the future once it's tested on staging)
     // - Onboarding is not completed
-    const shouldHideHelpButton = !shouldHideSidePanel || isProduction || !isOnboardingCompleted;
+    // - User is anonymous (not signed in)
+    const shouldHideHelpButton = !shouldHideSidePanel || isProduction || !isOnboardingCompleted || isAnonymousUser;
     const shouldHideSidePanelBackdrop = shouldHideSidePanel || isExtraLargeScreenWidth || shouldUseNarrowLayout;
 
     return {
