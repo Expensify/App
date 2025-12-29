@@ -44,7 +44,7 @@ function NewTaskTitlePage({route}: NewTaskTitlePageProps) {
             // We error if the user doesn't enter a task name
             addErrorMessage(errors, 'taskTitle', translate('newTaskPage.pleaseEnterTaskName'));
         } else if (parsedTitleLength > CONST.TASK_TITLE_CHARACTER_LIMIT) {
-            addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', {length: parsedTitleLength, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
+            addErrorMessage(errors, 'taskTitle', translate('common.error.characterLimitExceedCounter', parsedTitleLength, CONST.TASK_TITLE_CHARACTER_LIMIT));
         }
 
         return errors;
