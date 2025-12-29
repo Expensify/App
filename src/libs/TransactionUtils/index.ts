@@ -1569,7 +1569,7 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
         }
 
         // Exclude null island
-        if (!isWaypointNullIsland(currentWaypoint)) {
+        if (isWaypointNullIsland(currentWaypoint)) {
             return acc;
         }
 
