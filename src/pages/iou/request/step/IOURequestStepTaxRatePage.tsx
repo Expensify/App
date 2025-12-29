@@ -63,8 +63,8 @@ function IOURequestStepTaxRatePage({
 
     const taxRateTitle = getTaxName(policy, currentTransaction);
 
-    const updateTaxRates = (taxes: TaxRatesOption, isTaxDeleted?: boolean) => {
-        if (isTaxDeleted && isEditing) {
+    const updateTaxRates = (taxes: TaxRatesOption, shouldClearTax?: boolean) => {
+        if (shouldClearTax && isEditing) {
             updateMoneyRequestTaxRate({
                 transactionID: currentTransaction?.transactionID,
                 optimisticReportActionID: report?.reportID,

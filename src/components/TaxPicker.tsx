@@ -27,7 +27,7 @@ type TaxPickerProps = {
     transactionID?: string;
 
     /** Callback to fire when a tax is pressed */
-    onSubmit: (tax: TaxRatesOption, isTaxDeleted?: boolean) => void;
+    onSubmit: (tax: TaxRatesOption, shouldClearTax?: boolean) => void;
 
     /** The action to take */
     action?: IOUAction;
@@ -71,7 +71,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
 
     const isTaxDeleted = !!transaction?.taxCode && transaction?.taxValue !== undefined && !taxRates?.taxes?.[transaction.taxCode];
 
-    const isTaxValueChanged = !!transaction?.taxCode && !!transaction?.taxValue && !Object.values(taxRates?.taxes ?? {}).some((rate) => rate.value === transaction?.taxValue);
+    const isTaxValueChanged = !!transaction?.taxCode && transaction?.taxValue !== undefined && taxRates?.taxes?.[transaction.taxCode]?.value !== transaction?.taxValue;
 
     const selectedOptions = useMemo<Tax[]>(() => {
         if (!selectedTaxRate || isTaxValueChanged) {
@@ -136,9 +136,9 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
                 return;
             }
 
-            onSubmit(newSelectedOption, !newSelectedOption.code);
+            onSubmit(newSelectedOption, isTaxDeleted);
         },
-        [isTaxValueChanged, selectedOptionKey, onSubmit, onDismiss],
+        [isTaxValueChanged, selectedOptionKey, onSubmit, isTaxDeleted, onDismiss],
     );
 
     return (
