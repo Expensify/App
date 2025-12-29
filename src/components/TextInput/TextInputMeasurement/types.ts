@@ -39,9 +39,6 @@ type TextInputMeasurementProps = {
 
     /** Whether the prefix character padding is calculated */
     isPrefixCharacterPaddingCalculated: boolean;
-
-    /** Styles from container that need to be manually applied to hidden input (padding, border, etc.) since absolute positioning breaks inheritance */
-    hiddenInputStyle?: StyleProp<TextStyle>;
 };
 
 export default TextInputMeasurementProps;
