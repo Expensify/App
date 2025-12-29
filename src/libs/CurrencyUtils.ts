@@ -267,4 +267,5 @@ export {
     getCurrency,
     sanitizeCurrencyCode,
     getPreferredCurrencySymbol,
+    isCurrencyCodeLikeSymbol,
 };

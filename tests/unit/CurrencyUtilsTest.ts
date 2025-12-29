@@ -191,6 +191,41 @@ describe('CurrencyUtils', () => {
         );
     });
 
+    describe('isCurrencyCodeLikeSymbol', () => {
+        test.each([
+            // Exact match
+            ['USD', 'USD', true],
+            ['ALL', 'ALL', true],
+
+            // Case-insensitive
+            ['usd', 'USD', true],
+            ['Usd', 'uSd', true],
+
+            // Trimming on both sides
+            [' usd ', 'USD', true],
+            ['USD', ' usd ', true],
+            ['  usd  ', '  UsD  ', true],
+
+            // Not equal => false
+            ['USD', 'PEN', false],
+            ['US$', 'USD', false],
+            ['USD$', 'USD', false],
+            ['$', 'USD', false],
+            ['S/', 'PEN', false],
+
+            // Missing/empty values => false (note: empty string is falsy)
+            [undefined, 'USD', false],
+            ['USD', undefined, false],
+            ['', 'USD', false],
+            ['USD', '', false],
+            ['   ', 'USD', false], // whitespace becomes '' after trim, but it's still falsy upfront
+            ['USD', '   ', false],
+        ])('symbol=%s, currencyCode=%s => %s', (symbol, currencyCode, expected) => {
+            expect(CurrencyUtils.isCurrencyCodeLikeSymbol(symbol, currencyCode)).toBe(expected);
+        });
+    });
+
+
     describe('getPreferredCurrencySymbol', () => {
         test('Uses CURRENCY_LIST.symbol when it exists and is not code-like', () => {
             const currencyListTyped = currencyList as CurrencyList;
