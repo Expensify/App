@@ -69,7 +69,7 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const isTaxDeleted = !!transaction?.taxCode && !!transaction?.taxValue && Object.keys(taxRates?.taxes ?? {}).find((taxCode) => taxCode === transaction?.taxCode) === undefined;
+    const isTaxDeleted = !!transaction?.taxCode && transaction?.taxValue !== undefined && !taxRates?.taxes?.[transaction.taxCode];
 
     const isTaxValueChanged = !!transaction?.taxCode && !!transaction?.taxValue && !Object.values(taxRates?.taxes ?? {}).some((rate) => rate.value === transaction?.taxValue);
 
@@ -87,6 +87,21 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
         ];
     }, [selectedTaxRate, isTaxValueChanged]);
 
+    const deletedTaxOption = useMemo(() => {
+        if (!isTaxDeleted && !isTaxValueChanged) {
+            return null;
+        }
+        return {
+            code: undefined,
+            text: transaction?.taxValue ?? '',
+            keyForList: transaction?.taxCode ?? '',
+            searchText: transaction?.taxValue ?? '',
+            tooltipText: transaction?.taxValue ?? '',
+            isDisabled: true,
+            isSelected: true,
+        };
+    }, [isTaxDeleted, isTaxValueChanged, transaction?.taxCode, transaction?.taxValue]);
+
     const sections = useMemo(() => {
         const baseSections = getTaxRatesSection({
             policy,
@@ -96,25 +111,15 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
             transaction: currentTransaction,
         });
 
-        if (!isTaxDeleted && !isTaxValueChanged) {
+        if (!deletedTaxOption) {
             return baseSections;
         }
-
-        const deletedTaxOption = {
-            code: undefined,
-            text: transaction?.taxValue ?? '',
-            keyForList: transaction?.taxCode ?? '',
-            searchText: transaction?.taxValue ?? '',
-            tooltipText: transaction?.taxValue ?? '',
-            isDisabled: true,
-            isSelected: true,
-        };
 
         return baseSections.map((section) => ({
             ...section,
             data: [...section.data, deletedTaxOption],
         }));
-    }, [policy, searchValue, localeCompare, selectedOptions, currentTransaction, isTaxDeleted, isTaxValueChanged, transaction?.taxCode, transaction?.taxValue]);
+    }, [policy, searchValue, localeCompare, selectedOptions, currentTransaction, deletedTaxOption]);
 
     const headerMessage = getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);
 
