@@ -82,7 +82,6 @@ import {
     buildOptimisticIOUReportAction,
     buildTransactionThread,
     createDraftTransactionAndNavigateToParticipantSelector,
-    hasHeldExpenses,
     isIOUReport,
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
