@@ -103,7 +103,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         return isSupportedLocale(deviceLocale) ? deviceLocale : CONST.LOCALES.DEFAULT;
     }, [nvpPreferredLocale, nvpPreferredLocaleMetadata]);
 
-    if (localeToApply && !areTranslationsLoading) {
+    if (localeToApply) {
         IntlStore.load(localeToApply);
     }
 
