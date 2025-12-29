@@ -352,20 +352,20 @@ function IOURequestStepAmount({
         navigateBack();
     };
 
-    const hideCurrencyPicker = useCallback(() => {
+    const hideCurrencyPicker = () => {
         setIsCurrencyPickerVisible(false);
-    }, []);
+    };
 
-    const updateSelectedCurrency = useCallback((value: string) => {
+    const updateSelectedCurrency = (value: string) => {
         setSelectedCurrency(value);
-    }, []);
+    };
 
-    const showCurrencyPicker = useCallback(() => {
+    const showCurrencyPicker = () => {
         if (isTextInputFocused(textInput)) {
             textInput.current?.blur();
         }
         setIsCurrencyPickerVisible(true);
-    }, []);
+    };
 
     return (
         <StepScreenWrapper
