@@ -55,8 +55,8 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
-    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getReportName, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getReportName,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,
