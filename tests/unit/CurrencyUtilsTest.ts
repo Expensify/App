@@ -42,7 +42,7 @@ describe('CurrencyUtils', () => {
             const loadResult = IntlStore.load(preferredLocale);
             await (loadResult instanceof Promise ? loadResult : Promise.resolve());
             for (const currencyCode of currencyCodeList) {
-                const localizedSymbol = CurrencyUtils.getLocalizedCurrencySymbol(currencyCode);
+                const localizedSymbol = CurrencyUtils.getLocalizedCurrencySymbol(preferredLocale, currencyCode);
 
                 expect(localizedSymbol).toBeTruthy();
             }
