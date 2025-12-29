@@ -39,6 +39,7 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
+    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -503,6 +504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Meer weergeven',
         showLess: 'Minder weergeven',
         merchant: 'Handelaar',
+        change: 'Wijzigen',
         category: 'Categorie',
         report: 'Rapport',
         billable: 'Factureerbaar',
@@ -2381,6 +2383,43 @@ ${amount} voor ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Voeg een betaalmethode toe om rechtstreeks in de app betalingen te versturen en te ontvangen.',
         defaultPaymentMethod: 'Standaard',
         bankAccountLastFour: (lastFour: string) => `Bankrekening • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Kostenregels',
+        subtitle: 'Deze regels zijn van toepassing op je uitgaven. Als je ze indient bij een werkruimte, kunnen de regels van de werkruimte deze overschrijven.', //_/\__/_/  \_,_/\__/\__/\_,_/
+        emptyRules: {title: 'Je hebt nog geen regels aangemaakt', subtitle: 'Voeg een regel toe om onkostendeclaraties te automatiseren.'},
+        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
+            Object.entries(rule)
+                .map(([key, value]) => {
+                    if (!value) {
+                        return '';
+                    }
+                    switch (key) {
+                        case 'billable':
+                            return `Uitgave ${rule.billable === 'true' ? 'factureerbaar' : 'niet-declarabel'} bijwerken`;
+                        case 'category':
+                            return `Categorie bijwerken naar "${rule.category}"`;
+                        case 'comment':
+                            return `Beschrijving wijzigen in "${rule.comment}"`;
+                        case 'merchant':
+                            return `Handelaar bijwerken naar "${rule.merchant}"`;
+                        case 'reimbursable':
+                            return `Uitgave ${rule.reimbursable === 'true' ? 'terugbetaalbaar' : 'niet-vergoedbaar'} bijwerken`;
+                        case 'report':
+                            return `Een rapport met de naam "${rule.report}" toevoegen`;
+                        case 'tag':
+                            return `Tag bijwerken naar "${rule.tag}"`;
+                        case 'tax':
+                            if ('field_id_TAX' in rule.tax) {
+                                return `Belastingtarief bijwerken naar ${rule.tax.field_id_TAX.value}`;
+                            }
+                            return '';
+                        default:
+                            return '';
+                    }
+                })
+                .filter(Boolean)
+                .join(', '),
     },
     preferencesPage: {
         appSection: {

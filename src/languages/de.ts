@@ -39,6 +39,7 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
+    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -502,6 +503,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Mehr anzeigen',
         showLess: 'Weniger anzeigen',
         merchant: 'Händler',
+        change: 'Ändern',
         category: 'Kategorie',
         report: 'Bericht',
         billable: 'Verrechenbar',
@@ -2392,6 +2394,43 @@ ${amount} für ${merchant} – ${date}`,
         addFirstPaymentMethod: 'Fügen Sie eine Zahlungsmethode hinzu, um Zahlungen direkt in der App zu senden und zu empfangen.',
         defaultPaymentMethod: 'Standard',
         bankAccountLastFour: (lastFour: string) => `Bankkonto • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Ausgabenregeln',
+        subtitle: 'Diese Regeln gelten für deine Ausgaben. Wenn du in einen Workspace einreichst, können die Workspace-Regeln diese gegebenenfalls außer Kraft setzen.',
+        emptyRules: {title: 'Du hast noch keine Regeln erstellt', subtitle: 'Fügen Sie eine Regel hinzu, um Spesenberichte zu automatisieren.'},
+        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
+            Object.entries(rule)
+                .map(([key, value]) => {
+                    if (!value) {
+                        return '';
+                    }
+                    switch (key) {
+                        case 'billable':
+                            return `Ausgabe ${rule.billable === 'true' ? 'verrechenbar' : 'nicht abrechenbar'} aktualisieren`;
+                        case 'category':
+                            return `Kategorie auf „${rule.category}“ aktualisieren`;
+                        case 'comment':
+                            return `Beschreibung in „${rule.comment}“ ändern`;
+                        case 'merchant':
+                            return `Händler aktualisieren auf „${rule.merchant}“`;
+                        case 'reimbursable':
+                            return `Ausgabe ${rule.reimbursable === 'true' ? 'erstattungsfähig' : 'nicht erstattungsfähig'} aktualisieren`;
+                        case 'report':
+                            return `Einen Bericht mit dem Namen „${rule.report}“ hinzufügen`;
+                        case 'tag':
+                            return `Tag auf „${rule.tag}“ aktualisieren`;
+                        case 'tax':
+                            if ('field_id_TAX' in rule.tax) {
+                                return `Steuersatz auf ${rule.tax.field_id_TAX.value} aktualisieren`;
+                            }
+                            return '';
+                        default:
+                            return '';
+                    }
+                })
+                .filter(Boolean)
+                .join(', '),
     },
     preferencesPage: {
         appSection: {

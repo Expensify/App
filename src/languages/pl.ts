@@ -39,6 +39,7 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
+    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -503,6 +504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Pokaż więcej',
         showLess: 'Pokaż mniej',
         merchant: 'Sprzedawca',
+        change: 'Zmień',
         category: 'Kategoria',
         report: 'Raport',
         billable: 'Do zafakturowania',
@@ -2377,6 +2379,43 @@ ${amount} dla ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Dodaj metodę płatności, aby wysyłać i odbierać płatności bezpośrednio w aplikacji.',
         defaultPaymentMethod: 'Domyślne',
         bankAccountLastFour: (lastFour: string) => `Konto bankowe • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Zasady wydatków',
+        subtitle: 'Te zasady będą miały zastosowanie do Twoich wydatków. Jeśli wysyłasz je do przestrzeni roboczej, zasady tej przestrzeni roboczej mogą je zastąpić.',
+        emptyRules: {title: 'Nie utworzyłeś żadnych reguł', subtitle: 'Dodaj regułę, aby zautomatyzować raportowanie wydatków.'},
+        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
+            Object.entries(rule)
+                .map(([key, value]) => {
+                    if (!value) {
+                        return '';
+                    }
+                    switch (key) {
+                        case 'billable':
+                            return `Zaktualizuj wydatek ${rule.billable === 'true' ? 'Fakturowalne' : 'niefakturowalne'}`;
+                        case 'category':
+                            return `Zaktualizuj kategorię na „${rule.category}”`;
+                        case 'comment':
+                            return `Zmień opis na „${rule.comment}”`;
+                        case 'merchant':
+                            return `Zaktualizuj sprzedawcę na „${rule.merchant}”`;
+                        case 'reimbursable':
+                            return `Zaktualizuj wydatek ${rule.reimbursable === 'true' ? 'podlegający zwrotowi' : 'niepodlegający zwrotowi'}`;
+                        case 'report':
+                            return `Dodaj raport o nazwie „${rule.report}”`;
+                        case 'tag':
+                            return `Zaktualizuj znacznik na „${rule.tag}”`;
+                        case 'tax':
+                            if ('field_id_TAX' in rule.tax) {
+                                return `Zaktualizuj stawkę podatku na ${rule.tax.field_id_TAX.value}`;
+                            }
+                            return '';
+                        default:
+                            return '';
+                    }
+                })
+                .filter(Boolean)
+                .join(', '),
     },
     preferencesPage: {
         appSection: {

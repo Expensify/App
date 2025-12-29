@@ -39,6 +39,7 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
+    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -503,6 +504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Afficher plus',
         showLess: 'Afficher moins',
         merchant: 'Commerçant',
+        change: 'Modifier',
         category: 'Catégorie',
         report: 'Rapport',
         billable: 'Facturable',
@@ -2394,6 +2396,43 @@ ${amount} pour ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Ajoutez un mode de paiement pour envoyer et recevoir des paiements directement dans l’application.',
         defaultPaymentMethod: 'Par défaut',
         bankAccountLastFour: (lastFour: string) => `Compte bancaire • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Règles de dépenses',
+        subtitle: 'Ces règles s’appliqueront à vos notes de frais. Si vous soumettez à un espace de travail, alors les règles de l’espace de travail peuvent les remplacer.',
+        emptyRules: {title: 'Vous n’avez créé aucune règle', subtitle: 'Ajouter une règle pour automatiser la préparation des notes de frais.'},
+        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
+            Object.entries(rule)
+                .map(([key, value]) => {
+                    if (!value) {
+                        return '';
+                    }
+                    switch (key) {
+                        case 'billable':
+                            return `Mettre à jour la dépense ${rule.billable === 'true' ? 'facturable' : 'non facturable'}`;
+                        case 'category':
+                            return `Mettre à jour la catégorie en « ${rule.category} »`;
+                        case 'comment':
+                            return `Modifier la description en « ${rule.comment} »`;
+                        case 'merchant':
+                            return `Mettre à jour le marchand en « ${rule.merchant} »`;
+                        case 'reimbursable':
+                            return `Mettre à jour la dépense ${rule.reimbursable === 'true' ? 'remboursable' : 'non remboursable'}`;
+                        case 'report':
+                            return `Ajouter un rapport nommé « ${rule.report} »`;
+                        case 'tag':
+                            return `Mettre à jour le tag sur « ${rule.tag} »`;
+                        case 'tax':
+                            if ('field_id_TAX' in rule.tax) {
+                                return `Mettre à jour le taux de taxe à ${rule.tax.field_id_TAX.value}`;
+                            }
+                            return '';
+                        default:
+                            return '';
+                    }
+                })
+                .filter(Boolean)
+                .join(', '),
     },
     preferencesPage: {
         appSection: {

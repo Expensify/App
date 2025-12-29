@@ -39,6 +39,7 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
+    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -503,6 +504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'さらに表示',
         showLess: '表示を減らす',
         merchant: '加盟店',
+        change: '変更',
         category: 'カテゴリ',
         report: 'レポート',
         billable: '請求可能',
@@ -2375,6 +2377,43 @@ ${merchant} への ${amount}（${date}）`,
         addFirstPaymentMethod: 'アプリ内で直接支払いを送受信するには、支払方法を追加してください。',
         defaultPaymentMethod: 'デフォルト',
         bankAccountLastFour: (lastFour: string) => `銀行口座 • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: '経費ルール',
+        subtitle: 'これらのルールはあなたの経費に適用されます。ワークスペースに提出する場合、そのワークスペースのルールがこれらより優先されることがあります。',
+        emptyRules: {title: 'ルールがまだ作成されていません', subtitle: '経費報告を自動化するルールを追加する。'},
+        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
+            Object.entries(rule)
+                .map(([key, value]) => {
+                    if (!value) {
+                        return '';
+                    }
+                    switch (key) {
+                        case 'billable':
+                            return `経費 ${rule.billable === 'true' ? '請求対象' : '請求不可'} を更新`;
+                        case 'category':
+                            return `カテゴリを「${rule.category}」に更新`;
+                        case 'comment':
+                            return `説明を「${rule.comment}」に変更`;
+                        case 'merchant':
+                            return `支払先を「${rule.merchant}」に更新`;
+                        case 'reimbursable':
+                            return `経費 ${rule.reimbursable === 'true' ? '精算対象' : '非精算'} を更新`;
+                        case 'report':
+                            return `レポート名を「${rule.report}」として追加`;
+                        case 'tag':
+                            return `タグを「${rule.tag}」に更新`;
+                        case 'tax':
+                            if ('field_id_TAX' in rule.tax) {
+                                return `税率を${rule.tax.field_id_TAX.value}に更新`;
+                            }
+                            return '';
+                        default:
+                            return '';
+                    }
+                })
+                .filter(Boolean)
+                .join(', '),
     },
     preferencesPage: {
         appSection: {
