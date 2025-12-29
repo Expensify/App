@@ -1261,7 +1261,8 @@ function getTransactionsSections(
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(allViolations, transactionItem, currentUserEmail, currentAccountID ?? CONST.DEFAULT_NUMBER_ID, report, policy);
             // Use Map.get() for faster lookups with default values
-            const from = reportAction?.actorAccountID ? (personalDetailsMap.get(reportAction.actorAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const fromAccountID = reportAction?.actorAccountID ?? report?.ownerAccountID;
+            const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
