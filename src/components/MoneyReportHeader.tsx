@@ -33,7 +33,7 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {openOldDotLink} from '@libs/actions/Link';
-import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {createTransactionThreadReport, deleteAppReport, downloadReportPDF, exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate, search} from '@libs/actions/Search';
@@ -114,7 +114,6 @@ import {
 import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -244,7 +243,7 @@ function MoneyReportHeader({
         'ReceiptPlus',
     ] as const);
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const exportTemplates = useMemo(
         () => getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, policy),
@@ -337,6 +336,8 @@ function MoneyReportHeader({
     const canTriggerAutomaticPDFDownload = useRef(false);
     const hasFinishedPDFDownload = reportPDFFilename && reportPDFFilename !== CONST.REPORT_DETAILS_MENU_ITEM.ERROR;
 
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+
     useEffect(() => {
         canTriggerAutomaticPDFDownload.current = isPDFModalVisible;
     }, [isPDFModalVisible]);
@@ -422,6 +423,7 @@ function MoneyReportHeader({
     );
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
+    const isOnSearch = route.name.toLowerCase().startsWith('search');
     const {options: originalSelectedTransactionsOptions, handleDeleteTransactions} = useSelectedTransactionsActions({
         report: moneyRequestReport,
         reportActions,
@@ -431,6 +433,7 @@ function MoneyReportHeader({
         onExportOffline: () => setOfflineModalVisible(true),
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
+        isOnSearch,
     });
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
@@ -610,13 +613,14 @@ function MoneyReportHeader({
                     isASAPSubmitBetaEnabled,
                     introSelected,
                     activePolicyID,
+                    quickAction,
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,
                     activePolicyExpenseChat,
                 );
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled],
+        [activePolicyExpenseChat, activePolicyID, allPolicyCategories, defaultExpensePolicy, introSelected, isASAPSubmitBetaEnabled, quickAction],
     );
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
@@ -1253,8 +1257,7 @@ function MoneyReportHeader({
                     return;
                 }
 
-                setupMergeTransactionData(currentTransaction.transactionID, {targetTransactionID: currentTransaction.transactionID});
-                Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(currentTransaction.transactionID, Navigation.getActiveRoute()));
+                setupMergeTransactionDataAndNavigate(currentTransaction.transactionID, [currentTransaction], localeCompare);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {
@@ -1329,10 +1332,20 @@ function MoneyReportHeader({
                     if (result.action !== ModalActions.CONFIRM) {
                         return;
                     }
-                    let goBackRoute: Route | undefined;
                     if (transactionThreadReportID) {
                         if (!requestParentReportAction || !transaction?.transactionID) {
                             throw new Error('Missing data!');
+                        }
+                        const goBackRoute = getNavigationUrlOnMoneyRequestDelete(
+                            transaction.transactionID,
+                            requestParentReportAction,
+                            iouReport,
+                            chatIOUReport,
+                            isChatIOUReportArchived,
+                            false,
+                        );
+                        if (goBackRoute) {
+                            navigateOnDeleteExpense(goBackRoute);
                         }
                         // it's deleting transaction but not the report which leads to bug (that is actually also on staging)
                         // Money request should be deleted when interactions are done, to not show the not found page before navigating to goBackRoute
@@ -1341,11 +1354,6 @@ function MoneyReportHeader({
                             deleteTransactions([transaction.transactionID], duplicateTransactions, duplicateTransactionViolations, currentSearchHash, false);
                             removeTransaction(transaction.transactionID);
                         });
-                        goBackRoute = getNavigationUrlOnMoneyRequestDelete(transaction.transactionID, requestParentReportAction, iouReport, chatIOUReport, isChatIOUReportArchived, false);
-                    }
-
-                    if (goBackRoute) {
-                        Navigation.setNavigationActionToMicrotaskQueue(() => navigateOnDeleteExpense(goBackRoute));
                     }
                     return;
                 }
@@ -1364,7 +1372,7 @@ function MoneyReportHeader({
                 Navigation.goBack(backToRoute);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
-                    deleteAppReport(moneyRequestReport?.reportID, email ?? '');
+                    deleteAppReport(moneyRequestReport?.reportID, email ?? '', transactions);
                 });
             },
         },

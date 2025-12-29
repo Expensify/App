@@ -344,6 +344,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 shouldShowBackButton
                 progressBarPercentage={90}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_ACCOUNTING.getRoute())}
+                shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.interestedFeatures.title')}</Text>

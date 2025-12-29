@@ -228,6 +228,7 @@ function IOURequestStepDistanceManual({
                             currentUserEmailParam,
                             introSelected,
                             activePolicyID,
+                            quickAction,
                         });
                         return;
                     }

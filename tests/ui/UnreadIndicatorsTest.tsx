@@ -715,6 +715,7 @@ describe('Unread Indicators', () => {
             currentUserEmailParam: USER_A_EMAIL,
             introSelected: undefined,
             activePolicyID: undefined,
+            quickAction: undefined,
         });
         await waitForBatchedUpdates();
 

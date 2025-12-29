@@ -360,6 +360,7 @@ function IOURequestStepDistanceMap({
                         currentUserEmailParam,
                         introSelected,
                         activePolicyID,
+                        quickAction,
                     });
                     return;
                 }
@@ -439,6 +440,7 @@ function IOURequestStepDistanceMap({
         reportNameValuePairs,
         iouType,
         defaultExpensePolicy,
+        currentUserAccountIDParam,
         setDistanceRequestData,
         shouldSkipConfirmation,
         transactionID,
@@ -446,20 +448,20 @@ function IOURequestStepDistanceMap({
         reportAttributesDerived,
         translate,
         currentUserEmailParam,
-        currentUserAccountIDParam,
         policy,
         waypoints,
         lastSelectedDistanceRates,
         backToReport,
         isASAPSubmitBetaEnabled,
+        transactionViolations,
+        quickAction,
+        policyRecentlyUsedCurrencies,
         customUnitRateID,
+        introSelected,
+        activePolicyID,
         navigateToConfirmationPage,
         personalPolicy?.autoReporting,
         reportID,
-        transactionViolations,
-        quickAction,
-        introSelected,
-        activePolicyID,
     ]);
 
     const getError = () => {
