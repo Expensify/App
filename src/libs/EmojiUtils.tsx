@@ -664,7 +664,17 @@ function containsOnlyCustomEmoji(text?: string): boolean {
 }
 
 /**
- * Insert ZWNJ between digits and emoji to prevent Safari keycap sequence bug.
+ * Insert ZWNJ (Zero-Width Non-Joiner) between digits and emojis to prevent Safari's automatic keycap sequence bug.
+ *
+ * Safari has a browser-specific behavior where it automatically converts a digit immediately followed by an emoji
+ * into a Unicode keycap sequence (e.g., "1" + "😄" becomes "1️⃣"). This happens at the browser's input handling level
+ * before React can process the text, causing character corruption or unexpected joining.
+ *
+ * The ZWNJ character (U+200C) is a non-printing Unicode character that prevents the formation of ligatures or
+ * unwanted character joining. By inserting it between digits and emojis, we break Safari's automatic keycap
+ * sequence detection, ensuring the text displays correctly.
+ *
+ * Example: "234😄" becomes "234\u200C😄" (ZWNJ is invisible but prevents Safari's corruption)
  */
 function insertZWNJBetweenDigitAndEmoji(input: string): string {
     if (!isSafari()) {
