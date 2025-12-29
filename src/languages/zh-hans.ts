@@ -21,6 +21,7 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -942,6 +943,8 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: '作为副驾驶用于',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `创建了此报表以汇总 <a href="${reportUrl}">${reportName}</a> 中无法按您选择的频率提交的所有费用`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `为来自 <a href="${reportUrl}">${reportName}</a> 的所有暂挂报销创建了此报表`,
     },
     mentionSuggestions: {
         hereAlternateText: '通知此对话中的所有人',

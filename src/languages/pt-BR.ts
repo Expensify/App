@@ -21,6 +21,7 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -950,6 +951,8 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'como copiloto para',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `criou este relatório para agrupar todas as despesas de <a href="${reportUrl}">${reportName}</a> que não puderam ser enviadas na frequência que você escolheu`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `criou este relatório para quaisquer despesas retidas de <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Notificar todos nesta conversa',

@@ -21,6 +21,7 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
+    CreatedReportForUnapprovedTransactionsParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
     DeleteActionParams,
@@ -951,6 +952,8 @@ const translations: TranslationDeepObject<typeof en> = {
         asCopilot: 'als copiloot voor',
         harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
             `heeft dit rapport aangemaakt om alle uitgaven van <a href="${reportUrl}">${reportName}</a> op te nemen die niet konden worden ingediend met de door jou gekozen frequentie`,
+        createdReportForUnapprovedTransactions: ({reportUrl, reportName}: CreatedReportForUnapprovedTransactionsParams) =>
+            `heeft dit rapport gemaakt voor uitgestelde uitgaven van <a href="${reportUrl}">${reportName}</a>`,
     },
     mentionSuggestions: {
         hereAlternateText: 'Iedereen in dit gesprek op de hoogte stellen',
