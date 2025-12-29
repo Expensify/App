@@ -3401,7 +3401,7 @@ PODS:
     - Yoga
   - RNAppleAuthentication (2.5.0):
     - React-Core
-  - RNCClipboard (1.15.0):
+  - RNCClipboard (1.16.3):
     - boost
     - DoubleConversion
     - fast_float
@@ -4763,7 +4763,7 @@ SPEC CHECKSUMS:
   ReactCommon: e9ab32f1d1482d207867b4fdd139361302b9dcc6
   ReactNativeHybridApp: 16ebccf5382436fcb9303ab5f4b50d9942bccf5c
   RNAppleAuthentication: 9027af8aa92b4719ef1b6030a8e954d37079473a
-  RNCClipboard: e7da00b1612a8faf2309c6636043713cfe11092e
+  RNCClipboard: e560338bf6cc4656a09ff90610b62ddc0dbdad65
   RNCPicker: eb89e9d8bbd728bc00c48d294553f5968900f874
   RNDeviceInfo: f4e8dcaba08a5d3a703d30ad41e964e21148d7e2
   RNFBAnalytics: 2f451df50833a890974d55a93557da878a85b29e
