@@ -26,9 +26,12 @@ type AnimatedSubmitButtonProps = {
 
     // Whether the button should be disabled
     isDisabled?: boolean;
+
+    // Label for Sentry tracking
+    sentryLabel?: string;
 };
 
-function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled}: AnimatedSubmitButtonProps) {
+function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled, sentryLabel}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isAnimationRunning = isSubmittingAnimationRunning;
@@ -133,6 +136,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                     onPress={onPress}
                     icon={icon}
                     isDisabled={isDisabled}
+                    sentryLabel={sentryLabel}
                 />
             )}
         </Animated.View>

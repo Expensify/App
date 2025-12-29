@@ -47,6 +47,7 @@ function ShareTab({ref}: ShareTabProps) {
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const selectionListRef = useRef<SelectionListHandle | null>(null);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
 
@@ -76,8 +77,9 @@ function ShareTab({ref}: ShareTabProps) {
             maxResults: 20,
             includeUserToInvite: true,
             countryCode,
+            loginList,
         });
-    }, [areOptionsInitialized, betas, draftComments, nvpDismissedProductTraining, options, textInputValue, countryCode]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, loginList]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {

@@ -66,7 +66,7 @@ function TextSelectorModal({
             }
 
             if (formValue.length > maxLength) {
-                errors[rest.inputID] = translate('common.error.characterLimitExceedCounter', {length: formValue.length, limit: maxLength});
+                errors[rest.inputID] = translate('common.error.characterLimitExceedCounter', formValue.length, maxLength);
             }
 
             if (customValidate) {

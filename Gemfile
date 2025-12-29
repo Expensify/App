@@ -6,7 +6,7 @@ ruby ">= 3.3.4"
 gem "cocoapods", "= 1.16.2"
 gem 'activesupport', '>= 6.1.7.5', '!= 7.1.0'
 gem 'xcodeproj', '~> 1.27'
-gem "fastlane", "~> 2", ">= 2.228.0"
+gem "fastlane", "~> 2", ">= 2.229.0"
 gem "xcpretty", "~> 0"
 gem "openssl", ">= 3.3.1"
 

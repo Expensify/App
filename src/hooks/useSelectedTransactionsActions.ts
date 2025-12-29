@@ -2,12 +2,12 @@ import {useCallback, useMemo, useState} from 'react';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {initSplitExpense, unholdRequest} from '@libs/actions/IOU';
-import {setupMergeTransactionData} from '@libs/actions/MergeTransaction';
+import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {exportReportToCSV} from '@libs/actions/Report';
 import {getExportTemplates} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getReportAction, isDeletedAction} from '@libs/ReportActionsUtils';
-import {isMergeAction, isSplitAction} from '@libs/ReportSecondaryActionUtils';
+import {isMergeActionForSelectedTransactions, isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
@@ -51,6 +51,7 @@ function useSelectedTransactionsActions({
     onExportOffline,
     policy,
     beginExportWithTemplate,
+    isOnSearch,
 }: {
     report?: Report;
     reportActions: ReportAction[];
@@ -60,6 +61,7 @@ function useSelectedTransactionsActions({
     onExportOffline?: () => void;
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
+    isOnSearch?: boolean;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
@@ -128,8 +130,10 @@ function useSelectedTransactionsActions({
         return false;
     }, [selectedTransactionsList, selectedTransactionsMeta, selectedTransactionIDs.length]);
 
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isTrackExpenseThread = isTrackExpenseReport(report);
     const isInvoice = isInvoiceReport(report);
 
@@ -247,9 +251,13 @@ function useSelectedTransactionsActions({
                             onExportOffline?.();
                             return;
                         }
-                        exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionIDs}, () => {
-                            onExportFailed?.();
-                        });
+                        exportReportToCSV(
+                            {reportID: report.reportID, transactionIDList: selectedTransactionIDs},
+                            () => {
+                                onExportFailed?.();
+                            },
+                            translate,
+                        );
                         clearSelectedTransactions(true);
                     },
                 },
@@ -290,6 +298,19 @@ function useSelectedTransactionsActions({
             return canMoveExpense;
         });
 
+        const canMergeTransaction = selectedTransactionsList.length < 3 && report && policy && isMergeActionForSelectedTransactions(selectedTransactionsList, [report], [policy]);
+        if (canMergeTransaction) {
+            const transactionID = selectedTransactionsList.at(0)?.transactionID;
+            if (transactionID) {
+                options.push({
+                    text: translate('common.merge'),
+                    icon: expensifyIcons.ArrowCollapse,
+                    value: MERGE,
+                    onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, selectedTransactionsList, localeCompare, [], false, isOnSearch),
+                });
+            }
+        }
+
         const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
         if (canSelectedExpensesBeMoved && canUserPerformWriteAction && !hasTransactionsFromMultipleOwners) {
             options.push({
@@ -321,26 +342,6 @@ function useSelectedTransactionsActions({
             });
         }
 
-        // In phase 1, we only show merge action if report is eligible for merge and only one transaction is selected
-        const canMergeTransaction = selectedTransactionsList.length === 1 && report && isMergeAction(report, selectedTransactionsList, policy);
-        if (canMergeTransaction) {
-            options.push({
-                text: translate('common.merge'),
-                icon: expensifyIcons.ArrowCollapse,
-                value: MERGE,
-                onSelected: () => {
-                    const targetTransaction = selectedTransactionsList.at(0);
-
-                    if (!report || !targetTransaction) {
-                        return;
-                    }
-
-                    setupMergeTransactionData(targetTransaction.transactionID, {targetTransactionID: targetTransaction.transactionID});
-                    Navigation.navigate(ROUTES.MERGE_TRANSACTION_LIST_PAGE.getRoute(targetTransaction.transactionID, Navigation.getActiveRoute()));
-                },
-            });
-        }
-
         const canAllSelectedTransactionsBeRemoved = selectedTransactionsList.every((transaction) => {
             const canRemoveTransaction = canDeleteCardTransactionByLiabilityType(transaction);
             const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
@@ -362,6 +363,7 @@ function useSelectedTransactionsActions({
         }
         return options;
     }, [
+        session?.email,
         selectedTransactionIDs,
         report,
         selectedTransactionsList,
@@ -385,7 +387,17 @@ function useSelectedTransactionsActions({
         allReports,
         session?.accountID,
         showDeleteModal,
-        expensifyIcons,
+        expensifyIcons.Stopwatch,
+        expensifyIcons.ThumbsDown,
+        expensifyIcons.Table,
+        expensifyIcons.Export,
+        expensifyIcons.ArrowRight,
+        expensifyIcons.ArrowSplit,
+        expensifyIcons.DocumentMerge,
+        expensifyIcons.ArrowCollapse,
+        expensifyIcons.Trashcan,
+        localeCompare,
+        isOnSearch,
     ]);
 
     return {

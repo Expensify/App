@@ -100,6 +100,7 @@ jobs:
         uses: Expensify/GitHub-Actions/setup-certificate-1p@main
         with:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
 
       - name: Load files from 1Password
         working-directory: android/app

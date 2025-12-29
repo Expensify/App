@@ -106,6 +106,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                         policyID={policyID}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
+                        backTo={backTo}
                     />
                 );
             case CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER:

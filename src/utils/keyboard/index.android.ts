@@ -20,7 +20,8 @@ const subscribeKeyboardVisibilityChange = (cb: (isVisible: boolean) => void) => 
     return () => {};
 };
 
-const dismiss = (): Promise<void> => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const dismiss = (shouldSkipSafari?: boolean): Promise<void> => {
     return new Promise((resolve) => {
         if (!isVisible) {
             resolve();

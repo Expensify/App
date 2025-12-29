@@ -74,7 +74,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, dismissErr
         if (href.endsWith('retry')) {
             handleRetryPress(receiptError, dismissError, setShouldShowErrorModal);
         } else if (href.endsWith('download')) {
-            fileDownload(receiptError.source, receiptError.filename).finally(() => dismissError());
+            fileDownload(translate, receiptError.source, receiptError.filename).finally(() => dismissError());
         }
     };
 
