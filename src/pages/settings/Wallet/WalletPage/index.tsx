@@ -136,6 +136,8 @@ function WalletPage() {
             if (accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !!accountData?.sharees?.length) {
                 const isOnlyCurrentUserInSharees = accountData.sharees.length === 1 && accountData.sharees.at(0) === currentUserPersonalDetails?.email;
                 setShouldShowUnshareButton(accountData?.state === CONST.BANK_ACCOUNT.STATE.OPEN && !isOnlyCurrentUserInSharees);
+            } else {
+                setShouldShowUnshareButton(false);
             }
             setPaymentMethod({
                 isSelectedPaymentMethodDefault: !!isDefault,
