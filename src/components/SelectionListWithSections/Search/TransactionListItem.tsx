@@ -133,7 +133,7 @@ function TransactionListItem<TItem extends ListItem>({
             transactionItem.category,
             transactionItem.attendees,
             currentUserDetails,
-            snapshotPolicy?.isAttendeeTrackingEnabled ?? true,
+            snapshotPolicy?.isAttendeeTrackingEnabled ?? false,
             snapshotPolicy?.type === CONST.POLICY.TYPE.CORPORATE,
         );
 
