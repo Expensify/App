@@ -64,7 +64,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
         sentryLabel,
         shouldPutHeaderTextAfterBackButton = false,
         shouldAlwaysShowHeaderText = false,
-        onBackButtonPress,
+        onSubmenuBackButtonPress,
     } = props;
 
     const theme = useTheme();
@@ -310,7 +310,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     }))}
                     shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                     shouldAlwaysShowHeaderText={shouldAlwaysShowHeaderText}
-                    onBackButtonPress={onBackButtonPress}
+                    onBackButtonPress={onSubmenuBackButtonPress}
                 />
             )}
         </View>

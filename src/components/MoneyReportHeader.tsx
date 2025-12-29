@@ -254,7 +254,7 @@ function MoneyReportHeader({
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
-    const [isApprovalOptionPressed, setIsApprovalOptionPressed] = useState(false);
+    const [isSecondaryApprovalOptionPressed, setIsSecondaryApprovalOptionPressed] = useState(false);
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -1179,7 +1179,7 @@ function MoneyReportHeader({
             subMenuItems: secondaryApprovalActions,
             shouldUpdateSelectedIndex: true,
             onSelected: () => {
-                setIsApprovalOptionPressed(true);
+                setIsSecondaryApprovalOptionPressed(true);
                 if (shouldShowApprovalSecondaryActions) {
                     return;
                 }
@@ -1664,10 +1664,10 @@ function MoneyReportHeader({
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}
-                                headerText={isApprovalOptionPressed ? translate('iou.confirmApprovalWithHeldAmount') : ''}
+                                headerText={isSecondaryApprovalOptionPressed ? translate('iou.confirmApprovalWithHeldAmount') : ''}
                                 shouldPutHeaderTextAfterBackButton
                                 shouldAlwaysShowHeaderText
-                                onBackButtonPress={() => setIsApprovalOptionPressed(false)}
+                                onSubmenuBackButtonPress={() => setIsSecondaryApprovalOptionPressed(false)}
                             />
                         )}
                         {shouldShowSelectedTransactionsButton && (
@@ -1708,10 +1708,10 @@ function MoneyReportHeader({
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}
-                                headerText={isApprovalOptionPressed ? translate('iou.confirmApprovalWithHeldAmount') : ''}
+                                headerText={isSecondaryApprovalOptionPressed ? translate('iou.confirmApprovalWithHeldAmount') : ''}
                                 shouldPutHeaderTextAfterBackButton
                                 shouldAlwaysShowHeaderText
-                                onBackButtonPress={() => setIsApprovalOptionPressed(false)}
+                                onSubmenuBackButtonPress={() => setIsSecondaryApprovalOptionPressed(false)}
                             />
                         )}
                     </View>

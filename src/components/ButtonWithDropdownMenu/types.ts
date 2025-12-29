@@ -169,7 +169,7 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     shouldAlwaysShowHeaderText?: boolean;
 
     /** Callback when the back button in the header is pressed */
-    onBackButtonPress?: () => void;
+    onSubmenuBackButtonPress?: () => void;
 };
 
 type ButtonWithDropdownMenuRef = {
