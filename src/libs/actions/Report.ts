@@ -1542,9 +1542,8 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
  * @param parentReportID The reportID of the parent
  */
 function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
-    // Check if child report already exists
-    const existingChildReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
-    const reportID = existingChildReport?.reportID ?? buildOptimisticChildReport(childReportID, parentReportAction, parentReportID).reportID;
+    const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
+    const reportID = childReport?.reportID ?? buildOptimisticChildReport(childReportID, parentReportAction, parentReportID).reportID;
     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, Navigation.getActiveRoute()));
 }
 
