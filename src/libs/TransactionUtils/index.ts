@@ -212,6 +212,10 @@ function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
 }
 
+function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.comment?.type === CONST.TRANSACTION.TYPE.TIME;
+}
+
 function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
     return isManagedCardTransaction(transaction) && transaction?.comment?.liabilityType === CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT;
 }
@@ -2548,6 +2552,7 @@ export {
     shouldReuseInitialTransaction,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
+    isTimeRequest,
 };
 
 export type {TransactionChanges};
