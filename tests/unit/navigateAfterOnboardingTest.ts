@@ -29,20 +29,9 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@libs/ReportUtils', () => ({
+    ...jest.requireActual<typeof ReportUtils>('@libs/ReportUtils'),
     findLastAccessedReport: () => mockFindLastAccessedReport() as OnyxEntry<Report>,
     parseReportRouteParams: jest.fn(() => ({})),
-    isConciergeChatReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isConciergeChatReport,
-    isArchivedReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isArchivedReport,
-    isThread: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isThread,
-    getAllPolicyReports: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllPolicyReports,
-    isValidReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isValidReport,
-    generateReportAttributes: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportAttributes,
-    getAllReportActionsErrorsAndReportActionThatRequiresAttention: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllReportActionsErrorsAndReportActionThatRequiresAttention,
-    getAllReportErrors: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllReportErrors,
-    shouldDisplayViolationsRBRInLHN: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').shouldDisplayViolationsRBRInLHN,
-    generateIsEmptyReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateIsEmptyReport,
-    isExpenseReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isExpenseReport,
-    isSelfDM: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isSelfDM,
 }));
 
 jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({

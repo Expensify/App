@@ -40,7 +40,7 @@ Onyx.connect({
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 const getHiddenTranslation = () => translateLocal('common.hidden');
 // eslint-disable-next-line @typescript-eslint/no-deprecated
-const getYouTranslation = () => translateLocal('common.you');
+const getYouTranslation = () => translateLocal('common.you').toLowerCase();
 
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
