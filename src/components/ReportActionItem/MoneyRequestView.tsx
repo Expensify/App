@@ -55,7 +55,8 @@ import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
-    canUserPerformWriteAction as canUserPerformWriteActionReportUtils, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
@@ -298,7 +299,7 @@ function MoneyRequestView({
     const actualTransactionDate = isFromMergeTransaction && updatedTransaction ? getFormattedCreated(updatedTransaction) : transactionDate;
     const fallbackTaxRateTitle = transaction?.taxValue;
 
-    const isSettled = isSettledReportUtils(moneyRequestReport?.reportID);
+    const isSettled = isSettledReportUtils(moneyRequestReport);
     const isCancelled = moneyRequestReport && moneyRequestReport?.isCancelledIOU;
     const isChatReportArchived = useReportIsArchived(moneyRequestReport?.chatReportID);
     const pendingAction = transaction?.pendingAction;
@@ -457,12 +458,6 @@ function MoneyRequestView({
     }
     if (isExpenseSplit) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
-    }
-    if (currency !== moneyRequestReport?.currency && !isManagedCardTransaction) {
-        const convertedAmount = isPaidGroupPolicy(moneyRequestReport) ? -(transaction?.convertedAmount ?? 0) : (transaction?.convertedAmount ?? 0);
-        if (convertedAmount) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('common.converted')} ${convertToDisplayString(convertedAmount, moneyRequestReport?.currency)}`;
-        }
     }
 
     if (isFromMergeTransaction) {
