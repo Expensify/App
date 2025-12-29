@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
 import {getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
-import {getCreated} from '@libs/TransactionUtils';
+import {getCreated, isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction} from '@src/types/onyx';
@@ -61,7 +61,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
 
         return eligibleTransactions
             .filter((transaction) => {
-                if (!transaction?.reportID) {
+                if (isExpenseUnreported(transaction)) {
                     return true;
                 }
 
