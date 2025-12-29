@@ -2975,6 +2975,37 @@ function getWorkspaceAttendeeTrackingUpdateMessage(action: ReportAction): string
     return translateLocal('workspaceActions.updatedAttendeeTracking', {enabled: !!enabled});
 }
 
+function getAutoPayApprovedReportsEnabledMessage(action: ReportAction): string {
+    const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED>) ?? {};
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.updatedAutoPayApprovedReports', {enabled: !!enabled});
+}
+
+function getAutoPayApprovedReportsLimitMessage(action: ReportAction): string {
+    const {oldLimit, newLimit, currency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_LIMIT>) ?? {};
+
+    const oldLimitValue = oldLimit ?? 0;
+    const newLimitValue = newLimit ?? 0;
+
+    if (oldLimitValue === 0) {
+        const newLimitFormatted = convertToDisplayString(newLimitValue, currency);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.setAutoPayApprovedReportsLimit', {newLimit: newLimitFormatted});
+    }
+
+    if (newLimitValue === 0) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.removedAutoPayApprovedReportsLimit');
+    }
+
+    const oldLimitFormatted = convertToDisplayString(oldLimitValue, currency);
+    const newLimitFormatted = convertToDisplayString(newLimitValue, currency);
+
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('workspaceActions.updatedAutoPayApprovedReportsLimit', {oldLimit: oldLimitFormatted, newLimit: newLimitFormatted});
+}
+
 type DefaultApproverOriginalMessage = {
     approver: {email: string; name: string; accountID: number};
     previousApprover?: {email: string; name: string; accountID: number};
@@ -3714,6 +3745,8 @@ export {
     getWorkspaceUpdateFieldMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoPayApprovedReportsLimitMessage,
     getDefaultApproverUpdateMessage,
     getSubmitsToUpdateMessage,
     getForwardsToUpdateMessage,

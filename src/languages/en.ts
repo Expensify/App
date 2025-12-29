@@ -6395,6 +6395,11 @@ const translations = {
             }
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
+        updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} Auto-pay approved reports`,
+        setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `set the Auto-pay approved reports threshold to "${newLimit}"`,
+        updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
+            `changed the Auto-pay approved reports threshold to "${newLimit}" (previously "${oldLimit}")`,
+        removedAutoPayApprovedReportsLimit: 'removed the Auto-pay approved reports threshold',
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `changed the default approver to ${newApprover} (previously ${previousApprover})` : `changed the default approver to ${newApprover}`,
         changedSubmitsToApprover: ({

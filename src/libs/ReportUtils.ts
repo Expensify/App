@@ -204,6 +204,8 @@ import {
     getSubmitsToUpdateMessage,
     getTravelUpdateMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoPayApprovedReportsLimitMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
@@ -5873,6 +5875,12 @@ function getReportName(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED)) {
         return getWorkspaceAttendeeTrackingUpdateMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED)) {
+        return getAutoPayApprovedReportsEnabledMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_LIMIT)) {
+        return getAutoPayApprovedReportsLimitMessage(parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER)) {
         return getDefaultApproverUpdateMessage(parentReportAction);

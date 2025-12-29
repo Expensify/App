@@ -64,6 +64,8 @@ import {
     getUpdatedManualApprovalThresholdMessage,
     getUpdateRoomDescriptionMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
+    getAutoPayApprovedReportsEnabledMessage,
+    getAutoPayApprovedReportsLimitMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
@@ -895,6 +897,10 @@ function getOptionData({
             result.alternateText = getWorkspaceFeatureEnabledMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {
             result.alternateText = getWorkspaceAttendeeTrackingUpdateMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
+            result.alternateText = getAutoPayApprovedReportsEnabledMessage(lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_LIMIT) {
+            result.alternateText = getAutoPayApprovedReportsLimitMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER) {
             result.alternateText = getDefaultApproverUpdateMessage(lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO) {
