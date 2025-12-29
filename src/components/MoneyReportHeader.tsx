@@ -614,6 +614,8 @@ function MoneyReportHeader({
                     optimisticChatReportID,
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
+                    introSelected,
+                    activePolicyID,
                     quickAction,
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,
@@ -621,7 +623,7 @@ function MoneyReportHeader({
                 );
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction],
+        [activePolicyExpenseChat, activePolicyID, allPolicyCategories, defaultExpensePolicy, introSelected, isASAPSubmitBetaEnabled, quickAction],
     );
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
