@@ -7386,7 +7386,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID: fakeReport.reportID,
                 amount: 100,
-                modifiedAmount: undefined,
+                modifiedAmount: 0,
                 currency: 'USD',
             };
 
