@@ -82,6 +82,50 @@ type ReportFooterProps = {
 // Elements to skip entirely during page content extraction
 const SKIP_TAGS = new Set(['script', 'style', 'noscript', 'svg', 'canvas', 'iframe', 'video', 'audio', 'template', 'slot', 'meta', 'link']);
 
+// Pattern to match SVG CSS garbage that leaks through innerText
+const SVG_GARBAGE_PATTERN = /\.[a-zA-Z0-9_-]+_svg__[a-zA-Z0-9]+\{[^}]+\}/g;
+
+/**
+ * Clean SVG CSS garbage from text that leaks through innerText
+ */
+function cleanSvgGarbage(text: string): string {
+    return text.replaceAll(SVG_GARBAGE_PATTERN, '').trim();
+}
+
+/**
+ * Check if an element is actually visible on screen
+ * Elements can be in DOM but hidden via CSS, off-screen, or in collapsed panels
+ */
+function isElementVisible(element: Element): boolean {
+    const htmlElement = element as HTMLElement;
+
+    // Check computed styles for display/visibility
+    const style = window.getComputedStyle(htmlElement);
+    if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+        return false;
+    }
+
+    // Check if element has size and is in viewport (or reasonably close)
+    const rect = htmlElement.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+        return false;
+    }
+
+    // Check if element is reasonably within the viewport (allow some buffer for scrolling)
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const buffer = 100; // Small buffer for elements just outside viewport
+
+    if (rect.right < -buffer || rect.left > viewportWidth + buffer) {
+        return false;
+    }
+    if (rect.bottom < -buffer || rect.top > viewportHeight + buffer) {
+        return false;
+    }
+
+    return true;
+}
+
 // Map ARIA roles to semantic tag names for cleaner output
 const ROLE_TO_TAG: Record<string, string> = {
     button: 'button',
@@ -187,7 +231,10 @@ function buildCleanAttributes(element: Element, semanticTag: string): string {
 }
 
 /**
- * Captures page content for LLM context using TreeWalker for reliable DOM traversal
+ * Captures page content for LLM context by walking the DOM
+ * - Semantic elements (button, link, heading, etc.) are output with their text
+ * - Non-semantic wrappers (div, span) are unwrapped and their children processed
+ * - Scripts, SVGs, styles are skipped entirely
  * Only works on web - returns empty string on native platforms
  */
 function captureSimplifiedPageHTML(): string {
@@ -195,64 +242,135 @@ function captureSimplifiedPageHTML(): string {
         return '';
     }
 
+    // eslint-disable-next-line no-constant-condition
+    const DEBUG = true; // Set to false to disable logging
+
     try {
-        // The side panel is rendered in a ModalPortal (outside #root), so querying #root gives us the main content
         const rootElement = document.getElementById('root');
         if (!rootElement) {
+            if (DEBUG) {
+                console.log('[PageHTML] No root element found');
+            }
             return '';
         }
 
-        const currentPath = window.location.pathname + window.location.search;
-        const output: string[] = [];
-        const seenTexts = new Set<string>();
+        // Get the root's innerText - this only contains truly visible text
+        const rootInnerText = rootElement.innerText ?? '';
 
-        // Use TreeWalker for reliable traversal (SHOW_ELEMENT=1, SHOW_TEXT=4, combined=5)
-        // eslint-disable-next-line no-bitwise
-        const walker = document.createTreeWalker(rootElement, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT);
-
-        while (walker.nextNode()) {
-            const node = walker.currentNode;
-
-            // Handle text nodes
-            if (node.nodeType === Node.TEXT_NODE) {
-                const text = node.textContent?.trim();
-                if (text && text.length > 1 && !seenTexts.has(text)) {
-                    seenTexts.add(text);
-                    output.push(text);
-                }
-                continue;
-            }
-
-            // Handle element nodes
-            const element = node as Element;
-            const tagName = element.tagName.toLowerCase();
-
-            // Skip non-content elements
-            if (SKIP_TAGS.has(tagName)) {
-                continue;
-            }
-
-            // Get semantic info
-            const semanticTag = getSemanticTag(element);
-            if (!semanticTag) {
-                continue;
-            }
-
-            // For semantic elements, output them with their direct text
-            const directText = Array.from(element.childNodes)
-                .filter((child) => child.nodeType === Node.TEXT_NODE)
-                .map((child) => child.textContent?.trim())
-                .filter((t) => t && t.length > 0)
-                .join(' ');
-
-            if (directText && !seenTexts.has(directText)) {
-                seenTexts.add(directText);
-                const attrs = buildCleanAttributes(element, semanticTag);
-                output.push(`<${semanticTag}${attrs}>${directText}</${semanticTag}>`);
-            }
+        if (DEBUG) {
+            console.log('[PageHTML] Starting extraction from root');
+            console.log('[PageHTML] Root innerText length:', rootInnerText.length);
+            console.log('[PageHTML] Root innerText preview:', rootInnerText.slice(0, 500));
         }
 
-        // Build final output
+        const currentPath = window.location.pathname + window.location.search;
+        const seenContent = new Set<string>();
+        let elementsProcessed = 0;
+        let semanticElementsFound = 0;
+        let skippedElements = 0;
+        let duplicatesSkipped = 0;
+
+        let hiddenElementsSkipped = 0;
+
+        const extractContent = (element: Element, depth = 0): string[] => {
+            elementsProcessed++;
+            const tagName = element.tagName.toLowerCase();
+            const role = element.getAttribute('role');
+            const htmlElement = element as HTMLElement;
+
+            // Skip non-content elements entirely
+            if (SKIP_TAGS.has(tagName)) {
+                skippedElements++;
+                return [];
+            }
+
+            // Get semantic tag (from ARIA role or native tag)
+            const semanticTag = getSemanticTag(element);
+
+            if (semanticTag) {
+                semanticElementsFound++;
+
+                // Only check visibility when we're about to output a semantic element
+                if (!isElementVisible(element)) {
+                    hiddenElementsSkipped++;
+                    if (DEBUG && hiddenElementsSkipped <= 5) {
+                        console.log(`[PageHTML] Hidden semantic skipped: <${semanticTag}> "${htmlElement.innerText?.slice(0, 30)}..."`);
+                    }
+                    return [];
+                }
+
+                // Use innerText instead of textContent to get only visible text (excludes SVG styles)
+                // Then clean any SVG CSS garbage that still leaks through
+                const rawText = htmlElement.innerText?.trim();
+                const text = rawText ? cleanSvgGarbage(rawText) : '';
+
+                if (DEBUG && depth < 3) {
+                    console.log(`[PageHTML] Found semantic: <${tagName} role="${role}"> → <${semanticTag}>, text: "${text?.slice(0, 50)}..."`);
+                }
+
+                if (text && text.length > 0) {
+                    // Create unique key to deduplicate
+                    const contentKey = `${semanticTag}:${text}`;
+                    if (!seenContent.has(contentKey)) {
+                        seenContent.add(contentKey);
+                        const attrs = buildCleanAttributes(element, semanticTag);
+                        return [`<${semanticTag}${attrs}>${text}</${semanticTag}>`];
+                    }
+                    duplicatesSkipped++;
+                    if (DEBUG) {
+                        console.log(`[PageHTML] Duplicate skipped: <${semanticTag}> "${text.slice(0, 30)}..."`);
+                    }
+                }
+                return [];
+            }
+
+            // Not a semantic element (div, span, etc.) - check for direct text content first
+            const results: string[] = [];
+
+            // Capture text from text nodes that are direct children of this non-semantic element
+            // But only if this element is visible AND the text appears in the root's innerText
+            // (rootInnerText only contains truly visible text, so this filters out hidden content)
+            if (isElementVisible(element)) {
+                for (const child of Array.from(element.childNodes)) {
+                    if (child.nodeType === Node.TEXT_NODE) {
+                        const rawText = child.textContent?.trim();
+                        const text = rawText ? cleanSvgGarbage(rawText) : '';
+                        // Only include if text is visible (appears in rootInnerText)
+                        if (text && text.length > 1 && !seenContent.has(text) && rootInnerText.includes(text)) {
+                            seenContent.add(text);
+                            results.push(text);
+                            if (DEBUG && depth < 5) {
+                                console.log(`[PageHTML] Captured orphan text in <${tagName}>: "${text.slice(0, 50)}..."`);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Then recurse into child elements
+            for (const child of Array.from(element.children)) {
+                results.push(...extractContent(child, depth + 1));
+            }
+            return results;
+        };
+
+        const rawOutput = extractContent(rootElement);
+
+        if (DEBUG) {
+            console.log('[PageHTML] === EXTRACTION COMPLETE ===');
+            console.log('[PageHTML] Elements processed:', elementsProcessed);
+            console.log('[PageHTML] Semantic elements found:', semanticElementsFound);
+            console.log('[PageHTML] Skipped (script/svg/etc):', skippedElements);
+            console.log('[PageHTML] Hidden elements skipped:', hiddenElementsSkipped);
+            console.log('[PageHTML] Duplicates skipped:', duplicatesSkipped);
+            console.log('[PageHTML] Raw output lines:', rawOutput.length);
+            console.log('[PageHTML] First 10 raw items:', rawOutput.slice(0, 10));
+        }
+
+        // No grouping - output each item on its own line
+        // This keeps expense rows separate and easy to understand
+        const output = rawOutput;
+
         const content = output.join('\n');
         const structuredText = `<page url="${currentPath}">\n${content}\n</page>`;
 
@@ -263,11 +381,20 @@ function captureSimplifiedPageHTML(): string {
         }
 
         if (structuredText.length < 50) {
+            if (DEBUG) {
+                console.log('[PageHTML] Output too short, returning empty');
+            }
             return '';
+        }
+
+        if (DEBUG) {
+            console.log('[PageHTML] Final output length:', structuredText.length);
+            console.log('[PageHTML] === FINAL OUTPUT ===\n', structuredText);
         }
 
         return structuredText;
     } catch (error) {
+        console.error('[PageHTML] Error during extraction:', error);
         return '';
     }
 }
