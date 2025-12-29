@@ -83,10 +83,7 @@ function IOURequestStepMerchant({
             ) {
                 errors.moneyRequestMerchant = translate('iou.error.invalidMerchant');
             } else if (!isValid) {
-                errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', {
-                    length: byteLength,
-                    limit: CONST.MERCHANT_NAME_MAX_BYTES,
-                });
+                errors.moneyRequestMerchant = translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
             }
 
             return errors;
