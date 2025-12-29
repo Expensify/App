@@ -42,7 +42,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const {isOffline} = useNetwork();
 
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
-    const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
+    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionReport?.policyID}`, {canBeMissing: true});
 
     useEffect(() => {
@@ -106,8 +106,9 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
-        setupMergeTransactionDataAndNavigate([targetTransaction, sourceTransaction], localeCompare);
-    }, [targetTransaction, sourceTransaction, localeCompare]);
+        const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, reports, true);
+    }, [transactionID, targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, localeCompare]);
 
     const confirmButtonOptions = {
         showButton: true,

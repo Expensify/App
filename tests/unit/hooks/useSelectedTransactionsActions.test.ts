@@ -620,6 +620,8 @@ describe('useSelectedTransactionsActions', () => {
         const reportActions: ReportAction[] = [];
         const transaction = createRandomTransaction(1);
         transaction.transactionID = transactionID;
+        transaction.managedCard = false;
+        transaction.cardName = CONST.EXPENSE.TYPE.CASH_CARD_NAME;
 
         mockSelectedTransactionIDs.push(transactionID);
 
@@ -635,6 +637,7 @@ describe('useSelectedTransactionsActions', () => {
                 allTransactionsLength: 1,
                 policy,
                 beginExportWithTemplate: mockBeginExportWithTemplate,
+                isOnSearch: false,
             }),
         );
 
@@ -648,6 +651,6 @@ describe('useSelectedTransactionsActions', () => {
 
         mergeOption?.onSelected?.();
 
-        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith([transaction], mockLocalCompare);
+        expect(setupMergeTransactionDataAndNavigate).toHaveBeenCalledWith(transaction.transactionID, [transaction], mockLocalCompare, [], false, false);
     });
 });
