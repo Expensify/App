@@ -7,13 +7,14 @@ import InteractiveStepSubHeader from '@components/InteractiveStepSubHeader';
 import type {InteractiveStepSubHeaderHandle} from '@components/InteractiveStepSubHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useSubStep from '@hooks/useSubStep';
+import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsForm} from '@src/types/form';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import Address from './substeps/Address';
@@ -21,8 +22,8 @@ import Confirmation from './substeps/Confirmation';
 import DateOfBirth from './substeps/DateOfBirth';
 import LegalName from './substeps/LegalName';
 import PhoneNumber from './substeps/PhoneNumber';
-import type {CustomSubStepProps} from './types';
-import {getInitialSubstep, getSubstepValues} from './utils';
+import type {CustomSubPageProps} from './types';
+import {getInitialSubPage, getSubstepValues} from './utils';
 
 type MissingPersonalDetailsContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
@@ -35,7 +36,21 @@ type MissingPersonalDetailsContentProps = {
     onComplete: () => void;
 };
 
-const formSteps = [LegalName, DateOfBirth, Address, PhoneNumber, Confirmation];
+const formPages = [
+    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME, component: LegalName},
+    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.DATE_OF_BIRTH, component: DateOfBirth},
+    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.ADDRESS, component: Address},
+    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.PHONE_NUMBER, component: PhoneNumber},
+    {pageName: CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.CONFIRM, component: Confirmation},
+];
+
+function findPageIndex(pages: typeof formPages, pageName?: string): number {
+    if (!pageName) {
+        return 0;
+    }
+    const index = pages.findIndex((page) => page.pageName === pageName);
+    return index !== -1 ? index : 0;
+}
 
 function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, headerTitle, onComplete}: MissingPersonalDetailsContentProps) {
     const styles = useThemeStyles();
@@ -45,7 +60,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
 
     const values = useMemo(() => normalizeCountryCode(getSubstepValues(privatePersonalDetails, draftValues)) as PersonalDetailsForm, [privatePersonalDetails, draftValues]);
 
-    const startFrom = useMemo(() => getInitialSubstep(values), [values]);
+    const startFrom = useMemo(() => findPageIndex(formPages, getInitialSubPage(values)), [values]);
 
     const handleFinishStep = useCallback(() => {
         if (!values) {
@@ -54,49 +69,35 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
         onComplete();
     }, [onComplete, values]);
 
-    const {
-        componentToRender: SubStep,
-        isEditing,
-        nextScreen,
-        prevScreen,
-        screenIndex,
-        moveTo,
-        goToTheLastStep,
-        lastScreenIndex,
-    } = useSubStep<CustomSubStepProps>({bodyContent: formSteps, startFrom, onFinished: handleFinishStep});
+    const {CurrentPage, isEditing, currentPageName, prevPage, nextPage, lastPageIndex, moveTo, goToLastPage} = useSubPage<CustomSubPageProps>({
+        pages: formPages,
+        initialPageName: getInitialSubPage(values),
+        onFinished: handleFinishStep,
+        buildRoute: (pageName, action) => ROUTES.MISSING_PERSONAL_DETAILS.getRoute(pageName, action),
+    });
 
     const handleBackButtonPress = () => {
         if (isEditing) {
-            goToTheLastStep();
-            ref.current?.moveTo(lastScreenIndex);
+            goToLastPage();
+            ref.current?.moveTo(lastPageIndex);
 
             return;
         }
 
         // Clicking back on the first screen should dismiss the modal
-        if (screenIndex === CONST.MISSING_PERSONAL_DETAILS_INDEXES.MAPPING.LEGAL_NAME) {
+        if (currentPageName === CONST.MISSING_PERSONAL_DETAILS.PAGE_NAME.LEGAL_NAME) {
             clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
             Navigation.goBack();
             return;
         }
         ref.current?.movePrevious();
-        prevScreen();
+        prevPage();
     };
 
-    const handleNextScreen = useCallback(() => {
-        if (isEditing) {
-            goToTheLastStep();
-            ref.current?.moveTo(lastScreenIndex);
-            return;
-        }
-        ref.current?.moveNext();
-        nextScreen();
-    }, [goToTheLastStep, isEditing, nextScreen, lastScreenIndex]);
-
     const handleMoveTo = useCallback(
-        (step: number) => {
-            ref.current?.moveTo(step);
-            moveTo(step);
+        (pageName: string) => {
+            ref.current?.moveTo(findPageIndex(formPages, pageName));
+            moveTo(pageName);
         },
         [moveTo],
     );
@@ -115,14 +116,15 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
                 <InteractiveStepSubHeader
                     ref={ref}
                     startStepIndex={startFrom}
-                    stepNames={CONST.MISSING_PERSONAL_DETAILS_INDEXES.INDEX_LIST}
+                    stepNames={CONST.MISSING_PERSONAL_DETAILS.STEP_INDEX_LIST}
                 />
             </View>
-            <SubStep
+            <CurrentPage
                 isEditing={isEditing}
-                onNext={handleNextScreen}
+                onNext={nextPage}
                 onMove={handleMoveTo}
-                screenIndex={screenIndex}
+                prevPage={prevPage}
+                currentPageName={currentPageName}
                 personalDetailsValues={values}
             />
         </ScreenWrapper>
