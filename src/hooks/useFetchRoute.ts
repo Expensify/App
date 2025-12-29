@@ -26,7 +26,12 @@ export default function useFetchRoute(
     const previousValidatedWaypoints = usePrevious(validatedWaypoints);
     const haveValidatedWaypointsChanged = !deepEqual(previousValidatedWaypoints, validatedWaypoints);
     const isMapDistanceRequest = isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
-    const shouldFetchRoute = isMapDistanceRequest && (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) && !isLoadingRoute && Object.keys(validatedWaypoints).length > 1;
+    const shouldFetchRoute =
+        isMapDistanceRequest &&
+        (isRouteAbsentWithoutErrors || haveValidatedWaypointsChanged) &&
+        !isLoadingRoute &&
+        Object.keys(waypoints ?? {}).length === Object.keys(validatedWaypoints).length &&
+        Object.keys(validatedWaypoints).length > 1;
 
     useEffect(() => {
         if (isOffline || !shouldFetchRoute || !transaction?.transactionID) {
