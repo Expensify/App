@@ -198,6 +198,13 @@ function getSemanticTag(element: Element): string | null {
 }
 
 /**
+ * Escape special characters in attribute values
+ */
+function escapeAttributeValue(value: string): string {
+    return value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+}
+
+/**
  * Build clean attributes string for output
  */
 function buildCleanAttributes(element: Element, semanticTag: string): string {
@@ -207,24 +214,24 @@ function buildCleanAttributes(element: Element, semanticTag: string): string {
     if (semanticTag === 'a') {
         const href = element.getAttribute('href');
         if (href) {
-            attrs.push(`href="${href}"`);
+            attrs.push(`href="${escapeAttributeValue(href)}"`);
         }
     }
 
-    // Add useful attributes
+    // Add aria-label only if it provides useful info (not redundant with tag name or text)
     const ariaLabel = element.getAttribute('aria-label');
-    if (ariaLabel) {
-        attrs.push(`aria-label="${ariaLabel}"`);
+    if (ariaLabel && ariaLabel.toLowerCase() !== semanticTag) {
+        attrs.push(`aria-label="${escapeAttributeValue(ariaLabel)}"`);
     }
 
     const alt = element.getAttribute('alt');
     if (alt) {
-        attrs.push(`alt="${alt}"`);
+        attrs.push(`alt="${escapeAttributeValue(alt)}"`);
     }
 
     const placeholder = element.getAttribute('placeholder');
     if (placeholder) {
-        attrs.push(`placeholder="${placeholder}"`);
+        attrs.push(`placeholder="${escapeAttributeValue(placeholder)}"`);
     }
 
     return attrs.length > 0 ? ` ${attrs.join(' ')}` : '';
@@ -254,8 +261,14 @@ function captureSimplifiedPageHTML(): string {
 
         // Track seen semantic elements to deduplicate (e.g. nav buttons that appear multiple times)
         const seenSemanticContent = new Set<string>();
+        const maxDepth = 50; // Prevent stack overflow on deeply nested DOMs
 
-        const extractContent = (element: Element): string[] => {
+        const extractContent = (element: Element, depth = 0): string[] => {
+            // Safety limit for deeply nested DOMs
+            if (depth > maxDepth) {
+                return [];
+            }
+
             const tagName = element.tagName.toLowerCase();
             const htmlElement = element as HTMLElement;
 
@@ -308,7 +321,7 @@ function captureSimplifiedPageHTML(): string {
 
             // Recurse into child elements
             for (const child of Array.from(element.children)) {
-                results.push(...extractContent(child));
+                results.push(...extractContent(child, depth + 1));
             }
             return results;
         };
@@ -328,7 +341,9 @@ function captureSimplifiedPageHTML(): string {
         }
 
         return structuredText;
-    } catch {
+    } catch (error) {
+        // Log but don't crash - page context is non-critical for chat functionality
+        console.error('[captureSimplifiedPageHTML] Error extracting page content:', error);
         return '';
     }
 }
