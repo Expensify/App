@@ -13,6 +13,7 @@ import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
 const loadDomainInitialPage = () => require<ReactComponentModule>('../../../../pages/domain/DomainInitialPage').default;
 const loadDomainSamlPage = () => require<ReactComponentModule>('../../../../pages/domain/DomainSamlPage').default;
+const loadDomainAdminsPage = () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAdminsPage').default;
 
 const Split = createSplitNavigator<DomainSplitNavigatorParamList>();
 
@@ -43,12 +44,16 @@ function DomainSplitNavigator({route, navigation}: PlatformStackScreenProps<Auth
                         name={SCREENS.DOMAIN.SAML}
                         getComponent={loadDomainSamlPage}
                     />
+
+                    <Split.Screen
+                        key={SCREENS.DOMAIN.ADMINS}
+                        name={SCREENS.DOMAIN.ADMINS}
+                        getComponent={loadDomainAdminsPage}
+                    />
                 </Split.Navigator>
             </View>
         </FocusTrapForScreens>
     );
 }
-
-DomainSplitNavigator.displayName = 'DomainSplitNavigator';
 
 export default DomainSplitNavigator;
