@@ -845,6 +845,7 @@ function IOURequestStepConfirmation({
             isASAPSubmitBetaEnabled,
             transactionViolations,
             quickAction,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
@@ -1108,6 +1109,7 @@ function IOURequestStepConfirmation({
             trackExpense,
             userLocation,
             submitPerDiemExpense,
+            policyRecentlyUsedCurrencies,
         ],
     );
 

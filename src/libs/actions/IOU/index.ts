@@ -14460,6 +14460,7 @@ export {
     getReportPreviewAction,
     mergePolicyRecentlyUsedCurrencies,
     mergePolicyRecentlyUsedCategories,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getPolicyRecentlyUsedTagsData,
     getAllPersonalDetails,
     getReceiptError,
