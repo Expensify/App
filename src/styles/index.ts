@@ -1256,7 +1256,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingLeft: 8,
             paddingRight: 8,
             borderWidth: 1,
-            width: '100%',
         },
 
         cannotBeEditedSplitInputContainer: {

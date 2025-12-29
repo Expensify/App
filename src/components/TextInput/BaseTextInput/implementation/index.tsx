@@ -564,9 +564,6 @@ function BaseTextInput({
                 onSetTextInputWidth={setTextInputWidth}
                 onSetTextInputHeight={setTextInputHeight}
                 isPrefixCharacterPaddingCalculated={isPrefixCharacterPaddingCalculated}
-                // Since the hidden input is absolutely positioned, container styles don't automatically apply.
-                // We pass the container styles directly to match the visible input's dimensions.
-                hiddenInputStyle={styles.hiddenTextInputContainer}
             />
         </>
     );

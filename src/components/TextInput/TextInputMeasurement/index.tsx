@@ -20,7 +20,6 @@ function TextInputMeasurement({
     onSetTextInputWidth,
     onSetTextInputHeight,
     isPrefixCharacterPaddingCalculated,
-    hiddenInputStyle,
 }: TextInputMeasurementProps) {
     const styles = useThemeStyles();
 
@@ -28,7 +27,7 @@ function TextInputMeasurement({
         <>
             {!!contentWidth && isPrefixCharacterPaddingCalculated && (
                 <View
-                    style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, hiddenInputStyle as ViewStyle, inputPaddingLeft]}
+                    style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, styles.hiddenTextInputContainer, inputPaddingLeft]}
                     onLayout={(e) => {
                         if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
                             return;
@@ -64,7 +63,9 @@ function TextInputMeasurement({
                     style={[
                         inputStyle,
                         autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
-                        hiddenInputStyle,
+                        // Since the hidden input is absolutely positioned, container styles don't automatically apply.
+                        // We pass the container styles directly to match the visible input's dimensions.
+                        styles.hiddenTextInputContainer,
                         styles.hiddenElementOutsideOfWindow,
                         styles.visibilityHidden,
                     ]}
