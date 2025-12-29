@@ -1471,7 +1471,7 @@ function getReasonAndReportActionForRBRInLHNRow(
 }
 
 function getTransactionID(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>) {
-    const transactionID = TransactionUtilsGetTransactionID(report?.reportID);
+    const transactionID = TransactionUtilsGetTransactionID(report);
 
     return Number(transactionID) > 0
         ? transactionID
