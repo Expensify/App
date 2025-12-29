@@ -4247,6 +4247,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
         },
 
+        reportPreviewBoxHoverBorderColor: {
+            borderColor: theme.cardBG,
+        },
+
         reportContainerBorderRadius: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
@@ -5471,7 +5475,6 @@ const staticStyles = (theme: ThemeColors) =>
         flexibleHeight: {
             height: 'auto',
             minHeight: 200,
-            flex: 1,
         },
 
         receiptCellLoadingContainer: {
