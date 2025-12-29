@@ -177,10 +177,7 @@ function StatusPage() {
             }
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> = {};
             if (statusText.length > CONST.STATUS_TEXT_MAX_LENGTH) {
-                errors[INPUT_IDS.STATUS_TEXT] = translate('common.error.characterLimitExceedCounter', {
-                    length: statusText.length,
-                    limit: CONST.STATUS_TEXT_MAX_LENGTH,
-                });
+                errors[INPUT_IDS.STATUS_TEXT] = translate('common.error.characterLimitExceedCounter', statusText.length, CONST.STATUS_TEXT_MAX_LENGTH);
             }
             return errors;
         },
