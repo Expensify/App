@@ -28,8 +28,6 @@ import {
     getMoneyRequestParticipantsFromReport,
     requestMoney,
     resetSplitShares,
-    sendMoneyElsewhere,
-    sendMoneyWithWallet,
     setDraftSplitTransaction,
     setMoneyRequestAmount,
     setMoneyRequestParticipantsFromReport,
@@ -37,6 +35,7 @@ import {
     trackExpense,
     updateMoneyRequestAmountAndCurrency,
 } from '@userActions/IOU';
+import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -257,6 +256,7 @@ function IOURequestStepAmount({
                         currentUserEmailParam,
                         introSelected,
                         activePolicyID,
+                        quickAction,
                     });
                     return;
                 }

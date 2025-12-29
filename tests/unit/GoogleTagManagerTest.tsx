@@ -196,6 +196,7 @@ describe('GoogleTagManagerTest', () => {
             currentUserEmailParam: 'test@test.com',
             introSelected: undefined,
             activePolicyID: undefined,
+            quickAction: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();

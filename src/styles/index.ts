@@ -4247,6 +4247,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
         },
 
+        reportPreviewBoxHoverBorderColor: {
+            borderColor: theme.cardBG,
+        },
+
         reportContainerBorderRadius: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
@@ -5107,6 +5111,12 @@ const staticStyles = (theme: ThemeColors) =>
         travelCardIllustration: {
             width: 191,
             height: 170,
+        },
+
+        successBankSharedCardIllustration: {
+            width: 164,
+            height: 164,
+            marginBottom: 12,
         },
 
         emptyStateMoneyRequestReport: {

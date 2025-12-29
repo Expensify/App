@@ -399,6 +399,7 @@ function IOURequestStepScan({
                         currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                         introSelected,
                         activePolicyID,
+                        quickAction,
                     });
                 } else {
                     requestMoney({
@@ -443,6 +444,7 @@ function IOURequestStepScan({
             transactionViolations,
             introSelected,
             activePolicyID,
+            quickAction,
         ],
     );
 
@@ -607,6 +609,7 @@ function IOURequestStepScan({
             transactionTaxCode,
             transactionTaxAmount,
             quickAction,
+            policyRecentlyUsedCurrencies,
             policy,
             personalPolicy?.autoReporting,
             selfDMReportID,
