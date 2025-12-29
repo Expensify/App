@@ -29,6 +29,9 @@ type ExpenseHeaderApprovalButtonProps = {
 
     /** Callback when approval is confirmed */
     onApprove: (isFullApproval: boolean) => void;
+
+    /** Whether the button is disabled */
+    isDisabled?: boolean;
 };
 
 type ApprovalOption = {
@@ -93,6 +96,7 @@ function ExpenseHeaderApprovalButton({
     nonHeldAmount,
     fullAmount,
     onApprove,
+    isDisabled = false,
 }: ExpenseHeaderApprovalButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -123,6 +127,7 @@ function ExpenseHeaderApprovalButton({
                     headerTextStyles={styles.lineHeightNormal}
                     shouldAlwaysShowDropdownMenu
                     isSplitButton={false}
+                    isDisabled={isDisabled}
                 />
             );
         }
@@ -134,6 +139,7 @@ function ExpenseHeaderApprovalButton({
             onPress={() => onApprove(true)}
             text={translate('iou.approve')}
             sentryLabel={CONST.SENTRY_LABEL.REPORT_PREVIEW.APPROVE_BUTTON}
+            isDisabled={isDisabled}
         />
     );
 }

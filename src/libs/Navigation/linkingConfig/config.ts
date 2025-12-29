@@ -259,6 +259,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_WALLET_ENABLE_GLOBAL_REIMBURSEMENTS.route,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
+                            path: ROUTES.SETTINGS_WALLET_SHARE_BANK_ACCOUNT.route,
+                            exact: true,
+                        },
                         [SCREENS.SETTINGS.WALLET.TRANSFER_BALANCE]: {
                             path: ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE,
                             exact: true,
@@ -1120,6 +1124,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DOMAIN.VERIFY]: {
                             path: ROUTES.DOMAIN_VERIFY.route,
                         },
+                        [SCREENS.DOMAIN.ADD_ADMIN]: {
+                            path: ROUTES.DOMAIN_ADD_ADMIN.route,
+                        },
                         [SCREENS.DOMAIN.VERIFIED]: {
                             path: ROUTES.DOMAIN_VERIFIED.route,
                         },
@@ -1488,6 +1495,21 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
                             path: ROUTES.SPLIT_EXPENSE.route,
+                            exact: true,
+                            screens: {
+                                [CONST.TAB.SPLIT.AMOUNT]: {
+                                    path: CONST.TAB.SPLIT.AMOUNT,
+                                },
+                                [CONST.TAB.SPLIT.PERCENTAGE]: {
+                                    path: CONST.TAB.SPLIT.PERCENTAGE,
+                                },
+                                [CONST.TAB.SPLIT.DATE]: {
+                                    path: CONST.TAB.SPLIT.DATE,
+                                },
+                            },
+                        },
+                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH]: {
+                            path: ROUTES.SPLIT_EXPENSE_SEARCH.route,
                             exact: true,
                             screens: {
                                 [CONST.TAB.SPLIT.AMOUNT]: {

@@ -19,14 +19,7 @@ import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    CanceledRequestParams,
-    CardInfoParams,
     ChangeFieldParams,
-    ChangeOwnerDuplicateSubscriptionParams,
-    ChangeOwnerSubscriptionParams,
-    ChangeReportPolicyParams,
-    ChangeTypeParams,
-    CharacterLengthLimitParams,
     ConnectionNameParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
@@ -167,6 +160,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -343,6 +337,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'Nome',
         lastName: 'Cognome',
         scanning: 'Scansione',
+        analyzing: 'Analisi in corso...',
         addCardTermsOfService: 'Termini di servizio di Expensify',
         perPerson: 'per persona',
         phone: 'Telefono',
@@ -417,6 +412,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'a',
         genericErrorMessage: 'Ops... si è verificato un errore e la tua richiesta non può essere completata. Riprova più tardi.',
         percentage: 'Percentuale',
+        converted: 'Convertito',
         error: {
             invalidAmount: 'Importo non valido',
             acceptTerms: 'Devi accettare i Termini di servizio per continuare',
@@ -424,7 +420,7 @@ const translations: TranslationDeepObject<typeof en> = {
 (ad es. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Questo campo è obbligatorio',
             requestModified: 'Questa richiesta è in fase di modifica da parte di un altro membro',
-            characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Limite di caratteri superato (${length}/${limit})`,
+            characterLimitExceedCounter: (length: number, limit: number) => `Limite di caratteri superato (${length}/${limit})`,
             dateInvalid: 'Seleziona una data valida',
             invalidDateShouldBeFuture: 'Scegli una data di oggi o futura',
             invalidTimeShouldBeFuture: 'Scegli un orario almeno un minuto più tardi',
@@ -1299,7 +1295,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'ha rifiutato questo report',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `ha avviato il pagamento, ma è in attesa che ${submitterDisplayName} aggiunga un conto bancario.`,
         adminCanceledRequest: 'ha annullato il pagamento',
-        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
+        canceledRequest: (amount: string, submitterDisplayName: string) =>
             `ha annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha abilitato il proprio Expensify Wallet entro 30 giorni`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} ha aggiunto un conto bancario. Il pagamento di ${amount} è stato effettuato.`,
@@ -1625,11 +1621,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> risolva il/i problema/i.`;
+                        return `In attesa che <strong>tu</strong> risolva i problemi.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> risolva il/i problema/i.`;
+                        return `In attesa che <strong>${actor}</strong> risolva i problemi.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `In attesa che un amministratore risolva il/i problema/i.`;
+                        return `In attesa che un amministratore risolva i problemi.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2145,6 +2141,15 @@ const translations: TranslationDeepObject<typeof en> = {
         confirmYourBankAccount: 'Conferma il tuo conto bancario',
         personalBankAccounts: 'Conti bancari personali',
         businessBankAccounts: 'Conti bancari aziendali',
+        shareBankAccount: 'Condividi conto bancario',
+        bankAccountShared: 'Conto bancario condiviso',
+        shareBankAccountTitle: 'Seleziona gli amministratori con cui condividere questo conto bancario:',
+        shareBankAccountSuccess: 'Conto bancario condiviso!',
+        shareBankAccountSuccessDescription: 'Gli amministratori selezionati riceveranno un messaggio di conferma da Concierge.',
+        shareBankAccountFailure: 'Si è verificato un errore imprevisto durante il tentativo di condividere il conto bancario. Riprova.',
+        shareBankAccountEmptyTitle: 'Nessun amministratore disponibile',
+        shareBankAccountEmptyDescription: "Non ci sono amministratori dell'area di lavoro con cui puoi condividere questo conto bancario.",
+        shareBankAccountNoAdminsSelected: 'Seleziona un amministratore prima di continuare',
     },
     cardPage: {
         expensifyCard: 'Carta Expensify',
@@ -2849,6 +2854,7 @@ ${
             containsReservedWord: 'Il nome non può contenere le parole Expensify o Concierge',
             hasInvalidCharacter: 'Il nome non può contenere virgole o punti e virgola',
             requiredFirstName: 'Il nome non può essere vuoto',
+            cannotContainSpecialCharacters: 'Il nome non può contenere caratteri speciali',
         },
     },
     privatePersonalDetails: {
@@ -3858,7 +3864,6 @@ ${
                 monthly: 'Mensile',
             },
             planType: 'Tipo di piano',
-            submitExpense: 'Invia le tue spese qui sotto:',
             defaultCategory: 'Categoria predefinita',
             viewTransactions: 'Visualizza transazioni',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Spese di ${displayName}`,
@@ -4843,6 +4848,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 'Expensify Limited è un agente di Plaid Financial Ltd., un istituto di pagamento autorizzato e regolamentato dalla Financial Conduct Authority ai sensi delle Payment Services Regulations 2017 (Numero di riferimento dell’impresa: 804718). Plaid ti fornisce servizi regolamentati di informazione sui conti tramite Expensify Limited in qualità di suo agente.',
             assign: 'Assegna',
             assignCardFailedError: 'Assegnazione della carta non riuscita.',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emetti e gestisci le tue Expensify Card',
@@ -5880,14 +5886,14 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
 Vuoi trasferire questo importo (${amount}) per assumerti la fatturazione di questo spazio di lavoro? La tua carta di pagamento verrà addebitata immediatamente.`,
             subscriptionTitle: "Subentra all'abbonamento annuale",
             subscriptionButtonText: 'Trasferisci abbonamento',
-            subscriptionText: ({usersCount, finalCount}: ChangeOwnerSubscriptionParams) =>
+            subscriptionText: (usersCount: number, finalCount: number) =>
                 `Assumere il controllo di questo spazio di lavoro unirà il suo abbonamento annuale con il tuo abbonamento attuale. Questo aumenterà le dimensioni del tuo abbonamento di ${usersCount} membri, rendendo la nuova dimensione del tuo abbonamento pari a ${finalCount}. Vuoi continuare?`,
             duplicateSubscriptionTitle: 'Avviso di abbonamento duplicato',
             duplicateSubscriptionButtonText: 'Continua',
-            duplicateSubscriptionText: ({
-                email,
-                workspaceName,
-            }: ChangeOwnerDuplicateSubscriptionParams) => `Sembra che tu stia cercando di assumere la gestione della fatturazione per gli spazi di lavoro di ${email}, ma per farlo devi prima essere amministratore di tutti i loro spazi di lavoro.
+            duplicateSubscriptionText: (
+                email: string,
+                workspaceName: string,
+            ) => `Sembra che tu stia cercando di assumere la gestione della fatturazione per gli spazi di lavoro di ${email}, ma per farlo devi prima essere amministratore di tutti i loro spazi di lavoro.
 
 Fai clic su "Continua" se vuoi assumere la gestione della fatturazione solo per lo spazio di lavoro ${workspaceName}.
 
@@ -6951,13 +6957,13 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `ha modificato ${fieldName} in "${newValue}" (in precedenza "${oldValue}")`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `imposta ${fieldName} su "${newValue}"`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `ha modificato lo spazio di lavoro${fromPolicyName ? `(in precedenza ${fromPolicyName})` : ''}`;
                     }
                     return `ha cambiato l’area di lavoro in ${toPolicyName}${fromPolicyName ? `(in precedenza ${fromPolicyName})` : ''}`;
                 },
-                changeType: ({oldType, newType}: ChangeTypeParams) => `ha cambiato il tipo da ${oldType} a ${newType}`,
+                changeType: (oldType: string, newType: string) => `ha cambiato il tipo da ${oldType} a ${newType}`,
                 exportedToCSV: `esportato in CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => {
@@ -7500,9 +7506,9 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             title: 'Pagamento',
             subtitle: 'Aggiungi una carta per pagare il tuo abbonamento a Expensify.',
             addCardButton: 'Aggiungi carta di pagamento',
+            cardInfo: (name: string, expiration: string, currency: string) => `Nome: ${name}, Scadenza: ${expiration}, Valuta: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `La tua prossima data di pagamento è ${nextPaymentDate}.`,
             cardEnding: (cardNumber: string) => `Carta che termina con ${cardNumber}`,
-            cardInfo: ({name, expiration, currency}: CardInfoParams) => `Nome: ${name}, Scadenza: ${expiration}, Valuta: ${currency}`,
             changeCard: 'Cambia carta di pagamento',
             changeCurrency: 'Modifica valuta di pagamento',
             cardNotFound: 'Nessuna carta di pagamento aggiunta',
@@ -7617,12 +7623,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             whatsMainReason: 'Qual è il motivo principale per cui stai disattivando il rinnovo automatico?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Si rinnova il ${date}.`,
             pricingConfiguration: 'Il prezzo dipende dalla configurazione. Per il prezzo più basso, scegli un abbonamento annuale e richiedi la Expensify Card.',
-            learnMore: {
-                part1: 'Scopri di più sul nostro',
-                pricingPage: 'pagina dei prezzi',
-                part2: 'o chatta con il nostro team nella tua',
-                adminsRoom: 'Stanza #admins.',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `<muted-text>Scopri di più sulla nostra <a href="${CONST.PRICING}">pagina dei prezzi</a> o chatta con il nostro team nel tuo ${hasAdminsRoom ? `<a href="adminsRoom">stanza #admins.</a>` : 'Stanza #admins.'}</muted-text>`,
             estimatedPrice: 'Prezzo stimato',
             changesBasedOn: 'Questo cambia in base all’utilizzo della tua Expensify Card e alle opzioni di abbonamento riportate di seguito.',
         },
@@ -7965,7 +7967,15 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             findAdmin: 'Trova amministratore',
             primaryContact: 'Contatto principale',
             addPrimaryContact: 'Aggiungi contatto principale',
+            setPrimaryContactError: 'Impossibile impostare il contatto principale. Riprova più tardi.',
             settings: 'Impostazioni',
+            consolidatedDomainBilling: 'Fatturazione consolidata del dominio',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>Quando abilitata, il contatto principale pagherà per tutti gli spazi di lavoro di proprietà dei membri di <strong>${domainName}</strong> e riceverà tutte le ricevute di fatturazione.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: 'La fatturazione dominio consolidata non può essere modificata. Riprova più tardi.',
+            addAdmin: 'Aggiungi amministratore',
+            invite: 'Invita',
+            addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
         },
     },
     desktopAppRetiredPage: {

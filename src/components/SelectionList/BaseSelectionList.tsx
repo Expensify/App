@@ -80,6 +80,7 @@ function BaseSelectionList<TItem extends ListItem>({
     shouldSingleExecuteRowSelect = false,
     shouldPreventDefaultFocusOnSelectRow = false,
     shouldShowTextInput = !!textInputOptions?.label,
+    shouldClearInputOnSelect = false,
     shouldHighlightSelectedItem = true,
     shouldUseDefaultRightHandSideCheckmark,
     shouldDisableHoverStyle = false,
@@ -187,7 +188,7 @@ function BaseSelectionList<TItem extends ListItem>({
                 return;
             }
             if (canSelectMultiple) {
-                if (shouldShowTextInput) {
+                if (shouldShowTextInput && shouldClearInputOnSelect) {
                     textInputOptions?.onChangeText?.('');
                 } else if (isSmallScreenWidth) {
                     if (!item.isDisabledCheckbox) {
@@ -211,6 +212,7 @@ function BaseSelectionList<TItem extends ListItem>({
             shouldUpdateFocusedIndex,
             onSelectRow,
             shouldShowTextInput,
+            shouldClearInputOnSelect,
             shouldPreventDefaultFocusOnSelectRow,
             isSmallScreenWidth,
             textInputOptions,
