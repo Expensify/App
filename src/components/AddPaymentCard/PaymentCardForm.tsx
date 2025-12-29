@@ -210,10 +210,7 @@ function PaymentCardForm({
         if (values.addressZipCode && !isValidPaymentZipCode(values.addressZipCode)) {
             errors.addressZipCode = translate('addPaymentCardPage.error.addressZipCode');
         } else if (values.addressZipCode.length > CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE) {
-            errors.addressZipCode = translate('common.error.characterLimitExceedCounter', {
-                length: values.addressZipCode.length,
-                limit: CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE,
-            });
+            errors.addressZipCode = translate('common.error.characterLimitExceedCounter', values.addressZipCode.length, CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE);
         }
 
         if (!values.acceptTerms) {
