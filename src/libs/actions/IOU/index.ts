@@ -6939,10 +6939,13 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 policy,
                 policyCategories,
                 policyTagList,
+            },
             retryParams,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam,
+            currentUserEmailParam,
             introSelected,
+            activePolicyID,
             quickAction,
         }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
