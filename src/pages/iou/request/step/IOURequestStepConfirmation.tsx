@@ -612,6 +612,7 @@ function IOURequestStepConfirmation({
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                     transactionViolations,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 });
                 existingIOUReport = iouReport;
             }
