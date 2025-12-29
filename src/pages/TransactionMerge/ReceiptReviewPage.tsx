@@ -39,7 +39,8 @@ function ReceiptReviewPage({route}: ReceiptReviewPageProps) {
         canBeMissing: true,
     });
     const [originalTargetTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${targetTransaction?.comment?.originalTransactionID}`, {canBeMissing: true});
-    const transactions = [targetTransaction, sourceTransaction].filter((transaction): transaction is Transaction => !!transaction);
+    const sourceTransactionFromMerge = getSourceTransactionFromMergeTransaction(mergeTransaction);
+    const transactions = [targetTransaction, sourceTransactionFromMerge].filter((transaction): transaction is Transaction => !!transaction);
 
     const handleSelect = (receipt: Receipt | undefined) => {
         setMergeTransactionKey(transactionID, {receipt});
