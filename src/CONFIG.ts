@@ -99,7 +99,7 @@ export default {
         SUFFIX: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? get(Config, 'PUSHER_DEV_SUFFIX', '') : '',
         CLUSTER: 'mt1',
     },
-    SITE_TITLE: 'New Expensify',
+    SITE_TITLE: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? 'New Expensify [dev]' : 'New Expensify',
     FAVICON: {
         DEFAULT: '/favicon.png',
         UNREAD: '/favicon-unread.png',
