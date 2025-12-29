@@ -47,7 +47,7 @@ function getCurrencyUnit(currency: string = CONST.CURRENCY.USD): number {
 }
 
 /**
- * Get localized currency symbol for currency(ISO 4217) Code
+ * Get localized currency symbol for currency (ISO 4217) Code
  */
 function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: string): string | undefined {
     const parts = formatToParts(locale, 0, {
@@ -235,7 +235,7 @@ function getPreferredCurrencySymbol(currencyCode: string = CONST.CURRENCY.USD): 
         return symbolFromList;
     }
 
-    return getLocalizedCurrencySymbol(currencyCode);
+    return getLocalizedCurrencySymbol(IntlStore.getCurrentLocale(), currencyCode);
 }
 
 function getCurrencyKeyByCountryCode(currencies?: CurrencyList, countryCode?: string): string {

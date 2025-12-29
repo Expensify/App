@@ -228,7 +228,7 @@ describe('CurrencyUtils', () => {
             await waitForBatchedUpdates();
 
             const preferred = CurrencyUtils.getPreferredCurrencySymbol(CONST.CURRENCY.USD);
-            const localized = CurrencyUtils.getLocalizedCurrencySymbol(CONST.CURRENCY.USD);
+            const localized = CurrencyUtils.getLocalizedCurrencySymbol(IntlStore.getCurrentLocale(), CONST.CURRENCY.USD);
 
             expect(preferred).toBe(localized);
             expect(preferred).not.toBe('USD');
@@ -254,7 +254,7 @@ describe('CurrencyUtils', () => {
             await waitForBatchedUpdates();
 
             const preferred = CurrencyUtils.getPreferredCurrencySymbol(CONST.CURRENCY.USD);
-            const localized = CurrencyUtils.getLocalizedCurrencySymbol(CONST.CURRENCY.USD);
+            const localized = CurrencyUtils.getLocalizedCurrencySymbol(IntlStore.getCurrentLocale(), CONST.CURRENCY.USD);
 
             expect(preferred).toBe(localized);
             expect(preferred).toBeTruthy();
@@ -280,7 +280,7 @@ describe('CurrencyUtils', () => {
             await waitForBatchedUpdates();
 
             const preferred = CurrencyUtils.getPreferredCurrencySymbol(CONST.CURRENCY.USD);
-            const localized = CurrencyUtils.getLocalizedCurrencySymbol(CONST.CURRENCY.USD);
+            const localized = CurrencyUtils.getLocalizedCurrencySymbol(IntlStore.getCurrentLocale(), CONST.CURRENCY.USD);
 
             expect(preferred).toBe(localized);
             expect(preferred).not.toBe(codeLikeSymbol);

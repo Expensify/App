@@ -1,8 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {BlurEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
-import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
+import {convertToFrontendAmountAsString, getCurrencyDecimals, getPreferredCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from './NumberWithSymbolForm';
@@ -167,7 +166,6 @@ function MoneyRequestAmountInput({
     disabled,
     ...props
 }: MoneyRequestAmountInputProps) {
-    const {preferredLocale} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const decimals = getCurrencyDecimals(currency);
@@ -230,7 +228,7 @@ function MoneyRequestAmountInput({
                 }
                 numberFormRef.current = newRef;
             }}
-            symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
+            symbol={getPreferredCurrencySymbol(currency) ?? ''}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
             currency={currency}
             hideSymbol={hideCurrencySymbol}
