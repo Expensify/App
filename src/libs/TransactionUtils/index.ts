@@ -1526,6 +1526,10 @@ function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
 
+function isWaypointNullIsland(waypoint: RecentWaypoint | Waypoint): boolean {
+    return !waypoint.lat && !waypoint.lng;
+}
+
 /**
  * Converts the key of a waypoint to its index
  */
@@ -1561,6 +1565,11 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
 
         // Check if the waypoint has a valid address
         if (!waypointHasValidAddress(currentWaypoint)) {
+            return acc;
+        }
+
+        // Exclude null island
+        if (!isWaypointNullIsland(currentWaypoint)) {
             return acc;
         }
 
@@ -2505,6 +2514,7 @@ export {
     hasPendingUI,
     getWaypointIndex,
     waypointHasValidAddress,
+    isWaypointNullIsland,
     getRecentTransactions,
     hasReservationList,
     hasViolation,
