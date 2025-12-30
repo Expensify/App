@@ -3798,9 +3798,9 @@ const translations = {
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Last synced ${formattedDate}`,
             authenticationError: (connectionName: string) => `Can’t connect to ${connectionName} due to an authentication error.`,
             learnMore: 'Learn more',
-            memberAlternateText: 'Members can submit and approve reports.',
-            adminAlternateText: 'Admins have full edit access to all reports and workspace settings.',
-            auditorAlternateText: 'Auditors can view and comment on reports.',
+            memberAlternateText: 'Submit and approve reports.',
+            adminAlternateText: 'Manage all reports and workspace settings.',
+            auditorAlternateText: 'View and comment on reports.',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
