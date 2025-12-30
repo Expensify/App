@@ -312,9 +312,8 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
 
 function getMarkedReimbursedMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
     const originalMessage = getOriginalMessage(reportAction) as OriginalMessageMarkedReimbursed | undefined;
-    const comment = originalMessage?.message?.trim();
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.paidElsewhere', {comment});
+    return translateLocal('iou.paidElsewhere', {comment: originalMessage?.message?.trim()});
 }
 
 function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
