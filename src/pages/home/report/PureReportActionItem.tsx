@@ -1206,8 +1206,8 @@ function PureReportActionItem({
                                 return;
                             }
 
-                            const originalReportID = getOriginalReportID(reportID, action);
-                            explain(action, originalReportID, translate, personalDetail?.timezone);
+                            const actionOriginalReportID = getOriginalReportID(reportID, action);
+                            explain(action, actionOriginalReportID, translate, personalDetail?.timezone);
                         }}
                     />
                 </ReportActionItemBasicMessage>
