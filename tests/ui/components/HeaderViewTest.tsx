@@ -1,6 +1,7 @@
 import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
-import Onyx, {KeyValueMapping} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import type {KeyValueMapping} from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type Navigation from '@libs/Navigation/Navigation';
