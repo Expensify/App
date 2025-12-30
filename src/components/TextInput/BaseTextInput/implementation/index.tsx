@@ -272,10 +272,10 @@ function BaseTextInput({
         const originalWhiteSpace = element.style.whiteSpace;
 
         element.style.whiteSpace = 'nowrap';
-        // Force synchronous layout calculation
-        // eslint-disable-next-line no-void
-        void element.offsetHeight;
-        element.style.whiteSpace = originalWhiteSpace || '';
+        // Force layout calculation on the next frame
+        requestAnimationFrame(() => {
+            element.style.whiteSpace = originalWhiteSpace || '';
+        });
     }, [textInputHeight]);
 
     const togglePasswordVisibility = useCallback(() => {
