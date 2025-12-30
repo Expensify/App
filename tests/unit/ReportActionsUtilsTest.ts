@@ -20,7 +20,7 @@ import {
     isIOUActionMatchingTransactionList,
 } from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import type {Card, OriginalMessage, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -1314,10 +1314,10 @@ describe('ReportActionsUtils', () => {
 
             // Verify reportID and originalReportID
             expect(reportAction.reportID).toBe(reportID);
-            const originalMessage = getOriginalMessage(reportAction) as OriginalMessage<
-                typeof CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS
-            >;
+            /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
+            const originalMessage = getOriginalMessage(reportAction);
             expect(originalMessage?.originalID).toBe(originalReportID);
+            /* eslint-enable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
 
             // Verify empty message array (by design for this action type)
             expect(reportAction.message).toEqual([]);
