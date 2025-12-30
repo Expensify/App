@@ -460,6 +460,43 @@ describe('CustomFormula', () => {
                 jest.clearAllMocks();
             });
 
+            describe('Format options', () => {
+                test('nosymbol - should format without currency symbol', () => {
+                    const result = compute('{report:total:nosymbol}', currencyContext);
+                    expect(result).toBe('100.00');
+                });
+                test('same currency - should format normally (case insensitive)', () => {
+                    currencyContext.report.currency = 'EUR';
+                    expect(compute('{report:total:EUR}', currencyContext)).toBe('€100.00');
+                    expect(compute('{report:total:eur}', currencyContext)).toBe('€100.00');
+                });
+
+                test('default (no format) - should use report currency', () => {
+                    currencyContext.report.currency = 'NPR';
+                    const result = compute('{report:total}', currencyContext);
+                    expect(result).toBe('NPR\u00A0100.00');
+                });
+            });
+
+            describe('Currency conversion (requires backend)', () => {
+                test('different valid currencies - should return placeholder', () => {
+                    currencyContext.report.currency = 'USD';
+
+                    // Various currencies requiring conversion
+                    expect(compute('{report:total:EUR}', currencyContext)).toBe('{report:total:EUR}');
+                    expect(compute('{report:total:JPY}', currencyContext)).toBe('{report:total:JPY}');
+                });
+
+                test('case and whitespace handling - should normalize and detect conversion', () => {
+                    currencyContext.report.currency = 'USD';
+
+                    // Mixed case and whitespace
+                    expect(compute('{report:total:EuR}', currencyContext)).toBe('{report:total:EuR}');
+                    expect(compute('{report:total: EUR }', currencyContext)).toBe('{report:total: EUR }');
+                    expect(compute('{report:total:eur }', currencyContext)).toBe('{report:total:eur }');
+                });
+            });
+
             describe('Edge cases', () => {
                 test('undefined currency - should format without symbol', () => {
                     currencyContext.report.currency = undefined;
