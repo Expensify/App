@@ -4,6 +4,7 @@ import mapValues from 'lodash/mapValues';
 import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
+import {Linking} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
@@ -161,6 +162,7 @@ import {
     getForcedCorporateUpgradeMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
+    getOriginalReportID,
     getPolicyChangeMessage,
     getRejectedReportMessage,
     getUnreportedTransactionMessage,
@@ -187,6 +189,7 @@ import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member'
 import {
     createTransactionThreadReport,
     expandURLPreview,
+    explain,
     resolveActionableMentionConfirmWhisper,
     resolveConciergeCategoryOptions,
     resolveConciergeDescriptionOptions,
@@ -1192,7 +1195,25 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
             children = (
                 <ReportActionItemBasicMessage>
-                    <RenderHTML html={`<comment><muted-text>${modifiedExpenseMessage}</muted-text></comment>`} />
+                    <RenderHTML
+                        html={`<comment><muted-text>${modifiedExpenseMessage}</muted-text></comment>`}
+                        onLinkPress={(_evt, href) => {
+                            if (!href) {
+                                return;
+                            }
+                            if (href.startsWith(CONST.DEEPLINK_BASE_URL)) {
+                                const url = new URL(href);
+
+                                if (url.host === 'concierge' && url.pathname === '/explain') {
+                                    const originalReportId = getOriginalReportID(reportID, action);
+                                    explain(action, originalReportId, translate, personalDetail?.timezone);
+                                    return;
+                                }
+                            }
+
+                            Linking.openURL(href);
+                        }}
+                    />
                 </ReportActionItemBasicMessage>
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {

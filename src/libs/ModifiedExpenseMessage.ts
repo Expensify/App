@@ -353,6 +353,11 @@ function getForReportAction({
             // Don't convert to lowercase when we have source attribution (to preserve any HTML links)
             false,
         );
+
+        if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.AI) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            changeFragments[changeFragments.length - 1] += translateLocal('iou.AskToExplain');
+        }
     }
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
@@ -618,6 +623,11 @@ function getForReportActionTemp({
             // Don't convert to lowercase when we have source attribution (to preserve any HTML links)
             false,
         );
+
+        if (reportActionOriginalMessage?.source === CONST.CATEGORY_SOURCE.AI) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            changeFragments[changeFragments.length - 1] += translateLocal('iou.AskToExplain');
+        }
     }
 
     const hasModifiedTag = isReportActionOriginalMessageAnObject && 'oldTag' in reportActionOriginalMessage && 'tag' in reportActionOriginalMessage;
