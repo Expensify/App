@@ -1038,6 +1038,7 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
         subStep,
         localCurrentStep,
         policyID,
+        includeKYBStep: true,
     };
 
     return API.read(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, parameters, onyxData);
