@@ -413,11 +413,6 @@ const ContextMenuActions: ContextMenuAction[] = [
                 return false;
             }
 
-            const isExplainableAction = [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, CONST.REPORT.ACTIONS.TYPE.AUTO_SUBMITTED].some((actionType) => reportAction.actionName === actionType);
-            if (!isExplainableAction) {
-                return false;
-            }
-
             const originalMessage = getOriginalMessage(reportAction);
             const hasReasoning = !!(originalMessage && typeof originalMessage === 'object' && 'reasoning' in originalMessage && originalMessage.reasoning);
 
