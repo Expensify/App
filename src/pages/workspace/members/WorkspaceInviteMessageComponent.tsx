@@ -68,7 +68,7 @@ function WorkspaceInviteMessageComponent({
     const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name;
 
-    const isExpensesFromRoute = useMemo(() => {
+    const isWorkflowApprovalExpensesFromRoute = useMemo(() => {
         if (!backTo || typeof backTo !== 'string') {
             return false;
         }
@@ -77,18 +77,18 @@ function WorkspaceInviteMessageComponent({
     }, [backTo]);
 
     const headerTitle = useMemo(() => {
-        if (isExpensesFromRoute) {
+        if (isWorkflowApprovalExpensesFromRoute) {
             return translate('workflowsExpensesFromPage.title');
         }
         return translate('workspace.inviteMessage.confirmDetails');
-    }, [isExpensesFromRoute, translate]);
+    }, [isWorkflowApprovalExpensesFromRoute, translate]);
 
     const subtitle = useMemo(() => {
-        if (isExpensesFromRoute) {
+        if (isWorkflowApprovalExpensesFromRoute) {
             return undefined;
         }
         return policyName;
-    }, [isExpensesFromRoute, policyName]);
+    }, [isWorkflowApprovalExpensesFromRoute, policyName]);
 
     const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
     const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
