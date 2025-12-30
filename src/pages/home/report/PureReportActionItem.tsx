@@ -77,7 +77,7 @@ import {
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
-    getMarkedReimbursedComment,
+    getMarkedReimbursedMessage,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -1269,8 +1269,7 @@ function PureReportActionItem({
             if (isFromNewDot) {
                 children = emptyHTML;
             } else {
-                const comment = getMarkedReimbursedComment(action);
-                children = <ReportActionItemBasicMessage message={translate('iou.paidElsewhere', {comment})} />;
+                children = <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(action)} />;
             }
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;

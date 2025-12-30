@@ -35,7 +35,7 @@ import {
     getChangedApproverActionMessage,
     getIntegrationSyncFailedMessage,
     getJoinRequestMessage,
-    getMarkedReimbursedComment,
+    getMarkedReimbursedMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
     getPolicyChangeLogDefaultBillableMessage,
@@ -442,9 +442,7 @@ function computeReportNameBasedOnReportAction(parentReportAction?: ReportAction,
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-        const comment = getMarkedReimbursedComment(parentReportAction);
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.paidElsewhere', {comment});
+        return getMarkedReimbursedMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {

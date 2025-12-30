@@ -304,12 +304,15 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
     return reportAction.originalMessage;
 }
 
-function getMarkedReimbursedComment(reportAction: OnyxInputOrEntry<ReportAction>): string | undefined {
+function getMarkedReimbursedMessage(reportAction: OnyxInputOrEntry<ReportAction>): string {
     if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-        return undefined;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('iou.paidElsewhere');
     }
     const originalMessage = getOriginalMessage(reportAction);
-    return originalMessage?.message?.trim();
+    const comment = originalMessage?.message?.trim();
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('iou.paidElsewhere', {comment});
 }
 
 function getDelegateAccountIDFromReportAction(reportAction: OnyxInputOrEntry<ReportAction>): number | undefined {
@@ -3591,7 +3594,7 @@ export {
     getLastVisibleMessage,
     getLatestReportActionFromOnyxData,
     getLinkedTransactionID,
-    getMarkedReimbursedComment,
+    getMarkedReimbursedMessage,
     getMemberChangeMessageFragment,
     getUpdateRoomDescriptionFragment,
     getReportActionMessageFragments,
