@@ -117,7 +117,7 @@ function buildTravelDotURL(spotnanaToken: string, isTestAccount: boolean, postLo
 
     const authCode = `authCode=${spotnanaToken}`;
     const tmcIDParam = `tmcId=${tmcID}`;
-    const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
+    const redirectURL = postLoginPath ? `redirectUrl=${encodeURIComponent(Url.addLeadingForwardSlash(postLoginPath))}` : '';
 
     const paramsArray = [authCode, tmcIDParam, redirectURL];
     const params = paramsArray.filter(Boolean).join('&');
@@ -320,7 +320,7 @@ function openReportFromDeepLink(
                                     const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
                                     if (lastAccessedReportID) {
                                         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                        Navigation.navigate(lastAccessedReportRoute);
+                                        Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
                                         return;
                                     }
                                     navigateToConciergeChat(false, () => true);
@@ -343,7 +343,7 @@ function openReportFromDeepLink(
                                     // eslint-disable-next-line rulesdir/prefer-early-return
                                     callback: (report) => {
                                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                        if (report?.errorFields?.notFound || report?.reportID) {
+                                        if (report?.errorFields?.notFound || report?.reportID || report === undefined) {
                                             Onyx.disconnect(reportConnection);
                                             navigateHandler(report);
                                         }
