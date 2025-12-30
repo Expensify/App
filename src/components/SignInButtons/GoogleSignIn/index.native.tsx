@@ -75,6 +75,4 @@ function GoogleSignIn({onPress = () => {}}: GoogleSignInProps) {
     );
 }
 
-GoogleSignIn.displayName = 'GoogleSignIn';
-
 export default GoogleSignIn;

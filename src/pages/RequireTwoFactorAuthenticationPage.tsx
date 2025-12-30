@@ -35,7 +35,7 @@ const is2FARequiredBecauseOfXeroSelector = (email?: string) => {
 };
 
 function RequireTwoFactorAuthenticationPage() {
-    const illustrations = useMemoizedLazyIllustrations(['Encryption'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Encryption']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isUserValidated = false] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
@@ -54,7 +54,7 @@ function RequireTwoFactorAuthenticationPage() {
         <FocusTrapForModal active>
             <SafeAreaView
                 style={[StyleSheet.absoluteFill]}
-                testID={RequireTwoFactorAuthenticationPage.displayName}
+                testID="RequireTwoFactorAuthenticationPage"
             >
                 <View style={[styles.flex1, styles.appBG]}>
                     <View style={styles.twoFARequiredContainer}>
@@ -86,7 +86,5 @@ function RequireTwoFactorAuthenticationPage() {
         </FocusTrapForModal>
     );
 }
-
-RequireTwoFactorAuthenticationPage.displayName = 'RequireTwoFactorAuthenticationPage';
 
 export default RequireTwoFactorAuthenticationPage;

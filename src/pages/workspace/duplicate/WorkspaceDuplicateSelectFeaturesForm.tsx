@@ -222,7 +222,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                 perDiem: selectedItems.includes('perDiem'),
                 reimbursements: selectedItems.includes('invoices'),
                 expenses: selectedItems.includes('rules'),
-                customUnits: selectedItems.includes('distanceRates'),
+                distance: selectedItems.includes('distanceRates'),
                 invoices: selectedItems.includes('invoices'),
                 exportLayouts: selectedItems.includes('workflows'),
             },
@@ -381,7 +381,5 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         </>
     );
 }
-
-WorkspaceDuplicateSelectFeaturesForm.displayName = 'WorkspaceDuplicateSelectFeaturesForm';
 
 export default WorkspaceDuplicateSelectFeaturesForm;

@@ -32,7 +32,7 @@ import type {TwoFactorAuthPageProps} from './TwoFactorAuthPage';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function CopyCodesPage({route}: TwoFactorAuthPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct style
@@ -133,7 +133,7 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
                                             text={translate('common.download')}
                                             icon={icons.Download}
                                             onPress={() => {
-                                                localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '');
+                                                localFileDownload('two-factor-auth-codes', account?.recoveryCodes ?? '', translate);
                                                 setError('');
                                                 setCodesAreCopied();
                                             }}
@@ -175,7 +175,5 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
         </TwoFactorAuthWrapper>
     );
 }
-
-CopyCodesPage.displayName = 'CopyCodesPage';
 
 export default CopyCodesPage;

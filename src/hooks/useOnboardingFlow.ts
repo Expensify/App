@@ -48,13 +48,13 @@ function useOnboardingFlowRouter() {
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
     const shouldShowRequire2FAPage = useMemo(
         () => (!!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth) || (!!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlowSelector(onboardingValues)),
-        [account?.requiresTwoFactorAuth, account?.needsTwoFactorAuthSetup, account?.twoFactorAuthSetupInProgress, onboardingValues],
+        [account?.needsTwoFactorAuthSetup, account?.requiresTwoFactorAuth, account?.twoFactorAuthSetupInProgress, onboardingValues],
     );
 
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        InteractionManager.runAfterInteractions(() => {
+        const handle = InteractionManager.runAfterInteractions(() => {
             // Prevent starting the onboarding flow if we are logging in as a new user with short lived token
             if (currentUrl?.includes(ROUTES.TRANSITION_BETWEEN_APPS) && isLoggingInAsNewSessionUser) {
                 return;
@@ -135,6 +135,10 @@ function useOnboardingFlowRouter() {
                 });
             }
         });
+
+        return () => {
+            handle.cancel();
+        };
     }, [
         isLoadingApp,
         isHybridAppOnboardingCompleted,

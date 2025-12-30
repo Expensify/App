@@ -35,7 +35,6 @@ const actionTranslationsMap: Record<SearchTransactionAction, TranslationPaths> =
     exportToAccounting: 'common.export',
     done: 'common.done',
     paid: 'iou.settledExpensify',
-    changeApprover: 'iou.changeApprover.title',
 };
 
 type ActionCellProps = {
@@ -74,8 +73,8 @@ function ActionCell({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isOffline} = useNetwork();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Checkbox']);
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Checkbox'] as const);
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`, {canBeMissing: true});
@@ -136,7 +135,7 @@ function ActionCell({
 
         return isLargeScreenWidth ? (
             <Button
-                testID={ActionCell.displayName}
+                testID="ActionCell"
                 text={text}
                 onPress={goToItem}
                 small={!extraSmall}
@@ -193,7 +192,5 @@ function ActionCell({
         />
     );
 }
-
-ActionCell.displayName = 'ActionCell';
 
 export default ActionCell;

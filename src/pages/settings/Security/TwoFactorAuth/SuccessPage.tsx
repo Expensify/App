@@ -60,6 +60,4 @@ function SuccessPage({route}: SuccessPageProps) {
     );
 }
 
-SuccessPage.displayName = 'SuccessPage';
-
 export default SuccessPage;

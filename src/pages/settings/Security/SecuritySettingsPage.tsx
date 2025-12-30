@@ -58,8 +58,8 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'UserLock', 'UserPlus'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus', 'Shield']);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -86,7 +86,7 @@ function SecuritySettingsPage() {
     });
 
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate, isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
@@ -130,7 +130,7 @@ function SecuritySettingsPage() {
         const baseMenuItems: BaseMenuItemType[] = [
             {
                 translationKey: 'twoFactorAuth.headerTitle',
-                icon: Expensicons.Shield,
+                icon: icons.Shield,
                 action: () => {
                     if (isDelegateAccessRestricted) {
                         showDelegateNoAccessModal();
@@ -212,6 +212,7 @@ function SecuritySettingsPage() {
         }));
     }, [
         icons.UserLock,
+        icons.Shield,
         isAccountLocked,
         isDelegateAccessRestricted,
         isUserValidated,
@@ -319,7 +320,7 @@ function SecuritySettingsPage() {
             text: translate('delegate.removeCopilot'),
             icon: Expensicons.Trashcan,
             onPress: () => {
-                if (isDelegateAccessRestricted) {
+                if (isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
@@ -342,7 +343,7 @@ function SecuritySettingsPage() {
 
     return (
         <ScreenWrapper
-            testID={SecuritySettingsPage.displayName}
+            testID="SecuritySettingsPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
@@ -452,6 +453,11 @@ function SecuritySettingsPage() {
                                 prompt={translate('delegate.removeCopilotConfirmation')}
                                 danger
                                 onConfirm={() => {
+                                    if (isActingAsDelegate) {
+                                        setShouldShowRemoveDelegateModal(false);
+                                        showDelegateNoAccessModal();
+                                        return;
+                                    }
                                     removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
                                     setShouldShowRemoveDelegateModal(false);
                                     setSelectedDelegate(undefined);
@@ -471,7 +477,5 @@ function SecuritySettingsPage() {
         </ScreenWrapper>
     );
 }
-
-SecuritySettingsPage.displayName = 'SettingSecurityPage';
 
 export default SecuritySettingsPage;

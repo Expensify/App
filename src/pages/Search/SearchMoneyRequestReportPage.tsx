@@ -8,7 +8,6 @@ import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
-import useShowSuperWideRHPVersion from '@components/WideRHPContextProvider/useShowSuperWideRHPVersion';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -20,8 +19,15 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ExpenseReportNavigatorParamList, SearchMoneyRequestReportParamList} from '@libs/Navigation/types';
-import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
+import {
+    getFilteredReportActionsForReportView,
+    getIOUActionForTransactionID,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getReportAction,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
@@ -34,9 +40,7 @@ import type SCREENS from '@src/SCREENS';
 import type {Policy, Transaction, TransactionViolations} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-type SearchMoneyRequestPageProps =
-    | PlatformStackScreenProps<SearchMoneyRequestReportParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>
-    | PlatformStackScreenProps<ExpenseReportNavigatorParamList, typeof SCREENS.EXPENSE_REPORT_RHP>;
+type SearchMoneyRequestPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
 
 const defaultReportMetadata = {
     isLoadingInitialReportActions: true,
@@ -120,11 +124,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         return {snapshotTransaction: transaction, snapshotViolations: violations};
     }, [snapshot?.data, allReportTransactions]);
 
-    // If there is more than one transaction, display the report in Super Wide RHP, otherwise it will be shown in Wide RHP
-    const shouldShowSuperWideRHP = visibleTransactions.length > 1;
-
-    useShowSuperWideRHPVersion(shouldShowSuperWideRHP);
-
     useEffect(() => {
         if (transactionThreadReportID === CONST.FAKE_REPORT_ID && oneTransactionID) {
             const iouAction = getIOUActionForTransactionID(reportActions, oneTransactionID);
@@ -148,6 +147,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
 
+        // Because when switching between reports, reportActions may contain data from the previous report.
+        // So we need to check that reportActions belongs to the current report.
+        const isFirstActionBelongsToCurrentReport = !!getReportAction(reportIDFromRoute, reportActions.at(0)?.reportActionID);
+        if (report?.reportID && reportActions.length === 1 && !isFirstActionBelongsToCurrentReport) {
+            return;
+        }
+
         // Use main collection transaction or fallback to snapshot
         const transaction = Object.values(allReportTransactions).at(0) ?? snapshotTransaction;
         if (!transaction || (transaction && transaction.reportID !== reportIDFromRoute)) {
@@ -165,7 +171,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         }
 
         const iouAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        if (iouAction || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        if (iouAction || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || !!transaction.linkedTrackedExpenseReportAction?.childReportID) {
             return;
         }
 
@@ -211,7 +217,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             <ActionListContext.Provider value={actionListValue}>
                 <ReactionListWrapper>
                     <ScreenWrapper
-                        testID={SearchMoneyRequestReportPage.displayName}
+                        testID="SearchMoneyRequestReportPage"
                         shouldEnableMaxHeight
                         offlineIndicatorStyle={styles.mtAuto}
                         headerGapStyles={styles.searchHeaderGap}
@@ -245,7 +251,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListWrapper>
                 <ScreenWrapper
-                    testID={SearchMoneyRequestReportPage.displayName}
+                    testID="SearchMoneyRequestReportPage"
                     shouldEnableMaxHeight
                     offlineIndicatorStyle={styles.mtAuto}
                     headerGapStyles={[styles.searchHeaderGap, styles.h0]}
@@ -279,7 +285,5 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         </ActionListContext.Provider>
     );
 }
-
-SearchMoneyRequestReportPage.displayName = 'SearchMoneyRequestReportPage';
 
 export default SearchMoneyRequestReportPage;

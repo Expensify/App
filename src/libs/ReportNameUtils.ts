@@ -48,6 +48,9 @@ import {
     getRetractedMessage,
     getTravelUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
+    getWorkspaceCustomUnitRateAddedMessage,
+    getWorkspaceCustomUnitRateDeletedMessage,
+    getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
@@ -318,10 +321,7 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', {
-        payer: payerOrApproverName,
-        amount: formattedAmount,
-    });
+    const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', formattedAmount, payerOrApproverName);
 
     if (isReportApproved({report})) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -339,12 +339,12 @@ function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {rep
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
         payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerSpentAmount', {payer: payerOrApproverName, amount: formattedAmount});
+        return translateLocal('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
     }
 
     if (isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerOwesAmount', {payer: payerOrApproverName, amount: formattedAmount});
+        return translateLocal('iou.payerOwesAmount', formattedAmount, payerOrApproverName);
     }
 
     return payerPaidAmountMessage;
@@ -473,10 +473,10 @@ function computeReportNameBasedOnReportAction(parentReportAction?: ReportAction,
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.VBBA) {
                 if (originalMessage.automaticAction) {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    return translateLocal('iou.automaticallyPaidWithBusinessBankAccount', {last4Digits});
+                    return translateLocal('iou.automaticallyPaidWithBusinessBankAccount', undefined, last4Digits);
                 }
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('iou.businessBankAccount', {last4Digits});
+                return translateLocal('iou.businessBankAccount', undefined, last4Digits);
             }
             if (originalMessage.paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
                 if (originalMessage.automaticAction) {
@@ -519,6 +519,16 @@ function computeReportNameBasedOnReportAction(parentReportAction?: ReportAction,
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
         return getTravelUpdateMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
+        return getWorkspaceCustomUnitRateAddedMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
+        return getWorkspaceCustomUnitRateUpdatedMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
+        return getWorkspaceCustomUnitRateDeletedMessage(parentReportAction);
     }
 
     return undefined;
