@@ -241,7 +241,7 @@ function buildOptimisticCreatedReportForUnapprovedAction(reportID: string, origi
             originalID: originalReportID,
         },
         reportActionID: rand64(),
-        reportID: reportID,
+        reportID,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         isOptimisticAction: true,
         shouldShow: true,

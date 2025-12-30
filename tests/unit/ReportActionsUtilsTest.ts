@@ -1314,8 +1314,7 @@ describe('ReportActionsUtils', () => {
 
             // Verify reportID and originalReportID
             expect(reportAction.reportID).toBe(reportID);
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            expect(reportAction.originalMessage.originalID).toBe(originalReportID);
+            expect(getOriginalMessage(reportAction)?.originalID).toBe(originalReportID);
 
             // Verify empty message array (by design for this action type)
             expect(reportAction.message).toEqual([]);
