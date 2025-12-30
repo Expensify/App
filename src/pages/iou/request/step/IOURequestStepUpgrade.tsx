@@ -253,6 +253,7 @@ function IOURequestStepUpgrade({
                 isVisible={isUpgradeWarningModalOpen}
                 shouldShowCancelButton={false}
                 onConfirm={handleConfirmUpgradeWarning}
+                onCancel={() => setIsUpgradeWarningModalOpen(false)}
                 title={translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarning')}
                 prompt={translate('workspace.upgrade.commonFeatures.upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt')}
                 confirmText={translate('common.buttonConfirm')}
