@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -48,67 +48,61 @@ function ClaimOfferPage({route}: ClaimOfferPageProps) {
     const policy = usePolicy(policyID);
     const integrations = policy?.receiptPartners;
 
-    const integrationConfig: Record<IntegrationType, IntegrationConfig> = useMemo(
-        () => ({
-            xero: {
-                headerTitle: translate('workspace.accounting.xero'),
-                headline: translate('workspace.accounting.claimOffer.xero.headline'),
-                descriptionHtml: translate('workspace.accounting.claimOffer.xero.description'),
-                claimOfferLink: CONST.XERO_PARTNER_LINK,
-                connectButtonText: translate('workspace.accounting.claimOffer.xero.connectButton'),
-                connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
-                featureName: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
-                onConnect: () => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.XERO}),
+    const integrationConfig: Record<IntegrationType, IntegrationConfig> = {
+        xero: {
+            headerTitle: translate('workspace.accounting.xero'),
+            headline: translate('workspace.accounting.claimOffer.xero.headline'),
+            descriptionHtml: translate('workspace.accounting.claimOffer.xero.description'),
+            claimOfferLink: CONST.XERO_PARTNER_LINK,
+            connectButtonText: translate('workspace.accounting.claimOffer.xero.connectButton'),
+            connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
+            featureName: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
+            onConnect: () => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.XERO}),
+        },
+        uber: {
+            headerTitle: translate('workspace.accounting.claimOffer.uber.headerTitle'),
+            headline: translate('workspace.accounting.claimOffer.uber.headline'),
+            descriptionHtml: translate('workspace.accounting.claimOffer.uber.description'),
+            connectButtonText: translate('workspace.accounting.claimOffer.uber.connectButton'),
+            connectionName: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
+            featureName: CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
+            onConnect: () => {
+                openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
             },
-            uber: {
-                headerTitle: translate('workspace.accounting.claimOffer.uber.headerTitle'),
-                headline: translate('workspace.accounting.claimOffer.uber.headline'),
-                descriptionHtml: translate('workspace.accounting.claimOffer.uber.description'),
-                connectButtonText: translate('workspace.accounting.claimOffer.uber.connectButton'),
-                connectionName: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
-                featureName: CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
-                onConnect: () => {
-                    openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
-                },
-            },
-        }),
-        [startIntegrationFlow, integrations?.uber?.connectFormData, translate],
-    );
+        },
+    };
 
     const config = integrationConfig[integration as IntegrationType];
 
-    const handleClaimOffer = useCallback(() => {
+    const handleClaimOffer = () => {
         if (!config.claimOfferLink) {
             return;
         }
         openExternalLink(config.claimOfferLink);
-    }, [config.claimOfferLink]);
+    };
 
-    const handleConnect = useCallback(() => {
+    const handleConnect = () => {
         config.onConnect();
-    }, [config]);
+    };
 
-    const buttons = useMemo(
-        () => (
-            <FixedFooter style={[styles.mtAuto, styles.gap3]}>
-                {!!config.claimOfferLink && (
-                    <Button
-                        text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
-                        onPress={handleClaimOffer}
-                        large
-                        isDisabled={isOffline}
-                    />
-                )}
+    const buttons = (
+        <FixedFooter style={[styles.mtAuto, styles.gap3]}>
+            {!!config.claimOfferLink && (
                 <Button
-                    text={config.connectButtonText}
-                    onPress={handleConnect}
-                    success
+                    text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
+                    onPress={handleClaimOffer}
                     large
                     isDisabled={isOffline}
                 />
-            </FixedFooter>
-        ),
-        [styles.mtAuto, styles.gap3, config.claimOfferLink, config.connectButtonText, translate, handleClaimOffer, isOffline, handleConnect],
+            )}
+            <Button
+                text={config.connectButtonText}
+                onPress={handleConnect}
+                success
+                large
+                isDisabled={isOffline}
+            />
+        </FixedFooter>
     );
 
     return (
