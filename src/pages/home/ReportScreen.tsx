@@ -734,11 +734,11 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                 reportIDFromRoute === currentRoute.params.reportID;
             // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
             // Prevent auto navigation for report in RHP
-            if ((!isFocused && !isReportDetailOpenInRHP) || isInNarrowPaneModal) {
-                if (isInNarrowPaneModal) {
-                    Navigation.goBack(backTo as Route);
-                    return;
-                }
+            if (isInNarrowPaneModal) {
+                Navigation.goBack(backTo as Route);
+                return;
+            }
+            if (!isFocused && !isReportDetailOpenInRHP) {
                 return;
             }
             Navigation.dismissModal();
