@@ -283,70 +283,44 @@ function Form() {
 
 ---
 
-### [PERF-7] Handle prop changes without useEffect
+### [PERF-7] Control component resets via key prop
 
 - **Condition**: 
-  - Flag when useEffect resets/adjusts state when a prop changes
-  - For resetting ALL state: should use `key` prop instead
-  - For adjusting SOME state: should compute directly in component body
+  - Flag when useEffect resets all or most component state when a prop changes
+  - Should use `key` prop instead to reset the entire component
 
-- **Reasoning**: Using `key` prop for full resets is more React-idiomatic. Computing derived state directly avoids synchronization issues and extra renders.
+- **Reasoning**: Using `key` prop for full resets is more React-idiomatic. When a prop changes and you need to reset all component state, the `key` prop causes React to unmount and remount the component, automatically resetting all state without needing useEffect.
 
 Good:
 
 ```tsx
-// Resetting all state when prop changes
 function ProfilePage({ userId }) {
   return <ProfileView key={userId} userId={userId} />;
 }
 
 function ProfileView({ userId }) {
   const [comment, setComment] = useState('');
+  const [rating, setRating] = useState(0);
   // Component resets when userId changes due to key prop
-}
-
-// Adjusting some state when prop changes - compute directly
-function List({ items, isVisible }) {
-  // ✅ Good: computed during rendering
-  const visibleItems = isVisible ? items : [];
-}
-
-// Adjusting some state when prop changes - reset specific state
-function List({ items }) {
-  const [selection, setSelection] = useState(null);
-  
-  // ✅ Good: reset during rendering based on prop
-  const [prevItems, setPrevItems] = useState(items);
-  if (items !== prevItems) {
-    setPrevItems(items);
-    setSelection(null);
-  }
 }
 ```
 
 Bad:
 
 ```tsx
-// 🔴 Avoid: resetting state with useEffect
+// 🔴 Avoid: resetting all state with useEffect
 function ProfilePage({ userId }) {
   return <ProfileView userId={userId} />;
 }
 
 function ProfileView({ userId }) {
   const [comment, setComment] = useState('');
+  const [rating, setRating] = useState(0);
   
   useEffect(() => {
     setComment(''); // Reset when userId changes
+    setRating(0);
   }, [userId]);
-}
-
-// 🔴 Avoid: adjusting state with useEffect
-function List({ items, isVisible }) {
-  const [visibleItems, setVisibleItems] = useState([]);
-  
-  useEffect(() => {
-    setVisibleItems(isVisible ? items : []);
-  }, [items, isVisible]);
 }
 ```
 
