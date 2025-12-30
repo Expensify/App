@@ -992,6 +992,14 @@ type OriginalMessageIntegrationSyncFailed = {
     errorMessage: string;
 };
 
+type OriginalMessageConciergeCompanyCardConnectionBroken = {
+    /** The policy ID for which the company card connection was broken */
+    policyID: string;
+
+    /** The feed name for which the company card connection was broken */
+    feedName: string;
+};
+
 /**
  * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ISSUED_VIRTUAL, and CARD_REPLACED_VIRTUAL actions
  */
@@ -1147,6 +1155,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;
+    [CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN]: OriginalMessageConciergeCompanyCardConnectionBroken;
     [CONST.REPORT.ACTIONS.TYPE.RETRACTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REOPENED]: never;
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: never;
@@ -1176,5 +1185,6 @@ export type {
     OriginalMessageUnreportedTransaction,
     OriginalMessageMovedTransaction,
     OriginalMessageConciergeAutoMapMccGroups,
+    OriginalMessageConciergeCompanyCardConnectionBroken,
     OriginalMessageReimbursementDirectorInformationRequired,
 };

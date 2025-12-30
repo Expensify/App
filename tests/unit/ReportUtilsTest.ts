@@ -2100,6 +2100,32 @@ describe('ReportUtils', () => {
                         `there was a problem syncing with QuickBooks ("Sync failed"). Please fix the issue in <a href="https://dev.new.expensify.com:8082/workspaces/1/accounting">workspace settings</a>.`,
                     );
                 });
+
+                test('should handle concierge company card connection broken action', () => {
+                    const conciergeCompanyCardConnectionBrokenAction: ReportAction = {
+                        ...baseParentReportAction,
+                        actionName: CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+                        originalMessage: {
+                            feedName: 'QuickBooks',
+                            policyID: '1',
+                        },
+                    };
+
+                    const threadReport: Report = {
+                        ...baseExpenseReport,
+                        parentReportID: baseChatReport.reportID,
+                        parentReportActionID: conciergeCompanyCardConnectionBrokenAction.reportActionID,
+                    };
+                    
+                    const reportActions = {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReport.parentReportID}`]: {[conciergeCompanyCardConnectionBrokenAction.reportActionID]: conciergeCompanyCardConnectionBrokenAction},
+                    };
+                    const reportName = computeReportName(threadReport, undefined, undefined, undefined, undefined, participantsPersonalDetails, reportActions);
+
+                    expect(reportName).toBe(
+                        `The QuickBooks connection is broken. To restore card imports, <a href='https://new.expensify.com/workspaces/1/company-cards'>log into your bank</a>`,
+                    );
+                });
             });
 
             describe('Invoices', () => {
