@@ -1,6 +1,14 @@
 import Onyx from 'react-native-onyx';
 import {translate} from '@libs/Localize';
-import {computeReportName, getGroupChatName, getPolicyExpenseChatName, getReportName as getSimpleReportName} from '@libs/ReportNameUtils';
+import {
+    buildReportNameFromParticipantNames,
+    computeReportName,
+    getGroupChatName,
+    getInvoicesChatName,
+    getInvoicePayerName,
+    getPolicyExpenseChatName,
+    getReportName as getSimpleReportName,
+} from '@libs/ReportNameUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -317,6 +325,81 @@ describe('ReportNameUtils', () => {
                 emptyCollections.reportActions,
             );
             expect(name).toBe('Ragnar Lothbrok (archived) ');
+        });
+    });
+
+    describe('buildReportNameFromParticipantNames', () => {
+        test('Excludes current user and uses short names for multiple participants', () => {
+            const report = {
+                participants: {
+                    [currentUserAccountID]: true,
+                    1: true,
+                    2: true,
+                },
+            } as unknown as Report;
+
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails});
+            expect(name).toBe('Ragnar, floki@vikings.net');
+        });
+
+        test('Uses full name when only one participant remains after filtering current user', () => {
+            const report = {
+                participants: {
+                    [currentUserAccountID]: true,
+                    1: true,
+                },
+            } as unknown as Report;
+
+            const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails});
+            expect(name).toBe('Ragnar Lothbrok');
+        });
+    });
+
+    describe('Invoice naming helpers', () => {
+        test('Invoice room uses policy name when current user is receiver', () => {
+            const receiverPolicy = {name: 'Personal Workspace'} as unknown as Policy;
+            const report: Report = {
+                reportID: 'invoice-chat-1',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: currentUserAccountID},
+                policyName: 'Personal Workspace',
+            };
+
+            const name = getInvoicesChatName({
+                report,
+                receiverPolicy,
+                personalDetails: participantsPersonalDetails,
+            });
+
+            expect(name).toBe('Personal Workspace');
+        });
+
+        test('Invoice room displays receiver name for other individuals', () => {
+            const receiverPolicy = {name: 'Vendor Workspace'} as unknown as Policy;
+            const report: Report = {
+                reportID: 'invoice-chat-2',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
+                policyName: 'Vendor Workspace',
+            };
+
+            const name = getInvoicesChatName({
+                report,
+                receiverPolicy,
+                personalDetails: participantsPersonalDetails,
+            });
+
+            const normalizedName = name?.replace(/\u00A0/g, ' ');
+            expect(normalizedName).toBe('Ragnar Lothbrok');
+        });
+
+        test('Invoice payer name falls back to provided personal details', () => {
+            const report: Report = {
+                reportID: 'invoice-chat-3',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL, accountID: 1},
+            };
+            const name = getInvoicePayerName(report, undefined, null);
+
+            const normalizedName = name?.replace(/\u00A0/g, ' ');
+            expect(normalizedName).toBe('Ragnar Lothbrok');
         });
     });
 
