@@ -39,6 +39,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
     const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
+    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        canBeMissing: false,
+    });
 
     const policyID = targetTransactionReport?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
@@ -64,6 +67,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             mergeTransactionID: transactionID,
             mergeTransaction,
             targetTransaction,
+            allTransactionViolations,
             sourceTransaction,
             policy,
             policyTags,
