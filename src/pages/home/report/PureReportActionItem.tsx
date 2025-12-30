@@ -1217,9 +1217,9 @@ function PureReportActionItem({
                         <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallySubmitted')}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
-            } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd && isOffline) {
-                // When DEW submit is pending offline, show "queued" message. When online, show submitted
-                children = <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
+            } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
+                // When DEW submit is pending offline, show "queued" message. When online, show nothing
+                children = isOffline ? <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} /> : emptyHTML;
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.submitted', {memo: getOriginalMessage(action)?.message})} />;
             }
