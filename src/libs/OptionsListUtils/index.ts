@@ -724,10 +724,10 @@ function getLastMessageTextForReport({
         if (wasSubmittedViaHarvesting) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = Parser.htmlToText(translateLocal('iou.automaticallySubmitted'));
-        } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd && isOffline) {
-            // When DEW submit is pending offline, show "queued" message. When online, fall through to show normal "submitted" message.
+        } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
+            // When DEW submit is pending offline, show "queued" message. When online, show nothing
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            lastMessageTextFromReport = translateLocal('iou.queuedToSubmitViaDEW');
+            lastMessageTextFromReport = isOffline ? translateLocal('iou.queuedToSubmitViaDEW') : '';
         } else {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.submitted', {memo: getOriginalMessage(lastReportAction)?.message});
