@@ -835,6 +835,10 @@ function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFe
     return feed as CompanyCardFeed;
 }
 
+function isCardWithBrokenConnection(card: Card): boolean {
+    return !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult);
+}
+
 type SplitMaskedCardNumberResult = {
     firstDigits?: string;
     lastDigits?: string;
@@ -965,6 +969,7 @@ export {
     isCardPendingIssue,
     isCardPendingActivate,
     hasPendingExpensifyCardAction,
+    isCardWithBrokenConnection,
     isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
     isCardPendingReplace,
