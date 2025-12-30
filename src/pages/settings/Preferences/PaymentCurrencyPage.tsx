@@ -31,7 +31,7 @@ function PaymentCurrencyPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={PaymentCurrencyPage.displayName}
+            testID="PaymentCurrencyPage"
         >
             {({didScreenTransitionEnd}) => (
                 <>
@@ -60,7 +60,5 @@ function PaymentCurrencyPage() {
         </ScreenWrapper>
     );
 }
-
-PaymentCurrencyPage.displayName = 'PaymentCurrencyPage';
 
 export default PaymentCurrencyPage;

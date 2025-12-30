@@ -33,6 +33,7 @@ import {
     hasPendingRTERViolation,
     hasViolation,
     hasWarningTypeViolation,
+    isAmountMissing,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -257,7 +258,12 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (hasFieldErrors && RBRMessage === undefined) {
         const merchantMissing = isMerchantMissing(transaction);
-        if (merchantMissing) {
+        const amountMissing = isAmountMissing(transaction);
+        if (amountMissing && merchantMissing) {
+            RBRMessage = {translationPath: 'violations.reviewRequired'};
+        } else if (amountMissing) {
+            RBRMessage = {translationPath: 'iou.missingAmount'};
+        } else if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
     }
@@ -283,6 +289,10 @@ function getTransactionPreviewTextAndTranslationPaths({
         previewHeaderText = [{translationPath: 'iou.split'}];
     }
 
+    if (RBRMessage?.text === CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR) {
+        RBRMessage = {translationPath: 'bankAccount.error.sameDepositAndWithdrawalAccount'};
+    }
+
     RBRMessage ??= {text: ''};
 
     if (!isCreatedMissing(transaction)) {
@@ -301,7 +311,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     let isPreviewHeaderTextComplete = false;
 
-    if (isMoneyRequestSettled && !iouReport?.isCancelledIOU && !isPartialHold) {
+    if (isMoneyRequestSettled && !iouReport?.isCancelledIOU && !isPartialHold && !hasActionWithErrors) {
         previewHeaderText.push(dotSeparator, {translationPath: isTransactionMadeWithCard ? 'common.done' : 'iou.settledExpensify'});
         isPreviewHeaderTextComplete = true;
     }

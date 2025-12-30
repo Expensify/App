@@ -16,6 +16,7 @@ function SignInButton() {
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             role={CONST.ROLE.BUTTON}
             onPress={() => signOutAndRedirectToSignIn()}
+            sentryLabel={CONST.SENTRY_LABEL.SIDEBAR.SIGN_IN_BUTTON}
         >
             <View style={(styles.signInButtonAvatar, styles.ph2)}>
                 <Button
@@ -30,5 +31,4 @@ function SignInButton() {
     );
 }
 
-SignInButton.displayName = 'SignInButton';
 export default SignInButton;

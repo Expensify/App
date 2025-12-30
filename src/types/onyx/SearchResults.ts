@@ -90,7 +90,7 @@ type SearchTransaction = {
     canDelete: boolean;
 
     /** The edited transaction amount */
-    modifiedAmount: number | string;
+    modifiedAmount: number;
 
     /** The transaction currency */
     currency: string;
@@ -146,21 +146,14 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
-    /**
-     * @deprecated - Use getReceiptFilenameFromTransaction to get filename
-     *
-     * The name of the file used for a receipt
-     */
-    filename?: string;
+    /** The policyID of the report */
+    policyID?: string;
 
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 
     /** The modified MCC Group associated with the transaction */
     modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
-
-    /** The ID of the money request reportAction associated with the transaction */
-    moneyRequestReportActionID?: string;
 
     /** Whether the transaction has violations or errors */
     errors?: OnyxCommon.Errors;
@@ -179,6 +172,18 @@ type SearchTransaction = {
 
     /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
     groupCurrency?: string;
+
+    /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
+    groupExchangeRate?: number;
+
+    /** Reimbursable status of the transaction */
+    reimbursable?: boolean;
+
+    /** Billable status of the transaction */
+    billable?: boolean;
+
+    /** The card transaction's posted date */
+    posted?: string;
 };
 
 /** Model of tasks search result */

@@ -66,6 +66,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, email ?? '');
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
 
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
@@ -114,8 +115,15 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     );
 
     const createReport = useCallback(
-        (policyID: string) => {
-            const optimisticReport = createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policyID);
+        (policyID: string, shouldDismissEmptyReportsConfirmation?: boolean) => {
+            const optimisticReport = createNewReport(
+                currentUserPersonalDetails,
+                isASAPSubmitBetaEnabled,
+                hasViolations,
+                policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                false,
+                shouldDismissEmptyReportsConfirmation,
+            );
             const selectedTransactionsKeys = Object.keys(selectedTransactions);
 
             if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
@@ -165,14 +173,17 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         ],
     );
 
-    const handleConfirmCreateReport = useCallback(() => {
-        if (!pendingPolicySelection?.policy.policyID) {
-            return;
-        }
+    const handleConfirmCreateReport = useCallback(
+        (shouldDismissEmptyReportsConfirmation: boolean) => {
+            if (!pendingPolicySelection?.policy.policyID) {
+                return;
+            }
 
-        createReport(pendingPolicySelection.policy.policyID);
-        setPendingPolicySelection(null);
-    }, [createReport, pendingPolicySelection?.policy.policyID]);
+            createReport(pendingPolicySelection.policy.policyID, shouldDismissEmptyReportsConfirmation);
+            setPendingPolicySelection(null);
+        },
+        [createReport, pendingPolicySelection?.policy.policyID],
+    );
 
     const handleCancelCreateReport = useCallback(() => {
         setPendingPolicySelection(null);
@@ -200,7 +211,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         if (!shouldShowEmptyReportConfirmation) {
             // No empty report confirmation needed - create report directly and clear pending selection
             // policyID is guaranteed to be defined by the check above
-            createReport(policyID);
+            createReport(policyID, false);
             setPendingPolicySelection(null);
             return;
         }
@@ -223,10 +234,10 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
             // Capture the decision about whether to show empty report confirmation
             setPendingPolicySelection({
                 policy,
-                shouldShowEmptyReportConfirmation: !!policiesWithEmptyReports?.[policy.policyID],
+                shouldShowEmptyReportConfirmation: !!policiesWithEmptyReports?.[policy.policyID] && hasDismissedEmptyReportsConfirmation !== true,
             });
         },
-        [policiesWithEmptyReports],
+        [hasDismissedEmptyReportsConfirmation, policiesWithEmptyReports],
     );
 
     const hasPerDiemTransactions = useMemo(() => {
@@ -291,7 +302,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
     return (
         <ScreenWrapper
-            testID={NewReportWorkspaceSelectionPage.displayName}
+            testID="NewReportWorkspaceSelectionPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -321,7 +332,5 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
         </ScreenWrapper>
     );
 }
-
-NewReportWorkspaceSelectionPage.displayName = 'NewReportWorkspaceSelectionPage';
 
 export default NewReportWorkspaceSelectionPage;

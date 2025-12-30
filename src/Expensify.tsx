@@ -11,6 +11,7 @@ import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
 import {InitialURLContext} from './components/InitialURLContextProvider';
+import ProactiveAppReviewModalManager from './components/ProactiveAppReviewModalManager';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
 import UpdateAppModal from './components/UpdateAppModal';
@@ -32,6 +33,7 @@ import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
+import getPlatform from './libs/getPlatform';
 import Growl, {growlRef} from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
@@ -119,6 +121,7 @@ function Expensify() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
+    const isDesktop = getPlatform() === CONST.PLATFORM.DESKTOP;
 
     useDebugShortcut();
     usePriorityMode();
@@ -354,6 +357,10 @@ function Expensify() {
         return null;
     }
 
+    if (isDesktop) {
+        throw new Error(CONST.ERROR.DESKTOP_APP_RETIRED);
+    }
+
     if (updateRequired) {
         throw new Error(CONST.ERROR.UPDATE_REQUIRED);
     }
@@ -371,6 +378,8 @@ function Expensify() {
                     <EmojiPicker ref={EmojiPickerAction.emojiPickerRef} />
                     {/* We include the modal for showing a new update at the top level so the option is always present. */}
                     {updateAvailable && !updateRequired ? <UpdateAppModal /> : null}
+                    {/* Proactive app review modal shown when user has completed a trigger action */}
+                    <ProactiveAppReviewModalManager />
                     {screenShareRequest ? (
                         <ConfirmModal
                             title={translate('guides.screenShare')}
@@ -398,7 +407,5 @@ function Expensify() {
         </DeeplinkWrapper>
     );
 }
-
-Expensify.displayName = 'Expensify';
 
 export default Expensify;
