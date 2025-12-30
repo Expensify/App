@@ -259,7 +259,7 @@ function WorkspaceInviteMessageComponent({
                     shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
-                    {(isInviteNewMemberStep || isExpensesFromRoute) && (
+                    {(isInviteNewMemberStep || isWorkflowApprovalExpensesFromRoute) && (
                         <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>{translate('workspace.card.issueNewCard.inviteNewMember')}</Text>
                     )}
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
