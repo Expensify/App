@@ -1192,17 +1192,21 @@ function PureReportActionItem({
         } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
+            const originalMessage = getOriginalMessage(action);
+            const isAISource = !!originalMessage && typeof originalMessage === 'object' && 'source' in originalMessage && originalMessage.source === CONST.CATEGORY_SOURCE.AI;
+            const modifiedExpenseMessageText = isAISource ? `${modifiedExpenseMessage}${translate('iou.AskToExplain')}` : modifiedExpenseMessage;
+
             children = (
                 <ReportActionItemBasicMessage>
                     <RenderHTML
-                        html={`<comment><muted-text>${modifiedExpenseMessage}</muted-text></comment>`}
+                        html={`<comment><muted-text>${modifiedExpenseMessageText}</muted-text></comment>`}
                         onLinkPress={(_evt, href) => {
                             if (href !== `${CONST.DEEPLINK_BASE_URL}concierge/explain`) {
                                 return;
                             }
 
-                            const originalReportId = getOriginalReportID(reportID, action);
-                            explain(action, originalReportId, translate, personalDetail?.timezone);
+                            const originalReportID = getOriginalReportID(reportID, action);
+                            explain(action, originalReportID, translate, personalDetail?.timezone);
                         }}
                     />
                 </ReportActionItemBasicMessage>
