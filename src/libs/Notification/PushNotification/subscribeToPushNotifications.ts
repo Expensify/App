@@ -107,13 +107,7 @@ function applyOnyxData({reportID, onyxData, lastUpdateID, previousUpdateID, hasP
      */
     return getLastUpdateIDAppliedToClient()
         .then((lastUpdateIDAppliedToClient) => applyOnyxUpdatesReliably(updates, {shouldRunSync: true, clientLastUpdateID: lastUpdateIDAppliedToClient}))
-        .then(() => {
-            const bridge = NativeModules.PushNotificationBridge;
-
-            if (bridge?.finishBackgroundProcessing) {
-                bridge.finishBackgroundProcessing();
-            }
-        });
+        .then(() => NativeModules.PushNotificationBridge?.finishBackgroundProcessing());
 }
 
 function navigateToReport({reportID}: PushNotificationData): Promise<void> {
