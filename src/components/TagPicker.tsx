@@ -135,11 +135,13 @@ function TagPicker({
 
     const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
 
+    const listItemTitleStyles = useMemo(() => [styles.breakAll, styles.mnw100], [styles.breakAll, styles.mnw100]);
+
     return (
         <SelectionList
             ListItem={RadioListItem}
             sectionTitleStyles={styles.mt5}
-            listItemTitleStyles={[styles.breakAll, styles.mnw100]}
+            listItemTitleStyles={listItemTitleStyles}
             sections={sections}
             textInputValue={searchValue}
             headerMessage={headerMessage}
