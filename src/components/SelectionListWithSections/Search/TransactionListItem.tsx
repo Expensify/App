@@ -1,10 +1,11 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -120,9 +121,11 @@ function TransactionListItem<TItem extends ListItem>({
         return (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
             (violation: TransactionViolation) =>
                 !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, snapshotReport, snapshotPolicy) &&
-                shouldShowViolation(snapshotReport, snapshotPolicy, violation.name, currentUserDetails.email ?? '', false),
+                shouldShowViolation(snapshotReport, snapshotPolicy, violation.name, currentUserDetails.email ?? '', false, transactionItem),
         );
     }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email, currentUserDetails.accountID]);
+
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const handleActionButtonPress = useCallback(() => {
         handleActionButtonPressUtil(
@@ -134,8 +137,23 @@ function TransactionListItem<TItem extends ListItem>({
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
         );
-    }, [currentSearchHash, transactionItem, transactionPreviewData, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onSelectRow, item, onDEWModalOpen]);
+    }, [
+        currentSearchHash,
+        transactionItem,
+        transactionPreviewData,
+        snapshotReport,
+        snapshotPolicy,
+        lastPaymentMethod,
+        currentSearchKey,
+        onSelectRow,
+        item,
+        onDEWModalOpen,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+    ]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(item);
@@ -175,36 +193,42 @@ function TransactionListItem<TItem extends ListItem>({
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
             >
-                {!isLargeScreenWidth && (
-                    <UserInfoAndActionButtonRow
-                        item={transactionItem}
-                        handleActionButtonPress={handleActionButtonPress}
-                        shouldShowUserInfo={!!transactionItem?.from}
-                        isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
-                    />
+                {({hovered}) => (
+                    <>
+                        {!isLargeScreenWidth && (
+                            <UserInfoAndActionButtonRow
+                                item={transactionItem}
+                                handleActionButtonPress={handleActionButtonPress}
+                                shouldShowUserInfo={!!transactionItem?.from}
+                                isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
+                            />
+                        )}
+                        <TransactionItemRow
+                            hash={currentSearchHash}
+                            transactionItem={transactionItem}
+                            report={transactionItem.report}
+                            shouldShowTooltip={showTooltip}
+                            onButtonPress={handleActionButtonPress}
+                            onCheckboxPress={handleCheckboxPress}
+                            shouldUseNarrowLayout={!isLargeScreenWidth}
+                            columns={columns}
+                            isActionLoading={isLoading ?? isActionLoading}
+                            isSelected={!!transactionItem.isSelected}
+                            dateColumnSize={dateColumnSize}
+                            submittedColumnSize={submittedColumnSize}
+                            approvedColumnSize={approvedColumnSize}
+                            postedColumnSize={postedColumnSize}
+                            exportedColumnSize={exportedColumnSize}
+                            amountColumnSize={amountColumnSize}
+                            taxAmountColumnSize={taxAmountColumnSize}
+                            shouldShowCheckbox={!!canSelectMultiple}
+                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                            violations={transactionViolations}
+                            onArrowRightPress={onPress}
+                            isHover={hovered}
+                        />
+                    </>
                 )}
-                <TransactionItemRow
-                    transactionItem={transactionItem}
-                    report={transactionItem.report}
-                    shouldShowTooltip={showTooltip}
-                    onButtonPress={handleActionButtonPress}
-                    onCheckboxPress={handleCheckboxPress}
-                    shouldUseNarrowLayout={!isLargeScreenWidth}
-                    columns={columns}
-                    isActionLoading={isLoading ?? isActionLoading}
-                    isSelected={!!transactionItem.isSelected}
-                    dateColumnSize={dateColumnSize}
-                    submittedColumnSize={submittedColumnSize}
-                    approvedColumnSize={approvedColumnSize}
-                    postedColumnSize={postedColumnSize}
-                    exportedColumnSize={exportedColumnSize}
-                    amountColumnSize={amountColumnSize}
-                    taxAmountColumnSize={taxAmountColumnSize}
-                    shouldShowCheckbox={!!canSelectMultiple}
-                    style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
-                    violations={transactionViolations}
-                    onArrowRightPress={onPress}
-                />
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );

@@ -113,7 +113,7 @@ function isSubmitAction(
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
         return false;
     }
 
@@ -141,13 +141,6 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     }
 
     if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
-
-    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
-    const isReportSubmitter = isCurrentUserSubmitter(report);
-
-    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
     }
 
