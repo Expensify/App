@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook, waitFor} from '@testing-library/react-native';
 import {format} from 'date-fns';
@@ -8463,17 +8462,18 @@ describe('actions/IOU', () => {
             const creatorPersonalDetails = personalDetailsList?.[CARLOS_ACCOUNT_ID] ?? {accountID: CARLOS_ACCOUNT_ID};
 
             const policyID = generatePolicyID();
-            createWorkspace({
-                policyOwnerEmail: CARLOS_EMAIL,
-                makeMeAdmin: true,
-                policyName: "Carlos's Workspace",
-                policyID,
-                currency: CONST.CURRENCY.USD,
-            });
+            const mockPolicy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM, "Carlos's Workspace"),
+                id: policyID,
+                outputCurrency: CONST.CURRENCY.USD,
+                owner: CARLOS_EMAIL,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                pendingAction: undefined,
+            };
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, policyID);
+            createNewReport(creatorPersonalDetails, true, false, mockPolicy);
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
