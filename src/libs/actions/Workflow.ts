@@ -41,7 +41,7 @@ function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.APPROVAL_WORKFLOW,
@@ -57,7 +57,7 @@ function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
@@ -68,7 +68,7 @@ function createApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
@@ -104,7 +104,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.APPROVAL_WORKFLOW,
@@ -120,7 +120,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
@@ -132,7 +132,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
@@ -163,7 +163,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     // If there is more than one workflow, we need to keep the advanced approval mode (first workflow is the default)
     const hasMoreThanOneWorkflow = Object.values(updatedEmployeeList).some((employee) => !!employee.submitsTo && employee.submitsTo !== defaultApprover);
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.APPROVAL_WORKFLOW,
@@ -179,7 +179,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
@@ -190,7 +190,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
@@ -226,19 +226,7 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
     // Check if the approver forwards to other approvers and add them to the list
     if (policy.employeeList[approver.email]?.forwardsTo) {
         const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
-
         approvers.splice(approverIndex, approvers.length, ...additionalApprovers);
-
-        // Preserve the new approvalLimit and overLimitForwardsTo values that were passed in,
-        // since calculateApprovers reads from stale policy data
-        const existingApprover = approvers.at(approverIndex);
-        if (existingApprover) {
-            approvers[approverIndex] = {
-                ...existingApprover,
-                approvalLimit: approver.approvalLimit,
-                overLimitForwardsTo: approver.overLimitForwardsTo,
-            };
-        }
     }
 
     // Always clear the additional approver error when an approver is added
@@ -281,11 +269,6 @@ function clearApprovalWorkflowApprover({approverIndex, currentApprovalWorkflow}:
 /** Clear all approvers of the approval workflow that is currently edited */
 function clearApprovalWorkflowApprovers() {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: []});
-}
-
-/** Set whether the user is in the initial creation flow */
-function setApprovalWorkflowIsInitialFlow(isInitialFlow: boolean) {
-    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {isInitialFlow});
 }
 
 function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>) {
@@ -339,5 +322,4 @@ export {
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
     validateApprovalWorkflow,
-    setApprovalWorkflowIsInitialFlow,
 };
