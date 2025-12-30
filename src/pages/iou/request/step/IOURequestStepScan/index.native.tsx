@@ -382,6 +382,7 @@ function IOURequestStepScan({
             isASAPSubmitBetaEnabled,
             transactionViolations,
             quickAction,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
@@ -550,6 +551,7 @@ function IOURequestStepScan({
             policy,
             personalPolicy?.autoReporting,
             selfDMReportID,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
