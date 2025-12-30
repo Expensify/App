@@ -86,6 +86,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Whether the badge should be shown as success */
         badgeSuccess?: boolean;
 
+        /** Callback to fire when the badge is pressed */
+        onBadgePress?: (event?: GestureResponderEvent | KeyboardEvent) => void;
+
         /** Used to apply offline styles to child text components */
         style?: StyleProp<ViewStyle>;
 
@@ -415,6 +418,7 @@ function MenuItem({
     badgeText,
     badgeIcon,
     badgeSuccess,
+    onBadgePress,
     style,
     wrapperStyle,
     titleWrapperStyle,
@@ -924,6 +928,8 @@ function MenuItem({
                                                         icon={badgeIcon}
                                                         badgeStyles={badgeStyle}
                                                         success={badgeSuccess}
+                                                        onPress={onBadgePress}
+                                                        pressable={!!onBadgePress}
                                                     />
                                                 )}
                                                 {/* Since subtitle can be of type number, we should allow 0 to be shown */}

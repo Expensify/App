@@ -183,6 +183,8 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                           }
                         : {};
 
+                    const isUber = integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER;
+
                     return {
                         ...iconProps,
                         ...integrationData,
@@ -191,6 +193,13 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
                         shouldShowRightComponent: true,
                         title: integrationData?.title,
+                        badgeText: isUber ? translate('workspace.accounting.claimOffer.badgeText') : undefined,
+                        onBadgePress: isUber
+                            ? () => {
+                                  Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER));
+                              }
+                            : undefined,
+                        badgeStyle: styles.mr3,
                         numberOfLinesDescription: 5,
                         titleContainerStyle: [styles.pr2],
                         description: integrationData?.description,

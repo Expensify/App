@@ -5552,6 +5552,21 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'この会計統合'} を接続してもよろしいですか？これにより、既存の会計連携はすべて削除されます。`,
             enterCredentials: '認証情報を入力してください',
+            claimOffer: {
+                badgeText: 'オファー利用可能！',
+                xero: {
+                    headline: 'Xero を6か月間無料で利用！',
+                    description:
+                        '<muted-text><centered-text>Xero を初めてご利用ですか？Expensify のお客様は6か月間無料でご利用いただけます。以下のオファーを獲得してください。</centered-text></muted-text>',
+                    connectButton: 'Xero に接続',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Uber の乗車で5%割引',
+                    description: `<muted-text><centered-text>Expensify を通じて Uber for Business を有効化すると、6月までのすべてのビジネス乗車で5%割引になります。<a href="${CONST.UBER_TERMS_LINK}">条件が適用されます。</a></centered-text></muted-text>`,
+                    connectButton: 'Uber for Business に接続',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {

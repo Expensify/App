@@ -5604,6 +5604,20 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Sind Sie sicher, dass Sie ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'diese Buchhaltungsintegration'} verbinden möchten? Dadurch werden alle bestehenden Buchhaltungsverbindungen entfernt.`,
             enterCredentials: 'Geben Sie Ihre Anmeldedaten ein',
+            claimOffer: {
+                badgeText: 'Angebot verfügbar!',
+                xero: {
+                    headline: '6 Monate kostenlos mit Xero!',
+                    description: '<muted-text><centered-text>Neu bei Xero? Expensify-Kunden erhalten 6 Monate kostenlos. Fordern Sie Ihr Angebot unten an.</centered-text></muted-text>',
+                    connectButton: 'Mit Xero verbinden',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: '5% Rabatt auf Uber-Fahrten',
+                    description: `<muted-text><centered-text>Aktivieren Sie Uber for Business über Expensify und sparen Sie 5% bei allen Geschäftsreisen bis Juni. <a href="${CONST.UBER_TERMS_LINK}">Bedingungen gelten.</a></centered-text></muted-text>`,
+                    connectButton: 'Mit Uber for Business verbinden',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {

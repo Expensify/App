@@ -5587,6 +5587,20 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Sei sicuro di voler collegare ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'questa integrazione contabile'}? Questo rimuoverà tutte le connessioni contabili esistenti.`,
             enterCredentials: 'Inserisci le tue credenziali',
+            claimOffer: {
+                badgeText: 'Offerta disponibile!',
+                xero: {
+                    headline: 'Ottieni Xero gratis per 6 mesi!',
+                    description: '<muted-text><centered-text>Nuovo su Xero? I clienti Expensify ottengono 6 mesi gratuiti. Richiedi la tua offerta qui sotto.</centered-text></muted-text>',
+                    connectButton: 'Connetti a Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Ottieni il 5% di sconto sui viaggi Uber',
+                    description: `<muted-text><centered-text>Attiva Uber for Business tramite Expensify e risparmia il 5% su tutti i viaggi di lavoro fino a giugno. <a href="${CONST.UBER_TERMS_LINK}">Si applicano i termini.</a></centered-text></muted-text>`,
+                    connectButton: 'Connetti a Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {

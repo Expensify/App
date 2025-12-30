@@ -5569,6 +5569,20 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Czy na pewno chcesz połączyć ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'to połączenie z systemem księgowym'}? Spowoduje to usunięcie wszystkich istniejących połączeń księgowych.`,
             enterCredentials: 'Wprowadź swoje dane logowania',
+            claimOffer: {
+                badgeText: 'Oferta dostępna!',
+                xero: {
+                    headline: 'Otrzymaj Xero za darmo na 6 miesięcy!',
+                    description: '<muted-text><centered-text>Nowy w Xero? Klienci Expensify otrzymują 6 miesięcy za darmo. Odbierz swoją ofertę poniżej.</centered-text></muted-text>',
+                    connectButton: 'Połącz z Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Otrzymaj 5% zniżki na przejazdy Uber',
+                    description: `<muted-text><centered-text>Aktywuj Uber for Business przez Expensify i zaoszczędź 5% na wszystkich przejazdach służbowych do czerwca. <a href="${CONST.UBER_TERMS_LINK}">Obowiązują warunki.</a></centered-text></muted-text>`,
+                    connectButton: 'Połącz z Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {

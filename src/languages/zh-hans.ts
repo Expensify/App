@@ -5471,6 +5471,20 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `您确定要连接 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? '此会计集成'} 吗？这将移除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
+            claimOffer: {
+                badgeText: '优惠可用！',
+                xero: {
+                    headline: '免费使用 Xero 6 个月！',
+                    description: '<muted-text><centered-text>首次使用 Xero？Expensify 客户可免费使用 6 个月。请在下方领取您的优惠。</centered-text></muted-text>',
+                    connectButton: '连接到 Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Uber 乘车享受 5% 折扣',
+                    description: `<muted-text><centered-text>通过 Expensify 激活 Uber for Business，在 6 月之前的所有商务乘车均可享受 5% 折扣。<a href="${CONST.UBER_TERMS_LINK}">适用条款。</a></centered-text></muted-text>`,
+                    connectButton: '连接到 Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {

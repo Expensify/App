@@ -5157,6 +5157,21 @@ ${amount} para ${merchant} - ${date}`,
                     CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integración contable'
                 }? Esto eliminará cualquier conexión contable existente.`,
             enterCredentials: 'Ingresa tus credenciales',
+            claimOffer: {
+                badgeText: '¡Oferta disponible!',
+                xero: {
+                    headline: '¡Obtén Xero gratis por 6 meses!',
+                    description:
+                        '<muted-text><centered-text>¿Nuevo en Xero? Los clientes de Expensify obtienen 6 meses gratis. Reclama tu oferta a continuación.</centered-text></muted-text>',
+                    connectButton: 'Conectar con Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Obtén 5% de descuento en viajes de Uber',
+                    description: `<muted-text><centered-text>Activa Uber for Business a través de Expensify y ahorra 5% en todos los viajes de negocios hasta junio. <a href="${CONST.UBER_TERMS_LINK}">Aplican términos.</a></centered-text></muted-text>`,
+                    connectButton: 'Conectar con Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}) => {
                     switch (stage) {

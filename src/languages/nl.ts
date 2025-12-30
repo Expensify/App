@@ -5578,6 +5578,20 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Weet je zeker dat je ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'deze boekhoudkundige integratie'} wilt verbinden? Hierdoor worden alle bestaande boekhoudkoppelingen verwijderd.`,
             enterCredentials: 'Voer je inloggegevens in',
+            claimOffer: {
+                badgeText: 'Aanbieding beschikbaar!',
+                xero: {
+                    headline: 'Krijg 6 maanden gratis Xero!',
+                    description: '<muted-text><centered-text>Nieuw bij Xero? Expensify-klanten krijgen 6 maanden gratis. Verzilver je aanbieding hieronder.</centered-text></muted-text>',
+                    connectButton: 'Verbinden met Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Krijg 5% korting op Uber-ritten',
+                    description: `<muted-text><centered-text>Activeer Uber for Business via Expensify en bespaar 5% op alle zakelijke ritten tot en met juni. <a href="${CONST.UBER_TERMS_LINK}">Voorwaarden zijn van toepassing.</a></centered-text></muted-text>`,
+                    connectButton: 'Verbinden met Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {

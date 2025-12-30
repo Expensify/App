@@ -288,6 +288,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         return undefined;
                     }
 
+                    const isXero = integration === CONST.POLICY.CONNECTIONS.NAME.XERO;
                     const iconProps = integrationData?.icon
                         ? {
                               icon: integrationData.icon,
@@ -301,6 +302,13 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         wrapperStyle: [styles.sectionMenuItemTopDescription],
                         shouldShowRightComponent: true,
                         title: integrationData?.title,
+                        badgeText: isXero ? translate('workspace.accounting.claimOffer.badgeText') : undefined,
+                        onBadgePress: isXero
+                            ? () => {
+                                  Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CLAIM_OFFER.getRoute(policyID, CONST.POLICY.CONNECTIONS.NAME.XERO));
+                              }
+                            : undefined,
+                        badgeStyle: styles.mr3,
                         rightComponent: (
                             <Button
                                 onPress={() => startIntegrationFlow({name: integration})}
@@ -424,19 +432,23 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             ...(isEmptyObject(policy?.connections) || !isConnectionVerified ? [] : configurationOptions),
         ];
     }, [
-        accountingIcons,
-        icons,
         policy,
         isSyncInProgress,
         policyID,
         connectedIntegration,
         translate,
         isBetaEnabled,
+        accountingIcons,
         connectionSyncProgress?.stageInProgress,
+        icons.Pencil,
+        icons.ArrowRight,
+        icons.ExpensifyCard,
+        icons.Gear,
         styles.sectionMenuItemTopDescription,
         styles.pb0,
         styles.mt5,
         styles.popoverMenuIcon,
+        styles.mr3,
         styles.justifyContentCenter,
         shouldShowCardReconciliationOption,
         shouldShowSynchronizationError,

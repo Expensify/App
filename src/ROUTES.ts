@@ -2951,6 +2951,10 @@ const ROUTES = {
             return `workspaces/${policyID}/accounting/xero/advanced` as const;
         },
     },
+    POLICY_ACCOUNTING_CLAIM_OFFER: {
+        route: 'workspaces/:policyID/accounting/claim-offer/:integration',
+        getRoute: (policyID: string, integration: string) => `workspaces/${policyID}/accounting/claim-offer/${integration}` as const,
+    },
     POLICY_ACCOUNTING_XERO_AUTO_SYNC: {
         route: 'workspaces/:policyID/accounting/xero/advanced/autosync',
         getRoute: (policyID: string | undefined, backTo?: string) => {

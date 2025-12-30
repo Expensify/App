@@ -5570,6 +5570,20 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             connectPrompt: ({connectionName}: ConnectionNameParams) =>
                 `Tem certeza de que deseja conectar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] ?? 'esta integração contábil'}? Isso removerá quaisquer conexões contábeis existentes.`,
             enterCredentials: 'Insira suas credenciais',
+            claimOffer: {
+                badgeText: 'Oferta disponível!',
+                xero: {
+                    headline: 'Obtenha Xero grátis por 6 meses!',
+                    description: '<muted-text><centered-text>Novo no Xero? Clientes Expensify ganham 6 meses grátis. Resgate sua oferta abaixo.</centered-text></muted-text>',
+                    connectButton: 'Conectar ao Xero',
+                },
+                uber: {
+                    headerTitle: 'Uber for Business',
+                    headline: 'Obtenha 5% de desconto em viagens do Uber',
+                    description: `<muted-text><centered-text>Ative o Uber for Business através do Expensify e economize 5% em todas as viagens de negócios até junho. <a href="${CONST.UBER_TERMS_LINK}">Termos se aplicam.</a></centered-text></muted-text>`,
+                    connectButton: 'Conectar ao Uber for Business',
+                },
+            },
             connections: {
                 syncStageName: ({stage}: SyncStageNameConnectionsParams) => {
                     switch (stage) {
