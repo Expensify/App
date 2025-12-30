@@ -97,6 +97,11 @@ describe('useCompanyCards', () => {
         await waitForBatchedUpdates();
     });
 
+    afterEach(async () => {
+        jest.restoreAllMocks();
+        await Onyx.clear();
+    });
+
     describe('cardFeedType determination', () => {
         it('should return cardFeedType as customFeed for VCF feeds without accountList', async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${mockPolicyID}`, mockCustomFeed);
