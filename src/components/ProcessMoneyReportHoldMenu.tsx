@@ -54,7 +54,7 @@ type ProcessMoneyReportHoldMenuProps = {
 
 function ProcessMoneyReportHoldMenu({
     requestType,
-    nonHeldAmount,
+    nonHeldAmount = '0',
     fullAmount,
     onClose,
     isVisible,
