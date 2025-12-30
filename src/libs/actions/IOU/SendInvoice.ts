@@ -35,7 +35,8 @@ import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
-    getAllPersonalDetails, // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getAllPersonalDetails,
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getPolicyRecentlyUsedTagsData,
     getReceiptError,
     getSearchOnyxUpdate,

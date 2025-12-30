@@ -41,6 +41,7 @@ function TextSelectorModal({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const [currentValue, setValue] = useState(value);
+    const [isClosing, setIsClosing] = useState(false);
 
     const inputRef = useRef<TextInputType | null>(null);
     const inputValueRef = useRef(value);
@@ -50,6 +51,7 @@ function TextSelectorModal({
     };
 
     const hide = useCallback(() => {
+        setIsClosing(true);
         onClose();
         if (shouldClearOnClose) {
             setValue('');
@@ -86,6 +88,7 @@ function TextSelectorModal({
             return;
         }
         setValue(value);
+        setIsClosing(false);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isVisible]);
 
@@ -161,6 +164,7 @@ function TextSelectorModal({
                     addBottomSafeAreaPadding
                     enterKeyEventListenerPriority={0}
                     allowHTML={allowHTML}
+                    shouldValidateOnBlur={!isClosing}
                 >
                     {!!subtitle && (
                         <View style={styles.pb4}>
