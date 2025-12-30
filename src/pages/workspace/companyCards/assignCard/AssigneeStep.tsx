@@ -75,7 +75,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
         const cardToAssign: Partial<AssignCardData> = {
             email: assignee?.login ?? '',
-            cardName: getDefaultCardName(memberName),
+            ...(!assignCard?.cardToAssign?.cardName ? {cardName: getDefaultCardName(memberName)} : {}),
         };
 
         Keyboard.dismiss();
