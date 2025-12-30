@@ -95,7 +95,6 @@ const reportAttributesSelector = (c: OnyxEntry<ReportAttributesDerivedValue>) =>
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
-    newTransactionIDs,
     chatReportID,
     action,
     containerStyles,
@@ -441,33 +440,6 @@ function MoneyRequestReportPreviewContent({
     const viewabilityConfig = useMemo(() => {
         return {itemVisiblePercentThreshold: 100};
     }, []);
-    const numberOfScrollToIndexFailed = useRef(0);
-    const onScrollToIndexFailed: (info: {index: number; highestMeasuredFrameIndex: number; averageItemLength: number}) => void = ({index}) => {
-        // There is a probability of infinite loop so we want to make sure that it is not called more than 5 times.
-        if (numberOfScrollToIndexFailed.current > 4) {
-            return;
-        }
-
-        // Sometimes scrollToIndex might be called before the item is rendered so we will re-call scrollToIndex after a small delay.
-        setTimeout(() => {
-            carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2 * styles.gap2.gap});
-        }, 100);
-        numberOfScrollToIndexFailed.current++;
-    };
-
-    useEffect(() => {
-        const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.includes(transaction.transactionID));
-
-        if (index < 0) {
-            return;
-        }
-        setTimeout(() => {
-            numberOfScrollToIndexFailed.current = 0;
-            carouselRef.current?.scrollToIndex({index, viewOffset: 2 * styles.gap2.gap, animated: true});
-        }, CONST.ANIMATED_TRANSITION);
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [newTransactionIDs]);
 
     // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
@@ -835,7 +807,6 @@ function MoneyRequestReportPreviewContent({
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible]}>
                                             <FlatList
-                                                onScrollToIndexFailed={onScrollToIndexFailed}
                                                 snapToAlignment="start"
                                                 decelerationRate="fast"
                                                 snapToInterval={reportPreviewStyles.transactionPreviewCarouselStyle.width + styles.gap2.gap}

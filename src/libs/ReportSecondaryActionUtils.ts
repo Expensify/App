@@ -5,6 +5,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
+import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
@@ -565,24 +566,14 @@ function isReopenAction(report: Report, policy?: Policy): boolean {
  * Checks whether the supplied report supports merging transactions from it.
  */
 function isMergeAction(parentReport: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
-    // Do not show merge action if there are multiple transactions
-    if (reportTransactions.length !== 1) {
+    // Do not show merge action if there are more than 2 transactions
+    if (reportTransactions.length > 2) {
         return false;
     }
 
-    // Temporary disable merge action for IOU reports
-    // See: https://github.com/Expensify/App/issues/70329#issuecomment-3277062003
+    // Merging IOUs is currently not planned
     if (isIOUReportUtils(parentReport)) {
         return false;
-    }
-
-    // Do not show merge action for transactions with negative amounts
-    const transactionDetails = getTransactionDetails(reportTransactions.at(0));
-    if (transactionDetails) {
-        const transactionAmount = transactionDetails?.amount;
-        if (transactionAmount < 0) {
-            return false;
-        }
     }
 
     const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
@@ -602,6 +593,58 @@ function isMergeAction(parentReport: Report, reportTransactions: Transaction[], 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
     return isMoneyRequestReportEligibleForMerge(parentReport.reportID, isAdmin);
+}
+
+function isMergeActionForSelectedTransactions(transactions: Transaction[], reports: Report[], policies: Policy[], currentUserAccountID?: number) {
+    if ([transactions, reports, policies].some((collection) => collection?.length > 2)) {
+        return false;
+    }
+
+    // Prevent Merge from showing for admins/managers when selecting transactions
+    // belonging to different users
+    if (transactions.length === 2) {
+        const transactionReportData = transactions.map((transaction) => ({
+            transaction,
+            report: reports.find((r) => r.reportID === transaction.reportID),
+            isUnreported: transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID,
+        }));
+
+        const [first, second] = transactionReportData;
+
+        // Check if both transactions are unreported (in this case they must belong to current user)
+        const areBothUnreported = first.isUnreported && second.isUnreported;
+
+        // Check if both reports have the same owner accountID (when both are reported)
+        const haveSameOwner = !first.isUnreported && !second.isUnreported && first.report?.ownerAccountID === second.report?.ownerAccountID;
+
+        // Check if it's a mix of reported/unreported and the reported transaction belongs to current user
+        const isMixedAndValid =
+            (first.isUnreported && !second.isUnreported && second.report?.ownerAccountID === currentUserAccountID) ||
+            (!first.isUnreported && second.isUnreported && first.report?.ownerAccountID === currentUserAccountID);
+
+        if (!areBothUnreported && !haveSameOwner && !isMixedAndValid) {
+            return false;
+        }
+    }
+
+    // All reports must be in an editable state by the current user to allow merging
+    const policyMap = new Map(policies.map((p) => [p?.id, p]));
+    const allReportsEligible = reports.every((report) => {
+        if (!report) {
+            return true;
+        }
+        if (!report?.policyID) {
+            return true;
+        }
+
+        const policy = policyMap.get(report.policyID);
+        if (hasOnlyNonReimbursableTransactions(report.reportID) && isSubmitAndClose(policy) && isInstantSubmitEnabled(policy)) {
+            return false;
+        }
+        return isMoneyRequestReportEligibleForMerge(report, policy?.role === CONST.POLICY.ROLE.ADMIN);
+    });
+
+    return allReportsEligible && (transactions.length === 1 || areTransactionsEligibleForMerge(transactions.at(0), transactions.at(1)));
 }
 
 function isRemoveHoldAction(
@@ -784,7 +827,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SPLIT);
     }
 
-    if (isMergeAction(report, reportTransactions, policy)) {
+    if (reportTransactions?.length === 1 && isMergeAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
@@ -881,4 +924,4 @@ function getSecondaryTransactionThreadActions(
 
     return options;
 }
-export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, getSecondaryExportReportActions, isSplitAction};
+export {getSecondaryReportActions, getSecondaryTransactionThreadActions, isMergeAction, isMergeActionForSelectedTransactions, getSecondaryExportReportActions, isSplitAction};
