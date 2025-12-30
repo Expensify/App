@@ -152,6 +152,7 @@ import {
     getReportViolations,
     getTitleReportField,
     hasOutstandingChildRequest,
+    isAdminRoom,
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
     isCurrentUserSubmitter,

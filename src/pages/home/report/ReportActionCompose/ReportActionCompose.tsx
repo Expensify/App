@@ -116,6 +116,9 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
 
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
+
+    /** Whether the report screen is being displayed in the side panel */
+    isInSidePanel?: boolean;
 };
 
 // We want consistent auto focus behavior on input between native and mWeb so we have some auto focus management code that will
