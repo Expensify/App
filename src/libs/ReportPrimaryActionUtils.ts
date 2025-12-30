@@ -1,6 +1,7 @@
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
@@ -113,7 +114,7 @@ function isSubmitAction(
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
 
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isReportSubmitter) {
         return false;
     }
 
@@ -141,13 +142,6 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     }
 
     if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
-        return false;
-    }
-
-    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
-    const isReportSubmitter = isCurrentUserSubmitter(report);
-
-    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
     }
 
@@ -280,8 +274,17 @@ function isRemoveHoldAction(report: Report, chatReport: OnyxEntry<Report>, repor
     return isHolder;
 }
 
-function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[], currentUserEmail: string, currentUserAccountID: number, policy: Policy | undefined) {
-    const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail, currentUserAccountID, report, policy));
+function isReviewDuplicatesAction(
+    report: Report,
+    reportTransactions: Transaction[],
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    policy: Policy | undefined,
+    violations: OnyxCollection<TransactionViolation[]>,
+) {
+    const hasDuplicates = reportTransactions.some((transaction) =>
+        isDuplicate(transaction, currentUserEmail, currentUserAccountID, report, policy, violations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID]),
+    );
 
     if (!hasDuplicates) {
         return false;
@@ -423,7 +426,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.MARK_AS_CASH;
     }
 
-    if (isReviewDuplicatesAction(report, reportTransactions, currentUserEmail, currentUserAccountID, policy)) {
+    if (isReviewDuplicatesAction(report, reportTransactions, currentUserEmail, currentUserAccountID, policy, violations)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
@@ -495,7 +498,11 @@ function getTransactionThreadPrimaryAction(
         return CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REMOVE_HOLD;
     }
 
-    if (isReviewDuplicatesAction(parentReport, [reportTransaction], currentUserLogin, currentUserAccountID, policy)) {
+    const transactionViolations: OnyxCollection<TransactionViolation[]> = {
+        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reportTransaction.transactionID}`]: violations,
+    };
+
+    if (isReviewDuplicatesAction(parentReport, [reportTransaction], currentUserLogin, currentUserAccountID, policy, transactionViolations)) {
         return isFromReviewDuplicates ? CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.KEEP_THIS_ONE : CONST.REPORT.TRANSACTION_PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
