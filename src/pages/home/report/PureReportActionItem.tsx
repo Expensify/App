@@ -4,7 +4,6 @@ import mapValues from 'lodash/mapValues';
 import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import {Linking} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
@@ -1198,20 +1197,12 @@ function PureReportActionItem({
                     <RenderHTML
                         html={`<comment><muted-text>${modifiedExpenseMessage}</muted-text></comment>`}
                         onLinkPress={(_evt, href) => {
-                            if (!href) {
+                            if (href !== `${CONST.DEEPLINK_BASE_URL}concierge/explain`) {
                                 return;
                             }
-                            if (href.startsWith(CONST.DEEPLINK_BASE_URL)) {
-                                const url = new URL(href);
 
-                                if (url.host === 'concierge' && url.pathname === '/explain') {
-                                    const originalReportId = getOriginalReportID(reportID, action);
-                                    explain(action, originalReportId, translate, personalDetail?.timezone);
-                                    return;
-                                }
-                            }
-
-                            Linking.openURL(href);
+                            const originalReportId = getOriginalReportID(reportID, action);
+                            explain(action, originalReportId, translate, personalDetail?.timezone);
                         }}
                     />
                 </ReportActionItemBasicMessage>
