@@ -734,6 +734,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             >
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding
+                    shouldEnableMaxHeight
                     style={[styles.defaultModalContainer]}
                     testID="WorkspaceTagsPage"
                     shouldShowOfflineIndicatorInWideScreen
