@@ -11,36 +11,22 @@ function EmployeesSeeTagsAsText({customTagName}: EmployeesSeeTagsAsTextProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const template = translate('workspace.tags.employeesSeeTagsAs', {customTagName});
-    const parts = template.split(customTagName);
+    // Use a fixed placeholder that won't appear in translation text
+    // This avoids issues when the tag name is a single character (e.g., "t" would match "tags" and "as")
+    const PLACEHOLDER = '__TAG_NAME_PLACEHOLDER__';
+    const template = translate('workspace.tags.employeesSeeTagsAs', {customTagName: PLACEHOLDER});
+    const [prefix, suffix] = template.split(PLACEHOLDER);
 
-    const prefix = parts.length === 2 ? (parts.at(0) ?? '') : template;
-    const suffix = parts.length === 2 ? (parts.at(1) ?? '') : '';
-
-    const prefixWords = prefix.match(/(\S+\s*)/g) ?? [];
-    const suffixWords = suffix.match(/(\S+\s*)/g) ?? [];
+    // If the placeholder wasn't found (shouldn't happen), fall back to rendering the whole template
+    if (prefix === undefined || suffix === undefined) {
+        return <Text style={[styles.textNormal, styles.colorMuted]}>{template}</Text>;
+    }
 
     return (
         <>
-            {prefixWords.map((word, index) => (
-                <Text
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={`prefix-${index}`}
-                    style={[styles.textNormal, styles.colorMuted]}
-                >
-                    {word}
-                </Text>
-            ))}
+            <Text style={[styles.textNormal, styles.colorMuted]}>{prefix}</Text>
             <Text style={[styles.textBold, styles.colorMuted]}>{customTagName}</Text>
-            {suffixWords.map((word, index) => (
-                <Text
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={`suffix-${index}`}
-                    style={[styles.textNormal, styles.colorMuted]}
-                >
-                    {word}
-                </Text>
-            ))}
+            <Text style={[styles.textNormal, styles.colorMuted]}>{suffix}</Text>
         </>
     );
 }
