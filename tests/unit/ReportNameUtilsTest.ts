@@ -4,8 +4,8 @@ import {
     buildReportNameFromParticipantNames,
     computeReportName,
     getGroupChatName,
-    getInvoicesChatName,
     getInvoicePayerName,
+    getInvoicesChatName,
     getPolicyExpenseChatName,
     getReportName as getSimpleReportName,
 } from '@libs/ReportNameUtils';
@@ -331,12 +331,8 @@ describe('ReportNameUtils', () => {
     describe('buildReportNameFromParticipantNames', () => {
         test('Excludes current user and uses short names for multiple participants', () => {
             const report = {
-                participants: {
-                    [currentUserAccountID]: true,
-                    1: true,
-                    2: true,
-                },
-            } as unknown as Report;
+                ...createRegularChat(1000, [currentUserAccountID, 1, 2]),
+            };
 
             const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails});
             expect(name).toBe('Ragnar, floki@vikings.net');
@@ -344,11 +340,8 @@ describe('ReportNameUtils', () => {
 
         test('Uses full name when only one participant remains after filtering current user', () => {
             const report = {
-                participants: {
-                    [currentUserAccountID]: true,
-                    1: true,
-                },
-            } as unknown as Report;
+                ...createRegularChat(1001, [currentUserAccountID, 1]),
+            };
 
             const name = buildReportNameFromParticipantNames({report, personalDetailsList: participantsPersonalDetails});
             expect(name).toBe('Ragnar Lothbrok');
@@ -387,7 +380,7 @@ describe('ReportNameUtils', () => {
                 personalDetails: participantsPersonalDetails,
             });
 
-            const normalizedName = name?.replace(/\u00A0/g, ' ');
+            const normalizedName = name?.replaceAll('\u00A0', ' ');
             expect(normalizedName).toBe('Ragnar Lothbrok');
         });
 
@@ -398,7 +391,7 @@ describe('ReportNameUtils', () => {
             };
             const name = getInvoicePayerName(report, undefined, null);
 
-            const normalizedName = name?.replace(/\u00A0/g, ' ');
+            const normalizedName = name?.replaceAll('\u00A0', ' ');
             expect(normalizedName).toBe('Ragnar Lothbrok');
         });
     });
