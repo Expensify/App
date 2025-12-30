@@ -139,8 +139,6 @@ function IOURequestStepMerchant({
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
             );
-            navigateBack();
-            return;
         }
         setIsSaved(true);
         shouldNavigateAfterSaveRef.current = true;
