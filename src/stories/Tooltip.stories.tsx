@@ -1,4 +1,4 @@
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
 import Tooltip from '@components/Tooltip';
 import type {TooltipExtendedProps} from '@components/Tooltip/types';
