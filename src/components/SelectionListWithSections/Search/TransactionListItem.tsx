@@ -120,7 +120,7 @@ function TransactionListItem<TItem extends ListItem>({
         return (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
             (violation: TransactionViolation) =>
                 !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, snapshotReport, snapshotPolicy) &&
-                shouldShowViolation(snapshotReport, snapshotPolicy, violation.name, currentUserDetails.email ?? '', false),
+                shouldShowViolation(snapshotReport, snapshotPolicy, violation.name, currentUserDetails.email ?? '', false, transactionItem),
         );
     }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email, currentUserDetails.accountID]);
 

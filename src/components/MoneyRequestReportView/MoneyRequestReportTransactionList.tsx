@@ -210,7 +210,7 @@ function MoneyRequestReportTransactionList({
             const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
             if (transactionViolations) {
                 const filteredTransactionViolations = mergeProhibitedViolations(
-                    transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails.email ?? '')),
+                    transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails.email ?? '', true, transaction)),
                 );
 
                 if (filteredTransactionViolations.length > 0) {

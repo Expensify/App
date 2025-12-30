@@ -1459,6 +1459,21 @@ function shouldHighlight(referenceText: string, searchText: string) {
     return pattern.test(StringUtils.normalizeAccents(referenceText).toLowerCase());
 }
 
+function shouldSkipSuggestedSearchNavigation(queryJSON?: SearchQueryJSON) {
+    if (!queryJSON) {
+        return false;
+    }
+
+    const hasKeywordFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+    const hasContextFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN);
+    const inputQuery = queryJSON.inputQuery?.toLowerCase() ?? '';
+    const hasInlineKeywordFilter = inputQuery.includes(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD.toLowerCase()}:`);
+    const hasInlineContextFilter = inputQuery.includes(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN.toLowerCase()}:`);
+    const isChatSearch = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+
+    return !!queryJSON.rawFilterList || hasKeywordFilter || hasContextFilter || hasInlineKeywordFilter || hasInlineContextFilter || isChatSearch;
+}
+
 export {
     isSearchDatePreset,
     isFilterSupported,
@@ -1482,4 +1497,5 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
+    shouldSkipSuggestedSearchNavigation,
 };
