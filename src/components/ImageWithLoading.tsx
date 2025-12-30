@@ -36,7 +36,6 @@ function ImageWithLoading({
     resizeMode,
     onLoad,
     onLayout,
-    style,
     ...rest
 }: ImageWithSizeLoadingProps) {
     const styles = useThemeStyles();
@@ -86,7 +85,7 @@ function ImageWithLoading({
             <Image
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
-                style={[styles.w100, styles.h100, style]}
+                style={[styles.w100, styles.h100]}
                 onLoadStart={() => {
                     if (isLoadedRef.current ?? isLoading) {
                         return;
