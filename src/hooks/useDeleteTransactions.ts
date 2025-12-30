@@ -179,6 +179,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             isBetaEnabled,
             currentUserPersonalDetails,
             transactionViolations,
+            policyRecentlyUsedCurrencies,
         ],
     );
 

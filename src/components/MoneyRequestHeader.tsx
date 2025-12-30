@@ -196,7 +196,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                 );
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction],
+        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction, policyRecentlyUsedCurrencies],
     );
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (

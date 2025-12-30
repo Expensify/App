@@ -927,6 +927,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
+                policyRecentlyUsedCurrencies: [],
             });
             return waitForBatchedUpdates()
                 .then(
@@ -1180,6 +1181,7 @@ describe('actions/IOU', () => {
                         transactionViolations: {},
                         currentUserAccountIDParam: 123,
                         currentUserEmailParam: 'existing@example.com',
+                        policyRecentlyUsedCurrencies: [],
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1406,6 +1408,7 @@ describe('actions/IOU', () => {
                             transactionViolations: {},
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1568,6 +1571,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
+                policyRecentlyUsedCurrencies: [],
             });
             return (
                 waitForBatchedUpdates()
@@ -2067,6 +2071,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
+                policyRecentlyUsedCurrencies: [],
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2092,6 +2097,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
+                policyRecentlyUsedCurrencies: [],
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -2133,6 +2139,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
+                policyRecentlyUsedCurrencies: [],
                 currentUserEmailParam: 'existing@example.com',
             });
 
@@ -2171,6 +2178,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -3229,6 +3237,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 currentUserPersonalDetails,
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -3335,6 +3344,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 currentUserPersonalDetails,
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -3454,6 +3464,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 currentUserPersonalDetails,
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -3502,6 +3513,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
             return waitForBatchedUpdates()
                 .then(
@@ -3744,6 +3756,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3881,6 +3894,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -4113,6 +4127,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -4217,6 +4232,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
             await waitForBatchedUpdates();
 
@@ -4458,6 +4474,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -5025,6 +5042,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
             }
 
@@ -5096,6 +5114,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
             await waitForBatchedUpdates();
 
@@ -5357,6 +5376,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5478,6 +5498,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5668,6 +5689,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6746,6 +6768,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -7567,6 +7590,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
             }
             await waitForBatchedUpdates();
@@ -7656,6 +7680,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
             }
             await waitForBatchedUpdates();
@@ -8547,6 +8572,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -8644,6 +8670,7 @@ describe('actions/IOU', () => {
                     isASAPSubmitBetaEnabled: false,
                     currentUserPersonalDetails,
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -8697,6 +8724,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -8794,6 +8822,7 @@ describe('actions/IOU', () => {
                     isASAPSubmitBetaEnabled: false,
                     currentUserPersonalDetails,
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -8852,6 +8881,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -8958,6 +8988,7 @@ describe('actions/IOU', () => {
                     isASAPSubmitBetaEnabled: false,
                     currentUserPersonalDetails,
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -11185,6 +11216,7 @@ describe('actions/IOU', () => {
                 mockOptimisticIOUReportID,
                 mockIsASAPSubmitBetaEnabled,
                 undefined,
+                [],
                 mockPolicy,
                 fakePolicyCategories,
                 policyExpenseChat,
