@@ -3620,6 +3620,38 @@ ${
         weTake: 'Nous prenons votre sécurité au sérieux. Veuillez configurer l’A2F maintenant afin d’ajouter une couche supplémentaire de protection à votre compte.',
         secure: 'Sécurisez votre compte',
     },
+    documentsStep: {
+        beforeYouGo: 'Avant de continuer, nous avons besoin de certains documents pour vérifier certaines informations',
+        subheader: 'Vérification',
+        verificationFailed: 'La vérification a échoué, nous aurons donc besoin de documents supplémentaires pour te vérifier ainsi que ton entreprise',
+        taxIDVerification: 'Vérification de l’identifiant fiscal',
+        taxIDVerificationDescription: dedent(`
+        Veuillez téléverser l’un des fichiers suivants :
+        • Lettre d’attribution TIN/EIN de l’IRS
+        • Confirmation de demande TIN/EIN de l’IRS (indique généralement « Congratulations! The EIN has been successfully assigned »)
+        • Lettre d’exonération fiscale de l’IRS indiquant le nom de l’entreprise et l’EIN`),
+        nameChangeDocument: 'Document de changement de nom',
+        nameChangeDocumentDescription:
+            'Si le nom de ton entreprise a changé depuis la demande du TIN/EIN, ce document est nécessaire pour vérifier le numéro d’identification fiscale fourni',
+        companyAddressVerification: 'Vérification de l’adresse de l’entreprise',
+        companyAddressVerificationDescription: dedent(`
+        Veuillez téléverser l’un des fichiers suivants :
+        • Facture récente de services publics indiquant le nom et l’adresse de l’entreprise
+        • Relevé bancaire indiquant le nom et l’adresse de l’entreprise
+        • Contrat de location en cours incluant la page de signature avec le nom et l’adresse actuelle de l’entreprise
+        • Attestation d’assurance indiquant le nom et l’adresse de l’entreprise
+        • Document d’attribution TIN indiquant le nom et l’adresse de l’entreprise`),
+        userAddressVerification: 'Vérification de l’adresse',
+        userAddressVerificationDescription: dedent(`
+        Veuillez téléverser l’un des fichiers suivants :
+        • Carte d’inscription électorale
+        • Permis de conduire
+        • Relevé bancaire
+        • Facture de services publics`),
+        userDOBVerification: 'Vérification de la date de naissance',
+        userDOBVerificationDescription: 'Veuillez téléverser une pièce d’identité délivrée aux États-Unis',
+        finishViaChat: 'Finaliser via le chat',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un instant',
         explanationLine: 'Nous examinons vos informations. Vous pourrez poursuivre les prochaines étapes sous peu.',

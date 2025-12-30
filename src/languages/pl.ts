@@ -3594,6 +3594,37 @@ ${
         weTake: 'Poważnie traktujemy Twoje bezpieczeństwo. Skonfiguruj teraz 2FA, aby dodać dodatkową warstwę ochrony swojego konta.',
         secure: 'Zabezpiecz swoje konto',
     },
+    documentsStep: {
+        beforeYouGo: 'Zanim przejdziesz dalej, potrzebujemy kilku dokumentów do weryfikacji informacji',
+        subheader: 'Weryfikacja',
+        verificationFailed: 'Weryfikacja nie powiodła się, dlatego potrzebujemy dodatkowych dokumentów do potwierdzenia Twojej tożsamości i firmy',
+        taxIDVerification: 'Weryfikacja numeru podatkowego',
+        taxIDVerificationDescription: dedent(`
+        Prześlij jeden z poniższych plików:
+        • List przydziału TIN/EIN z IRS
+        • Potwierdzenie wniosku TIN/EIN z IRS (zwykle zawiera „Congratulations! The EIN has been successfully assigned”)
+        • Pismo o zwolnieniu podatkowym z IRS zawierające nazwę firmy i EIN`),
+        nameChangeDocument: 'Dokument zmiany nazwy',
+        nameChangeDocumentDescription: 'Jeśli nazwa firmy zmieniła się od momentu złożenia wniosku o TIN/EIN, dokument ten jest wymagany do weryfikacji podanego numeru podatkowego',
+        companyAddressVerification: 'Weryfikacja adresu firmy',
+        companyAddressVerificationDescription: dedent(`
+        Prześlij jeden z poniższych plików:
+        • Aktualny rachunek za media z nazwą i adresem firmy
+        • Wyciąg bankowy z nazwą i adresem firmy
+        • Aktualna umowa najmu z podpisaną stroną zawierającą nazwę i adres firmy
+        • Dokument ubezpieczeniowy z nazwą i adresem firmy
+        • Dokument przydziału TIN z nazwą i adresem firmy`),
+        userAddressVerification: 'Weryfikacja adresu',
+        userAddressVerificationDescription: dedent(`
+        Prześlij jeden z poniższych plików:
+        • Karta rejestracji wyborcy
+        • Prawo jazdy
+        • Wyciąg bankowy
+        • Rachunek za media`),
+        userDOBVerification: 'Weryfikacja daty urodzenia',
+        userDOBVerificationDescription: 'Prześlij dokument tożsamości wydany w USA',
+        finishViaChat: 'Zakończ przez czat',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Chwileczkę',
         explanationLine: 'Sprawdzamy teraz Twoje informacje. Wkrótce będziesz mógł kontynuować kolejne kroki.',

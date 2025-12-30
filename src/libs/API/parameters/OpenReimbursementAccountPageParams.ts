@@ -8,6 +8,7 @@ type OpenReimbursementAccountPageParams = {
     subStep: ReimbursementAccountSubStep;
     localCurrentStep: ReimbursementAccountStep;
     policyID: string;
+    includeKYBStep: boolean;
 };
 
 export default OpenReimbursementAccountPageParams;

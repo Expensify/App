@@ -3599,6 +3599,38 @@ ${
         weTake: 'Prendiamo molto sul serio la tua sicurezza. Imposta subito l’autenticazione a due fattori (2FA) per aggiungere un ulteriore livello di protezione al tuo account.',
         secure: 'Proteggi il tuo account',
     },
+    documentsStep: {
+        beforeYouGo: 'Prima di continuare, abbiamo bisogno di alcuni documenti per verificare alcune informazioni',
+        subheader: 'Verifica',
+        verificationFailed: 'La verifica non è riuscita, quindi avremo bisogno di documenti aggiuntivi per verificare te e la tua azienda',
+        taxIDVerification: 'Verifica dell’ID fiscale',
+        taxIDVerificationDescription: dedent(`
+        Carica uno dei seguenti file:
+        • Lettera di assegnazione TIN/EIN dell’IRS
+        • Conferma della richiesta TIN/EIN dell’IRS (di solito indica "Congratulations! The EIN has been successfully assigned")
+        • Lettera di esenzione fiscale dell’IRS con nome dell’azienda ed EIN`),
+        nameChangeDocument: 'Documento di cambio nome',
+        nameChangeDocumentDescription:
+            'Se il nome della tua azienda è cambiato dopo la richiesta del TIN/EIN, abbiamo bisogno di questo documento per verificare il numero di ID fiscale fornito',
+        companyAddressVerification: 'Verifica dell’indirizzo aziendale',
+        companyAddressVerificationDescription: dedent(`
+        Carica uno dei seguenti file:
+        • Bolletta recente con nome e indirizzo dell’azienda
+        • Estratto conto bancario con nome e indirizzo dell’azienda
+        • Contratto di locazione attuale con pagina firme che mostri nome e indirizzo attuale dell’azienda
+        • Documento assicurativo con nome e indirizzo dell’azienda
+        • Documento di assegnazione TIN con nome e indirizzo dell’azienda`),
+        userAddressVerification: 'Verifica dell’indirizzo',
+        userAddressVerificationDescription: dedent(`
+        Carica uno dei seguenti file:
+        • Tessera elettorale
+        • Patente di guida
+        • Estratto conto bancario
+        • Bolletta`),
+        userDOBVerification: 'Verifica della data di nascita',
+        userDOBVerificationDescription: 'Carica un documento di identità rilasciato negli Stati Uniti',
+        finishViaChat: 'Completa via chat',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Un momento',
         explanationLine: 'Stiamo esaminando le tue informazioni. Potrai procedere con i prossimi passaggi a breve.',

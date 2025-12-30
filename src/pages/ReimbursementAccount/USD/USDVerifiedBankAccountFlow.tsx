@@ -10,6 +10,7 @@ import BusinessInfo from './BusinessInfo/BusinessInfo';
 import CompleteVerification from './CompleteVerification/CompleteVerification';
 import ConnectBankAccount from './ConnectBankAccount/ConnectBankAccount';
 import Country from './Country';
+import KYBDocuments from './KYBDocuments';
 import RequestorStep from './Requestor/RequestorStep';
 
 type USDVerifiedBankAccountFlowProps = {
@@ -81,6 +82,9 @@ function USDVerifiedBankAccountFlow({
                     setShouldShowConnectedVerifiedBankAccount={setShouldShowConnectedVerifiedBankAccount}
                 />
             );
+            break;
+        case CONST.BANK_ACCOUNT.STEP.KYB_DOCS:
+            CurrentStep = <KYBDocuments onBackButtonPress={onBackButtonPress} />;
             break;
         default:
             CurrentStep = null;

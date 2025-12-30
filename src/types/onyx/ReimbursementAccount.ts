@@ -196,6 +196,41 @@ type ACHData = Partial<BeneficialOwnersStepProps & CompanyStepProps & RequestorS
 
     /** Date the corpay bank account was created */
     created?: string;
+
+    /** Statuses of additional checks hinting at missing documents user still needs to upload */
+    verifications?: {
+        /** points towards one of external providers */
+        externalApiResponse?: {
+            /** provider name */
+            companyTaxID?: {
+                /** status of check */
+                status: string;
+            };
+            /** provider name */
+            lexisNexisInstantIDResult?: {
+                /** status of check */
+                status: string;
+            };
+            /** provider name */
+            requestorIdentityID?: {
+                /** status of check */
+                status: string;
+                /** result with validation errors */
+                apiResult?: {
+                    /** contains validation qualifiers that provide additional details about the identity verification result */
+                    qualifiers: {
+                        /** array of individual validation checks that were flagged during identity verification */
+                        qualifier: Array<{
+                            /** Unique code of the error */
+                            key: string;
+                            /** Message of the error */
+                            message: string;
+                        }>;
+                    };
+                };
+            };
+        };
+    };
 };
 
 /** The step in an reimbursement account's ach data */
@@ -247,6 +282,9 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Whether we are sending a reminder about filling signer information via the API */
     isSendingReminderForCorpaySignerInformation?: boolean;
+
+    /** Whether we are uploading KYB documents via the API */
+    isUploadingKYBDocuments?: boolean;
 
     /** Where the request is successful */
     isSuccess?: boolean;
