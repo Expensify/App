@@ -4,22 +4,24 @@ import {CommonActions, getPathFromState, StackActions} from '@react-navigation/n
 import {Str} from 'expensify-common';
 // eslint-disable-next-line you-dont-need-lodash-underscore/omit
 import omit from 'lodash/omit';
-import {DeviceEventEmitter, InteractionManager} from 'react-native';
+import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Writable} from 'type-fest';
-import {SUPER_WIDE_RIGHT_MODALS, WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider';
+import {ALL_WIDE_RIGHT_MODALS, SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_RIGHT_MODALS';
+import SidePanelActions from '@libs/actions/SidePanel';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import {shallowCompare} from '@libs/ObjectUtils';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import type {Account} from '@src/types/onyx';
+import type {Account, SidePanel} from '@src/types/onyx';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
 import getStateFromPath from './helpers/getStateFromPath';
@@ -51,6 +53,16 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         account = value;
+    },
+});
+
+let sidePanelNVP: OnyxEntry<SidePanel>;
+// `connectWithoutView` is used here because we want to avoid unnecessary re-renders when the side panel NVP changes
+// Also it is not directly connected to any UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_SIDE_PANEL,
+    callback: (value) => {
+        sidePanelNVP = value;
     },
 });
 
@@ -118,6 +130,18 @@ const getTopmostReportActionId = (state = navigationRef.getState()) => getTopmos
  * Re-exporting the closeRHPFlow here to fill in default value for navigationRef. The closeRHPFlow isn't defined in this file to avoid cyclic dependencies.
  */
 const closeRHPFlow = (ref = navigationRef) => originalCloseRHPFlow(ref);
+
+/**
+ * Close the side panel on narrow layout when navigating to a different screen.
+ */
+function closeSidePanelOnNarrowScreen() {
+    const isExtraLargeScreenWidth = Dimensions.get('window').width > variables.sidePanelResponsiveWidthBreakpoint;
+
+    if (!sidePanelNVP?.openNarrowScreen || isExtraLargeScreenWidth) {
+        return;
+    }
+    SidePanelActions.closeSidePanel(true);
+}
 
 /**
  * Returns the current active route.
@@ -226,6 +250,7 @@ function navigate(route: Route, options?: LinkToOptions) {
     }
 
     linkTo(navigationRef.current, route, options);
+    closeSidePanelOnNarrowScreen();
 }
 
 /**
@@ -741,16 +766,18 @@ function dismissToModalStack(modalStackNames: Set<string>) {
 /**
  * Dismiss top layer modal and go back to the Wide/Super Wide RHP.
  */
-function dismissToFirstRHP() {
-    const wideOrSuperWideModalStackNames = new Set([...SUPER_WIDE_RIGHT_MODALS, ...WIDE_RIGHT_MODALS]);
-    return dismissToModalStack(wideOrSuperWideModalStackNames);
+function dismissToPreviousRHP() {
+    return dismissToModalStack(ALL_WIDE_RIGHT_MODALS);
 }
 
-/**
- * Dismiss top layer modal and go back to the Wide RHP.
- */
-function dismissToSecondRHP() {
-    return dismissToModalStack(WIDE_RIGHT_MODALS);
+function dismissToSuperWideRHP() {
+    // On narrow layouts (mobile), Super Wide RHP doesn't exist, so just dismiss the modal completely
+    if (getIsNarrowLayout()) {
+        dismissModal();
+        return;
+    }
+    // On wide layouts, dismiss back to the Super Wide RHP modal stack
+    return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
 }
 
 export default {
@@ -788,8 +815,8 @@ export default {
     isOnboardingFlow,
     clearPreloadedRoutes,
     isValidateLoginFlow,
-    dismissToFirstRHP,
-    dismissToSecondRHP,
+    dismissToPreviousRHP,
+    dismissToSuperWideRHP,
 };
 
 export {navigationRef};
