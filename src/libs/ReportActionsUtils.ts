@@ -226,7 +226,10 @@ function isReportPreviewAction(reportAction: OnyxInputOrEntry<ReportAction>): re
  * Builds an optimistic CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS system report action.
  * Used to inform users that a new report was created for held/unapproved transactions.
  */
-function buildOptimisticCreatedReportForUnapprovedAction(reportID: string, originalReportID: string): ReportAction {
+function buildOptimisticCreatedReportForUnapprovedAction(
+    reportID: string,
+    originalReportID: string,
+): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS> {
     const createdTime = DateUtils.getDBTime();
     const actor = getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]).at(0);
 
