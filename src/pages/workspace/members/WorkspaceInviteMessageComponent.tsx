@@ -175,7 +175,7 @@ function WorkspaceInviteMessageComponent({
         }
 
         // If backTo is provided and it's the expenses-from route, navigate to approver screen
-        if (isExpensesFromRoute) {
+        if (isWorkflowApprovalExpensesFromRoute) {
             // Check if it's initial creation flow (backTo doesn't have a nested backTo param)
             const backToStr = typeof backTo === 'string' ? backTo : '';
             const isInitialCreationFlow = !backToStr.includes('/expenses-from/');
