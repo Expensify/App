@@ -10880,18 +10880,18 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {reportID: iouReportID, policyID: policy.id})
 
             // When updating the expense tag
-            updateMoneyRequestTag(
-                '1',
+            updateMoneyRequestTag({
+                transactionID: '1',
                 transactionThreadReportID,
-                newTag,
+                tag: newTag,
                 policy,
-                policyTags,
+                policyTagList: policyTags,
                 policyRecentlyUsedTags,
-                undefined,
-                currentUserPersonalDetails.accountID,
-                currentUserPersonalDetails.email ?? '',
-                false,
-            );
+                policyCategories: undefined,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.email ?? '',
+                isASAPSubmitBetaEnabled: false,
+            });
 
             waitForBatchedUpdates();
 
