@@ -15,10 +15,10 @@ run_wds () {
     # Check if platform is Desktop to determine open behavior
     if [[ "${WEBPACK_DEV_SERVER_ARGS[*]}" == *"--env platform=desktop"* ]]; then
         # For Desktop, always use --no-open since app is handled by Electron
-        node --expose-gc ./node_modules/.bin/webpack-dev-server --no-open "${WEBPACK_DEV_SERVER_ARGS[@]}" --config config/webpack/webpack.dev.ts
+        npx tsx --expose-gc ./node_modules/.bin/webpack-cli serve --no-open "${WEBPACK_DEV_SERVER_ARGS[@]}" --config config/webpack/webpack.dev.ts
     else
         # For Web, use the provided open flag
-        node --expose-gc ./node_modules/.bin/webpack-dev-server "$1" "${WEBPACK_DEV_SERVER_ARGS[@]}" --config config/webpack/webpack.dev.ts
+        npx tsx --expose-gc ./node_modules/.bin/webpack-cli serve "$1" "${WEBPACK_DEV_SERVER_ARGS[@]}" --config config/webpack/webpack.dev.ts
     fi
 }
 

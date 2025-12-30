@@ -223,7 +223,10 @@ function updateAddress(addresses: Address[], street: string, street2: string, ci
     if (country !== CONST.COUNTRY.US) {
         parameters.addressStateLong = state;
     }
-
+    const updatedAddresses = addresses.map((address) => ({
+        ...address,
+        current: false,
+    }));
     API.write(WRITE_COMMANDS.UPDATE_HOME_ADDRESS, parameters, {
         optimisticData: [
             {
@@ -231,7 +234,7 @@ function updateAddress(addresses: Address[], street: string, street2: string, ci
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
                     addresses: [
-                        ...addresses,
+                        ...updatedAddresses,
                         {
                             street: PersonalDetailsUtils.getFormattedStreet(street, street2),
                             city,

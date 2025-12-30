@@ -213,7 +213,7 @@ function EmptySearchViewContent({
 
     const handleCreateWorkspaceReport = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
-            if (!defaultChatEnabledPolicyID) {
+            if (!defaultChatEnabledPolicy?.id) {
                 return;
             }
 
@@ -221,7 +221,7 @@ function EmptySearchViewContent({
                 currentUserPersonalDetails,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                defaultChatEnabledPolicyID,
+                defaultChatEnabledPolicy,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
@@ -229,7 +229,7 @@ function EmptySearchViewContent({
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled],
     );
 
     const {openCreateReportConfirmation: openCreateReportFromSearch, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({

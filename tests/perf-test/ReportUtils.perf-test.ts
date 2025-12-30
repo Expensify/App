@@ -9,7 +9,8 @@ import {
     getDisplayNamesWithTooltips,
     getIcons,
     getIconsForParticipants,
-    getIOUReportActionDisplayMessage, // Will be fixed in https://github.com/Expensify/App/issues/76852
+    getIOUReportActionDisplayMessage,
+    // Will be fixed in https://github.com/Expensify/App/issues/76852
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getReportPreviewMessage,

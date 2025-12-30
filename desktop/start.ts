@@ -13,7 +13,7 @@ portfinder
     })
     .then((port) => {
         const devServer = `./scripts/start-dev-with-auto-restart.sh --port ${port} --env platform=desktop`;
-        const buildMain = 'webpack watch --config config/webpack/webpack.desktop.ts --config-name desktop-main --mode=development';
+        const buildMain = 'npx tsx ./node_modules/.bin/webpack-cli watch --config config/webpack/webpack.desktop.ts --config-name desktop-main --mode=development';
 
         const env = {
             PORT: port,

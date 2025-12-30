@@ -1429,6 +1429,36 @@ describe('TransactionUtils', () => {
 
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
         });
+
+        it('should return false for unreported expenses', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false for invoice expenses', async () => {
+            const invoiceReportID = 'invoice123';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {
+                reportID: invoiceReportID,
+                type: CONST.REPORT.TYPE.INVOICE,
+            });
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: invoiceReportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
     });
 
     describe('shouldReuseInitialTransaction', () => {

@@ -48,7 +48,7 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
             if (!parsedTitle) {
                 addErrorMessage(errors, INPUT_IDS.TITLE, translate('newTaskPage.pleaseEnterTaskName'));
             } else if (parsedTitleLength > CONST.TASK_TITLE_CHARACTER_LIMIT) {
-                addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', {length: parsedTitleLength, limit: CONST.TASK_TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, INPUT_IDS.TITLE, translate('common.error.characterLimitExceedCounter', parsedTitleLength, CONST.TASK_TITLE_CHARACTER_LIMIT));
             }
 
             return errors;

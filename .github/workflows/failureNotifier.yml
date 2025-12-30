@@ -2,7 +2,7 @@ name: Notify on Workflow Failure
 
 on:
   workflow_run:
-    workflows: ["Process new code merged to main"]
+    workflows: ["Process new code merged to main", "Remote Build iOS", "Remote Build Android"]
     types:
       - completed
 
@@ -38,7 +38,7 @@ jobs:
             const allRuns = await github.rest.actions.listWorkflowRuns({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: 'preDeploy.yml',
+              workflow_id: context.payload.workflow_run.workflow_id,
             });
             const filteredRuns = allRuns.data.workflow_runs.filter(run => run.actor.login !== 'OSBotify' && run.status !== 'cancelled');
             const currentIndex = filteredRuns.findIndex(run => run.id === runId);
@@ -68,7 +68,7 @@ jobs:
             const jobs = ${{ steps.fetch-workflow-jobs.outputs.result }};
             const previousRun = ${{ steps.previous-workflow-run.outputs.result }};
             const previousRunJobs = ${{ steps.previous-workflow-jobs.outputs.result }};
-            const headCommit = "${{ github.event.workflow_run.head_commit.id }}";            
+            const headCommit = "${{ github.event.workflow_run.head_commit.id }}";
             const prData = await github.rest.repos.listPullRequestsAssociatedWithCommit({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -96,8 +96,8 @@ jobs:
                   });
                   let errorMessage = "";
                   for(let j = 0; j < annotations.data.length; j++) {
-                    errorMessage += annotations.data[j].annotation_level + ": "; 
-                    errorMessage += annotations.data[j].message + "\n";  
+                    errorMessage += annotations.data[j].annotation_level + ": ";
+                    errorMessage += annotations.data[j].message + "\n";
                   }
                   const issueTitle = `Investigate workflow job failing on main: ${ jobName }`;
                   const issueBody = `🚨 **Failure Summary** 🚨:\n\n` +

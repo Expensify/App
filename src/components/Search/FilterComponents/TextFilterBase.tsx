@@ -35,7 +35,7 @@ function TextFilterBase({filterKey, title, onSubmit, characterLimit = CONST.MERC
         const {isValid, byteLength} = isValidInputLength(trimmedValue, characterLimit);
 
         if (!isValid) {
-            errors[filterKey] = translate('common.error.characterLimitExceedCounter', {length: byteLength, limit: characterLimit});
+            errors[filterKey] = translate('common.error.characterLimitExceedCounter', byteLength, characterLimit);
         }
 
         return errors;

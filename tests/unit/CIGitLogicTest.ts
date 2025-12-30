@@ -2,7 +2,6 @@
  * @jest-environment node
  * @jest-config bail=true
  */
-
 /* eslint-disable no-console */
 import * as core from '@actions/core';
 import {execSync} from 'child_process';
