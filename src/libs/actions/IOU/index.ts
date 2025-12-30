@@ -14545,6 +14545,7 @@ function updateSplitTransactions({
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
             currentUserEmailParam: currentUserPersonalDetails?.login ?? '',
             transactionViolations,
+            shouldGenerateTransactionThreadReport: !isReverseSplitOperation,
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData = {};
