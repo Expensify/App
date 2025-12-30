@@ -185,10 +185,10 @@ function SidebarOrderedReportsContextProvider({
         setCurrentReportsToDisplay(reportsToDisplayInLHN);
     }, [reportsToDisplayInLHN]);
 
-    const getOrderedReportIDs = useCallback(() => {
-        const result = SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, reportsDrafts, reportNameValuePairs, reportAttributes);
-        return result;
-    }, [reportsToDisplayInLHN, priorityMode, localeCompare, reportsDrafts, reportNameValuePairs, reportAttributes]);
+    const getOrderedReportIDs = useCallback(
+        () => SidebarUtils.sortReportsToDisplayInLHN(reportsToDisplayInLHN, priorityMode, localeCompare, reportsDrafts, reportNameValuePairs, reportAttributes),
+        [reportsToDisplayInLHN, priorityMode, localeCompare, reportsDrafts, reportNameValuePairs, reportAttributes],
+    );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
 
