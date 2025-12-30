@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
-import React from 'react';
+import React, {useMemo} from 'react';
 import type {ColorValue, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -98,6 +98,15 @@ function ParentNavigationSubtitle({
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
     const hasAccessToParentReport = currentReport?.hasParentAccess !== false;
 
+    // Extract color from textStyles to apply only to non-link text, preserving link color
+    const textStylesWithoutColor = useMemo(() => {
+        if (!textStyles) {
+            return textStyles;
+        }
+        const {color, ...rest} = StyleSheet.flatten(textStyles);
+        return rest;
+    }, [textStyles]);
+
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
     if (!reportName) {
         return;
@@ -182,7 +191,7 @@ function ParentNavigationSubtitle({
                                     styles.optionAlternateText,
                                     styles.textLabelSupporting,
                                     hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link,
-                                    textStyles,
+                                    textStylesWithoutColor,
                                 ]}
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                             >

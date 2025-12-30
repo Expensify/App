@@ -35,7 +35,9 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
 import getBase62ReportID from '@libs/getBase62ReportID';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -149,6 +151,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const theme = useTheme();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Users', 'Gear', 'Send', 'Folder', 'UserPlus', 'Pencil', 'Checkmark', 'Building', 'Exit', 'Bug', 'Camera', 'Trashcan']);
     const backTo = route.params.backTo;
@@ -209,6 +212,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
     const parentNavigationSubtitleData = getParentNavigationSubtitle(report, isParentReportArchived);
     const base62ReportID = getBase62ReportID(Number(report.reportID));
     const ancestors = useAncestors(report);
+    const parentNavigationSubtitleTextStyle = useMemo(() => ({fontSize: variables.fontSizeNormal, color: theme.heading}), [theme.heading]);
     // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- policy is a dependency because `getChatRoomSubtitle` calls `getPolicyName` which in turn retrieves the value from the `policy` value stored in Onyx
     const chatRoomSubtitle = useMemo(() => {
         const subtitle = getChatRoomSubtitle(report, false, isReportArchived);
@@ -691,6 +695,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
                             parentReportID={report?.parentReportID}
                             parentReportActionID={report?.parentReportActionID}
                             shouldShowFrom={false}
+                            textStyles={parentNavigationSubtitleTextStyle}
                         />
                     }
                     description={translate('threads.from')}
@@ -744,6 +749,7 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
             parentReportActionID={report?.parentReportActionID}
             pressableStyles={[styles.mt1, styles.mw100]}
             shouldShowFrom={false}
+            textStyles={parentNavigationSubtitleTextStyle}
         />
     );
 
