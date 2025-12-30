@@ -230,7 +230,7 @@ function getPreferredCurrencySymbol(currencyCode: string = CONST.CURRENCY.USD, p
         return symbolFromList;
     }
 
-    const locale = preferredLocale ?? IntlStore.getCurrentLocale()
+    const locale = preferredLocale ?? IntlStore.getCurrentLocale();
     return getLocalizedCurrencySymbol(locale, currencyCode);
 }
 
