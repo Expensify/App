@@ -133,19 +133,19 @@ function IOURequestStepTag({
         }
 
         if (isEditing) {
-            updateMoneyRequestTag(
+            updateMoneyRequestTag({
                 transactionID,
-                report?.reportID,
-                updatedTag,
+                transactionThreadReportID: report?.reportID,
+                tag: updatedTag,
                 policy,
-                policyTags,
+                policyTagList: policyTags,
                 policyRecentlyUsedTags,
                 policyCategories,
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
-                currentSearchHash,
-            );
+                hash: currentSearchHash,
+            });
             navigateBack();
             return;
         }
