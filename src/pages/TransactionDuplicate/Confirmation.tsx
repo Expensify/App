@@ -148,6 +148,7 @@ function Confirmation() {
                                 shouldShowAnimatedBackground={false}
                                 readonly
                                 updatedTransaction={newTransaction as OnyxEntry<Transaction>}
+                                isFromReviewDuplicates
                             />
                         </ShowContextMenuContext.Provider>
                     </ScrollView>
