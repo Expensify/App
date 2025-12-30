@@ -40,7 +40,7 @@ type DetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigator
 function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const {transactionID, backTo} = route.params;
+    const {transactionID, isOnSearch, backTo} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
@@ -106,9 +106,9 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute(), isOnSearch));
         }
-    }, [mergeTransaction, conflictFields, transactionID]);
+    }, [mergeTransaction, conflictFields, transactionID, isOnSearch]);
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(

@@ -15,8 +15,8 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getTransactionsForMerging, setupMergeTransactionData, setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {fillMissingReceiptSource} from '@libs/MergeTransactionUtils';
-import {getTransactionReportName} from '@libs/ReportUtils';
-import {getCreated} from '@libs/TransactionUtils';
+import {getTransactionReportName, isIOUReport} from '@libs/ReportUtils';
+import {getCreated, isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {MergeTransaction} from '@src/types/onyx';
@@ -42,7 +42,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     const {isOffline} = useNetwork();
 
     const eligibleTransactions = mergeTransaction?.eligibleTransactions;
-    const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
+    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionReport?.policyID}`, {canBeMissing: true});
 
     useEffect(() => {
@@ -60,6 +60,13 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         }
 
         return eligibleTransactions
+            .filter((transaction) => {
+                if (isExpenseUnreported(transaction)) {
+                    return true;
+                }
+
+                return !isIOUReport(transaction?.reportID);
+            })
             .map((eligibleTransaction) => ({
                 ...fillMissingReceiptSource(eligibleTransaction),
                 keyForList: eligibleTransaction.transactionID,
@@ -106,8 +113,9 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
             return;
         }
 
-        setupMergeTransactionDataAndNavigate([targetTransaction, sourceTransaction], localeCompare);
-    }, [targetTransaction, sourceTransaction, localeCompare]);
+        const reports = targetTransactionReport && sourceTransactionReport ? [targetTransactionReport, sourceTransactionReport] : undefined;
+        setupMergeTransactionDataAndNavigate(transactionID, [targetTransaction, sourceTransaction], localeCompare, reports, true);
+    }, [transactionID, targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, localeCompare]);
 
     const confirmButtonOptions = {
         showButton: true,
@@ -117,7 +125,11 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         onConfirm: handleConfirm,
     };
 
-    if (eligibleTransactions?.length === 0) {
+    const filteredTransactions = eligibleTransactions?.filter((transaction) => {
+        return !isIOUReport(transaction?.reportID);
+    });
+
+    if (filteredTransactions?.length === 0) {
         return (
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                 <EmptyStateComponent

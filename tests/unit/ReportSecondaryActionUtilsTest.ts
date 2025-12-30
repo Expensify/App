@@ -853,9 +853,12 @@ describe('getSecondaryAction', () => {
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
         } as unknown as Report;
         const policy = {
             role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
         } as unknown as Policy;
 
         const result = getSecondaryReportActions({
@@ -876,10 +879,16 @@ describe('getSecondaryAction', () => {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             isWaitingOnBankAccount: true,
+            managerID: EMPLOYEE_ACCOUNT_ID,
         } as unknown as Report;
-        const policy = {role: CONST.POLICY.ROLE.ADMIN} as unknown as Policy;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        } as unknown as Policy;
         const TRANSACTION_ID = 'transaction_id';
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
@@ -891,7 +900,148 @@ describe('getSecondaryAction', () => {
                 IOUTransactionID: TRANSACTION_ID,
                 type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
             },
-            created: '2025-03-06 18:00:00.000',
+            created: new Date().toISOString(),
+        } as unknown as ReportAction;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [
+                {
+                    transactionID: TRANSACTION_ID,
+                } as unknown as Transaction,
+            ],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('includes CANCEL_PAYMENT option for bank payment in BILLING state', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.BILLING,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        } as unknown as Policy;
+        const TRANSACTION_ID = 'transaction_id';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = {
+            actionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                IOUTransactionID: TRANSACTION_ID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: new Date().toISOString(),
+        } as unknown as ReportAction;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [
+                {
+                    transactionID: TRANSACTION_ID,
+                } as unknown as Transaction,
+            ],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('includes CANCEL_PAYMENT option for bank payment in APPROVED + REIMBURSED state', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        } as unknown as Policy;
+        const TRANSACTION_ID = 'transaction_id';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = {
+            actionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                IOUTransactionID: TRANSACTION_ID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: new Date().toISOString(),
+        } as unknown as ReportAction;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
+
+        const result = getSecondaryReportActions({
+            currentUserEmail: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            report,
+            chatReport,
+            reportTransactions: [
+                {
+                    transactionID: TRANSACTION_ID,
+                } as unknown as Transaction,
+            ],
+            originalTransaction: {} as Transaction,
+            violations: {},
+            policy,
+        });
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(true);
+    });
+
+    it('includes CANCEL_PAYMENT option for auto-reimbursed payment', async () => {
+        const report = {
+            reportID: REPORT_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.AUTOREIMBURSED,
+            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            managerID: EMPLOYEE_ACCOUNT_ID,
+        } as unknown as Report;
+        const policy = {
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+        } as unknown as Policy;
+        const TRANSACTION_ID = 'transaction_id';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+
+        const ACTION_ID = 'action_id';
+        const reportAction = {
+            actionID: ACTION_ID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            message: {
+                IOUTransactionID: TRANSACTION_ID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                paymentType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            },
+            created: new Date().toISOString(),
         } as unknown as ReportAction;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[ACTION_ID]: reportAction});
 
@@ -2447,7 +2597,7 @@ describe('getSecondaryTransactionThreadActions', () => {
             jest.clearAllMocks();
         });
 
-        it('should return false for transactions with negative amounts', () => {
+        it('should return true for transactions with negative amounts', () => {
             const report = {
                 reportID: REPORT_ID,
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -2496,7 +2646,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 policy,
             });
 
-            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(false);
+            expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.MERGE)).toBe(true);
         });
 
         it('should return true for transactions with positive amounts when eligible', () => {
@@ -2851,6 +3001,158 @@ describe('getSecondaryTransactionThreadActions', () => {
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenCalledTimes(2);
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(1, reports.at(0), true);
             expect(ReportUtils.isMoneyRequestReportEligibleForMerge).toHaveBeenNthCalledWith(2, reports.at(1), false);
+        });
+
+        describe('preventing merge for transactions belonging to different users', () => {
+            beforeEach(() => {
+                jest.spyOn(ReportUtils, 'isMoneyRequestReportEligibleForMerge').mockReturnValue(true);
+            });
+
+            it('should return true when both transactions are unreported', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports: Report[] = [];
+                const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies);
+
+                expect(result).toBe(true);
+            });
+
+            it('should return true when both reported transactions have the same owner', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: 'report1',
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: 'report2',
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports = [
+                    {reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'},
+                    {reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'},
+                ] as Report[];
+                const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, EMPLOYEE_ACCOUNT_ID);
+
+                expect(result).toBe(true);
+            });
+
+            it('should return false when both reported transactions belong to different users', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: 'report1',
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: 'report2',
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports = [
+                    {reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'},
+                    {reportID: 'report2', ownerAccountID: MANAGER_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'},
+                ] as Report[];
+                const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, EMPLOYEE_ACCOUNT_ID);
+
+                expect(result).toBe(false);
+            });
+
+            it('should return true when first transaction is unreported and second belongs to current user', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: 'report2',
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports = [{reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}] as Report[];
+                const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, EMPLOYEE_ACCOUNT_ID);
+
+                expect(result).toBe(true);
+            });
+
+            it('should return true when second transaction is unreported and first belongs to current user', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: 'report1',
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports = [{reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}] as Report[];
+                const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, EMPLOYEE_ACCOUNT_ID);
+
+                expect(result).toBe(true);
+            });
+
+            it('should return false when first transaction is unreported and second belongs to different user', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: 'report2',
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports = [{reportID: 'report2', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}] as Report[];
+                const policies = [{id: 'policy1'}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, MANAGER_ACCOUNT_ID);
+
+                expect(result).toBe(false);
+            });
+
+            it('should return false when second transaction is unreported and first belongs to different user', () => {
+                const transaction1 = {
+                    transactionID: '1',
+                    reportID: 'report1',
+                    amount: 100,
+                } as Transaction;
+                const transaction2 = {
+                    transactionID: '2',
+                    reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                    amount: 200,
+                } as Transaction;
+                const transactions = [transaction1, transaction2];
+                const reports = [{reportID: 'report1', ownerAccountID: EMPLOYEE_ACCOUNT_ID, type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'}] as Report[];
+                const policies = [{id: 'policy1', role: CONST.POLICY.ROLE.ADMIN}] as Policy[];
+
+                const result = isMergeActionForSelectedTransactions(transactions, reports, policies, MANAGER_ACCOUNT_ID);
+
+                expect(result).toBe(false);
+            });
         });
     });
 });

@@ -1239,6 +1239,7 @@ const CONST = {
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
+                DYNAMIC_EXTERNAL_WORKFLOW_ROUTED: 'DYNAMICEXTERNALWORKFLOWROUTED',
                 EXPENSIFY_CARD_SYSTEM_MESSAGE: 'EXPENSIFYCARDSYSTEMMESSAGE',
                 EXPORTED_TO_CSV: 'EXPORTCSV', // OldDot Action
                 EXPORTED_TO_INTEGRATION: 'EXPORTINTEGRATION', // OldDot Action
@@ -2431,7 +2432,7 @@ const CONST = {
         AUTO_CREATE_ENTITIES: 'autoCreateEntities',
         APPROVAL_ACCOUNT: 'approvalAccount',
         CUSTOM_FORM_ID_OPTIONS: 'customFormIDOptions',
-        TOKEN_INPUT_STEP_NAMES: ['1', '2,', '3', '4', '5'],
+        TOKEN_INPUT_STEP_NAMES: ['1', '2', '3', '4', '5'],
         TOKEN_INPUT_STEP_KEYS: {
             0: 'installBundle',
             1: 'enableTokenAuthentication',
@@ -3575,6 +3576,9 @@ const CONST = {
         CARD_NAME: {
             CASH: '__CASH__',
         },
+        BANK_NAME: {
+            UPLOAD: 'upload',
+        },
         CARD_LIST_THRESHOLD: 8,
         DEFAULT_EXPORT_TYPE: 'default',
         EXPORT_CARD_TYPES: {
@@ -3781,6 +3785,9 @@ const CONST = {
         PRIVATE_USER_AREA: /[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]/u,
 
         ONLY_PRIVATE_USER_AREA: /^[\uE000-\uF8FF\u{F0000}-\u{FFFFD}\u{100000}-\u{10FFFD}]+$/u,
+
+        // Regex pattern to match a digit followed by an emoji (used for Safari ZWNJ insertion)
+        DIGIT_FOLLOWED_BY_EMOJI: /(\d)([\u{1F300}-\u{1FAFF}\u{1F000}-\u{1F9FF}\u2600-\u27BF])/gu,
 
         TAX_ID: /^\d{9}$/,
         NON_NUMERIC: /\D/g,

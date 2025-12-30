@@ -5,11 +5,6 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
-type CharacterLengthLimitParams = {
-    limit: number;
-    length: number;
-};
-
 type ZipCodeExampleFormatParams = {
     zipSampleFormat: string;
 };
@@ -157,8 +152,6 @@ type PayerPaidParams = {payer: string};
 
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
-type CanceledRequestParams = {amount: string; submitterDisplayName: string};
-
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
 
 type ThreadRequestReportNameParams = {formattedAmount: string; comment: string};
@@ -280,8 +273,6 @@ type HeldRequestParams = {comment: string};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
-type ChangeReportPolicyParams = {fromPolicyName?: string; toPolicyName: string};
-
 type UpdatedPolicyDescriptionParams = {oldDescription: string; newDescription: string};
 
 type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
@@ -345,8 +336,6 @@ type UpdatedPolicyAuditRateParams = {oldAuditRate: number; newAuditRate: number}
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
 
 type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
-
-type ChangeTypeParams = {oldType: string; newType: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
@@ -438,10 +427,6 @@ type WorkspaceMembersCountParams = {count: number};
 
 type OwnerOwesAmountParams = {amount: string; email: string};
 
-type ChangeOwnerSubscriptionParams = {usersCount: number; finalCount: number};
-
-type ChangeOwnerDuplicateSubscriptionParams = {email: string; workspaceName: string};
-
 type WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams = {workspaceOwnerName: string};
 
 type RenamedWorkspaceNameActionParams = {oldName: string; newName: string};
@@ -453,8 +438,6 @@ type TrialStartedTitleParams = {numOfDays: number};
 type EarlyDiscountTitleParams = {discountType: number};
 
 type EarlyDiscountSubtitleParams = {days: number; hours: number; minutes: number; seconds: number};
-
-type CardInfoParams = {name: string; expiration: string; currency: string};
 
 type YourPlanPriceParams = {lower: string; upper: string};
 
@@ -469,6 +452,8 @@ type SubscriptionSettingsSaveUpToParams = {amountWithCurrency: string};
 type SubscriptionSettingsSummaryParams = {subscriptionType: string; subscriptionSize: string; autoRenew: string; autoIncrease: string};
 
 type SubscriptionSettingsRenewsOnParams = {date: string};
+
+type SubscriptionSettingsLearnMoreParams = {hasAdminsRoom: boolean};
 
 type UnapproveWithIntegrationWarningParams = {accountingIntegration: string};
 
@@ -771,6 +756,10 @@ type FocusModeUpdateParams = {
     priorityModePageUrl: string;
 };
 
+type RoutedDueToDEWParams = {
+    to: string;
+};
+
 export type {
     SettlementAccountReconciliationParams,
     ToggleImportTitleParams,
@@ -803,7 +792,6 @@ export type {
     ExportIntegrationSelectedParams,
     UnapproveWithIntegrationWarningParams,
     IncorrectZipFormatParams,
-    CardInfoParams,
     YourPlanPriceParams,
     SubscriptionSizeParams,
     SubscriptionCommitmentParams,
@@ -817,15 +805,12 @@ export type {
     RenamedWorkspaceNameActionParams,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     OwnerOwesAmountParams,
-    ChangeOwnerDuplicateSubscriptionParams,
-    ChangeOwnerSubscriptionParams,
     SecondaryLoginParams,
     TaxAmountParams,
     AmountWithCurrencyParams,
     LowerUpperParams,
     LogSizeAndDateParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
-    CanceledRequestParams,
     DeleteActionParams,
     DeleteConfirmationParams,
     DidSplitAmountMessageParams,
@@ -916,8 +901,6 @@ export type {
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
     ChangeFieldParams,
-    ChangeReportPolicyParams,
-    ChangeTypeParams,
     ExportedToIntegrationParams,
     IntegrationsMessageParams,
     MarkedReimbursedParams,
@@ -939,7 +922,6 @@ export type {
     StatementPageTitleParams,
     DisconnectPromptParams,
     DisconnectTitleParams,
-    CharacterLengthLimitParams,
     OptionalParam,
     ImportedTypesParams,
     WorkspaceYouMayJoin,
@@ -1017,11 +999,13 @@ export type {
     SignerInfoMessageParams,
     PayAndDowngradeDescriptionParams,
     WalletAgreementParams,
+    SubscriptionSettingsLearnMoreParams,
     ErrorODIntegrationParams,
     MergeAccountIntoParams,
     NextStepParams,
     ReportFieldParams,
     FocusModeUpdateParams,
+    RoutedDueToDEWParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
 };
