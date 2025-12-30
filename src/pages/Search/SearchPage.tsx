@@ -60,6 +60,7 @@ import {setTransactionReport} from '@libs/actions/Transaction';
 import {setNameValuePair} from '@libs/actions/User';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {navigateToParticipantPage} from '@libs/IOUUtils';
+import {getTransactionsAndReportsFromSearch} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -80,7 +81,7 @@ import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasTransactionBeenRejected} from '@libs/TransactionUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import variables from '@styles/variables';
-import {dismissRejectUseExplanation, initMoneyRequest, initSplitExpense, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
+import {canIOUBePaid, dismissRejectUseExplanation, initMoneyRequest, initSplitExpense, setMoneyRequestParticipantsFromReport, setMoneyRequestReceipt} from '@userActions/IOU';
 import {openOldDotLink} from '@userActions/Link';
 import {buildOptimisticTransactionAndCreateDraft} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -188,6 +189,15 @@ function SearchPage({route}: SearchPageProps) {
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(selectedReports, selectedTransactions, selectedBulkCurrency);
 
+    const onlyShowPayElsewhere = useMemo(() => {
+        const selectedPolicy = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`];
+        return (selectedTransactionReportIDs ?? selectedReportIDs).some((reportID) => {
+            const report = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+            const chatReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
+            return report && !canIOUBePaid(report, chatReport, selectedPolicy, undefined, false) && canIOUBePaid(report, chatReport, selectedPolicy, undefined, true);
+        });
+    }, [currentSearchResults?.data, selectedPolicyIDs, selectedReportIDs, selectedTransactionReportIDs]);
+
     const {bulkPayButtonOptions, latestBankItems} = useBulkPayOptions({
         selectedPolicyID: selectedPolicyIDs.at(0),
         selectedReportID: selectedTransactionReportIDs.at(0) ?? selectedReportIDs.at(0),
@@ -195,6 +205,7 @@ function SearchPage({route}: SearchPageProps) {
         isCurrencySupportedWallet: isCurrencySupportedBulkWallet,
         currency: selectedBulkCurrency,
         formattedAmount: totalFormattedAmount,
+        onlyShowPayElsewhere,
     });
 
     const formValues = queryJSON
@@ -664,22 +675,18 @@ function SearchPage({route}: SearchPageProps) {
         }
 
         if (selectedTransactionsKeys.length < 3 && searchResults?.search.type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && searchResults?.data) {
-            const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(0)}`];
-            const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${selectedTransactionsKeys.at(1)}`];
-            const reports = [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]];
-            const transactionPolicies = [
-                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`],
-                searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`],
-            ];
-            const transactions = selectedTransactionsKeys.length === 1 ? [transaction1] : [transaction1, transaction2];
+            const {transactions, reports, policies: transactionPolicies} = getTransactionsAndReportsFromSearch(searchResults, selectedTransactionsKeys);
 
-            if (isMergeActionForSelectedTransactions(transactions, reports, transactionPolicies)) {
-                options.push({
-                    text: translate('common.merge'),
-                    icon: expensifyIcons.ArrowCollapse,
-                    value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                    onSelected: () => setupMergeTransactionDataAndNavigate(transactions, localeCompare, reports),
-                });
+            if (isMergeActionForSelectedTransactions(transactions, reports, transactionPolicies, currentUserPersonalDetails.accountID)) {
+                const transactionID = transactions.at(0)?.transactionID;
+                if (transactionID) {
+                    options.push({
+                        text: translate('common.merge'),
+                        icon: expensifyIcons.ArrowCollapse,
+                        value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
+                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, transactions, localeCompare, reports, false, true),
+                    });
+                }
             }
         }
 
@@ -777,8 +784,7 @@ function SearchPage({route}: SearchPageProps) {
 
         return options;
     }, [
-        searchResults?.data,
-        searchResults?.search?.type,
+        searchResults,
         selectedTransactionsKeys,
         status,
         hash,
@@ -822,6 +828,7 @@ function SearchPage({route}: SearchPageProps) {
         dismissedHoldUseExplanation,
         dismissedRejectUseExplanation,
         areAllTransactionsFromSubmitter,
+        currentUserPersonalDetails?.accountID,
     ]);
 
     const handleDeleteExpenses = () => {

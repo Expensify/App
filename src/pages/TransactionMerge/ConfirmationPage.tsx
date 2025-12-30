@@ -34,7 +34,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
-    const {transactionID, backTo} = route.params;
+    const {transactionID, isOnSearch, backTo} = route.params;
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
@@ -74,7 +74,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
-        if (reportID !== targetTransaction.reportID && reportIDToDismiss) {
+
+        // If we're on search, dismiss the modal and stay on search
+        if (!isOnSearch && reportIDToDismiss && reportID !== targetTransaction.reportID) {
             Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
         } else {
             Navigation.dismissModal();
