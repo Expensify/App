@@ -3110,7 +3110,12 @@ function getUpdateACHAccountMessage(action: ReportAction): string {
     // Case 3: Changing from one bank account to another
     if (!!maskedBankAccountNumber && !!oldMaskedBankAccountNumber) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.changedDefaultBankAccount', {bankAccountName: bankAccountName ?? '', maskedBankAccountNumber, oldBankAccountName: oldBankAccountName ?? '', oldMaskedBankAccountNumber});
+        return translateLocal('workspaceActions.changedDefaultBankAccount', {
+            bankAccountName: bankAccountName ?? '',
+            maskedBankAccountNumber,
+            oldBankAccountName: oldBankAccountName ?? '',
+            oldMaskedBankAccountNumber,
+        });
     }
 
     return getReportActionText(action);
