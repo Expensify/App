@@ -875,6 +875,7 @@ function SearchPage({route}: SearchPageProps) {
         const initialTransaction = initMoneyRequest({
             isFromGlobalCreate: true,
             reportID: newReportID,
+            personalPolicy,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             report: newReport,
             parentReport: newParentReport,
