@@ -1092,18 +1092,17 @@ function handleBulkPayItemSelected(params: {
         showDelegateNoAccessModal,
         confirmPayment,
     } = params;
-
-    // If delegate access is restricted, we should not allow bulk pay with business bank account or bulk pay
-    if (isDelegateAccessRestricted && 'value' in item && (item.value === CONST.IOU.PAYMENT_TYPE.ELSEWHERE || item.value === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT)) {
-        showDelegateNoAccessModal();
-        return;
-    }
-
     const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
     // Policy id is also a last payment method so we shouldn't early return here for that case.
     if (!isValidBulkPayOption(item) && !selectedPolicy) {
         return;
     }
+    
+    if (isDelegateAccessRestricted) {
+        showDelegateNoAccessModal();
+        return;
+    }
+
     if (isAccountLocked) {
         showLockedAccountModal();
         return;
