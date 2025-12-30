@@ -1873,15 +1873,12 @@ function isConciergeChatReport(report: OnyxInputOrEntry<Report>): boolean {
     return !!report && report?.reportID === conciergeReportID;
 }
 
-function findSelfDMReportID(): string | undefined {
+function findSelfDMReportID(reports?: OnyxCollection<Report>): string | undefined {
     if (cachedSelfDMReportID) {
         return cachedSelfDMReportID;
     }
-    if (!allReports) {
-        return;
-    }
 
-    const selfDMReport = Object.values(allReports).find((report) => isSelfDM(report) && !isThread(report));
+    const selfDMReport = Object.values(reports ?? allReports ?? {}).find((report) => isSelfDM(report) && !isThread(report));
     return selfDMReport?.reportID;
 }
 

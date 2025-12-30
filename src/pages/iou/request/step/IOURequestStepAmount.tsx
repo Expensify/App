@@ -12,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
@@ -80,6 +81,7 @@ function IOURequestStepAmount({
     const iouRequestType = getRequestType(transaction);
     const policyID = report?.policyID;
 
+    const selfDMReport = useSelfDMReport();
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
@@ -259,15 +261,16 @@ function IOURequestStepAmount({
             defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
             !shouldRestrictUserBillableActions(defaultExpensePolicy.id)
         ) {
-            const activePolicyExpenseChat = getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id);
             const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
-            const transactionReportID = shouldAutoReport ? activePolicyExpenseChat?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+            const targetReport = shouldAutoReport ? getPolicyExpenseChat(currentUserAccountIDParam, defaultExpensePolicy?.id) : selfDMReport;
+            const transactionReportID = isSelfDM(targetReport) ? CONST.REPORT.UNREPORTED_REPORT_ID : targetReport?.reportID;
+            const iouTypeTrackOrSubmit = transactionReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT;
             const isReturningFromConfirmationPage = !!transaction?.participants?.length;
 
             const resetToDefaultWorkspace = () => {
                 setTransactionReport(transactionID, {reportID: transactionReportID}, true);
-                setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat, currentUserPersonalDetails.accountID).then(() => {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, activePolicyExpenseChat?.reportID));
+                setMoneyRequestParticipantsFromReport(transactionID, targetReport, currentUserPersonalDetails.accountID).then(() => {
+                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
                 });
             };
 

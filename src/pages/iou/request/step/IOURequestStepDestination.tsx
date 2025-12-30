@@ -13,7 +13,6 @@ import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
@@ -59,7 +58,6 @@ function IOURequestStepDestination({
     explicitPolicyID,
 }: IOURequestStepDestinationProps) {
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
-    const personalPolicy = usePersonalPolicy();
     const {accountID} = useCurrentUserPersonalDetails();
     const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
     const {top} = useSafeAreaInsets();
@@ -88,10 +86,7 @@ function IOURequestStepDestination({
         }
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
-                // If we are not coming from the global create menu then this is always reported
-                const shouldAutoReport = !!policy?.autoReporting || !!personalPolicy?.autoReporting || action !== CONST.IOU.ACTION.CREATE || !transaction?.isFromGlobalCreate;
-                const transactionReportID = shouldAutoReport ? policyExpenseReport?.reportID : CONST.REPORT.UNREPORTED_REPORT_ID;
-                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
+                setTransactionReport(transactionID, {reportID: policyExpenseReport?.reportID}, true);
                 setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, accountID);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
                 setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
