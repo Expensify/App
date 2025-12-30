@@ -300,7 +300,16 @@ describe('ReportNameUtils', () => {
             };
 
             const expected = translate(CONST.LOCALES.EN, 'iou.submitted', {memo: 'via workflow'});
-            const name = computeReportName(thread, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection, currentUserAccountID);
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
             expect(name).toBe(expected);
         });
 
@@ -328,7 +337,16 @@ describe('ReportNameUtils', () => {
             };
 
             const expected = translate(CONST.LOCALES.EN, 'iou.rejectedThisReport');
-            const name = computeReportName(thread, emptyCollections.reports, emptyCollections.policies, undefined, undefined, participantsPersonalDetails, reportActionsCollection, currentUserAccountID);
+            const name = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                reportActionsCollection,
+                currentUserAccountID,
+            );
             expect(name).toBe(expected);
         });
     });
