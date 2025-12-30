@@ -41,7 +41,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const policy = usePolicy(policyID);
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
@@ -75,7 +75,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
         const cardToAssign: Partial<AssignCardData> = {
             email: assignee?.login ?? '',
-            cardName: getDefaultCardName(memberName),
+            ...(!assignCard?.cardToAssign?.cardName ? {cardName: getDefaultCardName(memberName)} : {}),
         };
 
         Keyboard.dismiss();
@@ -222,16 +222,16 @@ function AssigneeStep({route}: AssigneeStepProps) {
     ]);
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim().toLowerCase();
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
         if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
         return getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
-    }, [searchTerm, availableOptions.userToInvite, assignees?.length, countryCode, translate]);
+    }, [debouncedSearchTerm, availableOptions.userToInvite, assignees?.length, countryCode, translate]);
 
     const textInputOptions = useMemo(
         () => ({
