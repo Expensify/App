@@ -1265,12 +1265,7 @@ function PureReportActionItem({
             }
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
             const isFromNewDot = getOriginalMessage(action)?.isNewDot ?? false;
-
-            if (isFromNewDot) {
-                children = emptyHTML;
-            } else {
-                children = <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(action)} />;
-            }
+            children = isFromNewDot ? emptyHTML : <ReportActionItemBasicMessage message={getMarkedReimbursedMessage(action)} />;
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
