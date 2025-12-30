@@ -5,6 +5,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {setDraftInviteAccountID, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {clearInviteDraft} from '@libs/actions/Policy/Member';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import WorkspaceInviteMessageComponent from '@pages/workspace/members/WorkspaceInviteMessageComponent';
@@ -35,6 +36,7 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: Invite
             return;
         }
 
+        clearInviteDraft(policyID);
         setIssueNewCardStepAndData({
             step: CONST.EXPENSIFY_CARD.STEP.ASSIGNEE,
             data: {...issueNewCard?.data, invitingMemberEmail: undefined},
