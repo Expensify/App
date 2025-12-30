@@ -1,7 +1,5 @@
 #!/usr/bin/env ts-node
-
 /* eslint-disable max-classes-per-file */
-
 /**
  * React Compiler Compliance Checker
  *
@@ -21,14 +19,14 @@ import {log, bold as logBold, error as logError, info as logInfo, note as logNot
 
 type CompilerResults = {
     success: Set<string>;
-    failures: Map<string, CompilerFailure>;
-    failuresForAddedFiles: Map<string, CompilerFailure>;
-    failuresForModifiedFiles: Map<string, CompilerFailure>;
-    manualMemoFailures: Map<string, ManualMemoizationError[]>;
-    suppressedFailures: Map<string, CompilerFailure>;
+    errors: Map<string, CompilerError>;
+    errorsForAddedFiles: Map<string, CompilerError>;
+    errorsForModifiedFiles: Map<string, CompilerError>;
+    manualMemoErrors: Map<string, ManualMemoizationError[]>;
+    suppressedErrors: Map<string, CompilerError>;
 };
 
-type CompilerFailure = {
+type CompilerError = {
     file: string;
     line: number;
     column: number;
@@ -70,8 +68,8 @@ class ReactCompilerHealthcheck {
 
     private static readonly OUTPUT_REGEXES = {
         SUCCESS: /Successfully compiled (?:hook|component) \[([^\]]+)\]\(([^)]+)\)/,
-        FAILURE_WITH_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/,
-        FAILURE_WITHOUT_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\./,
+        ERROR_WITH_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\. Reason: (.+)/,
+        ERROR_WITHOUT_REASON: /Failed to compile ([^:]+):(\d+):(\d+)\./,
         REASON: /Reason: (.+)/,
     } as const;
 
@@ -96,14 +94,14 @@ class ReactCompilerHealthcheck {
 
         const results: CompilerResults = {
             success: new Set(),
-            failures: new Map(),
-            failuresForAddedFiles: new Map(),
-            failuresForModifiedFiles: new Map(),
-            manualMemoFailures: new Map(),
-            suppressedFailures: new Map(),
+            errors: new Map(),
+            errorsForAddedFiles: new Map(),
+            errorsForModifiedFiles: new Map(),
+            manualMemoErrors: new Map(),
+            suppressedErrors: new Map(),
         };
 
-        let currentFailureWithoutReason: CompilerFailure | null = null;
+        let currentErrorWithoutReason: CompilerError | null = null;
 
         for (const line of lines) {
             const successMatch = line.match(this.OUTPUT_REGEXES.SUCCESS);
@@ -113,91 +111,91 @@ class ReactCompilerHealthcheck {
                 continue;
             }
 
-            const failureWithReasonMatch = line.match(this.OUTPUT_REGEXES.FAILURE_WITH_REASON);
-            if (failureWithReasonMatch) {
-                const newFailure: CompilerFailure = {
-                    file: failureWithReasonMatch[1],
-                    line: parseInt(failureWithReasonMatch[2], 10),
-                    column: parseInt(failureWithReasonMatch[3], 10),
-                    reason: failureWithReasonMatch[4],
+            const errorWithReasonMatch = line.match(this.OUTPUT_REGEXES.ERROR_WITH_REASON);
+            if (errorWithReasonMatch) {
+                const newError: CompilerError = {
+                    file: errorWithReasonMatch[1],
+                    line: parseInt(errorWithReasonMatch[2], 10),
+                    column: parseInt(errorWithReasonMatch[3], 10),
+                    reason: errorWithReasonMatch[4],
                 };
 
-                currentFailureWithoutReason = null;
+                currentErrorWithoutReason = null;
 
-                if (this.shouldSuppressError(newFailure.reason)) {
-                    this.addOrUpdateFailure(results.suppressedFailures, newFailure);
+                if (this.shouldSuppressError(newError.reason)) {
+                    this.addOrUpdateError(results.suppressedErrors, newError);
                     continue;
                 }
 
-                this.addOrUpdateFailure(results.failures, newFailure);
+                this.addOrUpdateError(results.errors, newError);
             }
 
-            const failureWithoutReasonMatch = line.match(this.OUTPUT_REGEXES.FAILURE_WITHOUT_REASON);
-            if (failureWithoutReasonMatch) {
-                const newFailure: CompilerFailure = {
-                    file: failureWithoutReasonMatch[1],
-                    line: parseInt(failureWithoutReasonMatch[2], 10),
-                    column: parseInt(failureWithoutReasonMatch[3], 10),
+            const errorWithoutReasonMatch = line.match(this.OUTPUT_REGEXES.ERROR_WITHOUT_REASON);
+            if (errorWithoutReasonMatch) {
+                const newError: CompilerError = {
+                    file: errorWithoutReasonMatch[1],
+                    line: parseInt(errorWithoutReasonMatch[2], 10),
+                    column: parseInt(errorWithoutReasonMatch[3], 10),
                 };
 
-                currentFailureWithoutReason = newFailure;
-                this.addOrUpdateFailure(results.failures, newFailure);
+                currentErrorWithoutReason = newError;
+                this.addOrUpdateError(results.errors, newError);
                 continue;
             }
 
             const reasonMatch = line.match(this.OUTPUT_REGEXES.REASON);
-            if (reasonMatch && currentFailureWithoutReason) {
+            if (reasonMatch && currentErrorWithoutReason) {
                 const reason = reasonMatch[1];
 
-                const currentFailure: CompilerFailure = {
-                    file: currentFailureWithoutReason.file,
-                    line: currentFailureWithoutReason.line,
-                    column: currentFailureWithoutReason.column,
+                const currentError: CompilerError = {
+                    file: currentErrorWithoutReason.file,
+                    line: currentErrorWithoutReason.line,
+                    column: currentErrorWithoutReason.column,
                     reason,
                 };
 
-                currentFailureWithoutReason = null;
+                currentErrorWithoutReason = null;
 
                 if (this.shouldSuppressError(reason)) {
-                    this.addOrUpdateFailure(results.suppressedFailures, currentFailure);
+                    this.addOrUpdateError(results.suppressedErrors, currentError);
                     continue;
                 }
 
-                this.addOrUpdateFailure(results.failures, currentFailure);
+                this.addOrUpdateError(results.errors, currentError);
             }
         }
 
         results.success = new Set(Array.from(results.success).sort((a, b) => a.localeCompare(b)));
-        results.failures = this.sortFailures(results.failures);
-        results.suppressedFailures = this.sortFailures(results.suppressedFailures);
+        results.errors = this.sortErrors(results.errors);
+        results.suppressedErrors = this.sortErrors(results.suppressedErrors);
 
         return results;
     }
 
-    private static addOrUpdateFailure(failureMap: Map<string, CompilerFailure>, newFailure: CompilerFailure): boolean {
-        const key = this.getFailureKey(newFailure);
-        const existingFailure = failureMap.get(key);
+    private static addOrUpdateError(errorMap: Map<string, CompilerError>, newError: CompilerError): boolean {
+        const key = this.getErrorKey(newError);
+        const existingError = errorMap.get(key);
 
-        if (existingFailure) {
-            const isReasonSet = !!existingFailure.reason;
-            const isNewReasonSet = !!newFailure.reason;
+        if (existingError) {
+            const isReasonSet = !!existingError.reason;
+            const isNewReasonSet = !!newError.reason;
             if (!isReasonSet && isNewReasonSet) {
-                failureMap.set(key, newFailure);
+                errorMap.set(key, newError);
                 return true;
             }
 
             return false;
         }
 
-        failureMap.set(key, newFailure);
+        errorMap.set(key, newError);
         return true;
     }
 
-    private static sortFailures(failures: Map<string, CompilerFailure>) {
-        const arr = Array.from(failures.entries());
+    private static sortErrors(errors: Map<string, CompilerError>) {
+        const arr = Array.from(errors.entries());
         arr.sort(([, a], [, b]) => {
-            const keyA = this.getFailureKey(a);
-            const keyB = this.getFailureKey(b);
+            const keyA = this.getErrorKey(a);
+            const keyB = this.getErrorKey(b);
             return keyA.localeCompare(keyB);
         });
         return new Map(arr);
@@ -211,20 +209,20 @@ class ReactCompilerHealthcheck {
         return this.SUPPRESSED_ERRORS.some((suppressedError) => reason.includes(suppressedError));
     }
 
-    static getFailureKey({file, line, column}: CompilerFailure): string {
+    static getErrorKey({file, line, column}: CompilerError): string {
         const isLineSet = line !== undefined;
         const isLineAndColumnSet = isLineSet && column !== undefined;
 
         return file + (isLineSet ? `:${line}` : '') + (isLineAndColumnSet ? `:${column}` : '');
     }
 
-    static getErrorsByFile(failures: Map<string, CompilerFailure>) {
-        const errorsByFile = new Map<string, Map<string, CompilerFailure>>();
-        for (const [key, failure] of failures.entries()) {
-            if (!errorsByFile.has(failure.file)) {
-                errorsByFile.set(failure.file, new Map());
+    static getErrorsByFile(errors: Map<string, CompilerError>) {
+        const errorsByFile = new Map<string, Map<string, CompilerError>>();
+        for (const [key, error] of errors.entries()) {
+            if (!errorsByFile.has(error.file)) {
+                errorsByFile.set(error.file, new Map());
             }
-            errorsByFile.get(failure.file)?.set(key, failure);
+            errorsByFile.get(error.file)?.set(key, error);
         }
 
         const filesWithErrors = new Set<string>(errorsByFile.keys());
@@ -243,7 +241,7 @@ class DiffAnalyzer {
     private static readonly ESLINT_LINT_RULES = ['react-compiler/react-compiler', 'react-hooks'] as const;
 
     /**
-     * Filter compiler results to only include failures for lines that were changed in the git diff.
+     * Filter compiler results to only include errors for lines that were changed in the git diff.
      */
     static async filterResultsByDiff(results: CompilerResults, mainBaseCommitHash: string, diffResult: DiffResult, {verbose}: CheckOptions): Promise<CompilerResults> {
         logInfo(`Filtering results by diff between ${mainBaseCommitHash} and the working tree...`);
@@ -251,50 +249,50 @@ class DiffAnalyzer {
         if (!diffResult.hasChanges) {
             return {
                 success: new Set(),
-                failures: new Map(),
-                failuresForAddedFiles: new Map(),
-                failuresForModifiedFiles: new Map(),
-                manualMemoFailures: new Map(),
-                suppressedFailures: new Map(),
+                errors: new Map(),
+                errorsForAddedFiles: new Map(),
+                errorsForModifiedFiles: new Map(),
+                manualMemoErrors: new Map(),
+                suppressedErrors: new Map(),
             };
         }
 
         const changedLinesMap = this.buildChangedLinesMap(diffResult);
         const {filesWithEslintDisable, linesWithEslintDisableNextLine} = this.detectEslintDisables(diffResult);
 
-        const filterFailuresByChangedLines = (failures: Map<string, CompilerFailure>) => {
-            const filteredFailures = new Map<string, CompilerFailure>();
+        const filterErrorsByChangedLines = (errors: Map<string, CompilerError>) => {
+            const filteredErrors = new Map<string, CompilerError>();
 
-            for (const [key, failure] of failures) {
-                const changedLines = changedLinesMap.get(failure.file);
+            for (const [key, error] of errors) {
+                const changedLines = changedLinesMap.get(error.file);
 
                 if (!changedLines) {
                     continue;
                 }
 
-                if (filesWithEslintDisable.has(failure.file)) {
-                    filteredFailures.set(key, failure);
+                if (filesWithEslintDisable.has(error.file)) {
+                    filteredErrors.set(key, error);
                     continue;
                 }
 
-                if (failure.line !== undefined) {
-                    const isLineChanged = changedLines.has(failure.line);
-                    const isLineEslintDisabled = linesWithEslintDisableNextLine.get(failure.file)?.has(failure.line);
+                if (error.line !== undefined) {
+                    const isLineChanged = changedLines.has(error.line);
+                    const isLineEslintDisabled = linesWithEslintDisableNextLine.get(error.file)?.has(error.line);
 
                     if (isLineChanged || isLineEslintDisabled) {
-                        filteredFailures.set(key, failure);
+                        filteredErrors.set(key, error);
                     }
                     continue;
                 }
 
-                filteredFailures.set(key, failure);
+                filteredErrors.set(key, error);
             }
 
-            return filteredFailures;
+            return filteredErrors;
         };
 
-        const filteredFailures = filterFailuresByChangedLines(results.failures);
-        const filteredSuppressedFailures = filterFailuresByChangedLines(results.suppressedFailures);
+        const filteredErrors = filterErrorsByChangedLines(results.errors);
+        const filteredSuppressedErrors = filterErrorsByChangedLines(results.suppressedErrors);
 
         const changedFiles = new Set(diffResult.files.map((file) => file.filePath));
         const filteredSuccesses = new Set<string>();
@@ -305,17 +303,17 @@ class DiffAnalyzer {
             filteredSuccesses.add(file);
         }
 
-        if (filteredFailures.size === 0) {
-            logInfo('No failures remain after filtering by diff.');
+        if (filteredErrors.size === 0) {
+            logInfo('No errors remain after filtering by diff.');
         } else {
-            logInfo(`${filteredFailures.size} out of ${results.failures.size} failures remain after filtering by diff.`);
+            logInfo(`${filteredErrors.size} out of ${results.errors.size} errors remain after filtering by diff.`);
         }
 
         if (verbose) {
-            if (filteredSuppressedFailures.size === 0) {
+            if (filteredSuppressedErrors.size === 0) {
                 logInfo('No suppressed errors remain after filtering by diff.');
             } else {
-                logInfo(`${filteredSuppressedFailures.size} out of ${results.suppressedFailures.size} successes remain after filtering by diff.`);
+                logInfo(`${filteredSuppressedErrors.size} out of ${results.suppressedErrors.size} successes remain after filtering by diff.`);
             }
 
             if (filteredSuccesses.size === 0) {
@@ -327,11 +325,11 @@ class DiffAnalyzer {
 
         return {
             success: filteredSuccesses,
-            failures: filteredFailures,
-            failuresForAddedFiles: new Map(),
-            failuresForModifiedFiles: new Map(),
-            manualMemoFailures: new Map(),
-            suppressedFailures: filteredSuppressedFailures,
+            errors: filteredErrors,
+            errorsForAddedFiles: new Map(),
+            errorsForModifiedFiles: new Map(),
+            manualMemoErrors: new Map(),
+            suppressedErrors: filteredSuppressedErrors,
         };
     }
 
@@ -395,20 +393,20 @@ class ManualMemoizationChecker {
 
     private static readonly NO_MEMO_DIRECTIVE_PATTERN = /["']use no memo["']\s*;?/;
 
-    static getFailureMessage(keyword: keyof typeof this.PATTERNS): string {
+    static getErrorMessage(keyword: keyof typeof this.PATTERNS): string {
         return `Found a manual memoization usage of \`${keyword}\`. Newly added React component files must not contain any manual memoization and instead be auto-memoized by React Compiler. Remove \`${keyword}\` or disable automatic memoization by adding the \`"use no memo";\` directive at the beginning of the component and give a reason why automatic memoization is not applicable.`;
     }
 
     /**
      * Split errors by file diff type and check for manual memoization violations.
      */
-    static splitErrorsBasedOnFileDiffType({success, failures: reactCompilerFailures}: CompilerResults, diffResult: DiffResult) {
-        const {filesWithErrors, errorsByFile} = ReactCompilerHealthcheck.getErrorsByFile(reactCompilerFailures);
+    static splitErrorsBasedOnFileDiffType({success, errors: reactCompilerErrors}: CompilerResults, diffResult: DiffResult) {
+        const {filesWithErrors, errorsByFile} = ReactCompilerHealthcheck.getErrorsByFile(reactCompilerErrors);
 
         const {addedFiles, enforcedAutoMemoFiles} = this.categorizeFiles(diffResult, success, filesWithErrors);
 
-        const reactCompilerFailuresForModifiedFiles = reactCompilerFailures;
-        const reactCompilerFailuresForAddedFiles = new Map<string, CompilerFailure>();
+        const reactCompilerErrorsForModifiedFiles = reactCompilerErrors;
+        const reactCompilerErrorsForAddedFiles = new Map<string, CompilerError>();
 
         for (const file of filesWithErrors) {
             if (enforcedAutoMemoFiles.has(file)) {
@@ -419,25 +417,25 @@ class ManualMemoizationChecker {
 
             if (addedFiles.has(file)) {
                 for (const [errorKey, error] of errors?.entries() ?? []) {
-                    reactCompilerFailuresForAddedFiles.set(errorKey, error);
-                    reactCompilerFailures.delete(errorKey);
+                    reactCompilerErrorsForAddedFiles.set(errorKey, error);
+                    reactCompilerErrors.delete(errorKey);
                 }
             }
         }
 
-        const manualMemoFailures = this.findViolations([...enforcedAutoMemoFiles]);
+        const manualMemoErrors = this.findViolations(enforcedAutoMemoFiles);
 
         return {
-            manualMemoFailures,
-            reactCompilerFailuresForModifiedFiles,
-            reactCompilerFailuresForAddedFiles,
+            manualMemoErrors,
+            reactCompilerErrorsForModifiedFiles,
+            reactCompilerErrorsForAddedFiles,
         };
     }
 
     private static categorizeFiles(
         diffResult: DiffResult,
         successFiles: Set<string>,
-        filesWithFailures: Set<string>,
+        filesWithErrors: Set<string>,
     ): {
         addedFiles: Set<string>;
         enforcedAutoMemoFiles: Set<string>;
@@ -448,16 +446,17 @@ class ManualMemoizationChecker {
         for (const file of diffResult.files) {
             const filePath = file.filePath;
 
-            filesWithFailures.add(filePath);
+            filesWithErrors.add(filePath);
 
-            if (file.diffType === 'added') {
+            const isAddedFile = file.diffType === 'added';
+            if (isAddedFile) {
                 addedFiles.add(filePath);
             }
 
             const isReactComponentSourceFile = this.FILE_EXTENSIONS.some((extension) => filePath.endsWith(extension));
-
             const isSuccessfullyCompiled = successFiles.has(filePath);
-            if (isReactComponentSourceFile && isSuccessfullyCompiled) {
+
+            if (isReactComponentSourceFile && isSuccessfullyCompiled && isAddedFile) {
                 enforcedAutoMemoFiles.add(filePath);
             }
         }
@@ -465,8 +464,8 @@ class ManualMemoizationChecker {
         return {addedFiles, enforcedAutoMemoFiles};
     }
 
-    private static findViolations(files: string[]): Map<string, ManualMemoizationError[]> {
-        const manualMemoFailures = new Map<string, ManualMemoizationError[]>();
+    private static findViolations(files: Set<string>): Map<string, ManualMemoizationError[]> {
+        const manualMemoErrors = new Map<string, ManualMemoizationError[]>();
 
         for (const file of files) {
             let source: string | null = null;
@@ -487,10 +486,10 @@ class ManualMemoizationChecker {
                 continue;
             }
 
-            manualMemoFailures.set(file, manualMemoizationMatches);
+            manualMemoErrors.set(file, manualMemoizationMatches);
         }
 
-        return manualMemoFailures;
+        return manualMemoErrors;
     }
 
     private static findMatches(source: string): ManualMemoizationError[] {
@@ -530,18 +529,18 @@ class ResultsPrinter {
     /**
      * Print all results and determine pass/fail status.
      */
-    static printResults({success, failuresForAddedFiles, failuresForModifiedFiles, suppressedFailures, manualMemoFailures}: CompilerResults, {verbose}: CheckOptions): boolean {
+    static printResults({success, errorsForAddedFiles, errorsForModifiedFiles, suppressedErrors, manualMemoErrors}: CompilerResults, {verbose}: CheckOptions): boolean {
         this.printSuccesses(success, verbose);
-        this.printSuppressedErrors(suppressedFailures, verbose);
+        this.printSuppressedErrors(suppressedErrors, verbose);
 
-        const {hasModifiedFilesErrors, hasAddedFilesErrors} = this.printCompilerFailures(failuresForModifiedFiles, failuresForAddedFiles);
-        const hasManualMemoErrors = this.printManualMemoErrors(manualMemoFailures);
+        const {hasModifiedFilesErrors, hasAddedFilesErrors} = this.printCompilerErrors(errorsForModifiedFiles, errorsForAddedFiles);
+        const hasManualMemoErrors = this.printManualMemoErrors(manualMemoErrors);
 
         if ((hasModifiedFilesErrors || hasAddedFilesErrors) && !hasManualMemoErrors) {
             log();
         }
 
-        const didCheckForAddedFilesPass = failuresForAddedFiles.size === 0;
+        const didCheckForAddedFilesPass = errorsForAddedFiles.size === 0;
         const isPassed = didCheckForAddedFilesPass && !hasManualMemoErrors;
 
         if (isPassed) {
@@ -577,22 +576,22 @@ class ResultsPrinter {
         log();
     }
 
-    private static printSuppressedErrors(suppressedFailures: Map<string, CompilerFailure>, verbose: boolean): void {
-        if (!verbose || suppressedFailures.size === 0) {
+    private static printSuppressedErrors(suppressedErrors: Map<string, CompilerError>, verbose: boolean): void {
+        if (!verbose || suppressedErrors.size === 0) {
             return;
         }
 
-        const suppressedErrorMap = new Map<string, CompilerFailure[]>();
-        for (const [, failure] of suppressedFailures) {
-            if (!failure.reason) {
+        const suppressedErrorMap = new Map<string, CompilerError[]>();
+        for (const [, error] of suppressedErrors) {
+            if (!error.reason) {
                 continue;
             }
 
-            if (!suppressedErrorMap.has(failure.reason)) {
-                suppressedErrorMap.set(failure.reason, []);
+            if (!suppressedErrorMap.has(error.reason)) {
+                suppressedErrorMap.set(error.reason, []);
             }
 
-            suppressedErrorMap.get(failure.reason)?.push(failure);
+            suppressedErrorMap.get(error.reason)?.push(error);
         }
 
         log();
@@ -601,49 +600,49 @@ class ResultsPrinter {
 
         for (const [error, suppressedErrorFiles] of suppressedErrorMap) {
             logBold(error);
-            const filesLine = suppressedErrorFiles.map((failure) => ReactCompilerHealthcheck.getFailureKey(failure)).join(', ');
+            const filesLine = suppressedErrorFiles.map((suppressedError) => ReactCompilerHealthcheck.getErrorKey(suppressedError)).join(', ');
             logNote(`${this.TAB} - ${filesLine}`);
         }
 
         log();
     }
 
-    private static printCompilerFailures(
-        failuresForModifiedFiles: Map<string, CompilerFailure>,
-        failuresForAddedFiles: Map<string, CompilerFailure>,
+    private static printCompilerErrors(
+        errorsForModifiedFiles: Map<string, CompilerError>,
+        errorsForAddedFiles: Map<string, CompilerError>,
     ): {hasModifiedFilesErrors: boolean; hasAddedFilesErrors: boolean} {
-        const hasModifiedFilesErrors = failuresForModifiedFiles.size > 0;
-        const hasAddedFilesErrors = failuresForAddedFiles.size > 0;
+        const hasModifiedFilesErrors = errorsForModifiedFiles.size > 0;
+        const hasAddedFilesErrors = errorsForAddedFiles.size > 0;
 
         if (hasModifiedFilesErrors) {
-            const {filesWithErrors} = ReactCompilerHealthcheck.getErrorsByFile(failuresForModifiedFiles);
+            const {filesWithErrors} = ReactCompilerHealthcheck.getErrorsByFile(errorsForModifiedFiles);
 
             if (filesWithErrors.size > 0) {
                 log();
                 logWarn(`Failed to compile ${filesWithErrors.size} modified files with React Compiler:`);
                 log();
 
-                this.printFailures(failuresForModifiedFiles);
+                this.printErrors(errorsForModifiedFiles);
             }
         }
 
         if (hasAddedFilesErrors) {
-            const {filesWithErrors} = ReactCompilerHealthcheck.getErrorsByFile(failuresForAddedFiles);
+            const {filesWithErrors} = ReactCompilerHealthcheck.getErrorsByFile(errorsForAddedFiles);
 
             if (filesWithErrors.size > 0) {
                 log();
                 logError(`Failed to compile ${filesWithErrors.size} added files with React Compiler:`);
                 log();
 
-                this.printFailures(failuresForAddedFiles);
+                this.printErrors(errorsForAddedFiles);
             }
         }
 
         return {hasModifiedFilesErrors, hasAddedFilesErrors};
     }
 
-    private static printManualMemoErrors(manualMemoFailures: Map<string, ManualMemoizationError[]>): boolean {
-        const hasManualMemoErrors = manualMemoFailures.size > 0;
+    private static printManualMemoErrors(manualMemoErrors: Map<string, ManualMemoizationError[]>): boolean {
+        const hasManualMemoErrors = manualMemoErrors.size > 0;
 
         if (!hasManualMemoErrors) {
             return false;
@@ -652,24 +651,24 @@ class ResultsPrinter {
         log();
         logError(`The following newly added components should be auto memoized by the React Compiler (manual memoization is not allowed):`);
 
-        for (const [filePath, manualMemoizationMatches] of manualMemoFailures) {
+        for (const [filePath, manualMemoizationMatches] of manualMemoErrors) {
             log();
 
             for (const manualMemoizationMatch of manualMemoizationMatches) {
                 const location = manualMemoizationMatch.line && manualMemoizationMatch.column ? `:${manualMemoizationMatch.line}:${manualMemoizationMatch.column}` : '';
                 logBold(`${filePath}${location}`);
-                logNote(`${this.TAB}${ManualMemoizationChecker.getFailureMessage(manualMemoizationMatch.keyword as keyof typeof ManualMemoizationChecker.PATTERNS)}`);
+                logNote(`${this.TAB}${ManualMemoizationChecker.getErrorMessage(manualMemoizationMatch.keyword as keyof typeof ManualMemoizationChecker.PATTERNS)}`);
             }
         }
 
         return true;
     }
 
-    private static printFailures(failuresToPrint: Map<string, CompilerFailure>, level = 0) {
-        for (const failure of failuresToPrint.values()) {
-            const location = failure.line && failure.column ? `:${failure.line}:${failure.column}` : '';
-            logBold(`${this.TAB.repeat(level)}${failure.file}${location}`);
-            logNote(`${this.TAB.repeat(level + 1)}${failure.reason ?? 'No reason provided'}`);
+    private static printErrors(errorsToPrint: Map<string, CompilerError>, level = 0) {
+        for (const error of errorsToPrint.values()) {
+            const location = error.line && error.column ? `:${error.line}:${error.column}` : '';
+            logBold(`${this.TAB.repeat(level)}${error.file}${location}`);
+            logNote(`${this.TAB.repeat(level + 1)}${error.reason ?? 'No reason provided'}`);
         }
     }
 }
@@ -681,18 +680,18 @@ class ReportGenerator {
     /**
      * Generate a report and save it to /tmp.
      */
-    static generate({success, failures, suppressedFailures, manualMemoFailures, failuresForAddedFiles, failuresForModifiedFiles}: CompilerResults): void {
+    static generate({success, errors, suppressedErrors, manualMemoErrors, errorsForAddedFiles, errorsForModifiedFiles}: CompilerResults): void {
         const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
         const reportFileName = `react-compiler-compliance-check-report-${timestamp}.json`;
         const reportFile = path.join('/tmp', reportFileName);
 
         const resultsObject = {
             success: Array.from(success),
-            failures: Object.fromEntries(failures.entries()),
-            failuresForAddedFiles: Object.fromEntries(failuresForAddedFiles.entries()),
-            failuresForModifiedFiles: Object.fromEntries(failuresForModifiedFiles.entries()),
-            manualMemoFailures: Object.fromEntries(manualMemoFailures.entries()),
-            suppressedFailures: Object.fromEntries(suppressedFailures.entries()),
+            errors: Object.fromEntries(errors.entries()),
+            errorsForAddedFiles: Object.fromEntries(errorsForAddedFiles.entries()),
+            errorsForModifiedFiles: Object.fromEntries(errorsForModifiedFiles.entries()),
+            manualMemoErrors: Object.fromEntries(manualMemoErrors.entries()),
+            suppressedErrors: Object.fromEntries(suppressedErrors.entries()),
         } satisfies Record<keyof CompilerResults, Record<string, unknown> | string[]>;
 
         fs.writeFileSync(
@@ -754,11 +753,11 @@ class Checker {
             results = await DiffAnalyzer.filterResultsByDiff(results, mainBaseCommitHash, diffResult, options);
         }
 
-        const {reactCompilerFailuresForModifiedFiles, reactCompilerFailuresForAddedFiles, manualMemoFailures} = ManualMemoizationChecker.splitErrorsBasedOnFileDiffType(results, diffResult);
+        const {reactCompilerErrorsForModifiedFiles, reactCompilerErrorsForAddedFiles, manualMemoErrors} = ManualMemoizationChecker.splitErrorsBasedOnFileDiffType(results, diffResult);
 
-        results.manualMemoFailures = manualMemoFailures;
-        results.failuresForAddedFiles = reactCompilerFailuresForAddedFiles;
-        results.failuresForModifiedFiles = reactCompilerFailuresForModifiedFiles;
+        results.manualMemoErrors = manualMemoErrors;
+        results.errorsForAddedFiles = reactCompilerErrorsForAddedFiles;
+        results.errorsForModifiedFiles = reactCompilerErrorsForModifiedFiles;
 
         const isPassed = ResultsPrinter.printResults(results, options);
 

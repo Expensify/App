@@ -2,10 +2,10 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {memo, useContext, useEffect, useRef} from 'react';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,6 +39,7 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
     const emojiPopoverAnchor = useRef(null);
     const {translate} = useLocalize();
     const isFocused = useIsFocused();
+    const icons = useMemoizedLazyExpensifyIcons(['Emoji']);
 
     const openEmojiPicker: PressableProps['onPress'] = (e) => {
         if (!isFocused) {
@@ -78,11 +79,11 @@ function EmojiPickerButton({isDisabled = false, emojiPickerID = '', shiftVertica
                 onPress={openEmojiPicker}
                 id={CONST.EMOJI_PICKER_BUTTON_NATIVE_ID}
                 accessibilityLabel={translate('reportActionCompose.emoji')}
-                sentryLabel={CONST.SENTRY_LABEL.REPORT.EMOJI_PICKER_BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.BUTTON}
             >
                 {({hovered, pressed}) => (
                     <Icon
-                        src={Expensicons.Emoji}
+                        src={icons.Emoji}
                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed))}
                     />
                 )}
