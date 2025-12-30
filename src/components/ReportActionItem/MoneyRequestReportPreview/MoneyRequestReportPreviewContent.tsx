@@ -883,7 +883,7 @@ function MoneyRequestReportPreviewContent({
                 </View>
                 {isHoldMenuVisible && !!iouReport && !!requestType && (
                     <ProcessMoneyReportHoldMenu
-                        nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                        nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : '0'}
                         requestType={requestType}
                         fullAmount={fullAmount}
                         onClose={() => setIsHoldMenuVisible(false)}
