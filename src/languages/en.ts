@@ -1484,6 +1484,7 @@ const translations = {
         },
         chooseWorkspace: 'Choose a workspace',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `report routed to ${to} due to custom approval workflow`,
+        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Explain</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {

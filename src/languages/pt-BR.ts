@@ -1504,6 +1504,7 @@ const translations: TranslationDeepObject<typeof en> = {
         splitDateRange: ({startDate, endDate, count}: SplitDateRangeParams) => `${startDate} a ${endDate} (${count} dias)`,
         splitByDate: 'Dividir por data',
         routedDueToDEW: ({to}: RoutedDueToDEWParams) => `relatório encaminhado para ${to} devido ao fluxo de trabalho de aprovação personalizado`,
+        AskToExplain: '. <a href="new-expensify://concierge/explain"><strong>Explicar</strong></a> &#x2728;',
     },
     transactionMerge: {
         listPage: {
