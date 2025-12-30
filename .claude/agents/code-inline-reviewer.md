@@ -252,7 +252,7 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 
 - **Condition**: Flag when useEffect updates state based on props or other state, when the value could be computed directly
 
-- **Reasoning**: Computing derived values directly in the component body ensures they're always synchronized with props/state and avoids unnecessary re-renders. For expensive calculations, use `useMemo` instead of `useEffect`. Note: React Compiler can automatically memoize expensive calculations, so you may not need `useMemo` if the component is compiled—just compute directly during rendering.
+- **Reasoning**: Computing derived values directly in the component body ensures they're always synchronized with props/state and avoids unnecessary re-renders.
 
 Good:
 
@@ -263,11 +263,6 @@ function Form() {
   
   // ✅ Good: calculated during rendering
   const fullName = firstName + ' ' + lastName;
-  
-  // For expensive calculations (if React Compiler doesn't optimize):
-  const visibleTodos = useMemo(() => {
-    return getFilteredTodos(todos, filter);
-  }, [todos, filter]);
 }
 ```
 
