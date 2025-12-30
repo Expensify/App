@@ -984,8 +984,6 @@ function clearAdvancedFilters() {
     const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
     for (const key of Object.values(FILTER_KEYS)) {
         switch (key) {
-            case FILTER_KEYS.GROUP_BY:
-                continue;
             case FILTER_KEYS.COLUMNS:
                 continue;
             case FILTER_KEYS.TYPE:

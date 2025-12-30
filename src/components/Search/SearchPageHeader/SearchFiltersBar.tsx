@@ -26,6 +26,7 @@ import type {BankAccountMenuItem, SearchDateFilterKeys, SearchQueryJSON, Singula
 import SearchFiltersSkeleton from '@components/Skeletons/SearchFiltersSkeleton';
 import useAdvancedSearchFilters from '@hooks/useAdvancedSearchFilters';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFilterFormValues from '@hooks/useFilterFormValues';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -36,7 +37,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {close} from '@libs/actions/Modal';
-import {handleBulkPayItemSelected} from '@libs/actions/Search';
+import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -87,7 +88,7 @@ function SearchFiltersBar({
     const scrollRef = useRef<FlatList<FilterItem>>(null);
     const currentPolicy = usePolicy(currentSelectedPolicyID);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector, canBeMissing: true});
-    const [filterFormValues = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
+    const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     // type, groupBy and status values are not guaranteed to respect the ts type as they come from user input
     const {hash, type: unsafeType, groupBy: unsafeGroupBy, status: unsafeStatus, flatFilters} = queryJSON;
     const [selectedIOUReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentSelectedReportID}`, {canBeMissing: true});
@@ -99,6 +100,7 @@ function SearchFiltersBar({
 
     const {isOffline} = useNetwork();
     const personalDetails = usePersonalDetails();
+    const filterFormValues = useFilterFormValues(queryJSON);
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading} = useSearchContext();
 
@@ -146,13 +148,13 @@ function SearchFiltersBar({
 
     // Get selected workspace options from filterFormValues or queryJSON
     const selectedWorkspaceOptions = useMemo(() => {
-        const policyIDs = filterFormValues.policyID ?? queryJSON.policyID;
+        const policyIDs = searchAdvancedFiltersForm.policyID ?? queryJSON.policyID;
         if (!policyIDs) {
             return [];
         }
         const normalizedIDs = Array.isArray(policyIDs) ? policyIDs : [policyIDs];
         return workspaceOptions.filter((option) => normalizedIDs.includes(option.value));
-    }, [filterFormValues.policyID, queryJSON.policyID, workspaceOptions]);
+    }, [searchAdvancedFiltersForm.policyID, queryJSON.policyID, workspaceOptions]);
 
     const hasErrors = Object.keys(searchResultsErrors ?? {}).length > 0 && !isOffline;
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || isMobileSelectionModeEnabled);
@@ -192,9 +194,9 @@ function SearchFiltersBar({
 
     const [groupCurrencyOptions, groupCurrency] = useMemo(() => {
         const options = getGroupCurrencyOptions(currencyList);
-        const value = options.find((option) => option.value === filterFormValues.groupCurrency) ?? null;
+        const value = options.find((option) => option.value === searchAdvancedFiltersForm.groupCurrency) ?? null;
         return [options, value];
-    }, [filterFormValues.groupCurrency, currencyList]);
+    }, [searchAdvancedFiltersForm.groupCurrency, currencyList]);
 
     const [feedOptions, feed] = useMemo(() => {
         const feedFilterValues = flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED)?.filters?.map((filter) => filter.value);
@@ -254,55 +256,55 @@ function SearchFiltersBar({
     const [date, displayDate] = useMemo(
         () =>
             createDateDisplayValue({
-                on: filterFormValues.dateOn,
-                after: filterFormValues.dateAfter,
-                before: filterFormValues.dateBefore,
+                on: searchAdvancedFiltersForm.dateOn,
+                after: searchAdvancedFiltersForm.dateAfter,
+                before: searchAdvancedFiltersForm.dateBefore,
             }),
-        [filterFormValues.dateOn, filterFormValues.dateAfter, filterFormValues.dateBefore, createDateDisplayValue],
+        [searchAdvancedFiltersForm.dateOn, searchAdvancedFiltersForm.dateAfter, searchAdvancedFiltersForm.dateBefore, createDateDisplayValue],
     );
 
     const [posted, displayPosted] = useMemo(
         () =>
             createDateDisplayValue({
-                on: filterFormValues.postedOn,
-                after: filterFormValues.postedAfter,
-                before: filterFormValues.postedBefore,
+                on: searchAdvancedFiltersForm.postedOn,
+                after: searchAdvancedFiltersForm.postedAfter,
+                before: searchAdvancedFiltersForm.postedBefore,
             }),
-        [filterFormValues.postedOn, filterFormValues.postedAfter, filterFormValues.postedBefore, createDateDisplayValue],
+        [searchAdvancedFiltersForm.postedOn, searchAdvancedFiltersForm.postedAfter, searchAdvancedFiltersForm.postedBefore, createDateDisplayValue],
     );
 
     const [withdrawn, displayWithdrawn] = useMemo(
         () =>
             createDateDisplayValue({
-                on: filterFormValues.withdrawnOn,
-                after: filterFormValues.withdrawnAfter,
-                before: filterFormValues.withdrawnBefore,
+                on: searchAdvancedFiltersForm.withdrawnOn,
+                after: searchAdvancedFiltersForm.withdrawnAfter,
+                before: searchAdvancedFiltersForm.withdrawnBefore,
             }),
-        [filterFormValues.withdrawnOn, filterFormValues.withdrawnAfter, filterFormValues.withdrawnBefore, createDateDisplayValue],
+        [searchAdvancedFiltersForm.withdrawnOn, searchAdvancedFiltersForm.withdrawnAfter, searchAdvancedFiltersForm.withdrawnBefore, createDateDisplayValue],
     );
 
     const [withdrawalTypeOptions, withdrawalType] = useMemo(() => {
         const options = getWithdrawalTypeOptions(translate);
-        const value = options.find((option) => option.value === filterFormValues.withdrawalType) ?? null;
+        const value = options.find((option) => option.value === searchAdvancedFiltersForm.withdrawalType) ?? null;
         return [options, value];
-    }, [translate, filterFormValues.withdrawalType]);
+    }, [translate, searchAdvancedFiltersForm.withdrawalType]);
     const {accountID} = useCurrentUserPersonalDetails();
     const activeAdminPolicies = getActiveAdminWorkspaces(allPolicies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
 
     const updateFilterForm = useCallback(
         (values: Partial<SearchAdvancedFiltersForm>) => {
             const updatedFilterFormValues: Partial<SearchAdvancedFiltersForm> = {
-                ...filterFormValues,
+                ...searchAdvancedFiltersForm,
                 ...values,
             };
 
             // If the type has changed, reset the status so we dont have an invalid status selected
-            if (updatedFilterFormValues.type !== filterFormValues.type) {
+            if (updatedFilterFormValues.type !== searchAdvancedFiltersForm.type) {
                 updatedFilterFormValues.status = CONST.SEARCH.STATUS.EXPENSE.ALL;
                 updatedFilterFormValues.columns = [];
             }
 
-            if (updatedFilterFormValues.groupBy !== filterFormValues.groupBy) {
+            if (updatedFilterFormValues.groupBy !== searchAdvancedFiltersForm.groupBy) {
                 updatedFilterFormValues.columns = [];
             }
 
@@ -313,12 +315,13 @@ function SearchFiltersBar({
                 Navigation.setParams({q: queryString, rawQuery: undefined});
             });
         },
-        [filterFormValues],
+        [searchAdvancedFiltersForm],
     );
 
     const openAdvancedFilters = useCallback(() => {
+        updateAdvancedFilters(filterFormValues);
         Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS.getRoute());
-    }, []);
+    }, [filterFormValues]);
 
     const openSearchColumns = () => {
         Navigation.navigate(ROUTES.SEARCH_COLUMNS);
@@ -485,7 +488,7 @@ function SearchFiltersBar({
 
     const userPickerComponent = useCallback(
         ({closeOverlay}: PopoverComponentProps) => {
-            const value = filterFormValues.from ?? [];
+            const value = searchAdvancedFiltersForm.from ?? [];
 
             return (
                 <UserSelectPopup
@@ -495,7 +498,7 @@ function SearchFiltersBar({
                 />
             );
         },
-        [filterFormValues.from, updateFilterForm],
+        [searchAdvancedFiltersForm.from, updateFilterForm],
     );
 
     const handleWorkspaceChange = useCallback(
@@ -530,14 +533,15 @@ function SearchFiltersBar({
      * filter bar
      */
     const filters = useMemo<FilterItem[]>(() => {
-        const fromValue = filterFormValues.from?.map((currentAccountID) => getDisplayNameOrDefault(personalDetails?.[currentAccountID], currentAccountID, false)) ?? [];
+        const fromValue = searchAdvancedFiltersForm.from?.map((currentAccountID) => getDisplayNameOrDefault(personalDetails?.[currentAccountID], currentAccountID, false)) ?? [];
 
         const shouldDisplayGroupByFilter = !!groupBy?.value;
         const shouldDisplayGroupCurrencyFilter = shouldDisplayGroupByFilter && hasMultipleOutputCurrency;
-        const shouldDisplayFeedFilter = feedOptions.length > 1 && !!filterFormValues.feed;
-        const shouldDisplayPostedFilter = !!filterFormValues.feed && (!!filterFormValues.postedOn || !!filterFormValues.postedAfter || !!filterFormValues.postedBefore);
-        const shouldDisplayWithdrawalTypeFilter = !!filterFormValues.withdrawalType;
-        const shouldDisplayWithdrawnFilter = !!filterFormValues.withdrawnOn || !!filterFormValues.withdrawnAfter || !!filterFormValues.withdrawnBefore;
+        const shouldDisplayFeedFilter = feedOptions.length > 1 && !!searchAdvancedFiltersForm.feed;
+        const shouldDisplayPostedFilter =
+            !!searchAdvancedFiltersForm.feed && (!!searchAdvancedFiltersForm.postedOn || !!searchAdvancedFiltersForm.postedAfter || !!searchAdvancedFiltersForm.postedBefore);
+        const shouldDisplayWithdrawalTypeFilter = !!searchAdvancedFiltersForm.withdrawalType;
+        const shouldDisplayWithdrawnFilter = !!searchAdvancedFiltersForm.withdrawnOn || !!searchAdvancedFiltersForm.withdrawnAfter || !!searchAdvancedFiltersForm.withdrawnBefore;
 
         const filterList = [
             {
@@ -667,15 +671,15 @@ function SearchFiltersBar({
         displayDate,
         displayPosted,
         displayWithdrawn,
-        filterFormValues.from,
-        filterFormValues.feed,
-        filterFormValues.postedOn,
-        filterFormValues.postedAfter,
-        filterFormValues.postedBefore,
-        filterFormValues.withdrawalType,
-        filterFormValues.withdrawnOn,
-        filterFormValues.withdrawnAfter,
-        filterFormValues.withdrawnBefore,
+        searchAdvancedFiltersForm.from,
+        searchAdvancedFiltersForm.feed,
+        searchAdvancedFiltersForm.postedOn,
+        searchAdvancedFiltersForm.postedAfter,
+        searchAdvancedFiltersForm.postedBefore,
+        searchAdvancedFiltersForm.withdrawalType,
+        searchAdvancedFiltersForm.withdrawnOn,
+        searchAdvancedFiltersForm.withdrawnAfter,
+        searchAdvancedFiltersForm.withdrawnBefore,
         translate,
         hasComponent,
         isComponent,
@@ -714,12 +718,14 @@ function SearchFiltersBar({
         );
 
         const hiddenFilters = advancedSearchFiltersKeys.filter((key) => !exposedFiltersKeys.has(key as SearchAdvancedFiltersKey));
-        const hasReportFields = Object.keys(filterFormValues).some((key) => key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && !key.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX));
+        const hasReportFields = Object.keys(searchAdvancedFiltersForm).some(
+            (key) => key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX) && !key.startsWith(CONST.SEARCH.REPORT_FIELD.NOT_PREFIX),
+        );
 
         return hiddenFilters.filter((key) => {
             const dateFilterKey = DATE_FILTER_KEYS.find((dateKey) => key === dateKey);
             if (dateFilterKey) {
-                return filterFormValues[`${dateFilterKey}On`] ?? filterFormValues[`${dateFilterKey}After`] ?? filterFormValues[`${dateFilterKey}Before`];
+                return searchAdvancedFiltersForm[`${dateFilterKey}On`] ?? searchAdvancedFiltersForm[`${dateFilterKey}After`] ?? searchAdvancedFiltersForm[`${dateFilterKey}Before`];
             }
 
             if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD) {
@@ -729,15 +735,15 @@ function SearchFiltersBar({
             const amountFilterKey = AMOUNT_FILTER_KEYS.find((amountKey) => key === amountKey);
             if (amountFilterKey) {
                 return (
-                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] ??
-                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] ??
-                    filterFormValues[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]
+                    searchAdvancedFiltersForm[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`] ??
+                    searchAdvancedFiltersForm[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`] ??
+                    searchAdvancedFiltersForm[`${amountFilterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`]
                 );
             }
 
-            return filterFormValues[key as SearchAdvancedFiltersKey];
+            return searchAdvancedFiltersForm[key as SearchAdvancedFiltersKey];
         });
-    }, [filterFormValues, filters, typeFiltersKeys]);
+    }, [searchAdvancedFiltersForm, filters, typeFiltersKeys]);
 
     const adjustScroll = useCallback((info: {distanceFromEnd: number}) => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
