@@ -1,7 +1,6 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
 import * as API from '@libs/API';
 import type {
     ActivatePhysicalExpensifyCardParams,
@@ -435,10 +434,6 @@ function clearIssueNewCardFlow(policyID: string | undefined) {
         currentStep: null,
         data: {},
     });
-
-    if (policyID) {
-        setWorkspaceInviteMessageDraft(policyID, null);
-    }
 }
 
 function clearIssueNewCardFormData() {
