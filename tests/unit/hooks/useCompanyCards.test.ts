@@ -38,6 +38,7 @@ const mockOAuthFeedData = {
         domainID,
         customFeedName: 'Chase cards',
         feed: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE as CompanyCardFeed,
+
         // OAuth feeds have accountList from oAuthAccountDetails
         accountList: ['CREDIT CARD...6607', 'CREDIT CARD...5501'],
         credentials: 'xxxxx',
