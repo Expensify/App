@@ -28,6 +28,7 @@ import UserInfoCell from './UserInfoCell';
 import WorkspaceCell from './WorkspaceCell';
 
 type ExpenseReportListItemRowProps = {
+    hash: number;
     item: ExpenseReportListItemType;
     policy?: Policy;
     showTooltip: boolean;
@@ -45,6 +46,7 @@ type ExpenseReportListItemRowProps = {
 };
 
 function ExpenseReportListItemRow({
+    hash,
     item,
     policy,
     onCheckboxPress = () => {},
@@ -180,7 +182,10 @@ function ExpenseReportListItemRow({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
-                <ExportedIconCell reportID={item.reportID} />
+                <ExportedIconCell
+                    reportID={item.reportID}
+                    hash={hash}
+                />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.ACTION]: (
