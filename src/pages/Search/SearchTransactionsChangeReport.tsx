@@ -73,7 +73,7 @@ function SearchTransactionsChangeReport() {
     }, [selectedTransactions, selectedTransactionsKeys]);
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, false, shouldDismissEmptyReportsConfirmation);
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport(
@@ -82,7 +82,7 @@ function SearchTransactionsChangeReport() {
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 session?.email ?? '',
                 optimisticReport,
-                policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined,
+                policyForMovingExpenses,
                 reportNextStep,
                 allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
             );
@@ -99,6 +99,23 @@ function SearchTransactionsChangeReport() {
     });
 
     const createReport = () => {
+        if (!policyForMovingExpensesID && !shouldSelectPolicy && selectedTransactionsKeys.length > 0) {
+            const firstTransactionID = selectedTransactionsKeys.at(0);
+            if (firstTransactionID) {
+                Navigation.navigate(
+                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.EDIT,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID: firstTransactionID,
+                        reportID: selectedTransactions[firstTransactionID]?.reportID,
+                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                    }),
+                    {forceReplace: true},
+                );
+            }
+            return;
+        }
+
         if (shouldSelectPolicy) {
             Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION.getRoute(true));
             return;
