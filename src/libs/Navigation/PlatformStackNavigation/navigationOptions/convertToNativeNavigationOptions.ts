@@ -1,7 +1,7 @@
-import type {ParamListBase} from '@react-navigation/native';
+import type {ParamListBase, ScreenOptionsOrCallback} from '@react-navigation/native';
 import type {NativeStackNavigationOptions} from '@react-navigation/native-stack';
 import {isRouteBasedScreenOptions} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {PlatformStackNavigationOptions, PlatformStackScreenProps, ScreenOptionsOrCallback} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationOptions, PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import buildPlatformSpecificNavigationOptions from './buildPlatformSpecificNavigationOptions';
 
 function convertToNativeNavigationOptions(
