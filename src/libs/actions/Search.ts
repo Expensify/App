@@ -1097,7 +1097,7 @@ function handleBulkPayItemSelected(params: {
     if (!isValidBulkPayOption(item) && !selectedPolicy) {
         return;
     }
-    
+
     if (isDelegateAccessRestricted) {
         showDelegateNoAccessModal();
         return;
