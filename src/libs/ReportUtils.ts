@@ -6977,7 +6977,7 @@ function buildOptimisticExpenseReport(
             policy,
             allTransactions: reportTransactions ?? {},
         };
-        
+
         // We use dynamic require here to avoid a circular dependency between ReportUtils and Formula
         // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
         const Formula = require('./Formula') as {compute: (formula?: string, context?: FormulaContext) => string};
@@ -6990,14 +6990,7 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
-function buildOptimisticEmptyReport(
-    reportID: string,
-    accountID: number,
-    parentReport: OnyxEntry<Report>,
-    parentReportActionID: string,
-    policy: OnyxEntry<Policy>,
-    timeOfCreation: string,
-) {
+function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReport: OnyxEntry<Report>, parentReportActionID: string, policy: OnyxEntry<Policy>, timeOfCreation: string) {
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, true);
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
     const optimisticEmptyReport: OptimisticNewReport = {
