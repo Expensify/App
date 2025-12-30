@@ -111,6 +111,9 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
 
+    /** Whether the report screen is being displayed in the side panel */
+    isInSidePanel?: boolean;
+
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
 };
@@ -136,6 +139,7 @@ function ReportActionCompose({
     didHideComposerInput,
     reportTransactions,
     transactionThreadReportID,
+    isInSidePanel = false,
 }: ReportActionComposeProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -332,7 +336,7 @@ function ReportActionCompose({
             }
 
             if (attachmentFileRef.current) {
-                addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true);
+                addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true, isInSidePanel);
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});

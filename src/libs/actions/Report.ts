@@ -83,6 +83,7 @@ import NetworkConnection from '@libs/NetworkConnection';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import LocalNotification from '@libs/Notification/LocalNotification';
 import {rand64} from '@libs/NumberUtils';
+import capturePageHTML from '@libs/PageHTMLCapture';
 import Parser from '@libs/Parser';
 import {getParsedMessageWithShortMentions} from '@libs/ParsingUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
@@ -147,6 +148,7 @@ import {
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportTransactions,
+    isAdminRoom,
     getReportViolations,
     getTitleReportField,
     hasOutstandingChildRequest,
@@ -550,8 +552,9 @@ function notifyNewAction(reportID: string | undefined, accountID: number | undef
  *
  * @param reportID - The report ID where the comment should be added
  * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
+ * @param isInSidePanel - Whether the comment is being added from the side panel
  */
-function addActions(reportID: string, notifyReportID: string, ancestors: Ancestor[], timezoneParam: Timezone, text = '', file?: FileObject) {
+function addActions(reportID: string, notifyReportID: string, ancestors: Ancestor[], timezoneParam: Timezone, text = '', file?: FileObject, isInSidePanel = false) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
@@ -623,6 +626,14 @@ function addActions(reportID: string, notifyReportID: string, ancestors: Ancesto
 
     if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChatReport(report)) {
         parameters.isOldDotConciergeChat = true;
+    }
+
+    // Capture page HTML when sending from side panel to Concierge or admins room
+    if (isInSidePanel && (isConciergeChatReport(report) || isAdminRoom(report))) {
+        const pageHTML = capturePageHTML();
+        if (pageHTML) {
+            parameters.pageHTML = pageHTML;
+        }
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -722,6 +733,7 @@ function addAttachmentWithComment(
     text = '',
     timezone: Timezone = CONST.DEFAULT_TIME_ZONE,
     shouldPlaySound = false,
+    isInSidePanel = false,
 ) {
     if (!reportID) {
         return;
@@ -736,17 +748,17 @@ function addAttachmentWithComment(
 
     // Single attachment
     if (!Array.isArray(attachments)) {
-        addActions(reportID, notifyReportID, ancestors, timezone, text, attachments);
+        addActions(reportID, notifyReportID, ancestors, timezone, text, attachments, isInSidePanel);
         handlePlaySound();
         return;
     }
 
     // Multiple attachments - first: combine text + first attachment as a single action
-    addActions(reportID, notifyReportID, ancestors, timezone, text, attachments?.at(0));
+    addActions(reportID, notifyReportID, ancestors, timezone, text, attachments?.at(0), isInSidePanel);
 
     // Remaining: attachment-only actions (no text duplication)
     for (let i = 1; i < attachments?.length; i += 1) {
-        addActions(reportID, notifyReportID, ancestors, timezone, '', attachments?.at(i));
+        addActions(reportID, notifyReportID, ancestors, timezone, '', attachments?.at(i), isInSidePanel);
     }
 
     // Play sound once
@@ -754,11 +766,11 @@ function addAttachmentWithComment(
 }
 
 /** Add a single comment to a report */
-function addComment(reportID: string, notifyReportID: string, ancestors: Ancestor[], text: string, timezoneParam: Timezone, shouldPlaySound?: boolean) {
+function addComment(reportID: string, notifyReportID: string, ancestors: Ancestor[], text: string, timezoneParam: Timezone, shouldPlaySound?: boolean, isInSidePanel?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(reportID, notifyReportID, ancestors, timezoneParam, text);
+    addActions(reportID, notifyReportID, ancestors, timezoneParam, text, undefined, isInSidePanel);
 }
 
 function reportActionsExist(reportID: string): boolean {
