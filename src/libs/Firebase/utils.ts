@@ -59,6 +59,7 @@ Onyx.connectWithoutView({
 });
 
 let session: OnyxEntry<Session>;
+// Firebase Utils are used for performance monitoring which does not affect the UI, hence using connectWithoutView
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
