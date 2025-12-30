@@ -544,7 +544,7 @@ describe('actions/PolicyMember', () => {
                 },
             });
 
-            // When removing am admin, auditor, and user members
+            // When removing an admin, auditor, and user members
             mockFetch?.pause?.();
             const memberEmailsToAccountIDs = {
                 [adminEmail]: adminAccountID,
@@ -565,6 +565,7 @@ describe('actions/PolicyMember', () => {
                 });
             });
 
+            // Then the preferred exporter is the workspace owner
             expect(policyConnectionPreferredExporter).toBe(ownerEmail);
 
             await mockFetch?.resume?.();
