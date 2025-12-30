@@ -189,6 +189,8 @@ function AvatarWithDisplayName({
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const parentReportActionParam = report?.parentReportActionID ? parentReportActions?.[report.parentReportActionID] : undefined;
     const isReportArchived = useReportIsArchived(report?.reportID);
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title = getReportName(report, undefined, parentReportActionParam, personalDetails, invoiceReceiverPolicy, reportAttributes, undefined, isReportArchived);
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const subtitle = getChatRoomSubtitle(report, true, isReportArchived);

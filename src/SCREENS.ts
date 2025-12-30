@@ -291,7 +291,6 @@ const SCREENS = {
         STEP_UPGRADE: 'Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
         STEP_CATEGORY: 'Money_Request_Step_Category',
-        STEP_CURRENCY: 'Money_Request_Step_Currency',
         STEP_DATE: 'Money_Request_Step_Date',
         STEP_DESCRIPTION: 'Money_Request_Step_Description',
         STEP_DISTANCE: 'Money_Request_Step_Distance',
@@ -322,6 +321,7 @@ const SCREENS = {
         STEP_REPORT: 'Money_Request_Report',
         EDIT_REPORT: 'Money_Request_Edit_Report',
         SPLIT_EXPENSE: 'Money_Request_Split_Expense',
+        SPLIT_EXPENSE_SEARCH: 'Money_Request_Split_Expense_Search',
         SPLIT_EXPENSE_CREATE_DATE_RANGE: 'Money_Request_Split_Expense_Create_Date_Range',
         SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
         DISTANCE_CREATE: 'Money_Request_Distance_Create',
@@ -666,9 +666,6 @@ const SCREENS = {
         WORKFLOWS_APPROVALS_EDIT: 'Workspace_Approvals_Edit',
         WORKFLOWS_APPROVALS_EXPENSES_FROM: 'Workspace_Workflows_Approvals_Expenses_From',
         WORKFLOWS_APPROVALS_APPROVER: 'Workspace_Workflows_Approvals_Approver',
-        WORKFLOWS_APPROVALS_APPROVER_CHANGE: 'Workspace_Workflows_Approvals_Approver_Change',
-        WORKFLOWS_APPROVALS_APPROVAL_LIMIT: 'Workspace_Workflows_Approvals_Approval_Limit',
-        WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER: 'Workspace_Workflows_Approvals_Over_Limit_Approver',
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
         WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
         WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: 'Workspace_Workflows_Connect_Existing_Bank_Account',
@@ -869,6 +866,7 @@ const SCREENS = {
         ADMIN_DETAILS: 'Domain_Admin_Details',
         ADMINS_SETTINGS: 'Admins_Settings',
         ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
+        ADD_ADMIN: 'Domain_Add_Admin',
     },
 } as const;
 
