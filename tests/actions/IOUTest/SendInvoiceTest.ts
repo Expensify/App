@@ -14,15 +14,15 @@ import type {PolicyTagLists, RecentlyUsedCategories, Report} from '@src/types/on
 import type {Participant as IOUParticipant} from '@src/types/onyx/IOU';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
-import type {InvoiceTestData} from '../data/Invoice';
-import * as InvoiceData from '../data/Invoice';
-import currencyList from '../unit/currencyList.json';
-import createRandomPolicy from '../utils/collections/policies';
-import createRandomTransaction from '../utils/collections/transaction';
-import getOnyxValue from '../utils/getOnyxValue';
-import type {MockFetch} from '../utils/TestHelper';
-import {getGlobalFetchMock} from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import type {InvoiceTestData} from '../../data/Invoice';
+import * as InvoiceData from '../../data/Invoice';
+import currencyList from '../../unit/currencyList.json';
+import createRandomPolicy from '../../utils/collections/policies';
+import createRandomTransaction from '../../utils/collections/transaction';
+import getOnyxValue from '../../utils/getOnyxValue';
+import type {MockFetch} from '../../utils/TestHelper';
+import {getGlobalFetchMock} from '../../utils/TestHelper';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
