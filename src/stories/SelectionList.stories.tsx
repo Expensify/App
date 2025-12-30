@@ -1,4 +1,4 @@
-import type {Meta} from '@storybook/react';
+import type {Meta} from '@storybook/react-webpack5';
 import React, {useMemo, useState} from 'react';
 import Badge from '@components/Badge';
 // eslint-disable-next-line no-restricted-imports
