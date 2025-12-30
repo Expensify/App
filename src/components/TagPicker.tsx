@@ -139,7 +139,7 @@ function TagPicker({
         <SelectionList
             ListItem={RadioListItem}
             sectionTitleStyles={styles.mt5}
-            listItemTitleStyles={styles.breakAll}
+            listItemTitleStyles={[styles.breakAll, styles.mnw100]}
             sections={sections}
             textInputValue={searchValue}
             headerMessage={headerMessage}
