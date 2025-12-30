@@ -115,7 +115,7 @@ function updateLegalName(
     currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'>,
 ) {
     const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
@@ -223,7 +223,10 @@ function updateAddress(addresses: Address[], street: string, street2: string, ci
     if (country !== CONST.COUNTRY.US) {
         parameters.addressStateLong = state;
     }
-
+    const updatedAddresses = addresses.map((address) => ({
+        ...address,
+        current: false,
+    }));
     API.write(WRITE_COMMANDS.UPDATE_HOME_ADDRESS, parameters, {
         optimisticData: [
             {
@@ -231,7 +234,7 @@ function updateAddress(addresses: Address[], street: string, street2: string, ci
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
                     addresses: [
-                        ...addresses,
+                        ...updatedAddresses,
                         {
                             street: PersonalDetailsUtils.getFormattedStreet(street, street2),
                             city,
@@ -316,7 +319,7 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone, currentUserA
  * but the profile page will use other info (e.g. contact methods and pronouns) if they are already available in Onyx
  */
 function openPublicProfilePage(accountID: number) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
@@ -328,7 +331,7 @@ function openPublicProfilePage(accountID: number) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
@@ -340,7 +343,7 @@ function openPublicProfilePage(accountID: number) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
@@ -377,7 +380,7 @@ function updateAvatar(
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -398,7 +401,7 @@ function updateAvatar(
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -411,7 +414,7 @@ function updateAvatar(
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -444,7 +447,7 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
     // We want to use the old dot avatar here as this affects both platforms.
     const defaultAvatar = UserAvatarUtils.getDefaultAvatarURL({accountID: currentUserPersonalDetails.accountID, accountEmail: currentUserPersonalDetails.email});
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -456,7 +459,7 @@ function deleteAvatar(currentUserPersonalDetails: Pick<CurrentUserPersonalDetail
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -560,7 +563,7 @@ function setPersonalDetailsAndRevealExpensifyCard(
             cardID,
         };
 
-        const optimisticData: OnyxUpdate[] = [
+        const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.ACCOUNT>> = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
@@ -575,7 +578,7 @@ function setPersonalDetailsAndRevealExpensifyCard(
             },
         ];
 
-        const successData: OnyxUpdate[] = [
+        const successData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.CARD_LIST>> = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
@@ -595,7 +598,7 @@ function setPersonalDetailsAndRevealExpensifyCard(
             },
         ];
 
-        const failureData: OnyxUpdate[] = [
+        const failureData: Array<OnyxUpdate<typeof ONYXKEYS.PRIVATE_PERSONAL_DETAILS | typeof ONYXKEYS.ACCOUNT>> = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
