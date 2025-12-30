@@ -88,7 +88,7 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
     }, [report, personalDetailsList, sessionAccountID, translate, backTo]);
 
     return (
-        <ScreenWrapper testID={PrivateNotesListPage.displayName}>
+        <ScreenWrapper testID="PrivateNotesListPage">
             <HeaderWithBackButton
                 title={translate('privateNotes.title')}
                 shouldShowBackButton
@@ -105,7 +105,5 @@ function PrivateNotesListPage({report, accountID: sessionAccountID}: PrivateNote
         </ScreenWrapper>
     );
 }
-
-PrivateNotesListPage.displayName = 'PrivateNotesListPage';
 
 export default withReportAndPrivateNotesOrNotFound('privateNotes.title')(PrivateNotesListPage);

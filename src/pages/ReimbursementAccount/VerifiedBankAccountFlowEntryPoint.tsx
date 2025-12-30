@@ -4,7 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import {Bank, Connect, RotateLeft} from '@components/Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {Connect, RotateLeft} from '@components/Icon/Expensicons';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -67,6 +68,9 @@ type VerifiedBankAccountFlowEntryPointProps = {
 
     /** Method to set the state of shouldShowContinueSetupButton */
     setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
+
+    /** Method to set the state of isResettingBankAccount */
+    setIsResettingBankAccount?: (isResetting: boolean) => void;
 };
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
@@ -82,12 +86,13 @@ function VerifiedBankAccountFlowEntryPoint({
     setNonUSDBankAccountStep,
     setUSDBankAccountStep,
     setShouldShowContinueSetupButton,
+    setIsResettingBankAccount,
 }: VerifiedBankAccountFlowEntryPointProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Lock'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lightbulb', 'Lock', 'Bank']);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED, {canBeMissing: true});
@@ -186,7 +191,7 @@ function VerifiedBankAccountFlowEntryPoint({
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={VerifiedBankAccountFlowEntryPoint.displayName}
+            testID="VerifiedBankAccountFlowEntryPoint"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -235,8 +240,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 }
                                 errorRowStyles={styles.mt2}
                                 shouldShowErrorMessages
-                                canDismissError={!reimbursementAccount?.maxAttemptsReached}
-                                onClose={resetReimbursementAccount}
+                                onClose={reimbursementAccount?.maxAttemptsReached ? undefined : resetReimbursementAccount}
                             >
                                 <MenuItem
                                     title={translate('workspace.bankAccount.continueWithSetup')}
@@ -260,7 +264,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
                                     <MenuItem
                                         title={translate('bankAccount.connectOnlineWithPlaid')}
-                                        icon={Bank}
+                                        icon={expensifyIcons.Bank}
                                         disabled={!!isPlaidDisabled}
                                         onPress={handleConnectPlaid}
                                         shouldShowRightIcon
@@ -303,12 +307,11 @@ function VerifiedBankAccountFlowEntryPoint({
                     setUSDBankAccountStep={setUSDBankAccountStep}
                     setNonUSDBankAccountStep={setNonUSDBankAccountStep}
                     setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
+                    setIsResettingBankAccount={setIsResettingBankAccount}
                 />
             )}
         </ScreenWrapper>
     );
 }
-
-VerifiedBankAccountFlowEntryPoint.displayName = 'VerifiedBankAccountFlowEntryPoint';
 
 export default VerifiedBankAccountFlowEntryPoint;

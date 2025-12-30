@@ -1,18 +1,17 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -28,53 +27,54 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type IconAsset from '@src/types/utils/IconAsset';
 import type {BaseOnboardingAccountingProps} from './types';
 
 type Integration = {
     key: OnboardingAccounting;
-    icon: React.FC<SvgProps>;
+    iconName: 'QBOCircle' | 'QBDSquare' | 'XeroCircle' | 'NetSuiteSquare' | 'IntacctSquare' | 'SapSquare' | 'OracleSquare' | 'MicrosoftDynamicsSquare';
     translationKey: TranslationPaths;
 };
 
 const integrations: Integration[] = [
     {
         key: 'quickbooksOnline',
-        icon: Expensicons.QBOCircle,
+        iconName: 'QBOCircle',
         translationKey: 'workspace.accounting.qbo',
     },
     {
         key: 'quickbooksDesktop',
-        icon: Expensicons.QBDSquare,
+        iconName: 'QBDSquare',
         translationKey: 'workspace.accounting.qbd',
     },
     {
         key: 'xero',
-        icon: Expensicons.XeroCircle,
+        iconName: 'XeroCircle',
         translationKey: 'workspace.accounting.xero',
     },
     {
         key: 'netsuite',
-        icon: Expensicons.NetSuiteSquare,
+        iconName: 'NetSuiteSquare',
         translationKey: 'workspace.accounting.netsuite',
     },
     {
         key: 'intacct',
-        icon: Expensicons.IntacctSquare,
+        iconName: 'IntacctSquare',
         translationKey: 'workspace.accounting.intacct',
     },
     {
         key: 'sap',
-        icon: Expensicons.SapSquare,
+        iconName: 'SapSquare',
         translationKey: 'workspace.accounting.sap',
     },
     {
         key: 'oracle',
-        icon: Expensicons.OracleSquare,
+        iconName: 'OracleSquare',
         translationKey: 'workspace.accounting.oracle',
     },
     {
         key: 'microsoftDynamics',
-        icon: Expensicons.MicrosoftDynamicsSquare,
+        iconName: 'MicrosoftDynamicsSquare',
         translationKey: 'workspace.accounting.microsoftDynamics',
     },
 ];
@@ -88,7 +88,18 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'CircleSlash',
+        'Connect',
+        'QBOCircle',
+        'QBDSquare',
+        'XeroCircle',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'SapSquare',
+        'OracleSquare',
+        'MicrosoftDynamicsSquare',
+    ] as const);
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
@@ -115,26 +126,29 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
     }, [paidGroupPolicy, onboardingPolicyID]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
-        const createAccountingOption = (integration: Integration): OnboardingListItem => ({
-            keyForList: integration.key,
-            text: translate(integration.translationKey),
-            leftElement: (
-                <Icon
-                    src={integration.icon}
-                    width={variables.iconSizeExtraLarge}
-                    height={variables.iconSizeExtraLarge}
-                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3]}
-                />
-            ),
-            isSelected: userReportedIntegration === integration.key,
-        });
+        const createAccountingOption = (integration: Integration): OnboardingListItem => {
+            const icon = expensifyIcons[integration.iconName] as IconAsset | undefined;
+            return {
+                keyForList: integration.key,
+                text: translate(integration.translationKey),
+                leftElement: (
+                    <Icon
+                        src={icon}
+                        width={variables.iconSizeExtraLarge}
+                        height={variables.iconSizeExtraLarge}
+                        additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR), styles.mr3]}
+                    />
+                ),
+                isSelected: userReportedIntegration === integration.key,
+            };
+        };
 
         const noneAccountingOption: OnboardingListItem = {
             keyForList: null,
             text: translate('onboarding.accounting.none'),
             leftElement: (
                 <Icon
-                    src={Expensicons.CircleSlash}
+                    src={expensifyIcons.CircleSlash}
                     width={variables.iconSizeNormal}
                     height={variables.iconSizeNormal}
                     fill={theme.icon}
@@ -149,7 +163,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
             text: translate('workspace.accounting.other'),
             leftElement: (
                 <Icon
-                    src={Expensicons.Connect}
+                    src={expensifyIcons.Connect}
                     width={variables.iconSizeNormal}
                     height={variables.iconSizeNormal}
                     fill={theme.icon}
@@ -160,7 +174,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         };
 
         return [...integrations.map(createAccountingOption), othersAccountingOption, noneAccountingOption];
-    }, [StyleUtils, styles.mr3, styles.onboardingSmallIcon, theme.icon, translate, userReportedIntegration]);
+    }, [StyleUtils, styles.mr3, styles.onboardingSmallIcon, theme.icon, translate, userReportedIntegration, expensifyIcons]);
 
     const handleContinue = useCallback(() => {
         if (userReportedIntegration === undefined) {
@@ -229,6 +243,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 shouldShowBackButton={!isVsb}
                 progressBarPercentage={80}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute())}
+                shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.accounting.title')}</Text>
@@ -256,7 +271,5 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingAccounting.displayName = 'BaseOnboardingAccounting';
 
 export default BaseOnboardingAccounting;

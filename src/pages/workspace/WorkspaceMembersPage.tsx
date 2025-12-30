@@ -90,7 +90,7 @@ type MemberOption = Omit<ListItem, 'accountID' | 'login'> & {
 };
 
 function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembersPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'User', 'UserEye', 'MakeAdmin', 'RemoveMembers', 'Table'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'User', 'UserEye', 'MakeAdmin', 'RemoveMembers', 'Table']);
     const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const employeeListDetails = useMemo(() => policy?.employeeList ?? ({} as PolicyEmployeeList), [policy?.employeeList]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -139,7 +139,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const selectionListRef = useRef<SelectionListHandle>(null);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;
-    const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['ReceiptWrangler']);
 
     const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
     const {approvalWorkflows} = useMemo(
@@ -173,7 +173,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
      * Get members for the current workspace
      */
     const getWorkspaceMembers = useCallback(() => {
-        openWorkspaceMembersPage(route.params.policyID, Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList)));
+        const clientMemberEmails = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
+        openWorkspaceMembersPage(route.params.policyID, clientMemberEmails);
     }, [route.params.policyID, policy?.employeeList]);
 
     useEffect(() => {
@@ -501,7 +502,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     messages={{0: translate('workspace.people.addedWithPrimary')}}
                     containerStyles={[styles.pb5, styles.ph5]}
-                    onClose={() => dismissAddedWithPrimaryLoginMessages(policyID)}
+                    onDismiss={() => dismissAddedWithPrimaryLoginMessages(policyID)}
                 />
             )}
         </View>
@@ -538,8 +539,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     <View style={[styles.flex1, styles.pr3]}>
                         <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.common.customField2')}</Text>
                     </View>
-                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.pr2]}>
-                        <Text style={[styles.textMicroSupporting, styles.alignSelfEnd]}>{translate('common.role')}</Text>
+                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr6, styles.pl2]}>
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('common.role')}</Text>
                     </View>
                 </View>
             );
@@ -556,6 +557,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.member')}
                 rightHeaderText={translate('common.role')}
+                shouldShowRightCaret
             />
         );
     };
@@ -660,9 +662,13 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     }
 
                     close(() => {
-                        downloadMembersCSV(policyID, () => {
-                            setIsDownloadFailureModalVisible(true);
-                        });
+                        downloadMembersCSV(
+                            policyID,
+                            () => {
+                                setIsDownloadFailureModalVisible(true);
+                            },
+                            translate,
+                        );
                     });
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,
@@ -686,7 +692,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 isSplitButton={false}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedEmployees.length}
-                testID={`${WorkspaceMembersPage.displayName}-header-dropdown-menu-button`}
+                testID="WorkspaceMembersPage-header-dropdown-menu-button"
             />
         ) : (
             <View style={[styles.flexRow, styles.gap2]}>
@@ -743,7 +749,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             route={route}
             icon={!selectionModeHeader ? illustrations.ReceiptWrangler : undefined}
             headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
-            testID={WorkspaceMembersPage.displayName}
+            testID="WorkspaceMembersPage"
             shouldShowLoading={false}
             shouldUseHeadlineHeader={!selectionModeHeader}
             shouldShowOfflineIndicatorInWideScreen
@@ -826,13 +832,12 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         listItemTitleContainerStyles={shouldUseNarrowLayout ? undefined : [styles.pr3]}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
+                        shouldShowRightCaret
                     />
                 </>
             )}
         </WorkspacePageWithSections>
     );
 }
-
-WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceMembersPage);
