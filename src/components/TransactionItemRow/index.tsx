@@ -18,6 +18,7 @@ import WorkspaceCell from '@components/SelectionListWithSections/Search/Workspac
 import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -43,6 +44,7 @@ import {
 } from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report, TransactionViolation} from '@src/types/onyx';
 import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import CategoryCell from './DataCells/CategoryCell';
@@ -184,6 +186,7 @@ function TransactionItemRow({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const hasCategoryOrTag = !isCategoryMissing(transactionItem?.category) || !!transactionItem.tag;
     const createdAt = getTransactionCreated(transactionItem);
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
@@ -527,7 +530,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
                     <TextCell
-                        text={computeReportName(transactionItem.report) ?? transactionItem.report?.reportName ?? ''}
+                        text={computeReportName(transactionItem.report, undefined, undefined, undefined, undefined, undefined, undefined, session?.accountID) ?? transactionItem.report?.reportName ?? ''}
                         isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>

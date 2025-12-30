@@ -5687,11 +5687,13 @@ function getInvoicesChatName({
     receiverPolicy,
     personalDetails,
     policies,
+    currentUserAccountIDParam,
 }: {
     report: OnyxEntry<Report>;
     receiverPolicy: OnyxEntry<Policy>;
     personalDetails?: Partial<PersonalDetailsList>;
     policies?: Policy[];
+    currentUserAccountIDParam?: number;
 }): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
@@ -5700,7 +5702,8 @@ function getInvoicesChatName({
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const invoiceReceiverPolicy = receiverPolicy ?? getPolicy(invoiceReceiverPolicyID);
-    const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && isPolicyAdminPolicyUtils(invoiceReceiverPolicy));
+    const isCurrentUserReceiver =
+        (isIndividual && invoiceReceiverAccountID === (currentUserAccountIDParam ?? currentUserAccountID)) || (!isIndividual && isPolicyAdminPolicyUtils(invoiceReceiverPolicy));
 
     if (isCurrentUserReceiver) {
         return getPolicyName({report, policies});
