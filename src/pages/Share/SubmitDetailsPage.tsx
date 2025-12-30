@@ -58,6 +58,7 @@ function SubmitDetailsPage({
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const [validFilesToUpload] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
     const isLinkedTrackedExpenseReportArchived = useReportIsArchived(transaction?.linkedTrackedExpenseReportID);
@@ -147,7 +148,7 @@ function SubmitDetailsPage({
             requestMoney({
                 report,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
-                policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedCategories},
+                policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},
                 gpsPoint,
                 action: CONST.IOU.TYPE.CREATE,
                 transactionParams: {
