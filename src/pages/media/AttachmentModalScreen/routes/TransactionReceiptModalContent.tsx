@@ -70,6 +70,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         return transactionMain;
     }, [isDraftTransaction, mergeTransaction, mergeTransactionID, transactionDraft, transactionMain]);
 
+    const [reportTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`, {canBeMissing: true});
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
@@ -280,7 +281,13 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             }
 
             const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
-            if (shouldShowDeleteReceiptButton && !hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && !hasMissingSmartscanFields(transaction)) {
+            if (
+                shouldShowDeleteReceiptButton &&
+                !hasOnlyEReceipt &&
+                hasReceipt(transaction) &&
+                !isReceiptBeingScanned(transaction) &&
+                !hasMissingSmartscanFields(transaction, reportTransaction)
+            ) {
                 menuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('receipt.deleteReceipt'),

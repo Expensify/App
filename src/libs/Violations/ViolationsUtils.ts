@@ -233,7 +233,7 @@ const ViolationsUtils = {
         hasDependentTags: boolean,
         isInvoiceTransaction: boolean,
         isSelfDM?: boolean,
-        iouReport?: OnyxEntry<Report> | null,
+        iouReport?: OnyxEntry<Report>,
         isFromExpenseReport?: boolean,
     ): OnyxUpdate {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
@@ -262,7 +262,7 @@ const ViolationsUtils = {
         const shouldShowSmartScanFailedError =
             isScanRequest &&
             updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED &&
-            TransactionUtils.hasMissingSmartscanFields(updatedTransaction, iouReport ?? undefined) &&
+            TransactionUtils.hasMissingSmartscanFields(updatedTransaction, iouReport) &&
             !hasUserStartedFixingSmartscan;
         const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
         if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
