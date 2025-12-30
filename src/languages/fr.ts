@@ -6861,6 +6861,11 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         },
         refresh: 'Rafraîchir',
     },
+    desktopAppRetiredPage: {
+        title: 'L’application de bureau a été retirée',
+        body: 'La nouvelle application de bureau Expensify pour Mac a été retirée. À l’avenir, veuillez utiliser l’application web pour accéder à votre compte.',
+        goToWeb: 'Aller sur le web',
+    },
     fileDownload: {
         success: {
             title: 'Téléchargé !',
@@ -8006,10 +8011,40 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             addAdminError: 'Impossible d’ajouter ce membre en tant qu’administrateur. Veuillez réessayer.',
         },
     },
-    desktopAppRetiredPage: {
-        title: 'L’application de bureau a été retirée',
-        body: 'La nouvelle application de bureau Expensify pour Mac a été retirée. À l’avenir, veuillez utiliser l’application web pour accéder à votre compte.',
-        goToWeb: 'Aller sur le web',
+    gps: {
+        tooltip: 'Suivi GPS en cours ! Quand vous avez terminé, arrêtez le suivi ci-dessous.',
+        disclaimer: 'Utilisez le GPS pour créer une dépense à partir de votre trajet. Touchez Démarrer ci-dessous pour commencer le suivi.',
+        error: {failedToStart: 'Impossible de démarrer le suivi de la localisation.', failedToGetPermissions: 'Échec de l’obtention des autorisations de localisation requises.'},
+        trackingDistance: 'Suivi de la distance...',
+        stopped: 'Arrêté',
+        start: 'Commencer',
+        stop: 'Arrêter',
+        discard: 'Ignorer',
+        stopGpsTrackingModal: {
+            title: 'Arrêter le suivi GPS',
+            prompt: 'Êtes-vous sûr(e) ? Cela mettra fin à votre trajet actuel.',
+            cancel: 'Reprendre le suivi',
+            confirm: 'Arrêter le suivi GPS',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Ignorer le suivi de la distance',
+            prompt: 'Êtes-vous sûr(e) ? Cela annulera votre parcours en cours et ne pourra pas être annulé.',
+            confirm: 'Ignorer le suivi de la distance',
+        },
+        zeroDistanceTripModal: {title: 'Impossible de créer la dépense', prompt: 'Vous ne pouvez pas créer une dépense avec le même lieu de départ et d’arrivée.'},
+        locationRequiredModal: {
+            title: 'Accès à la localisation requis',
+            prompt: 'Veuillez autoriser l’accès à la localisation dans les paramètres de votre appareil pour lancer le suivi de distance GPS.',
+            allow: 'Autoriser',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Accès à la position en arrière-plan requis',
+            prompt: 'Veuillez autoriser l’accès à la localisation en arrière-plan dans les paramètres de votre appareil (option « Autoriser tout le temps ») pour démarrer le suivi de distance par GPS.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Emplacement précis requis',
+            prompt: 'Veuillez activer la « localisation précise » dans les paramètres de votre appareil pour commencer le suivi de distance GPS.',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

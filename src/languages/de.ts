@@ -6852,6 +6852,11 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         },
         refresh: 'Aktualisieren',
     },
+    desktopAppRetiredPage: {
+        title: 'Desktop-App wurde eingestellt',
+        body: 'Die neue Expensify Desktop-App für Mac wurde eingestellt. Bitte verwenden Sie künftig die Web-App, um auf Ihr Konto zuzugreifen.',
+        goToWeb: 'Zur Web-App gehen',
+    },
     fileDownload: {
         success: {
             title: 'Heruntergeladen!',
@@ -8002,10 +8007,40 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             addAdminError: 'Dieser Benutzer kann nicht als Admin hinzugefügt werden. Bitte versuche es erneut.',
         },
     },
-    desktopAppRetiredPage: {
-        title: 'Desktop-App wurde eingestellt',
-        body: 'Die neue Expensify Desktop-App für Mac wurde eingestellt. Bitte verwenden Sie künftig die Web-App, um auf Ihr Konto zuzugreifen.',
-        goToWeb: 'Zur Web-App gehen',
+    gps: {
+        tooltip: 'GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.',
+        disclaimer: 'Benutze GPS, um eine Ausgabe von deiner Reise zu erstellen. Tippe unten auf „Start“, um mit der Aufzeichnung zu beginnen.',
+        error: {failedToStart: 'Standortverfolgung konnte nicht gestartet werden.', failedToGetPermissions: 'Die erforderlichen Standortberechtigungen konnten nicht abgerufen werden.'},
+        trackingDistance: 'Strecke wird verfolgt...',
+        stopped: 'Angehalten',
+        start: 'Start',
+        stop: 'Stopp',
+        discard: 'Verwerfen',
+        stopGpsTrackingModal: {
+            title: 'GPS-Tracking stoppen',
+            prompt: 'Bist du sicher? Dadurch wird deine aktuelle Reise beendet.',
+            cancel: 'Verfolgung fortsetzen',
+            confirm: 'GPS-Tracking stoppen',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Entfernungsverfolgung verwerfen',
+            prompt: 'Bist du sicher? Dadurch wird deine aktuelle Reise verworfen und kann nicht rückgängig gemacht werden.',
+            confirm: 'Entfernungsverfolgung verwerfen',
+        },
+        zeroDistanceTripModal: {title: 'Ausgabe kann nicht erstellt werden', prompt: 'Sie können keine Ausgabe mit demselben Start- und Zielort erstellen.'},
+        locationRequiredModal: {
+            title: 'Standortzugriff erforderlich',
+            prompt: 'Bitte erlaube den Standortzugriff in den Einstellungen deines Geräts, um die GPS-Distanzverfolgung zu starten.',
+            allow: 'Erlauben',
+        },
+        androidBackgroundLocationRequiredModal: {
+            title: 'Zugriff auf den Standort im Hintergrund erforderlich',
+            prompt: 'Bitte erlaube den Zugriff auf den Standort im Hintergrund in den Geräteeinstellungen (Option „Immer zulassen“), um die GPS-Distanzverfolgung zu starten.',
+        },
+        preciseLocationRequiredModal: {
+            title: 'Genaue Position erforderlich',
+            prompt: 'Bitte aktiviere „genaue Standortbestimmung“ in den Einstellungen deines Geräts, um die GPS‑Streckenverfolgung zu starten.',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
