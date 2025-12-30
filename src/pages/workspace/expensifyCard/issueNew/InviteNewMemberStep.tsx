@@ -75,7 +75,7 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: Invite
 
     return (
         <InteractiveStepWrapper
-            wrapperID={InviteNewMemberStep.displayName}
+            wrapperID="InviteNewMemberStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
@@ -98,7 +98,5 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: Invite
         </InteractiveStepWrapper>
     );
 }
-
-InviteNewMemberStep.displayName = 'InviteNewMemberStep';
 
 export default withPolicyAndFullscreenLoading(withCurrentUserPersonalDetails(InviteNewMemberStep));

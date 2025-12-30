@@ -14,7 +14,7 @@ function CurrentLocationButton({onPress, isDisabled = false}: CurrentLocationBut
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
 
     return (
         <PressableWithFeedback
@@ -33,7 +33,5 @@ function CurrentLocationButton({onPress, isDisabled = false}: CurrentLocationBut
         </PressableWithFeedback>
     );
 }
-
-CurrentLocationButton.displayName = 'CurrentLocationButton';
 
 export default CurrentLocationButton;
