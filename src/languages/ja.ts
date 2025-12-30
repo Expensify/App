@@ -124,7 +124,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -1213,20 +1212,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'ウェブサイトをお持ちでない場合は、代わりに会社のLinkedInやソーシャルメディアのプロフィールをご提供いただけます。',
         invalidDomainError: '無効なドメインが入力されています。続行するには、有効なドメインを入力してください。',
         publicDomainError: 'パブリックドメインが入力されています。続行するには、プライベートドメインを入力してください。',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} 件のレシートをスキャン中`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} 件の保留中`);
-            }
-            return {
-                one: statusText.length > 0 ? `1件の経費（${statusText.join(', ')}）` : `1 件の経費`,
-                other: (count: number) => (statusText.length > 0 ? `${count}件の経費（${statusText.join(', ')}）` : `${count}件の経費`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 件の経費',
