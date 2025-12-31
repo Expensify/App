@@ -359,7 +359,7 @@ function MoneyRequestConfirmationListFooter({
     // since the destination is already determined and there's no need to show a selectable list.
     const shouldReportBeEditable = (isFromGlobalCreate ? shouldReportBeEditableFromFAB : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
 
-    const taxRatesName = policy?.taxRates?.name ?? CONST.DEFAULT_TAX.name;
+    const taxRates = policy?.taxRates ?? null;
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
     // Determines whether the tax fields can be modified.
@@ -682,10 +682,10 @@ function MoneyRequestConfirmationListFooter({
         {
             item: (
                 <MenuItemWithTopDescription
-                    key={`${taxRatesName}${taxRateTitle}`}
+                    key={`${taxRates?.name}${taxRateTitle}`}
                     shouldShowRightIcon={canModifyTaxFields}
                     title={taxRateTitle}
-                    description={taxRatesName}
+                    description={taxRates?.name}
                     style={[styles.moneyRequestMenuItem]}
                     titleStyle={styles.flex1}
                     onPress={() => {
@@ -704,7 +704,7 @@ function MoneyRequestConfirmationListFooter({
         {
             item: (
                 <MenuItemWithTopDescription
-                    key={`${taxRatesName}${formattedTaxAmount}`}
+                    key={`${taxRates?.name}${formattedTaxAmount}`}
                     shouldShowRightIcon={canModifyTaxFields}
                     title={formattedTaxAmount}
                     description={translate('iou.taxAmount')}
