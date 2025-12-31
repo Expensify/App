@@ -5061,8 +5061,8 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 /**
  * Get report action which is missing smartscan fields
  */
-function getReportActionWithMissingSmartscanFields(report: OnyxEntry<Report>): ReportAction | undefined {
-    const reportActions = Object.values(getAllReportActions(report?.reportID));
+function getReportActionWithMissingSmartscanFields(report: OnyxEntry<Report>, iouReportID: string | undefined): ReportAction | undefined {
+    const reportActions = Object.values(getAllReportActions(iouReportID));
     return reportActions.find((action) => {
         if (!isMoneyRequestAction(action)) {
             return false;
@@ -5081,8 +5081,8 @@ function getReportActionWithMissingSmartscanFields(report: OnyxEntry<Report>): R
 /**
  * Check if iouReportID has required missing fields
  */
-function shouldShowRBRForMissingSmartscanFields(report: OnyxEntry<Report>): boolean {
-    return !!getReportActionWithMissingSmartscanFields(report);
+function shouldShowRBRForMissingSmartscanFields(report: OnyxEntry<Report>, iouReportID: string | undefined): boolean {
+    return !!getReportActionWithMissingSmartscanFields(report, iouReportID);
 }
 
 /**
@@ -9402,6 +9402,7 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
             }
         }
     }
+    console.log("DylanDZ")
 
     if (!isReportArchived && hasSmartscanError(reportActionsArray, report)) {
         reportActionErrors.smartscan = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
@@ -10685,7 +10686,10 @@ function getReportActionWithSmartscanError(reportActions: ReportAction[], report
             return false;
         }
         const IOUReportID = getIOUReportIDFromReportActionPreview(action);
-        const isReportPreviewError = isReportPreview && shouldShowRBRForMissingSmartscanFields(report) && !isSettled(IOUReportID);
+        console.log("IOUReportID", IOUReportID)
+        console.log("report.reportID", report.reportID)
+
+        const isReportPreviewError = isReportPreview && shouldShowRBRForMissingSmartscanFields(report, IOUReportID) && !isSettled(IOUReportID);
         if (isReportPreviewError) {
             return true;
         }
@@ -13342,8 +13346,6 @@ export {
     shouldReportShowSubscript,
     shouldShowFlagComment,
     sortOutstandingReportsBySelected,
-    getReportActionWithMissingSmartscanFields,
-    shouldShowRBRForMissingSmartscanFields,
     shouldUseFullTitleToDisplay,
     updateOptimisticParentReportAction,
     updateReportPreview,
