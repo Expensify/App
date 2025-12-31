@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import DistanceMapView from '@components/DistanceMapView';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import type {WayPoint} from '@components/MapView/MapViewTypes';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -42,7 +41,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
+    const icons = useMemoizedLazyExpensifyIcons(['Location', 'Plus', 'DotIndicator', 'DotIndicatorUnfilled'] as const);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
@@ -80,11 +79,11 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                     const index = getWaypointIndex(key);
                     let MarkerComponent: IconAsset;
                     if (index === 0) {
-                        MarkerComponent = Expensicons.DotIndicatorUnfilled;
+                        MarkerComponent = icons.DotIndicatorUnfilled;
                     } else if (index === lastWaypointIndex) {
-                        MarkerComponent = expensifyIcons.Location;
+                        MarkerComponent = icons.Location;
                     } else {
-                        MarkerComponent = Expensicons.DotIndicator;
+                        MarkerComponent = icons.DotIndicator;
                     }
 
                     return {
@@ -94,7 +93,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                     };
                 })
                 .filter((waypoint): waypoint is WayPoint => !!waypoint),
-        [waypoints, lastWaypointIndex, getMarkerComponent, expensifyIcons.Location],
+        [waypoints, lastWaypointIndex, getMarkerComponent, icons.DotIndicator, icons.DotIndicatorUnfilled, icons.Location],
     );
 
     return (
@@ -103,7 +102,7 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.pt1]}>
                     <Button
                         small
-                        icon={Expensicons.Plus}
+                        icon={icons.Plus}
                         onPress={() => navigateToWaypointEditPage(Object.keys(transaction?.comment?.waypoints ?? {}).length)}
                         text={translate('distance.addStop')}
                         isDisabled={numberOfWaypoints === MAX_WAYPOINTS}

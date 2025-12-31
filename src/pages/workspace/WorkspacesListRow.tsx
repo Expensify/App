@@ -88,17 +88,22 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
 type BrickRoadIndicatorIconProps = {
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+    dotIndicatorIcon?: IconAsset;
 };
 
-function BrickRoadIndicatorIcon({brickRoadIndicator}: BrickRoadIndicatorIconProps) {
+function BrickRoadIndicatorIcon({brickRoadIndicator, dotIndicatorIcon}: BrickRoadIndicatorIconProps) {
     const theme = useTheme();
 
-    return brickRoadIndicator ? (
+    if (!brickRoadIndicator || !dotIndicatorIcon) {
+        return null;
+    }
+
+    return (
         <Icon
-            src={Expensicons.DotIndicator}
+            src={dotIndicatorIcon}
             fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.iconSuccessFill}
         />
-    ) : null;
+    );
 }
 
 function WorkspacesListRow({
@@ -127,8 +132,8 @@ function WorkspacesListRow({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass']);
-    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'DotIndicator'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow'] as const);
 
     const workspaceTypeIcon = useCallback(
         (type: WorkspacesListRowProps['workspaceType']): IconAsset => {
@@ -205,7 +210,10 @@ function WorkspacesListRow({
             {!isJoinRequestPending && (
                 <View style={[styles.flexRow, styles.ml2, styles.gap1]}>
                     <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, isNarrow && styles.workspaceListRBR]}>
-                        <BrickRoadIndicatorIcon brickRoadIndicator={brickRoadIndicator} />
+                        <BrickRoadIndicatorIcon
+                            brickRoadIndicator={brickRoadIndicator}
+                            dotIndicatorIcon={icons.DotIndicator}
+                        />
                     </View>
                     <ThreeDotsMenu
                         shouldSelfPosition
