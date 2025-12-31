@@ -602,12 +602,17 @@ function getSuggestedSearches(
             translationPath: 'search.topSpenders',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             icon: Expensicons.MoneySearch,
-            get searchQuery() {
-                const queryString = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} group-by:${CONST.SEARCH.GROUP_BY.FROM} date:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH} sort-by:${CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL} sort-order:${CONST.SEARCH.SORT_ORDER.DESC}`;
-                // Normalize the query using buildSearchQueryJSON and buildSearchQueryString (same pattern as buildCannedSearchQuery)
-                const normalizedQueryJSON = buildSearchQueryJSON(queryString);
-                return buildSearchQueryString(normalizedQueryJSON);
-            },
+            searchQuery: buildQueryStringFromFilterFormValues(
+                {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                    dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                },
+                {
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                },
+            ),
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
             },
