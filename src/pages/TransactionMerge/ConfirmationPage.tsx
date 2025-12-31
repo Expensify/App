@@ -40,18 +40,16 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
-    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
+    const {targetTransaction, sourceTransaction, targetTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({mergeTransaction});
 
-    const policyID = targetTransactionReport?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const targetPolicyID = targetTransactionPolicy?.id;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`, {canBeMissing: true});
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${targetPolicyID}`, {canBeMissing: true});
 
-    const [sourceTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${sourceTransactionReport?.policyID}`, {canBeMissing: true});
     const taxName =
         mergeTransaction?.taxValue &&
         getTaxName(
-            mergeTransaction?.selectedTransactionByField?.taxValue === mergeTransaction?.sourceTransactionID ? sourceTransactionPolicy : policy,
+            mergeTransaction?.selectedTransactionByField?.taxValue === mergeTransaction?.sourceTransactionID ? sourceTransactionPolicy : targetTransactionPolicy,
             mergeTransaction as unknown as OnyxEntry<Transaction>,
         );
 
@@ -76,7 +74,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
             mergeTransaction,
             targetTransaction,
             sourceTransaction,
-            policy,
+            policy: targetTransactionPolicy,
             policyTags,
             policyCategories,
             currentUserAccountIDParam,
@@ -117,7 +115,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
                     </View>
                     <MoneyRequestView
                         allReports={allReports}
-                        expensePolicy={policy}
+                        expensePolicy={targetTransactionPolicy}
                         parentReportID={targetTransactionReport?.reportID}
                         shouldShowAnimatedBackground={false}
                         readonly

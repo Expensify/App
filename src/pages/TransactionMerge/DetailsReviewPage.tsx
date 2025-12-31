@@ -44,10 +44,10 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {transactionID, isOnSearch, backTo} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
-    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
+    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
+        mergeTransaction,
+    });
 
-    const [targetTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${targetTransactionReport?.policyID}`, {canBeMissing: true});
-    const [sourceTransactionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${sourceTransactionReport?.policyID}`, {canBeMissing: true});
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
 
