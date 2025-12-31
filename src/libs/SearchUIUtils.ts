@@ -601,8 +601,13 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
             translationPath: 'search.topSpenders',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: 'MoneyBag',
-            searchQuery: `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} group-by:${CONST.SEARCH.GROUP_BY.FROM} date:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH} sort-by:${CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL} sort-order:${CONST.SEARCH.SORT_ORDER.DESC}`,
+            icon: Expensicons.MoneySearch,
+            get searchQuery() {
+                const queryString = `type:${CONST.SEARCH.DATA_TYPES.EXPENSE} group-by:${CONST.SEARCH.GROUP_BY.FROM} date:${CONST.SEARCH.DATE_PRESETS.LAST_MONTH} sort-by:${CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL} sort-order:${CONST.SEARCH.SORT_ORDER.DESC}`;
+                // Normalize the query using buildSearchQueryJSON and buildSearchQueryString (same pattern as buildCannedSearchQuery)
+                const normalizedQueryJSON = buildSearchQueryJSON(queryString);
+                return buildSearchQueryString(normalizedQueryJSON);
+            },
             get searchQueryJSON() {
                 return buildSearchQueryJSON(this.searchQuery);
             },
@@ -670,7 +675,7 @@ function getSuggestedSearchesVisibility(
         const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForReconciliationSuggestion = isPaidPolicy && isAdmin && ((isPaymentEnabled && hasVBBA && hasReimburser) || isECardEnabled);
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
-        const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isApprover || isSubmittedTo);
+        const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isApprover);
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
