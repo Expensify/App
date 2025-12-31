@@ -218,37 +218,36 @@ function ReportActionsView({
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
 
-    const visibleReportActions = useMemo(() => {
-        console.time(`[PERF] visibleReportActions filter (${reportID}, ${reportActions.length} actions)`);
-        const result = reportActions.filter((reportAction) => {
-            const passesOfflineCheck =
-                isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors;
+    const visibleReportActions = useMemo(
+        () =>
+            reportActions.filter((reportAction) => {
+                const passesOfflineCheck =
+                    isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors;
 
-            if (!passesOfflineCheck) {
-                return false;
-            }
+                if (!passesOfflineCheck) {
+                    return false;
+                }
 
-            const actionReportID = reportAction.reportID ?? reportID;
-            const isStaticallyVisible = visibleReportActionsData?.[actionReportID]?.[reportAction.reportActionID];
+                const actionReportID = reportAction.reportID ?? reportID;
+                const isStaticallyVisible = visibleReportActionsData?.[actionReportID]?.[reportAction.reportActionID];
 
-            const passesStaticVisibility = isStaticallyVisible ?? true;
-            if (!passesStaticVisibility) {
-                return false;
-            }
+                const passesStaticVisibility = isStaticallyVisible ?? true;
+                if (!passesStaticVisibility) {
+                    return false;
+                }
 
-            if (!canPerformWriteAction && isActionableWhisperRequiringWritePermission(reportAction)) {
-                return false;
-            }
+                if (!canPerformWriteAction && isActionableWhisperRequiringWritePermission(reportAction)) {
+                    return false;
+                }
 
-            if (!isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs)) {
-                return false;
-            }
+                if (!isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs)) {
+                    return false;
+                }
 
-            return true;
-        });
-        console.timeEnd(`[PERF] visibleReportActions filter (${reportID}, ${reportActions.length} actions)`);
-        return result;
-    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, visibleReportActionsData, reportID]);
+                return true;
+            }),
+        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, visibleReportActionsData, reportID],
+    );
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
