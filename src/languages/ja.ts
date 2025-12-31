@@ -124,7 +124,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -1213,20 +1212,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'ウェブサイトをお持ちでない場合は、代わりに会社のLinkedInやソーシャルメディアのプロフィールをご提供いただけます。',
         invalidDomainError: '無効なドメインが入力されています。続行するには、有効なドメインを入力してください。',
         publicDomainError: 'パブリックドメインが入力されています。続行するには、プライベートドメインを入力してください。',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} 件のレシートをスキャン中`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} 件の保留中`);
-            }
-            return {
-                one: statusText.length > 0 ? `1件の経費（${statusText.join(', ')}）` : `1 件の経費`,
-                other: (count: number) => (statusText.length > 0 ? `${count}件の経費（${statusText.join(', ')}）` : `${count}件の経費`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 件の経費',
@@ -2015,8 +2000,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'セキュリティ上の理由により、Xero の連携を接続するには二要素認証が必要です。',
         twoFactorAuthIsRequiredForAdminsHeader: '2 要素認証が必要です',
         twoFactorAuthIsRequiredForAdminsTitle: '二要素認証を有効にしてください',
-        twoFactorAuthIsRequiredXero: 'お使いのXero会計連携には二要素認証の利用が必要です。引き続きExpensifyをご利用いただくために、有効にしてください。',
-        twoFactorAuthIsRequiredCompany: 'ご利用の会社では二要素認証の使用が必須です。引き続きExpensifyを利用するには、二要素認証を有効にしてください。',
+        twoFactorAuthIsRequiredXero: 'Xero の会計連携には、二要素認証が必要です。',
+        twoFactorAuthIsRequiredCompany: 'あなたの会社では、二要素認証が必須です。',
         twoFactorAuthCannotDisable: '2要素認証を無効にできません',
         twoFactorAuthRequired: 'Xero 連携には二要素認証（2FA）が必須であり、無効にすることはできません。',
     },
