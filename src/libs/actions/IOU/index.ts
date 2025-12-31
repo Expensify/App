@@ -3396,12 +3396,12 @@ function getSendInvoiceInformation({
 
     // STEP 1: Get existing chat report OR build a new optimistic one
     let isNewChatReport = false;
-    let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID && invoiceChatReportReceiverMatches ? invoiceChatReport : null;
+    let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID && invoiceChatReportReceiverMatches && Object.keys(invoiceChatReport?.participants || {}).length === 1 ? invoiceChatReport : null;
 
     if (!chatReport) {
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport({
-            participantList: [receiverAccountID, currentUserAccountID],
+            participantList: [receiverAccountID],
             chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             policyID: senderWorkspaceID,
         });
