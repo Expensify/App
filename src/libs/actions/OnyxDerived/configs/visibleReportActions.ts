@@ -62,7 +62,6 @@ function isMovedTransactionVisible(reportAction: ReportAction, allReports: OnyxC
     const toReportID = originalMessage.toReportID;
     const fromReportID = originalMessage.fromReportID;
 
-    // UNREPORTED_REPORT_ID means "no report" which is a valid source
     const isFromUnreportedReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
     const toReportKey = `${ONYXKEYS.COLLECTION.REPORT}${toReportID}`;
@@ -102,7 +101,6 @@ function isReportActionStaticallyVisible(reportAction: OnyxEntry<ReportAction>, 
         return isMovedTransactionVisible(reportAction, allReports);
     }
 
-    // We display a footer explaining why the report was closed, so hide the CLOSED action (except "Mark as closed")
     if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         const isMarkAsClosed = isMarkAsClosedAction(reportAction);
         if (!isMarkAsClosed) {
@@ -142,9 +140,6 @@ function isReportActionStaticallyVisible(reportAction: OnyxEntry<ReportAction>, 
     return !isDeleted || isPending || isParentAction || isReversed;
 }
 
-/**
- * Used by the component to filter out actionable whispers when user cannot write.
- */
 function isActionableWhisperRequiringWritePermission(reportAction: OnyxEntry<ReportAction>): boolean {
     if (!reportAction) {
         return false;
@@ -222,7 +217,6 @@ export default createOnyxDerivedValueConfig({
             return result;
         }
 
-        // Report actions changed - incremental update (most common path)
         const result: VisibleReportActionsDerivedValue = currentValue ? {...currentValue} : {};
         const reportActionsToProcess = reportActionsUpdates ? Object.keys(reportActionsUpdates) : Object.keys(allReportActions);
 
