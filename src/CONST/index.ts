@@ -1658,8 +1658,6 @@ const CONST = {
         APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
         APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
         APPLY_HTTPS_UPDATES: 'apply_https_updates',
-        COMPUTE_REPORT_NAME: 'compute_report_name',
-        COMPUTE_REPORT_NAME_FOR_NEW_REPORT: 'compute_report_name_for_new_report',
         COLD: 'cold',
         WARM: 'warm',
         REPORT_ACTION_ITEM_LAYOUT_DEBOUNCE_TIME: 1500,
