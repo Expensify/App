@@ -4939,7 +4939,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
             hasDependentTags(policy, policyTagList ?? {}),
             isInvoice,
             isSelfDM(iouReport),
-            iouReport,
+            iouReport ?? undefined,
             isFromExpenseReport,
         );
         optimisticData.push(violationsOnyxData);
