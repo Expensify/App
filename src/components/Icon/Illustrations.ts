@@ -5,6 +5,8 @@ import LaptopOnDeskDeprecated from '@assets/images/laptop-on-desk-deprecated.svg
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
+import PendingTravel from '@assets/images/pending-travel.svg';
+import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -87,6 +89,8 @@ export {
     Filters,
     TurtleInShell,
     Flash,
+    PendingTravel,
+    EmptyStateTravel,
     EmptyShelves,
     BlueShield,
     LaptopOnDeskDeprecated,

@@ -1,12 +1,12 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import SelectionList from '@components/SelectionList';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -44,6 +44,7 @@ type AssigneeStepProps = {
 function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepProps) {
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {isOffline} = useNetwork();
     const policyID = route.params.policyID;
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
@@ -136,7 +137,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
                 isSelected: issueNewCard?.data?.assigneeEmail === email,
                 icons: [
                     {
-                        source: personalDetail?.avatar ?? Expensicons.FallbackAvatar,
+                        source: personalDetail?.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(email),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: personalDetail?.accountID,
@@ -148,7 +149,7 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
         membersList = sortAlphabetically(membersList, 'text', localeCompare);
 
         return membersList;
-    }, [policy?.employeeList, localeCompare, isOffline, issueNewCard?.data?.assigneeEmail, formatPhoneNumber]);
+    }, [policy?.employeeList, localeCompare, isOffline, issueNewCard?.data?.assigneeEmail, formatPhoneNumber, icons.FallbackAvatar]);
 
     const assignees = useMemo(() => {
         if (!debouncedSearchTerm) {
@@ -187,16 +188,16 @@ function AssigneeStep({policy, stepNames, startStepIndex, route}: AssigneeStepPr
     ]);
 
     useEffect(() => {
-        searchUserInServer(searchTerm);
-    }, [searchTerm]);
+        searchUserInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim().toLowerCase();
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
         if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
         return getHeaderMessage(assignees.length > 0, !!availableOptions.userToInvite, searchValue, countryCode, false);
-    }, [searchTerm, availableOptions.userToInvite, assignees.length, countryCode, translate]);
+    }, [debouncedSearchTerm, availableOptions.userToInvite, assignees.length, countryCode, translate]);
 
     const textInputOptions = useMemo(
         () => ({
