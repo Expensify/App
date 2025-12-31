@@ -10,6 +10,7 @@ type AddCommentOrAttachmentParams = {
     clientCreatedTime?: string;
     isOldDotConciergeChat?: boolean;
     idempotencyKey?: string;
+    pageHTML?: string;
 };
 
 export default AddCommentOrAttachmentParams;
