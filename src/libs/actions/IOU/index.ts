@@ -3401,7 +3401,7 @@ function getSendInvoiceInformation({
     if (!chatReport) {
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport({
-            participantList: [receiverAccountID, currentUserAccountID],
+            participantList: [receiverAccountID],
             chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
             policyID: senderWorkspaceID,
         });
