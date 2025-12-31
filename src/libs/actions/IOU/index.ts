@@ -10054,6 +10054,7 @@ function getPayMoneyRequestParams({
             currentUserEmailParam,
             introSelectedParam,
             activePolicyIDParam: activePolicy?.id,
+            companySize: introSelectedParam?.companySize as OnboardingCompanySize,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
