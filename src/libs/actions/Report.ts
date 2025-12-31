@@ -6080,17 +6080,17 @@ function buildOptimisticChangePolicyData(
                 convertedAmount: null,
             },
         });
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 pendingAction: null,
             },
         });
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
+            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 pendingAction: transaction.pendingAction ?? null,
