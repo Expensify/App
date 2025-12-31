@@ -2810,7 +2810,7 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
 function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string, isAdmin: boolean): boolean {
     const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport(reportOrReportID) : reportOrReportID;
 
-    if (!isMoneyRequestReport(report)) {
+    if (!isMoneyRequestReport(report) || isIOUReport(report)) {
         return false;
     }
 
@@ -2822,7 +2822,7 @@ function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string,
     }
 
     if (isSubmitter) {
-        return isOpenReport(report) || (isIOUReport(report) && isProcessingReport(report)) || isAwaitingFirstLevelApproval(report);
+        return isOpenReport(report) || isAwaitingFirstLevelApproval(report);
     }
 
     return isManager && isExpenseReport(report) && isProcessingReport(report);
@@ -3881,6 +3881,7 @@ function getDisplayNamesWithTooltips(
     personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
     shouldUseShortForm: boolean,
     localeCompare: LocaleContextProps['localeCompare'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
 ): DisplayNameWithTooltips {
@@ -3891,7 +3892,7 @@ function getDisplayNamesWithTooltips(
             const accountID = Number(user?.accountID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const displayName =
-                getDisplayNameForParticipant({accountID, shouldUseShortForm, shouldFallbackToHidden, shouldAddCurrentUserPostfix, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ||
+                getDisplayNameForParticipant({accountID, shouldUseShortForm, shouldFallbackToHidden, shouldAddCurrentUserPostfix, formatPhoneNumber}) ||
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 user?.login ||
                 '';

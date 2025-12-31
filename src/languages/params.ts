@@ -93,11 +93,6 @@ type CreatedReportForUnapprovedTransactionsParams = {
     reportName: string;
 };
 
-type RequestCountParams = {
-    scanningReceipts: number;
-    pendingReceipts: number;
-};
-
 type DeleteTransactionParams = {
     amount: string;
     merchant: string;
@@ -858,7 +853,6 @@ export type {
     CreatedReportForUnapprovedTransactionsParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
-    RequestCountParams,
     DeleteTransactionParams,
     MovedTransactionParams,
     RequestedAmountMessageParams,

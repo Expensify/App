@@ -125,7 +125,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -1213,20 +1212,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Jeśli nie masz strony internetowej, możesz zamiast niej podać firmowy profil na LinkedIn lub w mediach społecznościowych.',
         invalidDomainError: 'Wpisałeś nieprawidłową domenę. Aby kontynuować, wprowadź prawidłową domenę.',
         publicDomainError: 'Wprowadziłeś domenę publiczną. Aby kontynuować, wprowadź domenę prywatną.',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} skanowanie`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} w toku`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 wydatek (${statusText.join(', ')})` : `1 wydatek`,
-                other: (count: number) => (statusText.length > 0 ? `${count} wydatki (${statusText.join(', ')})` : `${count} wydatki`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 wydatek',

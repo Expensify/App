@@ -113,7 +113,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -1201,20 +1200,6 @@ const translations = {
         yourCompanyWebsiteNote: "If you don't have a website, you can provide your company's LinkedIn or social media profile instead.",
         invalidDomainError: 'You have entered an invalid domain. To continue, please enter a valid domain.',
         publicDomainError: 'You have entered a public domain. To continue, please enter a private domain.',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} scanning`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} pending`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 expense (${statusText.join(', ')})` : `1 expense`,
-                other: (count: number) => (statusText.length > 0 ? `${count} expenses (${statusText.join(', ')})` : `${count} expenses`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 expense',

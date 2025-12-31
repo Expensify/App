@@ -125,7 +125,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -1196,20 +1195,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: '如果你没有网站，可以改为提供你公司的 LinkedIn 或社交媒体主页。',
         invalidDomainError: '您输入的域名无效。若要继续，请输入有效的域名。',
         publicDomainError: '您输入的是公共域名。若要继续，请输入一个私有域名。',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} 正在扫描`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} 个待处理`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 笔报销（${statusText.join(', ')}）` : `1 笔报销`,
-                other: (count: number) => (statusText.length > 0 ? `${count} 笔报销（${statusText.join(', ')}）` : `${count} 笔报销`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 笔报销',
