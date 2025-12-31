@@ -13,7 +13,7 @@ You can troubleshoot most Expensify Card issues in just a few steps. This guide 
 # Who can troubleshoot Expensify Card issues
 
 - **Cardholders** can view their assigned card(s), check activation status, and see their available limit.
-- **Workspace Admins** can view and manage all cards on the workspace, adjust card limits, deactivate cards, and monitor the overall domain limit.
+- **Workspace Admins** can view and manage all cards on the workspace, adjust card limits, deactivate cards, and monitor the overall workspace limit.
 
 ---
 
@@ -33,7 +33,7 @@ You can troubleshoot most Expensify Card issues in just a few steps. This guide 
 
 # What to check if your Expensify Card is not working
 
-## Your Expensify Card hasn’t been activated
+## Expensify Card not activated
 
 To check if your card is active:
 
@@ -42,7 +42,7 @@ To check if your card is active:
 
 Then, click on your card. If it hasn’t been activated yet, you’ll see an **Activate physical card** prompt at the bottom of the screen. Follow the steps to complete activation.
 
-## You’ve reached your card’s spend limit
+## Expensify Card spend limit reached
 
 Each Expensify Card has a spending limit set by your Workspace Admin. If your available limit is too low, your transactions may be declined.
 
@@ -53,17 +53,17 @@ To check your card’s remaining limit:
 
 Then, click on your card. Your **remaining limit** is displayed under the image of your Expensify Card. 
 
-## Your workspace’s domain limit has run out
+## Workspace limit has run out
 
-Every workspace has a shared **domain limit** that affects all cards. If the workspace runs out of available funds or the bank account becomes [locked](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account), all cards may stop working.
+Every workspace has a shared spend limit that affects all cards. If the workspace runs out of available funds or the bank account becomes [locked](https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account), all cards may stop working.
 
-Workspace Admins can check the available domain limit by going to **Workspaces > [Workspace Name] > Expensify Card**. From there, they can view the current balance, remaining limit, and any warnings related to settlement.
+Workspace Admins can check the available limit by going to **Workspaces > [Workspace Name] > Expensify Card**. From there, Workspace Admins can view the current balance, remaining limit, and any warnings related to settlement.
 
 ---
 
 # FAQ
 
-## How can I refresh the limit on my Expensify Card?
+## How do I refresh the limit on my Expensify Card?
 
 There are three types of limits that Workspace Admins can set:
 
@@ -75,21 +75,21 @@ You can view your limit type below your spending limit when viewing your card.
 
 ## Can one issue affect all Expensify Cards in a workspace?
 
-Yes. If the domain limit runs out or a bank account becomes locked due to a failed settlement, all cards in the workspace may be paused temporarily.
+Yes. If the workspace limit runs out or a bank account becomes locked due to a failed settlement, all cards in the workspace may be paused temporarily.
 
-## How can a Workspace Admin check for workspace-level problems affecting Expensify Cards? 
+## How does a Workspace Admin check for workspace-level problems affecting Expensify Cards? 
 
-Workspace Admins can check the domain limit at **Workspaces > [Workspace Name] > Expensify Card**, under **Remaining limit**.
+Workspace Admins can check the workspace limit at **Workspaces > [Workspace Name] > Expensify Card**, under **Remaining limit**.
 To check for bank account issues, navigate to **Workspaces > [Workspace Name] > Bank Account**, then click the **Fix** button next to any locked account.
 
 
-## How can a Workspace Admin refresh the workspace’s Expensify Card limit?
+## How does a Workspace Admin refresh the workspace’s Expensify Card limit?
 
 The workspace limit refreshes automatically after the workspace's regular Expensify Card settlement. To refresh it earlier:
 
 1. Go to **Workspaces > [Workspace Name] > Expensify Card**
 2. Click **Settle Balance** to trigger an early settlement.
-3. Once the settlement clears, the domain limit will be refreshed.
+3. Once the settlement clears, the workspace limit will be refreshed.
 
 </div>
 
