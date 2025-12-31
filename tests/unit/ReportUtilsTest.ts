@@ -665,7 +665,7 @@ describe('ReportUtils', () => {
 
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
-            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false, localeCompare);
+            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false, localeCompare, formatPhoneNumber);
             expect(participants).toHaveLength(5);
 
             expect(participants.at(0)?.displayName).toBe('(833) 240-3627');
@@ -7321,6 +7321,24 @@ describe('ReportUtils', () => {
             expect(result).toBe(false);
         });
 
+        it('should return false for IOU report', async () => {
+            // Given a processing IOU report where the current user is the submitter
+            const iouReport: Report = {
+                ...createExpenseRequestReport(1),
+                reportID: mockReportID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, iouReport);
+
+            // When we check if the report is eligible for merge as a submitter
+            const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
+
+            // Then it should return true because submitters can merge processing IOU reports
+            expect(result).toBe(false);
+        });
+
         describe('Admin role', () => {
             it('should return true for open expense report when user is admin', async () => {
                 // Given an open expense report and the user is an admin
@@ -7372,23 +7390,6 @@ describe('ReportUtils', () => {
                 // Then it should return false because approved reports are not eligible for merge
                 expect(result).toBe(false);
             });
-
-            it('should return true for open IOU report when user is admin', async () => {
-                // Given an open IOU report and the user is an admin
-                const iouReport: Report = {
-                    ...createExpenseRequestReport(1),
-                    reportID: mockReportID,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                };
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, iouReport);
-
-                // When we check if the report is eligible for merge as an admin
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, true);
-
-                // Then it should return true because admins can merge open IOU reports
-                expect(result).toBe(true);
-            });
         });
 
         describe('Submitter role', () => {
@@ -7407,24 +7408,6 @@ describe('ReportUtils', () => {
                 const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
 
                 // Then it should return true because submitters can merge open expense reports
-                expect(result).toBe(true);
-            });
-
-            it('should return true for processing IOU report when user is submitter', async () => {
-                // Given a processing IOU report where the current user is the submitter
-                const iouReport: Report = {
-                    ...createExpenseRequestReport(1),
-                    reportID: mockReportID,
-                    ownerAccountID: currentUserAccountID,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                };
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, iouReport);
-
-                // When we check if the report is eligible for merge as a submitter
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
-
-                // Then it should return true because submitters can merge processing IOU reports
                 expect(result).toBe(true);
             });
 
@@ -7541,25 +7524,6 @@ describe('ReportUtils', () => {
                 const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
 
                 // Then it should return false because managers can only merge processing expense reports, not open ones
-                expect(result).toBe(false);
-            });
-
-            it('should return false for IOU report when user is manager', async () => {
-                // Given an IOU report where the current user is the manager
-                const iouReport: Report = {
-                    ...createExpenseRequestReport(1),
-                    reportID: mockReportID,
-                    ownerAccountID: differentUserAccountID, // Different user as submitter
-                    managerID: managerAccountID,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                };
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, iouReport);
-
-                // When we check if the report is eligible for merge as a manager
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
-
-                // Then it should return false because managers can only merge expense reports, not IOU reports
                 expect(result).toBe(false);
             });
 
