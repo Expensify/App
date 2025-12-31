@@ -47,7 +47,7 @@ import type {
 } from '@src/types/onyx';
 import type {OriginalMessageIOU, OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {WaypointCollection} from '@src/types/onyx/Transaction';
+import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
 import {getPolicyTagsData} from './Policy/Tag';
 import {getCurrentUserAccountID} from './Report';
@@ -360,9 +360,33 @@ function getRoute(transactionID: string, waypoints: WaypointCollection, routeTyp
  *                             which will replace the existing ones.
  */
 function updateWaypoints(transactionID: string, waypoints: WaypointCollection, isDraft = false): Promise<void | void[]> {
+    // Updating waypoints should completely overwrite the existing ones.
+    // Onyx merge performs noop on undefined fields. Thus we should fallback to null so the existing fields are cleared.
+    const waypointsOnyxUpdate = Object.keys(waypoints).reduce(
+        (acc, key) => {
+            const waypoint = waypoints[key];
+            acc[key] = {
+                name: waypoint.name ?? null,
+                address: waypoint.address ?? null,
+                lat: waypoint.lat ?? null,
+                lng: waypoint.lng ?? null,
+                city: 'city' in waypoint ? (waypoint.city ?? null) : null,
+                state: 'state' in waypoint ? (waypoint.state ?? null) : null,
+                zipCode: 'zipCode' in waypoint ? (waypoint.zipCode ?? null) : null,
+                country: 'country' in waypoint ? (waypoint.country ?? null) : null,
+                street: 'street' in waypoint ? (waypoint.street ?? null) : null,
+                street2: 'street2' in waypoint ? (waypoint.street2 ?? null) : null,
+                pendingAction: 'pendingAction' in waypoint ? (waypoint.pendingAction ?? null) : null,
+                keyForList: waypoint.keyForList ?? null,
+            };
+            return acc;
+        },
+        {} as Record<string, Required<NullishDeep<RecentWaypoint & Waypoint>>>,
+    );
+
     return Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
-            waypoints,
+            waypoints: waypointsOnyxUpdate,
             customUnit: {
                 quantity: null,
             },
