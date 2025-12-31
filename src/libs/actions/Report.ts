@@ -4516,7 +4516,7 @@ function searchForReports(isOffline: boolean, searchInput: string, policyID?: st
         } else {
             HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
         }
-    } 
+    }
 
     const searchForReportsOrUsersCommand = isUserSearch ? READ_COMMANDS.SEARCH_FOR_USERS : READ_COMMANDS.SEARCH_FOR_REPORTS;
 
