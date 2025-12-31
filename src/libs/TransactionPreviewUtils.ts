@@ -382,7 +382,7 @@ function createTransactionPreviewConditionals({
     const policy = getPolicy(iouReport?.policyID);
     const hasViolationsOfTypeNotice =
         hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport ?? undefined, policy, true) && iouReport && isPaidGroupPolicyUtil(iouReport);
-    const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
+    const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport ?? undefined);
 
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
 

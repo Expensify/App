@@ -5059,19 +5059,10 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 }
 
 /**
- * Check if any of the transactions in the report has required missing fields
- */
-function hasMissingSmartscanFields(iouReportID: string | undefined, transactions?: Transaction[]): boolean {
-    const reportTransactions = transactions ?? getReportTransactions(iouReportID);
-
-    return reportTransactions.some((transaction) => hasMissingSmartscanFieldsTransactionUtils(transaction));
-}
-
-/**
  * Get report action which is missing smartscan fields
  */
-function getReportActionWithMissingSmartscanFields(iouReportID: string | undefined): ReportAction | undefined {
-    const reportActions = Object.values(getAllReportActions(iouReportID));
+function getReportActionWithMissingSmartscanFields(report: OnyxEntry<Report>): ReportAction | undefined {
+    const reportActions = Object.values(getAllReportActions(report?.reportID));
     return reportActions.find((action) => {
         if (!isMoneyRequestAction(action)) {
             return false;
@@ -5083,15 +5074,15 @@ function getReportActionWithMissingSmartscanFields(iouReportID: string | undefin
         if (!wasActionTakenByCurrentUser(action)) {
             return false;
         }
-        return hasMissingSmartscanFieldsTransactionUtils(transaction);
+        return hasMissingSmartscanFieldsTransactionUtils(transaction, report);
     });
 }
 
 /**
  * Check if iouReportID has required missing fields
  */
-function shouldShowRBRForMissingSmartscanFields(iouReportID: string | undefined): boolean {
-    return !!getReportActionWithMissingSmartscanFields(iouReportID);
+function shouldShowRBRForMissingSmartscanFields(report: OnyxEntry<Report>): boolean {
+    return !!getReportActionWithMissingSmartscanFields(report);
 }
 
 /**
@@ -5129,7 +5120,8 @@ function getTransactionReportName({
         return translateLocal('iou.receiptScanning', {count: 1});
     }
 
-    if (hasMissingSmartscanFieldsTransactionUtils(transaction)) {
+    const report = getReportOrDraftReport(transaction?.reportID, reports);
+    if (hasMissingSmartscanFieldsTransactionUtils(transaction, report)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.receiptMissingDetails');
     }
@@ -5143,7 +5135,6 @@ function getTransactionReportName({
         return getIOUReportActionDisplayMessage(reportAction as ReportAction, transaction);
     }
 
-    const report = getReportOrDraftReport(transaction?.reportID, reports);
     const amount = getTransactionAmount(transaction, !isEmptyObject(report) && isExpenseReport(report), transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
     const formattedAmount = convertToDisplayString(amount, getCurrency(transaction)) ?? '';
     const comment = getMerchantOrDescription(transaction);
@@ -5197,7 +5188,7 @@ function getReportPreviewMessage(
                 return translateLocal('iou.receiptScanning', {count: 1});
             }
 
-            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction)) {
+            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return translateLocal('iou.receiptMissingDetails');
             }
@@ -5233,7 +5224,7 @@ function getReportPreviewMessage(
                 return translateLocal('iou.receiptScanning', {count: 1});
             }
 
-            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction)) {
+            if (hasMissingSmartscanFieldsTransactionUtils(linkedTransaction, report)) {
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 return translateLocal('iou.receiptMissingDetails');
             }
@@ -9412,9 +9403,9 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(
         }
     }
 
-    if (!isReportArchived && hasSmartscanError(reportActionsArray)) {
+    if (!isReportArchived && hasSmartscanError(reportActionsArray, report)) {
         reportActionErrors.smartscan = getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericSmartscanFailureMessage');
-        reportAction = getReportActionWithSmartscanError(reportActionsArray);
+        reportAction = getReportActionWithSmartscanError(reportActionsArray, report);
     }
 
     return {
@@ -10686,7 +10677,7 @@ function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<P
     );
 }
 
-function getReportActionWithSmartscanError(reportActions: ReportAction[]): ReportAction | undefined {
+function getReportActionWithSmartscanError(reportActions: ReportAction[], report: OnyxEntry<Report>): ReportAction | undefined {
     return reportActions.find((action) => {
         const isReportPreview = isReportPreviewAction(action);
         const isSplitOrTrackAction = isSplitBillReportAction(action) || isTrackExpenseAction(action);
@@ -10694,14 +10685,14 @@ function getReportActionWithSmartscanError(reportActions: ReportAction[]): Repor
             return false;
         }
         const IOUReportID = getIOUReportIDFromReportActionPreview(action);
-        const isReportPreviewError = isReportPreview && shouldShowRBRForMissingSmartscanFields(IOUReportID) && !isSettled(IOUReportID);
+        const isReportPreviewError = isReportPreview && shouldShowRBRForMissingSmartscanFields(report) && !isSettled(IOUReportID);
         if (isReportPreviewError) {
             return true;
         }
 
         const transactionID = isSplitOrTrackAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] ?? {};
-        const isTransactionThreadError = isSplitOrTrackAction && hasMissingSmartscanFieldsTransactionUtils(transaction as Transaction);
+        const isTransactionThreadError = isSplitOrTrackAction && hasMissingSmartscanFieldsTransactionUtils(transaction as Transaction, report);
 
         return isTransactionThreadError;
     });
@@ -10710,8 +10701,8 @@ function getReportActionWithSmartscanError(reportActions: ReportAction[]): Repor
 /**
  * Checks if report action has error when smart scanning
  */
-function hasSmartscanError(reportActions: ReportAction[]): boolean {
-    return !!getReportActionWithSmartscanError(reportActions);
+function hasSmartscanError(reportActions: ReportAction[], report: OnyxEntry<Report>): boolean {
+    return !!getReportActionWithSmartscanError(reportActions, report);
 }
 
 function shouldAutoFocusOnKeyPress(event: KeyboardEvent): boolean {
@@ -13220,7 +13211,6 @@ export {
     hasHeldExpenses,
     hasIOUWaitingOnCurrentUserBankAccount,
     hasMissingPaymentMethod,
-    hasMissingSmartscanFields,
     hasNonReimbursableTransactions,
     hasOnlyHeldExpenses,
     hasOnlyTransactionsWithPendingRoutes,
