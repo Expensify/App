@@ -21,6 +21,7 @@ jest.mock('@libs/actions/Search', () => ({
 jest.mock('@libs/SearchUIUtils', () => ({
     getSections: jest.fn(() => []),
     isCorrectSearchUserName: jest.fn(() => true),
+    getTableMinWidth: jest.fn(() => 0),
 }));
 
 const mockTransaction: TransactionListItemType = {

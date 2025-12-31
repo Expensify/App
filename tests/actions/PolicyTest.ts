@@ -781,7 +781,7 @@ describe('actions/Policy', () => {
             expect(draft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
             expect(draft?.outputCurrency).toBe(CONST.CURRENCY.USD);
             expect(draft?.employeeList?.[ESH_EMAIL]?.role).toBe(CONST.POLICY.ROLE.ADMIN);
-            expect(draft?.chatReportIDAdmins).toBe(Number(params.adminsChatReportID));
+            expect(draft?.chatReportIDAdmins).toBe(params.adminsChatReportID);
 
             // Report draft should be set for the expense chat
             const expenseReportDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${params.expenseChatReportID}`);
