@@ -2010,9 +2010,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'Aus Sicherheitsgründen erfordert Xero eine Zwei-Faktor-Authentifizierung, um die Integration zu verbinden.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Zwei-Faktor-Authentifizierung erforderlich',
         twoFactorAuthIsRequiredForAdminsTitle: 'Bitte aktivieren Sie die Zwei-Faktor-Authentifizierung',
-        twoFactorAuthIsRequiredXero:
-            'Ihre Xero-Buchhaltungsverbindung erfordert die Verwendung der Zwei-Faktor-Authentifizierung. Bitte aktivieren Sie sie, um Expensify weiterhin nutzen zu können.',
-        twoFactorAuthIsRequiredCompany: 'Ihr Unternehmen verlangt die Verwendung von Zwei-Faktor-Authentifizierung. Bitte aktivieren Sie sie, um Expensify weiterhin verwenden zu können.',
+        twoFactorAuthIsRequiredXero: 'Für Ihre Xero-Buchhaltungsverbindung ist eine Zwei-Faktor-Authentifizierung erforderlich.',
+        twoFactorAuthIsRequiredCompany: 'Ihr Unternehmen erfordert eine Zwei-Faktor-Authentifizierung.',
         twoFactorAuthCannotDisable: '2FA kann nicht deaktiviert werden',
         twoFactorAuthRequired: 'Für Ihre Xero-Verbindung ist eine Zwei-Faktor-Authentifizierung (2FA) erforderlich und sie kann nicht deaktiviert werden.',
     },
