@@ -601,7 +601,7 @@ function getSuggestedSearches(
             key: CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
             translationPath: 'search.topSpenders',
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.MoneySearch,
+            icon: Expensicons.User,
             searchQuery: buildQueryStringFromFilterFormValues(
                 {
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
