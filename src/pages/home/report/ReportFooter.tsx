@@ -77,6 +77,9 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
+
+    /** Whether the report screen is being displayed in the side panel */
+    isInSidePanel?: boolean;
 };
 
 function ReportFooter({
@@ -223,7 +226,7 @@ function ReportFooter({
                     {isAnonymousUser && !isArchivedRoom && (
                         <AnonymousReportFooter
                             report={report}
-                            isSmallSizeLayout={isSmallSizeLayout}
+                            isSmallSizeLayout={isSmallSizeLayout || isInSidePanel}
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
