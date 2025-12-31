@@ -148,6 +148,20 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     const [isFallbackVisible, setFallbackVisible] = useState(!isLightboxVisible);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
+
+    // Clear cached dimensions and reset loading states when URI changes to ensure the new image get fresh dimensions
+    useEffect(() => {
+        // Clear the content size state to force recalculation of dimensions
+        // This ensures that when an image is rotated and gets a new URI,
+        // we don't use stale cached dimensions from the previous image
+        setInternalContentSize(undefined);
+        setLightboxImageLoaded(false);
+        setFallbackImageLoaded(false);
+        setIsLoading(true);
+        // Don't delete from cache here as other components might still need it
+        // The new URI will get its own cache entry when loaded
+    }, [uri]);
+
     const fallbackSize = useMemo(() => {
         if (!hasSiblingCarouselItems || !contentSize || isCanvasLoading) {
             return undefined;
