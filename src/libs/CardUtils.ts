@@ -578,11 +578,11 @@ function getCorrectStepForPlaidSelectedBank(selectedBank: ValueOf<typeof CONST.C
 }
 
 function getSelectedFeed(lastSelectedFeed: OnyxEntry<CompanyCardFeedWithDomainID>, cardFeeds: OnyxEntry<CombinedCardFeeds>): CompanyCardFeedWithDomainID | undefined {
-    const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0) as CompanyCardFeedWithDomainID | undefined;
-    if (!lastSelectedFeed?.includes(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR)) {
-        return defaultFeed;
-    }
-    return lastSelectedFeed;
+    const availableFeeds = getCompanyFeeds(cardFeeds, true);
+    const defaultFeed = Object.keys(availableFeeds).at(0) as CompanyCardFeedWithDomainID | undefined;
+    const isValidLastFeed = !!lastSelectedFeed && lastSelectedFeed.includes(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR) && availableFeeds[lastSelectedFeed];
+
+    return isValidLastFeed ? lastSelectedFeed : defaultFeed;
 }
 
 function getCompanyCardFeedWithDomainID(feedName: CompanyCardFeed, domainID: number | string): CompanyCardFeedWithDomainID {
@@ -835,6 +835,23 @@ function getCompanyCardFeed(feedWithDomainID: string | undefined): CompanyCardFe
     return feed as CompanyCardFeed;
 }
 
+/**
+ * Check if the given card is a personal card.
+ *
+ * @param card the card which needs to be checked
+ * @returns true if the card is a personal card, false otherwise
+ */
+function isPersonalCard(card?: Card) {
+    return !!card?.fundID && card.fundID !== '0';
+}
+
+/**
+ * Filter out personal (including cash) cards from the card list.
+ */
+function filterPersonalCards(cards: CardList | undefined): CardList {
+    return filterObject(cards ?? {}, (key, card) => isPersonalCard(card));
+}
+
 type SplitMaskedCardNumberResult = {
     firstDigits?: string;
     lastDigits?: string;
@@ -979,6 +996,8 @@ export {
     getCompanyCardFeed,
     getCompanyCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    filterPersonalCards,
+    isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,
     COMPANY_CARD_BANK_ICON_NAMES,
     isMaskedCardNumberEqual,
