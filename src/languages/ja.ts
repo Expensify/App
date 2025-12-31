@@ -19,14 +19,7 @@ import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    CanceledRequestParams,
-    CardInfoParams,
     ChangeFieldParams,
-    ChangeOwnerDuplicateSubscriptionParams,
-    ChangeOwnerSubscriptionParams,
-    ChangeReportPolicyParams,
-    ChangeTypeParams,
-    CharacterLengthLimitParams,
     ConnectionNameParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
@@ -131,7 +124,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -167,6 +159,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -343,6 +336,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: '名',
         lastName: '姓',
         scanning: 'スキャン中',
+        analyzing: '分析中...',
         addCardTermsOfService: 'Expensify 利用規約',
         perPerson: '1人あたり',
         phone: '電話番号',
@@ -417,6 +411,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: '宛先',
         genericErrorMessage: 'おっと…問題が発生したため、リクエストを完了できませんでした。後でもう一度お試しください。',
         percentage: 'パーセンテージ',
+        converted: '変換済み',
         error: {
             invalidAmount: '金額が無効です',
             acceptTerms: '続行するには利用規約に同意する必要があります',
@@ -424,7 +419,7 @@ const translations: TranslationDeepObject<typeof en> = {
 （例：${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER}）`,
             fieldRequired: 'このフィールドは必須です',
             requestModified: 'このリクエストは別のメンバーによって変更されています',
-            characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `文字数制限を超えています（${length}/${limit}）`,
+            characterLimitExceedCounter: (length: number, limit: number) => `文字数制限を超えています（${length}/${limit}）`,
             dateInvalid: '有効な日付を選択してください',
             invalidDateShouldBeFuture: '今日以降の日付を選択してください',
             invalidTimeShouldBeFuture: '少なくとも1分後の時刻を選択してください',
@@ -1218,20 +1213,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'ウェブサイトをお持ちでない場合は、代わりに会社のLinkedInやソーシャルメディアのプロフィールをご提供いただけます。',
         invalidDomainError: '無効なドメインが入力されています。続行するには、有効なドメインを入力してください。',
         publicDomainError: 'パブリックドメインが入力されています。続行するには、プライベートドメインを入力してください。',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} 件のレシートをスキャン中`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} 件の保留中`);
-            }
-            return {
-                one: statusText.length > 0 ? `1件の経費（${statusText.join(', ')}）` : `1 件の経費`,
-                other: (count: number) => (statusText.length > 0 ? `${count}件の経費（${statusText.join(', ')}）` : `${count}件の経費`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 件の経費',
@@ -1302,7 +1283,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'このレポートを却下しました',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `支払いを開始しましたが、${submitterDisplayName} が銀行口座を追加するのを待っています。`,
         adminCanceledRequest: '支払いをキャンセルしました',
-        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
+        canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${submitterDisplayName} が30日以内に Expensify Wallet を有効化しなかったため、${amount} の支払いはキャンセルされました`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} が銀行口座を追加しました。${amount} の支払いが行われました。`,
@@ -2020,8 +2001,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'セキュリティ上の理由により、Xero の連携を接続するには二要素認証が必要です。',
         twoFactorAuthIsRequiredForAdminsHeader: '2 要素認証が必要です',
         twoFactorAuthIsRequiredForAdminsTitle: '二要素認証を有効にしてください',
-        twoFactorAuthIsRequiredXero: 'お使いのXero会計連携には二要素認証の利用が必要です。引き続きExpensifyをご利用いただくために、有効にしてください。',
-        twoFactorAuthIsRequiredCompany: 'ご利用の会社では二要素認証の使用が必須です。引き続きExpensifyを利用するには、二要素認証を有効にしてください。',
+        twoFactorAuthIsRequiredXero: 'Xero の会計連携には、二要素認証が必要です。',
+        twoFactorAuthIsRequiredCompany: 'あなたの会社では、二要素認証が必須です。',
         twoFactorAuthCannotDisable: '2要素認証を無効にできません',
         twoFactorAuthRequired: 'Xero 連携には二要素認証（2FA）が必須であり、無効にすることはできません。',
     },
@@ -2301,25 +2282,7 @@ ${merchant} への ${amount}（${date}）`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
-        title: 'このメンバーに承認用として送信:',
-        description: 'この人が経費を承認します。',
-    },
-    workflowsApprovalLimitPage: {
-        title: '承認者',
-        header: '（オプション）承認限度額を追加しますか？',
-        description: ({approverName}: {approverName: string}) =>
-            approverName
-                ? `<strong>${approverName}</strong>が承認者で、レポートが以下の金額を超える場合に別の承認者を追加します：`
-                : 'レポートが以下の金額を超える場合に別の承認者を追加します：',
-        reportAmountLabel: 'レポート金額',
-        additionalApproverLabel: '追加の承認者',
-        skip: 'スキップ',
-        next: '次へ',
-        removeLimit: '制限を削除',
-        enterAmountError: '有効な金額を入力してください',
-        enterApproverError: 'レポート制限を設定する場合は承認者が必要です',
-        enterBothError: 'レポート金額と追加の承認者を入力してください',
-        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `${approvalLimit}を超えるレポートは${approverName}に転送されます`,
+        header: 'このメンバーに承認用として送信:',
     },
     workflowsPayerPage: {
         title: '認可された支払担当者',
@@ -2875,6 +2838,7 @@ ${
             containsReservedWord: '名前に「Expensify」または「Concierge」という単語を含めることはできません',
             hasInvalidCharacter: '名前にコンマまたはセミコロンを含めることはできません',
             requiredFirstName: '名は空欄にできません',
+            cannotContainSpecialCharacters: '名前に特殊文字を含めることはできません',
         },
     },
     privatePersonalDetails: {
@@ -4849,6 +4813,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 'Expensify Limited は、Plaid Financial Ltd. の代理人であり、Payment Services Regulations 2017 に基づき Financial Conduct Authority によって規制されている認可支払機関です（企業登録番号：804718）。Plaid は、その代理人である Expensify Limited を通じて、規制対象の口座情報サービスをお客様に提供します。',
             assign: '割り当て',
             assignCardFailedError: 'カードの割り当てに失敗しました。',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
             issueAndManageCards: 'Expensify カードの発行と管理',
@@ -5873,14 +5838,14 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
 このワークスペースの請求を引き継ぐために、この金額（${amount}）を振り替えますか？お支払いカードには直ちに請求が行われます。`,
             subscriptionTitle: '年間サブスクリプションを引き継ぐ',
             subscriptionButtonText: 'サブスクリプションを移行',
-            subscriptionText: ({usersCount, finalCount}: ChangeOwnerSubscriptionParams) =>
+            subscriptionText: (usersCount: number, finalCount: number) =>
                 `このワークスペースを引き継ぐと、その年間サブスクリプションはあなたの現在のサブスクリプションと統合されます。その結果、サブスクリプションの規模は${usersCount}人分増え、新しいサブスクリプションの規模は${finalCount}人分になります。続行しますか？`,
             duplicateSubscriptionTitle: '重複サブスクリプションの警告',
             duplicateSubscriptionButtonText: '続行',
-            duplicateSubscriptionText: ({
-                email,
-                workspaceName,
-            }: ChangeOwnerDuplicateSubscriptionParams) => `${email} さんのワークスペースの請求管理を引き継ごうとしているようですが、そのためには、まずすべてのワークスペースで管理者になる必要があります。
+            duplicateSubscriptionText: (
+                email: string,
+                workspaceName: string,
+            ) => `${email} さんのワークスペースの請求管理を引き継ごうとしているようですが、そのためには、まずすべてのワークスペースで管理者になる必要があります。
 
 ワークスペース ${workspaceName} のみの請求管理を引き継ぎたい場合は、「続行」をクリックしてください。
 
@@ -6928,13 +6893,13 @@ ${reportName}
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `${fieldName} を「${newValue}」（以前は「${oldValue}」）に変更しました`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `${fieldName} を「${newValue}」に設定`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `ワークスペース${fromPolicyName ? `（以前は ${fromPolicyName}）` : ''}を変更しました`;
                     }
                     return `ワークスペースを${toPolicyName}${fromPolicyName ? `（以前は ${fromPolicyName}）` : ''}に変更しました`;
                 },
-                changeType: ({oldType, newType}: ChangeTypeParams) => `${oldType} から ${newType} に変更しました`,
+                changeType: (oldType: string, newType: string) => `${oldType} から ${newType} に変更しました`,
                 exportedToCSV: `CSV にエクスポート済み`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => {
@@ -7474,9 +7439,9 @@ ${reportName}
             title: '支払い',
             subtitle: 'Expensify のサブスクリプションを支払うためのカードを追加してください。',
             addCardButton: '支払カードを追加',
+            cardInfo: (name: string, expiration: string, currency: string) => `名前: ${name}, 有効期限: ${expiration}, 通貨: ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `次回のお支払い日は${nextPaymentDate}です。`,
             cardEnding: (cardNumber: string) => `末尾が${cardNumber}のカード`,
-            cardInfo: ({name, expiration, currency}: CardInfoParams) => `名前: ${name}, 有効期限: ${expiration}, 通貨: ${currency}`,
             changeCard: '支払いカードを変更',
             changeCurrency: '支払通貨を変更',
             cardNotFound: '支払カードが追加されていません',
@@ -7595,12 +7560,8 @@ ${reportName}
             whatsMainReason: '自動更新を無効にする主な理由は何ですか？',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `更新日：${date}`,
             pricingConfiguration: '料金は構成によって異なります。最もお得にご利用いただくには、年額サブスクリプションを選択し、Expensify Card をご利用ください。',
-            learnMore: {
-                part1: '詳しくは、当社の',
-                pricingPage: '料金ページ',
-                part2: 'または、お使いの言語で当社のチームとチャットする',
-                adminsRoom: '#admins ルーム',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `<muted-text>詳しくは<a href="${CONST.PRICING}">料金ページ</a>をご覧いただくか、${hasAdminsRoom ? `<a href="adminsRoom">#admins ルーム。</a>` : '#admins ルーム'}で当社チームにチャットでお問い合わせください</muted-text>`,
             estimatedPrice: '見積価格',
             changesBasedOn: 'これは、Expensify Card の利用状況と、以下のサブスクリプションオプションによって変わります。',
         },
@@ -7936,11 +7897,15 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
             findAdmin: '管理者を検索',
             primaryContact: '主要連絡先',
             addPrimaryContact: '主要連絡先を追加',
+            setPrimaryContactError: 'メインの連絡先を設定できませんでした。後でもう一度お試しください。',
             settings: '設定',
             consolidatedDomainBilling: '統合ドメイン請求',
             consolidatedDomainBillingDescription: (domainName: string) =>
                 `<comment><muted-text-label>有効にすると、<strong>${domainName}</strong> メンバーが所有するすべてのワークスペースの支払いを代表連絡先が行い、すべての請求書の領収書を受け取ります。</muted-text-label></comment>`,
             consolidatedDomainBillingError: '統合ドメイン請求を変更できませんでした。後でもう一度お試しください。',
+            addAdmin: '管理者を追加',
+            invite: '招待',
+            addAdminError: 'このメンバーを管理者として追加できません。もう一度お試しください。',
         },
     },
     desktopAppRetiredPage: {

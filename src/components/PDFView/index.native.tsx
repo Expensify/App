@@ -7,11 +7,15 @@ import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {openTravelDotLink} from '@libs/openTravelDotLink';
+import {getRelativeUrl, isTravelLink} from '@libs/TravelUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import PDFPasswordForm from './PDFPasswordForm';
 import type {PDFViewNativeProps} from './types';
 
@@ -47,6 +51,8 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     const themeStyles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const StyleUtils = useStyleUtils();
+
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
     useEffect(() => {
         onToggleKeyboard?.(isKeyboardShown);
@@ -121,9 +127,17 @@ function PDFView({onToggleKeyboard, onLoadComplete, fileName, onPress, isFocused
     /**
      * Handle press link event on native apps.
      */
-    const handlePressLink = useCallback((url: string) => {
-        Linking.openURL(url);
-    }, []);
+    const handlePressLink = useCallback(
+        (url: string) => {
+            if (isTravelLink(url) && activePolicyID) {
+                const postLoginPath = getRelativeUrl(url);
+                openTravelDotLink(activePolicyID, postLoginPath);
+                return;
+            }
+            Linking.openURL(url);
+        },
+        [activePolicyID],
+    );
 
     function renderPDFView() {
         const pdfWidth = isUsedAsChatAttachment ? LOADING_THUMBNAIL_WIDTH : windowWidth;

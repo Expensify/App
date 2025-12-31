@@ -144,7 +144,6 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTaxAmountPage').default,
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTaxRatePage').default,
     [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepCategory').default,
-    [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepCurrency').default,
     [SCREENS.MONEY_REQUEST.STEP_DATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDate').default,
     [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDescription').default,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistance').default,
@@ -177,6 +176,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepSubrate').default,
     [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepScan/ReceiptView').default,
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpensePage').default,
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpensePage').default,
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpenseCreateDateRagePage').default,
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpenseEditPage').default,
     [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/DistanceRequestStartPage').default,
@@ -415,12 +415,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_EXPENSES_FROM]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsExpensesFromPage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApproverPage').default,
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApproverPage').default,
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVAL_LIMIT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsApprovalLimitPage').default,
-    [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/workflows/approvals/WorkspaceWorkflowsApprovalsOverLimitApproverPage').default,
     [SCREENS.WORKSPACE.INVITE_MESSAGE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInviteMessagePage').default,
     [SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceInviteMessageRolePage').default,
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsPayerPage').default,
@@ -802,6 +796,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.DOMAIN.ADMIN_DETAILS]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAdminDetailsPage').default,
     [SCREENS.DOMAIN.ADMINS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAdminsSettingsPage').default,
     [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAddPrimaryContactPage').default,
+    [SCREENS.DOMAIN.ADD_ADMIN]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAddAdminPage').default,
 });
 
 const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
