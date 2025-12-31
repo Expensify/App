@@ -1011,6 +1011,7 @@ function getOptionData({
 
     result.icons = getIcons(
         report,
+        formatPhoneNumberPhoneUtils,
         personalDetails,
         personalDetail?.avatar,
         personalDetail?.login,

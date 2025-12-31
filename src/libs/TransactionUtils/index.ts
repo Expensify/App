@@ -12,7 +12,7 @@ import type {UnreportedExpenseListItemType} from '@components/SelectionListWithS
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
-import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
+import {getCategoryDefaultTaxRate, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -38,6 +38,7 @@ import {
     getReportOrDraftReport,
     getReportTransactions,
     isCurrentUserSubmitter,
+    isInvoiceReport,
     isOpenExpenseReport,
     isProcessingReport,
     isReportApproved,
@@ -1169,6 +1170,52 @@ function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): bool
     return [CONST.IOU.RECEIPT_STATE.SCAN_READY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
 
+/**
+ * Check if category is being analyzed (manual request creation or auto-categorization grace period)
+ */
+function isCategoryBeingAnalyzed(transaction: OnyxEntry<Transaction>): boolean {
+    if (!transaction) {
+        return false;
+    }
+
+    // Only consider analyzing if category is actually missing
+    const category = getCategory(transaction);
+    if (!isCategoryMissing(category)) {
+        return false;
+    }
+
+    // Don't consider partial transactions (empty merchant and zero amount) as analyzing
+    if (isMerchantMissing(transaction) && transaction.amount === 0) {
+        return false;
+    }
+
+    // Invoice expense is not auto-categorized
+    if (isInvoiceReport(transaction.reportID)) {
+        return false;
+    }
+
+    const pendingAction = transaction.pendingAction;
+    const pendingAutoCategorizationTime = transaction.comment?.pendingAutoCategorizationTime;
+
+    // Check if manual request is being created
+    if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        return true;
+    }
+
+    // Check if within auto-categorization grace period
+    if (pendingAutoCategorizationTime && typeof pendingAutoCategorizationTime === 'string') {
+        const pendingTime = new Date(`${pendingAutoCategorizationTime.replace(' ', 'T')}Z`);
+        if (!Number.isNaN(pendingTime.getTime())) {
+            const currentTime = new Date();
+            const elapsedMs = currentTime.getTime() - pendingTime.getTime();
+            const oneMinuteMs = 60 * 1000;
+            return elapsedMs < oneMinuteMs;
+        }
+    }
+
+    return false;
+}
+
 function didReceiptScanSucceed(transaction: OnyxEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE].some((value) => value === transaction?.receipt?.state);
 }
@@ -1301,7 +1348,7 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
                 return false;
             }
 
-            return shouldShowViolation(report, policy, violation.name, currentUserEmail);
+            return shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction);
         });
     });
 
@@ -1339,12 +1386,12 @@ function shouldShowViolation(
     violationName: ViolationName,
     currentUserEmail: string,
     shouldShowRterForSettledReport = true,
+    transaction?: OnyxEntry<Transaction>,
 ): boolean {
     const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
     const isReportOpen = isOpenExpenseReport(iouReport);
     const isOpenOrProcessingReport = isReportOpen || isProcessingReport(iouReport);
-    const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? false;
 
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
         return isSubmitter || isPolicyAdmin(policy);
@@ -1362,8 +1409,8 @@ function shouldShowViolation(
         return isPolicyMember && !isSubmitter && !isReportOpen;
     }
 
-    if (violationName === CONST.VIOLATIONS.MISSING_ATTENDEES) {
-        return isAttendeeTrackingEnabled;
+    if (violationName === CONST.VIOLATIONS.MISSING_CATEGORY && isCategoryBeingAnalyzed(transaction)) {
+        return false;
     }
 
     return true;
@@ -1389,7 +1436,7 @@ function allHavePendingRTERViolation(
         // Get violations not dismissed by current user
         const filteredTransactionViolations = getTransactionViolations(transaction, transactionViolations, currentUserEmail, currentUserAccountID, report, policy)?.filter((violation) =>
             // Further filter to only violations visible to the current user
-            shouldShowViolation(report, policy, violation.name, currentUserEmail),
+            shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction),
         );
         // Check if there is pending rter violation in the filtered violations
         return hasPendingRTERViolation(filteredTransactionViolations);
@@ -1512,11 +1559,18 @@ function getRecentTransactions(transactions: Record<string, string>, size = 2): 
  * Check if transaction has duplicatedTransaction violation.
  * @param transactionID - the transaction to check
  */
-function isDuplicate(transaction: OnyxEntry<Transaction>, currentUserEmail: string, currentUserAccountID: number, iouReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+function isDuplicate(
+    transaction: OnyxEntry<Transaction>,
+    currentUserEmail: string,
+    currentUserAccountID: number,
+    iouReport: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    transactionViolation?: OnyxEntry<TransactionViolations>,
+): boolean {
     if (!transaction) {
         return false;
     }
-    const duplicatedTransactionViolation = deprecatedAllTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]?.find(
+    const duplicatedTransactionViolation = (transactionViolation ?? deprecatedAllTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`])?.find(
         (violation: TransactionViolation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
     );
     const hasDuplicatedTransactionViolation = !!duplicatedTransactionViolation;
@@ -1626,13 +1680,24 @@ function hasDuplicateTransactions(
     currentUserAccountID: number,
     iouReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    allReportTransactions?: SearchTransaction[],
+    allTransactionViolations: OnyxCollection<TransactionViolation[]>,
 ): boolean {
     const transactionsByIouReportID = getReportTransactions(iouReport?.reportID);
-    const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
+    const reportTransactions = transactionsByIouReportID;
 
-    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction, currentUserEmail, currentUserAccountID, iouReport, policy));
+    return (
+        reportTransactions.length > 0 &&
+        reportTransactions.some((transaction) =>
+            isDuplicate(
+                transaction,
+                currentUserEmail,
+                currentUserAccountID,
+                iouReport,
+                policy,
+                allTransactionViolations?.[ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS + transaction.transactionID],
+            ),
+        )
+    );
 }
 
 /**
@@ -2431,6 +2496,7 @@ export {
     isPartialTransaction,
     isPendingCardOrScanningTransaction,
     isScanning,
+    isCategoryBeingAnalyzed,
     checkIfShouldShowMarkAsCashButton,
     getOriginalTransactionWithSplitInfo,
     getTransactionPendingAction,

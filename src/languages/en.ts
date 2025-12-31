@@ -127,6 +127,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    RoutedDueToDEWParams,
     RulesEnableWorkflowsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
@@ -154,6 +155,7 @@ import type {
     SubmittedToVacationDelegateParams,
     SubmittedWithMemoParams,
     SubscriptionCommitmentParams,
+    SubscriptionSettingsLearnMoreParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
     SubscriptionSettingsSummaryParams,
@@ -334,6 +336,7 @@ const translations = {
         firstName: 'First name',
         lastName: 'Last name',
         scanning: 'Scanning',
+        analyzing: 'Analyzing...',
         addCardTermsOfService: 'Expensify Terms of Service',
         perPerson: 'per person',
         phone: 'Phone',
@@ -1484,6 +1487,7 @@ const translations = {
             },
         },
         chooseWorkspace: 'Choose a workspace',
+        routedDueToDEW: ({to}: RoutedDueToDEWParams) => `report routed to ${to} due to custom approval workflow`,
     },
     transactionMerge: {
         listPage: {
@@ -1605,11 +1609,11 @@ const translations = {
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Waiting for <strong>you</strong> to fix the issue(s).`;
+                        return `Waiting for <strong>you</strong> to fix the issues.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Waiting for <strong>${actor}</strong> to fix the issue(s).`;
+                        return `Waiting for <strong>${actor}</strong> to fix the issues.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Waiting for an admin to fix the issue(s).`;
+                        return `Waiting for an admin to fix the issues.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
@@ -2123,6 +2127,15 @@ const translations = {
         confirmYourBankAccount: 'Confirm your bank account',
         personalBankAccounts: 'Personal bank accounts',
         businessBankAccounts: 'Business bank accounts',
+        shareBankAccount: 'Share bank account',
+        bankAccountShared: 'Bank account shared',
+        shareBankAccountTitle: 'Select the admins to share this bank account with:',
+        shareBankAccountSuccess: 'Bank account shared!',
+        shareBankAccountSuccessDescription: 'The selected admins will receive a confirmation message from Concierge.',
+        shareBankAccountFailure: 'An unexpected error occurred while trying to share bank account. Please try again.',
+        shareBankAccountEmptyTitle: 'No admins available',
+        shareBankAccountEmptyDescription: 'There are no workspace admins you can share this bank account with.',
+        shareBankAccountNoAdminsSelected: 'Please select an admin before continuing',
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
@@ -2822,6 +2835,7 @@ const translations = {
     },
     personalDetails: {
         error: {
+            cannotContainSpecialCharacters: 'Name cannot contain special characters',
             containsReservedWord: 'Name cannot contain the words Expensify or Concierge',
             hasInvalidCharacter: 'Name cannot contain a comma or semicolon',
             requiredFirstName: 'First name cannot be empty',
@@ -3574,7 +3588,7 @@ const translations = {
         subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in one place.',
         features: {
             saveMoney: 'Save money on your bookings',
-            alerts: 'Get realtime updates and alerts',
+            alerts: 'Get realtime alerts if your travel plans change',
         },
         bookTravel: 'Book travel',
         bookDemo: 'Book demo',
@@ -3830,7 +3844,6 @@ const translations = {
                 monthly: 'Monthly',
             },
             planType: 'Plan type',
-            submitExpense: 'Submit your expenses below:',
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expenses`,
@@ -4716,6 +4729,7 @@ const translations = {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Last business day of the month',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Custom day of month',
             },
+            assign: 'Assign',
             assignCard: 'Assign card',
             findCard: 'Find card',
             cardNumber: 'Card number',
@@ -4723,13 +4737,15 @@ const translations = {
             feedName: (feedName: string) => `${feedName} cards`,
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
+            chooseTheCardholder: 'Choose the cardholder',
             chooseCard: 'Choose a card',
             chooseCardFor: (assignee: string) => `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
             noActiveCards: 'No active cards on this feed',
             somethingMightBeBroken:
                 '<muted-text><centered-text>Or something might be broken. Either way, if you have any questions, just <concierge-link>contact Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Choose a transaction start date',
-            startDateDescription: "We'll import all transactions from this date onwards. If no date is specified, we’ll go as far back as your bank allows.",
+            startDateDescription: "Choose your import start date. We'll sync all transactions from this date onwards.",
+
             fromTheBeginning: 'From the beginning',
             customStartDate: 'Custom start date',
             customCloseDate: 'Custom close date',
@@ -4744,6 +4760,8 @@ const translations = {
             chooseCardFeed: 'Choose card feed',
             ukRegulation:
                 'Expensify Limited is an agent of Plaid Financial Ltd., an authorised payment institution regulated by the Financial Conduct Authority under the Payment Services Regulations 2017 (Firm Reference Number: 804718). Plaid provides you with regulated account information services through Expensify Limited as its agent.',
+            assignCardFailedError: 'Card assignment failed.',
+            cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
         },
         expensifyCard: {
             issueAndManageCards: 'Issue and manage your Expensify Cards',
@@ -4896,6 +4914,25 @@ const translations = {
                 title: 'Per diem',
                 subtitle: 'Set per diem rates to control daily employee spend.',
             },
+            travel: {
+                title: 'Travel',
+                subtitle: 'Book, manage, and reconcile all your business travel.',
+                getStarted: {
+                    title: 'Get started with Expensify Travel',
+                    subtitle: "We just need a few more pieces of info about your business, then you'll be ready for takeoff.",
+                    ctaText: "Let's go",
+                },
+                reviewingRequest: {
+                    title: "Pack your bags, we've got your request...",
+                    subtitle: "We're currently reviewing your request to enable Expensify Travel. Don't worry, we'll let you know when it's ready.",
+                    ctaText: 'Request sent',
+                },
+                bookOrManageYourTrip: {
+                    title: 'Book or manage your trip',
+                    subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in a single place.',
+                    ctaText: 'Book or manage',
+                },
+            },
             expensifyCard: {
                 title: 'Expensify Card',
                 subtitle: 'Gain insights and control over spend.',
@@ -4936,6 +4973,9 @@ const translations = {
                 cardNumber: 'Card number',
                 cardholder: 'Cardholder',
                 cardName: 'Card name',
+                allCards: 'All cards',
+                assignedCards: 'Assigned',
+                unassignedCards: 'Unassigned',
                 integrationExport: ({integration, type}: IntegrationExportParams) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
                 integrationExportTitleXero: ({integration}: IntegrationExportParams) => `Choose the ${integration} account where transactions should be exported.`,
                 integrationExportTitle: ({integration, exportPageLink}: IntegrationExportParams) =>
@@ -4964,8 +5004,8 @@ const translations = {
                 personal: 'Allow deleting transactions',
                 setFeedNameDescription: 'Give the card feed a unique name so you can tell it apart from the others',
                 setTransactionLiabilityDescription: 'When enabled, cardholders can delete card transactions. New transactions will follow this rule.',
-                emptyAddedFeedTitle: 'Assign company cards',
-                emptyAddedFeedDescription: 'Get started by assigning your first card to a member.',
+                emptyAddedFeedTitle: 'No cards in this feed',
+                emptyAddedFeedDescription: "Make sure there are cards in your bank's card feed.",
                 pendingFeedTitle: `We're reviewing your request...`,
                 pendingFeedDescription: `We're currently reviewing your feed details. Once that's done, we'll reach out to you via`,
                 pendingBankTitle: 'Check your browser window',
@@ -4973,6 +5013,7 @@ const translations = {
                 pendingBankLink: 'please click here',
                 giveItNameInstruction: 'Give the card a name that sets it apart from others.',
                 updating: 'Updating...',
+                neverUpdated: 'Never',
                 noAccountsFound: 'No accounts found',
                 defaultCard: 'Default card',
                 downgradeTitle: `Can't downgrade workspace`,
@@ -6040,10 +6081,6 @@ const translations = {
                 title: 'Category rules',
                 approver: 'Approver',
                 requireDescription: 'Require description',
-                requireFields: 'Require fields',
-                requiredFieldsTitle: 'Required fields',
-                requiredFieldsDescription: (categoryName: string) => `This will apply to all expenses categorized as <strong>${categoryName}</strong>.`,
-                requireAttendees: 'Require attendees',
                 descriptionHint: 'Description hint',
                 descriptionHintDescription: (categoryName: string) =>
                     `Remind employees to provide additional information for “${categoryName}” spend. This hint appears in the description field on expenses.`,
@@ -6561,7 +6598,8 @@ const translations = {
         },
         columns: 'Columns',
         resetColumns: 'Reset columns',
-        noColumnsError: 'Please select at least one column before saving',
+        groupColumns: 'Group columns',
+        expenseColumns: 'Expense Columns',
         statements: 'Statements',
         unapprovedCash: 'Unapproved cash',
         unapprovedCard: 'Unapproved card',
@@ -7097,7 +7135,6 @@ const translations = {
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date older than ${maxAge} days`,
         missingCategory: 'Missing category',
         missingComment: 'Description required for selected category',
-        missingAttendees: 'Multiple attendees required for this category',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Missing ${tagName ?? 'tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7474,12 +7511,8 @@ const translations = {
             whatsMainReason: "What's the main reason you're disabling auto-renew?",
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Renews on ${date}.`,
             pricingConfiguration: 'Pricing depends on configuration. For the lowest price, choose an annual subscription and get the Expensify Card.',
-            learnMore: {
-                part1: 'Learn more on our ',
-                pricingPage: 'pricing page',
-                part2: ' or chat with our team in your ',
-                adminsRoom: '#admins room.',
-            },
+            learnMore: ({hasAdminsRoom}: SubscriptionSettingsLearnMoreParams) =>
+                `<muted-text>Learn more on our <a href="${CONST.PRICING}">pricing page</a> or chat with our team in your ${hasAdminsRoom ? `<a href="adminsRoom">#admins room.</a>` : '#admins room.'}</muted-text>`,
             estimatedPrice: 'Estimated price',
             changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',
         },
@@ -7817,7 +7850,15 @@ const translations = {
             findAdmin: 'Find admin',
             primaryContact: 'Primary contact',
             addPrimaryContact: 'Add primary contact',
+            setPrimaryContactError: 'Unable to set primary contact. Please try again later.',
             settings: 'Settings',
+            consolidatedDomainBilling: 'Consolidated domain billing',
+            consolidatedDomainBillingDescription: (domainName: string) =>
+                `<comment><muted-text-label>When enabled, the primary contact will pay for all workspaces owned by <strong>${domainName}</strong> members and receive all billing receipts.</muted-text-label></comment>`,
+            consolidatedDomainBillingError: "Consolidated domain billing couldn't be changed. Please try again later.",
+            addAdmin: 'Add admin',
+            invite: 'Invite',
+            addAdminError: 'Unable to add this member as an admin. Please try again.',
         },
     },
 };
