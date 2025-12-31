@@ -43,6 +43,7 @@ import type {
     ResolveActionableReportMentionWhisperParams,
     SearchForReportsParams,
     SearchForRoomsToMentionParams,
+    SearchForUsersParams,
     TogglePinnedChatParams,
     TransactionThreadInfo,
     UpdateChatNameParams,
@@ -4456,7 +4457,7 @@ function savePrivateNotesDraft(reportID: string, note: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.PRIVATE_NOTES_DRAFT}${reportID}`, note);
 }
 
-function searchForReports(searchInput: string, policyID?: string) {
+function searchForReports(searchInput: string, policyID?: string, isUserSearch = false) {
     // We do not try to make this request while offline because it sets a loading indicator optimistically
     if (isNetworkOffline) {
         Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
@@ -4480,14 +4481,20 @@ function searchForReports(searchInput: string, policyID?: string) {
     ];
 
     const searchForRoomToMentionParams: SearchForRoomsToMentionParams = {query: searchInput.toLowerCase(), policyID};
-    const searchForReportsParams: SearchForReportsParams = {searchInput: searchInput.toLowerCase(), canCancel: true};
+    const searchForReportsOrUsersParams: SearchForReportsParams | SearchForUsersParams = {searchInput: searchInput.toLowerCase(), canCancel: true};
 
     // We want to cancel all pending SearchForReports API calls before making another one
     if (!policyID) {
-        HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
-    }
+        if (isUserSearch) {
+            HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_USERS);
+        } else {
+            HttpUtils.cancelPendingRequests(READ_COMMANDS.SEARCH_FOR_REPORTS);
+        }
+    } 
 
-    API.read(policyID ? READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION : READ_COMMANDS.SEARCH_FOR_REPORTS, policyID ? searchForRoomToMentionParams : searchForReportsParams, {
+    const searchForReportsOrUsersCommand = isUserSearch ? READ_COMMANDS.SEARCH_FOR_USERS : READ_COMMANDS.SEARCH_FOR_REPORTS;
+
+    API.read(policyID ? READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION : searchForReportsOrUsersCommand, policyID ? searchForRoomToMentionParams : searchForReportsOrUsersParams, {
         successData,
         failureData,
     });
@@ -4506,6 +4513,18 @@ function searchInServer(searchInput: string, policyID?: string) {
     searchForReports(searchInput, policyID);
 }
 
+function searchUserInServer(searchInput: string) {
+    if (isNetworkOffline || !searchInput.trim().length) {
+        Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
+        return;
+    }
+
+    // Why not set this in optimistic data? It won't run until the API request happens and while the API request is debounced
+    // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
+    // tell the user there are no options, then we start searching, and tell them there are no options again.
+    Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
+    searchForReports(searchInput, undefined, true);
+}
 function updateLastVisitTime(reportID: string) {
     if (!isValidReportIDFromPath(reportID)) {
         return;
@@ -6320,6 +6339,7 @@ export {
     saveReportActionDraft,
     saveReportDraftComment,
     searchInServer,
+    searchUserInServer,
     setDeleteTransactionNavigateBackUrl,
     setGroupDraft,
     setIsComposerFullSize,
