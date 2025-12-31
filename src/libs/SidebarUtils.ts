@@ -109,6 +109,7 @@ import {
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getReportNotificationPreference,
+    getReportOrDraftReport,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
     getUnreportedTransactionMessage,
@@ -792,7 +793,8 @@ function getOptionData({
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport({report, lastActorDetails, movedFromReport, movedToReport, policy, isReportArchived});
+        const chatReport = getReportOrDraftReport(report?.chatReportID);
+        lastMessageTextFromReport = getLastMessageTextForReport({report, lastActorDetails, movedFromReport, movedToReport, policy, isReportArchived, chatReport});
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
