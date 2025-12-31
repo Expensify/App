@@ -1,5 +1,5 @@
 import lodashIsEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
@@ -69,9 +69,8 @@ function IOURequestStepDescription({
         return isEditingSplit && !lodashIsEmpty(splitDraftTransaction) ? (splitDraftTransaction?.comment?.comment ?? '') : (transaction?.comment?.comment ?? '');
     }, [isTransactionDraft, iouType, isEditingSplit, splitDraftTransaction, transaction?.comment?.comment]);
 
-    const [currentDescription, setCurrentDescription] = useState(currentDescriptionInMarkdown);
-    const [isSaved, setIsSaved] = useState(false);
-    const shouldNavigateAfterSaveRef = useRef(false);
+    const descriptionRef = useRef(currentDescriptionInMarkdown);
+    const isSavedRef = useRef(false);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -113,20 +112,12 @@ function IOURequestStepDescription({
         [isDescriptionRequired, translate],
     );
 
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         Navigation.goBack(backTo);
-    }, [backTo]);
-
-    useEffect(() => {
-        if (!isSaved || !shouldNavigateAfterSaveRef.current) {
-            return;
-        }
-        shouldNavigateAfterSaveRef.current = false;
-        navigateBack();
-    }, [isSaved, navigateBack]);
+    };
 
     const updateDescriptionRef = (value: string) => {
-        setCurrentDescription(value);
+        descriptionRef.current = value;
     };
 
     const updateComment = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DESCRIPTION_FORM>) => {
@@ -134,18 +125,19 @@ function IOURequestStepDescription({
             return;
         }
 
+        isSavedRef.current = true;
         const newComment = value.moneyRequestComment.trim();
 
+        // Only update comment if it has changed
         if (newComment === currentDescriptionInMarkdown) {
-            setIsSaved(true);
-            shouldNavigateAfterSaveRef.current = true;
+            navigateBack();
             return;
         }
 
+        // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplit) {
             setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction, {comment: newComment});
-            setIsSaved(true);
-            shouldNavigateAfterSaveRef.current = true;
+            navigateBack();
             return;
         }
 
@@ -165,8 +157,7 @@ function IOURequestStepDescription({
             );
         }
 
-        setIsSaved(true);
-        shouldNavigateAfterSaveRef.current = true;
+        navigateBack();
     };
 
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -223,10 +214,10 @@ function IOURequestStepDescription({
                     });
                 }}
                 getHasUnsavedChanges={() => {
-                    if (isSaved) {
+                    if (isSavedRef.current) {
                         return false;
                     }
-                    return currentDescription !== currentDescriptionInMarkdown;
+                    return descriptionRef.current !== currentDescriptionInMarkdown;
                 }}
             />
         </StepScreenWrapper>
