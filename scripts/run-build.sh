@@ -63,16 +63,15 @@ else
 fi
 
 # Check if the argument is one of the desired values
-# RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 - force React Native to build from source to include our custom patches
 case "$BUILD" in
     --ios)
-        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
+        npx rock run:ios --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
         ;;
     --ipad)
-        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
+        npx rock run:ios --simulator "iPad Pro (12.9-inch) (6th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
         ;;
     --ipad-sm)
-        RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
+        npx rock run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME" --dev-server "${ROCK_FLAGS[@]}"
         ;;
     --android)
         # Check if this is an Expensify developer with WARP (only they need cert import)

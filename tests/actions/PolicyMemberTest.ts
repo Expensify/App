@@ -494,6 +494,83 @@ describe('actions/PolicyMember', () => {
             expect(successAdminRoomMetadata?.pendingChatMembers).toBeUndefined();
         });
 
+        it('Change preferred accounting exporter to owner if the members include current preferred exporter', async () => {
+            // Given a policy
+            const policyID = '1';
+            const defaultApprover = 'approver@gmail.com';
+            const ownerAccountID = 1;
+            const ownerEmail = 'owner@gmail.com';
+            const adminAccountID = 1234;
+            const adminEmail = 'admin@example.com';
+            const auditorAccountID = 1235;
+            const auditorEmail = 'auditor@example.com';
+            const userAccountID = 1236;
+            const userEmail = 'user@example.com';
+
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [adminAccountID]: {login: adminEmail},
+                [auditorAccountID]: {login: auditorEmail},
+                [userAccountID]: {login: userEmail},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+                ...createRandomPolicy(Number(policyID)),
+                approver: defaultApprover,
+                owner: ownerEmail,
+                ownerAccountID,
+                employeeList: {
+                    [ownerEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [adminEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+                    [auditorEmail]: {role: CONST.POLICY.ROLE.AUDITOR},
+                    [userEmail]: {role: CONST.POLICY.ROLE.USER},
+                },
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: true,
+                        options: {
+                            config: {
+                                exporter: adminEmail,
+                            },
+                        },
+                        lastSync: {
+                            errorDate: '',
+                            errorMessage: '',
+                            isAuthenticationError: false,
+                            isConnected: true,
+                            isSuccessful: true,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                },
+            });
+
+            // When removing an admin, auditor, and user members
+            mockFetch?.pause?.();
+            const memberEmailsToAccountIDs = {
+                [adminEmail]: adminAccountID,
+                [auditorEmail]: auditorAccountID,
+                [userEmail]: userAccountID,
+            };
+            Member.removeMembers(policyID, [adminEmail, auditorEmail, userEmail], memberEmailsToAccountIDs);
+
+            await waitForBatchedUpdates();
+
+            const policyConnectionPreferredExporter = await new Promise<string | undefined>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (policy) => {
+                        Onyx.disconnect(connection);
+                        resolve(policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]?.options?.config?.exporter);
+                    },
+                });
+            });
+
+            // Then the preferred exporter is the workspace owner
+            expect(policyConnectionPreferredExporter).toBe(ownerEmail);
+
+            await mockFetch?.resume?.();
+        });
+
         it('should archive the member expense chat and expense report', async () => {
             // Given a workspace expense chat and expense report
             const policyID = '1';

@@ -135,6 +135,9 @@ const ONYXKEYS = {
     /** Whether the user is a member of a policy other than their personal */
     HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
 
+    /** Key under which personal policy id is stored. Returned by OpenApp */
+    PERSONAL_POLICY_ID: 'personalPolicyID',
+
     /** NVP keys */
 
     /** This NVP contains list of at most 5 recent attendees */
@@ -1375,6 +1378,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY]: string;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
     [ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN]: boolean;
+    [ONYXKEYS.PERSONAL_POLICY_ID]: string;
 };
 
 type OnyxDerivedValuesMapping = {

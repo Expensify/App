@@ -124,7 +124,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -1211,20 +1210,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Se non hai un sito web, puoi fornire invece il profilo LinkedIn o il profilo sui social media della tua azienda.',
         invalidDomainError: 'Hai inserito un dominio non valido. Per continuare, inserisci un dominio valido.',
         publicDomainError: 'Hai inserito un dominio pubblico. Per continuare, inserisci un dominio privato.',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} scansione`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} in sospeso`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 spesa (${statusText.join(', ')})` : `1 spesa`,
-                other: (count: number) => (statusText.length > 0 ? `${count} spese (${statusText.join(', ')})` : `${count} spese`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 spesa',
@@ -2019,8 +2004,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'Per motivi di sicurezza, Xero richiede l’autenticazione a due fattori per connettere l’integrazione.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Autenticazione a due fattori richiesta',
         twoFactorAuthIsRequiredForAdminsTitle: 'Abilita l’autenticazione a due fattori',
-        twoFactorAuthIsRequiredXero: 'La tua connessione contabile Xero richiede l’uso dell’autenticazione a due fattori. Per continuare a usare Expensify, abilitala.',
-        twoFactorAuthIsRequiredCompany: 'La tua azienda richiede l’uso dell’autenticazione a due fattori. Per continuare a usare Expensify, abilitala.',
+        twoFactorAuthIsRequiredXero: 'La tua connessione contabile Xero richiede l’autenticazione a due fattori.',
+        twoFactorAuthIsRequiredCompany: 'La tua azienda richiede l’autenticazione a due fattori.',
         twoFactorAuthCannotDisable: 'Impossibile disattivare l’autenticazione a due fattori (2FA)',
         twoFactorAuthRequired: "Per la tua connessione a Xero è richiesta l'autenticazione a due fattori (2FA) e non può essere disattivata.",
     },

@@ -67,9 +67,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
-          # Forces React Native to build from source to include our custom patches
-          RCT_USE_RN_DEP: 0
-          RCT_USE_PREBUILT_RNCORE: 0
         with:
           destination: simulator
           scheme: ${{ matrix.scheme }}

@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import {cleanFileObject, cleanFileObjectName, getFilesFromClipboardEvent} from '@libs/fileDownload/FileUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil} from '@libs/PolicyUtils';
 import {isSelfDM} from '@libs/ReportUtils';
@@ -52,6 +53,7 @@ function useAttachmentUploadValidation({
 }: AttachmentUploadValidationProps) {
     const {translate} = useLocalize();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
+    const personalPolicy = usePersonalPolicy();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
 
@@ -92,6 +94,7 @@ function useAttachmentUploadValidation({
 
         const initialTransaction = initMoneyRequest({
             reportID,
+            personalPolicy,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             report,
             parentReport: newParentReport,

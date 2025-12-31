@@ -14,6 +14,7 @@ import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     buildMergeFieldsData,
     getMergeableDataAndConflictFields,
@@ -42,7 +43,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const styles = useThemeStyles();
     const {transactionID, isOnSearch, backTo} = route.params;
 
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});

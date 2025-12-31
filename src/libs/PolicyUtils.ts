@@ -928,6 +928,7 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
+/** @deprecated Please use ONYXKEYS.PERSONAL_POLICY_ID to find the personal policyID */
 function getPersonalPolicy() {
     return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
 }
@@ -1700,6 +1701,8 @@ export {
     getMemberAccountIDsForWorkspace,
     getNumericValue,
     isMultiLevelTags,
+    // This will be fixed as part of https://github.com/Expensify/App/issues/66397
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getPersonalPolicy,
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated

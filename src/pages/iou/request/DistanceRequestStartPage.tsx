@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -64,6 +65,7 @@ function DistanceRequestStartPage({
 
     const hasOnlyPersonalPolicies = useMemo(() => hasOnlyPersonalPoliciesUtil(allPolicies), [allPolicies]);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
@@ -107,6 +109,7 @@ function DistanceRequestStartPage({
             initMoneyRequest({
                 reportID,
                 policy,
+                personalPolicy,
                 isFromGlobalCreate,
                 currentIouRequestType: transaction?.iouRequestType,
                 newIouRequestType: newIOUType,
@@ -122,6 +125,7 @@ function DistanceRequestStartPage({
             transaction?.iouRequestType,
             reportID,
             policy,
+            personalPolicy,
             isFromGlobalCreate,
             report,
             parentReport,
