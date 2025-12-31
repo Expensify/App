@@ -48,6 +48,9 @@ type ReportFooterProps = {
     /** Report object for the current report */
     report?: OnyxTypes.Report;
 
+    /** Whether the report is being displayed in the side panel */
+    isInSidePanel?: boolean;
+
     /** Report metadata */
     reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 
@@ -87,6 +90,7 @@ function ReportFooter({
     onComposerFocus,
     reportTransactions,
     transactionThreadReportID,
+    isInSidePanel = false,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -191,7 +195,7 @@ function ReportFooter({
             // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
             // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
             const targetReportID = transactionThreadReportID ?? report.reportID;
-            addComment(targetReportID, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
+            addComment(targetReportID, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true, isInSidePanel);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         [report.reportID, handleCreateTask, transactionThreadReportID, targetReportAncestors],

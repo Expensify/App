@@ -2,7 +2,7 @@
 import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
-import {DeviceEventEmitter, InteractionManager, Linking} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, Linking, Platform} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxCollectionInputValue, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {PartialDeep, ValueOf} from 'type-fest';
@@ -11,6 +11,7 @@ import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleCon
 import * as ActiveClientManager from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import * as API from '@libs/API';
+import PageContextUtils from '@libs/PageContextUtils';
 import type {
     AddCommentOrAttachmentParams,
     AddEmojiReactionParams,
@@ -153,6 +154,7 @@ import {
     hasOutstandingChildRequest,
     isChatThread as isChatThreadReportUtils,
     isConciergeChatReport,
+    isAdminRoom,
     isCurrentUserSubmitter,
     isExpenseReport,
     isGroupChat as isGroupChatReportUtils,
@@ -565,8 +567,9 @@ function notifyNewAction(reportID: string | undefined, accountID: number | undef
  *
  * @param reportID - The report ID where the comment should be added
  * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
+ * @param isInSidePanel - Whether the comment is being sent from the side panel
  */
-function addActions(reportID: string, notifyReportID: string, ancestors: Ancestor[], timezoneParam: Timezone, text = '', file?: FileObject) {
+function addActions(reportID: string, notifyReportID: string, ancestors: Ancestor[], timezoneParam: Timezone, text = '', file?: FileObject, isInSidePanel = false) {
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
@@ -638,6 +641,14 @@ function addActions(reportID: string, notifyReportID: string, ancestors: Ancesto
 
     if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChatReport(report)) {
         parameters.isOldDotConciergeChat = true;
+    }
+
+    // Capture page HTML context when sending from side panel to Concierge or admin rooms
+    if (Platform.OS === 'web' && isInSidePanel && report && (isConciergeChatReport(report) || isAdminRoom(report))) {
+        const pageHTML = PageContextUtils.capturePageHTMLContext();
+        if (pageHTML) {
+            parameters.pageHTML = pageHTML;
+        }
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -769,11 +780,11 @@ function addAttachmentWithComment(
 }
 
 /** Add a single comment to a report */
-function addComment(reportID: string, notifyReportID: string, ancestors: Ancestor[], text: string, timezoneParam: Timezone, shouldPlaySound?: boolean) {
+function addComment(reportID: string, notifyReportID: string, ancestors: Ancestor[], text: string, timezoneParam: Timezone, shouldPlaySound?: boolean, isInSidePanel?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(reportID, notifyReportID, ancestors, timezoneParam, text);
+    addActions(reportID, notifyReportID, ancestors, timezoneParam, text, undefined, isInSidePanel);
 }
 
 function reportActionsExist(reportID: string): boolean {
