@@ -1225,8 +1225,9 @@ function fetchCorpayFields(bankCountry: string, bankCurrency?: string, isWithdra
     );
 }
 
-function clearUnshareBankAccountErrors() {
+function clearUnshareBankAccountErrors(bankAccountID: number) {
     Onyx.merge(ONYXKEYS.UNSHARE_BANK_ACCOUNT, {errors: null});
+    Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {errors: null}});
 }
 
 function unshareBankAccount(bankAccountID: number, ownerEmail: string) {
