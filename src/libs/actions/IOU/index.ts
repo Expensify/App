@@ -244,7 +244,8 @@ import {buildInviteToRoomOnyxData, completeOnboarding, getCurrentUserAccountID, 
 import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {sanitizeRecentWaypoints} from '@userActions/Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
-import {getOnboardingMessages, OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
+import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
+import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
