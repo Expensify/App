@@ -1489,7 +1489,7 @@ function MoneyReportHeader({
         policy,
         beginExportWithTemplate: (templateName, templateType, transactionIDList, policyID) => beginExportWithTemplate(templateName, templateType, transactionIDList, policyID),
         reportLevelActions: applicableTransactionActions,
-        isOnSearch
+        isOnSearch,
     });
     useEffect(() => {
         if (!hasFinishedPDFDownload || !canTriggerAutomaticPDFDownload.current) {

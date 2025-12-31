@@ -64,7 +64,7 @@ function useSelectedTransactionsActions({
     policy?: Policy;
     beginExportWithTemplate: (templateName: string, templateType: string, transactionIDList: string[], policyID?: string) => void;
     isOnSearch?: boolean;
-    reportLevelActions: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>>;
+    reportLevelActions?: Array<DropdownOption<string> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon'>>;
 }) {
     const {isOffline} = useNetworkWithOfflineStatus();
     const {selectedTransactionIDs, clearSelectedTransactions, currentSearchHash, selectedTransactions: selectedTransactionsMeta} = useSearchContext();
