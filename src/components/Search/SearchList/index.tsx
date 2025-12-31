@@ -100,9 +100,6 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Columns to show */
     columns: SearchColumnType[];
 
-    /** Whether the screen is focused */
-    isFocused: boolean;
-
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: Array<ViewToken<SearchListItem>>; viewableItems: Array<ViewToken<SearchListItem>>}) => void;
 
@@ -168,7 +165,6 @@ function SearchList({
     shouldPreventLongPressRow,
     queryJSON,
     columns,
-    isFocused,
     onViewableItemsChanged,
     onLayout,
     shouldAnimate,
@@ -378,10 +374,10 @@ function SearchList({
 
             return (
                 <Animated.View
-                    exiting={shouldApplyAnimation && isFocused ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
+                    exiting={shouldApplyAnimation ? FadeOutUp.duration(CONST.SEARCH.EXITING_ANIMATION_DURATION).easing(easing) : undefined}
                     entering={undefined}
                     style={styles.overflowHidden}
-                    layout={shouldApplyAnimation && hasItemsBeingRemoved && isFocused ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
+                    layout={shouldApplyAnimation && hasItemsBeingRemoved ? LinearTransition.easing(easing).duration(CONST.SEARCH.EXITING_ANIMATION_DURATION) : undefined}
                 >
                     <ListItem
                         showTooltip
@@ -418,7 +414,6 @@ function SearchList({
             groupBy,
             newTransactions,
             shouldAnimate,
-            isFocused,
             data.length,
             itemsWithSelection,
             styles.overflowHidden,
@@ -490,7 +485,6 @@ function SearchList({
                 ref={listRef}
                 columns={columns}
                 scrollToIndex={scrollToIndex}
-                isFocused={isFocused}
                 flattenedItemsLength={flattenedItems.length}
                 onEndReached={onEndReached}
                 onEndReachedThreshold={onEndReachedThreshold}

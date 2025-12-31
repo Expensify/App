@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
 import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
@@ -20,7 +21,6 @@ function BaseSearchList({
     keyExtractor,
     onScroll,
     ref,
-    isFocused,
     scrollToIndex,
     onEndReached,
     onEndReachedThreshold,
@@ -33,6 +33,7 @@ function BaseSearchList({
     selectedTransactions,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
+    const isFocused = useIsFocused();
 
     const setHasKeyBeenPressed = useCallback(() => {
         if (hasKeyBeenPressed.current) {
@@ -102,7 +103,7 @@ function BaseSearchList({
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    const extraData = useMemo(() => [focusedIndex, isFocused, columns, newTransactions, selectedTransactions], [focusedIndex, isFocused, columns, newTransactions, selectedTransactions]);
+    const extraData = useMemo(() => [focusedIndex, columns, newTransactions, selectedTransactions], [focusedIndex, columns, newTransactions, selectedTransactions]);
 
     return (
         <AnimatedFlashListComponent
