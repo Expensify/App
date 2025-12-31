@@ -4526,7 +4526,7 @@ function searchForReports(isOffline: boolean, searchInput: string, policyID?: st
     });
 }
 
-function searchInServer(searchInput: string, policyID?: string) {
+function performServerSearch(searchInput: string, policyID?: string, isUserSearch = false) {
     // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
     const isOffline = NetworkStore.isOffline();
     if (isOffline || !searchInput.trim().length) {
@@ -4538,21 +4538,17 @@ function searchInServer(searchInput: string, policyID?: string) {
     // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
     // tell the user there are no options, then we start searching, and tell them there are no options again.
     Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
-    searchForReports(isOffline, searchInput, policyID);
+    searchForReports(isOffline, searchInput, policyID, isUserSearch);
+}
+
+function searchInServer(searchInput: string, policyID?: string) {
+    performServerSearch(searchInput, policyID);
 }
 
 function searchUserInServer(searchInput: string) {
-    if (isNetworkOffline || !searchInput.trim().length) {
-        Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, false);
-        return;
-    }
-
-    // Why not set this in optimistic data? It won't run until the API request happens and while the API request is debounced
-    // we want to show the loading state right away. Otherwise, we will see a flashing UI where the client options are sorted and
-    // tell the user there are no options, then we start searching, and tell them there are no options again.
-    Onyx.set(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, true);
-    searchForReports(searchInput, undefined, true);
+    performServerSearch(searchInput, undefined, true);
 }
+
 function updateLastVisitTime(reportID: string) {
     if (!isValidReportIDFromPath(reportID)) {
         return;
