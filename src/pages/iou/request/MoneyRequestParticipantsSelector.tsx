@@ -40,7 +40,7 @@ import type {OptionData} from '@libs/ReportUtils';
 import {isInvoiceRoom} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getInvoicePrimaryWorkspace} from '@userActions/Policy/Policy';
-import {searchInServer} from '@userActions/Report';
+import {searchUserInServer} from '@userActions/Report';
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -237,7 +237,7 @@ function MoneyRequestParticipantsSelector({
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
 
     useEffect(() => {
-        searchInServer(searchTerm.trim());
+        searchUserInServer(searchTerm.trim());
     }, [searchTerm]);
 
     const inputHelperText = useMemo(
