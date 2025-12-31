@@ -393,18 +393,8 @@ function useSelectedTransactionsActions({
         allReports,
         session?.accountID,
         showDeleteModal,
-        expensifyIcons.Stopwatch,
-        expensifyIcons.ThumbsDown,
-        expensifyIcons.Table,
-        expensifyIcons.Export,
-        expensifyIcons.ArrowRight,
-        expensifyIcons.ArrowSplit,
-        expensifyIcons.DocumentMerge,
-        expensifyIcons.ArrowCollapse,
-        expensifyIcons.Trashcan,
         localeCompare,
         isOnSearch,
-        expensifyIcons,
         reportLevelActions,
     ]);
 

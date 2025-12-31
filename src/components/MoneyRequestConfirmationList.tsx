@@ -79,7 +79,7 @@ import SelectionList from './SelectionListWithSections';
 import type {SectionListDataType} from './SelectionListWithSections/types';
 import UserListItem from './SelectionListWithSections/UserListItem';
 import SettlementButton from './SettlementButton';
-import {PaymentActionParams} from './SettlementButton/types';
+import type {PaymentActionParams} from './SettlementButton/types';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
 

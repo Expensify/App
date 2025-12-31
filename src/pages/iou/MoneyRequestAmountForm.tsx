@@ -7,7 +7,7 @@ import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountI
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import ScrollView from '@components/ScrollView';
 import SettlementButton from '@components/SettlementButton';
-import {PaymentActionParams} from '@components/SettlementButton/types';
+import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
