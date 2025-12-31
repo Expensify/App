@@ -167,14 +167,9 @@ function setClipboardMessage(content: string | undefined) {
     if (!content) {
         return;
     }
-    if (!Clipboard.canSetHtml()) {
-        Clipboard.setString(Parser.htmlToMarkdown(content));
-    } else {
-        // Use markdown format text for the plain text(clipboard type "text/plain") to ensure consistency across all platforms.
-        // More info: https://github.com/Expensify/App/issues/53718
-        const markdownText = Parser.htmlToMarkdown(content);
-        Clipboard.setHtml(content, markdownText);
-    }
+    // This ensures "paste as plain text" works correctly without markdown formatting
+    const plainText = Parser.htmlToText(content);
+    Clipboard.setString(plainText);
 }
 
 type ShouldShow = (args: {
