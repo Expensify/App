@@ -11107,7 +11107,7 @@ describe('actions/IOU', () => {
                 },
             });
 
-            // Create policy with approval hierarchy
+            // Create policy with approval required
             policy = {
                 id: '1',
                 name: 'Test Policy',
