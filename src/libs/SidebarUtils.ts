@@ -105,8 +105,7 @@ import {
     getPolicyName,
     getReportActionActorAccountID,
     getReportDescription,
-    getReportMetadata,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    getReportMetadata, // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getReportNotificationPreference,
     getReportParticipantsTitle,

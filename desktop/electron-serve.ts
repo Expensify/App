@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+
 /* eslint-disable @typescript-eslint/no-misused-promises */
+
 /* eslint-disable rulesdir/no-negated-variables */
+
 /**
  * This file is a modified version of the electron-serve package.
  * We keep the same interface, but instead of file protocol we use buffer protocol (with support of JS self profiling).

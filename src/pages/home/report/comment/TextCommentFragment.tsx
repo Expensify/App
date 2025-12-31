@@ -93,9 +93,9 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             const lines = htmlContent.split(/<br\s*\/?>/i);
             const processedLines = lines.map((line) => {
                 if (isEmojiOnSeparateLine(line)) {
-                    return line.replace('<emoji>', '<emoji ismedium oneline >');
+                    return line.replaceAll('<emoji>', '<emoji ismedium oneline >');
                 }
-                return line.replace('<emoji>', '<emoji ismedium>');
+                return line.replaceAll('<emoji>', '<emoji ismedium>');
             });
 
             htmlContent = processedLines.join('<br />');

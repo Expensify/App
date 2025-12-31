@@ -1,5 +1,7 @@
 /* eslint-disable testing-library/no-node-access */
+
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {act, render, screen, waitFor} from '@testing-library/react-native';
 import React from 'react';

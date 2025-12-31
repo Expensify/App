@@ -1,4 +1,5 @@
 /* eslint-disable default-case */
+
 /* eslint-disable max-classes-per-file */
 import {isMatch, isValid} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';

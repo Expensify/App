@@ -1,4 +1,5 @@
 #!/usr/bin/env npx ts-node
+
 /*
  * This script uses src/languages/en.ts as the source of truth, and leverages ChatGPT to generate translations for other languages.
  */
