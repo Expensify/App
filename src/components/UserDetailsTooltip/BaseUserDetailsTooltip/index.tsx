@@ -23,7 +23,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
 
     const userDetails = personalDetails?.[accountID] ?? fallbackUserDetails ?? {};
     let userDisplayName = getUserDetailTooltipText(accountID, formatPhoneNumber, userDetails.displayName ? userDetails.displayName.trim() : '');
-    let userLogin = !isCurrentUserAnonymous && userDetails.login?.trim() && userDetails.login !== userDetails.displayName ? Str.removeSMSDomain(userDetails.login) : '';
+    let userLogin = !isCurrentUserAnonymous && userDetails.login?.trim() && userDetails.login !== userDetails.displayName ? formatPhoneNumber(userDetails.login) : '';
 
     let userAvatar = userDetails.avatar;
     let userAccountID = accountID;
