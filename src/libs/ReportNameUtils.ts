@@ -619,7 +619,7 @@ function computeChatThreadReportName(report: Report, reportNameValuePairs: Repor
     return reportActionMessage;
 }
 
-function computeReportNameWithoutFormula(
+function computeReportName(
     report?: Report,
     reports?: OnyxCollection<Report>,
     policies?: OnyxCollection<Policy>,
@@ -741,7 +741,7 @@ function getReportName(report?: Report, reportAttributesDerivedValue?: ReportAtt
 }
 
 export {
-    computeReportNameWithoutFormula,
+    computeReportName,
     getReportName,
     generateArchivedReportName,
     getInvoiceReportName,

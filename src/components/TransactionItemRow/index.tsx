@@ -24,7 +24,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
-import {computeReportNameWithoutFormula} from '@libs/ReportNameUtils';
+import {computeReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
@@ -527,7 +527,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
                     <TextCell
-                        text={computeReportNameWithoutFormula(transactionItem.report) ?? transactionItem.report?.reportName ?? ''}
+                        text={computeReportName(transactionItem.report) ?? transactionItem.report?.reportName ?? ''}
                         isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
