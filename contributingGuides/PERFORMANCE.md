@@ -371,7 +371,7 @@ ___
 
 If you haven't already, check out our [Contributing Guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md) and email contributors@expensify.com to request access to our Slack channel!
 
-👉 **Before posting the proposal, please read through this whole process for important context and instructions.**
+👉 **Before posting the proposal, please read through this whole process for important context and instructions.** Proposal that will not follow these guidelines cannot be accepted.
 
 ___
 
