@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import type {TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
 import {handleActionButtonPress} from '@libs/actions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LastPaymentMethod, SearchResults} from '@src/types/onyx';
+import type {LastPaymentMethod, Policy, Report, SearchResults} from '@src/types/onyx';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 
@@ -309,13 +309,10 @@ describe('handleActionButtonPress', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
             hash: searchHash,
-            // @ts-expect-error: Allow partial record in snapshot update for testing
-            item: mockReportItemWithHold,
+            item: mockReportItemWithHold as TransactionReportGroupListItemType,
             goToItem,
-            // @ts-expect-error: Allow partial record in snapshot update for testing
-            snapshotReport,
-            // @ts-expect-error: Allow partial record in snapshot update for testing
-            snapshotPolicy,
+            snapshotReport: snapshotReport as Report,
+            snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
         });
         expect(goToItem).toHaveBeenCalledTimes(1);
@@ -325,13 +322,10 @@ describe('handleActionButtonPress', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
             hash: searchHash,
-            // @ts-expect-error: Allow partial record in snapshot update for testing
-            item: updatedMockReportItem,
+            item: updatedMockReportItem as TransactionReportGroupListItemType,
             goToItem,
-            // @ts-expect-error: Allow partial record in snapshot update for testing
-            snapshotReport,
-            // @ts-expect-error: Allow partial record in snapshot update for testing
-            snapshotPolicy,
+            snapshotReport: snapshotReport as Report,
+            snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
