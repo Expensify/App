@@ -365,7 +365,7 @@ Examples:
 
 # Proposing Performance Improvements
 
-We are actively looking for contributions that improve the performance of the App, specifically regarding unnecessary re-renders, slow method executions, and perceived user latency.
+We are actively looking for contributions that improve the performance of the App, specifically regarding unnecessary re-renders, slow method executions, and user perceived latency.
 
 ___
 
@@ -378,7 +378,7 @@ ___
 ### Instructions for Submission
 1.  Copy the template below.
 2.  Fill out the details strictly following the guide.
-3.  Post it in `#expensify-open-source` with the title `[Performance Proposal] Component Name`.
+3.  Post it in `#expensify-open-source` with the title `[Performance Proposal] <Component_Name>`.
 
 ___
 
@@ -426,7 +426,7 @@ ___
 ## 5. Pattern Detection & Prevention
 *Can we prevent this from happening again?*
 - [ ] **ESLint Rule:** I have proposed a rule to prevent this anti-pattern.
-- [ ] **Shared Refactor:** This fixes a shared utility/component (e.g., `Avatar.js`) used across the app.
+- [ ] **Shared Refactor:** This fixes a shared utility/component (e.g., `Avatar.ts`) used across the app.
 - [ ] **Localized Fix:** This only affects this specific view.
 
 ## 6. Automated Tests & QA
@@ -437,7 +437,7 @@ ___
 - [ ] **Manual Verification:** I have included manual verification steps (Required).
 
 ## 7. Other Considerations & UX Risks
-*Performance improvements should generally be invisible to the user.*
+*Performance improvements should not change user experience and product design.*
 - [ ] This change preserves existing UX (No visual/behavioral changes).
 - [ ] This change alters UX (Description: _________________).
 
