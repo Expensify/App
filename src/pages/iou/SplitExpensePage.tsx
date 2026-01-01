@@ -242,6 +242,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         transactionDetails?.currency,
         isBetaEnabled,
         transactionViolations,
+        policyRecentlyUsedCurrencies,
     ]);
 
     const onSplitExpenseValueChange = useCallback(
