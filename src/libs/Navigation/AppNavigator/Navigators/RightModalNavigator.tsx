@@ -341,7 +341,10 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.SEARCH_REPORT}
                             getComponent={loadReportScreen}
-                            options={{...modalStackScreenOptions, animation: Animations.NONE}}
+                            options={(props) => {
+                                const options = modalStackScreenOptions(props);
+                                return {...options, animation: Animations.NONE};
+                            }}
                         />
                         <Stack.Screen
                             name={SCREENS.RIGHT_MODAL.RESTRICTED_ACTION}

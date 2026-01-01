@@ -1,5 +1,6 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {useSearchContext} from '@components/Search/SearchContext';
 import BaseListItem from '@components/SelectionListWithSections/BaseListItem';
@@ -13,7 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
-import {isSettled} from '@libs/ReportUtils';
+import {isOpenExpenseReport, isProcessingReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
@@ -61,6 +62,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
         return isEmpty ?? reportItem.isDisabled ?? reportItem.isDisabledCheckbox;
     }, [reportItem.isDisabled, reportItem.isDisabledCheckbox, reportItem.transactions.length]);
 
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress(
             currentSearchHash,
@@ -72,8 +75,22 @@ function ExpenseReportListItem<TItem extends ListItem>({
             currentSearchKey,
             onDEWModalOpen,
             isDEWBetaEnabled,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
         );
-    }, [currentSearchHash, reportItem, onSelectRow, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onDEWModalOpen, isDEWBetaEnabled]);
+    }, [
+        currentSearchHash,
+        reportItem,
+        onSelectRow,
+        snapshotReport,
+        snapshotPolicy,
+        lastPaymentMethod,
+        currentSearchKey,
+        onDEWModalOpen,
+        isDEWBetaEnabled,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+    ]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(reportItem as unknown as TItem);
@@ -108,8 +125,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
+    const shouldShowViolationDescription = isOpenExpenseReport(reportItem) || isProcessingReport(reportItem);
+
     const getDescription = useMemo(() => {
-        if (!reportItem?.hasVisibleViolations || isSettled(reportItem.reportID)) {
+        if (!reportItem?.hasVisibleViolations || !shouldShowViolationDescription) {
             return;
         }
         return (
@@ -126,16 +145,16 @@ function ExpenseReportListItem<TItem extends ListItem>({
         );
     }, [
         reportItem?.hasVisibleViolations,
-        reportItem.reportID,
-        styles.alignItemsCenter,
+        shouldShowViolationDescription,
         styles.flexRow,
-        styles.mr1,
+        styles.alignItemsCenter,
         styles.mt2,
-        styles.textDanger,
+        styles.mr1,
         styles.textMicro,
+        styles.textDanger,
+        expensifyIcons.DotIndicator,
         theme.danger,
         translate,
-        expensifyIcons.DotIndicator,
     ]);
 
     return (
@@ -161,6 +180,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
             {(hovered) => (
                 <View style={[styles.flex1]}>
                     <ExpenseReportListItemRow
+                        hash={currentSearchHash}
                         item={reportItem}
                         columns={columns}
                         policy={snapshotPolicy}
