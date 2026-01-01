@@ -87,7 +87,6 @@ Onyx.connect({
 });
 
 let deprecatedCurrentUserAccountID: number | undefined;
-let deprecatedCurrentEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -97,7 +96,6 @@ Onyx.connect({
         }
 
         deprecatedCurrentUserAccountID = value.accountID;
-        deprecatedCurrentEmail = value?.email ?? '';
     },
 });
 
@@ -2151,11 +2149,11 @@ function getMentionedEmailsFromMessage(message: string) {
     return matches.map((match) => Str.removeSMSDomain(match[1].substring(1)));
 }
 
-function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>) {
+function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserEmail: string) {
     const accountIDsFromMessage = getMentionedAccountIDsFromAction(reportAction);
     const message = getReportActionMessage(reportAction)?.html ?? '';
     const emailsFromMessage = getMentionedEmailsFromMessage(message);
-    return accountIDsFromMessage.includes(deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) || emailsFromMessage.includes(deprecatedCurrentEmail) || message.includes('<mention-here>');
+    return accountIDsFromMessage.includes(deprecatedCurrentUserAccountID ?? CONST.DEFAULT_NUMBER_ID) || emailsFromMessage.includes(currentUserEmail) || message.includes('<mention-here>');
 }
 
 /**

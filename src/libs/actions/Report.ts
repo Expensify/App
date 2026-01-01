@@ -2035,13 +2035,13 @@ function deleteReportComment(
         ...optimisticLastReportData,
     };
 
-    const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(reportAction);
+    const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
     if (didCommentMentionCurrentUser && reportAction.created === report?.lastMentionedTime) {
         const reportActionsForReport = allReportActions?.[reportID];
         const latestMentionedReportAction = Object.values(reportActionsForReport ?? {}).find(
             (action) =>
                 action.reportActionID !== reportAction.reportActionID &&
-                ReportActionsUtils.didMessageMentionCurrentUser(action) &&
+                ReportActionsUtils.didMessageMentionCurrentUser(action, currentUserEmail) &&
                 ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID),
         );
         optimisticReport.lastMentionedTime = latestMentionedReportAction?.created ?? null;
