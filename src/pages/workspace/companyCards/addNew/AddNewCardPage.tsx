@@ -119,7 +119,12 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = <PlaidConnectionStep onExit={() => setIsModalVisible(true)} />;
             break;
         case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
-            CurrentStep = <StatementCloseDateStep policyID={policyID} />;
+            CurrentStep = (
+                <StatementCloseDateStep
+                    policyID={policyID}
+                    workspaceAccountID={workspaceAccountID}
+                />
+            );
             break;
         case CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE:
             CurrentStep = <DirectStatementCloseDateStep policyID={policyID} />;
