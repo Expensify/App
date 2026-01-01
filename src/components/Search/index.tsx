@@ -178,16 +178,6 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType,
     ];
 }
 
-function mapToTransactionItemWithAdditionalInfo(
-    item: TransactionListItemType,
-    selectedTransactions: SelectedTransactions,
-    canSelectMultiple: boolean,
-    shouldAnimateInHighlight: boolean,
-    hash?: number,
-) {
-    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple, hash};
-}
-
 function prepareTransactionsList(
     item: TransactionListItemType,
     itemTransaction: OnyxEntry<Transaction>,
