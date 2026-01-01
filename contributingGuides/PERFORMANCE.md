@@ -382,22 +382,18 @@ ___
 
 ___
 
-## 1. Prerequisites & Eligibility
-*To ensure proposals are measurable and based on realistic scenarios, you must meet the following criteria:*
+## 1. Component and Flow Description
 
-- [ ] **Experience:** I have at least **1 merged PR** in the App repository.
-- [ ] **Test Environment:** I tested on a high-traffic account (instructions to create this [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts)).
-- [ ] **Thresholds:** My proposal meets **at least one** of the following:
-    - [ ] > 20% reduction in Render Count
-    - [ ] > 20% reduction in Execution Time
-    - [ ] > 100ms reduction in Perceived Latency
+**Component/Flow:** Describe the specific UI component or user flow being optimized.
+- [Add details here]
 
-## 2. Component and Flow Description
-- **Component/Flow:** Describe the specific UI component or user flow being optimized.
-- **Preconditions:** List any specific setup required before reproducing the steps (e.g., "Workspace must have chat history").
-- **Reproduction Steps:** Provide a numbered list of steps to reproduce the performance issue (similar to a QA test case).
+**Preconditions:** List any specific setup required before reproducing the steps (e.g., "Workspace must have chat history").
+- [Add details here]
 
-## 3. Required Tools
+**Reproduction Steps:** Provide a numbered list of steps to reproduce the performance issue (similar to a QA test case).
+- [Add details here]
+
+## 2. Required Tools
 *I have verified these metrics using (check all that apply):*
 - [ ] React DevTools Profiler
 - [ ] Chrome Performance Tab
@@ -405,7 +401,7 @@ ___
 - [ ] Hermes / Release Profiler traces
 - [ ] Sentry (If you have access)
 
-## 4. Before/After Metrics
+## 3. Before/After Metrics
 *Please fill out the table below. If a metric is not applicable, write N/A.*
 
 | Metric | Before | After | Improvement |
@@ -416,6 +412,16 @@ ___
 
 * **Device Used:** (e.g. iPhone 13, Pixel 6, Chrome on M1 Mac)
 * **Evidence:** *(Attach screenshots of the profiler or logs for both Before and After below this section)*
+
+## 4. Prerequisites & Eligibility
+*To ensure proposals are measurable and based on realistic scenarios, you must meet the following criteria:*
+
+- [ ] **Experience:** I have at least **1 merged PR** in the App repository.
+- [ ] **Test Environment:** I tested on a high-traffic account (instructions to create this [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts)).
+- [ ] **Thresholds:** My proposal meets **at least one** of the following:
+    - [ ] > 20% reduction in Render Count
+    - [ ] > 20% reduction in Execution Time
+    - [ ] > 100ms reduction in Perceived Latency
 
 ## 5. Pattern Detection & Prevention
 *Can we prevent this from happening again?*
