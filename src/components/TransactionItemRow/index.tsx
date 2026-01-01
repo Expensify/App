@@ -100,6 +100,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 };
 
 type TransactionItemRowProps = {
+    hash?: number;
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
     shouldUseNarrowLayout: boolean;
@@ -128,6 +129,7 @@ type TransactionItemRowProps = {
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: () => void;
+    isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
 };
 
@@ -145,6 +147,7 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
 }
 
 function TransactionItemRow({
+    hash,
     transactionItem,
     report,
     shouldUseNarrowLayout,
@@ -173,6 +176,7 @@ function TransactionItemRow({
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
+    isHover = false,
     shouldShowArrowRightOnNarrowLayout,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
@@ -538,7 +542,10 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
-                    <ExportedIconCell reportID={transactionItem.reportID} />
+                    <ExportedIconCell
+                        hash={hash}
+                        reportID={transactionItem.reportID}
+                    />
                 </View>
             ),
         }),
@@ -742,16 +749,12 @@ function TransactionItemRow({
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
                         >
-                            {({hovered}) => {
-                                return (
-                                    <Icon
-                                        src={expensicons.ArrowRight}
-                                        fill={theme.icon}
-                                        additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                        small
-                                    />
-                                );
-                            }}
+                            <Icon
+                                src={expensicons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={!isHover && styles.opacitySemiTransparent}
+                                small
+                            />
                         </PressableWithFeedback>
                     )}
                 </View>
