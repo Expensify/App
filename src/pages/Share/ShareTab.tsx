@@ -1,3 +1,4 @@
+import {accountIDSelector, emailSelector} from '@selectors/Session';
 import type {Ref} from 'react';
 import React, {useEffect, useImperativeHandle, useMemo, useRef} from 'react';
 import {View} from 'react-native';
@@ -50,6 +51,8 @@ function ShareTab({ref}: ShareTabProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
 
     useImperativeHandle(ref, () => ({
         focus: selectionListRef.current?.focusTextInput,
@@ -78,8 +81,10 @@ function ShareTab({ref}: ShareTabProps) {
             includeUserToInvite: true,
             countryCode,
             loginList,
+            currentUserAccountID,
+            currentUserEmail,
         });
-    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, loginList]);
+    }, [areOptionsInitialized, options, draftComments, nvpDismissedProductTraining, betas, textInputValue, countryCode, loginList, currentUserAccountID, currentUserEmail]);
 
     const recentReportsOptions = useMemo(() => {
         if (textInputValue.trim() === '') {

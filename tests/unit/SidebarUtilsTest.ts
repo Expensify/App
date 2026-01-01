@@ -356,6 +356,7 @@ describe('SidebarUtils', () => {
                 lastAction: undefined,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 12345,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
                 report: MOCK_REPORT_UNPINNED,
@@ -371,6 +372,7 @@ describe('SidebarUtils', () => {
                 lastAction: undefined,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 12345,
             });
 
             expect(optionDataPinned?.isPinned).toBe(true);
@@ -1172,6 +1174,7 @@ describe('SidebarUtils', () => {
                 lastAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 12345,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1233,6 +1236,7 @@ describe('SidebarUtils', () => {
                 lastAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 12345,
             });
 
             // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1297,6 +1301,7 @@ describe('SidebarUtils', () => {
                 lastAction,
                 lastActionReport: undefined,
                 isReportArchived: undefined,
+                currentUserAccountID: 12345,
             });
 
             // Then the alternate text should show @Hidden.
@@ -1346,6 +1351,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 12345,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1386,6 +1392,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     isReportArchived: true,
                     lastActionReport: undefined,
+                    currentUserAccountID: 12345,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1423,6 +1430,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 12345,
                 });
 
                 expect(optionData?.alternateText).toBe(`test message`);
@@ -1549,6 +1557,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 12345,
                 });
 
                 expect(optionData?.alternateText).toBe(formatReportLastMessageText(iouReport.reportName));
@@ -1591,6 +1600,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 12345,
                 });
 
                 expect(optionData?.alternateText).toBe(`${policy.name} ${CONST.DOT_SEPARATOR} test message`);
@@ -1662,6 +1672,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 12345,
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
@@ -1722,6 +1733,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 2,
                 });
 
                 expect(result?.alternateText).toBe(`You: moved this report to the Three's Workspace workspace`);
@@ -1794,6 +1806,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 12345,
                 });
 
                 expect(result?.alternateText).toBe(`You: ${getReportActionMessageText(lastAction)}`);
@@ -1912,6 +1925,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 12345,
                 });
 
                 expect(result?.alternateText).toContain(`${getReportActionMessageText(lastAction)}`);
@@ -1997,6 +2011,7 @@ describe('SidebarUtils', () => {
                     lastAction,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: 12345,
                 });
 
                 expect(result?.alternateText).toBe(`One: submitted`);
@@ -2094,10 +2109,11 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: managerID,
                 });
 
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);
-                expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID})}: ${reportPreviewMessage}`);
+                expect(result?.alternateText).toBe(`${getLastActorDisplayName({accountID: managerID}, managerID)}: ${reportPreviewMessage}`);
             });
 
             it("shouldn't add current user prefix if the current user isn't the report's manager for report preview action in a DM chat", async () => {
@@ -2192,6 +2208,7 @@ describe('SidebarUtils', () => {
                     localeCompare,
                     lastActionReport: undefined,
                     isReportArchived: undefined,
+                    currentUserAccountID: managerID,
                 });
 
                 const reportPreviewMessage = getReportPreviewMessage(iouReport, iouAction, true, true, null, true, lastReportPreviewAction);

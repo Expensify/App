@@ -109,12 +109,19 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode]);
 
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, loginList, {
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-            canInviteUser: false,
-        });
-    }, [optionsList, cleanSearchTerm, countryCode, loginList]);
+        return filterAndOrderOptions(
+            optionsList,
+            cleanSearchTerm,
+            countryCode,
+            loginList,
+            {
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+                canInviteUser: false,
+            },
+            accountID,
+        );
+    }, [optionsList, cleanSearchTerm, countryCode, loginList, accountID]);
 
     const listData = useMemo(() => {
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({

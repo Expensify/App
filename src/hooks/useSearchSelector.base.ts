@@ -1,3 +1,4 @@
+import {accountIDSelector, emailSelector} from '@selectors/Session';
 import {useCallback, useMemo, useState} from 'react';
 import type {PermissionStatus} from 'react-native-permissions';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -164,6 +165,8 @@ function useSearchSelectorBase({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
 
     const onListEndReached = useDebounce(
         useCallback(() => {
@@ -195,6 +198,8 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     countryCode,
                     loginList,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
                 return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, loginList, {
@@ -207,6 +212,8 @@ function useSearchSelectorBase({
                     maxRecentReportElements: maxRecentReportsToShow,
                     searchString: computedSearchTerm,
                     includeUserToInvite,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
                 return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, loginList, {
@@ -217,6 +224,8 @@ function useSearchSelectorBase({
                     maxRecentReportElements: maxRecentReportsToShow,
                     includeUserToInvite,
                     excludeLogins,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_LOG:
                 return getValidOptions(
@@ -236,6 +245,8 @@ function useSearchSelectorBase({
                         searchString: computedSearchTerm,
                         maxElements: maxResults,
                         includeUserToInvite,
+                        currentUserAccountID,
+                        currentUserEmail,
                     },
                     countryCode,
                 );
@@ -256,6 +267,8 @@ function useSearchSelectorBase({
                     searchString: computedSearchTerm,
                     maxElements: maxResults,
                     includeUserToInvite,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
                 return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, loginList, {
@@ -271,6 +284,8 @@ function useSearchSelectorBase({
                     searchString: computedSearchTerm,
                     includeUserToInvite,
                     includeCurrentUser,
+                    currentUserAccountID,
+                    currentUserEmail,
                 });
             default:
                 return getEmptyOptions();
@@ -293,6 +308,8 @@ function useSearchSelectorBase({
         getValidOptionsConfig,
         selectedOptions,
         includeCurrentUser,
+        currentUserAccountID,
+        currentUserEmail,
     ]);
 
     const isOptionSelected = useMemo(() => {
