@@ -3635,7 +3635,17 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, created, amount, currency);
 
         iouReport = isPolicyExpenseChat
-            ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, nonReimbursableTotal, undefined, optimisticIOUReportID, reportTransactions)
+            ? buildOptimisticExpenseReport(
+                  chatReport.reportID,
+                  chatReport.policyID,
+                  payeeAccountID,
+                  amount,
+                  currency,
+                  nonReimbursableTotal,
+                  undefined,
+                  optimisticIOUReportID,
+                  reportTransactions,
+              )
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticIOUReportID);
     } else if (isPolicyExpenseChat) {
         iouReport = {...iouReport};
@@ -7572,7 +7582,17 @@ function createSplitsAndOnyxData({
             const reportTransactions = buildMinimalTransactionForFormula(splitTransaction.transactionID, splitTransaction.created, splitAmount, currency);
 
             oneOnOneIOUReport = isOwnPolicyExpenseChat
-                ? buildOptimisticExpenseReport(oneOnOneChatReport.reportID, oneOnOneChatReport.policyID, currentUserAccountID, splitAmount, currency, undefined, undefined, undefined, reportTransactions)
+                ? buildOptimisticExpenseReport(
+                      oneOnOneChatReport.reportID,
+                      oneOnOneChatReport.policyID,
+                      currentUserAccountID,
+                      splitAmount,
+                      currency,
+                      undefined,
+                      undefined,
+                      undefined,
+                      reportTransactions,
+                  )
                 : buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
         } else if (isOwnPolicyExpenseChat) {
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
@@ -8465,7 +8485,17 @@ function completeSplitBill(
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, updatedTransaction?.modifiedCreated, splitAmount, currency ?? '');
 
             oneOnOneIOUReport = isPolicyExpenseChat
-                ? buildOptimisticExpenseReport(oneOnOneChatReport?.reportID, participant.policyID, sessionAccountID, splitAmount, currency ?? '', undefined, undefined, undefined, reportTransactions)
+                ? buildOptimisticExpenseReport(
+                      oneOnOneChatReport?.reportID,
+                      participant.policyID,
+                      sessionAccountID,
+                      splitAmount,
+                      currency ?? '',
+                      undefined,
+                      undefined,
+                      undefined,
+                      reportTransactions,
+                  )
                 : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
         } else if (isPolicyExpenseChat) {
             if (typeof oneOnOneIOUReport?.total === 'number') {
