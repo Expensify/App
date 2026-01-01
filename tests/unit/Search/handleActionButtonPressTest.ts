@@ -309,7 +309,7 @@ describe('handleActionButtonPress', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
             hash: searchHash,
-            item: mockReportItemWithHold as TransactionReportGroupListItemType,
+            item: mockReportItemWithHold,
             goToItem,
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
@@ -322,7 +322,7 @@ describe('handleActionButtonPress', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
             hash: searchHash,
-            item: updatedMockReportItem as TransactionReportGroupListItemType,
+            item: updatedMockReportItem,
             goToItem,
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
