@@ -3408,7 +3408,7 @@ function getSendInvoiceInformation({
             policyID: senderWorkspaceID,
         });
     }
-    
+
     // STEP 2: Create a new optimistic invoice report.
     const optimisticInvoiceReport = buildOptimisticInvoiceReport(
         chatReport.reportID,
