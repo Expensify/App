@@ -1071,8 +1071,8 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryExportReportActions(moneyRequestReport, policy, exportTemplates);
-    }, [moneyRequestReport, policy, exportTemplates]);
+        return getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, policy, exportTemplates);
+    }, [moneyRequestReport, accountID, email, policy, exportTemplates]);
 
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
     const unapproveWarningText = useMemo(
@@ -1419,6 +1419,11 @@ function MoneyReportHeader({
             value: CONST.REPORT.SECONDARY_ACTIONS.REJECT,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.REJECT,
             onSelected: () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
                 if (dismissedRejectUseExplanation) {
                     if (requestParentReportAction) {
                         rejectMoneyRequestReason(requestParentReportAction);
