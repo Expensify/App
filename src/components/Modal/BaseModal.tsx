@@ -68,6 +68,7 @@ function BaseModal({
     shouldIgnoreBackHandlerDuringTransition = false,
     forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK,
     ref,
+    shouldDisplayBelowModals = false,
 }: BaseModalProps) {
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
     const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
@@ -241,6 +242,7 @@ function BaseModal({
                     modalOverlapsWithTopSafeArea,
                     shouldDisableBottomSafeAreaPadding: !!shouldDisableBottomSafeAreaPadding,
                 },
+                shouldDisplayBelowModals,
             ),
         [
             StyleUtils,
@@ -255,6 +257,7 @@ function BaseModal({
             shouldUseModalPaddingStyle,
             modalOverlapsWithTopSafeArea,
             shouldDisableBottomSafeAreaPadding,
+            shouldDisplayBelowModals,
         ],
     );
 

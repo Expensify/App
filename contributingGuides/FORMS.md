@@ -188,7 +188,7 @@ Here's an example for a form that has one input `name`, and has character limit 
 function validate(values) {
     const errors = {};
     if (values.name.length > 100) {
-        ErrorUtils.addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: values.name.length, limit: 100}));
+        ErrorUtils.addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', values.name.length, 100));
     }
     return errors;
 }

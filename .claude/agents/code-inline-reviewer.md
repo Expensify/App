@@ -143,31 +143,79 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 ---
 
-### [PERF-4] Memoize objects and functions passed as props
+### [PERF-4] Memoize objects (including arrays) and functions passed as props
 
-- **Search patterns**: `useMemo`, `useCallback`, and prop passing patterns
+- **Search patterns**: `prop={{`, `prop={[`, `={() =>`, `prop={variable}` (where variable is non-memoized object/function)
 
-- **Condition**: Objects and functions passed as props should be properly memoized or simplified to primitive values to prevent unnecessary re-renders.
-- **Reasoning**: React uses referential equality to determine if props changed. New object/function instances on every render trigger unnecessary re-renders of child components, even when the actual data hasn't changed. Memoization preserves referential stability.
+- **Applies ONLY to**: Objects (including arrays)/functions passed directly as JSX props. Does NOT apply to:
+  - Code inside callbacks (`.then()`, event handlers)
+  - Code inside `useEffect`/`useMemo`/`useCallback` bodies
+  - Primitives (strings, numbers, booleans)
+  - Already memoized values (`useMemo`/`useCallback`)
 
-Good:
+- **Reasoning**: New object/function references break memoization of child components. Only matters when child IS memoized AND parent is NOT optimized by React Compiler.
 
-```tsx
-const reportData = useMemo(() => ({
-    reportID: report.reportID,
-    type: report.type,
-    isPinned: report.isPinned,
-}), [report.reportID, report.type, report.isPinned]);
+#### Before flagging: Run optimization check
 
-return <ReportActionItem report={reportData} />
+**YOU MUST call `checkReactCompilerOptimization.ts` (available in PATH from `.claude/scripts/`) on EVERY .tsx file from the diff.**
+
+**Call the script ONCE per file, separately. DO NOT use loops or batch processing.**
+
+Example usage:
+```bash
+checkReactCompilerOptimization.ts src/components/File1.tsx
+checkReactCompilerOptimization.ts src/components/File2.tsx
 ```
 
-Bad:
+**NEVER use absolute or relative paths for this script. Call it by name only:**
+- ✅ `checkReactCompilerOptimization.ts src/components/Example.tsx`
+- ❌ `/home/runner/work/App/App/.claude/scripts/checkReactCompilerOptimization.ts ...`
+- ❌ `./.claude/scripts/checkReactCompilerOptimization.ts ...`
 
+**"File not found"** → Assume parent is optimized and skip PERF-4.
+
+#### Decision flow
+
+1. **Parent in `parentOptimized`?** → YES = **Skip** (compiler auto-memoizes)
+
+2. **Child has custom memo comparator that PREVENTS re-render for this prop?**
+   → Use `sourcePath` from script output to read child's source file
+   → Grep for `React.memo` or `memo(`
+   → If custom comparator prevents re-render despite new reference for this prop → **Skip**
+
+3. **Child is memoized?** (`optimized: true` OR `React.memo`)
+   - NO → **Skip** (child re-renders anyway)
+   - YES → **Flag PERF-4**
+
+#### Examples
+
+**Flag** (parent NOT optimized, child IS memoized, no custom comparator):
 ```tsx
-const [report] = useOnyx(`ONYXKEYS.COLLECTION.REPORT${iouReport.id}`);
+// Script output: parentOptimized: [], child MemoizedList optimized: true
+// No custom comparator found
+return <MemoizedList options={{ showHeader: true }} />;
+```
 
-return <ReportActionItem report={report} />
+**Skip - custom comparator** (comparator prevents re-render for this prop):
+```tsx
+// Script output: sourcePath: "src/components/PopoverMenu.tsx"
+// PopoverMenu.tsx has custom memo comparator that handles anchorPosition
+return <PopoverMenu anchorPosition={{x: 0, y: 0}} />;
+```
+
+**Skip - parent optimized**:
+```tsx
+// Script output: parentOptimized: ["MyComponent"]
+// React Compiler auto-memoizes - no manual memoization needed
+return <MemoizedList options={{ showHeader: true }} />;
+```
+
+**Skip - spread props with stable inner values**:
+```tsx
+// Spread is OK when inner values come from memoized sources
+// illustration from useMemoizedLazyIllustrations, illustrationStyle from useThemeStyles
+const illustration = useAboutSectionIllustration();
+return <Section {...illustration} />;
 ```
 
 ---

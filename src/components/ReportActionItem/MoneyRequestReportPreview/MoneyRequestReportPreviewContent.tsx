@@ -521,10 +521,11 @@ function MoneyRequestReportPreviewContent({
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
     const reportPreviewAction = useMemo(() => {
-        return getReportPreviewAction(
-            isIouReportArchived || isChatReportArchived,
-            currentUserAccountID,
-            iouReport,
+        return getReportPreviewAction({
+            isReportArchived: isIouReportArchived || isChatReportArchived,
+            currentUserAccountID: currentUserDetails.accountID,
+            currentUserEmail: currentUserDetails.email ?? '',
+            report: iouReport,
             policy,
             transactions,
             invoiceReceiverPolicy,
@@ -532,20 +533,20 @@ function MoneyRequestReportPreviewContent({
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
             isDEWSubmitPending,
-            {currentUserEmail, violations: transactionViolations},
+            violationsData: transactionViolations,
         );
     }, [
-        isPaidAnimationRunning,
-        isApprovedAnimationRunning,
-        isSubmittingAnimationRunning,
+        isIouReportArchived,
+        isChatReportArchived,
+        currentUserDetails.accountID,
+        currentUserDetails.email,
         iouReport,
         policy,
         transactions,
-        isIouReportArchived,
         invoiceReceiverPolicy,
-        isChatReportArchived,
-        currentUserEmail,
-        currentUserAccountID,
+        isPaidAnimationRunning,
+        isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
         transactionViolations,
         isDEWSubmitPending,
     ]);

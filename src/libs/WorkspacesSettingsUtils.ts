@@ -91,18 +91,12 @@ function getOwnershipChecksDisplayText(
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.SUBSCRIPTION:
             title = translate('workspace.changeOwner.subscriptionTitle');
-            text = translate('workspace.changeOwner.subscriptionText', {
-                usersCount: subscription?.ownerUserCount,
-                finalCount: subscription?.totalUserCount,
-            });
+            text = translate('workspace.changeOwner.subscriptionText', subscription?.ownerUserCount, subscription?.totalUserCount);
             buttonText = translate('workspace.changeOwner.subscriptionButtonText');
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.DUPLICATE_SUBSCRIPTION:
             title = translate('workspace.changeOwner.duplicateSubscriptionTitle');
-            text = translate('workspace.changeOwner.duplicateSubscriptionText', {
-                email: changeOwner?.duplicateSubscription ?? '',
-                workspaceName: policy?.name ?? '',
-            });
+            text = translate('workspace.changeOwner.duplicateSubscriptionText', changeOwner?.duplicateSubscription ?? '', policy?.name ?? '');
             buttonText = translate('workspace.changeOwner.duplicateSubscriptionButtonText');
             break;
         case CONST.POLICY.OWNERSHIP_ERRORS.HAS_FAILED_SETTLEMENTS:

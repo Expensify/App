@@ -37,7 +37,6 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
     }, [startPermissionFlow]);
 
     const handledBlockedPermission = (cb: () => void) => () => {
-        setIsLoading(true);
         if (hasError && Linking.openSettings) {
             Linking.openSettings();
             setShowModal(false);
@@ -45,6 +44,7 @@ function LocationPermissionModal({startPermissionFlow, resetPermissionFlow, onDe
             resetPermissionFlow();
             return;
         }
+        setIsLoading(true);
         cb();
     };
 

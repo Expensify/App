@@ -46,6 +46,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
 
     const formattedAmount = convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
 
@@ -74,18 +75,18 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-        sendInvoice(
-            currentUserPersonalDetails.accountID,
+        sendInvoice({
+            currentUserAccountID: currentUserPersonalDetails.accountID,
             transaction,
-            report,
-            undefined,
+            policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+            invoiceChatReport: report,
             policy,
-            policyTags,
+            policyTagList: policyTags,
             policyCategories,
-            values.companyName,
+            companyName: values.companyName,
             companyWebsite,
             policyRecentlyUsedCategories,
-        );
+        });
     };
 
     return (

@@ -49,8 +49,10 @@ function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProp
     const selectedFeed = feedName && companyCardFeeds[feedName];
     const isPlaidCardFeed = !!getPlaidInstitutionId(feedName);
 
+    // Direct feeds include Plaid feeds and OAuth feeds (like oauth.chase.com) that have accountList
+    const isDirectFeed = isPlaidCardFeed || !!selectedFeed?.accountList;
     let cardFeedType: CardFeedType = 'customFeed';
-    if (isPlaidCardFeed) {
+    if (isDirectFeed) {
         cardFeedType = 'directFeed';
     }
 

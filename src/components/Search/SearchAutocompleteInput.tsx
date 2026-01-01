@@ -16,14 +16,12 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import {setSearchContext} from '@libs/actions/Search';
 import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
-import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
 type SearchAutocompleteInputProps = {
@@ -181,21 +179,9 @@ function SearchAutocompleteInput({
         [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
     );
 
-    const clearFilters = useCallback(() => {
+    const clearInput = useCallback(() => {
         onSearchQueryChange('');
-
-        // Check if we are on the search page before clearing query. If we are using the popup search menu,
-        // then the clear button is ONLY available when the search is *not* saved, so we don't have to navigate
-        const currentRoute = Navigation.getActiveRouteWithoutParams();
-        const isSearchPage = currentRoute === `/${ROUTES.SEARCH_ROOT.route}`;
-
-        if (isSearchPage) {
-            Navigation.navigate(
-                ROUTES.SEARCH_ROOT.getRoute({
-                    query: buildCannedSearchQuery(),
-                }),
-            );
-        }
+        setSearchContext(false);
     }, [onSearchQueryChange]);
 
     const inputWidth = isFullWidth ? styles.w100 : {width: variables.popoverWidth};
@@ -258,7 +244,7 @@ function SearchAutocompleteInput({
                         selection={selection}
                         shouldShowClearButton={!!value && !isSearchingForReports}
                         shouldHideClearButton={false}
-                        onClearInput={clearFilters}
+                        onClearInput={clearInput}
                     />
                 </View>
             </Animated.View>

@@ -126,7 +126,7 @@ function WorkspaceCompanyCardTableItem({
 
     return (
         <OfflineWithFeedback
-            errorRowStyles={styles.ph5}
+            errorRowStyles={[styles.ph5, styles.mb4]}
             errors={errors}
             pendingAction={pendingAction}
             onClose={resetFailedCompanyCardAssignment}

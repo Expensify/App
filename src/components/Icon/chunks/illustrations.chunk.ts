@@ -87,6 +87,7 @@ import Accounting from '@assets/images/simple-illustrations/simple-illustration_
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
+import ShareBank from '@assets/images/simple-illustrations/simple-illustration__bank-share.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
@@ -296,6 +297,7 @@ const Illustrations = {
     CarIce,
     BlueShield,
     Pencil,
+    ShareBank,
     Luggage,
     OpenSafe,
     Puzzle,

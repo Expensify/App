@@ -290,6 +290,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
                     localeCompare={localeCompare}
+                    translate={translate}
                     testID={index}
                     isReportArchived={isReportArchived}
                     lastAction={lastAction}
@@ -321,6 +322,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             isReportsSplitNavigatorLast,
             isScreenFocused,
             localeCompare,
+            translate,
         ],
     );
 

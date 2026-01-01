@@ -112,10 +112,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
         const errors: Errors = {};
         const privateNoteLength = privateNote.trim().length;
         if (privateNoteLength > CONST.MAX_COMMENT_LENGTH) {
-            errors.privateNotes = translate('common.error.characterLimitExceedCounter', {
-                length: privateNoteLength,
-                limit: CONST.MAX_COMMENT_LENGTH,
-            });
+            errors.privateNotes = translate('common.error.characterLimitExceedCounter', privateNoteLength, CONST.MAX_COMMENT_LENGTH);
         }
 
         return errors;

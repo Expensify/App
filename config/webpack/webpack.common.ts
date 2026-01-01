@@ -5,14 +5,24 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import MiniCssExtractPlugin from 'mini-css-extract-plugin';
+import {createRequire} from 'module';
 import path from 'path';
 import TerserPlugin from 'terser-webpack-plugin';
 import type {Class} from 'type-fest';
+import {fileURLToPath} from 'url';
+import webpack from 'webpack';
 import type {Configuration, WebpackPluginInstance} from 'webpack';
-import {DefinePlugin, EnvironmentPlugin, IgnorePlugin, ProvidePlugin} from 'webpack';
 import {BundleAnalyzerPlugin} from 'webpack-bundle-analyzer';
-import CustomVersionFilePlugin from './CustomVersionFilePlugin';
-import type Environment from './types';
+// Storybook 10 loads TS files directly and requires .ts extension for ESM imports
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+// eslint-disable-next-line import/extensions
+import CustomVersionFilePlugin from './CustomVersionFilePlugin.ts';
+// eslint-disable-next-line import/extensions
+import type Environment from './types.ts';
+
+const require = createRequire(import.meta.url);
+const filename = fileURLToPath(import.meta.url);
+const dirname = path.dirname(filename);
 
 dotenv.config();
 
@@ -77,6 +87,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
         console.debug(`[SENTRY ${platform.toUpperCase()}] Assets Path: ${platform === 'desktop' ? './desktop/dist/www/**/*.{js,map}' : './dist/**/*.{js,map}'}`);
     }
 
+    /* eslint-disable @typescript-eslint/naming-convention */
     return {
         mode: isDevelopment ? 'development' : 'production',
         devtool: 'source-map',
@@ -86,7 +97,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
         output: {
             // Use simple filenames in development to prevent memory leaks from contenthash changes
             filename: isDevelopment ? '[name].bundle.js' : '[name]-[contenthash].bundle.js',
-            path: path.resolve(__dirname, '../../dist'),
+            path: path.resolve(dirname, '../../dist'),
             publicPath: '/',
         },
         stats: {
@@ -99,7 +110,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             new HtmlWebpackPlugin({
                 template: 'web/index.html',
                 filename: 'index.html',
-                splashLogo: fs.readFileSync(path.resolve(__dirname, `../../assets/images/new-expensify${mapEnvironmentToLogoSuffix(file)}.svg`), 'utf-8'),
+                splashLogo: fs.readFileSync(path.resolve(dirname, `../../assets/images/new-expensify${mapEnvironmentToLogoSuffix(file)}.svg`), 'utf-8'),
                 isWeb: platform === 'web',
                 isProduction: file === '.env.production',
                 isStaging: file === '.env.staging',
@@ -117,7 +128,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 fileWhitelist: [/\.lottie$/],
                 include: 'allAssets',
             }),
-            new ProvidePlugin({
+            new webpack.ProvidePlugin({
                 process: 'process/browser',
             }),
 
@@ -148,31 +159,28 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     {from: 'web/snippets/gib.js', to: 'gib.js'},
                 ],
             }),
-            new EnvironmentPlugin({JEST_WORKER_ID: ''}),
-            new IgnorePlugin({
+            new webpack.EnvironmentPlugin({JEST_WORKER_ID: ''}),
+            new webpack.IgnorePlugin({
                 resourceRegExp: /^\.\/locale$/,
                 contextRegExp: /moment$/,
             }),
             ...(file === '.env.production' || file === '.env.staging'
                 ? [
-                      new IgnorePlugin({
+                      new webpack.IgnorePlugin({
                           resourceRegExp: /@welldone-software\/why-did-you-render/,
                       }),
                   ]
                 : []),
             ...(platform === 'web' ? [new CustomVersionFilePlugin()] : []),
-            new DefinePlugin({
+            new webpack.DefinePlugin({
                 ...(platform === 'desktop' ? {} : {process: {env: {}}}),
                 // Define EXPO_OS for web platform to fix expo-modules-core warning
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'process.env.EXPO_OS': JSON.stringify('web'),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 __REACT_WEB_CONFIG__: JSON.stringify(dotenv.config({path: file}).parsed),
 
                 // React Native JavaScript environment requires the global __DEV__ variable to be accessible.
                 // react-native-render-html uses variable to log exclusively during development.
                 // See https://reactnative.dev/docs/javascript-environment
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 __DEV__: /staging|prod|adhoc/.test(file) === false,
             }),
             ...(isDevelopment ? [] : [new MiniCssExtractPlugin()]),
@@ -289,44 +297,30 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     resolve: {
                         fullySpecified: false,
                     },
-                    include: [path.resolve(__dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js')],
+                    include: [path.resolve(dirname, '../../node_modules/react-native-tab-view/lib/module/TabView.js')],
                 },
             ],
         },
         resolve: {
             alias: {
                 lodash: 'lodash-es',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'react-native-config': 'react-web-config',
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'react-native$': 'react-native-web',
                 // Module alias for web & desktop
                 // https://webpack.js.org/configuration/resolve/#resolvealias
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '@assets': path.resolve(__dirname, '../../assets'),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '@components': path.resolve(__dirname, '../../src/components/'),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '@hooks': path.resolve(__dirname, '../../src/hooks/'),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '@libs': path.resolve(__dirname, '../../src/libs/'),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '@navigation': path.resolve(__dirname, '../../src/libs/Navigation/'),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '@pages': path.resolve(__dirname, '../../src/pages/'),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '@prompts': path.resolve(__dirname, '../../prompts'),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '@styles': path.resolve(__dirname, '../../src/styles/'),
+                '@assets': path.resolve(dirname, '../../assets'),
+                '@components': path.resolve(dirname, '../../src/components/'),
+                '@hooks': path.resolve(dirname, '../../src/hooks/'),
+                '@libs': path.resolve(dirname, '../../src/libs/'),
+                '@navigation': path.resolve(dirname, '../../src/libs/Navigation/'),
+                '@pages': path.resolve(dirname, '../../src/pages/'),
+                '@prompts': path.resolve(dirname, '../../prompts'),
+                '@styles': path.resolve(dirname, '../../src/styles/'),
                 // This path is provide alias for files like `ONYXKEYS` and `CONST`.
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '@src': path.resolve(__dirname, '../../src/'),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '@userActions': path.resolve(__dirname, '../../src/libs/actions/'),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '@desktop': path.resolve(__dirname, '../../desktop'),
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                '@selectors': path.resolve(__dirname, '../../src/selectors/'),
+                '@src': path.resolve(dirname, '../../src/'),
+                '@userActions': path.resolve(dirname, '../../src/libs/actions/'),
+                '@desktop': path.resolve(dirname, '../../desktop'),
+                '@selectors': path.resolve(dirname, '../../src/selectors/'),
             },
 
             // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
@@ -350,7 +344,6 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 '.tsx',
             ],
             fallback: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
                 'process/browser': require.resolve('process/browser'),
                 crypto: false,
             },
@@ -365,10 +358,8 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                         compress: {
                             passes: 2,
                         },
-                        // eslint-disable-next-line @typescript-eslint/naming-convention
                         keep_classnames: /ImageManipulator|ImageModule/,
                         mangle: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
                             keep_fnames: true,
                         },
                     },
@@ -421,5 +412,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
         },
     };
 };
+
+/* eslint-enable @typescript-eslint/naming-convention */
 
 export default getCommonConfiguration;

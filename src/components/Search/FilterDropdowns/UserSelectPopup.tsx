@@ -62,6 +62,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
@@ -98,21 +99,22 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             },
             draftComments,
             nvpDismissedProductTraining,
+            loginList,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
             },
             countryCode,
         );
-    }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, countryCode]);
+    }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode]);
 
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, {
+        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, loginList, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
-    }, [optionsList, cleanSearchTerm, countryCode]);
+    }, [optionsList, cleanSearchTerm, countryCode, loginList]);
 
     const listData = useMemo(() => {
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({

@@ -13,7 +13,7 @@ function saveResponse(response: string) {
  * Save the user's response to the mandatory exit survey in the back-end.
  */
 function switchToOldDot(exitSurveyResponse: string | undefined) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM | typeof ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM_DRAFT>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.FORMS.EXIT_SURVEY_RESPONSE_FORM,
