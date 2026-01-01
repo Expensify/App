@@ -1,5 +1,6 @@
 type CreateAppReportParams = {
-    reportName: string;
+    // Pass reportName only if it's a custom user defined name
+    reportName?: string;
     policyID?: string;
     type: string;
     reportID: string;
