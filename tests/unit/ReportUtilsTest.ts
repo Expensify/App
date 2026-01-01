@@ -893,14 +893,10 @@ describe('ReportUtils', () => {
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
                     const allReportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`]: reportNameValuePairs};
-                    expect(computeReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(
-                        `Ragnar Lothbrok's expenses (archived)`,
-                    );
+                    expect(computeReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
                     return IntlStore.load(CONST.LOCALES.ES).then(() =>
-                        expect(computeReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(
-                            `Ragnar Lothbrok's gastos (archivado)`,
-                        ),
+                        expect(computeReportName(memberArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
                     );
                 });
 
@@ -913,14 +909,10 @@ describe('ReportUtils', () => {
                     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`, reportNameValuePairs);
 
                     const allReportNameValuePairs = {[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${baseArchivedPolicyExpenseChat.reportID}`]: reportNameValuePairs};
-                    expect(computeReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(
-                        `Ragnar Lothbrok's expenses (archived)`,
-                    );
+                    expect(computeReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(`Ragnar Lothbrok's expenses (archived)`);
 
                     return IntlStore.load(CONST.LOCALES.ES).then(() =>
-                        expect(computeReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(
-                            `Ragnar Lothbrok's gastos (archivado)`,
-                        ),
+                        expect(computeReportName(adminArchivedPolicyExpenseChat, undefined, undefined, undefined, allReportNameValuePairs)).toBe(`Ragnar Lothbrok's gastos (archivado)`),
                     );
                 });
             });
@@ -990,9 +982,7 @@ describe('ReportUtils', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadOfRemovedRoomMemberAction.parentReportID}`]: {[removedParentReportAction.reportActionID]: removedParentReportAction},
                 };
                 // Note: The new computeReportName returns generic "removed 1 member" instead of expanding names like the old deprecated getReportName did
-                expect(computeReportName(threadOfRemovedRoomMemberAction, reports, policies, undefined, undefined, participantsPersonalDetails, reportActions)).toBe(
-                    'removed 1 member',
-                );
+                expect(computeReportName(threadOfRemovedRoomMemberAction, reports, policies, undefined, undefined, participantsPersonalDetails, reportActions)).toBe('removed 1 member');
             });
         });
 
