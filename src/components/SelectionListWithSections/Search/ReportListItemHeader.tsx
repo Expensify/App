@@ -1,7 +1,8 @@
-import React from 'react';
-import {View} from 'react-native';
+import React, {useContext, useMemo} from 'react';
 import type {ColorValue} from 'react-native';
+import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -215,8 +216,13 @@ function ReportListItemHeader<TItem extends ListItem>({
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
-    const snapshotReport = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
-    const snapshotPolicy = (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
+    const snapshotReport = useMemo(() => {
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
+    }, [snapshot, reportItem.reportID]);
+    const snapshotPolicy = useMemo(() => {
+        return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem.policyID}`] ?? {}) as Policy;
+    }, [snapshot, reportItem.policyID]);
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const avatarBorderColor =
         StyleUtils.getItemBackgroundColorStyle(!!reportItem.isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ??
         theme.highlightBG;
@@ -232,6 +238,8 @@ function ReportListItemHeader<TItem extends ListItem>({
             currentSearchKey,
             onDEWModalOpen,
             isDEWBetaEnabled,
+            isDelegateAccessRestricted,
+            showDelegateNoAccessModal,
         );
     };
     return !isLargeScreenWidth ? (
