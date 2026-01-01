@@ -40,7 +40,7 @@ function BaseUserDetailsTooltip({accountID, fallbackUserDetails, icon, delegateA
     }
 
     let title = String(userDisplayName).trim() ? userDisplayName : '';
-    let subtitle = userLogin.trim() && formatPhoneNumber(userLogin) !== userDisplayName ? Str.removeSMSDomain(userLogin) : '';
+    let subtitle = userLogin.trim() && formatPhoneNumber(userLogin) !== userDisplayName ? formatPhoneNumber(userLogin) : '';
     if (icon && (icon.type === CONST.ICON_TYPE_WORKSPACE || !title)) {
         title = icon.name ?? '';
 
