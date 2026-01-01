@@ -468,13 +468,14 @@ function Search({
                 data: snapshot.data,
                 currentAccountID: accountID,
                 currentUserEmail: email ?? '',
+                translate,
                 formatPhoneNumber,
                 isActionLoadingSet,
             });
             return {...item, transactions: transactions1 as TransactionListItemType[]};
         });
         return [enriched];
-    }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, formatPhoneNumber, isActionLoadingSet]);
+    }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, translate, formatPhoneNumber, isActionLoadingSet]);
 
     // For group-by views, check if any group has unloaded transactions
     const hasUnloadedGroupTransactions = useMemo(() => {
