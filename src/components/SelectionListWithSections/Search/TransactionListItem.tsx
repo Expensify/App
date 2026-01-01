@@ -129,10 +129,10 @@ function TransactionListItem<TItem extends ListItem>({
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const handleActionButtonPress = useCallback(() => {
-        handleActionButtonPressUtil(
-            currentSearchHash,
-            transactionItem,
-            () => onSelectRow(item, transactionPreviewData),
+        handleActionButtonPressUtil({
+            hash: currentSearchHash,
+            item: transactionItem,
+            goToItem: () => onSelectRow(item, transactionPreviewData),
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
@@ -140,8 +140,8 @@ function TransactionListItem<TItem extends ListItem>({
             onDEWModalOpen,
             isDEWBetaEnabled,
             isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-        );
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+        });
     }, [
         currentSearchHash,
         transactionItem,
