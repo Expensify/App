@@ -534,7 +534,7 @@ function MoneyRequestReportPreviewContent({
             isSubmittingAnimationRunning,
             isDEWSubmitPending,
             violationsData: transactionViolations,
-        );
+        });
     }, [
         isIouReportArchived,
         isChatReportArchived,

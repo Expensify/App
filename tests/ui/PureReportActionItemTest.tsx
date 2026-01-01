@@ -269,7 +269,6 @@ describe('PureReportActionItem', () => {
                                     linkedReport={undefined}
                                     iouReportOfLinkedReport={undefined}
                                     reportMetadata={reportMetadata}
-                                    isOffline
                                 />
                             </PortalProvider>
                         </ScreenWrapper>
