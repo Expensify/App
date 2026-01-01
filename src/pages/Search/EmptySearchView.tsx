@@ -216,7 +216,7 @@ function EmptySearchViewContent({
         if (!filteredPolicyID) {
             return true;
         }
-        const policyIDToCheck = Array.isArray(filteredPolicyID) ? filteredPolicyID[0] : filteredPolicyID;
+        const policyIDToCheck = Array.isArray(filteredPolicyID) ? filteredPolicyID.at(0) : filteredPolicyID;
         const filteredPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToCheck}`];
 
         return !!filteredPolicy;
