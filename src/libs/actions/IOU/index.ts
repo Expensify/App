@@ -11382,12 +11382,13 @@ function submitReport(
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     if (!isDEWPolicy) {
-         successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
-        value: {
-            pendingFields: {
-                nextStep: null,
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                pendingFields: {
+                    nextStep: null,
+                },
             },
         });
     }
