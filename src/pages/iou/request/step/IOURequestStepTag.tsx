@@ -4,7 +4,6 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import {useSearchContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
-import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -18,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftSplitTransaction, setMoneyRequestTag, updateMoneyRequestTag} from '@libs/actions/IOU';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getTagList, getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isDefaultTagName, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getTagList, getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {getTag, getTagArrayFromName, isExpenseUnreported} from '@libs/TransactionUtils';
@@ -66,7 +65,6 @@ function IOURequestStepTag({
 
     const tagListIndex = Number(rawTagIndex);
     const policyTagListName = getTagListName(policyTags, tagListIndex);
-    const tagListNameToShow = useMemo(() => (isDefaultTagName(policyTagListName) ? undefined : policyTagListName), [policyTagListName]);
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isSplitBill = iouType === CONST.IOU.TYPE.SPLIT;
@@ -193,18 +191,15 @@ function IOURequestStepTag({
                 </View>
             )}
             {!!shouldShowTag && (
-                <>
-                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection', {policyTagListName: tagListNameToShow})}</Text>
-                    <TagPicker
-                        policyID={policyID}
-                        tagListName={policyTagListName}
-                        tagListIndex={tagListIndex}
-                        selectedTag={tag}
-                        transactionTag={transactionTag}
-                        hasDependentTags={hasDependentTags}
-                        onSubmit={updateTag}
-                    />
-                </>
+                <TagPicker
+                    policyID={policyID}
+                    tagListName={policyTagListName}
+                    tagListIndex={tagListIndex}
+                    selectedTag={tag}
+                    transactionTag={transactionTag}
+                    hasDependentTags={hasDependentTags}
+                    onSubmit={updateTag}
+                />
             )}
         </StepScreenWrapper>
     );
