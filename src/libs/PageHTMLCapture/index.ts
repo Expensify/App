@@ -12,7 +12,7 @@ function capturePageHTML(): string {
         const pageURL = currentPath || '/';
 
         // Get the main content container (excluding the side panel)
-        const mainContent = document.querySelector('#root') as HTMLElement;
+        const mainContent = document.querySelector<HTMLElement>('#root');
         if (!mainContent) {
             return '';
         }

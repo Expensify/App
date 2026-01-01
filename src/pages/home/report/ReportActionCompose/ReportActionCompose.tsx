@@ -111,9 +111,6 @@ type ReportActionComposeProps = Pick<ComposerWithSuggestionsProps, 'reportID' | 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
 
-    /** Whether the report screen is being displayed in the side panel */
-    isInSidePanel?: boolean;
-
     /** Whether the main composer was hidden */
     didHideComposerInput?: boolean;
 
