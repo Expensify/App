@@ -65,10 +65,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const handleOnButtonPress = useCallback(() => {
-        handleActionButtonPress(
-            currentSearchHash,
-            reportItem,
-            () => onSelectRow(reportItem as unknown as TItem),
+        handleActionButtonPress({
+            hash: currentSearchHash,
+            item: reportItem,
+            goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
@@ -76,8 +76,8 @@ function ExpenseReportListItem<TItem extends ListItem>({
             onDEWModalOpen,
             isDEWBetaEnabled,
             isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-        );
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+        });
     }, [
         currentSearchHash,
         reportItem,
