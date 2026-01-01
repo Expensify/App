@@ -1,3 +1,4 @@
+import isNumber from 'lodash/isNumber';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
@@ -95,8 +96,7 @@ function MoneyRequestReportPreview({
             return false;
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
+        return transactions.some((transaction) => (isNumber(transaction?.modifiedAmount) ? transaction.modifiedAmount : transaction?.amount) < 0);
     }, [transactions, action.childType, iouReport]);
 
     const openReportFromPreview = useCallback(() => {

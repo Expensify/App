@@ -82,7 +82,7 @@ const transactionItemBaseMock: TransactionListItemType = {
     hasEReceipt: false,
     keyForList: '1',
     merchant: 'Expense',
-    modifiedAmount: 0,
+    modifiedAmount: undefined,
     modifiedCreated: '',
     modifiedCurrency: '',
     modifiedMerchant: 'Expense',
