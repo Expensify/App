@@ -53,7 +53,7 @@ export default function useTodos() {
             if (isPrimaryPayAction(report, accountID, email, policy, reportNameValuePair)) {
                 reportsToPay.push(report);
             }
-            if (isExportAction(report, policy, reportActions)) {
+            if (isExportAction(report, email, policy, reportActions)) {
                 reportsToExport.push(report);
             }
         }

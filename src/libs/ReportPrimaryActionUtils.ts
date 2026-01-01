@@ -205,7 +205,7 @@ function isPrimaryPayAction(
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function isExportAction(report: Report, policy?: Policy, reportActions?: ReportAction[]) {
+function isExportAction(report: Report, currentUserEmail: string, policy?: Policy, reportActions?: ReportAction[]) {
     if (!policy) {
         return false;
     }
@@ -219,7 +219,7 @@ function isExportAction(report: Report, policy?: Policy, reportActions?: ReportA
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
 
-    const isReportExporter = isPreferredExporter(policy);
+    const isReportExporter = isPreferredExporter(policy, currentUserEmail);
     if (!isReportExporter && !isAdmin) {
         return false;
     }
@@ -451,7 +451,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
-    if (isExportAction(report, policy, reportActions)) {
+    if (isExportAction(report, currentUserEmail, policy, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 
