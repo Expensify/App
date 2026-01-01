@@ -1218,8 +1218,7 @@ function PureReportActionItem({
                     </ReportActionItemBasicMessage>
                 );
             } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
-                // When DEW submit is pending offline, show "queued" message. When online, show nothing
-                children = isOffline ? <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} /> : emptyHTML;
+                children = <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.submitted', {memo: getOriginalMessage(action)?.message})} />;
             }

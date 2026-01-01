@@ -70,6 +70,7 @@ import {validateAmount} from '@libs/MoneyRequestUtils';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {isOffline} from '@libs/Network/NetworkStore';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
@@ -11677,6 +11678,8 @@ function submitReport(
         policy?.approvalMode,
     );
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    // For DEW policies, only add optimistic submit action when offline
+    const shouldAddOptimisticSubmitAction = !isDEWPolicy || isOffline();
 
     // buildOptimisticNextStep is used in parallel
     const optimisticNextStepDeprecated = isDEWPolicy
@@ -11708,24 +11711,32 @@ function submitReport(
     const managerID = getAccountIDsByLogins(approvalChain).at(0);
 
     const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-            value: {
-                [optimisticSubmittedReportAction.reportActionID]: {
-                    ...(optimisticSubmittedReportAction as OnyxTypes.ReportAction),
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            },
-        },
+        ...(shouldAddOptimisticSubmitAction
+            ? [
+                  {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+                      value: {
+                          [optimisticSubmittedReportAction.reportActionID]: {
+                              ...(optimisticSubmittedReportAction as OnyxTypes.ReportAction),
+                              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                          },
+                      },
+                  },
+              ]
+            : []),
         !isSubmitAndClosePolicy
             ? {
                   onyxMethod: Onyx.METHOD.MERGE,
                   key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
                   value: {
                       ...expenseReport,
-                      lastMessageText: getReportActionText(optimisticSubmittedReportAction),
-                      lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
+                      ...(shouldAddOptimisticSubmitAction
+                          ? {
+                                lastMessageText: getReportActionText(optimisticSubmittedReportAction),
+                                lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
+                            }
+                          : {}),
                       // For DEW policies, don't optimistically update managerID, stateNum, statusNum, or nextStep
                       // because DEW determines the actual workflow on the backend
                       ...(isDEWPolicy
@@ -11804,15 +11815,17 @@ function submitReport(
             },
         });
     }
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-        value: {
-            [optimisticSubmittedReportAction.reportActionID]: {
-                pendingAction: null,
+    if (shouldAddOptimisticSubmitAction) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticSubmittedReportAction.reportActionID]: {
+                    pendingAction: null,
+                },
             },
-        },
-    });
+        });
+    }
 
     if (isDEWPolicy) {
         successData.push({
@@ -11842,25 +11855,27 @@ function submitReport(
             },
         },
     ];
-    if (isDEWPolicy) {
-        // delete the optimistic SUBMITTED action as The backend creates a DEW_SUBMIT_FAILED action instead.
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-            value: {
-                [optimisticSubmittedReportAction.reportActionID]: null,
-            },
-        });
-    } else {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-            value: {
-                [optimisticSubmittedReportAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+    if (shouldAddOptimisticSubmitAction) {
+        if (isDEWPolicy) {
+            // delete the optimistic SUBMITTED action as The backend creates a DEW_SUBMIT_FAILED action instead.
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+                value: {
+                    [optimisticSubmittedReportAction.reportActionID]: null,
                 },
-            },
-        });
+            });
+        } else {
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+                value: {
+                    [optimisticSubmittedReportAction.reportActionID]: {
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                    },
+                },
+            });
+        }
     }
 
     if (isDEWPolicy) {
