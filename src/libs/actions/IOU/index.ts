@@ -11287,67 +11287,68 @@ function submitReport(
     const approvalChain = getApprovalChain(policy, expenseReport);
     const managerID = getAccountIDsByLogins(approvalChain).at(0);
 
-    const optimisticData: OnyxUpdate[] = [
-        ...(shouldAddOptimisticSubmitAction
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.MERGE,
-                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-                      value: {
-                          [optimisticSubmittedReportAction.reportActionID]: {
-                              ...(optimisticSubmittedReportAction as OnyxTypes.ReportAction),
-                              pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    const optimisticData: OnyxUpdate[] = [];
+
+    if (shouldAddOptimisticSubmitAction) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticSubmittedReportAction.reportActionID]: {
+                    ...(optimisticSubmittedReportAction as OnyxTypes.ReportAction),
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        });
+    }
+
+    if (!isSubmitAndClosePolicy) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                ...expenseReport,
+                ...(shouldAddOptimisticSubmitAction
+                    ? {
+                          lastMessageText: getReportActionText(optimisticSubmittedReportAction),
+                          lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
+                      }
+                    : {}),
+                // For DEW policies, don't optimistically update managerID, stateNum, statusNum, or nextStep
+                // because DEW determines the actual workflow on the backend
+                ...(isDEWPolicy
+                    ? {}
+                    : {
+                          managerID,
+                          stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                          statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                          nextStep: optimisticNextStep,
+                          pendingFields: {
+                              nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                           },
-                      },
-                  },
-              ]
-            : []),
-        !isSubmitAndClosePolicy
-            ? {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
-                  value: {
-                      ...expenseReport,
-                      ...(shouldAddOptimisticSubmitAction
-                          ? {
-                                lastMessageText: getReportActionText(optimisticSubmittedReportAction),
-                                lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
-                            }
-                          : {}),
-                      // For DEW policies, don't optimistically update managerID, stateNum, statusNum, or nextStep
-                      // because DEW determines the actual workflow on the backend
-                      ...(isDEWPolicy
-                          ? {}
-                          : {
-                                managerID,
-                                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                                nextStep: optimisticNextStep,
-                                pendingFields: {
-                                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                },
-                            }),
-                  },
-              }
-            : {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
-                  value: {
-                      ...expenseReport,
-                      // For DEW policies, don't optimistically update stateNum, statusNum, or nextStep
-                      ...(isDEWPolicy
-                          ? {}
-                          : {
-                                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
-                                nextStep: optimisticNextStep,
-                                pendingFields: {
-                                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                },
-                            }),
-                  },
-              },
-    ];
+                      }),
+            },
+        });
+    } else {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                ...expenseReport,
+                // For DEW policies, don't optimistically update stateNum, statusNum, or nextStep
+                ...(isDEWPolicy
+                    ? {}
+                    : {
+                          stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                          statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                          nextStep: optimisticNextStep,
+                          pendingFields: {
+                              nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                          },
+                      }),
+            },
+        });
+    }
 
     if (!isDEWPolicy) {
         optimisticData.push({
@@ -11380,7 +11381,7 @@ function submitReport(
         });
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [];
     if (!isDEWPolicy) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -11414,7 +11415,9 @@ function submitReport(
         });
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,

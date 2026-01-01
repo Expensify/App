@@ -700,7 +700,19 @@ describe('getReportPreviewAction', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
 
             // When getReportPreviewAction is called with isDEWSubmitPending = true
-            const result = getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, true);
+            const result = getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: '',
+                report,
+                policy,
+                transactions: [transaction],
+                invoiceReceiverPolicy: undefined,
+                isPaidAnimationRunning: false,
+                isApprovedAnimationRunning: false,
+                isSubmittingAnimationRunning: false,
+                isDEWSubmitPending: true,
+            });
 
             // Then it should return VIEW because DEW submission is pending offline
             expect(result).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
@@ -732,7 +744,19 @@ describe('getReportPreviewAction', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
 
             // When getReportPreviewAction is called with isDEWSubmitPending = false (failed, not pending)
-            const result = getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, false);
+            const result = getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: '',
+                report,
+                policy,
+                transactions: [transaction],
+                invoiceReceiverPolicy: undefined,
+                isPaidAnimationRunning: false,
+                isApprovedAnimationRunning: false,
+                isSubmittingAnimationRunning: false,
+                isDEWSubmitPending: false,
+            });
 
             // Then it should allow SUBMIT because failed submissions can be retried (not VIEW)
             expect(result).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
@@ -764,7 +788,19 @@ describe('getReportPreviewAction', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
 
             // When getReportPreviewAction is called with isDEWSubmitPending = false
-            const result = getReportPreviewAction(isReportArchived.current, CURRENT_USER_ACCOUNT_ID, report, policy, [transaction], undefined, false, false, false, false);
+            const result = getReportPreviewAction({
+                isReportArchived: isReportArchived.current,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserEmail: '',
+                report,
+                policy,
+                transactions: [transaction],
+                invoiceReceiverPolicy: undefined,
+                isPaidAnimationRunning: false,
+                isApprovedAnimationRunning: false,
+                isSubmittingAnimationRunning: false,
+                isDEWSubmitPending: false,
+            });
 
             // Then it should not return VIEW because DEW submit did not fail and regular logic applies
             expect(result).not.toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);

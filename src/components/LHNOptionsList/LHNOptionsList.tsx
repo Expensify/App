@@ -236,7 +236,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
                 policyForMovingExpensesID,
                 reportMetadata: itemReportMetadata,
-                isOffline,
             });
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
