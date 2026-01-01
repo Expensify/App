@@ -382,6 +382,7 @@ ___
 
 ___
 
+```
 ## 1. Component and Flow Description
 
 **Component/Flow:** Describe the specific UI component or user flow being optimized.
@@ -440,6 +441,7 @@ ___
 *Performance improvements should not change user experience and product design.*
 - [ ] This change preserves existing UX (No visual/behavioral changes).
 - [ ] This change alters UX (Description: _________________).
+```
 
 ---
 
