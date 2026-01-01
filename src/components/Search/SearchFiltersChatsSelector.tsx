@@ -1,4 +1,5 @@
 import reportsSelector from '@selectors/Attributes';
+import {accountIDSelector, emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -51,6 +52,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
 
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
@@ -74,15 +77,33 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return getSearchOptions({options, draftComments, nvpDismissedProductTraining, betas: undefined, isUsedInChatFinder: false, countryCode, loginList});
-    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList]);
+        return getSearchOptions({
+            options,
+            draftComments,
+            nvpDismissedProductTraining,
+            betas: undefined,
+            isUsedInChatFinder: false,
+            countryCode,
+            loginList,
+            currentUserAccountID,
+            currentUserEmail,
+        });
+    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList, currentUserAccountID, currentUserEmail]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, {
-            selectedOptions,
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-        });
-    }, [defaultOptions, cleanSearchTerm, countryCode, loginList, selectedOptions]);
+        return filterAndOrderOptions(
+            defaultOptions,
+            cleanSearchTerm,
+            countryCode,
+            loginList,
+            {
+                selectedOptions,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                currentUserEmail,
+            },
+            currentUserAccountID,
+        );
+    }, [defaultOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, currentUserAccountID, currentUserEmail]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -99,6 +120,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             false,
             undefined,
             reportAttributesDerived,
+            currentUserAccountID,
         );
 
         newSections.push(formattedResults.section);
@@ -131,6 +153,7 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
         selectedOptions,
         selectedReportIDs,
         translate,
+        currentUserAccountID,
     ]);
 
     useEffect(() => {

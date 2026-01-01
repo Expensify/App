@@ -1,3 +1,4 @@
+import {emailSelector} from '@selectors/Session';
 import {useCallback, useState} from 'react';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
@@ -33,14 +34,15 @@ function useContactImport(): UseContactImportResult {
     const {localeCompare} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
 
     const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
-            const usersFromContact = getContacts(contactList, localeCompare, countryCode, loginList);
+            const usersFromContact = getContacts(contactList, localeCompare, countryCode, loginList, currentUserEmail);
             setContacts(usersFromContact);
         });
-    }, [localeCompare, countryCode, loginList]);
+    }, [localeCompare, countryCode, loginList, currentUserEmail]);
 
     useContactPermissions({
         importAndSaveContacts,

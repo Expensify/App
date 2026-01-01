@@ -1,4 +1,5 @@
 import reportsSelector from '@selectors/Attributes';
+import {accountIDSelector, emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
@@ -51,6 +52,8 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
     const [selectedOptions, setSelectedOptions] = useState<OptionData[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
@@ -72,22 +75,32 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
+                currentUserAccountID,
+                currentUserEmail,
             },
             countryCode,
         );
-    }, [areOptionsInitialized, options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode]);
+    }, [areOptionsInitialized, options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode, currentUserAccountID, currentUserEmail]);
 
     const unselectedOptions = useMemo(() => {
         return filterSelectedOptions(defaultOptions, new Set(selectedOptions.map((option) => option.accountID)));
     }, [defaultOptions, selectedOptions]);
 
     const chatOptions = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, cleanSearchTerm, countryCode, loginList, {
-            selectedOptions,
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-            canInviteUser: false,
-        });
+        const filteredOptions = filterAndOrderOptions(
+            unselectedOptions,
+            cleanSearchTerm,
+            countryCode,
+            loginList,
+            {
+                selectedOptions,
+                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+                canInviteUser: false,
+                currentUserEmail,
+            },
+            currentUserAccountID,
+        );
 
         const {currentUserOption} = unselectedOptions;
 
@@ -97,7 +110,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
         }
 
         return filteredOptions;
-    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions]);
+    }, [unselectedOptions, cleanSearchTerm, countryCode, loginList, selectedOptions, currentUserAccountID, currentUserEmail]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -114,6 +127,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             true,
             undefined,
             reportAttributesDerived,
+            currentUserAccountID,
         );
 
         const selectedCurrentUser = formattedResults.section.data.find((option) => option.accountID === chatOptions.currentUserOption?.accountID);
@@ -162,7 +176,7 @@ function SearchFiltersParticipantsSelector({initialAccountIDs, onFiltersUpdate}:
             sections: newSections,
             headerMessage: message,
         };
-    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber]);
+    }, [areOptionsInitialized, cleanSearchTerm, selectedOptions, chatOptions, personalDetails, reportAttributesDerived, translate, formatPhoneNumber, currentUserAccountID]);
 
     const resetChanges = useCallback(() => {
         setSelectedOptions([]);
