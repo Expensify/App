@@ -66,7 +66,29 @@ function extractSimplifiedHTML(element: HTMLElement): string {
             const tagName = childElement.tagName.toLowerCase();
 
             // Check if this is a semantic element we want to capture
-            const semanticElements = ['button', 'a', 'input', 'textarea', 'select', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'nav', 'header', 'footer', 'article', 'section', 'aside', 'main', 'form', 'label', 'img'];
+            const semanticElements = [
+                'button',
+                'a',
+                'input',
+                'textarea',
+                'select',
+                'h1',
+                'h2',
+                'h3',
+                'h4',
+                'h5',
+                'h6',
+                'nav',
+                'header',
+                'footer',
+                'article',
+                'section',
+                'aside',
+                'main',
+                'form',
+                'label',
+                'img',
+            ];
 
             if (semanticElements.includes(tagName)) {
                 // Build simplified element representation
@@ -127,4 +149,3 @@ function extractSimplifiedHTML(element: HTMLElement): string {
 }
 
 export default capturePageHTML;
-

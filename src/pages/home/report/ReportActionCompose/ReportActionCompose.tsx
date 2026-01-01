@@ -339,7 +339,16 @@ function ReportActionCompose({
             }
 
             if (attachmentFileRef.current) {
-                addAttachmentWithComment(transactionThreadReportID ?? reportID, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true, isInSidePanel);
+                addAttachmentWithComment(
+                    transactionThreadReportID ?? reportID,
+                    reportID,
+                    ancestors,
+                    attachmentFileRef.current,
+                    newCommentTrimmed,
+                    personalDetail.timezone,
+                    true,
+                    isInSidePanel,
+                );
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});

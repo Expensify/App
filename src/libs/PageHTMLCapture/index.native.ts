@@ -8,4 +8,3 @@ function capturePageHTML(): string {
 }
 
 export default capturePageHTML;
-
