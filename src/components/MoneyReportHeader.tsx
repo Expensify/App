@@ -1478,9 +1478,9 @@ function MoneyReportHeader({
         if (!hasFinishedPDFDownload || !canTriggerAutomaticPDFDownload.current) {
             return;
         }
-        downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '', translate);
+        downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '', translate, email);
         canTriggerAutomaticPDFDownload.current = false;
-    }, [hasFinishedPDFDownload, reportPDFFilename, moneyRequestReport?.reportName, translate]);
+    }, [hasFinishedPDFDownload, reportPDFFilename, moneyRequestReport?.reportName, translate, email]);
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
@@ -1789,7 +1789,7 @@ function MoneyReportHeader({
                                 if (!hasFinishedPDFDownload) {
                                     setIsPDFModalVisible(false);
                                 } else {
-                                    downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '', translate);
+                                    downloadReportPDF(reportPDFFilename, moneyRequestReport?.reportName ?? '', translate, email);
                                 }
                             }}
                             text={hasFinishedPDFDownload ? translate('common.download') : translate('common.cancel')}

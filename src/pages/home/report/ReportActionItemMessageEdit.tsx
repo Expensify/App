@@ -16,6 +16,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
 import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
 import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -153,6 +154,7 @@ function ReportActionItemMessageEdit({
     const originalParentReportID = getOriginalReportID(originalReportID, action);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
     const ancestors = useAncestors(originalReport);
+    const {email} = useCurrentUserPersonalDetails();
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
@@ -314,9 +316,30 @@ function ReportActionItemMessageEdit({
             ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(originalReport, action, ancestors, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(
+            originalReport,
+            action,
+            ancestors,
+            trimmedNewDraft,
+            isOriginalReportArchived,
+            isOriginalParentReportArchived,
+            Object.fromEntries(draftMessageVideoAttributeCache),
+            email,
+        );
         deleteDraft();
-    }, [reportID, action, ancestors, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived, debouncedValidateCommentMaxLength]);
+    }, [
+        reportID,
+        action,
+        ancestors,
+        deleteDraft,
+        draft,
+        originalReportID,
+        isOriginalReportArchived,
+        originalReport,
+        isOriginalParentReportArchived,
+        debouncedValidateCommentMaxLength,
+        email,
+    ]);
 
     /**
      * @param emoji

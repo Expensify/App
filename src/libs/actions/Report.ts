@@ -274,6 +274,7 @@ type ReportError = {
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 let conciergeReportID: string | undefined;
 let currentUserAccountID = -1;
+/** @deprecated This value is deprecated. Use the email from useCurrentUserPersonalDetails hook instead. */
 let currentUserEmail: string | undefined;
 
 Onyx.connect({
@@ -2143,12 +2144,12 @@ function removeLinksFromHtml(html: string, links: string[]): string {
  * @param originalCommentMarkdown original markdown of the comment before editing.
  * @param videoAttributeCache cache of video attributes ([videoSource]: videoAttributes)
  */
-function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMarkdown: string, videoAttributeCache?: Record<string, string>): string {
+function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMarkdown: string, videoAttributeCache?: Record<string, string>, userEmail?: string): string {
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
 
-    const userEmailDomain = isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? '');
+    const userEmailDomain = isEmailPublicDomain(userEmail ?? '') ? '' : Str.extractEmailDomain(userEmail ?? '');
     const allPersonalDetailLogins = Object.values(allPersonalDetails ?? {}).map((personalDetail) => personalDetail?.login ?? '');
 
     const htmlForNewComment = getParsedMessageWithShortMentions({
@@ -2173,6 +2174,7 @@ function editReportComment(
     isOriginalReportArchived: boolean | undefined,
     isOriginalParentReportArchived: boolean | undefined,
     videoAttributeCache?: Record<string, string>,
+    userEmail?: string,
 ) {
     const originalReportID = originalReport?.reportID;
     if (!originalReportID || !originalReportAction) {
@@ -2191,7 +2193,7 @@ function editReportComment(
     if (originalCommentMarkdown === textForNewComment) {
         return;
     }
-    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown, videoAttributeCache);
+    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown, videoAttributeCache, userEmail);
 
     const reportComment = Parser.htmlToText(htmlForNewComment);
 
@@ -3630,7 +3632,7 @@ function doneCheckingPublicRoom() {
 function getCurrentUserAccountID(): number {
     return currentUserAccountID;
 }
-
+/** @deprecated This function is deprecated. Use the email from useCurrentUserPersonalDetails hook instead. */
 function getCurrentUserEmail(): string | undefined {
     return currentUserEmail;
 }
@@ -4923,12 +4925,12 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
     API.write(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, params, {optimisticData, failureData});
 }
 
-function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate) {
+function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate, userEmail?: string) {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `${reportName}.pdf`;
     setDownload(fileName, true);
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
-        currentUserEmail ?? '',
+        userEmail ?? '',
     )}`;
     fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
 }
