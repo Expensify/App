@@ -1,4 +1,3 @@
-import {Str} from 'expensify-common';
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
