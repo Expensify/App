@@ -164,6 +164,7 @@ function getLastPolicyPaymentMethod(
         return undefined;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const personalPolicy = getPersonalPolicy();
 
     const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] ?? (isIOUReport && personalPolicy ? lastPaymentMethods?.[personalPolicy.id] : undefined);
@@ -700,7 +701,7 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function bulkDeleteReports(hash: number, selectedTransactions: Record<string, SelectedTransactionInfo>, currentUserEmailParam: string) {
+function bulkDeleteReports(hash: number, selectedTransactions: Record<string, SelectedTransactionInfo>, currentUserEmailParam: string, transactions: Transaction[]) {
     const transactionIDList: string[] = [];
     const reportIDList: string[] = [];
 
@@ -719,7 +720,7 @@ function bulkDeleteReports(hash: number, selectedTransactions: Record<string, Se
 
     if (reportIDList.length > 0) {
         for (const reportID of reportIDList) {
-            deleteAppReport(reportID, currentUserEmailParam);
+            deleteAppReport(reportID, currentUserEmailParam, transactions);
         }
     }
 }

@@ -200,7 +200,7 @@ function SearchList({
     }, [data, type]);
 
     const selectedItemsLength = useMemo(() => {
-        const selectedTransactions = flattenedItems.reduce((acc, item) => {
+        const selectedTransactionsCount = flattenedItems.reduce((acc, item) => {
             return acc + (item?.isSelected ? 1 : 0);
         }, 0);
 
@@ -209,10 +209,10 @@ function SearchList({
                 return acc + (item.isSelected ? 1 : 0);
             }, 0);
 
-            return selectedEmptyReports + selectedTransactions;
+            return selectedEmptyReports + selectedTransactionsCount;
         }
 
-        return selectedTransactions;
+        return selectedTransactionsCount;
     }, [flattenedItems, type, data, emptyReports]);
 
     const totalItems = useMemo(() => {

@@ -62,7 +62,7 @@ describe('bulkDeleteReports', () => {
             };
 
             const currentUserEmail = '';
-            bulkDeleteReports(hash, selectedTransactions, currentUserEmail);
+            bulkDeleteReports(hash, selectedTransactions, currentUserEmail, []);
 
             // Should call deleteAppReport for each empty report
             expect(deleteAppReport).toHaveBeenCalledTimes(2);
@@ -124,7 +124,7 @@ describe('bulkDeleteReports', () => {
             };
 
             const currentUserEmail = '';
-            bulkDeleteReports(hash, selectedTransactions, currentUserEmail);
+            bulkDeleteReports(hash, selectedTransactions, currentUserEmail, []);
 
             // Should call deleteAppReport for empty report
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
@@ -168,7 +168,7 @@ describe('bulkDeleteReports', () => {
                 },
             };
 
-            bulkDeleteReports(hash, selectedTransactions, '');
+            bulkDeleteReports(hash, selectedTransactions, '', []);
 
             // Should not call deleteAppReport
             expect(deleteAppReport).not.toHaveBeenCalled();
@@ -178,7 +178,7 @@ describe('bulkDeleteReports', () => {
             const hash = 12345;
             const selectedTransactions: Record<string, SelectedTransactionInfo> = {};
 
-            bulkDeleteReports(hash, selectedTransactions, '');
+            bulkDeleteReports(hash, selectedTransactions, '', []);
 
             // Should not call any deletion functions
             expect(deleteAppReport).not.toHaveBeenCalled();
@@ -222,7 +222,7 @@ describe('bulkDeleteReports', () => {
             };
 
             const currentUserEmail = '';
-            bulkDeleteReports(hash, selectedTransactions, currentUserEmail);
+            bulkDeleteReports(hash, selectedTransactions, currentUserEmail, []);
 
             // Should only call deleteAppReport for the first report where key === reportID
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
@@ -269,7 +269,7 @@ describe('bulkDeleteReports', () => {
                 },
             };
 
-            bulkDeleteReports(hash, selectedTransactions, '');
+            bulkDeleteReports(hash, selectedTransactions, '', []);
 
             // Should not call deleteAppReport for transactions
             expect(deleteAppReport).not.toHaveBeenCalled();

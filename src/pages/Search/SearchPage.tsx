@@ -885,7 +885,12 @@ function SearchPage({route}: SearchPageProps) {
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            bulkDeleteReports(hash, selectedTransactions, currentUserPersonalDetails.email ?? '');
+            bulkDeleteReports(
+                hash,
+                selectedTransactions,
+                currentUserPersonalDetails.email ?? '',
+                allTransactions ? Object.values(allTransactions).filter((transaction): transaction is Transaction => !!transaction) : [],
+            );
             deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
             clearSelectedTransactions();
         });
