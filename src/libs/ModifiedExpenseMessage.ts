@@ -64,18 +64,10 @@ function buildMessageFragmentForValue(
     shouldConvertToLowercase = true,
 ) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
+    const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const isCategoryField = valueName.includes(translateLocal('common.category').toLowerCase());
-
-    let oldValueToDisplay;
-    if (isCategoryField && isCategoryMissing(oldValue)) {
-        oldValueToDisplay = oldValue.toLowerCase();
-    } else if (valueInQuotes) {
-        oldValueToDisplay = `"${oldValue}"`;
-    } else {
-        oldValueToDisplay = oldValue;
-    }
 
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
     const isOldValuePartialMerchant = valueName === translate('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
