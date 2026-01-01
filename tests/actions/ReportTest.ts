@@ -509,7 +509,8 @@ describe('actions/Report', () => {
             .then(() => {
                 rerender(report);
                 // If the user deletes a comment that is before the last read
-                Report.deleteReportComment(REPORT_ID, {...reportActions[200]}, ancestors.current, undefined, undefined);
+                Report.deleteReportComment(REPORT_ID, {...reportActions[200]}, ancestors.current, undefined, undefined, '');
+                Report.deleteReportComment(REPORT_ID, {...reportActions[300]}, ancestors.current, undefined, undefined, '');
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -528,7 +529,8 @@ describe('actions/Report', () => {
 
                 rerender(report);
                 // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
-                Report.deleteReportComment(REPORT_ID, {...reportActions[400]}, ancestors.current, undefined, undefined);
+                Report.deleteReportComment(REPORT_ID, {...reportActions[400]}, ancestors.current, undefined, undefined, '');
+                Report.deleteReportComment(REPORT_ID, {...reportActions[300]}, ancestors.current, undefined, undefined, '');
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -998,7 +1000,7 @@ describe('actions/Report', () => {
         };
 
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
-        Report.editReportComment(originalReport, newReportAction, ancestors.current, 'Testing an edited comment', undefined, undefined);
+        Report.editReportComment(originalReport, newReportAction, ancestors.current, 'Testing an edited comment', undefined, undefined, '');
 
         await waitForBatchedUpdates();
 
@@ -1032,7 +1034,7 @@ describe('actions/Report', () => {
         });
 
         rerender(originalReport);
-        Report.deleteReportComment(REPORT_ID, newReportAction, ancestors.current, undefined, undefined);
+        Report.deleteReportComment(REPORT_ID, newReportAction, ancestors.current, undefined, undefined, '');
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1080,7 +1082,7 @@ describe('actions/Report', () => {
         };
         const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
 
-        Report.editReportComment(originalReport, reportAction, ancestors.current, 'Testing an edited comment', undefined, undefined);
+        Report.editReportComment(originalReport, reportAction, ancestors.current, 'Testing an edited comment', undefined, undefined, '');
 
         await waitForBatchedUpdates();
 
@@ -1096,7 +1098,7 @@ describe('actions/Report', () => {
         });
 
         rerender(originalReport);
-        Report.deleteReportComment(REPORT_ID, reportAction, ancestors.current, undefined, undefined);
+        Report.deleteReportComment(REPORT_ID, reportAction, ancestors.current, undefined, undefined, '');
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1145,7 +1147,7 @@ describe('actions/Report', () => {
                 }),
             );
 
-        Report.deleteReportComment(REPORT_ID, reportAction, [], undefined, undefined);
+        Report.deleteReportComment(REPORT_ID, reportAction, [], undefined, undefined, '');
 
         jest.runOnlyPendingTimers();
         await waitForBatchedUpdates();
@@ -1207,7 +1209,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction, [], undefined, undefined);
+        Report.deleteReportComment(REPORT_ID, newReportAction, [], undefined, undefined, '');
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1276,7 +1278,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction, [], undefined, undefined);
+        Report.deleteReportComment(REPORT_ID, newReportAction, [], undefined, undefined, '');
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1472,7 +1474,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, newReportAction, [], undefined, undefined);
+        Report.deleteReportComment(REPORT_ID, newReportAction, [], undefined, undefined, '');
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(0);
@@ -1556,7 +1558,7 @@ describe('actions/Report', () => {
             });
         });
 
-        Report.deleteReportComment(REPORT_ID, reportAction, [], undefined, undefined);
+        Report.deleteReportComment(REPORT_ID, reportAction, [], undefined, undefined, '');
 
         await waitForBatchedUpdates();
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1604,7 +1606,7 @@ describe('actions/Report', () => {
 
         const {result: ancestors} = renderHook(() => useAncestors({reportID: REPORT_ID}));
 
-        Report.deleteReportComment(REPORT_ID, reportAction, ancestors.current, undefined, undefined);
+        Report.deleteReportComment(REPORT_ID, reportAction, ancestors.current, undefined, undefined, '');
 
         expect(PersistedRequests.getAll().length).toBe(3);
 
@@ -1642,7 +1644,7 @@ describe('actions/Report', () => {
         const originalReport = {
             reportID: REPORT_ID,
         };
-        Report.editReportComment(originalReport, reportAction, [], 'Testing an edited comment', undefined, undefined);
+        Report.editReportComment(originalReport, reportAction, [], 'Testing an edited comment', undefined, undefined, '');
 
         await waitForBatchedUpdates();
 
@@ -1680,9 +1682,9 @@ describe('actions/Report', () => {
 
         const {result: ancestors} = renderHook(() => useAncestors(originalReport));
 
-        Report.editReportComment(originalReport, action, ancestors.current, 'value1', undefined, undefined);
-        Report.editReportComment(originalReport, action, ancestors.current, 'value2', undefined, undefined);
-        Report.editReportComment(originalReport, action, ancestors.current, 'value3', undefined, undefined);
+        Report.editReportComment(originalReport, action, ancestors.current, 'value1', undefined, undefined, '');
+        Report.editReportComment(originalReport, action, ancestors.current, 'value2', undefined, undefined, '');
+        Report.editReportComment(originalReport, action, ancestors.current, 'value3', undefined, undefined, '');
 
         const requests = PersistedRequests?.getAll();
 
@@ -1733,8 +1735,8 @@ describe('actions/Report', () => {
 
         const {result: ancestors} = renderHook(() => useAncestors(report));
 
-        Report.deleteReportComment(reportID, mentionAction, ancestors.current, undefined, undefined);
-        Report.deleteReportComment(reportID, mentionAction2, ancestors.current, undefined, undefined);
+        Report.deleteReportComment(reportID, mentionAction, ancestors.current, undefined, undefined, '');
+        Report.deleteReportComment(reportID, mentionAction2, ancestors.current, undefined, undefined, '');
 
         await waitForBatchedUpdates();
 
