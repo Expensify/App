@@ -211,6 +211,17 @@ function EmptySearchViewContent({
         [accountID, defaultChatEnabledPolicyID, hasDismissedEmptyReportsConfirmation, reportSummaries],
     );
 
+    const isFilteredWorkspaceAccessible = useMemo(() => {
+        const filteredPolicyID = queryJSON?.policyID;
+        if (!filteredPolicyID) {
+            return true;
+        }
+        const policyIDToCheck = Array.isArray(filteredPolicyID) ? filteredPolicyID[0] : filteredPolicyID;
+        const filteredPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToCheck}`];
+
+        return !!filteredPolicy;
+    }, [queryJSON?.policyID, allPolicies]);
+
     const handleCreateWorkspaceReport = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
             if (!defaultChatEnabledPolicy?.id) {
@@ -353,6 +364,13 @@ function EmptySearchViewContent({
                     lottieWebViewStyles: {backgroundColor: theme.travelBG, ...styles.emptyStateFolderWebStyles, ...styles.tripEmptyStateLottieWebView},
                 };
             case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
+                if (!isFilteredWorkspaceAccessible) {
+                    return {
+                        ...defaultViewItemHeader.folder,
+                        title: translate('search.searchResults.emptyResults.title'),
+                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
+                    };
+                }
                 if (hasResults && (!queryJSON || !isDefaultExpenseReportsQuery(queryJSON) || hasExpenseReports)) {
                     return {
                         ...defaultViewItemHeader.folder,
@@ -407,6 +425,13 @@ function EmptySearchViewContent({
                 }
             // eslint-disable-next-line no-fallthrough
             case CONST.SEARCH.DATA_TYPES.EXPENSE:
+                if (!isFilteredWorkspaceAccessible) {
+                    return {
+                        ...defaultViewItemHeader.folder,
+                        title: translate('search.searchResults.emptyResults.title'),
+                        subtitle: translate('search.searchResults.emptyResults.subtitle'),
+                    };
+                }
                 if (hasResults && (!queryJSON || !isDefaultExpensesQuery(queryJSON) || hasTransactions)) {
                     return {
                         ...defaultViewItemHeader.folder,
