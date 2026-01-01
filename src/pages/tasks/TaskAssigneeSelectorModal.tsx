@@ -1,5 +1,6 @@
 /* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -27,7 +28,6 @@ import HttpUtils from '@libs/HttpUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getHeaderMessage, isCurrentUser} from '@libs/OptionsListUtils';
-import {emailSelector} from '@selectors/Session';
 import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import type {TaskDetailsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
