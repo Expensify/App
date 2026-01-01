@@ -552,7 +552,7 @@ function savePolicyDraftByNewWorkspace({
         makeMeAdmin,
         policyName,
         policyID,
-        engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+        engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
         currency,
         file,
         lastUsedPaymentMethod,
