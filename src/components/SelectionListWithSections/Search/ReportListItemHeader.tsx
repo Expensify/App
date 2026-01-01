@@ -228,10 +228,10 @@ function ReportListItemHeader<TItem extends ListItem>({
         theme.highlightBG;
 
     const handleOnButtonPress = () => {
-        handleActionButtonPress(
-            currentSearchHash,
-            reportItem,
-            () => onSelectRow(reportItem as unknown as TItem),
+        handleActionButtonPress({
+            hash: currentSearchHash,
+            item: reportItem,
+            goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
@@ -239,8 +239,8 @@ function ReportListItemHeader<TItem extends ListItem>({
             onDEWModalOpen,
             isDEWBetaEnabled,
             isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-        );
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+        });
     };
     return !isLargeScreenWidth ? (
         <View style={[styles.pv1Half]}>
