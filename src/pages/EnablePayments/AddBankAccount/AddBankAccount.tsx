@@ -40,7 +40,7 @@ function AddBankAccount() {
                       ...selectedPlaidBankAccount,
                       plaidAccessToken: plaidData?.plaidAccessToken ?? '',
                   };
-            addPersonalBankAccount(bankAccountWithToken);
+            addPersonalBankAccount(bankAccountWithToken, undefined, CONST.KYC_WALL_SOURCE.ENABLE_WALLET);
         }
     }, [personalBankAccountDraft?.plaidAccountID, plaidData?.bankAccounts, plaidData?.plaidAccessToken]);
 
