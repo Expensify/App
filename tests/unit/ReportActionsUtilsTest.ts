@@ -14,6 +14,9 @@ import {
     getCompanyAddressUpdateMessage,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getReportActionActorAccountID,
     getSendMoneyFlowAction,
     isIOUActionMatchingTransactionList,
 } from '../../src/libs/ReportActionsUtils';
@@ -1945,6 +1948,192 @@ describe('ReportActionsUtils', () => {
 
             // The new line should be replaced with a comma
             expect(result).toBe('set the company address to "123 Main St, Suite 500, New York, NY 10001"');
+        });
+    });
+
+    describe('getReportActionActorAccountID', () => {
+        it('should return report owner account id if action is REPORTPREVIEW and report is a policy expense chat', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return report manager account id if action is REPORTPREVIEW and report is not a policy expense chat', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(20);
+        });
+
+        it('should return admin account id if action is SUBMITTED taken by an admin on behalf the submitter', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                adminAccountID: 30,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(30);
+        });
+
+        it('should return report owner account id if action is SUBMITTED taken by the submitter himself', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return admin account id if action is SUBMITTED_AND_CLOSED taken by an admin on behalf the submitter', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                adminAccountID: 30,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(30);
+        });
+
+        it('should return report owner account id if action is SUBMITTED_AND_CLOSED taken by the submitter himself', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return original actor account id if action is ADDCOMMENT', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: 123,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(123);
+        });
+
+        it('returns CONCIERGE for CREATED action when report is harvest-created', async () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                actorAccountID: 9999,
+            };
+
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: 'harvest-report-1',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {
+                origin: 'harvest',
+                originalID: 'orig-123',
+            });
+            await waitForBatchedUpdates();
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
+        it('returns reportAction.actorAccountID for CREATED action when not harvest-created', async () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                actorAccountID: 9999,
+            };
+
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: 'normal-report-2',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {});
+            await waitForBatchedUpdates();
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toBe(9999);
         });
     });
 });

@@ -6,6 +6,7 @@ import type {
     ParamListBase,
     RouteProp,
     RouterFactory,
+    ScreenOptionsOrCallback,
     StackNavigationState,
     StackRouterOptions,
 } from '@react-navigation/native';
@@ -13,9 +14,6 @@ import type {NativeStackNavigationEventMap, NativeStackNavigationOptions} from '
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
 import type CommonProperties from '@src/types/utils/CommonProperties';
 import type {PlatformStackNavigationOptions} from './NavigationOptions';
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-restricted-types
-type ScreenOptionsOrCallback<ScreenOptions extends object> = ScreenOptions | ((props: any) => ScreenOptions);
 
 // Represents the navigation state type for a platform-specific stack.
 type PlatformStackNavigationState<ParamList extends ParamListBase> = StackNavigationState<ParamList>;
@@ -84,7 +82,7 @@ type PlatformStackNavigatorProps<ParamList extends ParamListBase, RouterOptions 
 // a factory function that returns the navigation options based on route and navigation props.
 // These types are used to represent the screen options and their factory functions.
 function isRouteBasedScreenOptions<ParamList extends ParamListBase, RouteName extends keyof ParamList = keyof ParamList>(
-    screenOptions: ScreenOptionsOrCallback<PlatformStackNavigationOptions> | undefined,
+    screenOptions: ScreenOptionsOrCallback<PlatformStackNavigationOptions, ParamList, RouteName> | undefined,
 ): screenOptions is (props: PlatformStackScreenProps<ParamList, RouteName>) => PlatformStackNavigationOptions {
     return typeof screenOptions === 'function';
 }
@@ -101,7 +99,6 @@ export type {
     PlatformStackRouteProp,
     PlatformStackScreenProps,
     PlatformStackNavigatorProps,
-    ScreenOptionsOrCallback,
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-exports
