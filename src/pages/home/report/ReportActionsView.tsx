@@ -12,6 +12,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 import {getReportPreviewAction} from '@libs/actions/IOU';
+import {isActionableWhisperRequiringWritePermission} from '@libs/actions/OnyxDerived/configs/visibleReportActions';
 import {updateLoadingInitialReportAction} from '@libs/actions/Report';
 import DateUtils from '@libs/DateUtils';
 import getIsReportFullyVisible from '@libs/getIsReportFullyVisible';
@@ -29,7 +30,6 @@ import {
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
     isMoneyRequestAction,
-    shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
@@ -102,6 +102,7 @@ function ReportActionsView({
     );
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {canBeMissing: true});
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
@@ -219,13 +220,33 @@ function ReportActionsView({
 
     const visibleReportActions = useMemo(
         () =>
-            reportActions.filter(
-                (reportAction) =>
-                    (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
-                    shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction) &&
-                    isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs),
-            ),
-        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs],
+            reportActions.filter((reportAction) => {
+                const passesOfflineCheck =
+                    isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors;
+
+                if (!passesOfflineCheck) {
+                    return false;
+                }
+
+                const actionReportID = reportAction.reportID ?? reportID;
+                const isStaticallyVisible = visibleReportActionsData?.[actionReportID]?.[reportAction.reportActionID];
+
+                const passesStaticVisibility = isStaticallyVisible ?? true;
+                if (!passesStaticVisibility) {
+                    return false;
+                }
+
+                if (!canPerformWriteAction && isActionableWhisperRequiringWritePermission(reportAction)) {
+                    return false;
+                }
+
+                if (!isIOUActionMatchingTransactionList(reportAction, reportTransactionIDs)) {
+                    return false;
+                }
+
+                return true;
+            }),
+        [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, visibleReportActionsData, reportID],
     );
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);

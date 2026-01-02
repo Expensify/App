@@ -3761,6 +3761,9 @@ export {
     isSystemUserMentioned,
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,
+    isTravelUpdate,
+    isVisiblePreviewOrMoneyRequest,
+    isActionableJoinRequestPendingReportAction,
 };
 
 export type {LastVisibleMessage};

@@ -70,5 +70,17 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
  */
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
+/**
+ * The derived value for visible report actions.
+ */
+type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
+
 export default ReportAttributesDerivedValue;
-export type {ReportAttributes, ReportAttributesDerivedValue, ReportTransactionsAndViolationsDerivedValue, ReportTransactionsAndViolations, OutstandingReportsByPolicyIDDerivedValue};
+export type {
+    ReportAttributes,
+    ReportAttributesDerivedValue,
+    ReportTransactionsAndViolationsDerivedValue,
+    ReportTransactionsAndViolations,
+    OutstandingReportsByPolicyIDDerivedValue,
+    VisibleReportActionsDerivedValue,
+};
