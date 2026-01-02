@@ -7,6 +7,7 @@ import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {PaymentMethodType} from '@components/KYCWall/types';
@@ -37,7 +38,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {close} from '@libs/actions/Modal';
 import {handleBulkPayItemSelected, updateAdvancedFilters} from '@libs/actions/Search';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -104,7 +105,7 @@ function SearchFiltersBar({
     const {selectedTransactions, selectAllMatchingItems, areAllMatchingItemsSelected, showSelectAllMatchingItems, shouldShowFiltersBarLoading} = useSearchContext();
 
     const [email] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
@@ -112,6 +113,7 @@ function SearchFiltersBar({
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [searchResultsErrors] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true, selector: searchResultsErrorSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Filter', 'Columns']);
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     // Get workspace data for the filter
     const {sections: workspaces, shouldShowSearchInput: shouldShowWorkspaceSearchInput} = useWorkspaceList({
@@ -850,17 +852,19 @@ function SearchFiltersBar({
                                 customText={selectionButtonText}
                                 options={headerButtonsOptions}
                                 onSubItemSelected={(subItem) =>
-                                    handleBulkPayItemSelected(
-                                        subItem,
+                                    handleBulkPayItemSelected({
+                                        item: subItem,
                                         triggerKYCFlow,
                                         isAccountLocked,
                                         showLockedAccountModal,
-                                        currentPolicy,
+                                        policy: currentPolicy,
                                         latestBankItems,
                                         activeAdminPolicies,
                                         isUserValidated,
+                                        isDelegateAccessRestricted,
+                                        showDelegateNoAccessModal,
                                         confirmPayment,
-                                    )
+                                    })
                                 }
                                 isSplitButton={false}
                                 buttonRef={buttonRef}

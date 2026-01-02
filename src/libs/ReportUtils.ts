@@ -56,7 +56,6 @@ import type {
     ReportNameValuePairs,
     ReportViolationName,
     ReportViolations,
-    Session,
     Task,
     Transaction,
     TransactionViolation,
@@ -2691,11 +2690,17 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
  * Checks if the current user is a payer of the expense
  */
 
-function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, onlyShowPayElsewhere = false, reportPolicy?: OnyxInputOrEntry<Policy>) {
+function isPayer(
+    currentAccountID: number | undefined,
+    currentUserEmailParm: string | undefined,
+    iouReport: OnyxEntry<Report>,
+    onlyShowPayElsewhere = false,
+    reportPolicy?: OnyxInputOrEntry<Policy>,
+) {
     const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = iouReport?.managerID === session?.accountID;
+    const isManager = iouReport?.managerID === currentAccountID;
     const reimbursementChoice = policy?.reimbursementChoice;
 
     if (isPaidGroupPolicy(iouReport)) {
@@ -2705,7 +2710,7 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
             }
 
             // If we are the reimburser and the report is approved or we are the manager then we can pay it.
-            const isReimburser = session?.email === policy?.achAccount?.reimburser;
+            const isReimburser = currentUserEmailParm === policy?.achAccount?.reimburser;
             return isReimburser;
         }
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
@@ -3927,8 +3932,8 @@ function getDisplayNamesWithTooltips(
 /**
  * Returns the the display names of the given user accountIDs
  */
-function getUserDetailTooltipText(accountID: number, fallbackUserDisplayName = ''): string {
-    const displayNameForParticipant = getDisplayNameForParticipant({accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+function getUserDetailTooltipText(accountID: number, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], fallbackUserDisplayName = ''): string {
+    const displayNameForParticipant = getDisplayNameForParticipant({accountID, formatPhoneNumber});
     return displayNameForParticipant || fallbackUserDisplayName;
 }
 
@@ -3956,12 +3961,14 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 function getReimbursementQueuedActionMessage({
     reportAction,
     reportOrID,
+    formatPhoneNumber,
     shouldUseShortDisplayName = true,
     reports,
     personalDetails,
 }: {
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>;
     reportOrID: OnyxEntry<Report> | string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     shouldUseShortDisplayName?: boolean;
     reports?: Report[];
     personalDetails?: Partial<PersonalDetailsList>;
@@ -3972,7 +3979,7 @@ function getReimbursementQueuedActionMessage({
             accountID: report?.ownerAccountID,
             shouldUseShortForm: shouldUseShortDisplayName,
             personalDetailsData: personalDetails,
-            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            formatPhoneNumber,
         }) ?? '';
     const originalMessage = getOriginalMessage(reportAction);
     let messageKey: TranslationPaths;
@@ -5615,12 +5622,14 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
  */
 function getReportActionMessage({
     reportAction,
+    formatPhoneNumber,
     reportID,
     childReportID,
     reports,
     personalDetails,
 }: {
     reportAction: OnyxEntry<ReportAction>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     reportID?: string;
     childReportID?: string;
     reports?: Report[];
@@ -5660,6 +5669,7 @@ function getReportActionMessage({
         return getReimbursementQueuedActionMessage({
             reportAction,
             reportOrID: getReportOrDraftReport(reportID, reports),
+            formatPhoneNumber,
             shouldUseShortDisplayName: false,
             reports,
             personalDetails,
@@ -6035,6 +6045,7 @@ function getReportName(
         const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
         const reportActionMessage = getReportActionMessage({
             reportAction: parentReportAction,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
             reportID: report?.parentReportID,
             childReportID: report?.reportID,
             reports,
