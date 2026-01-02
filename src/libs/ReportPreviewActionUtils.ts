@@ -1,7 +1,7 @@
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {BankAccountList, Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {arePaymentsEnabled, getSubmitToAccountID, getValidConnectedIntegration, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
 import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
@@ -86,12 +86,20 @@ function canApprove(report: Report, currentUserAccountID: number, policy?: Polic
     return isExpense && isProcessing && !!isApprovalEnabled && reportTransactions.length > 0 && isCurrentUserManager;
 }
 
-function canPay(report: Report, isReportArchived: boolean, currentUserAccountID: number, currentUserEmail: string, policy?: Policy, invoiceReceiverPolicy?: Policy) {
+function canPay(
+    report: Report,
+    isReportArchived: boolean,
+    currentUserAccountID: number,
+    currentUserEmail: string,
+    policy?: Policy,
+    invoiceReceiverPolicy?: Policy,
+    bankAccountList?: OnyxEntry<BankAccountList>,
+) {
     if (isReportArchived) {
         return false;
     }
 
-    const isReportPayer = isPayer(currentUserAccountID, currentUserEmail, report, false, policy);
+    const isReportPayer = isPayer(currentUserAccountID, currentUserEmail, report, false, policy, bankAccountList);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
@@ -177,6 +185,7 @@ function getReportPreviewAction({
     isApprovedAnimationRunning,
     isSubmittingAnimationRunning,
     violationsData,
+    bankAccountList,
 }: {
     isReportArchived: boolean;
     currentUserAccountID: number;
@@ -189,6 +198,7 @@ function getReportPreviewAction({
     isApprovedAnimationRunning?: boolean;
     isSubmittingAnimationRunning?: boolean;
     violationsData?: OnyxCollection<TransactionViolation[]>;
+    bankAccountList?: OnyxEntry<BankAccountList>;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -213,7 +223,7 @@ function getReportPreviewAction({
     if (canApprove(report, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, isReportArchived, currentUserAccountID, currentUserEmail, policy, invoiceReceiverPolicy)) {
+    if (canPay(report, isReportArchived, currentUserAccountID, currentUserEmail, policy, invoiceReceiverPolicy, bankAccountList)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
     if (canExport(report, policy)) {
