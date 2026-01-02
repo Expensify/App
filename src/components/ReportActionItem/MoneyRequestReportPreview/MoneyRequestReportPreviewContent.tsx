@@ -516,6 +516,8 @@ function MoneyRequestReportPreviewContent({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
+
     const reportPreviewAction = useMemo(() => {
         return getReportPreviewAction({
             isReportArchived: isIouReportArchived || isChatReportArchived,
@@ -529,8 +531,10 @@ function MoneyRequestReportPreviewContent({
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
             violationsData: transactionViolations,
+            bankAccountList,
         });
     }, [
+        bankAccountList,
         isIouReportArchived,
         isChatReportArchived,
         currentUserDetails.accountID,
