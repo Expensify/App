@@ -6101,6 +6101,18 @@ describe('ReportUtils', () => {
     });
 
     describe('isReportIneligibleForMoveExpenses', () => {
+        it('should return false when policy is undefined', () => {
+            const report: Report = {
+                ...createRandomReport(30000, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+            };
+
+            const result = isReportIneligibleForMoveExpenses(report, undefined);
+
+            expect(result).toBe(false);
+        });
+
         it('should return false when instant submit is not enabled', async () => {
             const testPolicy: Policy = {
                 ...createRandomPolicy(3000),
