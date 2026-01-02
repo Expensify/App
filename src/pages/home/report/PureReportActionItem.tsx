@@ -95,6 +95,7 @@ import {
     getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
+    getUpdateACHAccountMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
@@ -1416,6 +1417,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getForwardsToUpdateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceReimbursementUpdateMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT)) {
+            children = <ReportActionItemBasicMessage message={getUpdateACHAccountMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
