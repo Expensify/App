@@ -7897,14 +7897,6 @@ const CONST = {
             HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
         },
     },
-    VIOLATION_DISMISSAL: {
-        rter: {
-            manual: 'marked this receipt as cash',
-        },
-        duplicatedTransaction: {
-            manual: 'resolved the duplicate',
-        },
-    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [
