@@ -105,9 +105,10 @@ function IOURequestStartPage({
         // which fixes a locked animation glitch when swiping between tabs, and aligns with the native implementation internal delay
         requestAnimationFrame(() => {
             //  2 - PerDiem
-            if (index === 2) {
-                perDiemInputRef.current?.focus();
+            if (index !== 2) {
+                return;
             }
+            perDiemInputRef.current?.focus();
         });
     };
 

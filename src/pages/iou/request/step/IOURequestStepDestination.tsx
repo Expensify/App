@@ -1,4 +1,5 @@
-import React, {ForwardedRef, useEffect, useImperativeHandle, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
+import type {ForwardedRef} from 'react';
 import {InteractionManager, View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
