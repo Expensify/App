@@ -6102,24 +6102,24 @@ describe('ReportUtils', () => {
 
     describe('isReportIneligibleForMoveExpenses', () => {
         it('should return false when instant submit is not enabled', async () => {
-            const policy: Policy = {
+            const testPolicy: Policy = {
                 ...createRandomPolicy(3000),
                 autoReporting: false,
             };
             const report: Report = {
                 ...createRandomReport(30001, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: policy.id,
+                policyID: testPolicy.id,
                 ownerAccountID: currentUserAccountID,
             };
 
-            const result = isReportIneligibleForMoveExpenses(report, policy);
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
 
             expect(result).toBe(false);
         });
 
         it('should return false when submit and close is not enabled', async () => {
-            const policy: Policy = {
+            const testPolicy: Policy = {
                 ...createRandomPolicy(3001),
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
@@ -6128,17 +6128,17 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(30002, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: policy.id,
+                policyID: testPolicy.id,
                 ownerAccountID: currentUserAccountID,
             };
 
-            const result = isReportIneligibleForMoveExpenses(report, policy);
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
 
             expect(result).toBe(false);
         });
 
         it('should return false when report has reimbursable transactions', async () => {
-            const policy: Policy = {
+            const testPolicy: Policy = {
                 ...createRandomPolicy(3002),
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
@@ -6147,7 +6147,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(30003, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: policy.id,
+                policyID: testPolicy.id,
                 ownerAccountID: currentUserAccountID,
             };
             const transaction = {
@@ -6159,13 +6159,13 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
-            const result = isReportIneligibleForMoveExpenses(report, policy);
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
 
             expect(result).toBe(false);
         });
 
         it('should return false when report has no transactions', async () => {
-            const policy: Policy = {
+            const testPolicy: Policy = {
                 ...createRandomPolicy(3003),
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
@@ -6174,19 +6174,19 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(30004, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: policy.id,
+                policyID: testPolicy.id,
                 ownerAccountID: currentUserAccountID,
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
-            const result = isReportIneligibleForMoveExpenses(report, policy);
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
 
             expect(result).toBe(false);
         });
 
         it('should return true when instant submit, submit and close, and only non-reimbursable transactions', async () => {
-            const policy: Policy = {
+            const testPolicy: Policy = {
                 ...createRandomPolicy(3004),
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
@@ -6195,7 +6195,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(30005, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: policy.id,
+                policyID: testPolicy.id,
                 ownerAccountID: currentUserAccountID,
             };
             const transaction = {
@@ -6207,13 +6207,13 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
-            const result = isReportIneligibleForMoveExpenses(report, policy);
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
 
             expect(result).toBe(true);
         });
 
         it('should return false when report has mixed reimbursable and non-reimbursable transactions', async () => {
-            const policy: Policy = {
+            const testPolicy: Policy = {
                 ...createRandomPolicy(3005),
                 autoReporting: true,
                 autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
@@ -6222,7 +6222,7 @@ describe('ReportUtils', () => {
             const report: Report = {
                 ...createRandomReport(30006, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
-                policyID: policy.id,
+                policyID: testPolicy.id,
                 ownerAccountID: currentUserAccountID,
             };
             const transaction1 = {
@@ -6240,7 +6240,7 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`, transaction1);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`, transaction2);
 
-            const result = isReportIneligibleForMoveExpenses(report, policy);
+            const result = isReportIneligibleForMoveExpenses(report, testPolicy);
 
             expect(result).toBe(false);
         });
