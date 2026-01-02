@@ -657,13 +657,15 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
             );
         })
         .then(() =>
-            HybridAppActions.prepareHybridAppAfterTransitionToNewDot({
-                ...hybridApp,
-                closingReactNativeApp: false,
-            }),
+            Promise.all([
+                HybridAppActions.prepareHybridAppAfterTransitionToNewDot({
+                    ...hybridApp,
+                    closingReactNativeApp: false,
+                }),
+                ...Object.entries(newDotOnyxValues).map(([key, value]) => Onyx.merge(key as OnyxKey, value ?? {})),
+            ]),
         )
         .then(resetDidUserLoginDuringSessionIfNeeded)
-        .then(() => Promise.all(Object.entries(newDotOnyxValues).map(([key, value]) => Onyx.merge(key as OnyxKey, value ?? {}))))
         .then(() => {
             Log.info('[HybridApp] Setup after transition from OldDot finished');
             isHybridAppSetupFinished = true;
