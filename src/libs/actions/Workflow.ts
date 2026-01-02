@@ -226,7 +226,19 @@ function setApprovalWorkflowApprover({approver, approverIndex, currentApprovalWo
     // Check if the approver forwards to other approvers and add them to the list
     if (policy.employeeList[approver.email]?.forwardsTo) {
         const additionalApprovers = calculateApprovers({employees: policy.employeeList, firstEmail: approver.email, personalDetailsByEmail});
+
         approvers.splice(approverIndex, approvers.length, ...additionalApprovers);
+
+        // Preserve the new approvalLimit and overLimitForwardsTo values that were passed in,
+        // since calculateApprovers reads from stale policy data
+        const existingApprover = approvers.at(approverIndex);
+        if (existingApprover) {
+            approvers[approverIndex] = {
+                ...existingApprover,
+                approvalLimit: approver.approvalLimit,
+                overLimitForwardsTo: approver.overLimitForwardsTo,
+            };
+        }
     }
 
     // Always clear the additional approver error when an approver is added
@@ -271,6 +283,11 @@ function clearApprovalWorkflowApprovers() {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {approvers: []});
 }
 
+/** Set whether the user is in the initial creation flow */
+function setApprovalWorkflowIsInitialFlow(isInitialFlow: boolean) {
+    Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {isInitialFlow});
+}
+
 function setApprovalWorkflow(approvalWorkflow: NullishDeep<ApprovalWorkflowOnyx>) {
     Onyx.set(ONYXKEYS.APPROVAL_WORKFLOW, approvalWorkflow);
 }
@@ -297,6 +314,16 @@ function validateApprovalWorkflow(approvalWorkflow: ApprovalWorkflowOnyx): appro
         if (approver?.isCircularReference) {
             errors[`approver-${approverIndex}`] = 'workflowsPage.approverCircularReference';
         }
+
+        // Validate that if overLimitForwardsTo is set, approvalLimit must also be set
+        if (approver?.overLimitForwardsTo && (!approver?.approvalLimit || approver.approvalLimit <= 0)) {
+            errors[`approver-${approverIndex}`] = 'workflowsApprovalLimitPage.enterAmountError';
+        }
+
+        // Validate that if approvalLimit is set, overLimitForwardsTo must also be set
+        if (approver?.approvalLimit && approver.approvalLimit > 0 && !approver?.overLimitForwardsTo) {
+            errors[`approver-${approverIndex}`] = 'workflowsApprovalLimitPage.enterApproverError';
+        }
     }
 
     if (!approvalWorkflow.members.length && !approvalWorkflow.isDefault) {
@@ -322,4 +349,5 @@ export {
     clearApprovalWorkflowApprovers,
     clearApprovalWorkflow,
     validateApprovalWorkflow,
+    setApprovalWorkflowIsInitialFlow,
 };
