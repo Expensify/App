@@ -132,7 +132,7 @@ function SecuritySettingsPage() {
                 translationKey: 'twoFactorAuth.headerTitle',
                 icon: icons.Shield,
                 action: () => {
-                    if (isDelegateAccessRestricted) {
+                    if (isActingAsDelegate) {
                         showDelegateNoAccessModal();
                         return;
                     }
