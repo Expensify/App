@@ -7833,6 +7833,7 @@ const CONST = {
             DEBUG: 'ContextMenu-Debug',
             DELETE: 'ContextMenu-Delete',
             MENU: 'ContextMenu-Menu',
+            EXPLAIN: 'ContextMenu-Explain',
         },
         MORE_MENU: {
             MORE_BUTTON: 'MoreMenu-MoreButton',
