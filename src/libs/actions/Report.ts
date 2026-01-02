@@ -1996,6 +1996,7 @@ function deleteReportComment(
     ancestors: Ancestor[],
     isReportArchived: boolean | undefined,
     isOriginalReportArchived: boolean | undefined,
+    currentEmail: string,
 ) {
     const originalReportID = getOriginalReportID(reportID, reportAction);
     const reportActionID = reportAction.reportActionID;
@@ -2035,13 +2036,13 @@ function deleteReportComment(
         ...optimisticLastReportData,
     };
 
-    const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(reportAction);
+    const didCommentMentionCurrentUser = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentEmail);
     if (didCommentMentionCurrentUser && reportAction.created === report?.lastMentionedTime) {
         const reportActionsForReport = allReportActions?.[reportID];
         const latestMentionedReportAction = Object.values(reportActionsForReport ?? {}).find(
             (action) =>
                 action.reportActionID !== reportAction.reportActionID &&
-                ReportActionsUtils.didMessageMentionCurrentUser(action) &&
+                ReportActionsUtils.didMessageMentionCurrentUser(action, currentEmail) &&
                 ReportActionsUtils.shouldReportActionBeVisible(action, action.reportActionID),
         );
         optimisticReport.lastMentionedTime = latestMentionedReportAction?.created ?? null;
@@ -2172,6 +2173,7 @@ function editReportComment(
     textForNewComment: string,
     isOriginalReportArchived: boolean | undefined,
     isOriginalParentReportArchived: boolean | undefined,
+    currentEmail: string,
     videoAttributeCache?: Record<string, string>,
 ) {
     const originalReportID = originalReport?.reportID;
@@ -2205,7 +2207,7 @@ function editReportComment(
 
     //  Delete the comment if it's empty
     if (!htmlForNewComment) {
-        deleteReportComment(originalReportID, originalReportAction, ancestors, isOriginalReportArchived, isOriginalParentReportArchived);
+        deleteReportComment(originalReportID, originalReportAction, ancestors, isOriginalReportArchived, isOriginalParentReportArchived, currentEmail);
         return;
     }
 

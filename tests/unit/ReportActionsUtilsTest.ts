@@ -1868,4 +1868,76 @@ describe('ReportActionsUtils', () => {
             expect(actual).toBe(expected);
         });
     });
+
+    describe('didMessageMentionCurrentUser', () => {
+        const currentUserEmail = 'currentuser@example.com';
+        const otherUserEmail = 'otheruser@example.com';
+        const otherUserAccountID = 456;
+
+        it('should return true when email matches', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                        type: 'COMMENT',
+                        text: `@${currentUserEmail}`,
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user>@${currentUserEmail}</mention-user>`,
+                    whisperedTo: [],
+                    mentionedAccountIDs: [],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(true);
+        });
+
+        it('should return true when message includes mention-here', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: 'Hello <mention-here>',
+                        type: 'COMMENT',
+                        text: 'Hello @here',
+                    },
+                ],
+                originalMessage: {
+                    html: 'Hello <mention-here>',
+                    whisperedTo: [],
+                    mentionedAccountIDs: [],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(true);
+        });
+
+        it('should return false when user is not mentioned', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                message: [
+                    {
+                        html: `<mention-user>@${otherUserEmail}</mention-user>`,
+                        type: 'COMMENT',
+                        text: `@${otherUserEmail}`,
+                    },
+                ],
+                originalMessage: {
+                    html: `<mention-user>@${otherUserEmail}</mention-user>`,
+                    whisperedTo: [],
+                    mentionedAccountIDs: [otherUserAccountID],
+                },
+            };
+
+            const result = ReportActionsUtils.didMessageMentionCurrentUser(reportAction, currentUserEmail);
+            expect(result).toBe(false);
+        });
+    });
 });
