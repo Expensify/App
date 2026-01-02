@@ -25,7 +25,6 @@ import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {MemberForList} from '@libs/OptionsListUtils';
-import {getPersonalPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -266,7 +265,13 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
  *
  * TODO: offline pattern for this command will have to be added later once the pattern B design doc is complete
  */
-function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, source?: string, lastPaymentMethod?: LastPaymentMethodType | string | undefined) {
+function addPersonalBankAccount(
+    account: PlaidBankAccount,
+    personalPolicyID: string | undefined,
+    policyID?: string,
+    source?: string,
+    lastPaymentMethod?: LastPaymentMethodType | string | undefined,
+) {
     const parameters: AddPersonalBankAccountParams = {
         addressName: account.addressName ?? '',
         routingNumber: account.routingNumber,
@@ -283,8 +288,6 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
     if (source) {
         parameters.source = source;
     }
-
-    const personalPolicy = getPersonalPolicy();
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -328,12 +331,12 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
         ],
     };
 
-    if (personalPolicy?.id && !lastPaymentMethod) {
+    if (personalPolicyID && !lastPaymentMethod) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
             value: {
-                [personalPolicy?.id]: {
+                [personalPolicyID]: {
                     iou: {
                         name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
                     },
@@ -347,7 +350,7 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
             value: {
-                [personalPolicy?.id]: {
+                [personalPolicyID]: {
                     iou: {
                         name: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
                     },
@@ -361,7 +364,7 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
             value: {
-                [personalPolicy?.id]: null,
+                [personalPolicyID]: null,
             },
         });
     }
@@ -369,7 +372,7 @@ function addPersonalBankAccount(account: PlaidBankAccount, policyID?: string, so
     API.write(WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT, parameters, onyxData);
 }
 
-function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?: LastPaymentMethod, bankAccount?: OnyxEntry<PersonalBankAccount>) {
+function deletePaymentBankAccount(bankAccountID: number, personalPolicyID: string | undefined, lastUsedPaymentMethods?: LastPaymentMethod, bankAccount?: OnyxEntry<PersonalBankAccount>) {
     const parameters: DeletePaymentBankAccountParams = {bankAccountID};
 
     const bankAccountFailureData = {
@@ -377,8 +380,6 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
         errors: getMicroSecondOnyxErrorWithTranslationKey('bankAccount.error.deletePaymentBankAccount'),
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     };
-
-    const personalPolicy = getPersonalPolicy();
 
     const onyxData: OnyxData = {
         optimisticData: [
@@ -417,14 +418,14 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
             continue;
         }
 
-        if (personalPolicy?.id === paymentMethodID && lastUsedPaymentMethod.iou?.name === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
+        if (personalPolicyID === paymentMethodID && lastUsedPaymentMethod.iou?.name === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
             const revertedLastUsedPaymentMethod = lastUsedPaymentMethod.lastUsed?.name !== CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? lastUsedPaymentMethod.lastUsed?.name : null;
 
             onyxData.successData?.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
                 value: {
-                    [personalPolicy?.id]: {
+                    [personalPolicyID]: {
                         iou: {
                             name: revertedLastUsedPaymentMethod,
                             bankAccountID: null,
@@ -438,7 +439,7 @@ function deletePaymentBankAccount(bankAccountID: number, lastUsedPaymentMethods?
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
                 value: {
-                    [personalPolicy?.id]: {
+                    [personalPolicyID]: {
                         expense: {
                             name: lastUsedPaymentMethod.iou?.name,
                             bankAccountID: lastUsedPaymentMethod.iou?.bankAccountID,
