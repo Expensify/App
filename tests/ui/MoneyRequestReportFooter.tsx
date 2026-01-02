@@ -183,7 +183,7 @@ describe('MoneyRequestConfirmationListFooter', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        const reportItem = screen.getByTestId('menu-item-common.report');
+        const reportItem = screen.getByTestId('menu-item-Report');
         const accessibilityState = reportItem.props.accessibilityState as {disabled: boolean};
         expect(accessibilityState.disabled).toBe(false);
     });
