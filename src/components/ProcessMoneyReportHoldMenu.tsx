@@ -72,6 +72,7 @@ function ProcessMoneyReportHoldMenu({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
+    const policy = usePolicy(moneyRequestReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const {isBetaEnabled} = usePermissions();
@@ -99,7 +100,7 @@ function ProcessMoneyReportHoldMenu({
             if (startAnimation) {
                 startAnimation();
             }
-            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, undefined, full, activePolicy);
+            payMoneyRequest(paymentType, chatReport, moneyRequestReport, introSelected, undefined, full, activePolicy, policy);
         }
         onClose();
     };

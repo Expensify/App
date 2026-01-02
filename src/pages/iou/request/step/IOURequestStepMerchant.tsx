@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -56,8 +56,9 @@ function IOURequestStepMerchant({
     const merchant = getTransactionDetails(isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction)?.merchant;
     const isEmptyMerchant = merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
     const initialMerchant = isEmptyMerchant ? '' : merchant;
-    const merchantRef = useRef(initialMerchant);
-    const isSavedRef = useRef(false);
+    const [currentMerchant, setCurrentMerchant] = useState(initialMerchant);
+    const [isSaved, setIsSaved] = useState(false);
+    const shouldNavigateAfterSaveRef = useRef(false);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -66,9 +67,17 @@ function IOURequestStepMerchant({
 
     const isMerchantRequired = isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
 
-    const navigateBack = () => {
+    const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
-    };
+    }, [backTo]);
+
+    useEffect(() => {
+        if (!isSaved || !shouldNavigateAfterSaveRef.current) {
+            return;
+        }
+        shouldNavigateAfterSaveRef.current = false;
+        navigateBack();
+    }, [isSaved, navigateBack]);
 
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
@@ -92,27 +101,24 @@ function IOURequestStepMerchant({
     );
 
     const updateMerchantRef = (value: string) => {
-        merchantRef.current = value;
+        setCurrentMerchant(value);
     };
 
     const updateMerchant = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
-        isSavedRef.current = true;
         const newMerchant = value.moneyRequestMerchant?.trim();
 
-        // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
-            navigateBack();
+            setIsSaved(true);
+            shouldNavigateAfterSaveRef.current = true;
             return;
         }
 
-        // In case the merchant hasn't been changed, do not make the API request.
-        // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
         if (newMerchant === merchant || (newMerchant === '' && merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
-            navigateBack();
+            setIsSaved(true);
+            shouldNavigateAfterSaveRef.current = true;
             return;
         }
-        // When creating/editing an expense, newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
         setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing);
         if (isEditing) {
             updateMoneyRequestMerchant(
@@ -127,7 +133,8 @@ function IOURequestStepMerchant({
                 isASAPSubmitBetaEnabled,
             );
         }
-        navigateBack();
+        setIsSaved(true);
+        shouldNavigateAfterSaveRef.current = true;
     };
 
     return (
@@ -171,10 +178,10 @@ function IOURequestStepMerchant({
                     });
                 }}
                 getHasUnsavedChanges={() => {
-                    if (isSavedRef.current) {
+                    if (isSaved) {
                         return false;
                     }
-                    return merchantRef.current !== initialMerchant;
+                    return currentMerchant !== initialMerchant;
                 }}
             />
         </StepScreenWrapper>
