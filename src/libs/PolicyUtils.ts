@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
-import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, PolicyCategories, PolicyEmployeeList, PolicyTagLists, PolicyTags, Report, TaxRate, Transaction, TravelSettings} from '@src/types/onyx';
 import type {ErrorFields, PendingAction, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {
     ConnectionLastSync,
@@ -31,17 +31,22 @@ import type {
 } from '@src/types/onyx/Policy';
 import type PolicyEmployee from '@src/types/onyx/PolicyEmployee';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {getBankAccountFromID} from './actions/BankAccounts';
 import {hasSynchronizationErrorMessage, isConnectionUnverified} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
+import {formatMemberForList} from './OptionsListUtils';
+import type {MemberForList} from './OptionsListUtils';
 import {getAccountIDsByLogins, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag, getTagArrayFromName} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
+
+type TravelStep = ValueOf<typeof CONST.TRAVEL.STEPS>;
 
 type WorkspaceDetails = {
     policyID: string | undefined;
@@ -206,6 +211,73 @@ function getPolicyByCustomUnitID(transaction: OnyxEntry<Transaction>, policies: 
 function getDistanceRateCustomUnitRate(policy: OnyxEntry<Policy>, customUnitRateID: string): Rate | undefined {
     const distanceUnit = getDistanceRateCustomUnit(policy);
     return distanceUnit?.rates[customUnitRateID];
+}
+
+/**
+ * Return admins from active policies
+ */
+function getEligibleBankAccountShareRecipients(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): MemberForList[] {
+    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
+    const activePolicies = getActiveAdminWorkspaces(policies, currentUserLogin);
+    if (!activePolicies) {
+        return [];
+    }
+    const adminMap = new Map<string, MemberForList>();
+    // O(1) checks for already-shared emails
+    const shareesSet = new Set(currentBankAccount?.accountData?.sharees ?? []);
+    for (const policy of Object.values(activePolicies)) {
+        for (const admin of getAdminEmployees(policy)) {
+            const email = admin?.email;
+            // Check if the email is for the active user or an existing user in the sharees array or admins list to avoid extra iterations
+            if (!email || email === currentUserLogin || adminMap.has(email) || shareesSet.has(email)) {
+                continue;
+            }
+            const personalDetails = getPersonalDetailByEmail(email);
+            if (!personalDetails) {
+                continue;
+            }
+            adminMap.set(
+                email,
+                formatMemberForList({
+                    text: personalDetails.displayName,
+                    alternateText: personalDetails.login,
+                    keyForList: personalDetails.login,
+                    accountID: personalDetails.accountID,
+                    login: personalDetails.login,
+                    pendingAction: personalDetails.pendingAction,
+                    reportID: '',
+                }),
+            );
+        }
+    }
+
+    return Array.from(adminMap.values());
+}
+
+/**
+ * Return true if there is at least one eligible admin in active policies
+ */
+function hasEligibleActiveAdminFromWorkspaces(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, bankAccountID: string | undefined): boolean {
+    const currentBankAccount = getBankAccountFromID(Number(bankAccountID));
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    if (!activePolicies) {
+        return false;
+    }
+    // Normalize sharees to a Set for O(1) lookups
+    const alreadySharedSharees = new Set(currentBankAccount?.accountData?.sharees ?? []);
+    for (const policy of Object.values(activePolicies)) {
+        const admins = getAdminEmployees(policy);
+        for (const admin of admins) {
+            const email = admin?.email;
+            if (!email || email === currentUserLogin || alreadySharedSharees.has(email)) {
+                continue;
+            }
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function getCustomUnitsForDuplication(policy: Policy, isCustomUnitsOptionSelected: boolean, isPerDiemOptionSelected: boolean): Record<string, CustomUnit> | undefined {
@@ -430,6 +502,18 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     }
 
     return memberEmailsToExclude;
+}
+
+/**
+ * Get excluded users as a Record for use in search selector
+ */
+function getExcludedUsers(employeeList?: PolicyEmployeeList): Record<string, boolean> {
+    const ineligibleInvitees = getIneligibleInvitees(employeeList);
+    const result: Record<string, boolean> = {};
+    for (const login of ineligibleInvitees) {
+        result[login] = true;
+    }
+    return result;
 }
 
 function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagLists>): Array<keyof PolicyTagLists> {
@@ -856,6 +940,7 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
+/** @deprecated Please use ONYXKEYS.PERSONAL_POLICY_ID to find the personal policyID */
 function getPersonalPolicy() {
     return Object.values(allPolicies ?? {}).find((policy) => policy?.type === CONST.POLICY.TYPE.PERSONAL);
 }
@@ -1377,17 +1462,6 @@ function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | und
     return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
 }
 
-function getWorkspaceAccountID(policyID?: string) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
-
-    if (!policy) {
-        return 0;
-    }
-    return policy.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-}
-
 function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
     if (!policy) {
         return;
@@ -1588,6 +1662,32 @@ function isMemberPolicyAdmin(policy: OnyxEntry<Policy>, memberEmail: string | un
     return admins.some((admin) => admin.email === memberEmail);
 }
 
+/**
+ * Determines which travel step should be shown based on policy state
+ */
+function getTravelStep(
+    policy: OnyxEntry<Policy>,
+    travelSettings: TravelSettings | undefined,
+    isTravelVerifiedBetaEnabled: boolean,
+    policies: OnyxCollection<Policy>,
+    currentUserLogin: string | undefined,
+): TravelStep {
+    const adminDomains = getAdminsPrivateEmailDomains(policy);
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const groupPaidPolicies = activePolicies.filter(isPaidGroupPolicy);
+
+    if (adminDomains.length === 0 || groupPaidPolicies.length < 1 || !isPaidGroupPolicy(policy)) {
+        return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
+    }
+    if (policy?.travelSettings?.hasAcceptedTerms) {
+        return CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP;
+    }
+    if (!isTravelVerifiedBetaEnabled && travelSettings?.lastTravelSignupRequestTime) {
+        return CONST.TRAVEL.STEPS.REVIEWING_REQUEST;
+    }
+    return CONST.TRAVEL.STEPS.GET_STARTED_TRAVEL;
+}
+
 export {
     canEditTaxRate,
     escapeTagName,
@@ -1599,9 +1699,12 @@ export {
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
+    getExcludedUsers,
     getMemberAccountIDsForWorkspace,
     getNumericValue,
     isMultiLevelTags,
+    // This will be fixed as part of https://github.com/Expensify/App/issues/66397
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     getPersonalPolicy,
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -1638,6 +1741,7 @@ export {
     isPolicyAdmin,
     isPolicyUser,
     isPolicyAuditor,
+    hasEligibleActiveAdminFromWorkspaces,
     isPolicyEmployee,
     isPolicyFeatureEnabled,
     getUberConnectionErrorDirectlyFromPolicy,
@@ -1668,6 +1772,7 @@ export {
     getNetSuiteVendorOptions,
     canUseTaxNetSuite,
     canUseProvincialTaxNetSuite,
+    getEligibleBankAccountShareRecipients,
     getFilteredReimbursableAccountOptions,
     getNetSuiteReimbursableAccountOptions,
     getFilteredCollectionAccountOptions,
@@ -1711,7 +1816,6 @@ export {
     getDefaultChatEnabledPolicy,
     getForwardsToAccount,
     getSubmitToAccountID,
-    getWorkspaceAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getTagNamesFromTagsLists,
     getTagApproverRule,
@@ -1745,6 +1849,7 @@ export {
     getPolicyEmployeeAccountIDs,
     isMemberPolicyAdmin,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
+    getTravelStep,
     getActivePoliciesWithExpenseChatAndPerDiemEnabledAndHasRates,
     isDefaultTagName,
 };
