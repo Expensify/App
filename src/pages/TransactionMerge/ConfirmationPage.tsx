@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 
 type ConfirmationPageProps = PlatformStackScreenProps<MergeTransactionNavigatorParamList, typeof SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE>;
 
@@ -79,7 +80,18 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
         // If we're on search, dismiss the modal and stay on search
         if (!isOnSearch && reportIDToDismiss && reportID !== targetTransaction.reportID) {
-            Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
+            // Navigate to search money report screen if we're on Reports
+            if (isSearchTopmostFullScreenRoute()) {
+                // Close the current modal screen
+                Navigation.dismissModal();
+                // Ensure the dismiss completes first
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    // Navigate to the money request report in search results
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportIDToDismiss}));
+                });
+            } else {
+                Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
+            }
         } else {
             Navigation.dismissModal();
         }
