@@ -34,6 +34,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     shouldSyncFocus,
     onCheckboxPress,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
@@ -64,18 +65,19 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const handleOnButtonPress = useCallback(() => {
-        handleActionButtonPress(
-            currentSearchHash,
-            reportItem,
-            () => onSelectRow(reportItem as unknown as TItem),
+        handleActionButtonPress({
+            hash: currentSearchHash,
+            item: reportItem,
+            goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDEWBetaEnabled,
             isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-        );
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+        });
     }, [
         currentSearchHash,
         reportItem,
@@ -85,6 +87,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
         lastPaymentMethod,
         currentSearchKey,
         onDEWModalOpen,
+        isDEWBetaEnabled,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
     ]);

@@ -46,6 +46,7 @@ function TransactionListItem<TItem extends ListItem>({
     isLoading,
     violations,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -128,18 +129,19 @@ function TransactionListItem<TItem extends ListItem>({
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const handleActionButtonPress = useCallback(() => {
-        handleActionButtonPressUtil(
-            currentSearchHash,
-            transactionItem,
-            () => onSelectRow(item, transactionPreviewData),
+        handleActionButtonPressUtil({
+            hash: currentSearchHash,
+            item: transactionItem,
+            goToItem: () => onSelectRow(item, transactionPreviewData),
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDEWBetaEnabled,
             isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-        );
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+        });
     }, [
         currentSearchHash,
         transactionItem,
@@ -151,6 +153,7 @@ function TransactionListItem<TItem extends ListItem>({
         onSelectRow,
         item,
         onDEWModalOpen,
+        isDEWBetaEnabled,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
     ]);
