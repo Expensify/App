@@ -145,6 +145,8 @@ type ManagerApprovedAmountParams = {manager: string; amount: number | string};
 
 type PayerPaidParams = {payer: string};
 
+type PaidElsewhereParams = {payer?: string; comment?: string};
+
 type WaitingOnBankAccountParams = {submitterDisplayName: string};
 
 type SettledAfterAddedBankAccountParams = {submitterDisplayName: string; amount: string};
@@ -837,6 +839,7 @@ export type {
     PayerOwesParams,
     RoleNamesParams,
     PayerPaidParams,
+    PaidElsewhereParams,
     RemovedTheRequestParams,
     MovedFromReportParams,
     RenamedRoomActionParams,
