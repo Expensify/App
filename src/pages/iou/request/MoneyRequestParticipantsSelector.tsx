@@ -1,5 +1,5 @@
 import reportsSelector from '@selectors/Attributes';
-import {emailSelector} from '@selectors/Session';
+import {accountIDSelector, emailSelector} from '@selectors/Session';
 import {transactionDraftValuesSelector} from '@selectors/TransactionDraft';
 import {deepEqual} from 'fast-equals';
 import lodashPick from 'lodash/pick';
@@ -118,6 +118,7 @@ function MoneyRequestParticipantsSelector({
     const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`];
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {canBeMissing: true, initWithStoredValues: false});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: emailSelector});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
@@ -250,7 +251,7 @@ function MoneyRequestParticipantsSelector({
                 !!availableOptions?.userToInvite,
                 debouncedSearchTerm.trim(),
                 countryCode,
-                participants.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase().includes(cleanSearchTerm)),
+                participants.some((participant) => getPersonalDetailSearchTerms(participant, currentUserAccountID).join(' ').toLowerCase().includes(cleanSearchTerm)),
             ),
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -264,6 +265,7 @@ function MoneyRequestParticipantsSelector({
             debouncedSearchTerm,
             participants,
             countryCode,
+            currentUserAccountID,
         ],
     );
 
@@ -292,6 +294,7 @@ function MoneyRequestParticipantsSelector({
             true,
             undefined,
             reportAttributesDerived,
+            currentUserAccountID,
         );
 
         newSections.push(formatResults.section);
@@ -332,6 +335,7 @@ function MoneyRequestParticipantsSelector({
                     status: availableOptions.userToInvite?.status ?? undefined,
                 },
                 loginList,
+                currentUserLogin,
             ) &&
             !isPerDiemRequest
         ) {
@@ -369,6 +373,8 @@ function MoneyRequestParticipantsSelector({
         isPerDiemRequest,
         showImportContacts,
         inputHelperText,
+        currentUserAccountID,
+        currentUserLogin,
     ]);
 
     /**
