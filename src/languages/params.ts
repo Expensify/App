@@ -88,11 +88,6 @@ type HarvestCreatedExpenseReportParams = {
     reportName: string;
 };
 
-type RequestCountParams = {
-    scanningReceipts: number;
-    pendingReceipts: number;
-};
-
 type DeleteTransactionParams = {
     amount: string;
     merchant: string;
@@ -858,7 +853,6 @@ export type {
     HarvestCreatedExpenseReportParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
-    RequestCountParams,
     DeleteTransactionParams,
     MovedTransactionParams,
     RequestedAmountMessageParams,
