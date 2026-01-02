@@ -26,6 +26,7 @@ import {
     getReportName,
     isIOUReport,
     isOpenReport,
+    isReportIneligibleForMoveExpenses,
     isReportOwner,
     isSelfDM,
     sortOutstandingReportsBySelected,
@@ -169,11 +170,16 @@ function IOURequestEditReportCommon({
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
             .filter((report): report is NonNullable<typeof report> => report !== undefined)
             .filter((report) => {
+                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+
+                if (isReportIneligibleForMoveExpenses(report, policy)) {
+                    return false;
+                }
+
                 if (canAddTransaction(report, undefined, true)) {
                     return true;
                 }
 
-                const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
                 const isReportPolicyAdmin = isPolicyAdmin(policy);
                 const isReportManager = report.managerID === currentUserPersonalDetails.accountID;
                 return isReportPolicyAdmin || isReportManager;
