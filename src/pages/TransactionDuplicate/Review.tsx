@@ -16,7 +16,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {openReport} from '@libs/actions/Report';
-import {dismissDuplicateTransactionViolation} from '@libs/actions/Transaction';
+import {dismissDuplicateTransactionViolation, getDuplicateTransactionDetails} from '@libs/actions/Transaction';
 import {setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -89,6 +89,8 @@ function TransactionDuplicateReview() {
 
     useFocusEffect(
         useCallback(() => {
+            getDuplicateTransactionDetails(transactionID);
+
             if (!originalTransactionIDsListRef.current) {
                 return;
             }
