@@ -5610,7 +5610,7 @@ describe('ReportUtils', () => {
             const reimburserEmail = 'reimburser@test.com';
             const bankAccountID = 12345;
 
-            const policy: Policy = {
+            const policyWithAch: Policy = {
                 ...policyTest,
                 role: CONST.POLICY.ROLE.ADMIN,
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
@@ -5641,7 +5641,7 @@ describe('ReportUtils', () => {
             };
 
             // @ts-expect-error - Partial bankAccountList for testing
-            expect(isPayer(adminAccountID, adminEmail, report, false, policy, bankAccountList)).toBe(true);
+            expect(isPayer(adminAccountID, adminEmail, report, false, policyWithAch, bankAccountList)).toBe(true);
         });
     });
     describe('buildReportNameFromParticipantNames', () => {

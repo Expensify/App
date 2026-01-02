@@ -232,7 +232,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
-            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, false, policy, bankAccountList)) {
+            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, false, undefined, bankAccountList)) {
                 nextStep = nextStepNoActionRequired;
                 break;
             }
@@ -618,7 +618,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                     {
                         text: 'Waiting for ',
                     },
-                    isPayer(currentUserAccountIDParam, currentUserEmailParam, report, false, policy, bankAccountList)
+                    isPayer(currentUserAccountIDParam, currentUserEmailParam, report, false, undefined, bankAccountList)
                         ? {
                               text: `you`,
                               type: 'strong',
@@ -655,14 +655,14 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED: {
-            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, false, policy, bankAccountList) || reimbursableSpend === 0) {
+            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, false, undefined, bankAccountList) || reimbursableSpend === 0) {
                 optimisticNextStep = noActionRequired;
 
                 break;
             }
             // Self review
             let payerMessage: Message;
-            if (isPayer(currentUserAccountIDParam, currentUserEmailParam, report, false, policy, bankAccountList)) {
+            if (isPayer(currentUserAccountIDParam, currentUserEmailParam, report, false, undefined, bankAccountList)) {
                 payerMessage = {text: 'you', type: 'strong'};
             } else if (reimburserAccountID === -1) {
                 payerMessage = {text: 'an admin'};
