@@ -1,0 +1,50 @@
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.mm
+index c593d9e..dfcdc47 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTEnhancedScrollView.mm
+@@ -96,9 +96,14 @@ - (void)setContentOffset:(CGPoint)contentOffset
+   if (_isSetContentOffsetDisabled) {
+     return;
+   }
++
++  CGFloat newContentOffsetY = contentOffset.y;
++  if (newContentOffsetY < 1.0 && newContentOffsetY > -1.0) {
++    newContentOffsetY = 1.0;
++  }
+   super.contentOffset = CGPointMake(
+       RCTSanitizeNaNValue(contentOffset.x, @"scrollView.contentOffset.x"),
+-      RCTSanitizeNaNValue(contentOffset.y, @"scrollView.contentOffset.y"));
++      RCTSanitizeNaNValue(newContentOffsetY, @"scrollView.contentOffset.y"));
+ }
+ 
+ - (void)setFrame:(CGRect)frame
+@@ -280,6 +285,11 @@ - (void)scrollViewWillEndDragging:(UIScrollView *)scrollView
+       targetContentOffset->y = newTargetContentOffset;
+     }
+   }
++
++  if (targetContentOffset->y < 1.0) {
++    CGFloat minY = 1.0;
++    targetContentOffset->y = minY;
++  }
+ }
+ 
+ - (void)scrollViewDidZoom:(__unused UIScrollView *)scrollView
+diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.mm b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.mm
+index 1494fd2..ff0f4fb 100644
+--- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.mm
++++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/ScrollView/RCTScrollViewComponentView.mm
+@@ -692,6 +692,13 @@ - (void)scrollViewDidZoom:(UIScrollView *)scrollView
+ - (BOOL)scrollViewShouldScrollToTop:(UIScrollView *)scrollView
+ {
+   _isUserTriggeredScrolling = YES;
++
++  if ([self isInverted]) {
++    _isUserTriggeredScrolling = NO;
++    [self scrollToEnd:YES];
++    return NO;
++  }
++
+   return YES;
+ }
+ 
