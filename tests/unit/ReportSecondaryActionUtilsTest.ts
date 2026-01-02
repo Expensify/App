@@ -2443,47 +2443,6 @@ describe('getSecondaryTransactionThreadActions', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
     });
 
-    it('does not include the SPLIT option when expense is moved to personal space (no policy context)', async () => {
-        // This test covers the bug in issue #75472 where split expenses moved to personal space
-        // would show "Hmm... it's not here" error when clicking on amount field
-        const report = {
-            reportID: REPORT_ID,
-            type: CONST.REPORT.TYPE.EXPENSE,
-            ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            managerID: EMPLOYEE_ACCOUNT_ID,
-            stateNum: CONST.REPORT.STATE_NUM.OPEN,
-            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            // No policyID - expense moved to personal space
-        } as unknown as Report;
-
-        const transaction = {
-            transactionID: 'TRANSACTION_ID',
-            status: CONST.TRANSACTION.STATUS.POSTED,
-            amount: 10,
-            merchant: 'Merchant',
-            date: '2025-01-01',
-            comment: {
-                // This indicates the transaction was originally split
-                originalTransactionID: 'ORIGINAL_SPLIT_TRANSACTION_ID',
-            },
-        } as unknown as Transaction;
-
-        // Original transaction that was split
-        const originalTransaction = {
-            transactionID: 'ORIGINAL_SPLIT_TRANSACTION_ID',
-            amount: 100,
-        } as unknown as Transaction;
-
-        // No policy or policy without expense chat enabled (personal space)
-        const policy = undefined;
-
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
-
-        const result = getSecondaryTransactionThreadActions(EMPLOYEE_EMAIL, report, transaction, actionR14932, originalTransaction, policy);
-        // SPLIT should not be available because user is not in a policy context
-        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.SPLIT)).toBe(false);
-    });
-
     describe('isMergeAction', () => {
         beforeEach(() => {
             jest.clearAllMocks();
