@@ -1,6 +1,10 @@
 name: Build and deploy apps for testing
 
 on:
+  pull_request:
+    types: [closed]
+    paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**']
+
   workflow_dispatch:
     inputs:
       # If not specified, only build iOS and Android apps from the main branch of Expensify/App
@@ -31,8 +35,13 @@ on:
         type: boolean
         default: true
 
+concurrency:
+  group: test-build-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: false
+
 jobs:
   prep:
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     runs-on: ubuntu-latest
     outputs:
       APP_REF: ${{ steps.getHeadRef.outputs.REF || 'main' }}
@@ -50,21 +59,25 @@ jobs:
           OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_COMMIT_TOKEN }}
 
       - name: Validate that the user reviewed the pull request before running a test build
-        if: ${{ !inputs.REVIEWED_CODE }}
+        if: ${{ github.event_name == 'workflow_dispatch' && !inputs.REVIEWED_CODE }}
         run: |
           echo "::error::🕵️‍♀️ Please carefully review the pull request before running a test build to ensure it does not contain any malicious code"
           exit 1
 
-      - name: Extract App PR number from URL
+      - name: Extract App PR number
         id: extractAppPRNumber
-        if: ${{ inputs.APP_PULL_REQUEST_URL != '' }}
+        if: ${{ github.event_name == 'pull_request' || inputs.APP_PULL_REQUEST_URL != '' }}
         run: |
-          PR_NUMBER=$(echo '${{ inputs.APP_PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')
-          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
-            echo "::error::❌ Could not extract PR number from URL. Please provide a valid GitHub PR URL (e.g., https://github.com/Expensify/App/pull/12345)"
-            exit 1
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "PR_NUMBER=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ inputs.APP_PULL_REQUEST_URL }}" ]; then
+            PR_NUMBER=$(echo '${{ inputs.APP_PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')
+            if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+              echo "::error::❌ Could not extract PR number from URL. Please provide a valid GitHub PR URL (e.g., https://github.com/Expensify/App/pull/12345)"
+              exit 1
+            fi
+            echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           fi
-          echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
       - name: Extract Mobile-Expensify PR number from URL
         id: extractMobilePRNumber
@@ -113,7 +126,7 @@ jobs:
               repo: context.repo.repo,
               pull_number: '${{ needs.prep.outputs.APP_PR_NUMBER }}',
             });
-            
+
             const body = pullRequest.data.body;
             const regex = /MOBILE-EXPENSIFY:\s*https:\/\/github.com\/Expensify\/Mobile-Expensify\/pull\/(?<prNumber>\d+)/;
             const found = body.match(regex)?.groups?.prNumber || "";
@@ -132,6 +145,7 @@ jobs:
 
         - name: Check if Expensify/Mobile-Expensify pull request number is correct
           id: getHeadRef
+          if: github.event_name == 'workflow_dispatch'
           run: |
             set -e
             if [[ -z "${{ needs.prep.outputs.MOBILE_PR_NUMBER }}" && -z "${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}" ]]; then
@@ -180,7 +194,7 @@ jobs:
 
   web:
     name: Build and deploy Web
-    if: ${{ inputs.WEB && needs.prep.outputs.APP_PR_NUMBER }}
+    if: ${{ (github.event_name == 'pull_request' || inputs.WEB) && needs.prep.outputs.APP_PR_NUMBER }}
     needs: [prep]
     runs-on: ubuntu-latest-xl
     env:
@@ -219,7 +233,7 @@ jobs:
 
   androidHybrid:
     name: Build Android HybridApp
-    if: ${{ inputs.ANDROID }}
+    if: ${{ github.event_name == 'pull_request' || inputs.ANDROID }}
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     runs-on: ubuntu-latest-xl
     env:
@@ -327,7 +341,7 @@ jobs:
 
   iosHybrid:
     name: Build and deploy iOS for testing
-    if: ${{ inputs.IOS }}
+    if: ${{ github.event_name == 'pull_request' || inputs.IOS }}
     needs: [prep, getMobileExpensifyPR, getMobileExpensifyRef]
     env:
       DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
