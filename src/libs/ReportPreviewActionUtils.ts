@@ -135,9 +135,9 @@ function canPay(report: Report, isReportArchived: boolean, currentUserAccountID:
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, userEmail: string, policy?: Policy) {
+function canExport(report: Report, currentUserEmail: string, policy?: Policy) {
     const isExpense = isExpenseReport(report);
-    const isExporter = policy ? isPreferredExporter(policy, userEmail) : false;
+    const isExporter = policy ? isPreferredExporter(policy, currentUserEmail) : false;
     const isReimbursed = isSettled(report);
     const isClosed = isClosedReport(report);
     const isApproved = isReportApproved({report});
@@ -190,6 +190,8 @@ function getReportPreviewAction({
     isSubmittingAnimationRunning?: boolean;
     violationsData?: OnyxCollection<TransactionViolation[]>;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
+    console.log('🚀 ~ getReportPreviewAction ~ currentUserEmail:', currentUserEmail);
+
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
