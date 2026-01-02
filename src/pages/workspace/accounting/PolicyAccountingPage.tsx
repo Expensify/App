@@ -309,6 +309,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                               }
                             : undefined,
                         badgeStyle: styles.mr3,
+                        badgeSuccess: isXero,
                         rightComponent: (
                             <Button
                                 onPress={() => startIntegrationFlow({name: integration})}

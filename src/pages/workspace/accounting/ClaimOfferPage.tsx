@@ -11,17 +11,18 @@ import Text from '@components/Text';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyFeatureName} from '@src/types/onyx/Policy';
-import {useAccountingContext} from './AccountingContext';
+import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
 
 type IntegrationType = typeof CONST.POLICY.CONNECTIONS.NAME.XERO | typeof CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER;
 
@@ -36,16 +37,15 @@ type IntegrationConfig = {
     onConnect: () => void;
 };
 
-type ClaimOfferPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER>;
+type ClaimOfferPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CLAIM_OFFER>;
 
-function ClaimOfferPage({route}: ClaimOfferPageProps) {
+function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const {integration, policyID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {startIntegrationFlow} = useAccountingContext();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['TreasureChestGreenWithSparkle'] as const);
-    const policy = usePolicy(policyID);
     const integrations = policy?.receiptPartners;
 
     const integrationConfig: Record<IntegrationType, IntegrationConfig> = {
@@ -57,7 +57,9 @@ function ClaimOfferPage({route}: ClaimOfferPageProps) {
             connectButtonText: translate('workspace.accounting.claimOffer.xero.connectButton'),
             connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
             featureName: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
-            onConnect: () => startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.XERO}),
+            onConnect: () => {
+                startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.XERO});
+            },
         },
         uber: {
             headerTitle: translate('workspace.accounting.claimOffer.uber.headerTitle'),
@@ -148,4 +150,14 @@ function ClaimOfferPage({route}: ClaimOfferPageProps) {
 
 ClaimOfferPage.displayName = 'ClaimOfferPage';
 
-export default ClaimOfferPage;
+function ClaimOfferPageWrapper(props: ClaimOfferPageProps) {
+    return (
+        <AccountingContextProvider policy={props.policy}>
+            <ClaimOfferPage
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            />
+        </AccountingContextProvider>
+    );
+}
+export default withPolicyConnections(ClaimOfferPageWrapper);

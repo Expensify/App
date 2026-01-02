@@ -200,6 +200,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                               }
                             : undefined,
                         badgeStyle: styles.mr3,
+                        badgeSuccess: isUber,
                         numberOfLinesDescription: 5,
                         titleContainerStyle: [styles.pr2],
                         description: integrationData?.description,
