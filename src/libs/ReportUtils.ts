@@ -2699,7 +2699,7 @@ function isPayer(
     chatReport?: OnyxInputOrEntry<Report>,
 ) {
     const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
-    if (isWorkspaceChat(chatReport?.chatType ?? '') && !policy) {
+    if (!policy && isWorkspaceChat(chatReport?.chatType ?? '')) {
         Log.warn('Missing policy during isPayer check');
         return false;
     }
