@@ -59,7 +59,6 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
     hasSmartScanFailedViolation,
-    isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
@@ -712,7 +711,7 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
     const reportTransaction = reportTransactions.at(0);
 
     // Per diem and distance requests will be handled separately in a follow-up
-    if (isPerDiemRequestTransactionUtils(reportTransaction) || isDistanceRequestTransactionUtils(reportTransaction)) {
+    if (isPerDiemRequestTransactionUtils(reportTransaction)) {
         return false;
     }
 
