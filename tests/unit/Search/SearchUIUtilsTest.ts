@@ -1831,20 +1831,20 @@ describe('SearchUIUtils', () => {
                     ...searchResults.data[`policy_${policyID}`],
                     role: CONST.POLICY.ROLE.ADMIN,
                     exporter: adminEmail,
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
-                        verified: true,
-                        lastSync: {
-                            errorDate: '',
-                            errorMessage: '',
-                            isAuthenticationError: false,
-                            isConnected: true,
-                            isSuccessful: true,
-                            source: 'NEWEXPENSIFY',
-                            successfulDate: '',
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: true,
+                            lastSync: {
+                                errorDate: '',
+                                errorMessage: '',
+                                isAuthenticationError: false,
+                                isConnected: true,
+                                isSuccessful: true,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
                         },
-                    },
-                } as Connections,
+                    } as Connections,
                 },
                 [`report_${exportReportID}`]: {
                     ...searchResults.data[`report_${reportID2}`],
@@ -1854,15 +1854,8 @@ describe('SearchUIUtils', () => {
                 },
             };
 
-            const actions = SearchUIUtils.getActions(
-                localSearchResults,
-                {},
-                `report_${exportReportID}`,
-                CONST.SEARCH.SEARCH_KEYS.EXPENSES,
-                adminEmail,
-                [], 
-            );
-            
+            const actions = SearchUIUtils.getActions(localSearchResults, {}, `report_${exportReportID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, adminEmail, []);
+
             expect(actions).toContain(CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING);
         });
     });
