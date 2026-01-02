@@ -871,6 +871,9 @@ const translations: TranslationDeepObject<typeof en> = {
         emoji: '絵文字',
         collapse: '折りたたむ',
         expand: '展開',
+        askConciergeToCreate: 'Concierge AI に経費を作成するよう依頼…',
+        askConciergeToUpdate: 'Concierge AI に経費の更新を依頼する…',
+        askConciergeToCorrect: 'Concierge AI に経費の修正を依頼する…',
     },
     reportActionContextMenu: {
         copyMessage: 'メッセージをコピー',

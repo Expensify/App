@@ -13,6 +13,7 @@ import DualDropZone from '@components/DropZone/DualDropZone';
 import EmojiPickerButton from '@components/EmojiPicker/EmojiPickerButton';
 import ExceededCommentLength from '@components/ExceededCommentLength';
 import ImportedStateIndicator from '@components/ImportedStateIndicator';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Mention} from '@components/MentionSuggestions';
 import OfflineIndicator from '@components/OfflineIndicator';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -52,6 +53,7 @@ import {
     isConciergeChatReport,
     isGroupChat,
     isInvoiceReport,
+    isMoneyRequestReport,
     isReportApproved,
     isReportTransactionThread,
     isSettled,
@@ -121,6 +123,13 @@ const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
 const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
 
+/**
+ * Returns an array of AI-aware placeholders for expense threads
+ */
+function getAIPlaceholders(translate: LocalizedTranslate): string[] {
+    return [translate('reportActionCompose.askConciergeToCreate'), translate('reportActionCompose.askConciergeToUpdate'), translate('reportActionCompose.askConciergeToCorrect')];
+}
+
 // eslint-disable-next-line import/no-mutable-exports
 let onSubmitAction = noop;
 
@@ -175,6 +184,9 @@ function ReportActionCompose({
     const [isCommentEmpty, setIsCommentEmpty] = useState(() => {
         return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
     });
+
+    // Select a random AI placeholder index on mount (0, 1, or 2)
+    const [randomPlaceholderIndex] = useState(() => Math.floor(Math.random() * 3));
 
     /**
      * Updates the visibility state of the menu
@@ -247,13 +259,24 @@ function ReportActionCompose({
         return !isRoomOrGroupChat && (canModifyReceipt || hasMoneyRequestOptions) && !isInvoiceReport(report);
     }, [shouldAddOrReplaceReceipt, report, reportParticipantIDs, policy, isReportArchived, isRestrictedToPreferredPolicy]);
 
+    // Check if this is an expense-related report (IOU, expense report, or transaction thread)
+    const isExpenseRelatedReport = useMemo(() => isTransactionThreadView || isMoneyRequestReport(report), [isTransactionThreadView, report]);
+
     // Placeholder to display in the chat input.
     const inputPlaceholder = useMemo(() => {
         if (includesConcierge && userBlockedFromConcierge) {
             return translate('reportActionCompose.blockedFromConcierge');
         }
+
+        // Show AI-aware placeholder for expense-related reports where user can write
+        // to encourage using Concierge AI for expense management
+        if (isExpenseRelatedReport && canUserPerformWriteAction) {
+            const placeholders = getAIPlaceholders(translate);
+            return placeholders.at(randomPlaceholderIndex) ?? placeholders.at(0) ?? '';
+        }
+
         return translate('reportActionCompose.writeSomething');
-    }, [includesConcierge, translate, userBlockedFromConcierge]);
+    }, [includesConcierge, translate, userBlockedFromConcierge, isExpenseRelatedReport, canUserPerformWriteAction, randomPlaceholderIndex]);
 
     const {displayLabel: agentZeroDisplayLabel, kickoffWaitingIndicator} = useAgentZeroStatusIndicator(reportID, isConciergeChat);
 
