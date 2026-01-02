@@ -767,6 +767,9 @@ const ONYXKEYS = {
 
         /** Errors related to a domain */
         DOMAIN_ERRORS: 'domainErrors_',
+
+        /** Stores domain security group */
+        DOMAIN_SECURITY_GROUP: 'expensify_securityGroup',
     },
 
     /** List of Form ids */
@@ -1161,6 +1164,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX]: number;
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
+    [ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP]: OnyxTypes.DomainSecurityGroup;
 };
 
 type OnyxValuesMapping = {
