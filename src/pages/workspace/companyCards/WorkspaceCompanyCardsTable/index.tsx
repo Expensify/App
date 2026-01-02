@@ -172,13 +172,15 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         const isAssignedCardMatch = assignedKeyword.startsWith(searchLower) && item.isAssigned;
         const isUnassignedCardMatch = unassignedKeyword.startsWith(searchLower) && !item.isAssigned;
 
-        const isMatch =
-            item.cardName.toLowerCase().includes(searchLower) ||
-            (item.customCardName?.toLowerCase().includes(searchLower) ?? false) ||
-            (item.cardholder?.displayName?.toLowerCase().includes(searchLower) ?? false) ||
-            (item.cardholder?.login?.toLowerCase().includes(searchLower) ?? false);
+        const searchTokens = [
+            item.cardName,
+            item.customCardName ?? '',
+            item.cardholder?.displayName ?? '',
+            item.cardholder?.login ?? '',
+        ];
 
-        return isMatch || isAssignedCardMatch || isUnassignedCardMatch;
+        const matchingItems = tokenizedSearch([item], searchString, () => searchTokens);
+        return matchingItems.length > 0 || isAssignedCardMatch || isUnassignedCardMatch;
     };
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceCompanyCardTableItemData> = (item, filterValues) => {
