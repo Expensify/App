@@ -323,8 +323,8 @@ function ReportActionItemMessageEdit({
             trimmedNewDraft,
             isOriginalReportArchived,
             isOriginalParentReportArchived,
+            email ?? '',
             Object.fromEntries(draftMessageVideoAttributeCache),
-            email,
         );
         deleteDraft();
     }, [

@@ -93,7 +93,7 @@ function PrivateNotesEditPageInternal({route, report, accountID, privateNoteDraf
         const originalNote = report?.privateNotes?.[Number(route.params.accountID)]?.note ?? '';
         let editedNote = '';
         if (privateNote.trim() !== originalNote.trim()) {
-            editedNote = handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote).trim(), undefined, email);
+            editedNote = handleUserDeletedLinksInHtml(privateNote.trim(), Parser.htmlToMarkdown(originalNote).trim(), email ?? '', undefined);
             updatePrivateNotes(report.reportID, Number(route.params.accountID), editedNote);
         }
 
