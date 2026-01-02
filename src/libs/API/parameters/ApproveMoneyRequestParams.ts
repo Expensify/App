@@ -12,6 +12,7 @@ type ApproveMoneyRequestParams = {
      * }>
      */
     optimisticHoldReportExpenseActionIDs?: string;
+    optimisticCreatedReportForUnapprovedTransactionsActionID?: string;
 };
 
 export default ApproveMoneyRequestParams;
