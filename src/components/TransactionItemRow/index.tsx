@@ -238,17 +238,6 @@ function TransactionItemRow({
 
     const exchangeRateMessage = getExchangeRate(transactionItem);
 
-    const getCardName = () => {
-        if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
-            return '';
-        }
-        const cardID = transactionItem.cardID;
-        if (cardID && customCardNames?.[cardID]) {
-            return customCardNames[cardID];
-        }
-        return transactionItem.cardName;
-    }
-
     const cardName = useMemo(() => {
         if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
             return '';
