@@ -190,8 +190,6 @@ function getReportPreviewAction({
     isSubmittingAnimationRunning?: boolean;
     violationsData?: OnyxCollection<TransactionViolation[]>;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
-    console.log('🚀 ~ getReportPreviewAction ~ currentUserEmail:', currentUserEmail);
-
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
