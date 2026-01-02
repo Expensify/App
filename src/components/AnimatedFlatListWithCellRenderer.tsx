@@ -116,6 +116,8 @@ const AnimatedFlatListWithCellRenderer = forwardRef(FlatListForwardRefRender) as
     },
 ) => React.ReactElement;
 
+AnimatedFlatListWithCellRenderer.displayName = 'AnimatedFlatListWithCellRenderer';
+
 type ReanimatedFlatList<T> = typeof AnimatedFlatList & AnimatedFlatListComplement<T>;
 
 export type {ReanimatedFlatList, AnimatedFlatListWithCellRendererProps};
