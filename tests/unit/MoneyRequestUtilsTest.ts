@@ -158,9 +158,7 @@ describe('ReportActionsUtils', () => {
 
         it('should return true when per diem expense has negative rate', () => {
             const customUnit: TransactionCustomUnit = {
-                subRates: [
-                    {id: 'rate1', name: 'Breakfast', quantity: 1, rate: -1500},
-                ],
+                subRates: [{id: 'rate1', name: 'Breakfast', quantity: 1, rate: -1500}],
             };
 
             expect(isValidPerDiemExpenseAmount(customUnit, CONST.CURRENCY.USD)).toBe(true);
