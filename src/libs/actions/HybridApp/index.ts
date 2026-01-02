@@ -79,14 +79,14 @@ function resetSignInFlow() {
  */
 function prepareHybridAppAfterTransitionToNewDot(hybridApp: HybridApp) {
     if (hybridApp?.useNewDotSignInPage) {
-        return Onyx.merge(ONYXKEYS.HYBRID_APP, {
+        return Onyx.set(ONYXKEYS.HYBRID_APP, {
             ...hybridApp,
             readyToShowAuthScreens: !(hybridApp?.useNewDotSignInPage ?? false),
         });
     }
 
     // When we transition with useNewDotSignInPage === false, it means that we're already authenticated on NewDot side.
-    return Onyx.merge(ONYXKEYS.HYBRID_APP, {
+    return Onyx.set(ONYXKEYS.HYBRID_APP, {
         ...hybridApp,
         readyToShowAuthScreens: true,
     });
