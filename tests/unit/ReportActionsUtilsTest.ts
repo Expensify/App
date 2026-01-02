@@ -1883,7 +1883,7 @@ describe('ReportActionsUtils', () => {
             const action = {
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT,
                 reportActionID: '1',
-                created: '2024-01-01',
+                created: '',
                 originalMessage: {
                     oldMaxExpenseAmount: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
                     newMaxExpenseAmount: 10000,
