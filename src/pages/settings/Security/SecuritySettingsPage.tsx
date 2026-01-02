@@ -151,10 +151,6 @@ function SecuritySettingsPage() {
                 translationKey: 'mergeAccountsPage.mergeAccount',
                 icon: Expensicons.ArrowCollapse,
                 action: () => {
-                    if (isDelegateAccessRestricted) {
-                        showDelegateNoAccessModal();
-                        return;
-                    }
                     if (isAccountLocked) {
                         showLockedAccountModal();
                         return;
