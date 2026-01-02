@@ -726,6 +726,7 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
+        TRAVEL_INVOICING: 'travelInvoicing',
         PLAID_COMPANY_CARDS: 'plaidCompanyCards',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
         TIME_TRACKING: 'timeTracking',
