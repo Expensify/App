@@ -311,7 +311,7 @@ function SecuritySettingsPage() {
             text: translate('delegate.removeCopilot'),
             icon: Expensicons.Trashcan,
             onPress: () => {
-                if (selectedDelegate?.email!==account?.delegatedAccess?.delegate && isActingAsDelegate) {
+                if (selectedDelegate?.email !== account?.delegatedAccess?.delegate && isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
