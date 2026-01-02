@@ -446,11 +446,6 @@ function SecuritySettingsPage() {
                                 prompt={translate('delegate.removeCopilotConfirmation')}
                                 danger
                                 onConfirm={() => {
-                                    if (isActingAsDelegate) {
-                                        setShouldShowRemoveDelegateModal(false);
-                                        showDelegateNoAccessModal();
-                                        return;
-                                    }
                                     removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
                                     setShouldShowRemoveDelegateModal(false);
                                     setSelectedDelegate(undefined);
