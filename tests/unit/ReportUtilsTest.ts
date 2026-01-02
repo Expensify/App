@@ -5603,6 +5603,46 @@ describe('ReportUtils', () => {
 
             expect(isPayer(currentUserAccountID, currentUserEmail, closedReport, false)).toBe(true);
         });
+
+        it('should return true for admin with bank account access via sharees', () => {
+            const adminEmail = 'admin@test.com';
+            const adminAccountID = 999;
+            const reimburserEmail = 'reimburser@test.com';
+            const bankAccountID = 12345;
+
+            const policy: Policy = {
+                ...policyTest,
+                role: CONST.POLICY.ROLE.ADMIN,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                achAccount: {
+                    reimburser: reimburserEmail,
+                    bankAccountID,
+                    accountNumber: '1234567890',
+                    routingNumber: '987654321',
+                    addressName: 'Test Address',
+                    bankName: 'Test Bank',
+                },
+            };
+
+            const bankAccountList = {
+                [bankAccountID]: {
+                    accountData: {
+                        sharees: [reimburserEmail, adminEmail],
+                    },
+                },
+            };
+
+            const report: Report = {
+                ...createRandomReport(3, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                policyID: policyTest.id,
+            };
+
+            // @ts-expect-error - Partial bankAccountList for testing
+            expect(isPayer(adminAccountID, adminEmail, report, false, policy, bankAccountList)).toBe(true);
+        });
     });
     describe('buildReportNameFromParticipantNames', () => {
         beforeAll(async () => {
