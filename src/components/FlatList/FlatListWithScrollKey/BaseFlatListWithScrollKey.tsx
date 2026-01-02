@@ -91,4 +91,7 @@ function BaseFlatListWithScrollKey<T>(props: BaseFlatListWithScrollKeyProps<T>, 
     );
 }
 
-export default forwardRef(BaseFlatListWithScrollKey);
+const ForwardedBaseFlatListWithScrollKey = forwardRef(BaseFlatListWithScrollKey);
+ForwardedBaseFlatListWithScrollKey.displayName = 'BaseFlatListWithScrollKey';
+
+export default ForwardedBaseFlatListWithScrollKey;

@@ -54,4 +54,7 @@ function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, ...restProps}: 
     );
 }
 
-export default forwardRef(KeyboardDismissibleFlatList);
+const ForwardedKeyboardDismissibleFlatList = forwardRef(KeyboardDismissibleFlatList);
+ForwardedKeyboardDismissibleFlatList.displayName = 'KeyboardDismissibleFlatList';
+
+export default ForwardedKeyboardDismissibleFlatList;
