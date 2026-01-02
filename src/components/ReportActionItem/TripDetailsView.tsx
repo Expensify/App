@@ -44,17 +44,17 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRightLong', 'Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRightLong', 'Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage']);
 
     const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type);
 
     const getFormattedDate = () => {
         switch (reservation.type) {
             case CONST.RESERVATION_TYPE.FLIGHT:
-                return DateUtils.getFormattedTransportDate(new Date(reservation.start.date));
+                return DateUtils.getFormattedTransportDate(translate, new Date(reservation.start.date));
             case CONST.RESERVATION_TYPE.HOTEL:
             case CONST.RESERVATION_TYPE.CAR:
-                return DateUtils.getFormattedReservationRangeDate(new Date(reservation.start.date), new Date(reservation.end.date));
+                return DateUtils.getFormattedReservationRangeDate(translate, new Date(reservation.start.date), new Date(reservation.end.date));
             default:
                 return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date));
         }
@@ -281,8 +281,6 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
         </View>
     );
 }
-
-TripDetailsView.displayName = 'TripDetailsView';
 
 export default TripDetailsView;
 export {ReservationView};

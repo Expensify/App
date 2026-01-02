@@ -45,7 +45,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     const policyID = route?.params?.policyID;
     const policy = usePolicy(policyID);
 
-    const illustrations = useMemoizedLazyIllustrations(['Puzzle'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Puzzle']);
 
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
 
@@ -74,7 +74,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
     };
 
     const handleSelectBankAccount = (value?: number) => {
-        configureExpensifyCardsForPolicy(policyID, value);
+        configureExpensifyCardsForPolicy(policyID, policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID, value);
     };
 
     const renderBankOptions = () => {
@@ -200,7 +200,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceExpensifyCardBankAccounts.displayName}
+                testID="WorkspaceExpensifyCardBankAccounts"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
                 shouldShowOfflineIndicator={false}
@@ -230,7 +230,5 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceExpensifyCardBankAccounts.displayName = 'WorkspaceExpensifyCardBankAccounts';
 
 export default WorkspaceExpensifyCardBankAccounts;
