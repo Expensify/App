@@ -31,8 +31,11 @@ import {
     getAddedConnectionMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
     getLastVisibleMessage,
@@ -874,6 +877,12 @@ function getOptionData({
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX)
         ) {
             result.alternateText = getWorkspaceTaxUpdateMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME)) {
+            result.alternateText = getCustomTaxNameUpdateMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX)) {
+            result.alternateText = getCurrencyDefaultTaxUpdateMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX)) {
+            result.alternateText = getForeignCurrencyDefaultTaxUpdateMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME)) {
             result.alternateText = getCleanedTagName(getTagListNameUpdatedMessage(lastAction) ?? '');
         } else if (isTagModificationAction(lastAction?.actionName ?? '')) {
