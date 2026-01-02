@@ -997,6 +997,7 @@ function PureReportActionItem({
         policy,
         currentUserAccountID,
         personalDetail.timezone,
+        personalPolicy?.id,
         createDraftTransactionAndNavigateToParticipantSelector,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
