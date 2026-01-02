@@ -656,6 +656,7 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                     }),
             );
         })
+        .then(resetDidUserLoginDuringSessionIfNeeded)
         .then(() =>
             Promise.all([
                 HybridAppActions.prepareHybridAppAfterTransitionToNewDot({
@@ -665,7 +666,6 @@ function setupNewDotAfterTransitionFromOldDot(hybridAppSettings: HybridAppSettin
                 ...Object.entries(newDotOnyxValues).map(([key, value]) => Onyx.merge(key as OnyxKey, value ?? {})),
             ]),
         )
-        .then(resetDidUserLoginDuringSessionIfNeeded)
         .then(() => {
             Log.info('[HybridApp] Setup after transition from OldDot finished');
             isHybridAppSetupFinished = true;
