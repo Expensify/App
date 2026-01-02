@@ -19,14 +19,7 @@ import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    CanceledRequestParams,
-    CardInfoParams,
     ChangeFieldParams,
-    ChangeOwnerDuplicateSubscriptionParams,
-    ChangeOwnerSubscriptionParams,
-    ChangeReportPolicyParams,
-    ChangeTypeParams,
-    CharacterLengthLimitParams,
     ConnectionNameParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
@@ -131,7 +124,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -419,6 +411,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: '到',
         genericErrorMessage: '哎呀……出现了一些问题，无法完成您的请求。请稍后再试。',
         percentage: '百分比',
+        converted: '已转换',
         error: {
             invalidAmount: '金额无效',
             acceptTerms: '您必须接受服务条款才能继续',
@@ -426,7 +419,7 @@ const translations: TranslationDeepObject<typeof en> = {
 （例如：${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER}）`,
             fieldRequired: '此字段为必填项',
             requestModified: '此请求正在被另一位成员修改中',
-            characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `超出字符限制（${length}/${limit}）`,
+            characterLimitExceedCounter: (length: number, limit: number) => `超出字符限制（${length}/${limit}）`,
             dateInvalid: '请选择一个有效日期',
             invalidDateShouldBeFuture: '请选择今天或将来的日期',
             invalidTimeShouldBeFuture: '请选择一个至少比当前时间晚一分钟的时间',
@@ -1199,20 +1192,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: '如果你没有网站，可以改为提供你公司的 LinkedIn 或社交媒体主页。',
         invalidDomainError: '您输入的域名无效。若要继续，请输入有效的域名。',
         publicDomainError: '您输入的是公共域名。若要继续，请输入一个私有域名。',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} 正在扫描`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} 个待处理`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 笔报销（${statusText.join(', ')}）` : `1 笔报销`,
-                other: (count: number) => (statusText.length > 0 ? `${count} 笔报销（${statusText.join(', ')}）` : `${count} 笔报销`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 笔报销',
@@ -1283,7 +1262,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: '拒绝了此报表',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `已发起付款，但正在等待 ${submitterDisplayName} 添加银行账户。`,
         adminCanceledRequest: '已取消付款',
-        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify Wallet`,
+        canceledRequest: (amount: string, submitterDisplayName: string) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify Wallet`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) => `${submitterDisplayName} 添加了一个银行账户。${amount} 付款已完成。`,
         paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}标记为已支付`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}使用钱包支付`,
@@ -1993,8 +1972,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: '出于安全原因，Xero 要求使用双重身份验证才能连接此集成。',
         twoFactorAuthIsRequiredForAdminsHeader: '需要双重身份验证',
         twoFactorAuthIsRequiredForAdminsTitle: '请启用双重身份验证',
-        twoFactorAuthIsRequiredXero: '您的 Xero 会计连接需要使用双重身份验证。要继续使用 Expensify，请启用该功能。',
-        twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。要继续使用 Expensify，请启用此功能。',
+        twoFactorAuthIsRequiredXero: '您的 Xero 会计连接需要启用双重身份验证。',
+        twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。',
         twoFactorAuthCannotDisable: '无法禁用双重身份验证',
         twoFactorAuthRequired: '您的 Xero 连接需要启用双重身份验证 (2FA)，且无法将其禁用。',
     },
@@ -5775,14 +5754,11 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
 您是否要转移这笔金额（${amount}），以便接管此工作区的账单？您的支付卡将立即被扣款。`,
             subscriptionTitle: '接管年度订阅',
             subscriptionButtonText: '转移订阅',
-            subscriptionText: ({usersCount, finalCount}: ChangeOwnerSubscriptionParams) =>
+            subscriptionText: (usersCount: number, finalCount: number) =>
                 `接管此工作区将把其年度订阅与您当前的订阅合并。这样会将您的订阅人数增加 ${usersCount} 名成员，使您的新订阅人数达到 ${finalCount}。您想要继续吗？`,
             duplicateSubscriptionTitle: '重复订阅警报',
             duplicateSubscriptionButtonText: '继续',
-            duplicateSubscriptionText: ({
-                email,
-                workspaceName,
-            }: ChangeOwnerDuplicateSubscriptionParams) => `看起来你正在尝试接管 ${email} 的工作区的账单，但要做到这一点，你需要先成为他们所有工作区的管理员。
+            duplicateSubscriptionText: (email: string, workspaceName: string) => `看起来你正在尝试接管 ${email} 的工作区的账单，但要做到这一点，你需要先成为他们所有工作区的管理员。
 
 如果你只想接管工作区 ${workspaceName} 的账单，请点击“继续”。
 
@@ -6811,13 +6787,13 @@ ${reportName}
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `将 ${fieldName} 更改为 “${newValue}”（之前为 “${oldValue}”）`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `将 ${fieldName} 设置为 “${newValue}”`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `更改了工作区${fromPolicyName ? `（先前为 ${fromPolicyName}）` : ''}`;
                     }
                     return `将工作区更改为 ${toPolicyName}${fromPolicyName ? `（先前为 ${fromPolicyName}）` : ''}`;
                 },
-                changeType: ({oldType, newType}: ChangeTypeParams) => `将类型从 ${oldType} 更改为 ${newType}`,
+                changeType: (oldType: string, newType: string) => `将类型从 ${oldType} 更改为 ${newType}`,
                 exportedToCSV: `已导出为 CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => {
@@ -7340,9 +7316,9 @@ ${reportName}
             title: '付款',
             subtitle: '添加一张银行卡来支付你的 Expensify 订阅费用。',
             addCardButton: '添加付款卡',
+            cardInfo: (name: string, expiration: string, currency: string) => `名称：${name}，到期日：${expiration}，货币：${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `您的下一个付款日期是 ${nextPaymentDate}。`,
             cardEnding: (cardNumber: string) => `以 ${cardNumber} 结尾的卡片`,
-            cardInfo: ({name, expiration, currency}: CardInfoParams) => `名称：${name}，到期日：${expiration}，货币：${currency}`,
             changeCard: '更改付款卡',
             changeCurrency: '更改付款货币',
             cardNotFound: '未添加付款卡',
