@@ -293,7 +293,7 @@ function SecuritySettingsPage() {
             text: translate('delegate.changeAccessLevel'),
             icon: icons.Pencil,
             onPress: () => {
-                if (isDelegateAccessRestricted) {
+                if (isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
