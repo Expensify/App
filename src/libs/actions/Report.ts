@@ -274,7 +274,7 @@ type ReportError = {
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 let conciergeReportID: string | undefined;
 let currentUserAccountID = -1;
-/** @deprecated This value is deprecated. Use the email from useCurrentUserPersonalDetails hook instead. */
+/** @deprecated This value is deprecated and will be removed soon after migration. Use the email from useCurrentUserPersonalDetails hook instead. */
 let currentUserEmail: string | undefined;
 
 Onyx.connect({
@@ -285,6 +285,7 @@ Onyx.connect({
             conciergeReportID = undefined;
             return;
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
     },
@@ -1077,6 +1078,7 @@ function openReport(
         const parentReport =
             transactionParentReportID === optimisticSelfDMReport?.reportID ? optimisticSelfDMReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionParentReportID}`];
         const submitterAccountID = parentReport?.ownerAccountID ?? currentUserAccountID;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([submitterAccountID]).at(0) ?? currentUserEmail ?? '';
         const submitterPersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(submitterEmail);
 
@@ -1204,6 +1206,7 @@ function openReport(
     const isGroupChat = isGroupChatReportUtils(newReportObject);
     if (isGroupChat) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         parameters.groupChatAdminLogins = currentUserEmail;
         parameters.optimisticAccountIDList = Object.keys(newReportObject?.participants ?? {}).join(',');
         parameters.reportName = newReportObject?.reportName ?? '';
@@ -1446,6 +1449,7 @@ function createTransactionThreadReport(
     openReport(
         optimisticTransactionThreadReportID,
         undefined,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         currentUserEmail ? [currentUserEmail] : [],
         optimisticTransactionThread,
         iouReportAction?.reportActionID,
