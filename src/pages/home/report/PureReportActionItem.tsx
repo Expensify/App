@@ -588,6 +588,7 @@ function PureReportActionItem({
             dismissError();
         }
     }, [linkedTransactionRouteError, action, showDismissReceiptErrorModal, dismissError]);
+    
     useEffect(
         () => () => {
             // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,

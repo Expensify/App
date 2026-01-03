@@ -1,7 +1,6 @@
 /* eslint-disable react-compiler/react-compiler */
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef, useState} from 'react';
-
 /* eslint-disable no-restricted-imports */
 import type {EmitterSubscription, GestureResponderEvent, NativeTouchEvent, View} from 'react-native';
 import {DeviceEventEmitter, Dimensions, InteractionManager} from 'react-native';
@@ -409,15 +408,16 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 shouldSetModalVisibility,
             });
 
-            clearActiveReportAction();
-            callbackWhenDeleteModalHide.current();
-
             if (result.action === ModalActions.CONFIRM) {
                 onConfirm();
                 performDelete();
             } else {
                 onCancel();
             }
+
+            // Clear refs and run callbacks AFTER the action is performed
+            clearActiveReportAction();
+            callbackWhenDeleteModalHide.current();
         },
         [showConfirmModal, translate, performDelete],
     );
