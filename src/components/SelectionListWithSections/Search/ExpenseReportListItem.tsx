@@ -47,6 +47,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     const snapshotData = snapshot?.data;
+    const personalDetailsList = snapshotData?.personalDetailsList;
 
     const snapshotReport = useMemo(() => {
         return (snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`] ?? {}) as Report;
@@ -191,6 +192,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
                         isDisabledCheckbox={isDisabledCheckbox}
                         isHovered={hovered}
                         isFocused={isFocused}
+                        personalDetailsList={personalDetailsList}
                     />
                     {getDescription}
                 </View>

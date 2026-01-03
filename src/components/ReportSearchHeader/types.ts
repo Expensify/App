@@ -1,7 +1,7 @@
 import type {ColorValue, StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {TransactionListItemType} from '@components/SelectionListWithSections/types';
-import type {Report} from '@src/types/onyx';
+import type {PersonalDetailsList, Report} from '@src/types/onyx';
 
 type ReportSearchHeaderProps = {
     /** Report, if we're showing the details for one and using AvatarWithDisplay */
@@ -15,6 +15,9 @@ type ReportSearchHeaderProps = {
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
+
+    /** Optional personal details list to use instead of the global collection */
+    personalDetailsList?: PersonalDetailsList;
 };
 
 export default ReportSearchHeaderProps;
