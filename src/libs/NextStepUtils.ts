@@ -139,7 +139,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             };
 
             // Scheduled submit enabled
-            if (policy?.harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL && isReportContainingTransactions) {
+            if (policy?.harvesting?.enabled && isReportContainingTransactions) {
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -183,7 +183,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             }
 
             // Manual submission
-            if (report?.total !== 0 && !policy?.harvesting?.enabled && autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
+            if (report?.total !== 0 && !policy?.harvesting?.enabled) {
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -499,7 +499,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             };
 
             // Scheduled submit enabled
-            if (policy?.harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL && isReportContainingTransactions) {
+            if (policy?.harvesting?.enabled && isReportContainingTransactions) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -553,7 +553,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
             }
 
             // Manual submission
-            if (report?.total !== 0 && !policy?.harvesting?.enabled && autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
+            if (report?.total !== 0 && !policy?.harvesting?.enabled) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
