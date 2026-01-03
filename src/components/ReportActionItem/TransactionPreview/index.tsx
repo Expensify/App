@@ -41,6 +41,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         iouReportID,
         transactionID: transactionIDFromProps,
         onPreviewPressed,
+        shouldHighlight,
         reportPreviewAction,
         contextAction,
     } = props;
@@ -130,6 +131,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     walletTermsErrors={walletTerms?.errors}
                     routeName={route.name}
                     isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
+                    shouldHighlight={shouldHighlight}
                 />
             </PressableWithoutFeedback>
         );
@@ -154,6 +156,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             walletTermsErrors={walletTerms?.errors}
             routeName={route.name}
             reportPreviewAction={reportPreviewAction}
+            shouldHighlight={shouldHighlight}
             isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
         />
     );
