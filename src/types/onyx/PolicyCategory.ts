@@ -48,6 +48,9 @@ type PolicyCategory = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Max expense amount with no receipt violation */
     maxAmountNoReceipt?: number | null;
+
+    /** Max expense amount with no itemized receipt violation */
+    maxAmountNoItemizedReceipt?: number | null;
 }>;
 
 /** Record of policy categories, indexed by their name */
