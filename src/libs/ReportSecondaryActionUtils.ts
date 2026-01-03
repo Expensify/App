@@ -314,7 +314,7 @@ function isCancelPaymentAction(
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, false, bankAccountList, policy);
+    const isPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
 
     if (!isAdmin || !isPayer) {
         return false;
@@ -385,7 +385,7 @@ function isExportAction(currentAccountID: number, currentUserEmail: string, repo
     }
 
     const isReportApproved = isReportApprovedUtils({report});
-    const isReportPayer = isPayerUtils(currentAccountID, currentUserEmail, report, false, bankAccountList, policy);
+    const isReportPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportClosed = isClosedReportUtils(report);
 
@@ -426,7 +426,7 @@ function isMarkAsExportedAction(currentAccountID: number, currentUserEmail: stri
         return false;
     }
 
-    const isReportPayer = isPayerUtils(currentAccountID, currentUserEmail, report, false, bankAccountList, policy);
+    const isReportPayer = isPayerUtils(currentAccountID, currentUserEmail, report, bankAccountList, policy, false);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);

@@ -2708,9 +2708,9 @@ function isPayer(
     currentAccountID: number | undefined,
     currentUserEmailParm: string | undefined,
     iouReport: OnyxEntry<Report>,
-    onlyShowPayElsewhere = false,
     bankAccountList: OnyxEntry<BankAccountList>,
     reportPolicy?: OnyxInputOrEntry<Policy>,
+    onlyShowPayElsewhere = false,
 ) {
     const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
     const policyType = policy?.type;

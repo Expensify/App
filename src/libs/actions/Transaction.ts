@@ -421,7 +421,7 @@ function dismissDuplicateTransactionViolation(
             currentUserEmailParam: dismissedPersonalDetails.login ?? '',
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
-            bankAccountList: bankAccountList,
+            bankAccountList,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: expenseReport,
@@ -432,7 +432,7 @@ function dismissDuplicateTransactionViolation(
             currentUserEmailParam: dismissedPersonalDetails.login ?? '',
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
-            bankAccountList: bankAccountList,
+            bankAccountList,
         });
 
         optimisticData.push({

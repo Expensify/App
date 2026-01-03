@@ -5575,8 +5575,6 @@ describe('ReportUtils', () => {
             role: CONST.POLICY.ROLE.AUDITOR,
         };
 
-        const bankAccountList: BankAccountList = {};
-
         beforeAll(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policyTest);
@@ -5585,11 +5583,11 @@ describe('ReportUtils', () => {
         afterAll(() => Onyx.clear());
 
         it('should return false for admin of a group policy with reimbursement enabled and report not approved', () => {
-            expect(isPayer(currentUserAccountID, currentUserEmail, unapprovedReport, false, bankAccountList)).toBe(false);
+            expect(isPayer(currentUserAccountID, currentUserEmail, unapprovedReport, {}, undefined, false)).toBe(false);
         });
 
         it('should return false for non-admin of a group policy', () => {
-            expect(isPayer(currentUserAccountID, currentUserEmail, approvedReport, false, bankAccountList)).toBe(false);
+            expect(isPayer(currentUserAccountID, currentUserEmail, approvedReport, {}, undefined, false)).toBe(false);
         });
 
         it('should return true for a reimburser of a group policy on a closed report', async () => {
@@ -5604,7 +5602,7 @@ describe('ReportUtils', () => {
                 policyID: policyTest.id,
             };
 
-            expect(isPayer(currentUserAccountID, currentUserEmail, closedReport, false, bankAccountList)).toBe(true);
+            expect(isPayer(currentUserAccountID, currentUserEmail, closedReport, {}, undefined, false)).toBe(true);
         });
 
         it('should return true for admin with bank account access via sharees', () => {
@@ -5643,7 +5641,7 @@ describe('ReportUtils', () => {
                 policyID: policyTest.id,
             };
 
-            expect(isPayer(adminAccountID, adminEmail, report, false, bankAccountList, policyWithAch)).toBe(true);
+            expect(isPayer(adminAccountID, adminEmail, report, bankAccountList, policyWithAch, false)).toBe(true);
         });
 
         it('should return false for admin without bank account access via sharees', () => {
@@ -5683,7 +5681,7 @@ describe('ReportUtils', () => {
                 policyID: policyTest.id,
             };
 
-            expect(isPayer(adminAccountID, adminEmail, report, false, bankAccountList, policyWithAch)).toBe(false);
+            expect(isPayer(adminAccountID, adminEmail, report, bankAccountList, policyWithAch, false)).toBe(false);
         });
     });
     describe('buildReportNameFromParticipantNames', () => {
