@@ -117,7 +117,7 @@ function buildTravelDotURL(spotnanaToken: string, isTestAccount: boolean, postLo
 
     const authCode = `authCode=${spotnanaToken}`;
     const tmcIDParam = `tmcId=${tmcID}`;
-    const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
+    const redirectURL = postLoginPath ? `redirectUrl=${encodeURIComponent(Url.addLeadingForwardSlash(postLoginPath))}` : '';
 
     const paramsArray = [authCode, tmcIDParam, redirectURL];
     const params = paramsArray.filter(Boolean).join('&');

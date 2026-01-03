@@ -7,13 +7,14 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import usePrevious from '@hooks/usePrevious';
+import {isHarvestCreatedExpenseReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, OnyxInputOrEntry, OriginalMessageIOU, Policy, PrivatePersonalDetails} from '@src/types/onyx';
-import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration} from '@src/types/onyx/OriginalMessage';
+import type {Card, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportNameValuePairs} from '@src/types/onyx';
+import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration, OriginalMessageUnreportedTransaction} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -23,6 +24,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToDisplayString, convertToShortDisplayString} from './CurrencyUtils';
+import DateUtils from './DateUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
@@ -97,6 +99,18 @@ Onyx.connect({
 
         currentUserAccountID = value.accountID;
         currentEmail = value?.email ?? '';
+    },
+});
+
+let allReportNameValuePair: OnyxCollection<ReportNameValuePairs>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        allReportNameValuePair = value;
     },
 });
 
@@ -224,6 +238,10 @@ function isSubmittedAndClosedAction(reportAction: OnyxInputOrEntry<ReportAction>
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED);
 }
 
+function isDynamicExternalWorkflowSubmitAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) && getOriginalMessage(reportAction)?.workflow === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
+}
+
 function isMarkAsClosedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CLOSED) && !!getOriginalMessage(reportAction)?.amount;
 }
@@ -238,6 +256,10 @@ function isUnapprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): repor
 
 function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED);
+}
+
+function isDynamicExternalWorkflowForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED) && getOriginalMessage(reportAction)?.workflow === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
 }
 
 function isModifiedExpenseAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE> {
@@ -695,6 +717,66 @@ function hasNextActionMadeBySameActor(reportActions: ReportAction[], actionIndex
     return canActionsBeGrouped(currentAction, nextAction);
 }
 
+function getReportActionActorAccountID(
+    reportAction: OnyxEntry<ReportAction>,
+    iouReport: OnyxEntry<Report>,
+    report: OnyxEntry<Report>,
+    delegatePersonalDetails?: PersonalDetails | undefined | null,
+): number | undefined {
+    switch (reportAction?.actionName) {
+        case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW: {
+            const ownerAccountID = iouReport?.ownerAccountID ?? reportAction?.childOwnerAccountID;
+            const actorAccountID = iouReport?.managerID ?? reportAction?.childManagerAccountID;
+
+            if (isPolicyExpenseChat(report) || delegatePersonalDetails) {
+                return ownerAccountID;
+            }
+
+            return actorAccountID;
+        }
+
+        case CONST.REPORT.ACTIONS.TYPE.CREATED: {
+            const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
+            if (isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
+                return CONST.ACCOUNT_ID.CONCIERGE;
+            }
+            return reportAction?.actorAccountID;
+        }
+
+        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
+        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED:
+        case CONST.REPORT.ACTIONS.TYPE.APPROVED:
+        case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
+        case CONST.REPORT.ACTIONS.TYPE.IOU: {
+            const originalMessage = getOriginalMessage(reportAction);
+            const actionName = reportAction?.actionName;
+
+            // Check if this should show Concierge as the actor
+            const wasSubmittedViaHarvesting = originalMessage && 'harvesting' in originalMessage ? originalMessage.harvesting : false;
+            const wasAutomatic = originalMessage && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
+            const isPayment = originalMessage && 'type' in originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
+
+            // Show Concierge for:
+            // - Harvesting (delayed submissions)
+            // - Automatic approvals/forwards via workspace rules
+            // - Automatic payments via workspace rules
+            if (wasSubmittedViaHarvesting || (wasAutomatic && actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) || (wasAutomatic && isPayment)) {
+                return CONST.ACCOUNT_ID.CONCIERGE;
+            }
+
+            // For SUBMITTED actions, check adminAccountID first (admin-submit case)
+            if (actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED || actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) {
+                return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
+            }
+
+            return reportAction?.actorAccountID;
+        }
+
+        default:
+            return reportAction?.actorAccountID;
+    }
+}
+
 /**
  * Combines the logic for grouping chat messages isConsecutiveActionMadeByPreviousActor and hasNextActionMadeBySameActor.
  * Returns true when messages are made by the same actor and not separated by more than 5 minutes.
@@ -733,20 +815,21 @@ function canActionsBeGrouped(currentAction?: ReportAction, adjacentAction?: Repo
         return false;
     }
 
+    const currentActionActorAccountID = getReportActionActorAccountID(currentAction, undefined, undefined);
+    const adjacentActionActorAccountID = getReportActionActorAccountID(adjacentAction, undefined, undefined);
+
     if (isSubmittedAction(currentAction) || isSubmittedAndClosedAction(currentAction)) {
         const currentActionAdminAccountID = currentAction.adminAccountID;
-        return typeof currentActionAdminAccountID === 'number'
-            ? currentActionAdminAccountID === adjacentAction.actorAccountID
-            : currentAction.actorAccountID === adjacentAction.actorAccountID;
+        return typeof currentActionAdminAccountID === 'number' ? currentActionAdminAccountID === adjacentActionActorAccountID : currentActionActorAccountID === adjacentActionActorAccountID;
     }
 
     if (isSubmittedAction(adjacentAction) || isSubmittedAndClosedAction(adjacentAction)) {
         return typeof adjacentAction.adminAccountID === 'number'
-            ? currentAction.actorAccountID === adjacentAction.adminAccountID
-            : currentAction.actorAccountID === adjacentAction.actorAccountID;
+            ? currentActionActorAccountID === adjacentAction.adminAccountID
+            : currentActionActorAccountID === adjacentActionActorAccountID;
     }
 
-    return currentAction.actorAccountID === adjacentAction.actorAccountID;
+    return currentActionActorAccountID === adjacentActionActorAccountID;
 }
 function isChronosAutomaticTimerAction(reportAction: OnyxInputOrEntry<ReportAction>, isChronosReport: boolean): boolean {
     const isAutomaticStartTimerAction = () => /start(?:ed|ing)?(?:\snow)?/i.test(getReportActionText(reportAction));
@@ -894,6 +977,13 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
     // Filter out any unsupported reportAction types
     if (!supportedActionTypes.has(reportAction.actionName)) {
         return false;
+    }
+
+    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
+        const unreportedTransactionOriginalMessage = getOriginalMessage(reportAction as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>>) ?? {};
+        const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+        const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+        return !!fromReport;
     }
 
     if (isMovedTransactionAction(reportAction)) {
@@ -1104,6 +1194,43 @@ function getFilteredReportActionsForReportView(actions: ReportAction[]) {
     return actions.filter(isVisiblePreviewOrMoneyRequest);
 }
 
+function getDynamicExternalWorkflowRoutedAction(
+    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED>,
+): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> {
+    return {
+        reportActionID: `${reportAction.reportActionID}DEW`,
+        created: DateUtils.addMillisecondsFromDateTime(reportAction.created, 1),
+        actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+        actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
+        message: [{html: 'DYNAMIC_EXTERNAL_WORKFLOW', type: 'COMMENT', text: ''}],
+        originalMessage: {
+            to: getOriginalMessage(reportAction)?.to ?? '',
+        },
+    };
+}
+
+function withDEWRoutedActionsArray(reportActions: ReportAction[]): ReportAction[] {
+    return reportActions.flatMap((reportAction) => {
+        if ((isDynamicExternalWorkflowSubmitAction(reportAction) || isDynamicExternalWorkflowForwardedAction(reportAction)) && getOriginalMessage(reportAction)?.to) {
+            return [reportAction, getDynamicExternalWorkflowRoutedAction(reportAction)];
+        }
+        return reportAction;
+    });
+}
+
+function withDEWRoutedActionsObject(reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportActions> {
+    return Object.entries(reportActions ?? {}).reduce((acc, value) => {
+        const [reportActionID, reportAction] = value;
+        acc[reportActionID] = reportAction;
+
+        if ((isDynamicExternalWorkflowSubmitAction(reportAction) || isDynamicExternalWorkflowForwardedAction(reportAction)) && getOriginalMessage(reportAction)?.to) {
+            const dynamicExternalWorkflowRoutedAction = getDynamicExternalWorkflowRoutedAction(reportAction);
+            acc[dynamicExternalWorkflowRoutedAction.reportActionID] = dynamicExternalWorkflowRoutedAction;
+        }
+        return acc;
+    }, {} as ReportActions);
+}
+
 /**
  * This method returns the report actions that are ready for display in the ReportActionsView.
  * The report actions need to be sorted by created timestamp first, and reportActionID second
@@ -1129,7 +1256,7 @@ function getSortedReportActionsForDisplay(
     }
 
     const baseURLAdjustedReportActions = filteredReportActions.map((reportAction) => replaceBaseURLInPolicyChangeLogAction(reportAction));
-    return getSortedReportActions(baseURLAdjustedReportActions, true);
+    return getSortedReportActions(withDEWRoutedActionsArray(baseURLAdjustedReportActions), true);
 }
 
 /**
@@ -1946,6 +2073,12 @@ function getReportActionMessageFragments(action: ReportAction): Message[] {
         return [{text: message, html: message, type: 'COMMENT'}];
     }
 
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const message = getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
+        return [{text: message, html: `<muted-text>${message}</muted-text>`, type: 'COMMENT'}];
+    }
+
     const actionMessage = action.previousMessage ?? action.message;
     if (Array.isArray(actionMessage)) {
         return actionMessage.filter((item): item is Message => !!item);
@@ -2580,6 +2713,39 @@ function getWorkspaceTaxUpdateMessage(action: ReportAction): string {
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX && taxName) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('workspaceActions.updateTax', {taxName, oldValue, newValue, updatedField});
+    }
+
+    return getReportActionText(action);
+}
+
+function getCustomTaxNameUpdateMessage(action: ReportAction): string {
+    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME>) ?? {};
+
+    if (newName) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updateCustomTaxName', {oldName, newName});
+    }
+
+    return getReportActionText(action);
+}
+
+function getCurrencyDefaultTaxUpdateMessage(action: ReportAction): string {
+    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX>) ?? {};
+
+    if (newName) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updateCurrencyDefaultTax', {oldName, newName});
+    }
+
+    return getReportActionText(action);
+}
+
+function getForeignCurrencyDefaultTaxUpdateMessage(action: ReportAction): string {
+    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX>) ?? {};
+
+    if (newName) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.updateForeignCurrencyDefaultTax', {oldName, newName});
     }
 
     return getReportActionText(action);
@@ -3291,6 +3457,13 @@ function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, rep
     return translate('reportAction.harvestCreatedExpenseReport', {reportUrl, reportName});
 }
 
+function getDynamicExternalWorkflowRoutedMessage(
+    action: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED>>,
+    translate: LocaleContextProps['translate'],
+) {
+    return translate('iou.routedDueToDEW', {to: getOriginalMessage(action)?.to ?? ''});
+}
+
 function isCardIssuedAction(
     reportAction: OnyxEntry<ReportAction>,
 ): reportAction is ReportAction<
@@ -3531,6 +3704,7 @@ export {
     getUpdatedApprovalRuleMessage,
     getRemovedFromApprovalChainMessage,
     getDemotedFromWorkspaceMessage,
+    getDynamicExternalWorkflowRoutedMessage,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage,
@@ -3604,8 +3778,10 @@ export {
     isWhisperAction,
     isSubmittedAction,
     isSubmittedAndClosedAction,
+    isDynamicExternalWorkflowSubmitAction,
     isMarkAsClosedAction,
     isApprovedAction,
+    isDynamicExternalWorkflowForwardedAction,
     isUnapprovedAction,
     isForwardedAction,
     isWhisperActionTargetedToOthers,
@@ -3651,6 +3827,9 @@ export {
     getWorkspaceReimbursementUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
@@ -3690,6 +3869,9 @@ export {
     getActionableCardFraudAlertMessage,
     getHarvestCreatedExpenseReportMessage,
     isSystemUserMentioned,
+    withDEWRoutedActionsArray,
+    withDEWRoutedActionsObject,
+    getReportActionActorAccountID,
 };
 
 export type {LastVisibleMessage};

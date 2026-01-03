@@ -1,7 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
-import {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -698,6 +697,11 @@ describe('createTransaction', () => {
 
     const fileObj = new File([new Blob(['test'])], 'test.jpg', {type: 'image/jpeg'});
     const fakeReceiptFile: ReceiptFile = {transactionID: fakeTransaction.transactionID, file: fileObj, source: 12345};
+    const fakeQuickAction: OnyxEntry<QuickAction> = {
+        action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
+        chatReportID: 'quick_action_chat_123',
+        targetAccountID: 789,
+    };
 
     const baseParams = {
         transactions: [fakeTransaction],
@@ -710,6 +714,7 @@ describe('createTransaction', () => {
         transactionViolations: {},
         files: [fakeReceiptFile],
         participant: {accountID: 222, login: 'test@test.com'},
+        quickAction: fakeQuickAction,
     };
 
     beforeEach(() => {
@@ -881,6 +886,8 @@ describe('handleMoneyRequestStepDistanceNavigation', () => {
         targetAccountID: 789,
     };
     const backTo = ROUTES.REPORT_WITH_ID.getRoute('123');
+    const firstSplitParticipantID = '100';
+    const secondSplitParticipantID = '101';
 
     const baseParams = {
         iouType: CONST.IOU.TYPE.CREATE,
@@ -908,10 +915,10 @@ describe('handleMoneyRequestStepDistanceNavigation', () => {
         quickAction: fakeQuickAction,
     };
     const splitShares: SplitShares = {
-        100: {
+        [firstSplitParticipantID]: {
             amount: 10,
         },
-        101: {
+        [secondSplitParticipantID]: {
             amount: 10,
         },
     };
@@ -1048,7 +1055,7 @@ describe('handleMoneyRequestStepDistanceNavigation', () => {
                 receipt: {},
                 billable: false,
                 reimbursable: true,
-                validWaypoints: validWaypoints,
+                validWaypoints,
                 customUnitRateID: baseParams.customUnitRateID,
                 attendees: fakeTransaction?.comment?.attendees,
             },
@@ -1145,7 +1152,7 @@ describe('handleMoneyRequestStepDistanceNavigation', () => {
                     merchant: 'Pending...',
                     billable: !!fakePolicy.defaultBillable,
                     reimbursable: !!fakePolicy?.defaultReimbursable,
-                    validWaypoints: validWaypoints,
+                    validWaypoints,
                     customUnitRateID,
                     splitShares: fakeTransaction?.splitShares,
                     attendees: fakeTransaction?.comment?.attendees,

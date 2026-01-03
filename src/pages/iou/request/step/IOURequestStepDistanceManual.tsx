@@ -17,7 +17,7 @@ import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getMoneyRequestParticipantsFromReport, setMoneyRequestDistance, updateMoneyRequestDistance} from '@libs/actions/IOU';
+import {setMoneyRequestDistance, updateMoneyRequestDistance} from '@libs/actions/IOU';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {handleMoneyRequestStepDistanceNavigation, shouldUseTransactionDraft} from '@libs/IOUUtils';

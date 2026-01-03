@@ -49,6 +49,7 @@ type CreateTransactionParams = {
     shouldGenerateTransactionThreadReport: boolean;
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    quickAction: OnyxEntry<QuickAction>;
     files: ReceiptFile[];
     participant: Participant;
     gpsPoint?: GpsPoint;
@@ -471,6 +472,7 @@ function createTransaction({
     shouldGenerateTransactionThreadReport,
     isASAPSubmitBetaEnabled,
     transactionViolations,
+    quickAction,
     files,
     participant,
     gpsPoint,
@@ -504,6 +506,7 @@ function createTransaction({
                 ...(policyParams ?? {}),
                 shouldHandleNavigation: index === files.length - 1,
                 isASAPSubmitBetaEnabled,
+                quickAction,
             });
         } else {
             requestMoney({
@@ -647,6 +650,7 @@ function handleMoneyRequestStepScanParticipants({
                             shouldGenerateTransactionThreadReport,
                             isASAPSubmitBetaEnabled,
                             transactionViolations,
+                            quickAction,
                             files,
                             participant,
                             gpsPoint,
@@ -668,6 +672,7 @@ function handleMoneyRequestStepScanParticipants({
                             shouldGenerateTransactionThreadReport,
                             isASAPSubmitBetaEnabled,
                             transactionViolations,
+                            quickAction,
                             files,
                             participant,
                         });
@@ -685,6 +690,7 @@ function handleMoneyRequestStepScanParticipants({
                 shouldGenerateTransactionThreadReport,
                 isASAPSubmitBetaEnabled,
                 transactionViolations,
+                quickAction,
                 files,
                 participant,
             });
@@ -823,6 +829,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         attendees: transaction?.comment?.attendees,
                     },
                     isASAPSubmitBetaEnabled,
+                    quickAction,
                 });
                 return;
             }

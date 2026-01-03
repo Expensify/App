@@ -35,7 +35,7 @@ import type {MileageRate} from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {handleMoneyRequestStepDistanceNavigation, shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalPolicy, getPolicy} from '@libs/PolicyUtils';
+import {getPolicy} from '@libs/PolicyUtils';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, hasRoute, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -154,7 +154,7 @@ function IOURequestStepDistanceMap({
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             const IOUpolicy = getPolicy(report?.policyID ?? IOUpolicyID);
-            const policyCurrency = policy?.outputCurrency ?? getPersonalPolicy()?.outputCurrency ?? CONST.CURRENCY.USD;
+            const policyCurrency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
             const mileageRates = DistanceRequestUtils.getMileageRates(IOUpolicy);
             const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(IOUpolicy);
@@ -174,7 +174,7 @@ function IOURequestStepDistanceMap({
                 setSplitShares(transaction, amount, currency ?? '', participantAccountIDs ?? []);
             }
         },
-        [report, allReports, transaction, transactionID, isSplitRequest, policy?.outputCurrency, reportID, customUnitRateID],
+        [report, allReports, transaction, transactionID, isSplitRequest, policy?.outputCurrency, reportID, customUnitRateID, personalPolicy?.outputCurrency],
     );
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
