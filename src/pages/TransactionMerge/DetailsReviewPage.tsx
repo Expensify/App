@@ -44,7 +44,9 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {transactionID, isOnSearch, backTo} = route.params;
 
     const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
-    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
+    const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport, targetTransactionPolicy, sourceTransactionPolicy} = useMergeTransactions({
+        mergeTransaction,
+    });
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
     const [conflictFields, setConflictFields] = useState<MergeFieldKey[]>([]);
@@ -77,7 +79,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
             // Update both the field value and track which transaction was selected (persisted in Onyx)
             const currentSelections = mergeTransaction?.selectedTransactionByField ?? {};
-            const updatedValues = getMergeFieldUpdatedValues(transaction, field, fieldValue, [targetTransactionReport, sourceTransactionReport]);
+            const updatedValues = getMergeFieldUpdatedValues({transaction, field, fieldValue, mergeTransaction, searchReports: [targetTransactionReport, sourceTransactionReport]});
 
             setMergeTransactionKey(transactionID, {
                 ...updatedValues,
@@ -87,7 +89,7 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
                 } as Partial<Record<MergeFieldKey, string>>,
             });
         },
-        [mergeTransaction?.selectedTransactionByField, transactionID, targetTransactionReport, sourceTransactionReport],
+        [mergeTransaction, transactionID, targetTransactionReport, sourceTransactionReport],
     );
 
     // Handle continue
@@ -113,8 +115,22 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(
-        () => buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, translate, [targetTransactionReport, sourceTransactionReport]),
-        [conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionReport, sourceTransactionReport, translate],
+        () =>
+            buildMergeFieldsData(conflictFields, targetTransaction, sourceTransaction, mergeTransaction, targetTransactionPolicy, sourceTransactionPolicy, translate, [
+                targetTransactionReport,
+                sourceTransactionReport,
+            ]),
+        [
+            conflictFields,
+            targetTransaction,
+            sourceTransaction,
+            mergeTransaction,
+            targetTransactionReport,
+            sourceTransactionReport,
+            targetTransactionPolicy,
+            sourceTransactionPolicy,
+            translate,
+        ],
     );
 
     // If this screen has multiple "selection cards" on it and the user skips one or more, show an error above the footer button

@@ -7,10 +7,10 @@ import type {GetTransactionsForMergingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {
     areTransactionsEligibleForMerge,
+    DERIVED_MERGE_FIELDS,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
     getTransactionThreadReportID,
-    MERGE_FIELDS,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
 } from '@libs/MergeTransactionUtils';
@@ -200,7 +200,7 @@ function getOnyxTargetTransactionData(
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const filteredTransactionChanges = Object.fromEntries(
         Object.entries(mergeTransaction).filter(([key, mergeValue]) => {
-            if (!(MERGE_FIELDS as readonly string[]).includes(key)) {
+            if (!(DERIVED_MERGE_FIELDS as readonly string[]).includes(key)) {
                 return false;
             }
 
@@ -311,6 +311,7 @@ function mergeTransactionRequest({
         billable: mergeTransaction.billable,
         reimbursable: mergeTransaction.reimbursable,
         tag: mergeTransaction.tag,
+        taxCode: mergeTransaction.taxCode,
         receiptID: mergeTransaction.receipt?.receiptID,
         reportID: mergeTransaction.reportID,
     };
