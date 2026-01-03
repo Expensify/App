@@ -314,6 +314,7 @@ import {
     isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isMapDistanceRequest,
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense,
     isPending,
@@ -5021,6 +5022,13 @@ function getTransactionReportName({
     if (isFetchingWaypointsFromServer(transaction) && getMerchant(transaction) === translateLocal('iou.fieldPending')) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('iou.fieldPending');
+    }
+
+    // If a map distance request has no route (the distance is zero) the merchant would be empty
+    // Using the merchant is easier than explicitly checking for distance
+    if (isMapDistanceRequest(transaction) && !getMerchant(transaction)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('violations.noRoute');
     }
 
     if (isSentMoneyReportAction(reportAction)) {

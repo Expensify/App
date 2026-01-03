@@ -4,6 +4,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
+import {isWaypointNullIsland} from '@libs/TransactionUtils';
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 
@@ -54,6 +56,7 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
     const waypoint = waypoints?.[`waypoint${index}`] ?? {};
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const title = waypoint.name || waypoint.address;
+    const errorText = isWaypointNullIsland(waypoint) ? translate('violations.noRoute') : undefined;
 
     return (
         <MenuItemWithTopDescription
@@ -69,6 +72,8 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
             focused={isActive}
             key={item}
             disabled={disabled}
+            errorText={errorText}
+            brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
         />
     );
 }

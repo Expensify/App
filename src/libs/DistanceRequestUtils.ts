@@ -175,8 +175,12 @@ function getDistanceForDisplay(
     translate: LocaleContextProps['translate'],
     useShortFormUnit?: boolean,
 ): string {
-    if (!hasRoute || !unit || !distanceInMeters) {
+    if (!hasRoute || !unit) {
         return translate('iou.fieldPending');
+    }
+
+    if (!distanceInMeters) {
+        return '';
     }
 
     const distanceInUnits = getRoundedDistanceInUnits(distanceInMeters, unit);
@@ -217,6 +221,10 @@ function getDistanceMerchant(
 ): string {
     if (!hasRoute || !rate) {
         return translate('iou.fieldPending');
+    }
+
+    if (!distanceInMeters) {
+        return '';
     }
 
     const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true);
