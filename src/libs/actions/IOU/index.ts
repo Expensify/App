@@ -297,6 +297,7 @@ type InitMoneyRequestParams = {
     currentDate: string | undefined;
     lastSelectedDistanceRates?: OnyxEntry<OnyxTypes.LastSelectedDistanceRates>;
     currentUserPersonalDetails: CurrentUserPersonalDetails;
+    isTrackDistanceExpense?: boolean;
     hasOnlyPersonalPolicies: boolean;
 };
 
@@ -1050,6 +1051,7 @@ function initMoneyRequest({
     policy,
     personalPolicy,
     isFromGlobalCreate,
+    isTrackDistanceExpense = false,
     currentIouRequestType,
     newIouRequestType,
     report,
@@ -1093,7 +1095,7 @@ function initMoneyRequest({
     if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MAP || newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL) {
         if (!isFromGlobalCreate) {
             const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(report) || isPolicyExpenseChatReportUtil(parentReport);
-            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, policy, lastSelectedDistanceRates});
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID({reportID, isPolicyExpenseChat, isTrackDistanceExpense, policy, lastSelectedDistanceRates});
             comment.customUnit = {customUnitRateID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
         } else if (hasOnlyPersonalPolicies) {
             comment.customUnit = {customUnitRateID: CONST.CUSTOM_UNITS.FAKE_P2P_ID, name: CONST.CUSTOM_UNITS.NAME_DISTANCE};
@@ -7077,6 +7079,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 createdReportActionIDForThread,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID,
+                ...(policy && customUnitRateID && customUnitRateID !== CONST.CUSTOM_UNITS.FAKE_P2P_ID && {policyID: policy?.id}),
                 description: parsedComment,
             };
             if (actionableWhisperReportActionIDParam) {
