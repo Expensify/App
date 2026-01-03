@@ -509,8 +509,8 @@ describe('actions/Report', () => {
             .then(() => {
                 rerender(report);
                 // If the user deletes a comment that is before the last read
-                Report.deleteReportComment(REPORT_ID, {...reportActions[200]}, ancestors.current, undefined, undefined, '');
-                Report.deleteReportComment(REPORT_ID, {...reportActions[300]}, ancestors.current, undefined, undefined, '');
+                Report.deleteReportComment(REPORT_ID, {...reportActions[200]}, ancestors.current, undefined, undefined, USER_1_LOGIN);
+                Report.deleteReportComment(REPORT_ID, {...reportActions[300]}, ancestors.current, undefined, undefined, USER_1_LOGIN);
                 return waitForBatchedUpdates();
             })
             .then(() => {
