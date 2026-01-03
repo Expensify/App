@@ -5,6 +5,9 @@ import type {DelegateRole} from '@src/types/onyx/Account';
 import type {AllConnectionName, ConnectionName, PolicyConnectionSyncStage, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {ViolationDataType} from '@src/types/onyx/TransactionViolation';
 
+type EmployeesSeeTagsAsParams = {
+    customTagName: string;
+};
 type ZipCodeExampleFormatParams = {
     zipSampleFormat: string;
 };
@@ -992,6 +995,7 @@ export type {
     MergeFailureDescriptionGenericParams,
     EnableContinuousReconciliationParams,
     WorkspaceUpgradeNoteParams,
+    EmployeesSeeTagsAsParams,
     WorkflowSettingsParam,
     MovedActionParams,
     IndividualExpenseRulesSubtitleParams,

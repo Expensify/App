@@ -10,6 +10,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+import EmployeesSeeTagsAsText from './EmployeesSeeTagsAsText/index';
 import Icon from './Icon';
 import Text from './Text';
 import TextBlock from './TextBlock';
@@ -27,9 +28,15 @@ type ImportedFromAccountingSoftwareProps = {
 
     /** The translated text for the "imported from" message */
     translatedText: string;
+
+    /** The custom tag name */
+    customTagName?: string;
+
+    /** Whether we are displaying  tags */
+    shouldShow?: boolean;
 };
 
-function ImportedFromAccountingSoftware({policyID, currentConnectionName, translatedText, connectedIntegration}: ImportedFromAccountingSoftwareProps) {
+function ImportedFromAccountingSoftware({policyID, currentConnectionName, translatedText, connectedIntegration, customTagName, shouldShow = false}: ImportedFromAccountingSoftwareProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -37,28 +44,46 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare']);
     const icon = getIntegrationIcon(connectedIntegration, expensifyIcons);
 
+    if (!customTagName && shouldShow) {
+        return null;
+    }
+
     return (
-        <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexWrap]}>
+        <View style={[styles.alignItemsCenter, styles.flexRow, styles.flexWrap, styles.breakWord]}>
             <TextBlock
                 textStyles={[styles.textNormal, styles.colorMuted]}
                 text={`${translatedText} `}
             />
-            <TextLinkBlock
-                style={[styles.textNormal, styles.link]}
-                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
-                text={`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
-                prefixIcon={
-                    icon ? (
-                        <Icon
-                            src={icon}
-                            height={variables.iconSizeMedium}
-                            width={variables.iconSizeMedium}
-                            additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALLER, ''), styles.appBG]}
-                        />
-                    ) : undefined
-                }
-            />
-            <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+            {[
+                <TextLinkBlock
+                    key="settingsLink"
+                    style={[styles.textNormal, styles.link]}
+                    href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                    text={`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                    prefixIcon={
+                        icon ? (
+                            <Icon
+                                src={icon}
+                                height={variables.iconSizeMedium}
+                                width={variables.iconSizeMedium}
+                                additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.SMALLER, ''), styles.appBG]}
+                            />
+                        ) : undefined
+                    }
+                />,
+                <Text
+                    key="period"
+                    style={[styles.textNormal, styles.colorMuted]}
+                >
+                    .{' '}
+                </Text>,
+                shouldShow && !!customTagName ? (
+                    <EmployeesSeeTagsAsText
+                        key="employeesSeeTagsAs"
+                        customTagName={customTagName}
+                    />
+                ) : null,
+            ]}
         </View>
     );
 }
