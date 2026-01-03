@@ -6581,6 +6581,12 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 }
             }
         },
+        changedInvoiceCompanyName: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue ? `ha modificato il nome dell'azienda in fattura in "${newValue}" (precedentemente "${oldValue}")` : `imposta il nome dell’azienda della fattura su "${newValue}"`,
+        changedInvoiceCompanyWebsite: ({newValue, oldValue}: {newValue: string; oldValue?: string}) =>
+            oldValue
+                ? `ha modificato il sito web dell’azienda in fattura in "${newValue}" (precedentemente "${oldValue}")`
+                : `imposta il sito web dell'azienda della fattura su "${newValue}"`,
         updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `ha cambiato il nome dell’imposta personalizzata in "${newName}" (precedentemente "${oldName}")`,
         updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
             `ha modificato l’aliquota fiscale predefinita della valuta dello spazio di lavoro in “${newName}” (in precedenza “${oldName}”)`,
