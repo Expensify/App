@@ -1200,8 +1200,13 @@ function getToFieldValueForTransaction(
         const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
         if (isIOUReport) {
             return (
-                getIOUPayerAndReceiver(report?.managerID ?? CONST.DEFAULT_NUMBER_ID, report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetailsList, transactionItem.amount)?.to ??
-                emptyPersonalDetails
+                getIOUPayerAndReceiver(
+                    report?.managerID ?? CONST.DEFAULT_NUMBER_ID,
+                    report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+                    personalDetailsList,
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    transactionItem.modifiedAmount || transactionItem.amount,
+                )?.to ?? emptyPersonalDetails
             );
         }
         return personalDetailsList?.[report?.managerID] ?? emptyPersonalDetails;
@@ -3455,5 +3460,6 @@ export {
     getTableMinWidth,
     getCustomColumns,
     getCustomColumnDefault,
+    getToFieldValueForTransaction,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchKey, ArchivedReportsIDSet};
