@@ -1,6 +1,8 @@
-import React, {useMemo} from 'react';
+import React, {useMemo, useRef} from 'react';
 import type {ScrollViewProps, ViewToken} from 'react-native';
 import {DeviceEventEmitter, FlatList} from 'react-native';
+import useFlatListHandle from '@components/FlatList/hooks/useFlatListHandle';
+import type {FlatListInnerRefType} from '@components/FlatList/hooks/useFlatListHandle';
 import type {ReportAction} from '@src/types/onyx';
 import type {InvertedFlatListProps} from './types';
 
@@ -30,11 +32,20 @@ function InvertedFlatListE2E({ref, ...props}: InvertedFlatListProps<ReportAction
         return config;
     }, [shouldEnableAutoScrollToTopThreshold, rest.data?.length]);
 
+    const listRef = useRef<FlatListInnerRefType<ReportAction> | null>(null);
+    useFlatListHandle<ReportAction>({
+        ref,
+        listRef,
+        remainingItemsToDisplay: 0,
+        setCurrentDataId: () => {},
+        onScrollToIndexFailed: () => {},
+    });
+
     return (
         <FlatList<ReportAction>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
-            ref={ref}
+            ref={listRef}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             inverted
             onViewableItemsChanged={handleViewableItemsChanged}

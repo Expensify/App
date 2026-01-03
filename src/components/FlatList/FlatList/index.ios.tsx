@@ -1,6 +1,8 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {FlatList} from 'react-native';
+import useFlatListHandle from '@components/FlatList/hooks/useFlatListHandle';
+import type {FlatListInnerRefType} from '@components/FlatList/hooks/useFlatListHandle';
 import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +22,6 @@ function CustomFlatList<T>({
 }: CustomFlatListProps<T>) {
     const [isScrolling, setIsScrolling] = useState(false);
     const styles = useThemeStyles();
-
     const handleScrollBegin = useCallback(
         (event: NativeSyntheticEvent<NativeScrollEvent>) => {
             onMomentumScrollBegin?.(event);
@@ -46,6 +47,15 @@ function CustomFlatList<T>({
         [emitComposerScrollEvents, onScrollProp],
     );
 
+    const listRef = useRef<FlatListInnerRefType<T> | null>(null);
+    useFlatListHandle<T>({
+        ref,
+        listRef,
+        remainingItemsToDisplay: 0,
+        setCurrentDataId: () => {},
+        onScrollToIndexFailed: () => {},
+    });
+
     const maintainVisibleContentPosition = isScrolling || shouldDisableVisibleContentPosition ? undefined : maintainVisibleContentPositionProp;
 
     const contentContainerStyle = [restProps.contentContainerStyle, shouldHideContent && styles.opacity0];
@@ -55,7 +65,7 @@ function CustomFlatList<T>({
             <KeyboardDismissibleFlatList
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restProps}
-                ref={ref}
+                ref={listRef}
                 maintainVisibleContentPosition={maintainVisibleContentPosition}
                 // Composer scroll events are emitted in `KeyboardDismissibleFlatList` separately, therefore we pass the `onScroll` prop instead of the `handleScroll` callback.
                 onScroll={onScrollProp}
@@ -70,7 +80,7 @@ function CustomFlatList<T>({
         <FlatList<T>
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...restProps}
-            ref={ref}
+            ref={listRef}
             maintainVisibleContentPosition={maintainVisibleContentPosition}
             onScroll={handleScroll}
             onMomentumScrollBegin={handleScrollBegin}
