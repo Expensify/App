@@ -1,7 +1,7 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeeds, Domain, SamlMetadata} from '@src/types/onyx';
+import type {CardFeeds, Domain, DomainSecurityGroup, SamlMetadata} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 const domainMemberSamlSettingsSelector = (domainSettings: OnyxEntry<CardFeeds>) => domainSettings?.settings;
@@ -53,6 +53,42 @@ const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardF
     };
 };
 
+/**
+ * Extracts a list of member IDs (accountIDs) from the domain object.
+ * It iterates through the security groups in the domain, extracts account IDs from the 'shared' property,
+ * and returns a unique list of numbers.
+ *
+ * @param domain - The domain object from Onyx
+ * @returns An array of unique member account IDs
+ */
+function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
+    if (!domain) {
+        return getEmptyArray<number>();;
+    }
+
+    const memberIDs = Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
+        if (key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX)) {
+            const securityGroup = value as DomainSecurityGroup;
+
+            const sharedMembers = securityGroup?.shared ?? {};
+
+            for (const id of Object.keys(sharedMembers)) {
+                const accountID = Number(id);
+                if (!Number.isNaN(accountID)) {
+                    acc.push(accountID);
+                }
+            }
+        }
+        return acc;
+    }, []);
+
+    const uniqueIDs = [...new Set(memberIDs)];
+
+    return uniqueIDs.length > 0 ? uniqueIDs : getEmptyArray<number>();
+}
+
+const technicalContactEmailSelector = (domainMemberSharedNVP: OnyxEntry<CardFeeds>) => domainMemberSharedNVP?.settings?.technicalContactEmail;
+
 const domainEmailSelector = (domain: OnyxEntry<Domain>) => domain?.email;
 
 export {
@@ -61,6 +97,8 @@ export {
     domainNameSelector,
     metaIdentitySelector,
     adminAccountIDsSelector,
-    technicalContactSettingsSelector,
+    technicalContactEmailSelector,
+    selectMemberIDs,
     domainEmailSelector,
+    technicalContactSettingsSelector,
 };
