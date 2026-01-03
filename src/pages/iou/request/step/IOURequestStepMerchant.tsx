@@ -76,9 +76,9 @@ function IOURequestStepMerchant({
 
     const isMerchantRequired = isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
 
-    const navigateBack = () => {
+    const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
-    };
+    }, [backTo]);
 
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
@@ -102,20 +102,14 @@ function IOURequestStepMerchant({
         setHasUnsavedChanges(false);
         const newMerchant = value.moneyRequestMerchant?.trim();
 
-        // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplitBill) {
             setDraftSplitTransaction(transactionID, splitDraftTransaction, {merchant: newMerchant});
-            navigateBack();
             return;
         }
 
-        // In case the merchant hasn't been changed, do not make the API request.
-        // In case the merchant has been set to empty string while current merchant is partial, do nothing too.
         if (newMerchant === merchant || (newMerchant === '' && merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT)) {
-            navigateBack();
             return;
         }
-        // When creating/editing an expense, newMerchant can be blank so we fall back on PARTIAL_TRANSACTION_MERCHANT
         setMoneyRequestMerchant(transactionID, newMerchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT, !isEditing);
         if (isEditing) {
             updateMoneyRequestMerchant(
@@ -130,7 +124,6 @@ function IOURequestStepMerchant({
                 isASAPSubmitBetaEnabled,
             );
         }
-        navigateBack();
     };
 
     return (

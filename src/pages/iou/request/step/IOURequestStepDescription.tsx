@@ -111,9 +111,9 @@ function IOURequestStepDescription({
         [isDescriptionRequired, translate],
     );
 
-    const navigateBack = () => {
+    const navigateBack = useCallback(() => {
         Navigation.goBack(backTo);
-    };
+    }, [backTo]);
 
     const updateHasUnsavedChanges = useCallback(
         (value: string) => {
@@ -134,16 +134,12 @@ function IOURequestStepDescription({
         setHasUnsavedChanges(false);
         const newComment = value.moneyRequestComment.trim();
 
-        // Only update comment if it has changed
         if (newComment === currentDescriptionInMarkdown) {
-            navigateBack();
             return;
         }
 
-        // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
         if (isEditingSplit) {
             setDraftSplitTransaction(transaction?.transactionID, splitDraftTransaction, {comment: newComment});
-            navigateBack();
             return;
         }
 
@@ -162,8 +158,6 @@ function IOURequestStepDescription({
                 isASAPSubmitBetaEnabled,
             );
         }
-
-        navigateBack();
     };
 
     // eslint-disable-next-line rulesdir/no-negated-variables

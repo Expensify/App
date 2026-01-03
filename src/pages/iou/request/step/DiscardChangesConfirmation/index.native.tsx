@@ -31,9 +31,15 @@ function DiscardChangesConfirmation({hasUnsavedChanges}: DiscardChangesConfirmat
                 setIsVisible(false);
                 if (blockedNavigationAction.current) {
                     navigationRef.current?.dispatch(blockedNavigationAction.current);
+                    blockedNavigationAction.current = undefined;
+                } else {
+                    navigationRef.current?.goBack();
                 }
             }}
-            onCancel={() => setIsVisible(false)}
+            onCancel={() => {
+                setIsVisible(false);
+                blockedNavigationAction.current = undefined;
+            }}
             shouldHandleNavigationBack
         />
     );
