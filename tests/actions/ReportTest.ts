@@ -510,7 +510,6 @@ describe('actions/Report', () => {
                 rerender(report);
                 // If the user deletes a comment that is before the last read
                 Report.deleteReportComment(REPORT_ID, {...reportActions[200]}, ancestors.current, undefined, undefined, USER_1_LOGIN);
-                Report.deleteReportComment(REPORT_ID, {...reportActions[300]}, ancestors.current, undefined, undefined, USER_1_LOGIN);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -530,7 +529,6 @@ describe('actions/Report', () => {
                 rerender(report);
                 // If the user deletes the last comment after the lastReadTime the lastMessageText will reflect the new last comment
                 Report.deleteReportComment(REPORT_ID, {...reportActions[400]}, ancestors.current, undefined, undefined, USER_1_LOGIN);
-                Report.deleteReportComment(REPORT_ID, {...reportActions[300]}, ancestors.current, undefined, undefined, USER_1_LOGIN);
                 return waitForBatchedUpdates();
             })
             .then(() => {
