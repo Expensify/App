@@ -3878,7 +3878,6 @@ ${
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card-Transaktionen werden automatisch in ein „Expensify Card Liability Account“ exportiert, das mit <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">unserer Integration</a> erstellt wurde.</muted-text-label>`,
         },
         receiptPartners: {
-            connect: 'Jetzt verbinden',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Verbunden mit ${organizationName}` : 'Automatisieren Sie Reise- und Essenslieferungskosten in Ihrer gesamten Organisation.',
@@ -3906,8 +3905,6 @@ ${
                 invitationFailure: 'Einladen des Mitglieds zu Uber for Business fehlgeschlagen',
                 autoInvite: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
                 autoRemove: 'Entfernte Arbeitsbereichsmitglieder in Uber for Business deaktivieren',
-                bannerTitle: 'Expensify + Uber für Business',
-                bannerDescription: 'Verbinde Uber for Business, um Reise- und Essenslieferkosten in deinem gesamten Unternehmen zu automatisieren.',
                 emptyContent: {
                     title: 'Keine ausstehenden Einladungen',
                     subtitle: 'Hurra! Wir haben überall nachgesehen und keine offenen Einladungen gefunden.',
