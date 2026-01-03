@@ -2708,8 +2708,9 @@ function isPayer(
     currentAccountID: number | undefined,
     currentUserEmailParm: string | undefined,
     iouReport: OnyxEntry<Report>,
-    onlyShowPayElsewhere = false,
+    bankAccountList: OnyxEntry<BankAccountList>,
     reportPolicy?: OnyxInputOrEntry<Policy>,
+    onlyShowPayElsewhere = false,
 ) {
     const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
     const policyType = policy?.type;
@@ -2723,9 +2724,15 @@ function isPayer(
                 return isAdmin;
             }
 
-            // If we are the reimburser and the report is approved or we are the manager then we can pay it.
+            // If user is the reimburser, or a policy admin with access to the business bank account via sharees, they can pay.
             const isReimburser = currentUserEmailParm === policy?.achAccount?.reimburser;
-            return isReimburser;
+
+            // Check if the current user has access to the bank account via sharees
+            const bankAccountID = policy?.achAccount?.bankAccountID;
+            const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
+            const hasAccessToBankAccount = currentUserEmailParm && bankAccount?.accountData?.sharees ? bankAccount.accountData.sharees.includes(currentUserEmailParm) : false;
+
+            return isReimburser || (isAdmin && hasAccessToBankAccount);
         }
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
             return isAdmin;

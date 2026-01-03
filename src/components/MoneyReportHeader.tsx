@@ -203,6 +203,7 @@ function MoneyReportHeader({
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [reportPDFFilename] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${moneyRequestReport?.reportID}`, {canBeMissing: true}) ?? null;
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
@@ -745,6 +746,7 @@ function MoneyReportHeader({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
+            bankAccountList,
         });
     }, [
         isPaidAnimationRunning,
@@ -761,6 +763,7 @@ function MoneyReportHeader({
         invoiceReceiverPolicy,
         currentUserLogin,
         accountID,
+        bankAccountList,
     ]);
 
     const confirmExport = useCallback(() => {
@@ -1050,6 +1053,7 @@ function MoneyReportHeader({
             reportActions,
             policies,
             isChatReportArchived,
+            bankAccountList,
         });
     }, [
         moneyRequestReport,
@@ -1064,14 +1068,15 @@ function MoneyReportHeader({
         reportActions,
         policies,
         isChatReportArchived,
+        bankAccountList,
     ]);
 
     const secondaryExportActions = useMemo(() => {
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, policy, exportTemplates);
-    }, [moneyRequestReport, accountID, email, policy, exportTemplates]);
+        return getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, policy, exportTemplates, bankAccountList);
+    }, [moneyRequestReport, accountID, email, policy, exportTemplates, bankAccountList]);
 
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
     const unapproveWarningText = useMemo(
