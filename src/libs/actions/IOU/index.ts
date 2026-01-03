@@ -244,6 +244,7 @@ import {clearAllRelatedReportActionErrors} from '@userActions/ReportActions';
 import {sanitizeRecentWaypoints} from '@userActions/Transaction';
 import {removeDraftSplitTransaction, removeDraftTransaction, removeDraftTransactions} from '@userActions/TransactionEdit';
 import {getOnboardingMessages} from '@userActions/Welcome/OnboardingFlow';
+import type {OnboardingCompanySize} from '@userActions/Welcome/OnboardingFlow';
 import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -10055,6 +10056,7 @@ function getPayMoneyRequestParams({
             currentUserEmailParam,
             introSelectedParam,
             activePolicyIDParam: activePolicy?.id,
+            companySize: introSelectedParam?.companySize as OnboardingCompanySize,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
@@ -11668,6 +11670,7 @@ function completePaymentOnboarding(
         paymentSelected,
         wasInvited: true,
         shouldSkipTestDriveModal: true,
+        companySize: introSelected?.companySize as OnboardingCompanySize,
     });
 }
 function payMoneyRequest(
