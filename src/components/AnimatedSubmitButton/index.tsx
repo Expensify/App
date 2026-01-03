@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -34,6 +34,7 @@ type AnimatedSubmitButtonProps = {
 function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunning, onAnimationFinish, isDisabled, sentryLabel}: AnimatedSubmitButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Send'] as const);
     const isAnimationRunning = isSubmittingAnimationRunning;
     const buttonDuration = isSubmittingAnimationRunning ? CONST.ANIMATION_SUBMIT_DURATION : CONST.ANIMATION_SUBMITTED_DURATION;
     const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
@@ -75,7 +76,7 @@ function AnimatedSubmitButton({success, text, onPress, isSubmittingAnimationRunn
                 .withCallback(stretchOutY),
         [buttonDuration, stretchOutY],
     );
-    const icon = isAnimationRunning ? Expensicons.Send : null;
+    const icon = isAnimationRunning ? icons.Send : null;
 
     useEffect(() => {
         if (!isAnimationRunning) {

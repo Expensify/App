@@ -58,8 +58,8 @@ type BaseMenuItemType = {
 };
 
 function SecuritySettingsPage() {
-    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus', 'Shield']);
-    const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
+    const icons = useMemoizedLazyExpensifyIcons(['ClosedSign', 'Pencil', 'ArrowCollapse', 'FallbackAvatar', 'ThreeDots', 'UserLock', 'UserPlus', 'Shield', 'Trashcan'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosed'] as const);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -187,7 +187,7 @@ function SecuritySettingsPage() {
 
         baseMenuItems.push({
             translationKey: 'closeAccountPage.closeAccount',
-            icon: Expensicons.ClosedSign,
+            icon: icons.ClosedSign,
             action: () => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
@@ -223,6 +223,7 @@ function SecuritySettingsPage() {
         waitForNavigate,
         translate,
         styles.sectionMenuItemTopDescription,
+        icons.ClosedSign,
     ]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
@@ -318,7 +319,7 @@ function SecuritySettingsPage() {
         },
         {
             text: translate('delegate.removeCopilot'),
-            icon: Expensicons.Trashcan,
+            icon: icons.Trashcan,
             onPress: () => {
                 if (isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());

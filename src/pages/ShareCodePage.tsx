@@ -69,7 +69,7 @@ function getLogoForWorkspace(report: OnyxEntry<Report>, policy?: OnyxEntry<Polic
 }
 
 function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Cash']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Copy', 'Checkmark', 'Cash'] as const);
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -150,8 +150,8 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     <ContextMenuItem
                         isAnonymousAction
                         text={translate('qrCodes.copy')}
-                        icon={Expensicons.Copy}
-                        successIcon={Expensicons.Checkmark}
+                        icon={icons.Copy}
+                        successIcon={icons.Checkmark}
                         successText={translate('qrCodes.copied')}
                         onPress={() => Clipboard.setString(url)}
                         shouldLimitWidth={false}

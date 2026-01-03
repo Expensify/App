@@ -3,7 +3,6 @@ import React, {useCallback, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItem from '@components/MenuItem';
@@ -11,7 +10,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyAsset} from '@hooks/useLazyAsset';
+import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
@@ -25,6 +24,7 @@ import type {Policy} from '@src/types/onyx';
 import TwoFactorAuthWrapper from './TwoFactorAuthWrapper';
 
 function EnabledPage() {
+    const icons = useMemoizedLazyExpensifyIcons(['Close'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -69,7 +69,7 @@ function EnabledPage() {
                         }
                         Navigation.navigate(ROUTES.SETTINGS_2FA_DISABLE);
                     }}
-                    icon={Expensicons.Close}
+                    icon={icons.Close}
                     iconFill={theme.danger}
                 />
                 <ConfirmModal

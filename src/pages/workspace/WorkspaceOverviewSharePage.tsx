@@ -32,7 +32,7 @@ import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
 function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Copy', 'Checkmark'] as const);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -110,8 +110,8 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                             <ContextMenuItem
                                 isAnonymousAction
                                 text={translate('qrCodes.copy')}
-                                icon={Expensicons.Copy}
-                                successIcon={Expensicons.Checkmark}
+                                icon={icons.Copy}
+                                successIcon={icons.Checkmark}
                                 successText={translate('qrCodes.copied')}
                                 onPress={() => Clipboard.setString(url)}
                                 shouldLimitWidth={false}
