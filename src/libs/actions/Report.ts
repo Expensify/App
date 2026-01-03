@@ -939,6 +939,7 @@ function clearAvatarErrors(reportID: string) {
  * Gets the latest page of report actions and updates the last read message
  * If a chat with the passed reportID is not found, we will create a chat based on the passed participantList
  *
+ * @param personalDetails All users' personal details
  * @param reportID The ID of the report to open
  * @param reportActionID The ID used to fetch a specific range of report actions related to the current reportActionID when opening a chat.
  * @param participantLoginList The list of users that are included in a new chat, not including the user creating it
@@ -957,6 +958,7 @@ function clearAvatarErrors(reportID: string) {
 function openReport(
     reportID: string | undefined,
     reportActionID?: string,
+    personalDetails = allPersonalDetails,
     participantLoginList: string[] = [],
     newReportObject?: OptimisticChatReport,
     parentReportActionID?: string,
@@ -1245,7 +1247,7 @@ function openReport(
 
         let emailCreatingAction: string = CONST.REPORT.OWNER_EMAIL_FAKE;
         if (newReportObject.ownerAccountID && newReportObject.ownerAccountID !== CONST.REPORT.OWNER_ACCOUNT_ID_FAKE) {
-            emailCreatingAction = allPersonalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
+            emailCreatingAction = personalDetails?.[newReportObject.ownerAccountID]?.login ?? '';
         }
         const optimisticCreatedAction = buildOptimisticCreatedReportAction(emailCreatingAction);
         optimisticData.push(
@@ -1283,7 +1285,7 @@ function openReport(
         const participantAccountIDs = PersonalDetailsUtils.getAccountIDsByLogins(participantLoginList);
         for (const [index, login] of participantLoginList.entries()) {
             const accountID = participantAccountIDs.at(index) ?? -1;
-            const isOptimisticAccount = !allPersonalDetails?.[accountID];
+            const isOptimisticAccount = !personalDetails?.[accountID];
 
             if (!isOptimisticAccount) {
                 continue;
@@ -1445,6 +1447,7 @@ function createTransactionThreadReport(
     openReport(
         optimisticTransactionThreadReportID,
         undefined,
+        allPersonalDetails,
         currentUserEmail ? [currentUserEmail] : [],
         optimisticTransactionThread,
         iouReportAction?.reportActionID,
@@ -1469,6 +1472,7 @@ function createTransactionThreadReport(
  */
 function navigateToAndOpenReport(
     userLogins: string[],
+    personalDetails: OnyxEntry<PersonalDetailsList>,
     shouldDismissModal = true,
     reportName?: string,
     avatarUri?: string,
@@ -1496,7 +1500,7 @@ function navigateToAndOpenReport(
             });
         }
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', userLogins, newChat, undefined, undefined, undefined, avatarFile);
+        openReport(newChat?.reportID, '', personalDetails, userLogins, newChat, undefined, undefined, undefined, avatarFile);
     }
     const report = isEmptyObject(chat) ? newChat : chat;
 
@@ -1532,7 +1536,7 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
             participantList: [...participantAccountIDs, currentUserAccountID],
         });
         // We want to pass newChat here because if anything is passed in that param (even an existing chat), we will try to create a chat on the server
-        openReport(newChat?.reportID, '', [], newChat, '0', false, participantAccountIDs);
+        openReport(newChat?.reportID, '', allPersonalDetails, [], newChat, '0', false, participantAccountIDs);
     }
     const report = chat ?? newChat;
 
@@ -1570,7 +1574,7 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
 
         if (!childReportID) {
             const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(Object.keys(newChat.participants ?? {}).map(Number));
-            openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
+            openReport(newChat.reportID, '', allPersonalDetails, participantLogins, newChat, parentReportAction.reportActionID, undefined, undefined, undefined, true);
         } else {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
@@ -2412,7 +2416,7 @@ function toggleSubscribeToChildReport(
     prevNotificationPreference?: NotificationPreference,
 ) {
     if (childReportID) {
-        openReport(childReportID);
+        openReport(childReportID, undefined, allPersonalDetails);
         const parentReportActionID = parentReportAction?.reportActionID;
         if (!prevNotificationPreference || isHiddenForCurrentUser(prevNotificationPreference)) {
             updateNotificationPreference(childReportID, prevNotificationPreference, CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS, parentReportID, parentReportActionID);
@@ -2434,7 +2438,7 @@ function toggleSubscribeToChildReport(
         });
 
         const participantLogins = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDs);
-        openReport(newChat.reportID, '', participantLogins, newChat, parentReportAction.reportActionID);
+        openReport(newChat.reportID, '', allPersonalDetails, participantLogins, newChat, parentReportAction.reportActionID);
         const notificationPreference = isHiddenForCurrentUser(prevNotificationPreference) ? CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS : CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
         updateNotificationPreference(newChat.reportID, prevNotificationPreference, notificationPreference, parentReportID, parentReportAction?.reportActionID);
     }
@@ -2848,7 +2852,7 @@ function navigateToConciergeChat(shouldDismissModal = false, checkIfCurrentPageA
             if (!checkIfCurrentPageActive()) {
                 return;
             }
-            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], shouldDismissModal);
+            navigateToAndOpenReport([CONST.EMAIL.CONCIERGE], allPersonalDetails, shouldDismissModal);
         });
     } else if (shouldDismissModal) {
         Navigation.dismissModalWithReport({reportID: conciergeReportID, reportActionID});
