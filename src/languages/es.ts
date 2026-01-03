@@ -143,13 +143,14 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         percentage: 'Porcentaje',
+        converted: 'Convertido',
         error: {
             invalidAmount: 'Importe no válido',
             acceptTerms: 'Debes aceptar los Términos de Servicio para continuar',
             phoneNumber: `Por favor, introduce un número de teléfono completo\n(ej. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio',
             requestModified: 'Esta solicitud está siendo modificada por otro miembro',
-            characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
+            characterLimitExceedCounter: (length, limit) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
             invalidDateShouldBeFuture: 'Por favor, elige una fecha igual o posterior a hoy',
             invalidTimeShouldBeFuture: 'Por favor, elige una hora al menos un minuto en el futuro',
@@ -903,20 +904,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} escaneando`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} pendiente`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 gasto (${statusText.join(', ')})` : `1 gasto`,
-                other: (count: number) => (statusText.length > 0 ? `${count} gastos (${statusText.join(', ')})` : `${count} gastos`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 gasto',
@@ -982,7 +969,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'rechazó este informe',
         waitingOnBankAccount: ({submitterDisplayName}) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: 'canceló el pago',
-        canceledRequest: ({amount, submitterDisplayName}) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
+        canceledRequest: (amount, submitterDisplayName) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhere: (payer) => `${payer ? `${payer} ` : ''}marcó como pagado`,
         paidWithExpensify: (payer) => `${payer ? `${payer} ` : ''}pagó con la billetera`,
@@ -5497,11 +5484,11 @@ ${amount} para ${merchant} - ${date}`,
                 `La cuenta propietaria de este espacio de trabajo (${email}) tiene un saldo pendiente de un mes anterior.\n\n¿Desea transferir este monto (${amount}) para hacerse cargo de la facturación de este espacio de trabajo? tu tarjeta de pago se cargará inmediatamente.`,
             subscriptionTitle: 'Asumir la suscripción anual',
             subscriptionButtonText: 'Transferir suscripción',
-            subscriptionText: ({usersCount, finalCount}) =>
+            subscriptionText: (usersCount, finalCount) =>
                 `Al hacerse cargo de este espacio de trabajo se fusionará tu suscripción anual asociada con tu suscripción actual. Esto aumentará el tamaño de tu suscripción en ${usersCount} miembros, lo que hará que tu nuevo tamaño de suscripción sea ${finalCount}. ¿Te gustaria continuar?`,
             duplicateSubscriptionTitle: 'Alerta de suscripción duplicada',
             duplicateSubscriptionButtonText: 'Continuar',
-            duplicateSubscriptionText: ({email, workspaceName}) =>
+            duplicateSubscriptionText: (email, workspaceName) =>
                 `Parece que estás intentando hacerte cargo de la facturación de los espacios de trabajo de ${email}, pero para hacerlo, primero debes ser administrador de todos sus espacios de trabajo.\n\nHaz clic en "Continuar" si solo quieres tomar sobrefacturación para el espacio de trabajo ${workspaceName}.\n\nSi desea hacerse cargo de la facturación de toda tu suscripción, pídales que lo agreguen como administrador a todos sus espacios de trabajo antes de hacerse cargo de la facturación.`,
             hasFailedSettlementsTitle: 'No se puede transferir la propiedad',
             hasFailedSettlementsButtonText: 'Entiendo',
@@ -6152,6 +6139,9 @@ ${amount} para ${merchant} - ${date}`,
             previousForwardsTo
                 ? `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados (anteriormente reenviados a ${previousForwardsTo})`
                 : `cambió el flujo de aprobación para ${approver} para dejar de reenviar informes aprobados`,
+        updateCustomTaxName: ({oldName, newName}) => `cambió el nombre del impuesto personalizado a "${newName}" (antes "${oldName}")`,
+        updateCurrencyDefaultTax: ({oldName, newName}) => `cambió la tasa impositiva predeterminada de la moneda del espacio de trabajo a "${newName}" (anteriormente "${oldName}")`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}) => `cambió la tasa impositiva predeterminada de la moneda extranjera a "${newName}" (anteriormente "${oldName}")`,
         addTax: ({taxName}) => `añadió el impuesto "${taxName}"`,
         deleteTax: ({taxName}) => `eliminó el impuesto "${taxName}"`,
         updateTax: ({oldValue, taxName, updatedField, newValue}) => {
@@ -6545,13 +6535,13 @@ ${amount} para ${merchant} - ${date}`,
             type: {
                 changeField: ({oldValue, newValue, fieldName}) => `cambió ${fieldName} a "${newValue}" (previamente "${oldValue}")`,
                 changeFieldEmpty: ({newValue, fieldName}) => `estableció ${fieldName} a ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}) => {
+                changeReportPolicy: (toPolicyName, fromPolicyName) => {
                     if (!toPolicyName) {
                         return `cambió el espacio de trabajo${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;
                     }
                     return `cambió el espacio de trabajo a ${toPolicyName}${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;
                 },
-                changeType: ({oldType, newType}) => `cambió type de ${oldType} a ${newType}`,
+                changeType: (oldType, newType) => `cambió type de ${oldType} a ${newType}`,
                 exportedToCSV: `exportado a CSV`,
                 exportedToIntegration: {
                     automatic: ({label}) => {
@@ -7558,9 +7548,9 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Pago',
             subtitle: 'Añade una tarjeta para pagar tu suscripción a Expensify.',
             addCardButton: 'Añade tarjeta de pago',
+            cardInfo: (name, expiration, currency) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
             cardNextPayment: (nextPaymentDate) => `Tu próxima fecha de pago es ${nextPaymentDate}.`,
             cardEnding: (cardNumber) => `Tarjeta terminada en ${cardNumber}`,
-            cardInfo: ({name, expiration, currency}) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
             changeCard: 'Cambiar tarjeta de pago',
             changeCurrency: 'Cambiar moneda de pago',
             cardNotFound: 'No se ha añadido ninguna tarjeta de pago',

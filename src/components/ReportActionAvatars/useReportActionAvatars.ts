@@ -7,12 +7,11 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {getDelegateAccountIDFromReportAction, getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getDelegateAccountIDFromReportAction, getOriginalMessage, getReportAction, getReportActionActorAccountID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
     getIcons,
-    getReportActionActorAccountID,
     getWorkspaceIcon,
     isChatThread,
     isInvoiceReport,
@@ -111,7 +110,9 @@ function useReportActionAvatars({
     const {chatReportIDAdmins, chatReportIDAnnounce, workspaceAccountID} = policy ?? {};
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportIDAnnounce || chatReportIDAdmins}`, {canBeMissing: true});
+    const [policyChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${Number(chatReportIDAnnounce) ? chatReportIDAnnounce : chatReportIDAdmins}`, {
+        canBeMissing: true,
+    });
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
