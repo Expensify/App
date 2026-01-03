@@ -35,6 +35,7 @@ import {
     getCardIssuedMessage,
     getChangedApproverActionMessage,
     getIntegrationSyncFailedMessage,
+    getConciergeCompanyCardConnectionBrokenMessage,
     getJoinRequestMessage,
     getMessageOfOldDotReportAction,
     getOriginalMessage,
@@ -517,6 +518,10 @@ function computeReportNameBasedOnReportAction(parentReportAction?: ReportAction,
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
         return getIntegrationSyncFailedMessage(parentReportAction, report?.policyID);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
+        return getConciergeCompanyCardConnectionBrokenMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {

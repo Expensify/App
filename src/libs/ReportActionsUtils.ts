@@ -3642,6 +3642,15 @@ function getIntegrationSyncFailedMessage(action: OnyxEntry<ReportAction>, policy
     });
 }
 
+function getConciergeCompanyCardConnectionBrokenMessage(action: OnyxEntry<ReportAction>): string {
+    const {feedName, policyID} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN>) ?? {feedName: '', policyID: ''};
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('report.actions.type.conciergeCompanyCardConnectionBroken', {
+        feedName,
+        policyID,
+    });
+}
+
 function getManagerOnVacation(action: OnyxEntry<ReportAction>): string | undefined {
     if (!isApprovedAction(action)) {
         return;
@@ -3857,6 +3866,7 @@ export {
     isReopenedAction,
     isRetractedAction,
     getIntegrationSyncFailedMessage,
+    getConciergeCompanyCardConnectionBrokenMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getManagerOnVacation,
     getVacationer,

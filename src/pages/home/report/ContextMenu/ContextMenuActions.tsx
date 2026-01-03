@@ -37,6 +37,7 @@ import {
     getForwardsToUpdateMessage,
     getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
+    getConciergeCompanyCardConnectionBrokenMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getMemberChangeMessageFragment,
@@ -844,6 +845,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getReopenedMessage());
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
                     setClipboardMessage(getIntegrationSyncFailedMessage(reportAction, report?.policyID, isTryNewDotNVPDismissed));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
+                    setClipboardMessage(getConciergeCompanyCardConnectionBrokenMessage(reportAction));
                 } else if (isCardIssuedAction(reportAction)) {
                     setClipboardMessage(getCardIssuedMessage({reportAction, shouldRenderHTML: true, policyID: report?.policyID, expensifyCard: card, translate}));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_INTEGRATION)) {

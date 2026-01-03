@@ -181,6 +181,7 @@ import {
     getExportIntegrationLastMessageText,
     getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
+    getConciergeCompanyCardConnectionBrokenMessage,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
@@ -5785,6 +5786,10 @@ function getReportName(
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
         return getIntegrationSyncFailedMessage(parentReportAction, report?.policyID);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
+        return getConciergeCompanyCardConnectionBrokenMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
