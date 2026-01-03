@@ -1,5 +1,4 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import Onyx from 'react-native-onyx';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -91,7 +90,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
 
@@ -222,15 +220,6 @@ function SearchPage({route}: SearchPageProps) {
             lastNonEmptySearchResults.current = currentSearchResults;
         }
     }, [lastSearchType, queryJSON, setLastSearchType, currentSearchResults]);
-
-    useEffect(() => {
-        const personalDetailsFromSearch = currentSearchResults?.data?.personalDetailsList;
-        if (!personalDetailsFromSearch || isEmptyObject(personalDetailsFromSearch)) {
-            return;
-        }
-
-        Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetailsFromSearch);
-    }, [currentSearchResults?.data?.personalDetailsList]);
 
     const {status, hash} = queryJSON ?? {};
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
