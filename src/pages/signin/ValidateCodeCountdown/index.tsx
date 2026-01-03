@@ -37,7 +37,4 @@ function ValidateCodeCountdown({onCountdownFinish}: ValidateCodeCountdownProps, 
     );
 }
 
-const ForwardedValidateCodeCountdown = forwardRef(ValidateCodeCountdown);
-ForwardedValidateCodeCountdown.displayName = 'ValidateCodeCountdown';
-
-export default ForwardedValidateCodeCountdown;
+export default forwardRef(ValidateCodeCountdown);
