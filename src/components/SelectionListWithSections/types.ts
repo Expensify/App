@@ -633,6 +633,7 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
     columns?: SearchColumnType[];
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+    customCardNames?: Record<number, string>;
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
 };
