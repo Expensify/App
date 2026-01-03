@@ -545,7 +545,7 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit) {
+                        if (isExpenseSplit && isSplitAvailable) {
                             initSplitExpense(allTransactions, allReports, transaction);
                             return;
                         }
@@ -589,7 +589,7 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit) {
+                        if (isExpenseSplit && isSplitAvailable) {
                             initSplitExpense(allTransactions, allReports, transaction);
                             return;
                         }
@@ -779,7 +779,7 @@ function MoneyRequestView({
                                 return;
                             }
 
-                            if (isExpenseSplit) {
+                            if (isExpenseSplit && isSplitAvailable) {
                                 initSplitExpense(allTransactions, allReports, transaction);
                                 return;
                             }
