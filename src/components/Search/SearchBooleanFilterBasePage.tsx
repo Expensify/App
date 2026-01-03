@@ -39,7 +39,7 @@ function SearchBooleanFilterBasePage({booleanKey, titleKey}: SearchBooleanFilter
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     const [selectedItem, setSelectedItem] = useState(() => {
-        return booleanValues.find((value) => searchAdvancedFiltersForm?.[booleanKey].includes(value)) ?? null;
+        return booleanValues.find((value) => searchAdvancedFiltersForm?.[booleanKey]?.includes(value)) ?? null;
     });
 
     const items = booleanValues.map((value) => ({
