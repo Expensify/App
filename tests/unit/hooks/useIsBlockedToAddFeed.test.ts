@@ -8,11 +8,6 @@ import createRandomPolicy from '../../utils/collections/policies';
 
 const mockPolicyID = '123456';
 
-const delay = (ms: number) =>
-    new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-
 const mockPolicy = {...createRandomPolicy(Number(mockPolicyID), CONST.POLICY.TYPE.TEAM, 'TestPolicy'), policyID: mockPolicyID, workspaceAccountID: Number(mockPolicyID)};
 
 const mockCardFeeds = {
@@ -41,7 +36,13 @@ jest.mock('@hooks/useCardFeeds', () => ({
 }));
 describe('useIsBlockedToAddFeed', () => {
     beforeEach(async () => {
+        await Onyx.clear();
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${mockPolicy?.policyID}`, mockPolicy);
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+        jest.clearAllMocks();
     });
     it('should return true if collect policy and feed already exists', () => {
         (useCardFeeds as jest.Mock).mockReturnValue([mockCardFeeds, {status: 'loaded'}]);
@@ -56,26 +57,20 @@ describe('useIsBlockedToAddFeed', () => {
         expect(result?.current.isBlockedToAddNewFeeds).toBe(false);
     });
 
-    it('should return isBlockedToAddNewFeeds as false if collect policy and new feed added', async () => {
-        (useCardFeeds as jest.Mock).mockReturnValue([{}, {status: 'loaded'}]);
-        const {result, rerender} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
-        expect(result.current.isBlockedToAddNewFeeds).toBe(false);
-        // Set initial empty state and wait for new connection to be established
-        await delay(2000);
+    it('should return isBlockedToAddNewFeeds as false if collect policy and CSV feed exists (allows adding another feed)', async () => {
         (useCardFeeds as jest.Mock).mockReturnValue([
             {
-                ins: {
-                    feed: 'ins',
-                    customFeedName: 'Regions Bank cards',
-                    accountList: ['Plaid Checking 0000', 'Plaid Credit Card 3333'],
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'csv#123456': {
+                    feed: 'csv#123456',
+                    customFeedName: 'CSV Upload',
+                    accountList: ['Card 0000'],
                 },
             },
             {status: 'loaded'},
         ]);
-        // Wait to set state happened
-        await delay(2000);
-
-        rerender(mockPolicyID);
+        const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+        // CSV feeds don't count toward the limit, so user can add another feed
         expect(result.current.isBlockedToAddNewFeeds).toBe(false);
     });
 
@@ -125,7 +120,7 @@ describe('useIsBlockedToAddFeed', () => {
         expect(result.current.isBlockedToAddNewFeeds).toBe(false);
 
         (useCardFeeds as jest.Mock).mockReturnValue([mockCardFeeds, {status: 'loaded'}, {isLoading: false}]);
-        rerender({policyID: mockPolicyID});
+        rerender(mockPolicyID);
         expect(result.current.isBlockedToAddNewFeeds).toBe(true);
     });
 });
