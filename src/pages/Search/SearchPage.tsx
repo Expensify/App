@@ -39,6 +39,7 @@ import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransacti
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter, searchInServer} from '@libs/actions/Report';
 import {
     approveMoneyRequestOnSearch,
+    bulkDeleteReports,
     deleteMoneyRequestOnSearch,
     exportSearchItemsToCSV,
     getExportTemplates,
@@ -131,6 +132,7 @@ function SearchPage({route}: SearchPageProps) {
     const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
     const [isDEWModalVisible, setIsDEWModalVisible] = useState(false);
     const [isHoldEducationalModalVisible, setIsHoldEducationalModalVisible] = useState(false);
+    const [emptyReportsCount, setEmptyReportsCount] = useState<number>(0);
     const [rejectModalAction, setRejectModalAction] = useState<ValueOf<
         typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD | typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT
     > | null>(null);
@@ -437,6 +439,22 @@ function SearchPage({route}: SearchPageProps) {
                             return;
                         }
 
+                        const emptyReports =
+                            selectedReports?.filter((selectedReport) => {
+                                if (!selectedReport) {
+                                    return false;
+                                }
+                                const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
+                                return (fullReport?.transactionCount ?? 0) === 0;
+                            }) ?? [];
+                        const hasOnlyEmptyReports = selectedReports.length > 0 && emptyReports.length === selectedReports.length;
+
+                        if (hasOnlyEmptyReports) {
+                            setEmptyReportsCount(emptyReports.length);
+                            setIsDownloadErrorModalVisible(true);
+                            return;
+                        }
+
                         exportSearchItemsToCSV(
                             {
                                 query: status,
@@ -445,6 +463,7 @@ function SearchPage({route}: SearchPageProps) {
                                 transactionIDList: selectedTransactionsKeys,
                             },
                             () => {
+                                setEmptyReportsCount(0);
                                 setIsDownloadErrorModalVisible(true);
                             },
                             translate,
@@ -866,10 +885,45 @@ function SearchPage({route}: SearchPageProps) {
 
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
+            bulkDeleteReports(
+                hash,
+                selectedTransactions,
+                currentUserPersonalDetails.email ?? '',
+                allTransactions ? Object.values(allTransactions).filter((transaction): transaction is Transaction => !!transaction) : [],
+            );
             deleteMoneyRequestOnSearch(hash, selectedTransactionsKeys);
             clearSelectedTransactions();
         });
     };
+
+    const {expenseCount, isAllOneTransactionReports, uniqueReportCount} = useMemo(() => {
+        let expenses = 0;
+        let hasNonOneTransactionReport = false;
+        const reportIDs = new Set<string>();
+
+        for (const key of Object.keys(selectedTransactions)) {
+            const selectedItem = selectedTransactions[key];
+            if (selectedItem.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === selectedItem.reportID) {
+                hasNonOneTransactionReport = true;
+                reportIDs.add(selectedItem.reportID);
+            } else {
+                expenses += 1;
+                reportIDs.add(selectedItem.reportID);
+                if (!selectedItem.isFromOneTransactionReport) {
+                    hasNonOneTransactionReport = true;
+                }
+            }
+        }
+
+        return {expenseCount: expenses, isAllOneTransactionReports: !hasNonOneTransactionReport && expenses > 0, uniqueReportCount: reportIDs.size};
+    }, [selectedTransactions]);
+
+    // Show "delete expense" only when ALL selected items are from one-transaction reports
+    // Show "delete report" in all other cases (empty reports, multi-expense reports, or mixtures)
+    const isDeletingOnlyExpenses = isAllOneTransactionReports;
+    const deleteCount = isDeletingOnlyExpenses ? expenseCount : uniqueReportCount;
+    const deleteModalTitle = isDeletingOnlyExpenses ? translate('iou.deleteExpense', {count: expenseCount}) : translate('iou.deleteReport', {count: deleteCount});
+    const deleteModalPrompt = isDeletingOnlyExpenses ? translate('iou.deleteConfirmation', {count: expenseCount}) : translate('iou.deleteReportConfirmation', {count: deleteCount});
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         const initialTransaction = initMoneyRequest({
@@ -1010,11 +1064,20 @@ function SearchPage({route}: SearchPageProps) {
         const shouldUseClientTotal = !metadata?.count || (selectedTransactionsKeys.length > 0 && !areAllMatchingItemsSelected);
         const selectedTransactionItems = Object.values(selectedTransactions);
         const currency = metadata?.currency ?? selectedTransactionItems.at(0)?.groupCurrency;
-        const count = shouldUseClientTotal ? selectedTransactionsKeys.length : metadata?.count;
+        const numberOfExpense = shouldUseClientTotal
+            ? selectedTransactionsKeys.reduce((count, key) => {
+                  const item = selectedTransactions[key];
+                  // Skip empty reports (where key is the reportID itself, not a transactionID)
+                  if (item.action === CONST.SEARCH.ACTION_TYPES.VIEW && key === item.reportID) {
+                      return count;
+                  }
+                  return count + 1;
+              }, 0)
+            : metadata?.count;
         const total = shouldUseClientTotal ? selectedTransactionItems.reduce((acc, transaction) => acc - (transaction.groupAmount ?? 0), 0) : metadata?.total;
 
-        return {count, total, currency};
-    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys.length]);
+        return {count: numberOfExpense, total, currency};
+    }, [areAllMatchingItemsSelected, metadata?.count, metadata?.currency, metadata?.total, selectedTransactions, selectedTransactionsKeys]);
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
@@ -1145,8 +1208,8 @@ function SearchPage({route}: SearchPageProps) {
                         isVisible={isDeleteExpensesConfirmModalVisible}
                         onConfirm={handleDeleteExpenses}
                         onCancel={handleDeleteExpensesCancel}
-                        title={translate('iou.deleteExpense', {count: selectedTransactionsKeys.length})}
-                        prompt={translate('iou.deleteConfirmation', {count: selectedTransactionsKeys.length})}
+                        title={deleteModalTitle}
+                        prompt={deleteModalPrompt}
                         confirmText={translate('common.delete')}
                         cancelText={translate('common.cancel')}
                         danger
@@ -1159,15 +1222,6 @@ function SearchPage({route}: SearchPageProps) {
                         secondOptionText={translate('common.buttonConfirm')}
                         isVisible={isOfflineModalVisible}
                         onClose={handleOfflineModalClose}
-                    />
-                    <DecisionModal
-                        title={translate('common.downloadFailedTitle')}
-                        prompt={translate('common.downloadFailedDescription')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={handleDownloadErrorModalClose}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={isDownloadErrorModalVisible}
-                        onClose={handleDownloadErrorModalClose}
                     />
                     <ConfirmModal
                         isVisible={isExportWithTemplateModalVisible}
@@ -1212,6 +1266,15 @@ function SearchPage({route}: SearchPageProps) {
                     )}
                 </View>
             )}
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={emptyReportsCount ? translate('common.downloadFailedEmptyReportDescription', {count: emptyReportsCount}) : translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={handleDownloadErrorModalClose}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={isDownloadErrorModalVisible}
+                onClose={handleDownloadErrorModalClose}
+            />
         </>
     );
 }
