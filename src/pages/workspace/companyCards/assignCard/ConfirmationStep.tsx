@@ -156,8 +156,6 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     interactive={false}
                 />
                 <MenuItem
-                    label={translate('workspace.companyCards.cardholder')}
-                    labelStyle={styles.mb3}
                     title={cardholderName && cardholderName !== cardholderEmail ? cardholderName : cardholderEmail}
                     description={cardholderName && cardholderName !== cardholderEmail ? cardholderEmail : undefined}
                     icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
