@@ -1753,7 +1753,7 @@ function getReportSections(
             }
 
             if (shouldShow) {
-                const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.preview;
+                const reportPendingAction = reportItem?.pendingAction ?? reportItem?.pendingFields?.total ?? reportItem?.pendingFields?.createReport ?? reportItem?.pendingFields?.preview;
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
                 const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, actions);
 
@@ -3406,6 +3406,16 @@ function getTableMinWidth(columns: SearchColumnType[]) {
     return minWidth;
 }
 
+type OnyxSnapshotKey = `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
+
+function getSnapshotKeys(allSnapshots: OnyxCollection<OnyxTypes.SearchResults>) {
+    if (!allSnapshots) {
+        return [];
+    }
+
+    return Object.keys(allSnapshots || {}) as OnyxSnapshotKey[];
+}
+
 export {
     getSuggestedSearches,
     getDefaultActionableSearchMenuItem,
@@ -3451,6 +3461,7 @@ export {
     getSettlementStatus,
     getSettlementStatusBadgeProps,
     getTransactionFromTransactionListItem,
+    getSnapshotKeys,
     getSearchColumnTranslationKey,
     getTableMinWidth,
     getCustomColumns,
