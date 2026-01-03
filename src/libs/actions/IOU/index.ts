@@ -12459,12 +12459,19 @@ function putTransactionsOnHold(transactionsID: string[], comment: string, report
 function unholdRequest(transactionID: string, reportID: string) {
     const createdReportAction = buildOptimisticUnHoldReportAction();
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const updatedTransactionViolations = transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [];
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     const optimisticData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12486,7 +12493,7 @@ function unholdRequest(transactionID: string, reportID: string) {
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [],
+            value: updatedTransactionViolations,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12511,7 +12518,7 @@ function unholdRequest(transactionID: string, reportID: string) {
         });
     }
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
@@ -12525,7 +12532,13 @@ function unholdRequest(transactionID: string, reportID: string) {
     ];
 
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+        >
     > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -12558,6 +12571,63 @@ function unholdRequest(transactionID: string, reportID: string) {
             },
         },
     ];
+
+    if (iouReport) {
+        // buildOptimisticNextStep is used in parallel
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const optimisticNextStepDeprecated = buildNextStepNew({
+            report: iouReport,
+            predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            shouldFixViolations: updatedTransactionViolations.length > 1,
+        });
+        const optimisticNextStep = buildOptimisticNextStep({
+            report: iouReport,
+            predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            shouldFixViolations: updatedTransactionViolations.length > 1,
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: optimisticNextStepDeprecated,
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                nextStep: optimisticNextStep,
+                pendingFields: {
+                    nextStep: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            value: null,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                nextStep: iouReport.nextStep ?? null,
+                pendingFields: {
+                    nextStep: null,
+                },
+            },
+        });
+    }
 
     API.write(
         WRITE_COMMANDS.UNHOLD_MONEY_REQUEST,
