@@ -2874,4 +2874,97 @@ describe('OptionsListUtils', () => {
             expect(searchTerms2.includes(displayName)).toBe(true);
         });
     });
+
+    describe('getLastMessageTextForReport with chatReport parameter', () => {
+        it('should work correctly when chatReport is passed', async () => {
+            const chatReportID = '999';
+
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                chatReportID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+            };
+
+            const chatReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: chatReportID,
+            };
+
+            // Test that the function works without crashing when chatReport is passed
+            const result = getLastMessageTextForReport({
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+                chatReport,
+            });
+
+            // The function should return a string (may be empty string)
+            expect(typeof result).toBe('string');
+        });
+
+        it('should work correctly when chatReport is undefined', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const result = getLastMessageTextForReport({
+                report,
+                lastActorDetails: null,
+                isReportArchived: false,
+                chatReport: undefined,
+            });
+
+            expect(typeof result).toBe('string');
+        });
+    });
+
+    describe('createOption with chatReport parameter', () => {
+        it('should work correctly when chatReport is passed', async () => {
+            const reportID = '123';
+            const chatReportID = '456';
+
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                reportID,
+                chatReportID,
+                participants: {
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const chatReport: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: chatReportID,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport);
+            await waitForBatchedUpdates();
+
+            const result = createOption([1, 2], PERSONAL_DETAILS, report, undefined, undefined, chatReport);
+
+            expect(result.reportID).toBe(reportID);
+            expect(typeof result.text).toBe('string');
+        });
+
+        it('should work correctly when chatReport is undefined', async () => {
+            const report: Report = {
+                ...createRandomReport(0, undefined),
+                participants: {
+                    1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await waitForBatchedUpdates();
+
+            // Should not throw when chatReport is undefined
+            const result = createOption([1, 2], PERSONAL_DETAILS, report, undefined, undefined, undefined);
+
+            expect(result.reportID).toBe(report.reportID);
+        });
+    });
 });
