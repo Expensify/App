@@ -445,6 +445,7 @@ function IOURequestStepScan({
                             taxAmount: transactionTaxAmount,
                             quickAction,
                             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                            policyRecentlyUsedTags: undefined,
                         });
                         return;
                     }
