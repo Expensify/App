@@ -136,6 +136,7 @@ function ReportActionItem({
             personalDetails={personalDetails}
             blockedFromConcierge={blockedFromConcierge}
             originalReportID={originalReportID}
+            originalReport={originalReport}
             deleteReportActionDraft={deleteReportActionDraft}
             isArchivedRoom={isArchivedNonExpenseReport(originalReport, isOriginalReportArchived)}
             isChronosReport={chatIncludesChronosWithID(originalReportID)}

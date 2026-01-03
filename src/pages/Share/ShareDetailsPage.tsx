@@ -126,7 +126,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
         }
 
         if (isTextShared) {
-            addComment(report.reportID, report.reportID, ancestors, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            addComment(report, report.reportID, ancestors, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.navigate(routeToNavigate, {forceReplace: true});
             return;
@@ -148,7 +148,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     );
                 }
                 if (report.reportID) {
-                    addAttachmentWithComment(report.reportID, report.reportID, ancestors, file, message, personalDetail.timezone);
+                    addAttachmentWithComment(report, report.reportID, ancestors, file, message, personalDetail.timezone);
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
