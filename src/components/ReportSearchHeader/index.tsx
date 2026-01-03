@@ -25,7 +25,19 @@ function ReportSearchHeader({report, style, transactions, avatarBorderColor, per
                 parentNavigationStatusContainerStyles={isLargeScreenWidth ? styles.mt1 : styles.mt0Half}
             />
         );
-    }, [report, transactions, avatarBorderColor, personalDetailsList, styles.fontWeightNormal, styles.textLineHeightNormal, styles.minHeight4, styles.mt1, isLargeScreenWidth, styles.textMicro, styles.mt0Half]);
+    }, [
+        report,
+        transactions,
+        avatarBorderColor,
+        personalDetailsList,
+        styles.fontWeightNormal,
+        styles.textLineHeightNormal,
+        styles.minHeight4,
+        styles.mt1,
+        isLargeScreenWidth,
+        styles.textMicro,
+        styles.mt0Half,
+    ]);
 
     return (
         <View
