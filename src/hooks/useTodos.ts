@@ -60,5 +60,5 @@ export default function useTodos() {
         }
 
         return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
-    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, accountID, email]);
+    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, accountID, email, bankAccountList]);
 }

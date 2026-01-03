@@ -99,7 +99,7 @@ function canPay(
         return false;
     }
 
-    const isReportPayer = isPayer(currentUserAccountID, currentUserEmail, report, false, policy, bankAccountList);
+    const isReportPayer = isPayer(currentUserAccountID, currentUserEmail, report, false, bankAccountList, policy);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);

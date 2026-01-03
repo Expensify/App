@@ -64,6 +64,7 @@ type GetReportPrimaryActionParams = {
     isPaidAnimationRunning?: boolean;
     isApprovedAnimationRunning?: boolean;
     isSubmittingAnimationRunning?: boolean;
+    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[], isChatReportArchived: boolean) {
@@ -163,7 +164,7 @@ function isPrimaryPayAction(
         return false;
     }
     const isExpenseReport = isExpenseReportUtils(report);
-    const isReportPayer = isPayer(currentUserAccountID, currentUserEmail, report, false, policy, bankAccountList);
+    const isReportPayer = isPayer(currentUserAccountID, currentUserEmail, report, false, bankAccountList, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
@@ -390,7 +391,7 @@ function getAllExpensesToHoldIfApplicable(report: Report | undefined, reportActi
     });
 }
 
-function getReportPrimaryAction(params: GetReportPrimaryActionParams & {bankAccountList?: OnyxEntry<BankAccountList>}): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     const {
         currentUserEmail,
         currentUserAccountID,
