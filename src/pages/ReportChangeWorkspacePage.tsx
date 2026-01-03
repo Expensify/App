@@ -132,7 +132,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         selectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
-        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy),
+        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy, report),
     });
 
     const textInputOptions = useMemo(
