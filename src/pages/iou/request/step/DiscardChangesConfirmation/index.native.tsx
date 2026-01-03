@@ -1,24 +1,20 @@
-import type {NavigationAction} from '@react-navigation/native';
 import {usePreventRemove} from '@react-navigation/native';
+import type {NavigationAction} from '@react-navigation/native';
 import React, {memo, useCallback, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type DiscardChangesConfirmationProps from './types';
 
-function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfirmationProps) {
+function DiscardChangesConfirmation({hasUnsavedChanges}: DiscardChangesConfirmationProps) {
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
-    const shouldAllowNavigation = useRef(false);
     const blockedNavigationAction = useRef<NavigationAction | undefined>(undefined);
 
-    const hasUnsavedChanges = getHasUnsavedChanges();
-    const shouldPrevent = hasUnsavedChanges && !shouldAllowNavigation.current;
-
     usePreventRemove(
-        shouldPrevent,
-        useCallback(({data}) => {
-            blockedNavigationAction.current = data.action;
+        hasUnsavedChanges,
+        useCallback((e) => {
+            blockedNavigationAction.current = e.data.action;
             setIsVisible(true);
         }, []),
     );
@@ -33,7 +29,6 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
             cancelText={translate('common.cancel')}
             onConfirm={() => {
                 setIsVisible(false);
-                shouldAllowNavigation.current = true;
                 if (blockedNavigationAction.current) {
                     navigationRef.current?.dispatch(blockedNavigationAction.current);
                     blockedNavigationAction.current = undefined;
