@@ -31,6 +31,7 @@ type VideoPlayerProps = {
     shouldPlay?: boolean;
     isPreview?: boolean;
     reportID?: string;
+    onTap?: (shouldShowArrows?: boolean) => void;
 };
 
 export type {VideoPlayerProps, VideoWithOnFullScreenUpdate};
