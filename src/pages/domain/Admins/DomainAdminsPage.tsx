@@ -1,4 +1,4 @@
-import {adminAccountIDsSelector, technicalContactSettingsSelector} from '@selectors/Domain';
+import {adminAccountIDsSelector, adminPendingActionSelector, technicalContactSettingsSelector} from '@selectors/Domain';
 import React from 'react';
 import {View} from 'react-native';
 import Badge from '@components/Badge';
@@ -18,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearRemoveAdminError} from '@libs/actions/Domain';
 import {getLatestError} from '@libs/ErrorUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -54,6 +55,16 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         canBeMissing: true,
         selector: adminAccountIDsSelector,
     });
+
+    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+        canBeMissing: true,
+    });
+
+    const [domainPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+        canBeMissing: true,
+        selector: adminPendingActionSelector,
+    });
+
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const [technicalContactSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         canBeMissing: false,

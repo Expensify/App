@@ -148,6 +148,9 @@ type DomainSettings = {
 
         /** Encrypted SCIM token, exists only when Okta is enabled for the domain by support */
         oktaSCIM?: string;
+
+        /** Email to primary contact from the domain */
+        technicalContactEmail?: string;
     };
 };
 
