@@ -39,7 +39,8 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const currency = policy?.outputCurrency ?? '';
+
+    const currency = reimbursementAccountDraft?.currency ?? policy?.outputCurrency ?? '';
 
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
     const defaultCountries = shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES;
@@ -62,7 +63,9 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
     };
 
     const handleSubmit = () => {
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: selectedCountry});
+        if (selectedCountry !== countryDefaultValue) {
+            setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: selectedCountry});
+        }
         onNext();
     };
 
@@ -82,6 +85,14 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
         setSelectedCountry(currencyMappedToCountry);
     }, [currency, currencyMappedToCountry]);
 
+    useEffect(() => {
+        if (selectedCountry || !countryDefaultValue) {
+            return;
+        }
+
+        setSelectedCountry(countryDefaultValue);
+    }, [selectedCountry, countryDefaultValue]);
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -99,18 +110,20 @@ function Confirmation({onNext, policyID, isComingFromExpensifyCard}: Confirmatio
                 title={currency}
                 interactive={false}
             />
-            <View style={styles.ph5}>
-                <Text style={[styles.mb3, styles.mutedTextLabel]}>
-                    {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
-                    <TextLink
-                        style={[styles.label]}
-                        onPress={handleSettingsPress}
-                    >
-                        {translate('common.settings').toLowerCase()}
-                    </TextLink>
-                    .
-                </Text>
-            </View>
+            {!!policyID && (
+                <View style={styles.ph5}>
+                    <Text style={[styles.mb3, styles.mutedTextLabel]}>
+                        {`${translate('countryStep.yourBusiness')} ${translate('countryStep.youCanChange')}`}{' '}
+                        <TextLink
+                            style={[styles.label]}
+                            onPress={handleSettingsPress}
+                        >
+                            {translate('common.settings').toLowerCase()}
+                        </TextLink>
+                        .
+                    </Text>
+                </View>
+            )}
             <InputWrapper
                 InputComponent={PushRowWithModal}
                 optionsList={isUkEuCurrencySupported ? countriesSupportedForExpensifyCard : defaultCountries}

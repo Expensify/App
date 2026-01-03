@@ -59,13 +59,13 @@ function WalletPage() {
         canBeMissing: true,
         selector: fundListSelector,
     });
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {canBeMissing: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [walletTerms = getEmptyObject<OnyxTypes.WalletTerms>()] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
     const [userAccount] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [lastUsedPaymentMethods] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const isUserValidated = userAccount?.validated ?? false;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
@@ -144,13 +144,11 @@ function WalletPage() {
     const onBankAccountRowPressed = ({accountData}: PaymentMethodPressHandlerParams) => {
         const accountPolicyID = accountData?.additionalData?.policyID;
 
-        if (accountPolicyID) {
-            if (isAccountLocked) {
-                showLockedAccountModal();
-                return;
-            }
-            navigateToBankAccountRoute(accountPolicyID, ROUTES.SETTINGS_WALLET);
+        if (accountPolicyID && isAccountLocked) {
+            showLockedAccountModal();
+            return;
         }
+        navigateToBankAccountRoute(accountPolicyID, ROUTES.SETTINGS_WALLET);
     };
 
     const assignedCardPressed = ({event, cardData, icon, cardID}: CardPressHandlerParams) => {
@@ -171,6 +169,10 @@ function WalletPage() {
     const addBankAccountPressed = () => {
         if (isAccountLocked) {
             showLockedAccountModal();
+            return;
+        }
+        if (hasEligibleActiveAdmin) {
+            Navigation.navigate(ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE);
             return;
         }
         openPersonalBankAccountSetupView({});
