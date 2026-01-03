@@ -1181,7 +1181,7 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
  */
 function isVisiblePreviewOrMoneyRequest(action: ReportAction): boolean {
     const isDeletedMoneyRequest = isDeletedParentAction(action) && isMoneyRequestAction(action);
-    const isHiddenReportPreviewWithoutPendingAction = isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
+    const isHiddenReportPreviewWithoutPendingAction = isReportPreviewAction(action) && action.pendingAction === undefined && action.shouldShow === false;
 
     return !isDeletedMoneyRequest && !isHiddenReportPreviewWithoutPendingAction;
 }
