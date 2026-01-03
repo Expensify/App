@@ -13,6 +13,7 @@ import QuickEmojiReactions from '@components/Reactions/QuickEmojiReactions';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import Clipboard from '@libs/Clipboard';
+import {shouldShowJoinThread, shouldShowLeaveThread} from '@libs/ContextMenuUtils';
 import EmailUtils from '@libs/EmailUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
@@ -85,9 +86,7 @@ import {
     isActionableTrackExpense,
     isActionOfType,
     isCardIssuedAction,
-    isCreatedAction,
     isCreatedTaskReportAction,
-    isDeletedAction as isDeletedActionReportActionsUtils,
     isMarkAsClosedAction,
     isMemberChangeAction,
     isMessageDeleted,
@@ -104,7 +103,6 @@ import {
     isTaskAction as isTaskActionReportActionsUtils,
     isTripPreview,
     isUnapprovedAction,
-    isWhisperAction as isWhisperActionReportActionsUtils,
 } from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
@@ -132,7 +130,6 @@ import {
     getWorkspaceNameUpdatedMessage,
     isExpenseReport,
     shouldDisableThread,
-    shouldDisplayThreadReplies as shouldDisplayThreadRepliesReportUtils,
 } from '@libs/ReportUtils';
 import {getTaskCreatedMessage, getTaskReportActionMessage} from '@libs/TaskUtils';
 import {setDownload} from '@userActions/Download';
@@ -491,28 +488,9 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.joinThread',
-        icon: 'Bell',
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
-            const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
-            const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
-            const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
-            const subscribed = childReportNotificationPreference !== 'hidden';
-            const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
-            const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
-            const isTaskAction = isCreatedTaskReportAction(reportAction);
-            const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
-            const shouldDisableJoinThread = shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
-            return (
-                !subscribed &&
-                !isWhisperAction &&
-                !isTaskAction &&
-                !isExpenseReportAction &&
-                !isThreadReportParentAction &&
-                !isHarvestCreatedExpenseReportAction &&
-                !shouldDisableJoinThread &&
-                (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
-            );
-        },
+        icon: Expensicons.Bell,
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) =>
+            shouldShowJoinThread({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}),
         onPress: (closePopover, {reportAction, reportID}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -534,25 +512,8 @@ const ContextMenuActions: ContextMenuAction[] = [
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.leaveThread',
         icon: Expensicons.Exit,
-        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) => {
-            const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
-            const isDeletedAction = isDeletedActionReportActionsUtils(reportAction);
-            const shouldDisplayThreadReplies = shouldDisplayThreadRepliesReportUtils(reportAction, isThreadReportParentAction);
-            const subscribed = childReportNotificationPreference !== 'hidden';
-            const isWhisperAction = isWhisperActionReportActionsUtils(reportAction) || isActionableTrackExpense(reportAction);
-            const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
-            const isTaskAction = isCreatedTaskReportAction(reportAction);
-            const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
-            return (
-                subscribed &&
-                !isWhisperAction &&
-                !isTaskAction &&
-                !isExpenseReportAction &&
-                !isThreadReportParentAction &&
-                !isHarvestCreatedExpenseReportAction &&
-                (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
-            );
-        },
+        shouldShow: ({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}) =>
+            shouldShowLeaveThread({reportAction, isArchivedRoom, isThreadReportParentAction, isHarvestReport}),
         onPress: (closePopover, {reportAction, reportID}) => {
             const childReportNotificationPreference = getChildReportNotificationPreferenceReportUtils(reportAction);
             const originalReportID = getOriginalReportID(reportID, reportAction);
