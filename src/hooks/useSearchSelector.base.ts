@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
 import useDebounce from './useDebounce';
 import useDebouncedState from './useDebouncedState';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 type SearchSelectorContext = (typeof CONST.SEARCH_SELECTOR)[keyof Pick<
@@ -164,6 +165,8 @@ function useSearchSelectorBase({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
+    const {translate} = useLocalize();
 
     const onListEndReached = useDebounce(
         useCallback(() => {
@@ -184,6 +187,7 @@ function useSearchSelectorBase({
         switch (searchContext) {
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SEARCH:
                 return getSearchOptions({
+                    translate,
                     options: optionsWithContacts,
                     draftComments,
                     nvpDismissedProductTraining,
@@ -195,9 +199,10 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                     countryCode,
                     loginList,
+                    policyTags,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE:
-                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, loginList, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
                     betas: betas ?? [],
                     includeP2P: true,
                     includeSelectedOptions: false,
@@ -209,7 +214,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL:
-                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, loginList, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     searchString: computedSearchTerm,
@@ -223,6 +228,8 @@ function useSearchSelectorBase({
                     optionsWithContacts,
                     draftComments,
                     nvpDismissedProductTraining,
+                    policyTags,
+                    translate,
                     loginList,
                     {
                         betas,
@@ -240,7 +247,7 @@ function useSearchSelectorBase({
                     countryCode,
                 );
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_SHARE_DESTINATION:
-                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, loginList, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
                     betas,
                     selectedOptions,
                     includeMultipleParticipantReports: true,
@@ -258,7 +265,7 @@ function useSearchSelectorBase({
                     includeUserToInvite,
                 });
             case CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_ATTENDEES:
-                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, loginList, {
+                return getValidOptions(optionsWithContacts, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, {
                     ...getValidOptionsConfig,
                     betas: betas ?? [],
                     includeP2P: true,
@@ -278,6 +285,7 @@ function useSearchSelectorBase({
     }, [
         areOptionsInitialized,
         searchContext,
+        translate,
         optionsWithContacts,
         draftComments,
         nvpDismissedProductTraining,
@@ -286,6 +294,7 @@ function useSearchSelectorBase({
         maxResults,
         includeUserToInvite,
         countryCode,
+        policyTags,
         loginList,
         excludeLogins,
         includeRecentReports,

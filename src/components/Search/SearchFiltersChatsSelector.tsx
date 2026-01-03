@@ -60,29 +60,33 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const archivedReportsIdSet = useArchivedReportsIdSet();
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const selectedOptions = useMemo<OptionData[]>(() => {
         return selectedReportIDs.map((id) => {
-            const report = getSelectedOptionData(createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportAttributesDerived));
+            const reportObj = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`];
+            const reportPolicyTags = reportObj?.policyID ? policyTags?.[reportObj.policyID] : CONST.POLICY.DEFAULT_TAG_LIST;
+            const report = getSelectedOptionData(
+                createOptionFromReport({...reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reportID: id}, personalDetails, reportPolicyTags, translate, reportAttributesDerived),
+            );
             const isReportArchived = archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`);
-            const alternateText = getAlternateText(report, {}, isReportArchived, {});
+            const alternateText = getAlternateText(report, {}, reportPolicyTags, translate, isReportArchived, {});
             return {...report, alternateText};
         });
-    }, [archivedReportsIdSet, personalDetails, reportAttributesDerived, reports, selectedReportIDs]);
+    }, [selectedReportIDs, reports, policyTags, personalDetails, reportAttributesDerived, archivedReportsIdSet, translate]);
 
     const defaultOptions = useMemo(() => {
         if (!areOptionsInitialized || !isScreenTransitionEnd) {
             return defaultListOptions;
         }
-        return getSearchOptions({options, draftComments, nvpDismissedProductTraining, betas: undefined, isUsedInChatFinder: false, countryCode, loginList});
-    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList]);
+        return getSearchOptions({options, draftComments, nvpDismissedProductTraining, betas: undefined, isUsedInChatFinder: false, countryCode, loginList, policyTags, translate});
+    }, [areOptionsInitialized, isScreenTransitionEnd, options, draftComments, nvpDismissedProductTraining, countryCode, loginList, policyTags, translate]);
 
     const chatOptions = useMemo(() => {
-        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, countryCode, loginList, {
+        return filterAndOrderOptions(defaultOptions, cleanSearchTerm, translate, countryCode, loginList, {
             selectedOptions,
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
         });
-    }, [defaultOptions, cleanSearchTerm, countryCode, loginList, selectedOptions]);
+    }, [defaultOptions, cleanSearchTerm, translate, countryCode, loginList, selectedOptions]);
 
     const {sections, headerMessage} = useMemo(() => {
         const newSections: Section[] = [];
@@ -95,6 +99,8 @@ function SearchFiltersChatsSelector({initialReportIDs, onFiltersUpdate, isScreen
             selectedOptions,
             chatOptions.recentReports,
             chatOptions.personalDetails,
+            undefined,
+            translate,
             personalDetails,
             false,
             undefined,

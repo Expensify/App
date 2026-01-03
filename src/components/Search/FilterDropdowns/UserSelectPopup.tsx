@@ -67,6 +67,7 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
+    const [policyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
     const initialSelectedOptions = useMemo(() => {
         return value.reduce<OptionData[]>((acc, id) => {
             const participant = personalDetails?.[id];
@@ -99,6 +100,8 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             },
             draftComments,
             nvpDismissedProductTraining,
+            policyTags,
+            translate,
             loginList,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -106,15 +109,15 @@ function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSele
             },
             countryCode,
         );
-    }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode]);
+    }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, policyTags, translate, loginList, countryCode]);
 
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, loginList, {
+        return filterAndOrderOptions(optionsList, cleanSearchTerm, translate, countryCode, loginList, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
-    }, [optionsList, cleanSearchTerm, countryCode, loginList]);
+    }, [optionsList, cleanSearchTerm, translate, countryCode, loginList]);
 
     const listData = useMemo(() => {
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({

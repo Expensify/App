@@ -86,6 +86,7 @@ function IOURequestStepDistanceManual({
     const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
@@ -192,7 +193,7 @@ function IOURequestStepDistanceManual({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, translate, reportAttributesDerived);
                 });
                 if (shouldSkipConfirmation) {
                     setMoneyRequestPendingFields(transactionID, {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
@@ -303,22 +304,24 @@ function IOURequestStepDistanceManual({
             transaction,
             reportID,
             policy,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            isASAPSubmitBetaEnabled,
+            currentUserPersonalDetails.accountID,
             shouldSkipConfirmation,
             personalDetails,
-            reportAttributesDerived,
+            policyTags,
             translate,
-            currentUserEmailParam,
-            currentUserAccountIDParam,
+            reportAttributesDerived,
             lastSelectedDistanceRates,
             backToReport,
-            isASAPSubmitBetaEnabled,
+            transactionViolations,
+            quickAction,
+            policyRecentlyUsedCurrencies,
             customUnitRateID,
             navigateToConfirmationPage,
             defaultExpensePolicy,
             personalPolicy?.autoReporting,
-            transactionViolations,
-            currentUserPersonalDetails.accountID,
-            quickAction,
         ],
     );
 

@@ -77,7 +77,7 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const options = createOptionList(personalDetails, reports);
+const options = createOptionList(personalDetails, undefined, jest.fn(), reports);
 
 const ValidOptionsConfig = {
     betas: mockedBetas,
@@ -112,22 +112,38 @@ describe('OptionsListUtils', () => {
     /* Testing getSearchOptions */
     test('[OptionsListUtils] getSearchOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getSearchOptions({options, betas: mockedBetas, draftComments: {}, nvpDismissedProductTraining, loginList}));
+        await measureFunction(() => getSearchOptions({options, betas: mockedBetas, draftComments: {}, nvpDismissedProductTraining, policyTags: undefined, translate: jest.fn(), loginList}));
     });
 
     /* Testing getFilteredOptions */
     test('[OptionsListUtils] getFilteredOptions with search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, loginList, ValidOptionsConfig);
+        const formattedOptions = getValidOptions(
+            {reports: options.reports, personalDetails: options.personalDetails},
+            {},
+            nvpDismissedProductTraining,
+            undefined,
+            jest.fn(),
+            loginList,
+            ValidOptionsConfig,
+        );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, jest.fn(), COUNTRY_CODE, loginList);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
         await waitForBatchedUpdates();
-        const formattedOptions = getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, loginList, ValidOptionsConfig);
+        const formattedOptions = getValidOptions(
+            {reports: options.reports, personalDetails: options.personalDetails},
+            {},
+            nvpDismissedProductTraining,
+            undefined,
+            jest.fn(),
+            loginList,
+            ValidOptionsConfig,
+        );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList);
+            filterAndOrderOptions(formattedOptions, '', jest.fn(), COUNTRY_CODE, undefined);
         });
     });
 
@@ -135,7 +151,7 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getShareDestinationOptions', async () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, loginList, {
+            getValidOptions({reports: options.reports, personalDetails: options.personalDetails}, {}, nvpDismissedProductTraining, undefined, jest.fn(), loginList, {
                 betas: mockedBetas,
                 includeMultipleParticipantReports: true,
                 showChatPreviewLine: true,
@@ -155,7 +171,7 @@ describe('OptionsListUtils', () => {
     /* Testing getMemberInviteOptions */
     test('[OptionsListUtils] getMemberInviteOptions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, loginList, mockedBetas));
+        await measureFunction(() => getMemberInviteOptions(options.personalDetails, nvpDismissedProductTraining, jest.fn(), loginList, mockedBetas));
     });
 
     test('[OptionsListUtils] worst case scenario with a search term that matches a subset of selectedOptions, filteredRecentReports, and filteredPersonalDetails', async () => {
@@ -200,6 +216,8 @@ describe('OptionsListUtils', () => {
                 Object.values(selectedOptions),
                 Object.values(filteredRecentReports),
                 Object.values(filteredPersonalDetails),
+                undefined,
+                jest.fn(),
                 mockedPersonalDetails,
                 true,
             ),
@@ -212,6 +230,6 @@ describe('OptionsListUtils', () => {
         const mockedPersonalDetails = getMockedPersonalDetails(PERSONAL_DETAILS_COUNT);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], mockedPersonalDetails, true));
+        await measureFunction(() => formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], undefined, jest.fn(), mockedPersonalDetails, true));
     });
 });

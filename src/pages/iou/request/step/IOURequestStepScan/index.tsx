@@ -126,6 +126,7 @@ function IOURequestStepScan({
     const [dismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
     const lazyIllustrations = useMemoizedLazyIllustrations(['MultiScan', 'Hand', 'ReceiptUpload', 'Shutter']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash', 'ReplaceReceipt', 'SmartScan']);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -477,7 +478,7 @@ function IOURequestStepScan({
                 const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
                 const participants = selectedParticipants.map((participant) => {
                     const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived);
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, policyTags, translate, reportAttributesDerived);
                 });
 
                 if (shouldSkipConfirmation) {
@@ -595,12 +596,15 @@ function IOURequestStepScan({
             currentUserPersonalDetails?.login,
             shouldSkipConfirmation,
             personalDetails,
+            policyTags,
+            translate,
             reportAttributesDerived,
             createTransaction,
             reportID,
             transactionTaxCode,
             transactionTaxAmount,
             quickAction,
+            policyRecentlyUsedCurrencies,
             policy,
             personalPolicy?.autoReporting,
             selfDMReportID,

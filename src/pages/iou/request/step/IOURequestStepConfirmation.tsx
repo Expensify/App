@@ -292,9 +292,11 @@ function IOURequestStepConfirmation({
                 if (participant.isSender && iouType === CONST.IOU.TYPE.INVOICE) {
                     return participant;
                 }
-                return participant.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant, reportAttributesDerived, reportDrafts);
+                return participant.accountID
+                    ? getParticipantsOption(participant, personalDetails)
+                    : getReportOption(participant, policyTags, translate, reportAttributesDerived, reportDrafts);
             }) ?? [],
-        [transaction?.participants, iouType, personalDetails, reportAttributesDerived, reportDrafts],
+        [transaction?.participants, iouType, personalDetails, policyTags, translate, reportAttributesDerived, reportDrafts],
     );
     const isPolicyExpenseChat = useMemo(() => participants?.some((participant) => participant.isPolicyExpenseChat), [participants]);
     const shouldGenerateTransactionThreadReport = !isBetaEnabled(CONST.BETAS.NO_OPTIMISTIC_TRANSACTION_THREADS);
@@ -633,9 +635,9 @@ function IOURequestStepConfirmation({
             customUnitRateID,
             shouldGenerateTransactionThreadReport,
             backToReport,
+            isASAPSubmitBetaEnabled,
             viewTourTaskReport,
             viewTourTaskParentReport,
-            isASAPSubmitBetaEnabled,
             isViewTourTaskParentReportArchived,
             hasOutstandingChildTask,
             parentReportAction,
@@ -763,21 +765,21 @@ function IOURequestStepConfirmation({
             }
         },
         [
-            report,
             transactions,
-            receiptFiles,
+            archivedReportsIdSet,
+            report,
+            isDraftPolicy,
+            action,
             currentUserPersonalDetails.login,
             currentUserPersonalDetails.accountID,
+            policy,
+            policyCategories,
+            policyTags,
+            isManualDistanceRequest,
+            receiptFiles,
             transactionTaxCode,
             transactionTaxAmount,
-            policy,
-            policyTags,
-            policyCategories,
-            action,
             customUnitRateID,
-            isDraftPolicy,
-            isManualDistanceRequest,
-            archivedReportsIdSet,
             isASAPSubmitBetaEnabled,
             quickAction,
         ],
@@ -846,6 +848,7 @@ function IOURequestStepConfirmation({
             isASAPSubmitBetaEnabled,
             transactionViolations,
             quickAction,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
@@ -1099,6 +1102,7 @@ function IOURequestStepConfirmation({
             transactionTaxAmount,
             policyRecentlyUsedCategories,
             quickAction,
+            policyRecentlyUsedCurrencies,
             isASAPSubmitBetaEnabled,
             transactionViolations,
             receiverParticipantAccountID,
