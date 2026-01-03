@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -10,7 +11,9 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {updateSubscriptionSize} from '@userActions/Subscription';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -52,6 +55,14 @@ function SubscriptionSizePage({route}: SubscriptionSizePageProps) {
         },
         [],
     );
+
+    if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
+        return <NotFoundPage />;
+    }
+
+    if (!privateSubscription) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper
