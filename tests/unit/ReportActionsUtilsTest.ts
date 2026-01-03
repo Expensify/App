@@ -1047,7 +1047,7 @@ describe('ReportActionsUtils', () => {
                 ],
             };
             const expectedMessage = ReportActionsUtils.getReportActionMessageText(action);
-            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
+            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
         });
 
@@ -1065,7 +1065,7 @@ describe('ReportActionsUtils', () => {
 
             // When getting the message fragments of the action
             const expectedMessage = ReportActionsUtils.getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
-            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
+            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
 
             // Then it should return the correct message fragments
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
@@ -1311,7 +1311,7 @@ describe('ReportActionsUtils', () => {
                 created: '1',
             };
             const report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.CHAT};
-            expect(ReportActionsUtils.getRenamedAction(reportAction, isExpenseReport(report), 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
+            expect(ReportActionsUtils.getRenamedAction(translateLocal, reportAction, isExpenseReport(report), 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
         });
 
         it('should return the correct translated message for a renamed action in expense report', () => {
@@ -1329,7 +1329,7 @@ describe('ReportActionsUtils', () => {
             };
             const report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE};
 
-            expect(ReportActionsUtils.getRenamedAction(reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
+            expect(ReportActionsUtils.getRenamedAction(translateLocal, reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
         });
     });
     describe('getCardIssuedMessage', () => {
@@ -1460,7 +1460,7 @@ describe('ReportActionsUtils', () => {
                 },
             };
 
-            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(action);
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
             const expected = translateLocal('report.actions.type.updatedCustomField1', {email: formatPhoneNumber(email), newValue, previousValue});
             expect(actual).toBe(expected);
         });
@@ -1501,13 +1501,11 @@ describe('ReportActionsUtils', () => {
             });
             const expectedRoleMessage = translateLocal('report.actions.type.updateRole', {
                 email: formattedEmail,
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 newRole: translateLocal('workspace.common.roleName', {role: newRole}).toLowerCase(),
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 currentRole: translateLocal('workspace.common.roleName', {role: previousRole}).toLowerCase(),
             });
 
-            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(action);
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
             expect(actual).toBe(`${expectedCustomFieldMessage}, ${expectedRoleMessage}`);
         });
     });
@@ -1527,7 +1525,7 @@ describe('ReportActionsUtils', () => {
                 },
             };
 
-            const actual = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(action);
+            const actual = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(translateLocal, action);
             const expected = translateLocal('report.actions.type.removeMember', formatPhoneNumber(email), translateLocal('workspace.common.roleName', {role}).toLowerCase());
             expect(actual).toBe(expected);
         });
