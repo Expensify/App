@@ -18,7 +18,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -241,7 +241,7 @@ function IOURequestStepParticipants({
             const firstParticipantReportID = val.at(0)?.reportID;
             const isPolicyExpenseChat = !!firstParticipant?.isPolicyExpenseChat;
             const policy = isPolicyExpenseChat && firstParticipant?.policyID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${firstParticipant.policyID}`] : undefined;
-            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && isInvoiceRoomWithID(firstParticipantReportID);
+            const isInvoice = iouType === CONST.IOU.TYPE.INVOICE && firstParticipant?.iouType === CONST.IOU.TYPE.INVOICE;
             numberOfParticipants.current = val.length;
 
             // Use transactions array if available, otherwise use initialTransactionID directly
