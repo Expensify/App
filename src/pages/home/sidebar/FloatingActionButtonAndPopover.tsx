@@ -187,6 +187,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
             openOldDotLink(CONST.OLDDOT_URLS.INBOX);
         });
     }, [showConfirmModal, translate]);
+
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
