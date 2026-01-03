@@ -274,6 +274,7 @@ type ReportError = {
 const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 let conciergeReportID: string | undefined;
 let currentUserAccountID = -1;
+/** @deprecated This value is deprecated and will be removed soon after migration. Use the email from useCurrentUserPersonalDetails hook instead. */
 let currentUserEmail: string | undefined;
 
 Onyx.connect({
@@ -284,6 +285,7 @@ Onyx.connect({
             conciergeReportID = undefined;
             return;
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         currentUserEmail = value.email;
         currentUserAccountID = value.accountID;
     },
@@ -1076,6 +1078,7 @@ function openReport(
         const parentReport =
             transactionParentReportID === optimisticSelfDMReport?.reportID ? optimisticSelfDMReport : allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionParentReportID}`];
         const submitterAccountID = parentReport?.ownerAccountID ?? currentUserAccountID;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const submitterEmail = PersonalDetailsUtils.getLoginsByAccountIDs([submitterAccountID]).at(0) ?? currentUserEmail ?? '';
         const submitterPersonalDetails = PersonalDetailsUtils.getPersonalDetailByEmail(submitterEmail);
 
@@ -1203,6 +1206,7 @@ function openReport(
     const isGroupChat = isGroupChatReportUtils(newReportObject);
     if (isGroupChat) {
         parameters.chatType = CONST.REPORT.CHAT_TYPE.GROUP;
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         parameters.groupChatAdminLogins = currentUserEmail;
         parameters.optimisticAccountIDList = Object.keys(newReportObject?.participants ?? {}).join(',');
         parameters.reportName = newReportObject?.reportName ?? '';
@@ -1445,6 +1449,7 @@ function createTransactionThreadReport(
     openReport(
         optimisticTransactionThreadReportID,
         undefined,
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         currentUserEmail ? [currentUserEmail] : [],
         optimisticTransactionThread,
         iouReportAction?.reportActionID,
@@ -2143,12 +2148,12 @@ function removeLinksFromHtml(html: string, links: string[]): string {
  * @param originalCommentMarkdown original markdown of the comment before editing.
  * @param videoAttributeCache cache of video attributes ([videoSource]: videoAttributes)
  */
-function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMarkdown: string, videoAttributeCache?: Record<string, string>): string {
+function handleUserDeletedLinksInHtml(newCommentText: string, originalCommentMarkdown: string, userEmail: string, videoAttributeCache?: Record<string, string>): string {
     if (newCommentText.length > CONST.MAX_MARKUP_LENGTH) {
         return newCommentText;
     }
 
-    const userEmailDomain = isEmailPublicDomain(currentUserEmail ?? '') ? '' : Str.extractEmailDomain(currentUserEmail ?? '');
+    const userEmailDomain = isEmailPublicDomain(userEmail) ? '' : Str.extractEmailDomain(userEmail);
     const allPersonalDetailLogins = Object.values(allPersonalDetails ?? {}).map((personalDetail) => personalDetail?.login ?? '');
 
     const htmlForNewComment = getParsedMessageWithShortMentions({
@@ -2172,6 +2177,7 @@ function editReportComment(
     textForNewComment: string,
     isOriginalReportArchived: boolean | undefined,
     isOriginalParentReportArchived: boolean | undefined,
+    userEmail: string,
     videoAttributeCache?: Record<string, string>,
 ) {
     const originalReportID = originalReport?.reportID;
@@ -2191,7 +2197,7 @@ function editReportComment(
     if (originalCommentMarkdown === textForNewComment) {
         return;
     }
-    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown, videoAttributeCache);
+    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown, userEmail, videoAttributeCache);
 
     const reportComment = Parser.htmlToText(htmlForNewComment);
 
@@ -3631,10 +3637,6 @@ function getCurrentUserAccountID(): number {
     return currentUserAccountID;
 }
 
-function getCurrentUserEmail(): string | undefined {
-    return currentUserEmail;
-}
-
 function navigateToMostRecentReport(currentReport: OnyxEntry<Report>) {
     const lastAccessedReportID = findLastAccessedReport(false, false, undefined, currentReport?.reportID)?.reportID;
 
@@ -4923,12 +4925,12 @@ function exportReportToPDF({reportID}: ExportReportPDFParams) {
     API.write(WRITE_COMMANDS.EXPORT_REPORT_TO_PDF, params, {optimisticData, failureData});
 }
 
-function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate) {
+function downloadReportPDF(fileName: string, reportName: string, translate: LocalizedTranslate, userEmail: string) {
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));
     const downloadFileName = `${reportName}.pdf`;
     setDownload(fileName, true);
     const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${encodeURIComponent(fileName)}&downloadName=${encodeURIComponent(downloadFileName)}&email=${encodeURIComponent(
-        currentUserEmail ?? '',
+        userEmail,
     )}`;
     fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, true), downloadFileName, '', Browser.isMobileSafari()).then(() => setDownload(fileName, false));
 }
@@ -6321,7 +6323,6 @@ export {
     exportToIntegration,
     flagComment,
     getCurrentUserAccountID,
-    getCurrentUserEmail,
     getMostRecentReportID,
     getNewerActions,
     getOlderActions,
