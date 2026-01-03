@@ -88,11 +88,6 @@ type HarvestCreatedExpenseReportParams = {
     reportName: string;
 };
 
-type RequestCountParams = {
-    scanningReceipts: number;
-    pendingReceipts: number;
-};
-
 type DeleteTransactionParams = {
     amount: string;
     merchant: string;
@@ -336,6 +331,12 @@ type UpdatedPolicyAuditRateParams = {oldAuditRate: number; newAuditRate: number}
 type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: string};
 
 type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
+
+type UpdatedPolicyCustomTaxNameParams = {oldName: string; newName: string};
+
+type UpdatedPolicyCurrencyDefaultTaxParams = {oldName: string; newName: string};
+
+type UpdatedPolicyForeignCurrencyDefaultTaxParams = {oldName: string; newName: string};
 
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
@@ -856,7 +857,6 @@ export type {
     HarvestCreatedExpenseReportParams,
     ReportArchiveReasonsRemovedFromPolicyParams,
     RequestAmountParams,
-    RequestCountParams,
     DeleteTransactionParams,
     MovedTransactionParams,
     RequestedAmountMessageParams,
@@ -967,6 +967,9 @@ export type {
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyReimbursementEnabledParams,
+    UpdatedPolicyCustomTaxNameParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdatePolicyCustomUnitParams,
     UpdatedPolicyApprovalRuleParams,

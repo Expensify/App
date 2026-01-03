@@ -125,7 +125,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -191,7 +190,9 @@ import type {
     UpdatedPolicyCategoryMaxExpenseAmountParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
@@ -200,6 +201,7 @@ import type {
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -1195,20 +1197,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: '如果你没有网站，可以改为提供你公司的 LinkedIn 或社交媒体主页。',
         invalidDomainError: '您输入的域名无效。若要继续，请输入有效的域名。',
         publicDomainError: '您输入的是公共域名。若要继续，请输入一个私有域名。',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} 正在扫描`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} 个待处理`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 笔报销（${statusText.join(', ')}）` : `1 笔报销`,
-                other: (count: number) => (statusText.length > 0 ? `${count} 笔报销（${statusText.join(', ')}）` : `${count} 笔报销`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 笔报销',
@@ -1989,8 +1977,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: '出于安全原因，Xero 要求使用双重身份验证才能连接此集成。',
         twoFactorAuthIsRequiredForAdminsHeader: '需要双重身份验证',
         twoFactorAuthIsRequiredForAdminsTitle: '请启用双重身份验证',
-        twoFactorAuthIsRequiredXero: '您的 Xero 会计连接需要使用双重身份验证。要继续使用 Expensify，请启用该功能。',
-        twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。要继续使用 Expensify，请启用此功能。',
+        twoFactorAuthIsRequiredXero: '您的 Xero 会计连接需要启用双重身份验证。',
+        twoFactorAuthIsRequiredCompany: '您的公司要求使用双重身份验证。',
         twoFactorAuthCannotDisable: '无法禁用双重身份验证',
         twoFactorAuthRequired: '您的 Xero 连接需要启用双重身份验证 (2FA)，且无法将其禁用。',
     },
@@ -6474,6 +6462,9 @@ ${reportName}
                 }
             }
         },
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `将自定义税种名称更改为“${newName}”（之前为“${oldName}”）`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `将工作区货币的默认税率更改为“${newName}”（之前为“${oldName}”）`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) => `将外币默认税率更改为“${newName}”（之前为“${oldName}”）`,
     },
     roomMembersPage: {
         memberNotFound: '未找到成员。',

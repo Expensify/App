@@ -125,7 +125,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -191,7 +190,9 @@ import type {
     UpdatedPolicyCategoryMaxExpenseAmountParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
@@ -200,6 +201,7 @@ import type {
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -1212,20 +1214,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Se você não tiver um site, pode fornecer o LinkedIn da sua empresa ou o perfil em redes sociais.',
         invalidDomainError: 'Você inseriu um domínio inválido. Para continuar, insira um domínio válido.',
         publicDomainError: 'Você inseriu um domínio público. Para continuar, insira um domínio privado.',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} digitalizações`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} pendentes`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 despesa (${statusText.join(', ')})` : `1 despesa`,
-                other: (count: number) => (statusText.length > 0 ? `${count} despesas (${statusText.join(', ')})` : `${count} despesas`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 despesa',
@@ -2016,8 +2004,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'Por motivos de segurança, a Xero exige autenticação em duas etapas para conectar a integração.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Autenticação de dois fatores obrigatória',
         twoFactorAuthIsRequiredForAdminsTitle: 'Ative a autenticação em duas etapas',
-        twoFactorAuthIsRequiredXero: 'Sua conexão de contabilidade com o Xero requer o uso de autenticação em duas etapas. Para continuar usando o Expensify, ative-a.',
-        twoFactorAuthIsRequiredCompany: 'Sua empresa exige o uso de autenticação de dois fatores. Para continuar usando o Expensify, ative-a.',
+        twoFactorAuthIsRequiredXero: 'Sua conexão de contabilidade com o Xero requer autenticação em duas etapas.',
+        twoFactorAuthIsRequiredCompany: 'Sua empresa exige autenticação em duas etapas.',
         twoFactorAuthCannotDisable: 'Não é possível desativar a 2FA',
         twoFactorAuthRequired: 'A autenticação de dois fatores (2FA) é obrigatória para sua conexão com o Xero e não pode ser desativada.',
     },
@@ -6611,6 +6599,11 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 }
             }
         },
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `alterou o nome do imposto personalizado para "${newName}" (antes "${oldName}")`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
+            `alterou a taxa de imposto padrão da moeda do workspace para "${newName}" (anteriormente "${oldName}")`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
+            `alterou a alíquota de imposto padrão em moeda estrangeira para "${newName}" (anteriormente "${oldName}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',

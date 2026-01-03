@@ -125,7 +125,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -191,7 +190,9 @@ import type {
     UpdatedPolicyCategoryMaxExpenseAmountParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
@@ -200,6 +201,7 @@ import type {
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -1212,20 +1214,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Jeśli nie masz strony internetowej, możesz zamiast niej podać firmowy profil na LinkedIn lub w mediach społecznościowych.',
         invalidDomainError: 'Wpisałeś nieprawidłową domenę. Aby kontynuować, wprowadź prawidłową domenę.',
         publicDomainError: 'Wprowadziłeś domenę publiczną. Aby kontynuować, wprowadź domenę prywatną.',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} skanowanie`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} w toku`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 wydatek (${statusText.join(', ')})` : `1 wydatek`,
-                other: (count: number) => (statusText.length > 0 ? `${count} wydatki (${statusText.join(', ')})` : `${count} wydatki`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 wydatek',
@@ -2016,8 +2004,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'Ze względów bezpieczeństwa Xero wymaga uwierzytelniania dwuskładnikowego, aby połączyć integrację.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Wymagane uwierzytelnianie dwuskładnikowe',
         twoFactorAuthIsRequiredForAdminsTitle: 'Włącz uwierzytelnianie dwuskładnikowe',
-        twoFactorAuthIsRequiredXero: 'Twoetapowe uwierzytelnianie jest wymagane dla Twojego połączenia księgowego z Xero. Aby nadal korzystać z Expensify, włącz je.',
-        twoFactorAuthIsRequiredCompany: 'Twoja firma wymaga używania uwierzytelniania dwuskładnikowego. Aby dalej korzystać z Expensify, włącz je.',
+        twoFactorAuthIsRequiredXero: 'Twoje połączenie księgowe z Xero wymaga uwierzytelniania dwuskładnikowego.',
+        twoFactorAuthIsRequiredCompany: 'Twoja firma wymaga uwierzytelniania dwuskładnikowego.',
         twoFactorAuthCannotDisable: 'Nie można wyłączyć 2FA',
         twoFactorAuthRequired: 'Dwuskładnikowe uwierzytelnianie (2FA) jest wymagane dla Twojego połączenia z Xero i nie może zostać wyłączone.',
     },
@@ -6608,6 +6596,11 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             previousForwardsTo
                 ? `zmieniono proces zatwierdzania dla ${approver}, aby przestać przekazywać zatwierdzone raporty (wcześniej przekazywane do ${previousForwardsTo})`
                 : `zmieniono przepływ zatwierdzania dla ${approver}, aby nie przekazywać dalej zatwierdzonych raportów`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `zmieniono niestandardową nazwę podatku na „${newName}” (poprzednio „${oldName}”)`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
+            `zmienił domyślną stawkę podatku waluty w przestrzeni roboczej na „${newName}” (wcześniej „${oldName}”)`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
+            `zmieniono domyślną stawkę podatku dla obcej waluty na „${newName}” (wcześniej „${oldName}”)`,
     },
     roomMembersPage: {
         memberNotFound: 'Użytkownik nie został znaleziony.',
