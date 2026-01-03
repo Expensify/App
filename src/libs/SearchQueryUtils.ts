@@ -608,8 +608,6 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             if (
                 (filterKey === FILTER_KEYS.MERCHANT ||
                     filterKey === FILTER_KEYS.DESCRIPTION ||
-                    filterKey === FILTER_KEYS.REIMBURSABLE ||
-                    filterKey === FILTER_KEYS.BILLABLE ||
                     filterKey === FILTER_KEYS.TITLE ||
                     filterKey === FILTER_KEYS.PAYER ||
                     filterKey === FILTER_KEYS.GROUP_CURRENCY ||
@@ -687,6 +685,8 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.IS ||
                     filterKey === FILTER_KEYS.EXPORTER ||
                     filterKey === FILTER_KEYS.ATTENDEE ||
+                    filterKey === FILTER_KEYS.REIMBURSABLE ||
+                    filterKey === FILTER_KEYS.BILLABLE ||
                     filterKey === FILTER_KEYS.COLUMNS) &&
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
@@ -762,10 +762,10 @@ function buildFilterFormValuesFromQuery(
             filtersForm[key as typeof filterKey] = filterValues.join(',');
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE) {
-            filtersForm[key as typeof filterKey] = filterValues.at(0);
+            filtersForm[key as typeof filterKey] = filterValues.join(',');
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION) {
-            const actionValue = filterValues.at(0);
+            const actionValue = filterValues.join(',');
             filtersForm[key as typeof filterKey] =
                 actionValue && Object.values(CONST.SEARCH.ACTION_FILTERS).includes(actionValue as ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>) ? actionValue : undefined;
         }
@@ -908,7 +908,7 @@ function buildFilterFormValuesFromQuery(
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
-            filtersForm[key as typeof filterKey] = validBooleanTypes.find((value) => filterValues.at(0) === value);
+            filtersForm[key as typeof filterKey] = validBooleanTypes.filter((value) => filterValues.includes(value));
         }
 
         if (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX)) {
