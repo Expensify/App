@@ -1023,15 +1023,24 @@ function dismissModalAndOpenReportInInboxTab(reportID?: string) {
 
 /**
  * Build a minimal transaction record for formula computation in buildOptimisticExpenseReport.
- * This allows formulas like {report:startdate} to use the transaction's created date.
+ * This allows formulas like {report:startdate}, {report:expensescount} to work correctly.
  */
-function buildMinimalTransactionForFormula(transactionID: string, created?: string, amount?: number, currency?: string): Record<string, OnyxTypes.Transaction> {
+function buildMinimalTransactionForFormula(
+    transactionID: string,
+    reportID: string,
+    created?: string,
+    amount?: number,
+    currency?: string,
+    merchant?: string,
+): Record<string, OnyxTypes.Transaction> {
     return {
         [transactionID]: {
             transactionID,
+            reportID,
             created,
             amount,
             currency,
+            merchant,
         } as OnyxTypes.Transaction,
     };
 }
@@ -3627,12 +3636,13 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     const isScanRequest = isScanRequestTransactionUtils({amount, receipt});
     const shouldCreateNewMoneyRequestReport = isSplitExpense ? false : shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest, action);
 
-    // Generate the transaction ID upfront so we can pass it to buildOptimisticExpenseReport for formula computation
+    // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
     const optimisticTransactionID = existingTransactionID ?? NumberUtils.rand64();
+    const optimisticReportID = optimisticIOUReportID ?? generateReportID();
 
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
         const nonReimbursableTotal = reimbursable ? 0 : amount;
-        const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, created, amount, currency);
+        const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
 
         iouReport = isPolicyExpenseChat
             ? buildOptimisticExpenseReport(
@@ -3643,10 +3653,10 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
                   currency,
                   nonReimbursableTotal,
                   undefined,
-                  optimisticIOUReportID,
+                  optimisticReportID,
                   reportTransactions,
               )
-            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticIOUReportID);
+            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency, undefined, undefined, optimisticReportID);
     } else if (isPolicyExpenseChat) {
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
@@ -4011,14 +4021,15 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
 
     const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, false);
 
-    // Generate the transaction ID upfront so we can pass it to buildOptimisticExpenseReport for formula computation
+    // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
     const optimisticTransactionID = NumberUtils.rand64();
+    const optimisticReportID = generateReportID();
 
     if (!iouReport || shouldCreateNewMoneyRequestReport) {
-        const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, created, amount, currency);
+        const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticReportID, created, amount, currency, merchant);
 
         iouReport = isPolicyExpenseChat
-            ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, undefined, undefined, undefined, reportTransactions)
+            ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, undefined, undefined, optimisticReportID, reportTransactions)
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     } else if (isPolicyExpenseChat) {
         iouReport = {...iouReport};
@@ -4345,8 +4356,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
     let shouldCreateNewMoneyRequestReport = false;
 
-    // Generate the transaction ID upfront so we can pass it to buildOptimisticExpenseReport for formula computation
+    // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
     const optimisticTransactionID = existingTransactionID ?? NumberUtils.rand64();
+    const optimisticExpenseReportID = generateReportID();
 
     if (shouldUseMoneyReport) {
         if (moneyRequestReportID) {
@@ -4357,9 +4369,9 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         const isScanRequest = isScanRequestTransactionUtils({amount, receipt});
         shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport, isScanRequest);
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
-            const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, created, amount, currency);
+            const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
 
-            iouReport = buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, amount, undefined, undefined, reportTransactions);
+            iouReport = buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, amount, undefined, optimisticExpenseReportID, reportTransactions);
         } else {
             iouReport = {...iouReport};
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
@@ -7579,7 +7591,8 @@ function createSplitsAndOnyxData({
         const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, isScanRequest);
 
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
-            const reportTransactions = buildMinimalTransactionForFormula(splitTransaction.transactionID, splitTransaction.created, splitAmount, currency);
+            const optimisticExpenseReportID = generateReportID();
+            const reportTransactions = buildMinimalTransactionForFormula(splitTransaction.transactionID, optimisticExpenseReportID, splitTransaction.created, splitAmount, currency, splitTransaction.merchant);
 
             oneOnOneIOUReport = isOwnPolicyExpenseChat
                 ? buildOptimisticExpenseReport(
@@ -7590,7 +7603,7 @@ function createSplitsAndOnyxData({
                       currency,
                       undefined,
                       undefined,
-                      undefined,
+                      optimisticExpenseReportID,
                       reportTransactions,
                   )
                 : buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
@@ -8478,11 +8491,19 @@ function completeSplitBill(
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
         const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport, false);
 
-        // Generate the transaction ID upfront so we can pass it to buildOptimisticExpenseReport for formula computation
+        // Generate IDs upfront so we can pass them to buildOptimisticExpenseReport for formula computation
         const optimisticTransactionID = NumberUtils.rand64();
+        const optimisticExpenseReportID = generateReportID();
 
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
-            const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, updatedTransaction?.modifiedCreated, splitAmount, currency ?? '');
+            const reportTransactions = buildMinimalTransactionForFormula(
+                optimisticTransactionID,
+                optimisticExpenseReportID,
+                updatedTransaction?.modifiedCreated,
+                splitAmount,
+                currency ?? '',
+                updatedTransaction?.modifiedMerchant,
+            );
 
             oneOnOneIOUReport = isPolicyExpenseChat
                 ? buildOptimisticExpenseReport(
@@ -8493,7 +8514,7 @@ function completeSplitBill(
                       currency ?? '',
                       undefined,
                       undefined,
-                      undefined,
+                      optimisticExpenseReportID,
                       reportTransactions,
                   )
                 : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
