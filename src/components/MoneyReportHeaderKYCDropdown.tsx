@@ -89,7 +89,7 @@ function MoneyReportHeaderKYCDropdown({
                     menuHeaderText={headerText}
                     shouldPutHeaderTextAfterBackButton={shouldPutHeaderTextAfterBackButton}
                     shouldAlwaysShowHeaderText={shouldAlwaysShowHeaderText}
-                    onSubmenuBackButtonPress={onBackButtonPress}
+                    onSubmenuBackButtonPress={onSubmenuBackButtonPress}
                 />
             )}
         </KYCWall>
