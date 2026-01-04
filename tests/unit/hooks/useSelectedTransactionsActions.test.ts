@@ -518,7 +518,7 @@ describe('useSelectedTransactionsActions', () => {
 
         unholdOption?.onSelected?.();
 
-        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123');
+        expect(unholdRequest).toHaveBeenCalledWith(transactionID, 'child123', undefined);
         expect(mockClearSelectedTransactions).toHaveBeenCalledWith(true);
     });
 
