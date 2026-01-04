@@ -19,14 +19,7 @@ import type {Country} from '@src/CONST';
 import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type en from './en';
 import type {
-    CanceledRequestParams,
-    CardInfoParams,
     ChangeFieldParams,
-    ChangeOwnerDuplicateSubscriptionParams,
-    ChangeOwnerSubscriptionParams,
-    ChangeReportPolicyParams,
-    ChangeTypeParams,
-    CharacterLengthLimitParams,
     ConnectionNameParams,
     CustomersOrJobsLabelParams,
     DelegateRoleParams,
@@ -131,7 +124,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -197,7 +189,9 @@ import type {
     UpdatedPolicyCategoryMaxExpenseAmountParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
+    UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCurrencyParams,
+    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
@@ -206,6 +200,7 @@ import type {
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,
+    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -419,6 +414,7 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'à',
         genericErrorMessage: 'Oups... une erreur s’est produite et votre demande n’a pas pu être complétée. Veuillez réessayer plus tard.',
         percentage: 'Pourcentage',
+        converted: 'Converti',
         error: {
             invalidAmount: 'Montant invalide',
             acceptTerms: 'Vous devez accepter les Conditions d’utilisation pour continuer',
@@ -426,7 +422,7 @@ const translations: TranslationDeepObject<typeof en> = {
 (p. ex. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Ce champ est requis',
             requestModified: 'Cette demande est en cours de modification par un autre membre',
-            characterLimitExceedCounter: ({length, limit}: CharacterLengthLimitParams) => `Limite de caractères dépassée (${length}/${limit})`,
+            characterLimitExceedCounter: (length: number, limit: number) => `Limite de caractères dépassée (${length}/${limit})`,
             dateInvalid: 'Veuillez sélectionner une date valide',
             invalidDateShouldBeFuture: 'Veuillez choisir aujourd’hui ou une date ultérieure',
             invalidTimeShouldBeFuture: 'Veuillez choisir une heure au moins une minute plus tard',
@@ -1222,20 +1218,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Si vous n’avez pas de site web, vous pouvez fournir à la place le profil LinkedIn ou le profil de réseau social de votre entreprise.',
         invalidDomainError: 'Vous avez saisi un domaine non valide. Pour continuer, veuillez saisir un domaine valide.',
         publicDomainError: 'Vous avez saisi un domaine public. Pour continuer, veuillez saisir un domaine privé.',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} en cours de numérisation`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} en attente`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 dépense (${statusText.join(', ')})` : `1 dépense`,
-                other: (count: number) => (statusText.length > 0 ? `${count} dépenses (${statusText.join(', ')})` : `${count} dépenses`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 dépense',
@@ -1306,7 +1288,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'a rejeté ce rapport',
         waitingOnBankAccount: ({submitterDisplayName}: WaitingOnBankAccountParams) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: 'a annulé le paiement',
-        canceledRequest: ({amount, submitterDisplayName}: CanceledRequestParams) =>
+        canceledRequest: (amount: string, submitterDisplayName: string) =>
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n’a pas activé son Expensify Wallet dans les 30 jours`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} a ajouté un compte bancaire. Le paiement de ${amount} a été effectué.`,
@@ -2035,8 +2017,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'Pour des raisons de sécurité, Xero nécessite une authentification à deux facteurs pour connecter l’intégration.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Authentification à deux facteurs requise',
         twoFactorAuthIsRequiredForAdminsTitle: 'Veuillez activer l’authentification à deux facteurs',
-        twoFactorAuthIsRequiredXero: 'Votre connexion comptable Xero nécessite l’utilisation de l’authentification à deux facteurs. Pour continuer à utiliser Expensify, veuillez l’activer.',
-        twoFactorAuthIsRequiredCompany: 'Votre entreprise exige l’utilisation de l’authentification à deux facteurs. Pour continuer à utiliser Expensify, veuillez l’activer.',
+        twoFactorAuthIsRequiredXero: 'Votre connexion comptable Xero nécessite une authentification à deux facteurs.',
+        twoFactorAuthIsRequiredCompany: 'Votre entreprise exige l’authentification à deux facteurs.',
         twoFactorAuthCannotDisable: 'Impossible de désactiver la 2FA',
         twoFactorAuthRequired: 'L’authentification à deux facteurs (2FA) est requise pour votre connexion Xero et ne peut pas être désactivée.',
     },
@@ -5924,14 +5906,14 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
 Souhaitez-vous transférer ce montant (${amount}) afin de prendre en charge la facturation de cet espace de travail ? Votre carte de paiement sera débitée immédiatement.`,
             subscriptionTitle: 'Prendre en charge l’abonnement annuel',
             subscriptionButtonText: 'Transférer l’abonnement',
-            subscriptionText: ({usersCount, finalCount}: ChangeOwnerSubscriptionParams) =>
+            subscriptionText: (usersCount: number, finalCount: number) =>
                 `Prendre le contrôle de cet espace de travail fusionnera son abonnement annuel avec votre abonnement actuel. Cela augmentera la taille de votre abonnement de ${usersCount} membres, ce qui portera la nouvelle taille de votre abonnement à ${finalCount}. Souhaitez-vous continuer ?`,
             duplicateSubscriptionTitle: 'Alerte d’abonnement en double',
             duplicateSubscriptionButtonText: 'Continuer',
-            duplicateSubscriptionText: ({
-                email,
-                workspaceName,
-            }: ChangeOwnerDuplicateSubscriptionParams) => `Il semble que vous essayiez de reprendre la facturation des espaces de travail de ${email}, mais pour cela, vous devez d’abord être administrateur sur tous ses espaces de travail.
+            duplicateSubscriptionText: (
+                email: string,
+                workspaceName: string,
+            ) => `Il semble que vous essayiez de reprendre la facturation des espaces de travail de ${email}, mais pour cela, vous devez d’abord être administrateur sur tous ses espaces de travail.
 
 Cliquez sur « Continuer » si vous souhaitez uniquement reprendre la facturation de l’espace de travail ${workspaceName}.
 
@@ -6626,6 +6608,11 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             previousForwardsTo
                 ? `a modifié le flux d’approbation pour ${approver} afin de ne plus transférer les rapports approuvés (auparavant transférés à ${previousForwardsTo})`
                 : `a modifié le flux d'approbation pour ${approver} afin de ne plus transférer les rapports approuvés`,
+        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `a modifié le nom de taxe personnalisé en « ${newName} » (auparavant « ${oldName} »)`,
+        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
+            `a modifié le taux de taxe par défaut de la devise de l’espace de travail en « ${newName} » (auparavant « ${oldName} »)`,
+        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
+            `a modifié le taux de taxe par défaut en devise étrangère en « ${newName} » (auparavant « ${oldName} »)`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -6994,13 +6981,13 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             type: {
                 changeField: ({oldValue, newValue, fieldName}: ChangeFieldParams) => `a modifié ${fieldName} en « ${newValue} » (précédemment « ${oldValue} »)`,
                 changeFieldEmpty: ({newValue, fieldName}: ChangeFieldParams) => `définir ${fieldName} sur « ${newValue} »`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}: ChangeReportPolicyParams) => {
+                changeReportPolicy: (toPolicyName: string, fromPolicyName?: string) => {
                     if (!toPolicyName) {
                         return `a modifié l’espace de travail${fromPolicyName ? `(auparavant ${fromPolicyName})` : ''}`;
                     }
                     return `a modifié l’espace de travail en ${toPolicyName}${fromPolicyName ? `(auparavant ${fromPolicyName})` : ''}`;
                 },
-                changeType: ({oldType, newType}: ChangeTypeParams) => `type modifié de ${oldType} à ${newType}`,
+                changeType: (oldType: string, newType: string) => `type modifié de ${oldType} à ${newType}`,
                 exportedToCSV: `exporté en CSV`,
                 exportedToIntegration: {
                     automatic: ({label}: ExportedToIntegrationParams) => {
@@ -7542,9 +7529,9 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             title: 'Paiement',
             subtitle: 'Ajoutez une carte pour payer votre abonnement Expensify.',
             addCardButton: 'Ajouter une carte de paiement',
+            cardInfo: (name: string, expiration: string, currency: string) => `Nom : ${name}, Expiration : ${expiration}, Devise : ${currency}`,
             cardNextPayment: (nextPaymentDate: string) => `Votre prochaine date de paiement est le ${nextPaymentDate}.`,
             cardEnding: (cardNumber: string) => `Carte se terminant par ${cardNumber}`,
-            cardInfo: ({name, expiration, currency}: CardInfoParams) => `Nom : ${name}, Expiration : ${expiration}, Devise : ${currency}`,
             changeCard: 'Modifier la carte de paiement',
             changeCurrency: 'Changer la devise de paiement',
             cardNotFound: 'Aucune carte de paiement ajoutée',
