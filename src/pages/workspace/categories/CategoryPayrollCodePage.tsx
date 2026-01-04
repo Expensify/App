@@ -55,10 +55,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
             const value = values[INPUT_IDS.PAYROLL_CODE];
 
             if (value.length > CONST.MAX_LENGTH_256) {
-                errors[INPUT_IDS.PAYROLL_CODE] = translate('common.error.characterLimitExceedCounter', {
-                    length: value.length,
-                    limit: CONST.MAX_LENGTH_256,
-                });
+                errors[INPUT_IDS.PAYROLL_CODE] = translate('common.error.characterLimitExceedCounter', value.length, CONST.MAX_LENGTH_256);
             }
 
             return errors;
@@ -75,7 +72,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryPayrollCodePage.displayName}
+                testID="CategoryPayrollCodePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -112,7 +109,5 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryPayrollCodePage.displayName = 'CategoryPayrollCodePage';
 
 export default CategoryPayrollCodePage;

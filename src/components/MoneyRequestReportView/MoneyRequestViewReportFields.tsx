@@ -17,6 +17,7 @@ import {
     isReportFieldDisabled,
     isReportFieldDisabledForUser,
     isReportFieldOfTypeTitle,
+    shouldHideSingleReportField,
 } from '@libs/ReportUtils';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
@@ -81,13 +82,6 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
 
     const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`, {canBeMissing: true});
 
-    const shouldHideSingleReportField = (reportField: PolicyReportField) => {
-        const fieldValue = reportField.value ?? reportField.defaultValue;
-        const hasEnableOption = reportField.type !== CONST.REPORT_FIELD_TYPES.LIST || reportField.disabledOptions.some((option) => !option);
-
-        return isReportFieldOfTypeTitle(reportField) || (!fieldValue && !hasEnableOption);
-    };
-
     const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
         return fields
@@ -120,7 +114,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
     const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
-    const shouldDisplayReportFields = (isPaidGroupPolicyExpenseReport || isInvoiceReport) && policy?.areReportFieldsEnabled && (!isOnlyTitleFieldEnabled || !isCombinedReport);
+    const shouldDisplayReportFields = (isPaidGroupPolicyExpenseReport || isInvoiceReport) && !!policy?.areReportFieldsEnabled && (!isOnlyTitleFieldEnabled || !isCombinedReport);
 
     return (
         shouldDisplayReportFields &&
@@ -129,6 +123,5 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
         })
     );
 }
-MoneyRequestViewReportFields.displayName = 'MoneyRequestViewReportFields';
 
 export default MoneyRequestViewReportFields;

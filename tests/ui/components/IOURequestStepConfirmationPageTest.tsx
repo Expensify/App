@@ -24,9 +24,6 @@ jest.mock('@rnmapbox/maps', () => {
         setAccessToken: jest.fn(),
     };
 });
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
 jest.mock('@libs/actions/IOU', () => {
     const actualNav = jest.requireActual<typeof IOU>('@libs/actions/IOU');
     return {
@@ -201,7 +198,10 @@ const DEFAULT_SPLIT_TRANSACTION: Transaction = {
 describe('IOURequestStepConfirmationPageTest', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        Onyx.init({keys: ONYXKEYS});
+        Onyx.init({
+            keys: ONYXKEYS,
+            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+        });
     });
 
     it('should not restart the money request creation flow when sending invoice from global FAB', async () => {
@@ -260,9 +260,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
                 ...DEFAULT_SPLIT_TRANSACTION,
-                filename: 'receipt1.jpg',
                 iouRequestType: 'scan',
-                receipt: {source: 'path/to/receipt1.jpg', type: ''},
+                receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
             });
         });
 
@@ -300,9 +299,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, {
                 ...DEFAULT_SPLIT_TRANSACTION,
-                filename: 'receipt1.jpg',
                 iouRequestType: 'scan',
-                receipt: {source: 'path/to/receipt1.jpg', type: ''},
+                receipt: {filename: 'receipt1.jpg', source: 'path/to/receipt1.jpg', type: ''},
                 transactionID: '1',
             });
         });
@@ -310,9 +308,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}2`, {
                 ...DEFAULT_SPLIT_TRANSACTION,
-                filename: 'receipt2.jpg',
                 iouRequestType: 'scan',
-                receipt: {source: 'path/to/receipt2.jpg', type: ''},
+                receipt: {filename: 'receipt2.jpg', source: 'path/to/receipt2.jpg', type: ''},
                 transactionID: '2',
             });
         });
@@ -341,7 +338,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 </HTMLProviderWrapper>
             </OnyxListItemProvider>,
         );
-        fireEvent.press(await screen.findByText(translateLocal('iou.createExpenses', {expensesNumber: 2})));
+        fireEvent.press(await screen.findByText(translateLocal('iou.createExpenses', 2)));
         expect(IOU.startSplitBill).toHaveBeenCalledTimes(2);
     });
 

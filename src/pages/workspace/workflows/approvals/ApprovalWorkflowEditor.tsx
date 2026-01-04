@@ -53,10 +53,11 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         (index: number) => {
             let pendingAction: PendingAction | undefined;
             if (index === 0) {
-                // eslint-disable-next-line unicorn/no-array-for-each
-                approvalWorkflow?.members?.forEach((member) => {
-                    pendingAction = pendingAction ?? member.pendingFields?.submitsTo;
-                });
+                if (approvalWorkflow?.members) {
+                    for (const member of approvalWorkflow.members) {
+                        pendingAction = pendingAction ?? member.pendingFields?.submitsTo;
+                    }
+                }
                 return pendingAction;
             }
             const previousApprover = approvalWorkflow?.approvers.at(index - 1);
@@ -89,10 +90,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 if (!previousApprover || !approver) {
                     return;
                 }
-                return translate('workflowsPage.approverCircularReference', {
-                    name1: Str.removeSMSDomain(approver.displayName),
-                    name2: Str.removeSMSDomain(previousApprover.displayName),
-                });
+                return translate('workflowsPage.approverCircularReference', Str.removeSMSDomain(approver.displayName), Str.removeSMSDomain(previousApprover.displayName));
             }
 
             return translate(error);
@@ -205,7 +203,5 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         </ScrollView>
     );
 }
-
-ApprovalWorkflowEditor.displayName = 'ApprovalWorkflowEditor';
 
 export default ApprovalWorkflowEditor;

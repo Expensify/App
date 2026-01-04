@@ -1,6 +1,7 @@
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useRef} from 'react';
 import type {BlurEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import useLocalize from '@hooks/useLocalize';
 import {convertToFrontendAmountAsString, getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
 import NumberWithSymbolForm from './NumberWithSymbolForm';
@@ -116,6 +117,9 @@ type MoneyRequestAmountInputProps = {
      */
     shouldWrapInputInContainer?: boolean;
 
+    /** Whether the input is disabled or not */
+    disabled?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Pick<TextInputWithSymbolProps, 'autoGrowExtraSpace' | 'submitBehavior' | 'shouldUseDefaultLineHeightForPrefix' | 'onFocus' | 'onBlur'>;
@@ -160,8 +164,10 @@ function MoneyRequestAmountInput({
     toggleNegative,
     clearNegative,
     ref,
+    disabled,
     ...props
 }: MoneyRequestAmountInputProps) {
+    const {preferredLocale} = useLocalize();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
     const decimals = getCurrencyDecimals(currency);
@@ -214,6 +220,7 @@ function MoneyRequestAmountInput({
                 // eslint-disable-next-line react-compiler/react-compiler
                 textInput.current = newRef;
             }}
+            disabled={disabled}
             numberFormRef={(newRef) => {
                 if (typeof moneyRequestAmountInputRef === 'function') {
                     moneyRequestAmountInputRef(newRef);
@@ -223,7 +230,7 @@ function MoneyRequestAmountInput({
                 }
                 numberFormRef.current = newRef;
             }}
-            symbol={getLocalizedCurrencySymbol(currency) ?? ''}
+            symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
             currency={currency}
             hideSymbol={hideCurrencySymbol}
@@ -255,8 +262,6 @@ function MoneyRequestAmountInput({
         />
     );
 }
-
-MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
 
 export default MoneyRequestAmountInput;
 export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};

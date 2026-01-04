@@ -5,7 +5,6 @@ import EmojiPickerButtonDropdown from '@components/EmojiPicker/EmojiPickerButton
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
-import HeaderPageLayout from '@components/HeaderPageLayout';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -76,8 +75,8 @@ function StatusPage() {
     const customClearAfter = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const dataToShow = draftClearAfter || currentUserClearAfter;
-        return DateUtils.getLocalizedTimePeriodDescription(dataToShow);
-    }, [draftClearAfter, currentUserClearAfter]);
+        return DateUtils.getLocalizedTimePeriodDescription(translate, dataToShow);
+    }, [draftClearAfter, currentUserClearAfter, translate]);
 
     const isValidClearAfterDate = useCallback(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -178,10 +177,7 @@ function StatusPage() {
             }
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> = {};
             if (statusText.length > CONST.STATUS_TEXT_MAX_LENGTH) {
-                errors[INPUT_IDS.STATUS_TEXT] = translate('common.error.characterLimitExceedCounter', {
-                    length: statusText.length,
-                    limit: CONST.STATUS_TEXT_MAX_LENGTH,
-                });
+                errors[INPUT_IDS.STATUS_TEXT] = translate('common.error.characterLimitExceedCounter', statusText.length, CONST.STATUS_TEXT_MAX_LENGTH);
             }
             return errors;
         },
@@ -196,7 +192,7 @@ function StatusPage() {
             style={[StyleUtils.getBackgroundColorStyle(theme.PAGE_THEMES[SCREENS.SETTINGS.PROFILE.STATUS].backgroundColor)]}
             shouldEnablePickerAvoiding={false}
             includeSafeAreaPaddingBottom
-            testID={HeaderPageLayout.displayName}
+            testID="HeaderPageLayout"
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -301,7 +297,5 @@ function StatusPage() {
         </ScreenWrapper>
     );
 }
-
-StatusPage.displayName = 'StatusPage';
 
 export default StatusPage;
