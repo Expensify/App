@@ -354,6 +354,7 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
 type DeleteWorkspaceActionParams = {
     policyID: string;
     activePolicyID: string | undefined;
+    personalPolicyID: string | undefined;
     policyName: string;
     lastAccessedWorkspacePolicyID: string | undefined;
     policyCardFeeds: CardFeeds | undefined;
@@ -376,6 +377,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
     const {
         policyID,
         activePolicyID,
+        personalPolicyID,
         policyName,
         lastAccessedWorkspacePolicyID,
         policyCardFeeds,
@@ -477,7 +479,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             .filter((p) => p && p.id !== activePolicyID && p.type !== CONST.POLICY.TYPE.PERSONAL && p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .sort((policyA, policyB) => localeCompare(policyB?.created ?? '', policyA?.created ?? ''))
             .at(0);
-        const newActivePolicyID = mostRecentlyCreatedGroupPolicy?.id ?? PolicyUtils.getPersonalPolicy()?.id;
+        const newActivePolicyID = mostRecentlyCreatedGroupPolicy?.id ?? personalPolicyID;
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         optimisticData.push({

@@ -212,6 +212,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const dropdownMenuRef = useRef<{setIsMenuVisible: (visible: boolean) => void} | null>(null);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
     const confirmDelete = useCallback(() => {
         if (!policy?.id || !policyName) {
@@ -221,6 +222,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         deleteWorkspace({
             policyID: policy.id,
             activePolicyID,
+            personalPolicyID,
             policyName,
             lastAccessedWorkspacePolicyID,
             policyCardFeeds: defaultCardFeeds,
@@ -247,6 +249,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         localeCompare,
         isOffline,
         activePolicyID,
+        personalPolicyID,
         bankAccountList,
     ]);
 

@@ -417,9 +417,7 @@ describe('TransactionPreviewUtils', () => {
         });
 
         test('returns text when only itemizedReceiptRequired exists', () => {
-            const itemizedOnlyViolation = [
-                {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$75.00'}},
-            ];
+            const itemizedOnlyViolation = [{name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$75.00'}}];
             expect(getViolationTranslatePath(itemizedOnlyViolation, false, message, false, false)).toEqual({text: message});
         });
     });
