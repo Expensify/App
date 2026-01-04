@@ -4539,7 +4539,16 @@ function searchInServer(searchInput: string, policyID?: string) {
  * Fetch all outstanding reports for a workspace to ensure they are available in Onyx
  */
 function fetchOutstandingReportsForWorkspace(policyID: string, accountID: number) {
-    const optimisticData: OnyxUpdate[] = [
+    // We are not getting isOffline from components as useEffect change will re-trigger the search on network change
+    const isOffline = NetworkStore.isOffline();
+
+    // We do not try to make this request while offline because it sets a loading indicator optimistically
+    if (isOffline) {
+        Onyx.set(ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS, false);
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS,
@@ -4547,7 +4556,7 @@ function fetchOutstandingReportsForWorkspace(policyID: string, accountID: number
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS,
@@ -4555,7 +4564,7 @@ function fetchOutstandingReportsForWorkspace(policyID: string, accountID: number
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_OUTSTANDING_REPORTS,
@@ -4564,15 +4573,19 @@ function fetchOutstandingReportsForWorkspace(policyID: string, accountID: number
     ];
 
     const parameters: GetOutstandingReportsParams = {
-        policyID,
+        policyID: "9A926B3E1FD59B65",
         accountID,
     };
 
-    API.read(READ_COMMANDS.GET_OUTSTANDING_REPORTS, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    API.read(
+        READ_COMMANDS.GET_OUTSTANDING_REPORTS,
+        parameters,
+        {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    );
 }
 
 function updateLastVisitTime(reportID: string) {

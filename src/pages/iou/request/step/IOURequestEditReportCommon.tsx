@@ -131,12 +131,15 @@ function IOURequestEditReportCommon({
 
     // Fetch all outstanding reports for the workspace when the component mounts
     useEffect(() => {
-        if (!selectedPolicyID || !resolvedReportOwnerAccountID) {
+        const policyID = selectedPolicyID ?? selectedReport?.policyID;
+
+        if (!policyID || !resolvedReportOwnerAccountID) {
             return;
         }
+
         // Fetch all outstanding reports for this policy and owner
-        fetchOutstandingReportsForWorkspace(selectedPolicyID, resolvedReportOwnerAccountID);
-    }, [selectedPolicyID, resolvedReportOwnerAccountID]);
+        fetchOutstandingReportsForWorkspace(policyID, resolvedReportOwnerAccountID);
+    }, [selectedPolicyID, selectedReport?.policyID, resolvedReportOwnerAccountID]);
 
     const expenseReports = useMemo(() => {
         // Early return if no reports are available to prevent useless loop
