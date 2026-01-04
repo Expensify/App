@@ -162,7 +162,7 @@ describe('libs/NextStepUtils', () => {
             test('self review', () => {
                 optimisticNextStep.icon = CONST.NEXT_STEP.ICONS.HOURGLASS;
 
-                // Waiting for userSubmitter to add expense(s).
+                // Waiting for userSubmitter to submit expense(s).
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -175,7 +175,7 @@ describe('libs/NextStepUtils', () => {
                         text: ' to ',
                     },
                     {
-                        text: 'add',
+                        text: 'submit',
                     },
                     {
                         text: ' %expenses.',

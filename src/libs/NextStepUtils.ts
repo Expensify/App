@@ -490,7 +490,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                         text: ' to ',
                     },
                     {
-                        text: 'add',
+                        text: isReportContainingTransactions ? 'submit' : 'add',
                     },
                     {
                         text: ' %expenses.',
