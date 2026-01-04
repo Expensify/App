@@ -4573,7 +4573,7 @@ function fetchOutstandingReportsForWorkspace(policyID: string, accountID: number
     ];
 
     const parameters: GetOutstandingReportsParams = {
-        policyID: "9A926B3E1FD59B65",
+        policyID,
         accountID,
     };
 
