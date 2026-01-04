@@ -69,7 +69,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsCreateApprovalsPage.title')}
-                        onBackButtonPress={() => Navigation.goBack()}
+                        onBackButtonPress={() => Navigation.dismissModal()}
                     />
                     {!!approvalWorkflow && (
                         <>
