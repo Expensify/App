@@ -44,6 +44,6 @@ function WorkspaceCell({policyID, report}: WorkspaceCellProps) {
     );
 }
 
-WorkspaceCell.displayName = 'ReportInfoCell';
+WorkspaceCell.displayName = 'WorkspaceCell';
 
 export default WorkspaceCell;

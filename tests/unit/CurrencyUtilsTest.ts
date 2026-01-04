@@ -3,7 +3,6 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import * as CurrencyUtils from '@src/libs/CurrencyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CurrencyList} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // This file can get outdated. In that case, you can follow these steps to update it:
 // - open your browser console and navigate to the Network tab
@@ -13,7 +12,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 // - update currencyList.json
 import currencyList from './currencyList.json';
 
-const currencyCodeList = Object.keys(currencyList as CurrencyList);
+const currencyCodeList = Object.keys(currencyList);
 const AVAILABLE_LOCALES = [CONST.LOCALES.EN, CONST.LOCALES.ES];
 
 describe('CurrencyUtils', () => {
@@ -189,145 +188,5 @@ describe('CurrencyUtils', () => {
         ])('Correctly displays %s in ES locale', (currency, amount, expectedResult) =>
             IntlStore.load(CONST.LOCALES.ES).then(() => expect(CurrencyUtils.convertToShortDisplayString(amount, currency)).toBe(expectedResult)),
         );
-    });
-
-    describe('isCurrencyCodeLikeSymbol', () => {
-        test.each([
-            // Exact match
-            ['USD', 'USD', true],
-            ['ALL', 'ALL', true],
-
-            // Case-insensitive
-            ['usd', 'USD', true],
-            ['Usd', 'uSd', true],
-
-            // Trimming on both sides
-            [' usd ', 'USD', true],
-            ['USD', ' usd ', true],
-            ['  usd  ', '  UsD  ', true],
-
-            // Not equal => false
-            ['USD', 'PEN', false],
-            ['US$', 'USD', false],
-            ['USD$', 'USD', false],
-            ['$', 'USD', false],
-            ['S/', 'PEN', false],
-
-            // Missing/empty values => false (note: empty string is falsy)
-            [undefined, 'USD', false],
-            ['USD', undefined, false],
-            ['', 'USD', false],
-            ['USD', '', false],
-            ['   ', 'USD', false], // whitespace becomes '' after trim, but it's still falsy upfront
-            ['USD', '   ', false],
-        ])('symbol=%s, currencyCode=%s => %s', (symbol, currencyCode, expected) => {
-            expect(CurrencyUtils.isCurrencyCodeLikeSymbol(symbol, currencyCode)).toBe(expected);
-        });
-    });
-
-    describe('getPreferredCurrencySymbol', () => {
-        test('Uses CURRENCY_LIST.symbol when it exists and is not code-like', () => {
-            const preferredLocale = CONST.LOCALES.EN;
-            const currencyListTyped = currencyList as CurrencyList;
-            const currencyWithNonCodeLikeSymbol = currencyCodeList.find((code) => {
-                const symbol = currencyListTyped?.[code]?.symbol;
-                return !!symbol && symbol.trim().toUpperCase() !== code.trim().toUpperCase();
-            });
-
-            expect(currencyWithNonCodeLikeSymbol).toBeTruthy();
-
-            if (!currencyWithNonCodeLikeSymbol) {
-                throw new Error('Expected a currency with a non-code-like symbol');
-            }
-
-            const expectedSymbol = CurrencyUtils.getCurrencySymbol(currencyWithNonCodeLikeSymbol);
-            expect(expectedSymbol).toBeTruthy();
-
-            expect(CurrencyUtils.getPreferredCurrencySymbol(currencyWithNonCodeLikeSymbol, preferredLocale)).toBe(expectedSymbol);
-        });
-
-        test('Falls back to localized value when CURRENCY_LIST.symbol is code-like', async () => {
-            const preferredLocale = CONST.LOCALES.EN;
-
-            await IntlStore.load(preferredLocale);
-            await waitForBatchedUpdates();
-
-            // Force a known case: make the USD symbol "USD" so it becomes code-like
-            const modifiedCurrencyList = {
-                ...currencyList,
-                USD: {
-                    ...currencyList.USD,
-                    symbol: 'USD',
-                },
-            };
-
-            await Onyx.set(ONYXKEYS.CURRENCY_LIST, modifiedCurrencyList);
-            await waitForBatchedUpdates();
-
-            const preferred = CurrencyUtils.getPreferredCurrencySymbol(CONST.CURRENCY.USD, preferredLocale);
-            const localized = CurrencyUtils.getLocalizedCurrencySymbol(preferredLocale, CONST.CURRENCY.USD);
-
-            expect(preferred).toBe(localized);
-            expect(preferred).not.toBe('USD');
-
-            // Restore for the rest of the suite
-            await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
-            await waitForBatchedUpdates();
-        });
-
-        test('Falls back to localized value when CURRENCY_LIST.symbol is missing', async () => {
-            const preferredLocale = CONST.LOCALES.EN;
-
-            await IntlStore.load(preferredLocale);
-            await waitForBatchedUpdates();
-
-            const modifiedCurrencyList = {
-                ...currencyList,
-                USD: {
-                    ...currencyList.USD,
-                    symbol: undefined,
-                },
-            };
-
-            await Onyx.set(ONYXKEYS.CURRENCY_LIST, modifiedCurrencyList);
-            await waitForBatchedUpdates();
-
-            const preferred = CurrencyUtils.getPreferredCurrencySymbol(CONST.CURRENCY.USD, preferredLocale);
-            const localized = CurrencyUtils.getLocalizedCurrencySymbol(preferredLocale, CONST.CURRENCY.USD);
-
-            expect(preferred).toBe(localized);
-            expect(preferred).toBeTruthy();
-
-            // Restore for the rest of the suite
-            await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
-            await waitForBatchedUpdates();
-        });
-
-        test.each([['USD'], [' usd '], ['Usd']])('Falls back to localized value when CURRENCY_LIST.symbol is code-like (%s)', async (codeLikeSymbol) => {
-            const preferredLocale = CONST.LOCALES.EN;
-
-            await IntlStore.load(preferredLocale);
-            await waitForBatchedUpdates();
-
-            const modifiedCurrencyList = {
-                ...currencyList,
-                USD: {
-                    ...currencyList.USD,
-                    symbol: codeLikeSymbol,
-                },
-            };
-
-            await Onyx.set(ONYXKEYS.CURRENCY_LIST, modifiedCurrencyList);
-            await waitForBatchedUpdates();
-
-            const preferred = CurrencyUtils.getPreferredCurrencySymbol(CONST.CURRENCY.USD, preferredLocale);
-            const localized = CurrencyUtils.getLocalizedCurrencySymbol(preferredLocale, CONST.CURRENCY.USD);
-
-            expect(preferred).toBe(localized);
-            expect(preferred).not.toBe(codeLikeSymbol);
-
-            await Onyx.set(ONYXKEYS.CURRENCY_LIST, currencyList);
-            await waitForBatchedUpdates();
-        });
     });
 });
