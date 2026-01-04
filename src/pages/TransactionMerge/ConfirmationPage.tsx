@@ -17,6 +17,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {buildMergedTransactionData} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -34,10 +35,10 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const styles = useThemeStyles();
     const [isMergingExpenses, setIsMergingExpenses] = useState(false);
 
-    const {transactionID, backTo} = route.params;
+    const {transactionID, isOnSearch, backTo} = route.params;
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
 
     const policyID = targetTransactionReport?.policyID;
@@ -74,7 +75,9 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
         });
 
         const reportIDToDismiss = reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? reportID : undefined;
-        if (reportID !== targetTransaction.reportID && reportIDToDismiss) {
+
+        // If we're on search, dismiss the modal and stay on search
+        if (!isOnSearch && reportIDToDismiss && reportID !== targetTransaction.reportID) {
             Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
         } else {
             Navigation.dismissModal();

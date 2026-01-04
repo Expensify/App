@@ -4,10 +4,11 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OptionItem from '@components/OptionsPicker/OptionItem';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
+import useEnvironment from '@hooks/useEnvironment';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +19,7 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openLink} from '@libs/actions/Link';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
@@ -34,6 +36,7 @@ function SubscriptionSettings() {
     const privateSubscription = usePrivateSubscription();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
+    const {environmentURL} = useEnvironment();
     const isActivePolicyAdmin = isPolicyAdmin(activePolicy);
     const subscriptionPlan = useSubscriptionPlan();
     const preferredCurrency = usePreferredCurrency();
@@ -46,10 +49,20 @@ function SubscriptionSettings() {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
-    const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
+    const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins?.toString() : undefined;
 
     const openAdminsRoom = () => {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
+    };
+
+    const handleLinkPress = (href: string) => {
+        if (href.endsWith('adminsRoom')) {
+            if (adminsChatReportID) {
+                openAdminsRoom();
+            }
+        } else if (href.endsWith(CONST.PRICING)) {
+            openLink(CONST.PRICING, environmentURL);
+        }
     };
 
     const subscriptionSizeSection =
@@ -74,16 +87,12 @@ function SubscriptionSettings() {
             <ScrollView contentContainerStyle={[styles.flexGrow1, styles.ph5]}>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.mobileReducedFunctionalityMessage')}</Text>
                 <Text style={[styles.textSupporting, styles.mb5]}>{translate('subscription.subscriptionSettings.pricingConfiguration')}</Text>
-                <Text style={[styles.textSupporting, styles.mb5]}>
-                    {translate('subscription.subscriptionSettings.learnMore.part1')}
-                    <TextLink href={CONST.PRICING}>{translate('subscription.subscriptionSettings.learnMore.pricingPage')}</TextLink>
-                    {translate('subscription.subscriptionSettings.learnMore.part2')}
-                    {adminsChatReportID ? (
-                        <TextLink onPress={openAdminsRoom}>{translate('subscription.subscriptionSettings.learnMore.adminsRoom')}</TextLink>
-                    ) : (
-                        translate('subscription.subscriptionSettings.learnMore.adminsRoom')
-                    )}
-                </Text>
+                <View style={[styles.renderHTML, styles.mb5]}>
+                    <RenderHTML
+                        html={translate('subscription.subscriptionSettings.learnMore', {hasAdminsRoom: !!adminsChatReportID})}
+                        onLinkPress={(_evt, href) => handleLinkPress(href)}
+                    />
+                </View>
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
                 <Text style={styles.mv1}>{priceDetails}</Text>
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.changesBasedOn')}</Text>

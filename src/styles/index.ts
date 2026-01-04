@@ -1,5 +1,4 @@
 /* eslint-disable max-lines */
-
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
@@ -506,6 +505,13 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightNormal,
         },
 
+        textMicroBoldSupporting: {
+            color: theme.textSupporting,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: variables.lineHeightNormal,
+        },
+
         textMicroSupporting: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -928,6 +934,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         activeComponentBG: {
             backgroundColor: theme.activeComponentBG,
+        },
+
+        messagesRowHeight: {
+            height: variables.componentSizeXSmall,
         },
 
         touchableButtonImage: {
@@ -4580,6 +4590,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingHorizontal: 32,
         },
 
+        tableHeaderIconSpacing: {
+            marginRight: variables.iconSizeExtraSmall,
+            marginBottom: 1,
+            marginTop: 1,
+        },
+
         cardItemSecondaryIconStyle: {
             position: 'absolute',
             bottom: -4,
@@ -5090,6 +5106,12 @@ const staticStyles = (theme: ThemeColors) =>
         travelCardIllustration: {
             width: 191,
             height: 170,
+        },
+
+        successBankSharedCardIllustration: {
+            width: 164,
+            height: 164,
+            marginBottom: 12,
         },
 
         emptyStateMoneyRequestReport: {

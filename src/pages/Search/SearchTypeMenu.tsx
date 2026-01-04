@@ -22,10 +22,11 @@ import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {setSearchContext} from '@libs/actions/Search';
+import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -42,7 +43,7 @@ type SearchTypeMenuProps = {
 
 function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {hash, similarSearchHash} = queryJSON ?? {};
-    const shouldSkipSuggestedSearchNavigation = !!queryJSON?.rawFilterList;
+    const shouldSkipSuggestedSearchNavigation = useMemo(() => shouldSkipSuggestedSearchNavigationForQuery(queryJSON), [queryJSON]);
 
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
@@ -73,7 +74,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
@@ -92,8 +93,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     });
 
     const getOverflowMenu = useCallback(
-        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, showDeleteModal),
-        [showDeleteModal, expensifyIcons],
+        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal),
+        [translate, showDeleteModal, expensifyIcons],
     );
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, index: number) => {
@@ -109,6 +110,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             return {
                 ...baseMenuItem,
                 onPress: () => {
+                    setSearchContext(false);
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
                 },
                 rightComponent: (
@@ -255,6 +257,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
                                             const onPress = singleExecution(() => {
                                                 clearSelectedTransactions();
+                                                setSearchContext(false);
                                                 Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
                                             });
 

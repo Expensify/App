@@ -164,6 +164,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const {wideRHPRouteKeys} = useContext(WideRHPContext);
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
 
     const markAsCash = useCallback(() => {
         markAsCashAction(transaction?.transactionID, reportID, transactionViolations);
@@ -186,13 +187,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     optimisticChatReportID,
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
+                    quickAction,
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,
                     activePolicyExpenseChat,
                 );
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled],
+        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction],
     );
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
@@ -398,7 +400,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     return;
                 }
 
-                setupMergeTransactionDataAndNavigate([transaction], localeCompare);
+                const isOnSearch = route.name.toLowerCase().startsWith('search');
+                setupMergeTransactionDataAndNavigate(transaction.transactionID, [transaction], localeCompare, [], false, isOnSearch);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE]: {
@@ -437,6 +440,11 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
             icon: Expensicons.ThumbsDown,
             value: CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT,
             onSelected: () => {
+                if (isDelegateAccessRestricted) {
+                    showDelegateNoAccessModal();
+                    return;
+                }
+
                 if (dismissedRejectUseExplanation) {
                     if (parentReportAction) {
                         rejectMoneyRequestReason(parentReportAction);

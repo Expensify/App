@@ -13,7 +13,6 @@ import type {ColorValue} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageChangePolicy, OriginalMessageExportIntegration, OriginalMessageModifiedExpense, OriginalMessageMovedTransaction} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 // eslint-disable-next-line no-restricted-imports
@@ -57,7 +56,6 @@ import type {
     ReportNameValuePairs,
     ReportViolationName,
     ReportViolations,
-    Session,
     Task,
     Transaction,
     TransactionViolation,
@@ -68,7 +66,14 @@ import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {OriginalMessageChangeLog, PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {
+    OriginalMessageChangeLog,
+    OriginalMessageChangePolicy,
+    OriginalMessageExportIntegration,
+    OriginalMessageModifiedExpense,
+    OriginalMessageMovedTransaction,
+    PaymentMethodType,
+} from '@src/types/onyx/OriginalMessage';
 import type {Status, Timezone} from '@src/types/onyx/PersonalDetails';
 import type {AllConnectionName, ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant} from '@src/types/onyx/Report';
@@ -2685,11 +2690,17 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
  * Checks if the current user is a payer of the expense
  */
 
-function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, onlyShowPayElsewhere = false, reportPolicy?: OnyxInputOrEntry<Policy>) {
+function isPayer(
+    currentAccountID: number | undefined,
+    currentUserEmailParm: string | undefined,
+    iouReport: OnyxEntry<Report>,
+    onlyShowPayElsewhere = false,
+    reportPolicy?: OnyxInputOrEntry<Policy>,
+) {
     const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = iouReport?.managerID === session?.accountID;
+    const isManager = iouReport?.managerID === currentAccountID;
     const reimbursementChoice = policy?.reimbursementChoice;
 
     if (isPaidGroupPolicy(iouReport)) {
@@ -2699,7 +2710,7 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
             }
 
             // If we are the reimburser and the report is approved or we are the manager then we can pay it.
-            const isReimburser = session?.email === policy?.achAccount?.reimburser;
+            const isReimburser = currentUserEmailParm === policy?.achAccount?.reimburser;
             return isReimburser;
         }
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
@@ -2803,7 +2814,7 @@ function canDeleteTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArc
 function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string, isAdmin: boolean): boolean {
     const report = typeof reportOrReportID === 'string' ? getReportOrDraftReport(reportOrReportID) : reportOrReportID;
 
-    if (!isMoneyRequestReport(report)) {
+    if (!isMoneyRequestReport(report) || isIOUReport(report)) {
         return false;
     }
 
@@ -2815,7 +2826,7 @@ function isMoneyRequestReportEligibleForMerge(reportOrReportID: Report | string,
     }
 
     if (isSubmitter) {
-        return isOpenReport(report) || (isIOUReport(report) && isProcessingReport(report)) || isAwaitingFirstLevelApproval(report);
+        return isOpenReport(report) || isAwaitingFirstLevelApproval(report);
     }
 
     return isManager && isExpenseReport(report) && isProcessingReport(report);
@@ -3569,7 +3580,12 @@ function getIconsForExpenseRequest(report: OnyxInputOrEntry<Report>, personalDet
 /**
  * Helper function to get the icons for a chat thread. Only to be used in getIcons().
  */
-function getIconsForChatThread(report: OnyxInputOrEntry<Report>, personalDetails: OnyxInputOrEntry<PersonalDetailsList>, policy: OnyxInputOrEntry<Policy>): Icon[] {
+function getIconsForChatThread(
+    report: OnyxInputOrEntry<Report>,
+    personalDetails: OnyxInputOrEntry<PersonalDetailsList>,
+    policy: OnyxInputOrEntry<Policy>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+): Icon[] {
     if (!report || !report?.parentReportID || !report?.parentReportActionID) {
         return [];
     }
@@ -3580,7 +3596,7 @@ function getIconsForChatThread(report: OnyxInputOrEntry<Report>, personalDetails
     const actorIcon = {
         id: actorAccountID,
         source: actorDetails?.avatar ?? FallbackAvatar,
-        name: formatPhoneNumberPhoneUtils(actorDisplayName),
+        name: formatPhoneNumber(actorDisplayName),
         type: CONST.ICON_TYPE_AVATAR,
         fallbackIcon: actorDetails?.fallbackIcon,
     };
@@ -3700,7 +3716,7 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
 /**
  * Helper function to get the icons for a group chat. Only to be used in getIcons().
  */
-function getIconsForGroupChat(report: OnyxInputOrEntry<Report>): Icon[] {
+function getIconsForGroupChat(report: OnyxInputOrEntry<Report>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']): Icon[] {
     if (!report) {
         return [];
     }
@@ -3711,7 +3727,7 @@ function getIconsForGroupChat(report: OnyxInputOrEntry<Report>): Icon[] {
         type: CONST.ICON_TYPE_AVATAR,
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        name: getGroupChatName(formatPhoneNumberPhoneUtils, undefined, true, report),
+        name: getGroupChatName(formatPhoneNumber, undefined, true, report),
     };
     return [groupChatIcon];
 }
@@ -3779,6 +3795,7 @@ function getIconsForUserCreatedPolicyRoom(report: OnyxInputOrEntry<Report>, poli
  */
 function getIcons(
     report: OnyxInputOrEntry<Report>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     personalDetails: OnyxInputOrEntry<PersonalDetailsList> = allPersonalDetails,
     defaultIcon: AvatarSource | null = null,
     defaultName = '',
@@ -3801,7 +3818,7 @@ function getIcons(
         return getIconsForExpenseRequest(report, personalDetails, policy);
     }
     if (isChatThread(report)) {
-        return getIconsForChatThread(report, personalDetails, policy);
+        return getIconsForChatThread(report, personalDetails, policy, formatPhoneNumber);
     }
     if (isTaskReport(report)) {
         return getIconsForTaskReport(report, personalDetails, policy);
@@ -3831,7 +3848,7 @@ function getIcons(
         return getIconsForParticipants([CONST.ACCOUNT_ID.NOTIFICATIONS ?? 0], personalDetails);
     }
     if (isGroupChat(report)) {
-        return getIconsForGroupChat(report);
+        return getIconsForGroupChat(report, formatPhoneNumber);
     }
     if (isInvoiceReport(report)) {
         return getIconsForInvoiceReport(report, personalDetails, policy, invoiceReceiverPolicy);
@@ -3868,6 +3885,7 @@ function getDisplayNamesWithTooltips(
     personalDetailsList: PersonalDetails[] | PersonalDetailsList | OptionData[],
     shouldUseShortForm: boolean,
     localeCompare: LocaleContextProps['localeCompare'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
 ): DisplayNameWithTooltips {
@@ -3878,7 +3896,7 @@ function getDisplayNamesWithTooltips(
             const accountID = Number(user?.accountID);
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const displayName =
-                getDisplayNameForParticipant({accountID, shouldUseShortForm, shouldFallbackToHidden, shouldAddCurrentUserPostfix, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ||
+                getDisplayNameForParticipant({accountID, shouldUseShortForm, shouldFallbackToHidden, shouldAddCurrentUserPostfix, formatPhoneNumber}) ||
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 user?.login ||
                 '';
@@ -3914,8 +3932,8 @@ function getDisplayNamesWithTooltips(
 /**
  * Returns the the display names of the given user accountIDs
  */
-function getUserDetailTooltipText(accountID: number, fallbackUserDisplayName = ''): string {
-    const displayNameForParticipant = getDisplayNameForParticipant({accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+function getUserDetailTooltipText(accountID: number, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], fallbackUserDisplayName = ''): string {
+    const displayNameForParticipant = getDisplayNameForParticipant({accountID, formatPhoneNumber});
     return displayNameForParticipant || fallbackUserDisplayName;
 }
 
@@ -3943,12 +3961,14 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 function getReimbursementQueuedActionMessage({
     reportAction,
     reportOrID,
+    formatPhoneNumber,
     shouldUseShortDisplayName = true,
     reports,
     personalDetails,
 }: {
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>;
     reportOrID: OnyxEntry<Report> | string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     shouldUseShortDisplayName?: boolean;
     reports?: Report[];
     personalDetails?: Partial<PersonalDetailsList>;
@@ -3959,7 +3979,7 @@ function getReimbursementQueuedActionMessage({
             accountID: report?.ownerAccountID,
             shouldUseShortForm: shouldUseShortDisplayName,
             personalDetailsData: personalDetails,
-            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            formatPhoneNumber,
         }) ?? '';
     const originalMessage = getOriginalMessage(reportAction);
     let messageKey: TranslationPaths;
@@ -3990,7 +4010,7 @@ function getReimbursementDeQueuedOrCanceledActionMessage(
     }
     const submitterDisplayName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('iou.canceledRequest', {submitterDisplayName, amount: formattedAmount});
+    return translateLocal('iou.canceledRequest', formattedAmount, submitterDisplayName);
 }
 
 /**
@@ -5602,12 +5622,14 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
  */
 function getReportActionMessage({
     reportAction,
+    formatPhoneNumber,
     reportID,
     childReportID,
     reports,
     personalDetails,
 }: {
     reportAction: OnyxEntry<ReportAction>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     reportID?: string;
     childReportID?: string;
     reports?: Report[];
@@ -5647,6 +5669,7 @@ function getReportActionMessage({
         return getReimbursementQueuedActionMessage({
             reportAction,
             reportOrID: getReportOrDraftReport(reportID, reports),
+            formatPhoneNumber,
             shouldUseShortDisplayName: false,
             reports,
             personalDetails,
@@ -6022,6 +6045,7 @@ function getReportName(
         const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
         const reportActionMessage = getReportActionMessage({
             reportAction: parentReportAction,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
             reportID: report?.parentReportID,
             childReportID: report?.reportID,
             reports,
@@ -6693,9 +6717,10 @@ function buildOptimisticTaskCommentReportAction(
     return reportAction;
 }
 
-function buildOptimisticSelfDMReport(created: string): Report {
+function buildOptimisticSelfDMReport(created: string, reportID?: string): Report {
     return {
-        reportID: generateReportID(),
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        reportID: reportID || generateReportID(),
         participants: {
             [currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID]: {
                 notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE,
@@ -7140,10 +7165,7 @@ function getPolicyChangeMessage(action: ReportAction) {
     const PolicyChangeOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
     const {fromPolicy: fromPolicyID, toPolicy: toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const message = translateLocal('report.actions.type.changeReportPolicy', {
-        fromPolicyName: fromPolicyID ? getPolicyNameByID(fromPolicyID) : undefined,
-        toPolicyName: getPolicyNameByID(toPolicyID),
-    });
+    const message = translateLocal('report.actions.type.changeReportPolicy', getPolicyNameByID(toPolicyID), fromPolicyID ? getPolicyNameByID(fromPolicyID) : undefined);
     return message;
 }
 
@@ -7600,11 +7622,18 @@ function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: s
  * Builds an optimistic SUBMITTED report action with a randomly generated reportActionID.
  *
  */
-function buildOptimisticSubmittedReportAction(amount: number, currency: string, expenseReportID: string, adminAccountID: number | undefined): OptimisticSubmittedReportAction {
+function buildOptimisticSubmittedReportAction(
+    amount: number,
+    currency: string,
+    expenseReportID: string,
+    adminAccountID: number | undefined,
+    workflow: ValueOf<typeof CONST.POLICY.APPROVAL_MODE> | undefined,
+): OptimisticSubmittedReportAction {
     const originalMessage = {
         amount,
         currency,
         expenseReportID,
+        workflow,
     };
 
     const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
@@ -10095,7 +10124,7 @@ function isCurrentUserTheOnlyParticipant(participantAccountIDs?: number[]): bool
  * Returns display names for those that can see the whisper.
  * However, it returns "you" if the current user is the only one who can see it besides the person that sent it.
  */
-function getWhisperDisplayNames(participantAccountIDs?: number[]): string | undefined {
+function getWhisperDisplayNames(formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], participantAccountIDs?: number[]): string | undefined {
     const isWhisperOnlyVisibleToCurrentUser = isCurrentUserTheOnlyParticipant(participantAccountIDs);
 
     // When the current user is the only participant, the display name needs to be "you" because that's the only person reading it
@@ -10104,9 +10133,7 @@ function getWhisperDisplayNames(participantAccountIDs?: number[]): string | unde
         return translateLocal('common.youAfterPreposition');
     }
 
-    return participantAccountIDs
-        ?.map((accountID) => getDisplayNameForParticipant({accountID, shouldUseShortForm: !isWhisperOnlyVisibleToCurrentUser, formatPhoneNumber: formatPhoneNumberPhoneUtils}))
-        .join(', ');
+    return participantAccountIDs?.map((accountID) => getDisplayNameForParticipant({accountID, shouldUseShortForm: !isWhisperOnlyVisibleToCurrentUser, formatPhoneNumber})).join(', ');
 }
 
 /**
@@ -10357,9 +10384,11 @@ function getTaskAssigneeChatOnyxData(
     let optimisticChatCreatedReportAction: OptimisticCreatedReportAction | undefined;
     const assigneeChatReportMetadata = getReportMetadata(assigneeChatReportID);
     const currentTime = DateUtils.getDBTime();
-    const optimisticData: OnyxUpdate[] = [];
-    const successData: OnyxUpdate[] = [];
-    const failureData: OnyxUpdate[] = [];
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    > = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [];
 
     // You're able to assign a task to someone you haven't chatted with before - so we need to optimistically create the chat and the chat reportActions
     // Only add the assignee chat report to onyx if we haven't already set it optimistically
@@ -10832,6 +10861,7 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, isThr
     const isReportPreviewActionLocal = isReportPreviewAction(reportAction);
     const isIOUAction = isMoneyRequestAction(reportAction);
     const isWhisperActionLocal = isWhisperAction(reportAction) || isActionableTrackExpense(reportAction);
+    const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
     const isActionDisabled = CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName);
     const isManagerMcTestOwner = reportAction?.actorAccountID === CONST.ACCOUNT_ID.MANAGER_MCTEST;
 
@@ -10842,7 +10872,8 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, isThr
         (isDeletedActionLocal && !reportAction?.childVisibleActionCount) ||
         (isReportArchived && !reportAction?.childVisibleActionCount) ||
         (isWhisperActionLocal && !isReportPreviewActionLocal && !isIOUAction) ||
-        isThreadReportParentAction
+        isThreadReportParentAction ||
+        isDynamicWorkflowRoutedAction
     );
 }
 

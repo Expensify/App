@@ -59,9 +59,6 @@ type MoneyRequestReceiptViewProps = {
     /** Whether we should show Money Request with disabled all fields */
     readonly?: boolean;
 
-    /** whether or not this report is from review duplicates */
-    isFromReviewDuplicates?: boolean;
-
     /** Updated transaction to show in duplicate & merge transaction flow  */
     updatedTransaction?: OnyxEntry<OnyxTypes.Transaction>;
 
@@ -92,7 +89,6 @@ function MoneyRequestReceiptView({
     report,
     readonly = false,
     updatedTransaction,
-    isFromReviewDuplicates = false,
     fillSpace = false,
     mergeTransactionID,
     isDisplayedInWideRHP = false,
@@ -346,7 +342,6 @@ function MoneyRequestReceiptView({
                                 transaction={updatedTransaction ?? transaction}
                                 enablePreviewModal
                                 readonly={readonly || !canEditReceipt}
-                                isFromReviewDuplicates={isFromReviewDuplicates}
                                 mergeTransactionID={mergeTransactionID}
                                 report={report}
                                 onLoad={() => setIsLoading(false)}

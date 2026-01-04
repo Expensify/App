@@ -4,7 +4,8 @@ import type {TupleToUnion} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {MergeTransaction, Report, Transaction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {MergeTransaction, Policy, Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import SafeString from '@src/utils/SafeString';
 import {convertToDisplayString} from './CurrencyUtils';
@@ -24,7 +25,7 @@ import {
     isDistanceRequest,
     isExpenseSplit,
     isFetchingWaypointsFromServer,
-    isManagedCardTransaction,
+    isFromCreditCardImport,
     isMerchantMissing,
     isPerDiemRequest,
     isScanning,
@@ -165,6 +166,28 @@ function getMergeFields(targetTransaction: OnyxEntry<Transaction>) {
     return MERGE_FIELDS.filter((field) => !excludeFields.includes(field));
 }
 
+function getTransactionsAndReportsFromSearch(
+    searchResults: SearchResults,
+    transactionIDs: string[],
+): {
+    transactions: Transaction[];
+    reports: Report[];
+    policies: Policy[];
+} {
+    const transaction1 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(0)}`];
+    const transaction2 = searchResults.data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDs.at(1)}`];
+
+    return {
+        transactions: [transaction1, transaction2].filter((transaction) => !!transaction),
+        reports: [searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction1?.reportID}`], searchResults.data[`${ONYXKEYS.COLLECTION.REPORT}${transaction2?.reportID}`]].filter(
+            (report) => !!report,
+        ),
+        policies: [searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction1?.policyID}`], searchResults.data[`${ONYXKEYS.COLLECTION.POLICY}${transaction2?.policyID}`]].filter(
+            (policy) => !!policy,
+        ),
+    };
+}
+
 /**
  * Get mergeableData data if one is missing, and conflict fields that need to be resolved by the user
  * @param targetTransaction - The target transaction
@@ -197,7 +220,7 @@ function getMergeableDataAndConflictFields(
             // Card takes precedence over split expense
             // See https://github.com/Expensify/App/issues/68189#issuecomment-3167156907
             const isTargetExpenseSplit = isExpenseSplit(targetTransaction);
-            if (isManagedCardTransaction(targetTransaction) || isTargetExpenseSplit) {
+            if (isFromCreditCardImport(targetTransaction) || isTargetExpenseSplit) {
                 mergeableData[field] = targetValue;
                 mergeableData.currency = getCurrency(targetTransaction);
                 if (isTargetExpenseSplit) {
@@ -240,7 +263,7 @@ function getMergeableDataAndConflictFields(
 
         // Use the reimbursable flag coming from card transactions automatically
         // See https://github.com/Expensify/App/issues/69598
-        if (field === 'reimbursable' && isManagedCardTransaction(targetTransaction)) {
+        if (field === 'reimbursable' && isFromCreditCardImport(targetTransaction)) {
             mergeableData[field] = targetValue;
             continue;
         }
@@ -293,6 +316,9 @@ function getReportIDForExpense(transaction: OnyxEntry<Transaction>) {
  * @returns The report ID for the transaction thread
  */
 function getTransactionThreadReportID(transaction: OnyxEntry<Transaction>) {
+    if (transaction?.transactionThreadReportID) {
+        return transaction.transactionThreadReportID;
+    }
     const iouActionOfTargetTransaction = getIOUActionForReportID(getReportIDForExpense(transaction), transaction?.transactionID);
     return iouActionOfTargetTransaction?.childReportID;
 }
@@ -358,7 +384,7 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
     }
 
     // Do not allow merging two card transactions
-    if (isManagedCardTransaction(transaction1) && isManagedCardTransaction(transaction2)) {
+    if (isFromCreditCardImport(transaction1) && isFromCreditCardImport(transaction2)) {
         return false;
     }
 
@@ -373,7 +399,7 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
     }
 
     // Do not allow merging a per diem and a card transaction
-    if ((isPerDiemRequest(transaction1) && isManagedCardTransaction(transaction2)) || (isPerDiemRequest(transaction2) && isManagedCardTransaction(transaction1))) {
+    if ((isPerDiemRequest(transaction1) && isFromCreditCardImport(transaction2)) || (isPerDiemRequest(transaction2) && isFromCreditCardImport(transaction1))) {
         return false;
     }
 
@@ -404,7 +430,7 @@ function areTransactionsEligibleForMerge(transaction1: OnyxEntry<Transaction>, t
 function selectTargetAndSourceTransactionsForMerge(targetTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>) {
     // If target transaction is a card or split expense, always preserve the target transaction
     // Card takes precedence over split expense
-    if (isManagedCardTransaction(sourceTransaction) || (isExpenseSplit(sourceTransaction) && !isManagedCardTransaction(targetTransaction))) {
+    if (isFromCreditCardImport(sourceTransaction) || (isExpenseSplit(sourceTransaction) && !isFromCreditCardImport(targetTransaction))) {
         return {targetTransaction: sourceTransaction, sourceTransaction: targetTransaction};
     }
 
@@ -562,9 +588,10 @@ export {
     getReportIDForExpense,
     getMergeFieldErrorText,
     areTransactionsEligibleForMerge,
-    MERGE_FIELDS,
     getRateFromMerchant,
     getMergeFieldUpdatedValues,
+    getTransactionsAndReportsFromSearch,
+    MERGE_FIELDS,
 };
 
 export type {MergeFieldKey, MergeFieldData, MergeTransactionUpdateValues};

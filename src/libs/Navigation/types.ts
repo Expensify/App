@@ -24,7 +24,7 @@ import type {Country, IOUAction, IOUType} from '@src/CONST';
 import type NAVIGATORS from '@src/NAVIGATORS';
 import type {Route as ExpensifyRoute, Route as Routes} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
+import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
 import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -202,6 +202,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: undefined;
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: undefined;
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS]: {
+        bankAccountID: string;
+    };
+    [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: {
         bankAccountID: string;
     };
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: undefined;
@@ -595,10 +598,6 @@ type SettingsNavigatorParamList = {
         policyID: string;
         accountID: string;
         customFieldType: CustomFieldType;
-    };
-    [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: {
-        policyID: string;
-        accountID: string;
     };
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: {
         policyID: string;
@@ -1149,26 +1148,31 @@ type SettingsNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: {
         policyID: string;
-        bankName: string;
+        feed: CompanyCardFeedWithDomainID;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: {
         policyID: string;
-        bank: CompanyCardFeed;
+        feed: CompanyCardFeedWithDomainID;
         cardID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
-    [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: {
+    [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME]: {
         policyID: string;
+        feed: CompanyCardFeedWithDomainID;
         cardID: string;
-        bank: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE]: {
+        policyID: string;
+        feed: string;
+        cardID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
         policyID: string;
         cardID: string;
-        bank: string;
+        feed: CompanyCardFeedWithDomainID;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
     };
@@ -1199,11 +1203,48 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: {
+    [SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION]: {
         policyID: string;
-        feed: CompanyCardFeed;
+        feed: CompanyCardFeedWithDomainID;
+
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: {
+        policyID: string;
+        feed: CompanyCardFeedWithDomainID;
+        cardID: string;
+
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION]: {
+        policyID: string;
+        feed: CompanyCardFeedWithDomainID;
+        cardID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE]: {
+        policyID: string;
+        feed: CompanyCardFeedWithDomainID;
+        cardID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_NAME]: {
+        policyID: string;
+        feed: CompanyCardFeedWithDomainID;
+        cardID: string;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: {
+        policyID: string;
+        feed: CompanyCardFeedWithDomainID;
+        cardID: string;
+
+        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
+        backTo?: Routes;
+    };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER]: {
+        policyID: string;
+        feed: CompanyCardFeedWithDomainID;
+        cardID: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME]: {
         policyID: string;
@@ -1343,6 +1384,9 @@ type SettingsNavigatorParamList = {
         domainAccountID: number;
     };
     [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.ADD_ADMIN]: {
         domainAccountID: number;
     };
 } & ReimbursementAccountNavigatorParamList;
@@ -1609,7 +1653,6 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
-        currency?: string;
     };
     [SCREENS.MONEY_REQUEST.STEP_TAG]: {
         action: IOUAction;
@@ -1699,7 +1742,6 @@ type MoneyRequestNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: never;
         action: never;
-        currency: never;
         pageIndex?: string;
         backToReport?: string;
         reportActionID?: string;
@@ -1718,7 +1760,6 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         action: IOUAction;
         pageIndex?: string;
-        currency?: string;
         backToReport?: string;
         reportActionID?: string;
     };
@@ -1762,16 +1803,6 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: Routes;
-    };
-    [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: {
-        action: IOUAction;
-        iouType: IOUType;
-        transactionID: string;
-        reportID: string;
-        pageIndex?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo?: Routes;
-        currency?: string;
     };
     [SCREENS.MONEY_REQUEST.HOLD]: {
         /** ID of the transaction the page was opened for */
@@ -1884,7 +1915,6 @@ type MoneyRequestNavigatorParamList = {
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: never;
         action: never;
-        currency: never;
         pageIndex?: string;
         backToReport?: string;
         reportActionID?: string;
@@ -2111,25 +2141,25 @@ type MergeTransactionNavigatorParamList = {
         transactionID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
-        hash?: number;
+        isOnSearch?: boolean;
     };
     [SCREENS.MERGE_TRANSACTION.RECEIPT_PAGE]: {
         transactionID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
-        hash?: number;
+        isOnSearch?: boolean;
     };
     [SCREENS.MERGE_TRANSACTION.DETAILS_PAGE]: {
         transactionID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
-        hash?: number;
+        isOnSearch?: boolean;
     };
     [SCREENS.MERGE_TRANSACTION.CONFIRMATION_PAGE]: {
         transactionID: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo?: Routes;
-        hash?: number;
+        isOnSearch?: boolean;
     };
 };
 
@@ -2216,6 +2246,7 @@ type TravelNavigatorParamList = {
     [SCREENS.TRAVEL.TRAVEL_DOT_LINK_WEB_VIEW]: {
         token: string;
         isTestAccount?: string;
+        redirectUrl?: string;
     };
     [SCREENS.TRAVEL.TRIP_SUMMARY]: {
         reportID: string;

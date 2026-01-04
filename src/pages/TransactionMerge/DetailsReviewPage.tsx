@@ -14,6 +14,7 @@ import useMergeTransactions from '@hooks/useMergeTransactions';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setMergeTransactionKey} from '@libs/actions/MergeTransaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     buildMergeFieldsData,
     getMergeableDataAndConflictFields,
@@ -40,9 +41,9 @@ type DetailsReviewPageProps = PlatformStackScreenProps<MergeTransactionNavigator
 function DetailsReviewPage({route}: DetailsReviewPageProps) {
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const {transactionID, backTo} = route.params;
+    const {transactionID, isOnSearch, backTo} = route.params;
 
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const {targetTransaction, sourceTransaction, targetTransactionReport, sourceTransactionReport} = useMergeTransactions({mergeTransaction});
 
     const [hasErrors, setHasErrors] = useState<Partial<Record<MergeFieldKey, boolean>>>({});
@@ -106,9 +107,9 @@ function DetailsReviewPage({route}: DetailsReviewPageProps) {
         setHasErrors(newHasErrors);
 
         if (isEmptyObject(newHasErrors)) {
-            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute()));
+            Navigation.navigate(ROUTES.MERGE_TRANSACTION_CONFIRMATION_PAGE.getRoute(transactionID, Navigation.getActiveRoute(), isOnSearch));
         }
-    }, [mergeTransaction, conflictFields, transactionID]);
+    }, [mergeTransaction, conflictFields, transactionID, isOnSearch]);
 
     // Build merge fields array with all necessary information
     const mergeFields = useMemo(

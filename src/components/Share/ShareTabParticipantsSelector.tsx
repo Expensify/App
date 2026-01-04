@@ -1,5 +1,6 @@
 import type {Ref} from 'react';
 import React from 'react';
+import {clearMoneyRequest} from '@libs/actions/IOU';
 import {saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
@@ -22,6 +23,9 @@ function ShareTabParticipantsSelectorComponent({detailsPageRouteObject, ref}: Sh
             ref={ref}
             iouType={CONST.IOU.TYPE.SUBMIT}
             onParticipantsAdded={(value) => {
+                // clear the existing draft transaction from the previous flow to prevent the old data from being displayed
+                clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+
                 const participant = value.at(0);
                 let reportID = participant?.reportID ?? CONST.DEFAULT_NUMBER_ID;
                 const accountID = participant?.accountID;
