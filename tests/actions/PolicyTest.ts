@@ -1061,6 +1061,7 @@ describe('actions/Policy', () => {
             Policy.deleteWorkspace({
                 policyID: fakePolicy.id,
                 activePolicyID: undefined,
+                personalPolicyID: undefined,
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
@@ -1152,6 +1153,7 @@ describe('actions/Policy', () => {
             Policy.deleteWorkspace({
                 policyID,
                 activePolicyID: undefined,
+                personalPolicyID: undefined,
                 policyName: 'test',
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
@@ -1208,6 +1210,7 @@ describe('actions/Policy', () => {
             Policy.deleteWorkspace({
                 policyID: randomGroupPolicy.id,
                 activePolicyID: randomGroupPolicy.id,
+                personalPolicyID: undefined,
                 policyName: randomGroupPolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
                 policyCardFeeds: undefined,
@@ -1244,6 +1247,7 @@ describe('actions/Policy', () => {
             Policy.deleteWorkspace({
                 policyID: policyToDelete.id,
                 activePolicyID: undefined,
+                personalPolicyID: undefined,
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
                 policyCardFeeds: undefined,
@@ -1282,6 +1286,7 @@ describe('actions/Policy', () => {
             Policy.deleteWorkspace({
                 policyID: policyToDelete.id,
                 activePolicyID: undefined,
+                personalPolicyID: undefined,
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
                 policyCardFeeds: undefined,

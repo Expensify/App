@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {renderHook, waitFor} from '@testing-library/react-native';
 import {format} from 'date-fns';
@@ -5580,6 +5581,7 @@ describe('actions/IOU', () => {
                         deleteWorkspace({
                             policyID: policy.id,
                             activePolicyID: undefined,
+                            personalPolicyID: undefined,
                             policyName: policy.name,
                             lastAccessedWorkspacePolicyID: undefined,
                             policyCardFeeds: undefined,
