@@ -281,6 +281,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             goBackFromInvalidPolicy();
             return;
         }
+        setIsDeleteModalOpen(false);
         setIsDeleteWorkspaceErrorModalOpen(true);
     }, [isFocused, isPendingDelete, prevIsPendingDelete, policyLastErrorMessage]);
 
