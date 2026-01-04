@@ -42,7 +42,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getTableMinWidth} from '@libs/SearchUIUtils';
+import {getTableMinWidth, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import type {TransactionPreviewData} from '@userActions/Search';
 import CONST from '@src/CONST';
@@ -201,19 +201,21 @@ function SearchList({
 
     const selectedItemsLength = useMemo(() => {
         const selectedTransactionsCount = flattenedItems.reduce((acc, item) => {
-            return acc + (item?.isSelected ? 1 : 0);
+            const isTransactionSelected = !!(item?.keyForList && selectedTransactions[item.keyForList]?.isSelected);
+            return acc + (isTransactionSelected ? 1 : 0);
         }, 0);
 
         if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
             const selectedEmptyReports = emptyReports.reduce((acc, item) => {
-                return acc + (item.isSelected ? 1 : 0);
+                const isEmptyReportSelected = !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
+                return acc + (isEmptyReportSelected ? 1 : 0);
             }, 0);
 
             return selectedEmptyReports + selectedTransactionsCount;
         }
 
         return selectedTransactionsCount;
-    }, [flattenedItems, type, data, emptyReports]);
+    }, [flattenedItems, type, data, emptyReports, selectedTransactions]);
 
     const totalItems = useMemo(() => {
         if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && isTransactionGroupListItemArray(data)) {
@@ -245,10 +247,16 @@ function SearchList({
                 if (!canSelectMultiple) {
                     itemWithSelection = {...item, isSelected: false};
                 } else {
-                    const hasAnySelected = item.transactions.some((t) => t.keyForList && selectedTransactions[t.keyForList]?.isSelected);
+                    const isEmptyReportSelected =
+                        item.transactions.length === 0 && isTransactionReportGroupListItemType(item) && !!(item.keyForList && selectedTransactions[item.keyForList]?.isSelected);
+
+                    const hasAnySelected = item.transactions.some((t) => t.keyForList && selectedTransactions[t.keyForList]?.isSelected) || isEmptyReportSelected;
 
                     if (!hasAnySelected) {
                         itemWithSelection = {...item, isSelected: false};
+                    } else if (isEmptyReportSelected) {
+                        isSelected = true;
+                        itemWithSelection = {...item, isSelected};
                     } else {
                         let allNonDeletedSelected = true;
                         let hasNonDeletedTransactions = false;

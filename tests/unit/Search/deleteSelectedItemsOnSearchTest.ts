@@ -62,12 +62,13 @@ describe('bulkDeleteReports', () => {
             };
 
             const currentUserEmail = '';
-            bulkDeleteReports(hash, selectedTransactions, currentUserEmail, []);
+            const transactions: never[] = [];
+            bulkDeleteReports(hash, selectedTransactions, currentUserEmail, transactions);
 
             // Should call deleteAppReport for each empty report
             expect(deleteAppReport).toHaveBeenCalledTimes(2);
-            expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail);
-            expect(deleteAppReport).toHaveBeenCalledWith('report_456', currentUserEmail);
+            expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail, transactions);
+            expect(deleteAppReport).toHaveBeenCalledWith('report_456', currentUserEmail, transactions);
         });
 
         it('should handle mixed selection of empty reports and transactions', () => {
@@ -124,11 +125,12 @@ describe('bulkDeleteReports', () => {
             };
 
             const currentUserEmail = '';
-            bulkDeleteReports(hash, selectedTransactions, currentUserEmail, []);
+            const transactions: never[] = [];
+            bulkDeleteReports(hash, selectedTransactions, currentUserEmail, transactions);
 
             // Should call deleteAppReport for empty report
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
-            expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail);
+            expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail, transactions);
         });
 
         it('should not delete reports when no empty reports are selected', () => {
@@ -222,12 +224,13 @@ describe('bulkDeleteReports', () => {
             };
 
             const currentUserEmail = '';
-            bulkDeleteReports(hash, selectedTransactions, currentUserEmail, []);
+            const transactions: never[] = [];
+            bulkDeleteReports(hash, selectedTransactions, currentUserEmail, transactions);
 
             // Should only call deleteAppReport for the first report where key === reportID
             expect(deleteAppReport).toHaveBeenCalledTimes(1);
-            expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail);
-            expect(deleteAppReport).not.toHaveBeenCalledWith('report_456', currentUserEmail);
+            expect(deleteAppReport).toHaveBeenCalledWith('report_123', currentUserEmail, transactions);
+            expect(deleteAppReport).not.toHaveBeenCalledWith('report_456', currentUserEmail, transactions);
         });
     });
 
