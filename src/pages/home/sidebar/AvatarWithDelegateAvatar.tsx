@@ -48,6 +48,4 @@ function AvatarWithDelegateAvatar({delegateEmail, isSelected = false, containerS
     );
 }
 
-AvatarWithDelegateAvatar.displayName = 'AvatarWithDelegateAvatar';
-
 export default AvatarWithDelegateAvatar;

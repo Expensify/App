@@ -17,6 +17,7 @@ import EmailUtils from '@libs/EmailUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
 import {getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -31,6 +32,7 @@ import {
     getChangedApproverActionMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
+    getDynamicExternalWorkflowRoutedMessage,
     getExportIntegrationMessageHTML,
     getForwardsToUpdateMessage,
     getHarvestCreatedExpenseReportMessage,
@@ -150,6 +152,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Beta, Card, Download as DownloadOnyx, OnyxInputOrEntry, Policy, PolicyTagLists, ReportAction, ReportActionReactions, Report as ReportType, Transaction} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {ContextMenuAnchor} from './ReportActionContextMenu';
 import {hideContextMenu, showDeleteModal} from './ReportActionContextMenu';
@@ -242,7 +245,7 @@ type ContextMenuActionWithContent = {
     renderContent: RenderContent;
 };
 
-type ContextMenuActionWithIcon = {
+type ContextMenuActionWithIcon = WithSentryLabel & {
     textTranslateKey: TranslationPaths;
     icon:
         | IconAsset
@@ -286,7 +289,10 @@ type ContextMenuAction = (ContextMenuActionWithContent | ContextMenuActionWithIc
 const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
-        shouldShow: ({type, reportAction}) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !isMessageDeleted(reportAction),
+        shouldShow: ({type, reportAction}) => {
+            const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
+            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !!reportAction && 'message' in reportAction && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
+        },
         renderContent: (closePopover, {reportID, reportAction, close: closeManually, openContextMenu, setIsEmojiPickerActive}) => {
             const isMini = !closePopover;
 
@@ -346,7 +352,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || !reportID) {
                 return false;
             }
-            return !shouldDisableThread(reportAction, reportID, isThreadReportParentAction, isArchivedRoom);
+            return !shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -361,13 +367,17 @@ const ContextMenuActions: ContextMenuAction[] = [
             navigateToAndOpenChildReport(reportAction?.childReportID, reportAction, originalReportID);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.REPLY_IN_THREAD,
     },
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.markAsUnread',
         icon: 'ChatBubbleUnread',
         successIcon: 'Checkmark',
-        shouldShow: ({type, isUnreadChat}) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
+        shouldShow: ({type, reportAction, isUnreadChat}) => {
+            const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
+            return (type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isDynamicWorkflowRoutedAction) || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat);
+        },
         onPress: (closePopover, {reportAction, reportID}) => {
             markCommentAsUnread(reportID, reportAction);
             if (closePopover) {
@@ -375,6 +385,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MARK_AS_UNREAD,
     },
     {
         isAnonymousAction: false,
@@ -389,6 +400,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MARK_AS_READ,
     },
     {
         isAnonymousAction: false,
@@ -428,6 +440,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             editAction();
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.EDIT_COMMENT,
     },
     {
         isAnonymousAction: false,
@@ -450,6 +463,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(moneyRequestAction);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.UNHOLD,
     },
     {
         isAnonymousAction: false,
@@ -472,6 +486,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             changeMoneyRequestHoldStatus(moneyRequestAction);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,
     },
     {
         isAnonymousAction: false,
@@ -486,6 +501,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isExpenseReportAction = isMoneyRequestAction(reportAction) || isReportPreviewActionReportActionsUtils(reportAction);
             const isTaskAction = isCreatedTaskReportAction(reportAction);
             const isHarvestCreatedExpenseReportAction = isHarvestReport && isCreatedAction(reportAction);
+            const shouldDisableJoinThread = shouldDisableThread(reportAction, isThreadReportParentAction, isArchivedRoom);
             return (
                 !subscribed &&
                 !isWhisperAction &&
@@ -493,6 +509,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 !isExpenseReportAction &&
                 !isThreadReportParentAction &&
                 !isHarvestCreatedExpenseReportAction &&
+                !shouldDisableJoinThread &&
                 (shouldDisplayThreadReplies || (!isDeletedAction && !isArchivedRoom))
             );
         },
@@ -511,6 +528,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.JOIN_THREAD,
     },
     {
         isAnonymousAction: false,
@@ -550,6 +568,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             toggleSubscribeToChildReport(reportAction?.childReportID, reportAction, originalReportID, childReportNotificationPreference);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.LEAVE_THREAD,
     },
     {
         isAnonymousAction: true,
@@ -563,6 +582,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: (selection) => selection,
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_URL,
     },
     {
         isAnonymousAction: true,
@@ -576,6 +596,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => undefined,
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_TO_CLIPBOARD,
     },
     {
         isAnonymousAction: true,
@@ -589,6 +610,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: (selection) => EmailUtils.prefixMailSeparatorsWithBreakOpportunities(EmailUtils.trimMailTo(selection ?? '')),
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_EMAIL,
     },
     {
         isAnonymousAction: true,
@@ -641,6 +663,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(displayMessage);
                 } else if (isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = getForReportActionTemp({
+                        translate,
                         reportAction,
                         policy,
                         movedFromReport,
@@ -734,7 +757,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(translate('iou.paidElsewhere'));
                 } else if (isReimbursementQueuedAction(reportAction)) {
-                    Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, reportOrID: reportID, shouldUseShortDisplayName: false}));
+                    Clipboard.setString(
+                        getReimbursementQueuedActionMessage({reportAction, formatPhoneNumber: formatPhoneNumberPhoneUtils, reportOrID: reportID, shouldUseShortDisplayName: false}),
+                    );
                 } else if (isActionableMentionWhisper(reportAction)) {
                     const mentionWhisperMessage = getActionableMentionWhisperMessage(reportAction);
                     setClipboardMessage(mentionWhisperMessage);
@@ -851,6 +876,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionableJoinRequest(reportAction)) {
                     const displayMessage = getJoinRequestMessage(reportAction);
                     Clipboard.setString(displayMessage);
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED)) {
+                    setClipboardMessage(getDynamicExternalWorkflowRoutedMessage(reportAction, translate));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestReport) {
                     const harvestReportName = getReportName(harvestReport);
                     const displayMessage = getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate);
@@ -872,6 +899,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_MESSAGE,
     },
     {
         isAnonymousAction: true,
@@ -884,7 +912,8 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             // Only hide the copy link menu item when context menu is opened over img element.
             const isAttachmentTarget = menuTarget?.current && 'tagName' in menuTarget.current && menuTarget?.current.tagName === 'IMG' && isAttachment;
-            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !isMessageDeleted(reportAction);
+            const isDynamicWorkflowRoutedAction = isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED);
+            return type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION && !isAttachmentTarget && !isMessageDeleted(reportAction) && !isDynamicWorkflowRoutedAction;
         },
         onPress: (closePopover, {reportAction, reportID}) => {
             const originalReportID = getOriginalReportID(reportID, reportAction);
@@ -895,6 +924,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_LINK,
     },
     {
         isAnonymousAction: false,
@@ -908,6 +938,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.PIN,
     },
     {
         isAnonymousAction: false,
@@ -921,6 +952,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             }
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.UNPIN,
     },
     {
         isAnonymousAction: false,
@@ -950,6 +982,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             Navigation.navigate(ROUTES.FLAG_COMMENT.getRoute(reportID, reportAction?.reportActionID, activeRoute));
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.FLAG_AS_OFFENSIVE,
     },
     {
         isAnonymousAction: true,
@@ -963,7 +996,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             const isUploading = html.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE);
             return isAttachment && !isUploading && !!reportAction?.reportActionID && !isMessageDeleted(reportAction) && !isOffline;
         },
-        onPress: (closePopover, {reportAction}) => {
+        onPress: (closePopover, {reportAction, translate}) => {
             const html = getActionHtml(reportAction);
             const {originalFileName, sourceURL} = getAttachmentDetails(html);
             const sourceURLWithAuth = addEncryptedAuthTokenToURL(sourceURL ?? '');
@@ -971,13 +1004,14 @@ const ContextMenuActions: ContextMenuAction[] = [
             setDownload(sourceID, true);
             const anchorRegex = CONST.REGEX_LINK_IN_ANCHOR;
             const isAnchorTag = anchorRegex.test(html);
-            fileDownload(sourceURLWithAuth, originalFileName ?? '', '', isAnchorTag && isMobileSafari()).then(() => setDownload(sourceID, false));
+            fileDownload(translate, sourceURLWithAuth, originalFileName ?? '', '', isAnchorTag && isMobileSafari()).then(() => setDownload(sourceID, false));
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
         },
         getDescription: () => {},
         shouldDisable: (download) => download?.isDownloading ?? false,
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.DOWNLOAD,
     },
     {
         isAnonymousAction: true,
@@ -991,6 +1025,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(true, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.COPY_ONYX_DATA,
     },
     {
         isAnonymousAction: true,
@@ -1006,6 +1041,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             hideContextMenu(false, ReportActionComposeFocusManager.focus);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.DEBUG,
     },
     {
         isAnonymousAction: false,
@@ -1042,6 +1078,7 @@ const ContextMenuActions: ContextMenuAction[] = [
             showDeleteModal(reportID, moneyRequestAction ?? reportAction);
         },
         getDescription: () => {},
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.DELETE,
     },
     {
         isAnonymousAction: true,
@@ -1054,6 +1091,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         },
         getDescription: () => {},
         shouldPreventDefaultFocusOnPress: false,
+        sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.MENU,
     },
 ];
 

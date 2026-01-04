@@ -22,7 +22,7 @@ type UseWorkspaceListParams = {
 };
 
 function useWorkspaceList({policies, currentUserLogin, selectedPolicyIDs, searchTerm, shouldShowPendingDeletePolicy, localeCompare, additionalFilter}: UseWorkspaceListParams) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const usersWorkspaces = useMemo(() => {
         if (!policies || isEmptyObject(policies)) {
             return [];

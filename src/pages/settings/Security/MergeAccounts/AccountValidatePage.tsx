@@ -160,7 +160,7 @@ function AccountValidatePage() {
         <ScreenWrapper
             shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
-            testID={AccountValidatePage.displayName}
+            testID="AccountValidatePage"
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
@@ -168,7 +168,6 @@ function AccountValidatePage() {
                 onBackButtonPress={() => {
                     Navigation.goBack(ROUTES.SETTINGS_MERGE_ACCOUNTS.getRoute());
                 }}
-                shouldDisplayHelpButton={false}
             />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
@@ -206,7 +205,5 @@ function AccountValidatePage() {
         </ScreenWrapper>
     );
 }
-
-AccountValidatePage.displayName = 'AccountValidatePage';
 
 export default AccountValidatePage;
