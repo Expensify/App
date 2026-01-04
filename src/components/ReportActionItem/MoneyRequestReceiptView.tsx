@@ -35,7 +35,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isScanning,
 } from '@libs/TransactionUtils';
-import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import Navigation from '@navigation/Navigation';
 import {cleanUpMoneyRequest} from '@userActions/IOU';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
@@ -169,8 +169,9 @@ function MoneyRequestReceiptView({
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
         const allViolations = [];
+        const filteredViolations = filterReceiptViolations(transactionViolations ?? []);
 
-        for (const violation of transactionViolations ?? []) {
+        for (const violation of filteredViolations) {
             const isReceiptFieldViolation = receiptFieldViolationNames.has(violation.name);
             const isReceiptImageViolation = receiptImageViolationNames.has(violation.name);
             if (isReceiptFieldViolation || isReceiptImageViolation) {

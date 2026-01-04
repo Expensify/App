@@ -14,7 +14,7 @@ function getWorkspaceRules(policy: Policy | undefined, translate: LocaleContextP
     if (policy?.maxExpenseAmountNoReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
         total.push(translate('workspace.rules.individualExpenseRules.receiptRequiredAmount'));
     }
-    if (policy?.maxExpenseAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
+    if (policy?.maxExpenseAmountNoItemizedReceipt !== undefined && policy?.maxExpenseAmountNoItemizedReceipt !== CONST.DISABLED_MAX_EXPENSE_VALUE) {
         total.push(translate('workspace.rules.individualExpenseRules.itemizedReceiptRequiredAmount'));
     }
     if (policy?.maxExpenseAmount !== CONST.DISABLED_MAX_EXPENSE_VALUE) {

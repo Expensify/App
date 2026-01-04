@@ -3,7 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
-import {convertToShortDisplayString} from './CurrencyUtils';
+import {convertToDisplayString} from './CurrencyUtils';
 
 function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
     const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
@@ -37,9 +37,12 @@ function formatRequireReceiptsOverText(translate: LocaleContextProps['translate'
         return translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`);
     }
 
-    const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
+    // If policy doesn't have receipt requirement set (disabled or undefined), don't show misleading "$0"
+    if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoReceipt === undefined) {
+        return translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`);
+    }
 
-    return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD));
+    return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD));
 }
 
 function formatRequireItemizedReceiptsOverText(translate: LocaleContextProps['translate'], policy: Policy, categoryMaxAmountNoItemizedReceipt?: number | null) {
@@ -54,11 +57,14 @@ function formatRequireItemizedReceiptsOverText(translate: LocaleContextProps['tr
         return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`);
     }
 
-    const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoItemizedReceipt;
+    // If policy doesn't have itemized receipt requirement set (disabled or undefined), don't show misleading "$0"
+    if (policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoItemizedReceipt === undefined) {
+        return translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`);
+    }
 
     return translate(
         `workspace.rules.categoryRules.requireItemizedReceiptsOverList.default`,
-        convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+        convertToDisplayString(policy.maxExpenseAmountNoItemizedReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD),
     );
 }
 

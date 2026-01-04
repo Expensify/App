@@ -2,7 +2,7 @@ import {beforeEach} from '@jest/globals';
 import Onyx from 'react-native-onyx';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {getTransactionViolations, hasWarningTypeViolation, isViolationDismissed} from '@libs/TransactionUtils';
-import ViolationsUtils from '@libs/Violations/ViolationsUtils';
+import ViolationsUtils, {filterReceiptViolations} from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -1124,5 +1124,70 @@ describe('hasVisibleViolationsForUser', () => {
 
         const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction, secondTransaction]);
         expect(result).toBe(true);
+    });
+});
+
+describe('filterReceiptViolations', () => {
+    const itemizedReceiptRequiredViolation: TransactionViolation = {
+        name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED,
+        type: CONST.VIOLATION_TYPES.VIOLATION,
+        showInReview: true,
+        data: {
+            formattedLimit: '$75.00',
+        },
+    };
+
+    const receiptRequiredViolationWithData: TransactionViolation = {
+        name: CONST.VIOLATIONS.RECEIPT_REQUIRED,
+        type: CONST.VIOLATION_TYPES.VIOLATION,
+        showInReview: true,
+        data: {
+            formattedLimit: '$25.00',
+        },
+    };
+
+    it('should return violations unchanged when only receiptRequired is present', () => {
+        const violations: TransactionViolation[] = [receiptRequiredViolationWithData, missingCategoryViolation];
+        const result = filterReceiptViolations(violations);
+        expect(result).toEqual(violations);
+        expect(result).toHaveLength(2);
+    });
+
+    it('should return violations unchanged when only itemizedReceiptRequired is present', () => {
+        const violations: TransactionViolation[] = [itemizedReceiptRequiredViolation, missingCategoryViolation];
+        const result = filterReceiptViolations(violations);
+        expect(result).toEqual(violations);
+        expect(result).toHaveLength(2);
+    });
+
+    it('should filter out receiptRequired when both receiptRequired and itemizedReceiptRequired are present', () => {
+        const violations: TransactionViolation[] = [receiptRequiredViolationWithData, itemizedReceiptRequiredViolation, missingCategoryViolation];
+        const result = filterReceiptViolations(violations);
+
+        expect(result).toHaveLength(2);
+        expect(result).toContainEqual(itemizedReceiptRequiredViolation);
+        expect(result).toContainEqual(missingCategoryViolation);
+        expect(result).not.toContainEqual(receiptRequiredViolationWithData);
+    });
+
+    it('should return empty array when given empty array', () => {
+        const result = filterReceiptViolations([]);
+        expect(result).toEqual([]);
+    });
+
+    it('should return violations unchanged when neither receiptRequired nor itemizedReceiptRequired is present', () => {
+        const violations: TransactionViolation[] = [missingCategoryViolation, missingTagViolation];
+        const result = filterReceiptViolations(violations);
+        expect(result).toEqual(violations);
+        expect(result).toHaveLength(2);
+    });
+
+    it('should handle violations with category receipt required (no data)', () => {
+        const violations: TransactionViolation[] = [categoryReceiptRequiredViolation, itemizedReceiptRequiredViolation];
+        const result = filterReceiptViolations(violations);
+
+        expect(result).toHaveLength(1);
+        expect(result).toContainEqual(itemizedReceiptRequiredViolation);
+        expect(result).not.toContainEqual(categoryReceiptRequiredViolation);
     });
 });

@@ -20,6 +20,20 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
 
 /**
+ * Filters out receiptRequired violation when itemizedReceiptRequired is also present.
+ * Itemized receipt requirement supersedes regular receipt requirement.
+ */
+function filterReceiptViolations(violations: TransactionViolation[]): TransactionViolation[] {
+    const hasItemizedReceiptViolation = violations.some((v) => v.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
+    const hasReceiptRequiredViolation = violations.some((v) => v.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
+
+    if (hasItemizedReceiptViolation && hasReceiptRequiredViolation) {
+        return violations.filter((v) => v.name !== CONST.VIOLATIONS.RECEIPT_REQUIRED);
+    }
+    return violations;
+}
+
+/**
  * Calculates tag out of policy and missing tag violations for the given transaction
  */
 function getTagViolationsForSingleLevelTags(
@@ -429,8 +443,8 @@ const ViolationsUtils = {
             });
         }
 
-        // If itemized receipt is required, don't also show regular receipt required (itemized supersedes regular)
-        const hasItemizedReceiptViolation = shouldShowItemizedReceiptRequiredViolation || shouldShowCategoryItemizedReceiptRequiredViolation;
+        // If itemized receipt is required (from server or client-side calculation), don't also show regular receipt required
+        const hasItemizedReceiptViolation = hasItemizedReceiptRequiredViolation || shouldShowItemizedReceiptRequiredViolation || shouldShowCategoryItemizedReceiptRequiredViolation;
 
         if (
             canCalculateAmountViolations &&
@@ -659,13 +673,14 @@ const ViolationsUtils = {
         companyCardPageURL?: string,
     ): string {
         const errorMessages = extractErrorMessages(transaction?.errors ?? {}, transactionThreadActions?.filter((e) => !!e.errors) ?? [], translate);
+        const filteredViolations = filterReceiptViolations(transactionViolations);
 
         return [
             ...errorMessages,
             ...(missingFieldError ? [`${missingFieldError}.`] : []),
             // Some violations end with a period already so lets make sure the connected messages have only single period between them
             // and end with a single dot.
-            ...transactionViolations.map((violation) => {
+            ...filteredViolations.map((violation) => {
                 const message = ViolationsUtils.getViolationTranslation(violation, translate, true, tags, companyCardPageURL);
                 if (!message) {
                     return;
@@ -714,3 +729,4 @@ const ViolationsUtils = {
 };
 
 export default ViolationsUtils;
+export {filterReceiptViolations};

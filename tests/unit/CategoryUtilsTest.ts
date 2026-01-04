@@ -53,6 +53,24 @@ describe('formatRequireItemizedReceiptsOverText', () => {
         expect(typeof result).toBe('string');
         expect(result.length).toBeGreaterThan(0);
     });
+
+    it('returns "Never" text when policy has no itemized receipt requirement (DISABLED_MAX_EXPENSE_VALUE)', () => {
+        const policyWithDisabledItemizedReceipt: Policy = {
+            ...mockPolicy,
+            maxExpenseAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE,
+        } as Policy;
+        const result = formatRequireItemizedReceiptsOverText(translateLocal, policyWithDisabledItemizedReceipt, undefined);
+        expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never'));
+    });
+
+    it('returns "Never" text when policy has undefined itemized receipt requirement', () => {
+        const policyWithUndefinedItemizedReceipt: Policy = {
+            ...mockPolicy,
+            maxExpenseAmountNoItemizedReceipt: undefined,
+        } as Policy;
+        const result = formatRequireItemizedReceiptsOverText(translateLocal, policyWithUndefinedItemizedReceipt, undefined);
+        expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never'));
+    });
 });
 
 describe('isCategoryDescriptionRequired', () => {
