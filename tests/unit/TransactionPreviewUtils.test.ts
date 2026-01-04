@@ -406,6 +406,22 @@ describe('TransactionPreviewUtils', () => {
         test('returns translationPath when there are no violations but message is too long', () => {
             expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false, false)).toEqual(reviewRequired);
         });
+
+        test('returns text when both receiptRequired and itemizedReceiptRequired exist (filters to 1 violation)', () => {
+            const bothReceiptViolations = [
+                {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$75.00'}},
+                {name: CONST.VIOLATIONS.RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$25.00'}},
+            ];
+            // Should return text because receiptRequired is filtered out, leaving only 1 violation
+            expect(getViolationTranslatePath(bothReceiptViolations, false, message, false, false)).toEqual({text: message});
+        });
+
+        test('returns text when only itemizedReceiptRequired exists', () => {
+            const itemizedOnlyViolation = [
+                {name: CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true, data: {formattedLimit: '$75.00'}},
+            ];
+            expect(getViolationTranslatePath(itemizedOnlyViolation, false, message, false, false)).toEqual({text: message});
+        });
     });
 
     describe('getUniqueActionErrorsForTransaction', () => {
