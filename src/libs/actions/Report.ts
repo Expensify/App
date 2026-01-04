@@ -4577,15 +4577,11 @@ function fetchOutstandingReportsForWorkspace(policyID: string, accountID: number
         accountID,
     };
 
-    API.read(
-        READ_COMMANDS.GET_OUTSTANDING_REPORTS,
-        parameters,
-        {
-            optimisticData,
-            successData,
-            failureData,
-        },
-    );
+    API.read(READ_COMMANDS.GET_OUTSTANDING_REPORTS, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 function updateLastVisitTime(reportID: string) {
