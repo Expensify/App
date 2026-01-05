@@ -313,6 +313,86 @@ type SelectionListProps = {
 
 ---
 
+### [DESIGN-2] Detect similar components and suggest composition
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A **new component** is being introduced (new file or new function component)
+  - The component follows the **same structural pattern** as an existing component
+  - The new component **duplicates logic** that exists in the similar component (same useState/useEffect patterns, same event handling)
+
+  **DO NOT flag if:**
+
+  - The component is a platform-specific variant (`.native.tsx` vs `.tsx`)
+  - The differences are documented with clear reasoning for divergence
+  - The component has fundamentally different interaction models (e.g. single-select vs multi-select)
+  - The similarity is superficial (same name pattern but different behavior)
+
+- **Reasoning**: Duplicate or near-duplicate implementations lead to:
+  - Confusion about which variant to use
+  - Bugs fixed in one variant but not others
+  - UI/UX drift from subtle, unintentional differences in props or behavior
+
+**When reviewing a new component, check:**
+
+- Does it follow the same composition tree as an existing component?
+- Does it duplicate state and/or side effects management patterns from another component?
+- Could the shared logic be extracted to a hook or base component?
+
+**Note:** Suggesting new abstractions (shared hooks, base components) should be done carefully. Only recommend extraction when:
+- There are already multiple instances of the same pattern in the codebase
+- There is a **clear future benefit** (e.g., the pattern will likely be reused)
+- The duplication is **intentional reuse**, not accidental similarity
+
+Do not suggest creating abstractions for isolated cases of duplication that happened by accident or for patterns unlikely to be reused.
+
+Good (shared hook when pattern is reused multiple times):
+
+```tsx
+// Shared hook extracts common picker behavior
+function usePolicyPicker<T>(onyxKey: string, policyID: string) {
+    const [data] = useOnyx(`${onyxKey}${policyID}`);
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    // Shared search, sections, header logic
+    return { searchValue, setSearchValue, sections, headerMessage };
+}
+
+// All pickers use the same hook - bug fixes propagate to all
+function CategoryPicker(props) {
+    const picker = usePolicyPicker(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, props.policyID);
+    return <SelectionList {...picker} />;
+}
+
+function TagPicker(props) {
+    const picker = usePolicyPicker(ONYXKEYS.COLLECTION.POLICY_TAGS, props.policyID);
+    return <SelectionList {...picker} />;
+}
+```
+
+Bad (copied component with subtle, unintentional differences):
+
+```tsx
+// CategoryPicker.tsx (original)
+function CategoryPicker({selectedCategory, policyID, onSubmit}) {
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    // ... builds sections, renders SelectionList
+}
+
+// TagPicker.tsx (copied with "small tweaks" that cause drift)
+function TagPicker({selectedTag, policyID, onSubmit}) {
+    const [searchValue, setSearchValue] = useState('');  // ← No debounce - causes UI flicker bug
+    // ... same pattern, but bug fixes to CategoryPicker won't reach here
+}
+
+// DestinationPicker.tsx (new developer copies TagPicker, propagating the bug)
+function DestinationPicker({selectedDestination, policyID, onSubmit}) {
+    const [searchValue, setSearchValue] = useState('');  // ← Same bug copied again
+    // ...
+}
+```
+
+---
+
 ## Instructions
 
 1. **First, get the list of changed files and their diffs:**
