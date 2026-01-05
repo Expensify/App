@@ -1,7 +1,5 @@
 #!/usr/bin/env ts-node
-
 /* eslint-disable max-classes-per-file */
-
 /**
  * React Compiler Compliance Checker
  *
@@ -425,7 +423,7 @@ class ManualMemoizationChecker {
             }
         }
 
-        const manualMemoErrors = this.findViolations([...enforcedAutoMemoFiles]);
+        const manualMemoErrors = this.findViolations(enforcedAutoMemoFiles);
 
         return {
             manualMemoErrors,
@@ -450,14 +448,15 @@ class ManualMemoizationChecker {
 
             filesWithErrors.add(filePath);
 
-            if (file.diffType === 'added') {
+            const isAddedFile = file.diffType === 'added';
+            if (isAddedFile) {
                 addedFiles.add(filePath);
             }
 
             const isReactComponentSourceFile = this.FILE_EXTENSIONS.some((extension) => filePath.endsWith(extension));
-
             const isSuccessfullyCompiled = successFiles.has(filePath);
-            if (isReactComponentSourceFile && isSuccessfullyCompiled) {
+
+            if (isReactComponentSourceFile && isSuccessfullyCompiled && isAddedFile) {
                 enforcedAutoMemoFiles.add(filePath);
             }
         }
@@ -465,7 +464,7 @@ class ManualMemoizationChecker {
         return {addedFiles, enforcedAutoMemoFiles};
     }
 
-    private static findViolations(files: string[]): Map<string, ManualMemoizationError[]> {
+    private static findViolations(files: Set<string>): Map<string, ManualMemoizationError[]> {
         const manualMemoErrors = new Map<string, ManualMemoizationError[]>();
 
         for (const file of files) {
