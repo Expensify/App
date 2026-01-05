@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/react-native';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Animated, {FadeIn, FadeOut, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -41,14 +41,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import Performance from '@libs/Performance';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {
-    canDeleteMoneyRequestReport,
-    canEditFieldOfMoneyRequest,
-    canHoldUnholdReportAction,
-    canRejectReportAction,
-    isOneTransactionReport,
-    selectFilteredReportActions,
-} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isOneTransactionReport, selectFilteredReportActions} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {
     createAndOpenSearchTransactionThread,
@@ -83,7 +76,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
-import type {OutstandingReportsByPolicyIDDerivedValue, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
@@ -153,14 +146,10 @@ function mapTransactionItemToSelectedEntry(
     ];
 }
 
-function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType, reportActions?: OnyxCollection<ReportActions>): [string, SelectedTransactionInfo] {
-    const reportActionsForReport = reportActions?.[item.reportID];
-    const itemReportActions = reportActionsForReport ? Object.values(reportActionsForReport).filter((action): action is ReportAction => !!action) : [];
-    const canDelete = canDeleteMoneyRequestReport(item, [], itemReportActions);
+function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType): [string, SelectedTransactionInfo] {
     return [
         item.keyForList ?? '',
         {
-            canDelete,
             isSelected: true,
             canHold: false,
             canSplit: false,
@@ -498,7 +487,7 @@ function Search({
                         continue;
                     }
                     if (reportKey && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
-                        const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(transactionGroup, reportActions);
+                        const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(transactionGroup);
                         newTransactionList[reportKey] = {
                             ...emptyReportSelection,
                             isSelected: areAllMatchingItemsSelected || selectedTransactions[reportKey]?.isSelected,
@@ -730,7 +719,7 @@ function Search({
                     return;
                 }
 
-                const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(item, reportActions);
+                const [, emptyReportSelection] = mapEmptyReportToSelectedEntry(item);
                 const updatedTransactions = {
                     ...selectedTransactions,
                     [reportKey]: emptyReportSelection,
@@ -767,17 +756,7 @@ function Search({
             setSelectedTransactions(updatedTransactions, filteredData);
             updateSelectAllMatchingItemsState(updatedTransactions);
         },
-        [
-            selectedTransactions,
-            setSelectedTransactions,
-            filteredData,
-            updateSelectAllMatchingItemsState,
-            transactions,
-            email,
-            outstandingReportsByPolicyID,
-            searchResults?.data,
-            reportActions,
-        ],
+        [selectedTransactions, setSelectedTransactions, filteredData, updateSelectAllMatchingItemsState, transactions, email, outstandingReportsByPolicyID, searchResults?.data],
     );
 
     const onSelectRow = useCallback(
@@ -992,7 +971,7 @@ function Search({
                     if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                         return [];
                     }
-                    return [mapEmptyReportToSelectedEntry(item, reportActions)];
+                    return [mapEmptyReportToSelectedEntry(item)];
                 }
                 return item.transactions
                     .filter((t) => !isTransactionPendingDelete(t))
@@ -1029,7 +1008,6 @@ function Search({
         email,
         outstandingReportsByPolicyID,
         searchResults?.data,
-        reportActions,
     ]);
 
     const onLayout = useCallback(() => {

@@ -785,20 +785,41 @@ function SearchPage({route}: SearchPageProps) {
 
         const shouldShowDeleteOption =
             !isOffline &&
-            selectedTransactionsKeys.every((id) => {
-                const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
-                if (!transaction) {
-                    return false;
-                }
-                const parentReportID = transaction.reportID;
-                const parentReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
-                const reportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
-                const parentReportAction =
-                    Object.values(reportActions ?? {}).find(
-                        (action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === transaction.transactionID,
-                    ) ?? selectedTransactions[id].reportAction;
-                return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
-            });
+            (selectedReports.length
+                ? selectedReports.every((selectedReport) => {
+                      const fullReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${selectedReport.reportID}`];
+                      if (!fullReport) {
+                          return false;
+                      }
+                      const reportActionsData = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selectedReport.reportID}`];
+                      const reportActionsArray = Object.values(reportActionsData ?? {});
+                      const reportTransactions: Transaction[] = [];
+                      const searchData = currentSearchResults?.data ?? {};
+                      for (const key of Object.keys(searchData)) {
+                          if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+                              continue;
+                          }
+                          const item = searchData[key as keyof typeof searchData] as Transaction | undefined;
+                          if (item && 'transactionID' in item && 'reportID' in item && item.reportID === selectedReport.reportID) {
+                              reportTransactions.push(item);
+                          }
+                      }
+                      return canDeleteMoneyRequestReport(fullReport, reportTransactions, reportActionsArray);
+                  })
+                : selectedTransactionsKeys.every((id) => {
+                      const transaction = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+                      if (!transaction) {
+                          return false;
+                      }
+                      const parentReportID = transaction.reportID;
+                      const parentReport = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`];
+                      const reportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
+                      const parentReportAction =
+                          Object.values(reportActions ?? {}).find(
+                              (action) => (isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined) === transaction.transactionID,
+                          ) ?? selectedTransactions[id].reportAction;
+                      return canDeleteMoneyRequestReport(parentReport, [transaction], parentReportAction ? [parentReportAction] : []);
+                  }));
 
         if (shouldShowDeleteOption) {
             options.push({
