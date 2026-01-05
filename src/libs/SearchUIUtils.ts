@@ -1038,7 +1038,7 @@ function shouldShowYear(
                 result.shouldShowYearPosted = postedYear !== currentYear;
             }
 
-            const exportedAction = lastExportedActionByReportID.get(item.reportID);
+            const exportedAction = item.reportID ? lastExportedActionByReportID.get(item.reportID) : undefined;
             if (exportedAction?.created && DateUtils.doesDateBelongToAPastYear(exportedAction.created)) {
                 result.shouldShowYearExported = true;
             }
@@ -1298,7 +1298,7 @@ function getTransactionsSections(
                 submitted,
                 approved,
                 posted,
-                exported: lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '',
+                exported: transactionItem.reportID ? (lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '') : '',
                 shouldShowMerchant,
                 shouldShowYear: shouldShowYearCreated,
                 shouldShowYearSubmitted,
@@ -1834,7 +1834,7 @@ function getReportSections(
                 formattedTotal,
                 formattedMerchant,
                 date,
-                exported: lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '',
+                exported: transactionItem.reportID ? (lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '') : '',
                 shouldShowMerchant,
                 shouldShowYear: shouldShowYearCreatedTransaction,
                 shouldShowYearSubmitted: shouldShowYearSubmittedTransaction,
