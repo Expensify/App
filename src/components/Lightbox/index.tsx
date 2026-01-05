@@ -12,6 +12,7 @@ import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCa
 import type {OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
@@ -148,9 +149,13 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     const [isFallbackVisible, setFallbackVisible] = useState(!isLightboxVisible);
     const [isFallbackImageLoaded, setFallbackImageLoaded] = useState(false);
+    const previousUri = usePrevious(uri);
 
     // Clear cached dimensions and reset loading states when URI changes to ensure the new image get fresh dimensions
     useEffect(() => {
+        if (previousUri === uri) {
+            return;
+        }
         // Clear the content size state to force recalculation of dimensions
         // This ensures that when an image is rotated and gets a new URI,
         // we don't use stale cached dimensions from the previous image
@@ -160,7 +165,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
         setIsLoading(true);
         // Don't delete from cache here as other components might still need it
         // The new URI will get its own cache entry when loaded
-    }, [uri]);
+    }, [uri, previousUri]);
 
     const fallbackSize = useMemo(() => {
         if (!hasSiblingCarouselItems || !contentSize || isCanvasLoading) {
