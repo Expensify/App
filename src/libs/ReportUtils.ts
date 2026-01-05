@@ -56,14 +56,12 @@ import type {
     ReportNameValuePairs,
     ReportViolationName,
     ReportViolations,
-    Session,
     Task,
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
 import type {ReportTransactionsAndViolations} from '@src/types/onyx/DerivedValues';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
-import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
 import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotAction';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
@@ -201,6 +199,7 @@ import {
     getRenamedAction,
     getReopenedMessage,
     getReportAction,
+    getReportActionActorAccountID,
     getReportActionHtml,
     getReportActionMessage as getReportActionMessageReportUtils,
     getReportActionMessageText,
@@ -265,6 +264,20 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
+// This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
+// The functions imported here are pure utility functions that don't create initialization-time dependencies.
+// ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
+// eslint-disable-next-line import/no-cycle
+import {
+    buildReportNameFromParticipantNames,
+    generateArchivedReportName,
+    getGroupChatName,
+    getInvoicePayerName,
+    getInvoiceReportName,
+    getInvoicesChatName,
+    getMoneyRequestReportName,
+    getPolicyExpenseChatName,
+} from './ReportNameUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 import {
     getAttendees,
@@ -2691,11 +2704,17 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
  * Checks if the current user is a payer of the expense
  */
 
-function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, onlyShowPayElsewhere = false, reportPolicy?: OnyxInputOrEntry<Policy>) {
+function isPayer(
+    currentAccountID: number | undefined,
+    currentUserEmailParm: string | undefined,
+    iouReport: OnyxEntry<Report>,
+    onlyShowPayElsewhere = false,
+    reportPolicy?: OnyxInputOrEntry<Policy>,
+) {
     const policy = reportPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`] ?? null;
     const policyType = policy?.type;
     const isAdmin = policyType !== CONST.POLICY.TYPE.PERSONAL && policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isManager = iouReport?.managerID === session?.accountID;
+    const isManager = iouReport?.managerID === currentAccountID;
     const reimbursementChoice = policy?.reimbursementChoice;
 
     if (isPaidGroupPolicy(iouReport)) {
@@ -2705,7 +2724,7 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
             }
 
             // If we are the reimburser and the report is approved or we are the manager then we can pay it.
-            const isReimburser = session?.email === policy?.achAccount?.reimburser;
+            const isReimburser = currentUserEmailParm === policy?.achAccount?.reimburser;
             return isReimburser;
         }
         if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
@@ -3436,66 +3455,6 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
     }, finalParticipants);
 }
 
-/**
- * @private
- * This is a custom collator only for getGroupChatName function.
- * The reason for this is that the computation of default group name should not depend on the locale.
- * This is used to ensure that group name stays consistent across locales.
- */
-const customCollator = new Intl.Collator('en', {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'});
-
-/**
- * Returns the report name if the report is a group chat
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- * Use ReportNameUtils.getGroupChatName instead.
- */
-function getGroupChatName(
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    participants?: SelectedParticipant[],
-    shouldApplyLimit = false,
-    report?: OnyxEntry<Report>,
-    reportMetadataParam?: OnyxEntry<ReportMetadata>,
-): string | undefined {
-    // If we have a report always try to get the name from the report.
-    if (report?.reportName) {
-        return report.reportName;
-    }
-
-    const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
-
-    const pendingMemberAccountIDs = new Set(
-        reportMetadata?.pendingChatMembers?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID),
-    );
-    let participantAccountIDs =
-        participants?.map((participant) => participant.accountID) ??
-        Object.keys(report?.participants ?? {})
-            .map(Number)
-            .filter((accountID) => !pendingMemberAccountIDs.has(accountID.toString()));
-    const shouldAddEllipsis = participantAccountIDs.length > CONST.DISPLAY_PARTICIPANTS_LIMIT && shouldApplyLimit;
-    if (shouldApplyLimit) {
-        participantAccountIDs = participantAccountIDs.slice(0, CONST.DISPLAY_PARTICIPANTS_LIMIT);
-    }
-    const isMultipleParticipantReport = participantAccountIDs.length > 1;
-
-    if (isMultipleParticipantReport) {
-        return participantAccountIDs
-            .map(
-                (participantAccountID, index) =>
-                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, formatPhoneNumber}) ||
-                    formatPhoneNumber(participants?.[index]?.login ?? ''),
-            )
-            .sort((first, second) => customCollator.compare(first ?? '', second ?? ''))
-            .filter(Boolean)
-            .join(', ')
-            .slice(0, CONST.REPORT_NAME_LIMIT)
-            .concat(shouldAddEllipsis ? '...' : '');
-    }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('groupChat.defaultReportName', {
-        displayName: getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber}),
-    });
-}
-
 function getParticipants(reportID: string) {
     const report = getReportOrDraftReport(reportID);
     if (!report) {
@@ -3720,8 +3679,6 @@ function getIconsForGroupChat(report: OnyxInputOrEntry<Report>, formatPhoneNumbe
         source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
         id: -1,
         type: CONST.ICON_TYPE_AVATAR,
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         name: getGroupChatName(formatPhoneNumber, undefined, true, report),
     };
     return [groupChatIcon];
@@ -3927,8 +3884,8 @@ function getDisplayNamesWithTooltips(
 /**
  * Returns the the display names of the given user accountIDs
  */
-function getUserDetailTooltipText(accountID: number, fallbackUserDisplayName = ''): string {
-    const displayNameForParticipant = getDisplayNameForParticipant({accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+function getUserDetailTooltipText(accountID: number, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], fallbackUserDisplayName = ''): string {
+    const displayNameForParticipant = getDisplayNameForParticipant({accountID, formatPhoneNumber});
     return displayNameForParticipant || fallbackUserDisplayName;
 }
 
@@ -3956,12 +3913,14 @@ function getDeletedParentActionMessageForChatReport(reportAction: OnyxEntry<Repo
 function getReimbursementQueuedActionMessage({
     reportAction,
     reportOrID,
+    formatPhoneNumber,
     shouldUseShortDisplayName = true,
     reports,
     personalDetails,
 }: {
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>;
     reportOrID: OnyxEntry<Report> | string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     shouldUseShortDisplayName?: boolean;
     reports?: Report[];
     personalDetails?: Partial<PersonalDetailsList>;
@@ -3972,7 +3931,7 @@ function getReimbursementQueuedActionMessage({
             accountID: report?.ownerAccountID,
             shouldUseShortForm: shouldUseShortDisplayName,
             personalDetailsData: personalDetails,
-            formatPhoneNumber: formatPhoneNumberPhoneUtils,
+            formatPhoneNumber,
         }) ?? '';
     const originalMessage = getOriginalMessage(reportAction);
     let messageKey: TranslationPaths;
@@ -4325,26 +4284,6 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
 }
 
 /**
- * Get the title for a policy expense chat
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- * Use ReportNameUtils.getPolicyExpenseChatName instead.
- */
-function getPolicyExpenseChatName({report, personalDetailsList}: {report: OnyxEntry<Report>; personalDetailsList?: Partial<PersonalDetailsList>}): string | undefined {
-    const ownerAccountID = report?.ownerAccountID;
-    const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
-    const login = personalDetails ? personalDetails.login : null;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) || login;
-
-    if (reportOwnerDisplayName) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspace.common.policyExpenseChatName', {displayName: reportOwnerDisplayName});
-    }
-
-    return report?.reportName;
-}
-
-/**
  * Given a report field, check if the field is for the report title.
  */
 function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): boolean {
@@ -4480,61 +4419,6 @@ function getAvailableReportFields(report: OnyxEntry<Report>, policyReportFields:
     });
 
     return fields.filter(Boolean) as PolicyReportField[];
-}
-
-/**
- * Get the title for an IOU or expense chat which will be showing the payer and the amount
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- * Use ReportNameUtils.getMoneyRequestReportName instead.
- */
-function getMoneyRequestReportName({report, policy, invoiceReceiverPolicy}: {report: OnyxEntry<Report>; policy?: OnyxEntry<Policy>; invoiceReceiverPolicy?: OnyxEntry<Policy>}): string {
-    if (report?.reportName && isExpenseReport(report)) {
-        return Str.htmlDecode(report.reportName);
-    }
-
-    const moneyRequestTotal = getMoneyRequestSpendBreakdown(report).totalDisplaySpend;
-    const formattedAmount = convertToDisplayString(moneyRequestTotal, report?.currency);
-
-    let payerOrApproverName;
-    if (isExpenseReport(report)) {
-        const parentReport = getParentReport(report);
-        payerOrApproverName = getPolicyName({report: parentReport ?? report, policy});
-    } else if (isInvoiceReport(report)) {
-        const chatReport = getReportOrDraftReport(report?.chatReportID);
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        payerOrApproverName = getInvoicePayerName(chatReport, invoiceReceiverPolicy);
-    } else {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
-    }
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const payerPaidAmountMessage = translateLocal('iou.payerPaidAmount', formattedAmount, payerOrApproverName);
-
-    if (isReportApproved({report})) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.managerApprovedAmount', {
-            manager: payerOrApproverName,
-            amount: formattedAmount,
-        });
-    }
-
-    if (report?.isWaitingOnBankAccount) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return `${payerPaidAmountMessage} ${CONST.DOT_SEPARATOR} ${translateLocal('iou.pending')}`;
-    }
-
-    if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(report?.reportID)) {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
-    }
-
-    if (isProcessingReport(report) || isOpenExpenseReport(report) || isOpenInvoiceReport(report) || moneyRequestTotal === 0) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.payerOwesAmount', formattedAmount, payerOrApproverName);
-    }
-
-    return payerPaidAmountMessage;
 }
 
 /**
@@ -5545,24 +5429,6 @@ function getAdminRoomInvitedParticipants(parentReportAction: OnyxEntry<ReportAct
 }
 
 /**
- * Get the invoice payer name based on its type:
- * - Individual - a receiver display name.
- * - Policy - a receiver policy name.
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- * Use ReportNameUtils.getInvoicePayerName instead.
- */
-function getInvoicePayerName(report: OnyxEntry<Report>, invoiceReceiverPolicy?: OnyxEntry<Policy>, invoiceReceiverPersonalDetail?: PersonalDetails | null): string {
-    const invoiceReceiver = report?.invoiceReceiver;
-    const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
-
-    if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(getDisplayNameOrDefault(invoiceReceiverPersonalDetail ?? allPersonalDetails?.[invoiceReceiver.accountID]));
-    }
-
-    return getPolicyName({report, policy: invoiceReceiverPolicy ?? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiver?.policyID}`]});
-}
-
-/**
  * Parse html of reportAction into text
  */
 function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined, childReportID?: string): string {
@@ -5615,12 +5481,14 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
  */
 function getReportActionMessage({
     reportAction,
+    formatPhoneNumber,
     reportID,
     childReportID,
     reports,
     personalDetails,
 }: {
     reportAction: OnyxEntry<ReportAction>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     reportID?: string;
     childReportID?: string;
     reports?: Report[];
@@ -5660,6 +5528,7 @@ function getReportActionMessage({
         return getReimbursementQueuedActionMessage({
             reportAction,
             reportOrID: getReportOrDraftReport(reportID, reports),
+            formatPhoneNumber,
             shouldUseShortDisplayName: false,
             reports,
             personalDetails,
@@ -5676,76 +5545,6 @@ function getReportActionMessage({
 
     return parseReportActionHtmlToText(reportAction, reportID, childReportID);
 }
-
-/**
- * Get the title for an invoice room.
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- * Use ReportNameUtils.getInvoicesChatName instead.
- */
-function getInvoicesChatName({
-    report,
-    receiverPolicy,
-    personalDetails,
-    policies,
-}: {
-    report: OnyxEntry<Report>;
-    receiverPolicy: OnyxEntry<Policy>;
-    personalDetails?: Partial<PersonalDetailsList>;
-    policies?: Policy[];
-}): string {
-    const invoiceReceiver = report?.invoiceReceiver;
-    const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
-    const invoiceReceiverAccountID = isIndividual ? invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID;
-    const invoiceReceiverPolicyID = isIndividual ? undefined : invoiceReceiver?.policyID;
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const invoiceReceiverPolicy = receiverPolicy ?? getPolicy(invoiceReceiverPolicyID);
-    const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && isPolicyAdminPolicyUtils(invoiceReceiverPolicy));
-
-    if (isCurrentUserReceiver) {
-        return getPolicyName({report, policies});
-    }
-
-    if (isIndividual) {
-        return formatPhoneNumberPhoneUtils(getDisplayNameOrDefault((personalDetails ?? allPersonalDetails)?.[invoiceReceiverAccountID]));
-    }
-
-    return getPolicyName({report, policy: invoiceReceiverPolicy, policies});
-}
-
-/**
- * Generates a report title using the names of participants, excluding the current user.
- * This function is useful in contexts such as 1:1 direct messages (DMs) or other group chats.
- * It limits to a maximum of 5 participants for the title and uses short names unless there is only one participant.
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- * Use ReportNameUtils.buildReportNameFromParticipantNames instead.
- */
-const buildReportNameFromParticipantNames = ({report, personalDetails: personalDetailsData}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) =>
-    Object.keys(report?.participants ?? {})
-        .map(Number)
-        .filter((id) => id !== currentUserAccountID)
-        .slice(0, 5)
-        .map((accountID) => ({
-            accountID,
-            name: getDisplayNameForParticipant({
-                accountID,
-                shouldUseShortForm: true,
-                personalDetailsData,
-                formatPhoneNumber: formatPhoneNumberPhoneUtils,
-            }),
-        }))
-        .filter((participant) => participant.name)
-        .reduce((formattedNames, {name, accountID}, _, array) => {
-            // If there is only one participant (if it is 0 or less the function will return empty string), return their full name
-            if (array.length < 2) {
-                return getDisplayNameForParticipant({
-                    accountID,
-                    personalDetailsData,
-                    formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                });
-            }
-            return formattedNames ? `${formattedNames}, ${name}` : name;
-        }, '');
 
 /**
  * Get the title for a report.
@@ -6007,8 +5806,6 @@ function getReportName(
             formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
 
             if (isArchivedNonExpense) {
-                // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 formattedName = generateArchivedReportName(formattedName);
             }
             return formatReportLastMessageText(formattedName);
@@ -6035,6 +5832,7 @@ function getReportName(
         const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
         const reportActionMessage = getReportActionMessage({
             reportAction: parentReportAction,
+            formatPhoneNumber: formatPhoneNumberPhoneUtils,
             reportID: report?.parentReportID,
             childReportID: report?.reportID,
             reports,
@@ -6057,8 +5855,6 @@ function getReportName(
         }
 
         if (reportActionMessage && isArchivedNonExpense) {
-            // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
             return generateArchivedReportName(reportActionMessage);
         }
         if (!isEmptyObject(parentReportAction) && isModifiedExpenseAction(parentReportAction)) {
@@ -6090,8 +5886,6 @@ function getReportName(
     }
 
     if (isGroupChat(report)) {
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getGroupChatName(formatPhoneNumberPhoneUtils, undefined, true, report) ?? '';
     }
 
@@ -6100,26 +5894,18 @@ function getReportName(
     }
 
     if (isPolicyExpenseChat(report)) {
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         formattedName = getPolicyExpenseChatName({report, personalDetailsList: personalDetails});
     }
 
     if (isMoneyRequestReport(report)) {
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         formattedName = getMoneyRequestReportName({report, policy});
     }
 
     if (isInvoiceReport(report)) {
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails, policies});
     }
 
@@ -6137,20 +5923,14 @@ function getReportName(
     }
 
     if (formattedName) {
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return formatReportLastMessageText(isArchivedNonExpense ? generateArchivedReportName(formattedName) : formattedName);
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    formattedName = buildReportNameFromParticipantNames({report, personalDetails});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList: personalDetails});
 
     const finalName = formattedName || (report?.reportName ?? '');
 
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     return isArchivedNonExpense ? generateArchivedReportName(finalName) : finalName;
 }
 
@@ -6178,28 +5958,6 @@ function getSearchReportName(props: GetReportNameParams): string {
         props.reports,
         props.policies,
     );
-}
-
-/**
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- * Use ReportNameUtils.getInvoiceReportName(...) instead.
- */
-function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>, invoiceReceiverPolicy?: OnyxEntry<Policy>): string {
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
-    const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
-    return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
-}
-
-/**
- * @deprecated Moved to src/libs/ReportNameUtils.ts.
- * Use ReportNameUtils.generateArchivedReportName(...) instead.
- * @param reportName
- */
-function generateArchivedReportName(reportName: string): string {
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return `${reportName} (${translateLocal('common.archived')}) `;
 }
 
 /**
@@ -6317,8 +6075,6 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, isParentReportAr
     }
 
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport)}`;
 
         if (isArchivedNonExpenseReport(parentReport, isParentReportArchived)) {
@@ -11250,66 +11006,6 @@ function canLeaveChat(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, isRe
     return (isChatThread(report) && !!getReportNotificationPreference(report)) || isUserCreatedPolicyRoom(report) || isNonAdminOrOwnerOfPolicyExpenseChat(report, policy);
 }
 
-function getReportActionActorAccountID(
-    reportAction: OnyxEntry<ReportAction>,
-    iouReport: OnyxEntry<Report>,
-    report: OnyxEntry<Report>,
-    delegatePersonalDetails?: PersonalDetails | undefined | null,
-): number | undefined {
-    switch (reportAction?.actionName) {
-        case CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW: {
-            const ownerAccountID = iouReport?.ownerAccountID ?? reportAction?.childOwnerAccountID;
-            const actorAccountID = iouReport?.managerID ?? reportAction?.childManagerAccountID;
-
-            if (isPolicyExpenseChat(report) || delegatePersonalDetails) {
-                return ownerAccountID;
-            }
-
-            return actorAccountID;
-        }
-
-        case CONST.REPORT.ACTIONS.TYPE.CREATED: {
-            const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
-            if (isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID)) {
-                return CONST.ACCOUNT_ID.CONCIERGE;
-            }
-            return reportAction?.actorAccountID;
-        }
-
-        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
-        case CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED:
-        case CONST.REPORT.ACTIONS.TYPE.APPROVED:
-        case CONST.REPORT.ACTIONS.TYPE.FORWARDED:
-        case CONST.REPORT.ACTIONS.TYPE.IOU: {
-            const originalMessage = getOriginalMessage(reportAction);
-            const actionName = reportAction?.actionName;
-
-            // Check if this should show Concierge as the actor
-            const wasSubmittedViaHarvesting = originalMessage && 'harvesting' in originalMessage ? originalMessage.harvesting : false;
-            const wasAutomatic = originalMessage && 'automaticAction' in originalMessage ? originalMessage.automaticAction : false;
-            const isPayment = originalMessage && 'type' in originalMessage && originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.PAY;
-
-            // Show Concierge for:
-            // - Harvesting (delayed submissions)
-            // - Automatic approvals/forwards via workspace rules
-            // - Automatic payments via workspace rules
-            if (wasSubmittedViaHarvesting || (wasAutomatic && actionName !== CONST.REPORT.ACTIONS.TYPE.IOU) || (wasAutomatic && isPayment)) {
-                return CONST.ACCOUNT_ID.CONCIERGE;
-            }
-
-            // For SUBMITTED actions, check adminAccountID first (admin-submit case)
-            if (actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED || actionName === CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) {
-                return reportAction?.adminAccountID ?? reportAction?.actorAccountID;
-            }
-
-            return reportAction?.actorAccountID;
-        }
-
-        default:
-            return reportAction?.actorAccountID;
-    }
-}
-
 function createDraftWorkspaceAndNavigateToConfirmationScreen(introSelected: OnyxEntry<IntroSelected>, transactionID: string, actionName: IOUAction): void {
     const isCategorizing = actionName === CONST.IOU.ACTION.CATEGORIZE;
     const {expenseChatReportID, policyID, policyName} = createDraftWorkspace(introSelected, currentUserEmail);
@@ -11697,6 +11393,7 @@ function prepareOnboardingOnyxData({
     };
 
     let createWorkspaceTaskReportID;
+    let addExpenseApprovalsTaskReportID;
     const tasksData = onboardingMessage.tasks
         .filter((task) => {
             if (engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
@@ -11774,6 +11471,9 @@ function prepareOnboardingOnyxData({
                 : null;
             if (task.type === CONST.ONBOARDING_TASK_TYPE.CREATE_WORKSPACE) {
                 createWorkspaceTaskReportID = currentTask.reportID;
+            }
+            if (task.type === CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS) {
+                addExpenseApprovalsTaskReportID = currentTask.reportID;
             }
 
             return {
@@ -11969,6 +11669,7 @@ function prepareOnboardingOnyxData({
             value: {
                 choice: engagementChoice,
                 createWorkspace: createWorkspaceTaskReportID,
+                addExpenseApprovals: addExpenseApprovalsTaskReportID,
             },
         },
     );
@@ -12032,6 +11733,7 @@ function prepareOnboardingOnyxData({
             value: {
                 choice: null,
                 createWorkspace: null,
+                addExpenseApprovals: null,
             },
         },
     );
@@ -12633,8 +12335,6 @@ function getChatListItemReportName(action: ReportAction & {reportName?: string},
         const properInvoiceReport = report;
         properInvoiceReport.chatReportID = report.parentReportID;
 
-        // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getInvoiceReportName(properInvoiceReport);
     }
 
@@ -13072,9 +12772,6 @@ export {
     buildOptimisticRejectReportActionComment,
     buildOptimisticMarkedAsResolvedReportAction,
     buildParticipantsFromAccountIDs,
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    buildReportNameFromParticipantNames,
     buildOptimisticChangeApproverReportAction,
     buildTransactionThread,
     canAccessReport,
@@ -13130,9 +12827,6 @@ export {
     getDeletedParentActionMessageForChatReport,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getGroupChatName,
     prepareOnboardingOnyxData,
     getIOUReportActionDisplayMessage,
     getIOUReportActionMessage,
@@ -13163,14 +12857,10 @@ export {
     getPersonalDetailsForAccountID,
     getPolicyDescriptionText,
     getPolicyExpenseChat,
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getPolicyExpenseChatName,
     getPolicyName,
     getPolicyType,
     getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
-    getReportActionActorAccountID,
     getReportDescription,
     getReportFieldKey,
     getReportIDFromLink,
@@ -13202,12 +12892,6 @@ export {
     getWorkspaceIcon,
     goBackToDetailsPage,
     goBackFromPrivateNotes,
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getInvoicePayerName,
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getInvoicesChatName,
     getHarvestOriginalReportID,
     getPayeeName,
     getReportSummariesForEmptyCheck,
@@ -13382,9 +13066,6 @@ export {
     hasOnlyNonReimbursableTransactions,
     getReportLastMessage,
     getReportLastVisibleActionCreated,
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getMoneyRequestReportName,
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
     getIntegrationNameFromExportMessage,
@@ -13421,9 +13102,6 @@ export {
     getTitleReportField,
     getReportFieldsByPolicyID,
     getGroupChatDraft,
-    // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getInvoiceReportName,
     getChatListItemReportName,
     buildOptimisticMovedTransactionAction,
     populateOptimisticReportFormula,

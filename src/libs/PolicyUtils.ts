@@ -1401,12 +1401,6 @@ function navigateToExpensifyCardPage(policyID: string) {
     });
 }
 
-function navigateToReceiptPartnersPage(policyID: string) {
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
-    });
-}
-
 function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
 }
@@ -1448,17 +1442,6 @@ function hasOnlyPersonalPolicies(policies: OnyxCollection<Policy>) {
 
 function getCurrentTaxID(policy: OnyxEntry<Policy>, taxID: string): string | undefined {
     return Object.keys(policy?.taxRates?.taxes ?? {}).find((taxIDKey) => policy?.taxRates?.taxes?.[taxIDKey].previousTaxCode === taxID || taxIDKey === taxID);
-}
-
-function getWorkspaceAccountID(policyID?: string) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
-
-    if (!policy) {
-        return 0;
-    }
-    return policy.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 }
 
 function getTagApproverRule(policy: OnyxEntry<Policy>, tagName: string) {
@@ -1762,7 +1745,6 @@ export {
     getXeroBankAccounts,
     findSelectedVendorWithDefaultSelect,
     findSelectedBankAccountWithDefaultSelect,
-    navigateToReceiptPartnersPage,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
     findSelectedSageVendorWithDefaultSelect,
@@ -1814,7 +1796,6 @@ export {
     getDefaultChatEnabledPolicy,
     getForwardsToAccount,
     getSubmitToAccountID,
-    getWorkspaceAccountID,
     getAllTaxRatesNamesAndKeys as getAllTaxRates,
     getTagNamesFromTagsLists,
     getTagApproverRule,
