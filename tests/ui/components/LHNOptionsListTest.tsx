@@ -179,7 +179,7 @@ describe('LHNOptionsList', () => {
 
     describe('DEW (Dynamic External Workflow) pending submit message', () => {
         it('shows queued message when offline with pending DEW submit', async () => {
-            // Given a DEW policy and a report with pending submit
+            // Given a report is submitted while offline on a DEW policy, which creates an optimistic SUBMITTED action
             const policyID = 'dewTestPolicy';
             const reportID = 'dewTestReport';
             const accountID1 = 1;
@@ -205,10 +205,7 @@ describe('LHNOptionsList', () => {
                 message: [{type: 'COMMENT', text: 'submitted'}],
                 originalMessage: {},
             };
-
-            // Given the screen is focused and network is offline
             mockUseIsFocused.mockReturnValue(true);
-
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
@@ -221,25 +218,24 @@ describe('LHNOptionsList', () => {
                 });
             });
 
-            // When the LHNOptionsList is rendered with the DEW report
+            // When the LHNOptionsList is rendered
             render(getLHNOptionsListElement({data: [report]}));
 
-            // Then wait for the report to be displayed
+            // Then the queued message should be displayed because DEW submissions are processed async and the user needs feedback
             const reportItem = await waitFor(() => getReportItem(reportID));
             expect(reportItem).toBeTruthy();
-
-            // Then the queued message should be displayed
             await waitFor(() => {
                 expect(screen.getByText('queued to submit via custom approval workflow')).toBeTruthy();
             });
         });
 
-        it('shows submitted message when online with pending DEW submit', async () => {
-            // Given a DEW policy and a report with pending submit
+        it('does not show queued message when user submits online with DEW policy', async () => {
+            // Given a report is submitted while online on a DEW policy, which does NOT create an optimistic SUBMITTED action
             const policyID = 'dewTestPolicyOnline';
             const reportID = 'dewTestReportOnline';
             const accountID1 = 1;
             const accountID2 = 2;
+            const expectedLastMessage = 'Expense for lunch meeting';
             const policy: Policy = {
                 id: policyID,
                 name: 'DEW Test Policy',
@@ -251,43 +247,37 @@ describe('LHNOptionsList', () => {
                 reportName: 'DEW Test Report',
                 type: CONST.REPORT.TYPE.EXPENSE,
                 policyID,
+                lastMessageText: expectedLastMessage,
                 participants: {[accountID1]: {notificationPreference: 'always'}, [accountID2]: {notificationPreference: 'always'}},
             };
-            const submittedAction: ReportAction = {
+            const commentAction: ReportAction = {
                 reportActionID: '1',
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 created: '2024-01-01 00:00:00',
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                message: [{type: 'COMMENT', text: 'submitted'}],
-                originalMessage: {},
+                message: [{type: 'COMMENT', text: expectedLastMessage, html: expectedLastMessage}],
             };
-
-            // Given the screen is focused and network is online
             mockUseIsFocused.mockReturnValue(true);
-
             await act(async () => {
                 await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [submittedAction.reportActionID]: submittedAction,
+                    [commentAction.reportActionID]: commentAction,
                 });
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
                     pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
                 });
             });
 
-            // When the LHNOptionsList is rendered with the DEW report
+            // When the LHNOptionsList is rendered
             render(getLHNOptionsListElement({data: [report]}));
 
-            // Then wait for the report to be displayed
+            // Then the queued message should NOT appear because the server processes DEW submissions immediately when online
             const reportItem = await waitFor(() => getReportItem(reportID));
             expect(reportItem).toBeTruthy();
-
-            // Then the queued message should NOT be displayed when online, instead show "submitted"
             await waitFor(() => {
                 expect(screen.queryByText('queued to submit via custom approval workflow')).toBeNull();
-                expect(screen.getByText('submitted')).toBeTruthy();
+                expect(screen.getByText(expectedLastMessage)).toBeTruthy();
             });
         });
     });
