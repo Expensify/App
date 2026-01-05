@@ -258,18 +258,19 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 
   **DO NOT flag if:**
 
-  - The boolean controls simple state (e.g., `isLoading`, `isDisabled`, `isSelected`)
-  - The prop is for accessibility or platform-specific behavior
-  - The component is a leaf component with no children
-  - The boolean is required for coordination between composed parts (narrow, stable props)
+  - The boolean controls **component state** (not rendering): `isLoading`, `isDisabled`, `isSelected`, `isFocused`, `isVisible`, `isExpanded`
+  - The boolean controls **data/behavior** (not UI structure): `shouldValidate`, `shouldDebounce`, `enableOffline`, `allowMultiple`
+  - The prop is for accessibility (`accessibilityLabel`, `accessible`) or platform-specific behavior (`keyboardShouldPersistTaps`)
+  - The component is a **leaf component** with no children (renders only primitives like Text, Image, or styled Views)
 
 - **Reasoning**: When features are added via configuration props, the component grows vertically, accumulating responsibilities. Each new flag increases coupling, surface area, and regression risk. Composition (expressing features as child components) keeps the parent stable—new features are added as new children, not new props.
 
-**Indicators of violation:**
+**Indicators of violation (use as heuristics, not strict rules):**
 
-- Component has 5+ boolean `should*`/`can*`/`is*Enabled` props controlling rendering
-- Conditional rendering inside component based on many boolean props
+- Component has 5+ boolean `should*`/`can*`/`is*Enabled` props **that control what UI elements render** (not state or behavior)
+- Conditional rendering inside component based on many boolean props (grep for `{shouldShow && <...>}` patterns)
 - Adding a new `shouldShowX` prop instead of accepting `<Component.X />` as a child
+- Accompanying "options" objects for the boolean (e.g., `shouldShowHeader` + `headerOptions`)
 
 Good (composition):
 
@@ -313,13 +314,18 @@ type SelectionListProps = {
 
 ---
 
-### [DESIGN-2] Detect similar components and suggest composition
+### [DESIGN-2] Avoid component duplication
 
 - **Condition**: Flag ONLY when ALL of these are true:
 
   - A **new component** is being introduced (new file or new function component)
-  - The component follows the **same structural pattern** as an existing component
-  - The new component **duplicates logic** that exists in the similar component (same useState/useEffect patterns, same event handling)
+  - The component shares **3+ of these characteristics** with an existing component:
+    1. Same wrapper/base component (e.g., both wrap `SelectionList`)
+    2. Same hooks in same order (e.g., both use `useOnyx` → `useMemo` → `useCallback`)
+    3. Same prop transformation logic (e.g., both build `sections` array from data)
+    4. Same event handling patterns (e.g., both have `onSubmit` that navigates back)
+    5. Same state management (e.g., both use `useDebouncedState` for search)
+  - The shared logic is **substantial** (>10 lines of similar code, not just boilerplate)
 
   **DO NOT flag if:**
 
@@ -333,18 +339,21 @@ type SelectionListProps = {
   - Bugs fixed in one variant but not others
   - UI/UX drift from subtle, unintentional differences in props or behavior
 
-**When reviewing a new component, check:**
+**Detection heuristics:**
 
-- Does it follow the same composition tree as an existing component?
-- Does it duplicate state and/or side effects management patterns from another component?
-- Could the shared logic be extracted to a hook or base component?
+1. **Name pattern match**: Does the new component name follow `*Picker`, `*Selector`, `*List`, `*Page`, `*Form` pattern? Search for existing components with same suffix.
+2. **Base component match**: What component does it render at root? Search for other components rendering the same base.
+3. **Hook signature match**: List the hooks used. Search for components with identical hook patterns.
+4. **Prop interface match**: Compare prop interface. >50% overlap suggests shared abstraction opportunity.
 
-**Note:** Suggesting new abstractions (shared hooks, base components) should be done carefully. Only recommend extraction when:
-- There are already multiple instances of the same pattern in the codebase
-- There is a **clear future benefit** (e.g., the pattern will likely be reused)
-- The duplication is **intentional reuse**, not accidental similarity
+**Abstraction recommendations:**
 
-Do not suggest creating abstractions for isolated cases of duplication that happened by accident or for patterns unlikely to be reused.
+When flagging, suggest ONE of these based on what's duplicated:
+- **Shared hook**: When stateful logic is duplicated (useState, useEffect, data transformation)
+- **Base component**: When JSX structure is duplicated but with different data
+- **Composition**: When the wrapper pattern is duplicated, use child component composition instead of creating separate wrappers
+
+Do not suggest creating abstractions for isolated cases or patterns unlikely to be reused. When in doubt, note the similarity but don't require immediate extraction.
 
 Good (shared hook when pattern is reused multiple times):
 
