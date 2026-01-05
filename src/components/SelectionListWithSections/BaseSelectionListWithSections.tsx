@@ -88,6 +88,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     customListHeader,
     customListHeaderHeight = 0,
     listHeaderWrapperStyle,
+    selectAllStyle,
     isRowMultilineSupported = false,
     isAlternateTextMultilineSupported = false,
     alternateTextNumberOfLines = 2,
@@ -145,6 +146,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     ListFooterComponentStyle,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
+    shouldSkipContentHeaderHeightOffset,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -355,7 +357,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
 
-            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea});
+            let viewOffset = variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea;
+            // Skip contentHeaderHeight for native split expense tabs scroll correction
+            if (shouldSkipContentHeaderHeightOffset) {
+                viewOffset = viewOffsetToKeepFocusedItemAtTopOfViewableArea;
+            }
+            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset});
             pendingScrollIndexRef.current = null;
         },
 
@@ -626,7 +633,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                             >
-                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                                <Text style={[styles.textStrong, styles.ph3, selectAllStyle]}>{translate('workspace.people.selectAll')}</Text>
                             </PressableWithFeedback>
                         )}
                     </View>
@@ -1114,7 +1121,5 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </View>
     );
 }
-
-BaseSelectionListWithSections.displayName = 'BaseSelectionListWithSections';
 
 export default BaseSelectionListWithSections;

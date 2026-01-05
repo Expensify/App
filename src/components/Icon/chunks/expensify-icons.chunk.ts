@@ -54,6 +54,7 @@ import Close from '@assets/images/close.svg';
 import ClosedSign from '@assets/images/closed-sign.svg';
 import Coins from '@assets/images/coins.svg';
 import Collapse from '@assets/images/collapse.svg';
+import Columns from '@assets/images/columns.svg';
 import CommentBubbles from '@assets/images/comment-bubbles.svg';
 import Concierge from '@assets/images/concierge.svg';
 import Connect from '@assets/images/connect.svg';
@@ -110,6 +111,8 @@ import ImageCropCircleMask from '@assets/images/image-crop-circle-mask.svg';
 import ImageCropSquareMask from '@assets/images/image-crop-square-mask.svg';
 import Inbox from '@assets/images/inbox.svg';
 import Info from '@assets/images/info.svg';
+import BillComSquare from '@assets/images/integrationicons/bill-com-icon-square.svg';
+import CertiniaSquare from '@assets/images/integrationicons/certinia-icon-square.svg';
 import CircleSlash from '@assets/images/integrationicons/circle-slash.svg';
 import NetSuiteExport from '@assets/images/integrationicons/export/netsuite-icon.svg';
 import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
@@ -126,6 +129,7 @@ import SapSquare from '@assets/images/integrationicons/sap-icon-square.svg';
 import Uber from '@assets/images/integrationicons/uber.svg';
 import XeroCircle from '@assets/images/integrationicons/xero-icon-circle.svg';
 import XeroSquare from '@assets/images/integrationicons/xero-icon-square.svg';
+import ZenefitsSquare from '@assets/images/integrationicons/zenefits-icon-square.svg';
 import InvoiceGeneric from '@assets/images/invoice-generic.svg';
 import Invoice from '@assets/images/invoice.svg';
 import Key from '@assets/images/key.svg';
@@ -134,6 +138,7 @@ import LinkCopy from '@assets/images/link-copy.svg';
 import Link from '@assets/images/link.svg';
 import Location from '@assets/images/location.svg';
 import Lock from '@assets/images/lock.svg';
+import LuggageWithLines from '@assets/images/luggage-with-lines.svg';
 import Luggage from '@assets/images/luggage.svg';
 import MagnifyingGlassSpyMouthClosed from '@assets/images/magnifying-glass-spy-mouth-closed.svg';
 import MagnifyingGlass from '@assets/images/magnifying-glass.svg';
@@ -159,6 +164,7 @@ import Offline from '@assets/images/offline.svg';
 import Paperclip from '@assets/images/paperclip.svg';
 import Pause from '@assets/images/pause.svg';
 import Pencil from '@assets/images/pencil.svg';
+import Percent from '@assets/images/percent.svg';
 import Phone from '@assets/images/phone.svg';
 import Pin from '@assets/images/pin.svg';
 import Plane from '@assets/images/plane.svg';
@@ -248,6 +254,7 @@ const Expensicons = {
     Bank,
     CircularArrowBackwards,
     Bill,
+    BillComSquare,
     Bell,
     Binoculars,
     Bolt,
@@ -259,6 +266,7 @@ const Expensicons = {
     Camera,
     Car,
     Cash,
+    CertiniaSquare,
     ChatBubble,
     ChatBubbles,
     Checkbox,
@@ -267,6 +275,7 @@ const Expensicons = {
     Clock,
     ClosedSign,
     Collapse,
+    Columns,
     CommentBubbles,
     Concierge,
     ConciergeAvatar,
@@ -358,6 +367,7 @@ const Expensicons = {
     Paperclip,
     Pause,
     Pencil,
+    Percent,
     Phone,
     Pin,
     Play,
@@ -390,6 +400,7 @@ const Expensicons = {
     ThreeDots,
     Transfer,
     Trashcan,
+    ZenefitsSquare,
     Uber,
     Unlock,
     UpArrow,
@@ -457,6 +468,7 @@ const Expensicons = {
     SageIntacctExport,
     XeroExport,
     ArrowCircleClockwise,
+    LuggageWithLines,
 };
 
 // Create the ExpensifyIcons object from the imported Expensicons

@@ -106,6 +106,4 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
     );
 }
 
-SearchSelectedNarrow.displayName = 'SearchSelectedNarrow';
-
 export default SearchSelectedNarrow;

@@ -104,4 +104,5 @@ function ImageWithSizeCalculation({
 }
 
 ImageWithSizeCalculation.displayName = 'ImageWithSizeCalculation';
+
 export default React.memo(ImageWithSizeCalculation);

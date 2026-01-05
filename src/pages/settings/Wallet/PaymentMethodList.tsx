@@ -20,6 +20,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {
+    filterPersonalCards,
     getAssignedCardSortKey,
     getCardFeedIcon,
     getPlaidInstitutionIconUrl,
@@ -162,7 +163,7 @@ function PaymentMethodList({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
 
@@ -174,7 +175,7 @@ function PaymentMethodList({
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
-    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [cardList = getEmptyObject<CardList>(), cardListResult] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const isLoadingCardList = isLoadingOnyxValue(cardListResult);
     // Temporarily disabled because P2P debit cards are disabled.
     // const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -378,20 +379,21 @@ function PaymentMethodList({
         isLoadingBankAccountList,
         bankAccountList,
         styles,
+        translate,
         isOffline,
         filterType,
         filterCurrency,
         isLoadingCardList,
         cardList,
         illustrations,
-        translate,
-        getCardBrickRoadIndicator,
+        companyCardFeedIcons,
         onPress,
+        getCardBrickRoadIndicator,
         shouldShowRightIcon,
         itemIconRight,
+        expensifyIcons.ThreeDots,
         activePaymentMethodID,
         actionPaymentMethodType,
-        expensifyIcons.ThreeDots,
         onThreeDotsMenuPress,
     ]);
 
@@ -492,7 +494,5 @@ function PaymentMethodList({
         </View>
     );
 }
-
-PaymentMethodList.displayName = 'PaymentMethodList';
 
 export default PaymentMethodList;
