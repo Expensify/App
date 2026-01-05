@@ -30,10 +30,7 @@ function SearchEditMultipleMerchantPage() {
         const {isValid, byteLength} = isValidInputLength(value.merchant ?? '', CONST.MERCHANT_NAME_MAX_BYTES);
 
         if (!isValid) {
-            errors.merchant = translate('common.error.characterLimitExceedCounter', {
-                length: byteLength,
-                limit: CONST.MERCHANT_NAME_MAX_BYTES,
-            });
+            errors.merchant = translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
         }
 
         return errors;
