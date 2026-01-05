@@ -4847,7 +4847,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             customCloseDate: 'Date de clôture personnalisée',
             letsDoubleCheck: 'Vérifions une dernière fois que tout est correct.',
             confirmationDescription: 'Nous allons commencer à importer les transactions immédiatement.',
-            cardholder: 'Titulaire de la carte',
             card: 'Carte',
             cardName: 'Nom de la carte',
             brokenConnectionError:

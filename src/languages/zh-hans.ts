@@ -4728,7 +4728,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             customCloseDate: '自定义结束日期',
             letsDoubleCheck: '让我们再仔细检查一下，确保一切都正确。',
             confirmationDescription: '我们会立即开始导入交易。',
-            cardholder: '持卡人',
             card: '卡片',
             cardName: '卡片名称',
             brokenConnectionError: '<rbr>银行卡信息连接已中断。请<a href="#">登录您的银行账户</a>以便我们重新建立连接。</rbr>',

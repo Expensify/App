@@ -4826,7 +4826,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             customCloseDate: 'Data di chiusura personalizzata',
             letsDoubleCheck: 'Controlliamo ancora una volta che tutto sia corretto.',
             confirmationDescription: 'Inizieremo subito a importare le transazioni.',
-            cardholder: 'Titolare della carta',
             card: 'Carta',
             cardName: 'Nome carta',
             brokenConnectionError: '<rbr>La connessione al feed della carta è interrotta. Per favore <a href="#">accedi alla tua banca</a> così possiamo ristabilire la connessione.</rbr>',

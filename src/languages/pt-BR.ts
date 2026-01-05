@@ -4812,7 +4812,6 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
             customCloseDate: 'Data de fechamento personalizada',
             letsDoubleCheck: 'Vamos conferir se está tudo certo.',
             confirmationDescription: 'Começaremos a importar transações imediatamente.',
-            cardholder: 'Titular do cartão',
             card: 'Cartão',
             cardName: 'Nome do cartão',
             brokenConnectionError: '<rbr>A conexão com o feed do cartão foi interrompida. Por favor, <a href="#">faça login no seu banco</a> para que possamos restabelecer a conexão.</rbr>',

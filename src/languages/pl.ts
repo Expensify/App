@@ -4812,7 +4812,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             customCloseDate: 'Niestandardowa data zamknięcia',
             letsDoubleCheck: 'Sprawdźmy jeszcze raz, czy wszystko wygląda poprawnie.',
             confirmationDescription: 'Natychmiast rozpoczniemy importowanie transakcji.',
-            cardholder: 'Posiadacz karty',
             card: 'Karta',
             cardName: 'Nazwa karty',
             brokenConnectionError: '<rbr>Połączenie z kartą zostało przerwane. Proszę <a href="#">zalogować się do swojego banku</a>, abyśmy mogli ponownie nawiązać połączenie.</rbr>',

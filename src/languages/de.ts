@@ -4842,7 +4842,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             customCloseDate: 'Benutzerdefiniertes Abschlussdatum',
             letsDoubleCheck: 'Lass uns noch einmal überprüfen, ob alles richtig aussieht.',
             confirmationDescription: 'Wir beginnen sofort mit dem Import der Transaktionen.',
-            cardholder: 'Karteninhaber',
             card: 'Karte',
             cardName: 'Kartenname',
             brokenConnectionError:

@@ -4821,7 +4821,6 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
             customCloseDate: 'Aangepaste einddatum',
             letsDoubleCheck: 'Laten we nog eens controleren of alles er goed uitziet.',
             confirmationDescription: 'We beginnen onmiddellijk met het importeren van transacties.',
-            cardholder: 'Kaarthouder',
             card: 'Kaart',
             cardName: 'Kaartnaam',
             brokenConnectionError: '<rbr>De kaartfeedverbinding is verbroken. <a href="#">Log in bij uw bank</a> zodat we de verbinding opnieuw kunnen herstellen.</rbr>',

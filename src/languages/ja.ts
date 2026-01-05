@@ -4800,7 +4800,6 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             customCloseDate: 'カスタム締め日',
             letsDoubleCheck: 'すべてが正しく見えるか、もう一度確認しましょう。',
             confirmationDescription: '取引のインポートを直ちに開始します。',
-            cardholder: 'カード保有者',
             card: 'カード',
             cardName: 'カード名',
             brokenConnectionError: '<rbr>カードフィード接続が切断されています。再度接続を確立するために、<a href="#">銀行にログイン</a>してください。</rbr>',
