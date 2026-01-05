@@ -612,6 +612,7 @@ function IOURequestStepConfirmation({
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                     transactionViolations,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 });
                 existingIOUReport = iouReport;
             }
@@ -641,6 +642,7 @@ function IOURequestStepConfirmation({
             parentReportAction,
             transactionViolations,
             isManualDistanceRequest,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
@@ -846,6 +848,7 @@ function IOURequestStepConfirmation({
             isASAPSubmitBetaEnabled,
             transactionViolations,
             quickAction,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
@@ -1111,6 +1114,7 @@ function IOURequestStepConfirmation({
             trackExpense,
             userLocation,
             submitPerDiemExpense,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
