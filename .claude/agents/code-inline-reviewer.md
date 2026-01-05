@@ -252,8 +252,8 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 
 - **Condition**: Flag ONLY when ALL of these are true:
 
-  - A component's props type definition OR function signature is being **added or modified**
-  - The change **adds new boolean flags** that control rendering behavior (e.g., `shouldShowX`, `shouldUseY`, `canZ`, `isXEnabled`)
+  - A **new component** is being introduced
+  - The component has **boolean flags** that control rendering behavior (e.g., `shouldShowX`, `shouldUseY`, `canZ`, `isXEnabled`)
   - The feature could instead be expressed as a **composed child component**
 
   **DO NOT flag if:**
@@ -318,7 +318,7 @@ type SelectionListProps = {
 
 - **Condition**: Flag ONLY when ALL of these are true:
 
-  - A **new component** is being introduced (new file or new function component)
+  - A **new component** is being introduced
   - The component shares **3+ of these characteristics** with an existing component:
     1. Same wrapper/base component (e.g., both wrap `SelectionList`)
     2. Same hooks in same order (e.g., both use `useOnyx` → `useMemo` → `useCallback`)
