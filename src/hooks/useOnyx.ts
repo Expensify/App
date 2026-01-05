@@ -1,3 +1,5 @@
+import isEmpty from 'lodash/isEmpty';
+import isPlainObject from 'lodash/isPlainObject';
 import {use, useMemo} from 'react';
 import type {DependencyList} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -58,35 +60,55 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     }
 
     const useOnyxOptions = options as UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> | undefined;
-    const {selector: selectorProp, ...optionsWithoutSelector} = useOnyxOptions ?? {};
+    const {selector, ...optionsWithoutSelector} = useOnyxOptions ?? {};
 
-    // Determine if we should use snapshot data based on search state and key
+    // Original Onyx
+    const originalOnyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {...optionsWithoutSelector, selector, allowDynamicKey: true};
+    const originalResult = originalUseOnyx(key, originalOnyxOptions, dependencies);
+
+    // Snapshot Onyx
+    /**
+     * React hooks cannot be called conditionally. Thus we always subscribe to the snapshot data
+     * and if shouldUseSnapshot is false then the selector always returns false as the data so we don't cause unnecessary renders
+     * similarly canBeMissing is set to true to avoid falsy warnings.
+     */
     const shouldUseSnapshot = isOnSearch && !!currentSearchHash && isSnapshotCompatibleKey;
-
-    // Create selector function that handles both regular and snapshot data
-    const selector = useMemo(() => {
-        if (!selectorProp || !shouldUseSnapshot) {
-            return selectorProp;
+    const snapshotSelector = useMemo(() => {
+        if (!shouldUseSnapshot) {
+            return () => false;
         }
 
-        return (data: OnyxValue<OnyxKey> | undefined) => selectorProp(getKeyData(data as SearchResults, key));
-    }, [selectorProp, shouldUseSnapshot, key]);
+        if (!selector) {
+            return (data: OnyxValue<OnyxKey> | undefined) => getKeyData(data as SearchResults, key) as OnyxValue<OnyxKey>;
+        }
 
-    const onyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {...optionsWithoutSelector, selector, allowDynamicKey: true};
-    const snapshotKey = shouldUseSnapshot ? (`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as OnyxKey) : key;
+        return (data: OnyxValue<OnyxKey> | undefined) => selector(getKeyData(data as SearchResults, key));
+    }, [shouldUseSnapshot, selector, key]);
+    const snapshotOnyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {
+        ...optionsWithoutSelector,
+        selector: snapshotSelector,
+        allowDynamicKey: true,
+        canBeMissing: shouldUseSnapshot ? optionsWithoutSelector.canBeMissing : true,
+    };
+    const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as OnyxKey;
+    const snapshotResult = originalUseOnyx(snapshotKey, snapshotOnyxOptions, dependencies);
 
-    const originalResult = originalUseOnyx(snapshotKey, onyxOptions, dependencies);
-
-    // Extract and memoize the specific key data from snapshot if in search mode
+    // Merge original and snapshot onyx results
     const result = useMemo((): UseOnyxResult<TReturnValue> => {
-        // if it has selector, we don't need to use snapshot here
-        if (!shouldUseSnapshot || selector) {
-            return originalResult as UseOnyxResult<TReturnValue>;
+        if (shouldUseSnapshot) {
+            if (isPlainObject(originalResult[0]) && isPlainObject(snapshotResult[0])) {
+                return [{...(snapshotResult[0] as Object), ...(originalResult[0] as Object)}, originalResult[1]] as UseOnyxResult<TReturnValue>;
+            }
+
+            if (isEmpty(snapshotResult[0])) {
+                return originalResult as UseOnyxResult<TReturnValue>;
+            }
+
+            return snapshotResult as UseOnyxResult<TReturnValue>;
         }
 
-        const keyData = getKeyData(originalResult[0] as SearchResults, key);
-        return [keyData, originalResult[1]] as UseOnyxResult<TReturnValue>;
-    }, [shouldUseSnapshot, originalResult, key, selector]);
+        return originalResult as UseOnyxResult<TReturnValue>;
+    }, [shouldUseSnapshot, originalResult, snapshotResult]);
 
     return result;
 };
