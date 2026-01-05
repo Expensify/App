@@ -97,7 +97,7 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
         // Merge snapshot data with live data if possible
         if (shouldUseSnapshot) {
             if (isPlainObject(originalResult[0]) && isPlainObject(snapshotResult[0])) {
-                return [{...(snapshotResult[0] as Object), ...(originalResult[0] as Object)}, originalResult[1]] as UseOnyxResult<TReturnValue>;
+                return [{...(snapshotResult[0] as object), ...(originalResult[0] as object)}, originalResult[1]] as UseOnyxResult<TReturnValue>;
             }
 
             if (isEmpty(snapshotResult[0])) {
