@@ -1,17 +1,12 @@
 import {renderHook} from '@testing-library/react-native';
 import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
-import {clearAllFilters} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
-
-jest.mock('@libs/actions/Search', () => ({
-    clearAllFilters: jest.fn(),
-}));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -123,7 +118,6 @@ describe('useSuggestedSearchDefaultNavigation', () => {
             clearSelectedTransactions,
         });
 
-        expect(clearAllFilters).toHaveBeenCalledTimes(1);
         expect(clearSelectedTransactions).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: approveMenuItem.searchQuery}));
     });
@@ -170,7 +164,6 @@ describe('useSuggestedSearchDefaultNavigation', () => {
             },
         });
 
-        expect(clearAllFilters).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
@@ -190,7 +183,6 @@ describe('useSuggestedSearchDefaultNavigation', () => {
             },
         });
 
-        expect(clearAllFilters).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
@@ -217,7 +209,40 @@ describe('useSuggestedSearchDefaultNavigation', () => {
             shouldSkipNavigation: true,
         });
 
-        expect(clearAllFilters).not.toHaveBeenCalled();
+        expect(clearSelectedTransactions).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate to Approve for inline-context query without rawFilterList when skeleton hides', () => {
+        const clearSelectedTransactions = jest.fn();
+        const approveMenuItem = createApproveMenuItem();
+        const submitMenuItem = createSubmitMenuItem();
+        const parsedQueryJSON = buildSearchQueryJSON('in:checking');
+        if (!parsedQueryJSON) {
+            throw new Error('Expected parsed query to be defined');
+        }
+        const inlineContextQueryJSON = {...parsedQueryJSON, rawFilterList: undefined};
+        const shouldSkipNavigation = shouldSkipSuggestedSearchNavigationForQuery(inlineContextQueryJSON);
+
+        const {rerender} = renderHook((props: Parameters<typeof useSuggestedSearchDefaultNavigation>[0]) => useSuggestedSearchDefaultNavigation(props), {
+            initialProps: {
+                shouldShowSkeleton: true,
+                flattenedMenuItems: [approveMenuItem, submitMenuItem],
+                similarSearchHash: undefined,
+                clearSelectedTransactions,
+                shouldSkipNavigation,
+            },
+        });
+
+        rerender({
+            shouldShowSkeleton: false,
+            flattenedMenuItems: [approveMenuItem, submitMenuItem],
+            similarSearchHash: undefined,
+            clearSelectedTransactions,
+            shouldSkipNavigation,
+        });
+
+        expect(shouldSkipNavigation).toBe(true);
         expect(clearSelectedTransactions).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
