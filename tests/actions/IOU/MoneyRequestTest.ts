@@ -1,5 +1,4 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import * as IOU from '@libs/actions/IOU';
 import {createTransaction, handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -10,26 +9,23 @@ import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ROUTES from '@src/ROUTES';
 import type {QuickAction} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
+import * as IOU from '../../../src/libs/actions/IOU';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
-jest.mock('@libs/actions/IOU', () => {
-    const actualNav = jest.requireActual<typeof IOU>('@libs/actions/IOU');
-    return {
-        ...actualNav,
-        requestMoney: jest.fn(),
-        trackExpense: jest.fn(),
-        createDistanceRequest: jest.fn(),
-        resetSplitShares: jest.fn(),
-        setMoneyRequestPendingFields: jest.fn(),
-        setMoneyRequestMerchant: jest.fn(),
-        setCustomUnitRateID: jest.fn(),
-        getMoneyRequestParticipantsFromReport: jest.fn(() => [{accountID: 1, login: 'test@test.com'}]),
-        setMoneyRequestParticipantsFromReport: jest.fn(() => Promise.resolve()),
-    };
-});
+jest.mock('@libs/actions/IOU', () => ({
+    requestMoney: jest.fn(),
+    trackExpense: jest.fn(),
+    createDistanceRequest: jest.fn(),
+    resetSplitShares: jest.fn(),
+    setMoneyRequestPendingFields: jest.fn(),
+    setMoneyRequestMerchant: jest.fn(),
+    setCustomUnitRateID: jest.fn(),
+    getMoneyRequestParticipantsFromReport: jest.fn(() => [{accountID: 1, login: 'test@test.com'}]),
+    setMoneyRequestParticipantsFromReport: jest.fn(() => Promise.resolve()),
+}));
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
