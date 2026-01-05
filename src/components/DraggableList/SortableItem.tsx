@@ -8,9 +8,10 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
     const itemRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (isFocused && itemRef.current) {
-            itemRef.current.focus();
+        if (!isFocused || !itemRef.current) {
+            return;
         }
+        itemRef.current.focus();
     }, [isFocused]);
 
     const style = {
@@ -27,6 +28,7 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
                 itemRef.current = node;
             }}
             style={style}
+            role="option"
             tabIndex={isFocused ? 0 : -1}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...attributes}
