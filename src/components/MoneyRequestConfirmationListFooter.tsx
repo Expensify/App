@@ -3,7 +3,7 @@ import {format} from 'date-fns';
 import {Str} from 'expensify-common';
 import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -53,6 +53,9 @@ import Button from './Button';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Icon from './Icon';
+import Image from './Image';
+import RESIZE_MODES from './Image/resizeModes';
+import ImageWithLoading from './ImageWithLoading';
 import MenuItem from './MenuItem';
 import MenuItemWithTopDescription from './MenuItemWithTopDescription';
 import PDFThumbnail from './PDFThumbnail';
@@ -410,6 +413,7 @@ function MoneyRequestConfirmationListFooter({
     } = receiptPath && receiptFilename ? getThumbnailAndImageURIs(transaction, receiptPath, receiptFilename) : ({} as ThumbnailAndImageURI);
     const resolvedThumbnail = isLocalFile ? receiptThumbnail : tryResolveUrlFromApiRoot(receiptThumbnail ?? '');
     const resolvedReceiptImage = isLocalFile ? receiptImage : tryResolveUrlFromApiRoot(receiptImage ?? '');
+    const shouldRequireAuthToken = !!receiptThumbnail && !isLocalFile;
 
     const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
 
@@ -921,8 +925,18 @@ function MoneyRequestConfirmationListFooter({
 
     const shouldRestrictHeight = useMemo(() => !showMoreFields && isScan, [isScan, showMoreFields]);
 
-    const receiptThumbnailContent = useMemo(
-        () => (
+    const receiptThumbnailContent = useMemo(() => {
+        const receiptPreviewSource = resolvedReceiptImage || resolvedThumbnail;
+        const shouldUseBlurredBackground = shouldRestrictHeight && !isThumbnail && Str.isImage(receiptFilename) && !!receiptPreviewSource;
+        const previewImageSource = receiptPreviewSource ? (typeof receiptPreviewSource === 'string' ? {uri: receiptPreviewSource} : receiptPreviewSource) : undefined;
+        const blurredBackgroundSource = resolvedThumbnail || resolvedReceiptImage || receiptPreviewSource;
+        const blurredBackgroundImageSource = blurredBackgroundSource
+            ? typeof blurredBackgroundSource === 'string'
+                ? {uri: blurredBackgroundSource}
+                : blurredBackgroundSource
+            : previewImageSource;
+
+        return (
             <View style={[styles.moneyRequestImage, shouldRestrictHeight ? styles.flex1 : styles.expenseViewImageSmall]}>
                 {isLocalFile && Str.isPDF(receiptFilename) ? (
                     <PressableWithoutFocus
@@ -968,50 +982,68 @@ function MoneyRequestConfirmationListFooter({
                         disabledStyle={styles.cursorDefault}
                         style={[styles.h100, styles.flex1]}
                     >
-                        <ReceiptImage
-                            isThumbnail={isThumbnail}
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                            source={resolvedThumbnail || resolvedReceiptImage || ''}
-                            // AuthToken is required when retrieving the image from the server
-                            // but we don't need it to load the blob:// or file:// image when starting an expense/split
-                            // So if we have a thumbnail, it means we're retrieving the image from the server
-                            isAuthTokenRequired={!!receiptThumbnail && !isLocalFile}
-                            fileExtension={fileExtension}
-                            shouldUseThumbnailImage
-                            shouldUseInitialObjectPosition={isDistanceRequest}
-                            shouldUseFullHeight
-                        />
+                        {shouldUseBlurredBackground ? (
+                            <View style={[styles.flex1, styles.pRelative]}>
+                                <Image
+                                    source={blurredBackgroundImageSource}
+                                    resizeMode={RESIZE_MODES.cover}
+                                    blurRadius={16}
+                                    style={[StyleSheet.absoluteFillObject, styles.opacitySemiTransparent]}
+                                    isAuthTokenRequired={shouldRequireAuthToken}
+                                />
+                                <ImageWithLoading
+                                    source={previewImageSource}
+                                    resizeMode={RESIZE_MODES.contain}
+                                    isAuthTokenRequired={shouldRequireAuthToken}
+                                    shouldShowOfflineIndicator={false}
+                                />
+                            </View>
+                        ) : (
+                            <ReceiptImage
+                                isThumbnail={isThumbnail}
+                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                source={resolvedThumbnail || resolvedReceiptImage || ''}
+                                // AuthToken is required when retrieving the image from the server
+                                // but we don't need it to load the blob:// or file:// image when starting an expense/split
+                                // So if we have a thumbnail, it means we're retrieving the image from the server
+                                isAuthTokenRequired={shouldRequireAuthToken}
+                                fileExtension={fileExtension}
+                                shouldUseThumbnailImage
+                                shouldUseInitialObjectPosition={isDistanceRequest}
+                                shouldUseFullHeight
+                            />
+                        )}
                     </PressableWithoutFocus>
                 )}
             </View>
-        ),
-        [
-            styles.moneyRequestImage,
-            styles.receiptPreviewAspectRatio,
-            styles.cursorDefault,
-            styles.h100,
-            styles.flex1,
-            styles.expenseViewImageSmall,
-            shouldRestrictHeight,
-            isLocalFile,
-            receiptFilename,
-            translate,
-            shouldDisplayReceipt,
-            resolvedReceiptImage,
-            onPDFLoadError,
-            onPDFPassword,
-            isThumbnail,
-            resolvedThumbnail,
-            receiptThumbnail,
-            fileExtension,
-            isDistanceRequest,
-            transactionID,
-            isReceiptEditable,
-            reportID,
-            action,
-            iouType,
-        ],
-    );
+        );
+    }, [
+        styles.moneyRequestImage,
+        styles.cursorDefault,
+        styles.h100,
+        styles.flex1,
+        styles.expenseViewImageSmall,
+        styles.pRelative,
+        styles.opacitySemiTransparent,
+        shouldRestrictHeight,
+        isLocalFile,
+        receiptFilename,
+        translate,
+        shouldDisplayReceipt,
+        resolvedReceiptImage,
+        onPDFLoadError,
+        onPDFPassword,
+        isThumbnail,
+        resolvedThumbnail,
+        fileExtension,
+        isDistanceRequest,
+        transactionID,
+        isReceiptEditable,
+        reportID,
+        action,
+        iouType,
+        shouldRequireAuthToken,
+    ]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const hasReceiptImageOrThumbnail = receiptImage || receiptThumbnail;

@@ -22,6 +22,9 @@ type BaseImageProps = {
     /** Event for when the image is fully loaded and returns the natural dimensions of the image */
     onLoad?: (event: ImageOnLoadEvent) => void;
 
+    /** Blur radius to apply to the image */
+    blurRadius?: number;
+
     /** Styles for the Image */
     style?: StyleProp<ImageStyle>;
 
