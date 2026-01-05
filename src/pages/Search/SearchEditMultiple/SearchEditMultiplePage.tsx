@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -15,8 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
-import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {getTaxName, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -48,7 +45,7 @@ function SearchEditMultiplePage() {
 
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
         const transactionPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        return transactionPolicy?.disabledFields?.defaultBillable === false;
+        return transactionPolicy?.disabledFields?.defaultBillable === false || !!transaction.billable;
     });
 
     const areSelectedTransactionsReimbursable = selectedTransactionIDs.every((transactionID) => {
@@ -59,7 +56,7 @@ function SearchEditMultiplePage() {
 
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
         const transactionPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-        return !!transactionPolicy && transactionPolicy.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction);
+        return transactionPolicy?.disabledFields?.reimbursable === false && !isManagedCardTransaction(transaction);
     });
 
     // Determine policyID based on context:
