@@ -540,7 +540,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
                     <TextCell
-                        text={computeReportName(transactionItem.report) ?? transactionItem.report?.reportName ?? ''}
+                        text={transactionItem.report?.reportName ?? ''}
                         isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
