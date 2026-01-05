@@ -189,9 +189,7 @@ import type {
     UpdatedPolicyCategoryMaxExpenseAmountParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCurrencyParams,
-    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
@@ -200,7 +198,6 @@ import type {
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -3878,7 +3875,6 @@ ${
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card-Transaktionen werden automatisch in ein „Expensify Card Liability Account“ exportiert, das mit <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">unserer Integration</a> erstellt wurde.</muted-text-label>`,
         },
         receiptPartners: {
-            connect: 'Jetzt verbinden',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Verbunden mit ${organizationName}` : 'Automatisieren Sie Reise- und Essenslieferungskosten in Ihrer gesamten Organisation.',
@@ -3906,8 +3902,6 @@ ${
                 invitationFailure: 'Einladen des Mitglieds zu Uber for Business fehlgeschlagen',
                 autoInvite: 'Neue Workspace-Mitglieder zu Uber for Business einladen',
                 autoRemove: 'Entfernte Arbeitsbereichsmitglieder in Uber for Business deaktivieren',
-                bannerTitle: 'Expensify + Uber für Business',
-                bannerDescription: 'Verbinde Uber for Business, um Reise- und Essenslieferkosten in deinem gesamten Unternehmen zu automatisieren.',
                 emptyContent: {
                     title: 'Keine ausstehenden Einladungen',
                     subtitle: 'Hurra! Wir haben überall nachgesehen und keine offenen Einladungen gefunden.',
@@ -5273,7 +5267,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Sie haben noch keine Tags erstellt',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Füge ein Tag hinzu, um Projekte, Standorte, Abteilungen und mehr zu verfolgen.',
-                subtitleHTML: `<muted-text><centered-text>Importieren Sie eine Tabelle, um Tags für die Nachverfolgung von Projekten, Standorten, Abteilungen und mehr hinzuzufügen. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Erfahren Sie mehr</a> über die Formatierung von Tag-Dateien.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Fügen Sie Tags hinzu, um Projekte, Standorte, Abteilungen und mehr nachzuverfolgen. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Erfahren Sie mehr</a> über das Formatieren von Tag-Dateien für den Import.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>Ihre Tags werden derzeit über eine Buchhaltungsverbindung importiert. Gehen Sie zu <a href="${accountingPageURL}">Buchhaltung</a>, um Änderungen vorzunehmen.</centered-text></muted-text>`,
             },
@@ -6597,10 +6591,8 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 }
             }
         },
-        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `benutzerdefinierten Steuernamen in „${newName}“ geändert (zuvor „${oldName}“)`,
-        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) => `Standard-Steuerbetrag der Workspace-Währung auf „${newName}“ geändert (zuvor „${oldName}“)`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
-            `den Standardsteuersatz für Fremdwährungen in „${newName}“ geändert (zuvor „${oldName}“)`,
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `benutzerdefinierte Berichtsnamensformel in „${newValue}“ geändert (zuvor „${oldValue}“)`,
     },
     roomMembersPage: {
         memberNotFound: 'Mitglied nicht gefunden.',
