@@ -3419,7 +3419,7 @@ function getSearchBulkEditPolicyID(selectedTransactions: SelectedTransactions, a
     }
 
     const firstPolicyID = transactionValues.at(0)?.policyID;
-    const allSamePolicy = transactionValues.every((t) => t.policyID === firstPolicyID);
+    const allSamePolicy = transactionValues.every((transaction) => transaction.policyID === firstPolicyID);
 
     if (allSamePolicy && firstPolicyID) {
         return firstPolicyID;
