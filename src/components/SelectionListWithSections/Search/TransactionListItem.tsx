@@ -45,6 +45,7 @@ function TransactionListItem<TItem extends ListItem>({
     columns,
     isLoading,
     violations,
+    customCardNames,
     onDEWModalOpen,
     isDEWBetaEnabled,
 }: TransactionListItemProps<TItem>) {
@@ -229,6 +230,7 @@ function TransactionListItem<TItem extends ListItem>({
                             violations={transactionViolations}
                             onArrowRightPress={onPress}
                             isHover={hovered}
+                            customCardNames={customCardNames}
                         />
                     </>
                 )}
