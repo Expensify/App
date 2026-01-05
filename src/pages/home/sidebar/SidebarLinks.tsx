@@ -5,14 +5,17 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import type {ValueOf} from 'type-fest';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {confirmReadyToOpenApp, setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllReportActionsErrorsAndReportActionThatRequiresAttention} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 
@@ -37,6 +40,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
 
     useEffect(() => {
         confirmReadyToOpenApp();
@@ -56,23 +60,29 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
             // or when clicking the active LHN row on large screens
             // or when continuously clicking different LHNs, only apply to small screen
             // since getTopmostReportId always returns on other devices
-            const reportActionID = Navigation.getTopmostReportActionId();
+            const currentReportActionID = Navigation.getTopmostReportActionId();
 
             // Prevent opening a new Report page if the user quickly taps on another conversation
             // before the first one is displayed.
             const shouldBlockReportNavigation = Navigation.getActiveRoute() !== '/home' && shouldUseNarrowLayout;
 
             if (
-                (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ||
-                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID) ||
+                (option.reportID === Navigation.getTopmostReportId() && !currentReportActionID) ||
+                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !currentReportActionID) ||
                 shouldBlockReportNavigation
             ) {
                 cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${option.reportID}`);
                 return;
             }
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
+
+            // Check if this report has a report action with errors (RBR) and navigate to that action
+            const reportActionsForReport = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${option.reportID}`];
+            const {reportAction: errorReportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(option, reportActionsForReport);
+            const errorReportActionID = errorReportAction?.reportActionID;
+
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID, errorReportActionID));
         },
-        [shouldUseNarrowLayout, isActiveReport],
+        [shouldUseNarrowLayout, isActiveReport, reportActions],
     );
 
     const viewMode = priorityMode === CONST.PRIORITY_MODE.GSD ? CONST.OPTION_MODE.COMPACT : CONST.OPTION_MODE.DEFAULT;
