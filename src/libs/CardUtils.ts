@@ -397,6 +397,21 @@ function isCustomFeed(feed: CompanyCardFeedWithNumber | undefined): boolean {
     return [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX].some((value) => feed.startsWith(value));
 }
 
+/**
+ * Checks if a feed key represents a CSV feed or Expensify Card.
+ * CSV feeds include feeds starting with "csv" or "ccupload", or containing "ccupload".
+ * Expensify Cards also don't count toward feed limits.
+ *
+ * @param feedKey - The feed key to check
+ * @returns true if the feed is a CSV feed or Expensify Card, false otherwise
+ */
+function isCSVFeed(feedKey: string): boolean {
+    const lowerFeedKey = feedKey.toLowerCase();
+    // Exclude CSV feeds (feed types starting with "csv" or "ccupload", or containing "ccupload")
+    // Also exclude Expensify Cards which don't count toward the limit
+    return lowerFeedKey.startsWith('csv') || lowerFeedKey.startsWith('ccupload') || feedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) || feedKey === 'Expensify Card';
+}
+
 function getOriginalCompanyFeeds(cardFeeds: OnyxEntry<CardFeeds>): CompanyFeeds {
     return Object.fromEntries(
         Object.entries(cardFeeds?.settings?.companyCards ?? {}).filter(([key, value]) => {
@@ -922,6 +937,7 @@ export {
     isSelectedFeedExpired,
     getCompanyFeeds,
     isCustomFeed,
+    isCSVFeed,
     getBankCardDetailsImage,
     getSelectedFeed,
     getPlaidCountry,

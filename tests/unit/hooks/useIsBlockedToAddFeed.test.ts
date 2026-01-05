@@ -123,4 +123,83 @@ describe('useIsBlockedToAddFeed', () => {
         rerender(mockPolicyID);
         expect(result.current.isBlockedToAddNewFeeds).toBe(true);
     });
+
+    it('should return true if collect policy and pending feed exists (pending feeds count toward limit)', () => {
+        (useCardFeeds as jest.Mock).mockReturnValue([
+            {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'plaid.ins_19#123456': {
+                    feed: 'plaid.ins_19',
+                    domainID: 123456,
+                    pending: true,
+                    liabilityType: 'corporate',
+                },
+            },
+            {status: 'loaded'},
+        ]);
+        const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+        // Pending feeds count toward the limit, so user should be blocked from adding another feed
+        expect(result.current.isBlockedToAddNewFeeds).toBe(true);
+    });
+
+    it('should return false if collect policy and pending CSV feed exists (pending CSV feeds do not count toward limit)', () => {
+        (useCardFeeds as jest.Mock).mockReturnValue([
+            {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'csv#123456': {
+                    feed: 'csv#123456',
+                    customFeedName: 'CSV Upload',
+                    accountList: ['Card 0000'],
+                    pending: true,
+                },
+            },
+            {status: 'loaded'},
+        ]);
+        const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+        // Pending CSV feeds don't count toward the limit, so user can add another feed
+        expect(result.current.isBlockedToAddNewFeeds).toBe(false);
+    });
+
+    it('should return true if collect policy has both regular feed and pending feed', () => {
+        (useCardFeeds as jest.Mock).mockReturnValue([
+            {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'plaid.ins_19#123456': {
+                    feed: 'plaid.ins_19',
+                    domainID: 123456,
+                    pending: false,
+                    liabilityType: 'corporate',
+                },
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'oauth.chase.com#123456': {
+                    feed: 'oauth.chase.com',
+                    domainID: 123456,
+                    pending: true,
+                    liabilityType: 'corporate',
+                },
+            },
+            {status: 'loaded'},
+        ]);
+        const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+        // Both regular and pending feeds count, so user should be blocked
+        expect(result.current.isBlockedToAddNewFeeds).toBe(true);
+    });
+
+    it('should return true if collect policy has only pending feed (no regular feeds)', () => {
+        (useCardFeeds as jest.Mock).mockReturnValue([
+            {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                'oauth.chase.com#123456': {
+                    feed: 'oauth.chase.com',
+                    domainID: 123456,
+                    pending: true,
+                    liabilityType: 'corporate',
+                },
+            },
+            {status: 'loaded'},
+        ]);
+        const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+        // Pending feeds count toward the limit, so even with only a pending feed, user should be blocked
+        expect(result.current.isBlockedToAddNewFeeds).toBe(true);
+    });
 });

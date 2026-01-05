@@ -1,7 +1,6 @@
 import {useMemo} from 'react';
-import {getCompanyFeeds} from '@libs/CardUtils';
+import {getCompanyFeeds, isCSVFeed} from '@libs/CardUtils';
 import {isCollectPolicy} from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCardFeeds from './useCardFeeds';
 import usePolicy from './usePolicy';
@@ -35,12 +34,8 @@ function useIsBlockedToAddFeed(policyID?: string) {
         if (isLoading) {
             return 0;
         }
-        const nonCSVFeeds = Object.entries(companyFeeds ?? {}).filter(([feedKey]) => {
-            const lowerFeedKey = feedKey.toLowerCase();
-            // Exclude CSV feeds (feed types starting with "csv" or "ccupload", or containing "ccupload")
-            // Also exclude Expensify Cards which don't count toward the limit
-            return !lowerFeedKey.startsWith('csv') && !lowerFeedKey.startsWith('ccupload') && !feedKey.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV) && feedKey !== 'Expensify Card';
-        });
+        const feeds = companyFeeds ?? {};
+        const nonCSVFeeds = Object.keys(feeds).filter((feedKey) => !isCSVFeed(feedKey));
         return nonCSVFeeds.length;
     }, [isLoading, companyFeeds]);
 
