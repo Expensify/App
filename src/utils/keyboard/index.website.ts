@@ -48,8 +48,12 @@ const handleResize = () => {
 
 window.visualViewport?.addEventListener('resize', handleResize);
 
-const dismiss = (): Promise<void> => {
+const dismiss = (shouldSkipSafari = false): Promise<void> => {
     return new Promise((resolve) => {
+        if (shouldSkipSafari && isMobileSafari()) {
+            resolve();
+            return;
+        }
         if (!isVisible || !isMobile()) {
             resolve();
             return;
