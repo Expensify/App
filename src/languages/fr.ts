@@ -5280,7 +5280,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: "Vous n'avez créé aucune étiquette",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Ajoutez une étiquette pour suivre les projets, les lieux, les services et plus encore.',
-                subtitleHTML: `<muted-text><centered-text>Importez une feuille de calcul pour ajouter des tags afin de suivre les projets, les sites, les services, et plus encore. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">En savoir plus</a> sur le formatage des fichiers de tags.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Ajoutez des tags pour suivre les projets, les sites, les services, et plus encore. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">En savoir plus</a> sur le formatage des fichiers de tags pour l’importation.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>Vos tags sont actuellement importés depuis une connexion comptable. Rendez-vous dans la section <a href="${accountingPageURL}">Comptabilité</a> pour effectuer des modifications.</centered-text></muted-text>`,
             },

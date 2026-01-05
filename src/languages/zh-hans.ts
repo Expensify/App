@@ -5146,7 +5146,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '你尚未创建任何标签',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: '添加标签以跟踪项目、地点、部门等。',
-                subtitleHTML: `<muted-text><centered-text>导入电子表格以添加标签，用于跟踪项目、地点、部门等。<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">了解详情</a>，以获取有关标记文件格式的更多信息。</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>添加标签以跟踪项目、地点、部门等。<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">了解更多</a>关于用于导入的标签文件格式。</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>您的标签当前正从会计连接中导入。请前往<a href="${accountingPageURL}">会计</a>页面进行任何更改。</centered-text></muted-text>`,
             },
