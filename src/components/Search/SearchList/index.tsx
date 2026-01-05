@@ -120,6 +120,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 
+    /** Custom card names */
+    customCardNames?: Record<number, string>;
+
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
 
@@ -175,6 +178,7 @@ function SearchList({
     isMobileSelectionModeEnabled,
     newTransactions = [],
     violations,
+    customCardNames,
     onDEWModalOpen,
     selectedTransactions,
     ref,
@@ -445,6 +449,7 @@ function SearchList({
                         accountID={accountID}
                         isOffline={isOffline}
                         violations={violations}
+                        customCardNames={customCardNames}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
                     />
@@ -479,6 +484,7 @@ function SearchList({
             isOffline,
             violations,
             onDEWModalOpen,
+            customCardNames,
         ],
     );
 
@@ -538,6 +544,7 @@ function SearchList({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
                 selectedTransactions={selectedTransactions}
+                customCardNames={customCardNames}
             />
             <Modal
                 isVisible={isModalVisible}

@@ -3870,7 +3870,6 @@ ${
             deepDiveExpensifyCard: `<muted-text-label>Le transazioni Expensify Card verranno esportate automaticamente in un "Conto passività Expensify Card" creato con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">la nostra integrazione</a>.</muted-text-label>`,
         },
         receiptPartners: {
-            connect: 'Connetti ora',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Connesso a ${organizationName}` : 'Automatizza le spese di viaggio e di consegna dei pasti in tutta la tua organizzazione.',
@@ -3898,8 +3897,6 @@ ${
                 invitationFailure: 'Impossibile invitare il membro a Uber for Business',
                 autoInvite: 'Invita nuovi membri dello spazio di lavoro a Uber for Business',
                 autoRemove: 'Disattiva i membri rimossi dallo spazio di lavoro da Uber for Business',
-                bannerTitle: 'Expensify + Uber for Business',
-                bannerDescription: 'Collega Uber for Business per automatizzare le spese di viaggio e di consegna dei pasti in tutta la tua organizzazione.',
                 emptyContent: {
                     title: 'Nessun invito in sospeso',
                     subtitle: 'Evviva! Abbiamo cercato ovunque e non abbiamo trovato alcun invito in sospeso.',
@@ -5264,7 +5261,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Non hai creato alcun tag',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Aggiungi un tag per tenere traccia di progetti, sedi, reparti e altro.',
-                subtitleHTML: `<muted-text><centered-text>Importa un foglio di calcolo per aggiungere tag per tenere traccia di progetti, sedi, reparti e altro ancora. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Scopri di più</a> sulla formattazione dei file dei tag.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Aggiungi tag per monitorare progetti, sedi, reparti e altro. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Scopri di più</a> sulla formattazione dei file di tag per l’importazione.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>I tuoi tag vengono attualmente importati da una connessione contabile. Vai su <a href="${accountingPageURL}">contabilità</a> per apportare eventuali modifiche.</centered-text></muted-text>`,
             },
@@ -6588,6 +6585,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `ha modificato la formula del nome del report personalizzato in "${newValue}" (precedentemente "${oldValue}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',

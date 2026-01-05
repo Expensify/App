@@ -116,13 +116,12 @@ function mapTransactionItemToSelectedEntry(
 ): [string, SelectedTransactionInfo] {
     const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(item.report, item.reportAction, item.holdReportAction, item, item.policy);
     const canRejectRequest = item.report ? canRejectReportAction(currentUserLogin, item.report, item.policy) : false;
-    const amount = item.modifiedAmount ?? item.amount;
+    const amount = item.modifiedAmount || item.amount;
 
     return [
         item.keyForList,
         {
             isSelected: true,
-            canDelete: item.canDelete,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
@@ -143,12 +142,13 @@ function mapTransactionItemToSelectedEntry(
             groupCurrency: item.groupCurrency,
             groupExchangeRate: item.groupExchangeRate,
             reportID: item.reportID,
-            policyID: item.report?.policyID,
+            policyID: item.policyID,
             amount: allowNegativeAmount ? amount : Math.abs(amount),
             groupAmount: item.groupAmount,
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
+            reportAction: item.reportAction,
         },
     ];
 }
@@ -257,6 +257,7 @@ function Search({
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
@@ -554,7 +555,6 @@ function Search({
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
-                        canDelete: transactionItem.canDelete,
                         canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
@@ -564,6 +564,7 @@ function Search({
                         groupExchangeRate: transactionItem.groupExchangeRate,
                         currency: transactionItem.currency,
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
+                        reportAction: transactionItem.reportAction,
                     };
                 }
             }
@@ -607,7 +608,6 @@ function Search({
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
-                    canDelete: transactionItem.canDelete,
                     canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
@@ -617,6 +617,7 @@ function Search({
                     groupExchangeRate: transactionItem.groupExchangeRate,
                     currency: transactionItem.currency,
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
+                    reportAction: transactionItem.reportAction,
                 };
             }
         }
@@ -1167,6 +1168,7 @@ function Search({
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
+                    customCardNames={customCardNames}
                 />
                 <ConfirmModal
                     title={translate('customApprovalWorkflow.title')}
