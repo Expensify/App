@@ -93,8 +93,8 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as OnyxKey;
     const snapshotResult = originalUseOnyx(snapshotKey, snapshotOnyxOptions, dependencies);
 
-    // Merge original and snapshot onyx results
     const result = useMemo((): UseOnyxResult<TReturnValue> => {
+        // Merge snapshot data with live data if possible
         if (shouldUseSnapshot) {
             if (isPlainObject(originalResult[0]) && isPlainObject(snapshotResult[0])) {
                 return [{...(snapshotResult[0] as Object), ...(originalResult[0] as Object)}, originalResult[1]] as UseOnyxResult<TReturnValue>;
