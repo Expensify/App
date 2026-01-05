@@ -29,17 +29,17 @@ function OnyxListItemProvider(props: OnyxListItemProviderProps) {
     return (
         <ComposeProviders
             components={[
-                PersonalDetailsProvider,
-                BlockedFromConciergeProvider,
-                BetasProvider,
-                BetaConfigurationProvider,
-                SessionProvider,
-                PolicyCategoriesProvider,
-                PolicyTagsProvider,
-                ReportTransactionsAndViolationsProvider,
-                CardListProvider,
-                WorkspaceCardListProvider,
-                OnboardingValuesProvider,
+                // PersonalDetailsProvider,
+                // BlockedFromConciergeProvider,
+                // BetasProvider,
+                // BetaConfigurationProvider,
+                // SessionProvider,
+                // PolicyCategoriesProvider,
+                // PolicyTagsProvider,
+                // ReportTransactionsAndViolationsProvider,
+                // CardListProvider,
+                // WorkspaceCardListProvider,
+                // OnboardingValuesProvider,
             ]}
         >
             {props.children}
