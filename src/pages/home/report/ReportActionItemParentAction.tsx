@@ -117,6 +117,7 @@ function ReportActionItemParentAction({
     const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const ancestorReportNameValuePairsSelector = useCallback(
         (allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>) => {
@@ -176,14 +177,14 @@ function ReportActionItemParentAction({
                             {shouldDisplayThreadDivider && (
                                 <ThreadDivider
                                     ancestor={ancestor}
-                                    isLinkDisabled={!canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)}
+                                    isLinkDisabled={!canCurrentUserOpenReport(ancestorReport, allBetas, isAncestorReportArchived)}
                                 />
                             )}
                             <ReportActionItem
                                 allReports={allReports}
                                 policies={policies}
                                 onPress={
-                                    canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)
+                                    canCurrentUserOpenReport(ancestorReport, allBetas, isAncestorReportArchived)
                                         ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)
                                         : undefined
                                 }

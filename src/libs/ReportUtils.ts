@@ -1086,11 +1086,11 @@ Onyx.connectWithoutView({
     },
 });
 
-let allBetas: OnyxEntry<Beta[]>;
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (allBetas = value),
-});
+// let allBetas: OnyxEntry<Beta[]>;
+// Onyx.connectWithoutView({
+//     key: ONYXKEYS.BETAS,
+//     callback: (value) => (allBetas = value),
+// });
 
 let allTransactions: OnyxCollection<Transaction> = {};
 let reportsTransactions: Record<string, Transaction[]> = {};
@@ -6639,7 +6639,7 @@ function buildOptimisticInvoiceReport(
  * Returns the stateNum and statusNum for an expense report based on the policy settings
  * @param policy
  */
-function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, isEmptyOptimisticReport = false) {
+function getExpenseReportStateAndStatus(policy: OnyxEntry<Policy>, allBetas: OnyxEntry<Beta[]>, isEmptyOptimisticReport = false) {
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, allBetas);
     if (isASAPSubmitBetaEnabled) {
         return {
@@ -6689,6 +6689,7 @@ function buildOptimisticExpenseReport(
     payeeAccountID: number,
     total: number,
     currency: string,
+    allBetas: OnyxEntry<Beta[]>,
     nonReimbursableTotal = 0,
     parentReportActionID?: string,
     optimisticIOUReportID?: string,
@@ -6705,7 +6706,7 @@ function buildOptimisticExpenseReport(
     const policyDraft = allPolicyDrafts?.[`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`];
     const policy = policyReal ?? policyDraft;
 
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, allBetas, undefined);
 
     const created = DateUtils.getDBTime();
 
@@ -6751,8 +6752,16 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
-function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReport: OnyxEntry<Report>, parentReportActionID: string, policy: OnyxEntry<Policy>, timeOfCreation: string) {
-    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, true);
+function buildOptimisticEmptyReport(
+    reportID: string,
+    accountID: number,
+    parentReport: OnyxEntry<Report>,
+    parentReportActionID: string,
+    policy: OnyxEntry<Policy>,
+    timeOfCreation: string,
+    allBetas: OnyxEntry<Beta[]>,
+) {
+    const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, allBetas, true);
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
     const optimisticEmptyReport: OptimisticNewReport = {
         reportName: '',
@@ -9706,6 +9715,7 @@ function getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
+    allBetas: OnyxEntry<Beta[]>,
     filterDeprecatedTypes = false,
     isReportArchived = false,
     isRestrictedToPreferredPolicy = false,
@@ -9823,10 +9833,11 @@ function temporary_getMoneyRequestOptions(
     report: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     reportParticipants: number[],
+    allBetas: OnyxEntry<Beta[]>,
     isReportArchived = false,
     isRestrictedToPreferredPolicy = false,
 ): Array<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>> {
-    return getMoneyRequestOptions(report, policy, reportParticipants, true, isReportArchived, isRestrictedToPreferredPolicy) as Array<
+    return getMoneyRequestOptions(report, policy, reportParticipants, allBetas, true, isReportArchived, isRestrictedToPreferredPolicy) as Array<
         Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.SPLIT_EXPENSE>
     >;
 }
@@ -10037,6 +10048,7 @@ function canCreateRequest(
     policy: OnyxEntry<Policy>,
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     isReportArchived: boolean | undefined,
+    allBetas: OnyxEntry<Beta[]>,
     isRestrictedToPreferredPolicy = false,
 ): boolean {
     const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
@@ -10045,7 +10057,7 @@ function canCreateRequest(
         return false;
     }
 
-    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs, false, isReportArchived, isRestrictedToPreferredPolicy);
+    const requestOptions = getMoneyRequestOptions(report, policy, participantAccountIDs, allBetas, false, isReportArchived, isRestrictedToPreferredPolicy);
     requestOptions.push(CONST.IOU.TYPE.CREATE);
 
     return requestOptions.includes(iouType);
@@ -10416,7 +10428,7 @@ function isReportParticipant(accountID: number | undefined, report: OnyxEntry<Re
 /**
  * Check to see if the current user has access to view the report.
  */
-function canCurrentUserOpenReport(report: OnyxEntry<Report>, isReportArchived = false): boolean {
+function canCurrentUserOpenReport(report: OnyxEntry<Report>, allBetas: OnyxEntry<Beta[]>, isReportArchived = false): boolean {
     return (isReportParticipant(currentUserAccountID, report) || isPublicRoom(report)) && canAccessReport(report, allBetas, isReportArchived);
 }
 
@@ -10879,6 +10891,7 @@ function shouldCreateNewMoneyRequestReport(
     existingIOUReport: OnyxInputOrEntry<Report> | undefined,
     chatReport: OnyxInputOrEntry<Report>,
     isScanRequest: boolean,
+    allBetas: OnyxEntry<Beta[]>,
     action?: IOUAction,
 ): boolean {
     if (existingIOUReport && !!existingIOUReport.errorFields?.createChat) {

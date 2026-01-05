@@ -89,6 +89,7 @@ function IOURequestStepDistanceManual({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isCreatingNewRequest = !(backTo || isEditing);
@@ -223,6 +224,7 @@ function IOURequestStepDistanceManual({
                             },
                             isASAPSubmitBetaEnabled,
                             quickAction,
+                            allBetas,
                         });
                         return;
                     }
@@ -253,6 +255,7 @@ function IOURequestStepDistanceManual({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        allBetas,
                     });
                     return;
                 }
@@ -319,6 +322,7 @@ function IOURequestStepDistanceManual({
             transactionViolations,
             currentUserPersonalDetails.accountID,
             quickAction,
+            allBetas,
         ],
     );
 

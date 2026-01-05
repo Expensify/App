@@ -193,6 +193,7 @@ describe('GoogleTagManagerTest', () => {
             },
             isASAPSubmitBetaEnabled: false,
             quickAction: undefined,
+            allBetas: [CONST.BETAS.ALL],
         });
 
         await waitForBatchedUpdatesWithAct();

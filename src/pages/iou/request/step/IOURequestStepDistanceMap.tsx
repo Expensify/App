@@ -152,7 +152,7 @@ function IOURequestStepDistanceMap({
     const customUnitRateID = getRateID(transaction);
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
-
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -355,6 +355,7 @@ function IOURequestStepDistanceMap({
                         },
                         isASAPSubmitBetaEnabled,
                         quickAction,
+                        allBetas,
                     });
                     return;
                 }
@@ -386,6 +387,7 @@ function IOURequestStepDistanceMap({
                     transactionViolations,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    allBetas,
                 });
                 return;
             }

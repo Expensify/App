@@ -180,6 +180,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    Beta,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -2865,11 +2866,12 @@ function buildNewReportOptimisticData(
     reportPreviewReportActionID: string,
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
+    allBetas: OnyxEntry<Beta[]>,
 ) {
     const {accountID, login, email} = creatorPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport, reportPreviewReportActionID, policy, timeOfCreation);
+    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport, reportPreviewReportActionID, policy, timeOfCreation, allBetas);
 
     const optimisticNextStep = buildOptimisticNextStep({
         report: optimisticReportData,
@@ -3072,6 +3074,7 @@ function createNewReport(
     isASAPSubmitBetaEnabled: boolean,
     policy: OnyxEntry<Policy>,
     shouldNotifyNewAction = false,
+    allBetas: OnyxEntry<Beta[]>,
     shouldDismissEmptyReportsConfirmation?: boolean,
 ) {
     const optimisticReportID = generateReportID();
@@ -3086,6 +3089,7 @@ function createNewReport(
         reportPreviewReportActionID,
         hasViolationsParam,
         isASAPSubmitBetaEnabled,
+        allBetas,
     );
 
     if (shouldDismissEmptyReportsConfirmation) {

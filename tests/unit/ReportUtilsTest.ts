@@ -3249,8 +3249,8 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const withoutRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, false);
-                const withRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, true);
+                const withoutRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, [CONST.BETAS.ALL], false);
+                const withRestrictionsResult = canCreateRequest(selfDMReport, undefined, CONST.IOU.TYPE.TRACK, false, [CONST.BETAS.ALL], true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(true);
@@ -3269,8 +3269,8 @@ describe('ReportUtils', () => {
                     },
                 };
 
-                const withoutRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, false);
-                const withRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, true);
+                const withoutRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], false);
+                const withRestrictionsResult = canCreateRequest(dmReport, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -3281,8 +3281,8 @@ describe('ReportUtils', () => {
             it('should restrict SPLIT requests for group chats', () => {
                 const groupChat = LHNTestUtils.getFakeReport([currentUserAccountID, ...participantsAccountIDs.slice(0, 3)]);
 
-                const withoutRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, false);
-                const withRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, true);
+                const withoutRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], false);
+                const withRestrictionsResult = canCreateRequest(groupChat, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -3296,8 +3296,8 @@ describe('ReportUtils', () => {
                     chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
                 };
 
-                const withoutRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, false);
-                const withRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, true);
+                const withoutRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], false);
+                const withRestrictionsResult = canCreateRequest(policyRoom, undefined, CONST.IOU.TYPE.SPLIT, false, [CONST.BETAS.ALL], true);
 
                 expect(withoutRestrictionsResult).toBe(true);
                 expect(withRestrictionsResult).toBe(false);
@@ -3671,7 +3671,7 @@ describe('ReportUtils', () => {
         it('should return canUnholdRequest as true for a held duplicate transaction', async () => {
             const chatReport: Report = {reportID: '1'};
             const reportPreviewReportActionID = '8';
-            const expenseReport = buildOptimisticExpenseReport(chatReport.reportID, '123', currentUserAccountID, 122, 'USD', undefined, reportPreviewReportActionID);
+            const expenseReport = buildOptimisticExpenseReport(chatReport.reportID, '123', currentUserAccountID, 122, 'USD', [CONST.BETAS.ALL], undefined, reportPreviewReportActionID);
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -4158,7 +4158,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return true when the report has outstanding violations', async () => {
-            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD', [CONST.BETAS.ALL]);
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -4473,7 +4473,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false when the report is the single transaction thread', async () => {
-            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD');
+            const expenseReport = buildOptimisticExpenseReport('212', '123', 100, 122, 'USD', [CONST.BETAS.ALL]);
             const expenseTransaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -8918,7 +8918,7 @@ describe('ReportUtils', () => {
 
             const total = 100;
             const currency = CONST.CURRENCY.USD;
-            const expenseReport = buildOptimisticExpenseReport(chatReportID, undefined, 1, total, currency);
+            const expenseReport = buildOptimisticExpenseReport(chatReportID, undefined, 1, total, currency, [CONST.BETAS.ALL]);
             expect(expenseReport.reportName).toBe(`${fakePolicy.name} owes ${convertToDisplayString(-total, currency)}`);
         });
     });

@@ -116,6 +116,7 @@ function IOURequestStepScan({
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [receiptFiles, setReceiptFiles] = useState<ReceiptFile[]>([]);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const policy = usePolicy(report?.policyID);
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
@@ -339,6 +340,7 @@ function IOURequestStepScan({
                         shouldHandleNavigation: index === files.length - 1,
                         isASAPSubmitBetaEnabled,
                         quickAction,
+                        allBetas,
                     });
                 } else {
                     requestMoney({
@@ -367,6 +369,7 @@ function IOURequestStepScan({
                         currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                         transactionViolations,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        allBetas,
                     });
                 }
             }
@@ -383,6 +386,7 @@ function IOURequestStepScan({
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
+            allBetas,
         ],
     );
 

@@ -261,6 +261,7 @@ function IOURequestStepConfirmation({
     const isCategorizingTrackExpense = action === CONST.IOU.ACTION.CATEGORIZE;
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const isTestTransaction = transaction?.participants?.some((participant) => isSelectedManagerMcTest(participant.login));
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && !isTestTransaction;
     const [isConfirmed, setIsConfirmed] = useState(false);
@@ -613,6 +614,7 @@ function IOURequestStepConfirmation({
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                     transactionViolations,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    allBetas,
                 });
                 existingIOUReport = iouReport;
             }
@@ -643,6 +645,7 @@ function IOURequestStepConfirmation({
             transactionViolations,
             isManualDistanceRequest,
             policyRecentlyUsedCurrencies,
+            allBetas,
         ],
     );
 
@@ -688,6 +691,7 @@ function IOURequestStepConfirmation({
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 hasViolations,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                allBetas,
             });
         },
         [
@@ -702,6 +706,7 @@ function IOURequestStepConfirmation({
             isASAPSubmitBetaEnabled,
             hasViolations,
             policyRecentlyUsedCurrencies,
+            allBetas,
         ],
     );
 
@@ -761,6 +766,7 @@ function IOURequestStepConfirmation({
                     shouldHandleNavigation: index === transactions.length - 1,
                     isASAPSubmitBetaEnabled,
                     quickAction,
+                    allBetas,
                 });
             }
         },
@@ -782,6 +788,7 @@ function IOURequestStepConfirmation({
             archivedReportsIdSet,
             isASAPSubmitBetaEnabled,
             quickAction,
+            allBetas,
         ],
     );
 
@@ -827,6 +834,7 @@ function IOURequestStepConfirmation({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                allBetas,
             });
         },
         [
@@ -849,6 +857,7 @@ function IOURequestStepConfirmation({
             transactionViolations,
             quickAction,
             policyRecentlyUsedCurrencies,
+            allBetas,
         ],
     );
 
@@ -948,6 +957,7 @@ function IOURequestStepConfirmation({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        allBetas,
                     });
                 }
                 return;
@@ -978,6 +988,7 @@ function IOURequestStepConfirmation({
                         transactionViolations,
                         quickAction,
                         policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                        allBetas,
                     });
                 }
                 return;
@@ -1113,6 +1124,7 @@ function IOURequestStepConfirmation({
             userLocation,
             submitPerDiemExpense,
             policyRecentlyUsedCurrencies,
+            allBetas,
         ],
     );
 

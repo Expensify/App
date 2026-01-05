@@ -82,6 +82,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const searchHash = searchContext?.currentSearchHash ?? CONST.DEFAULT_NUMBER_ID;
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`, {canBeMissing: true});
     const allTransactions = useAllTransactions();
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
@@ -213,6 +214,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             currentUserPersonalDetails,
             transactionViolations,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+            allBetas: [CONST.BETAS.ALL],
         });
     }, [
         splitExpenses,

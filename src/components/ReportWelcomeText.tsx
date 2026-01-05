@@ -54,6 +54,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const {environmentURL} = useEnvironment();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector, canBeMissing: false});
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`, {canBeMissing: true});
@@ -64,7 +65,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isSystemChat = isSystemChatReportUtils(report);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat);
     const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
-    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, isReportArchived, isRestrictedToPreferredPolicy);
+    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, allBetas, isReportArchived, isRestrictedToPreferredPolicy);
     const policyName = getPolicyName({report});
 
     const filteredOptions = moneyRequestOptions.filter(

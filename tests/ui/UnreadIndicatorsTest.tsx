@@ -712,6 +712,7 @@ describe('Unread Indicators', () => {
             },
             isASAPSubmitBetaEnabled: true,
             quickAction: undefined,
+            allBetas: [CONST.BETAS.ALL],
         });
         await waitForBatchedUpdates();
 

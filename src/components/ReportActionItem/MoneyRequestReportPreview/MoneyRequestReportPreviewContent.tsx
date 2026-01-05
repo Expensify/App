@@ -171,7 +171,7 @@ function MoneyRequestReportPreviewContent({
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
-
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false) => canIOUBePaidIOUActions(iouReport, chatReport, policy, transactions, shouldShowOnlyPayElsewhere),
         [iouReport, chatReport, policy, transactions],
@@ -262,9 +262,10 @@ function MoneyRequestReportPreviewContent({
                         methodID,
                         paymentMethod,
                         activePolicy,
+                        allBetas,
                     });
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy, policy);
+                    payMoneyRequest(type, chatReport, iouReport, introSelected, allBetas, undefined, true, activePolicy, policy);
                 }
             }
         },
@@ -280,6 +281,7 @@ function MoneyRequestReportPreviewContent({
             currentUserAccountID,
             currentUserEmail,
             policy,
+            allBetas,
         ],
     );
 
@@ -295,7 +297,7 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
+            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, allBetas, true);
         }
     };
 

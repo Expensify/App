@@ -46,6 +46,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const {translate} = useLocalize();
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [offset, setOffset] = useState(0);
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const [selectedIds, setSelectedIds] = useState(new Set<string>());
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
@@ -177,6 +178,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     session?.email ?? '',
                     transactionViolations,
                     policyRecentlyUsedCurrencies ?? [],
+                    allBetas,
                 );
             } else {
                 changeTransactionsReport(

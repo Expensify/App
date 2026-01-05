@@ -41,6 +41,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const {translate} = useLocalize();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
 
     const reportID = report?.reportID;
@@ -90,7 +91,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
 
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
-        completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, isASAPSubmitBetaEnabled, transactionViolations, session?.email);
+        completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, isASAPSubmitBetaEnabled, transactionViolations, allBetas, session?.email);
     }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, transactionViolations]);
 
     return (

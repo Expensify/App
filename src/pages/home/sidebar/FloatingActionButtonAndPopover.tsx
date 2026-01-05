@@ -240,6 +240,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 isASAPSubmitBetaEnabled,
                 defaultChatEnabledPolicy,
                 false,
+                allBetas,
                 shouldDismissEmptyReportsConfirmation,
             );
             Navigation.setNavigationActionToMicrotaskQueue(() => {
@@ -251,7 +252,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                 );
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, isReportInSearch],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, isReportInSearch, allBetas],
     );
 
     const {openCreateReportConfirmation: openFabCreateReportConfirmation, CreateReportConfirmationModal: FabCreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
@@ -444,7 +445,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
         };
 
         if (quickAction?.action && quickActionReport) {
-            if (!isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, isRestrictedToPreferredPolicy)) {
+            if (!isQuickActionAllowed(quickAction, quickActionReport, quickActionPolicy, isReportArchived, allBetas, isRestrictedToPreferredPolicy)) {
                 return [];
             }
             const onSelected = () => {

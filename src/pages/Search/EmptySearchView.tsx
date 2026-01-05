@@ -178,7 +178,7 @@ function EmptySearchViewContent({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: true});
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, '');
-
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         canBeMissing: true,
         selector: hasTransactionsSelector,
@@ -223,6 +223,7 @@ function EmptySearchViewContent({
                 isASAPSubmitBetaEnabled,
                 defaultChatEnabledPolicy,
                 false,
+                allBetas,
                 shouldDismissEmptyReportsConfirmation,
             );
             Navigation.setNavigationActionToMicrotaskQueue(() => {

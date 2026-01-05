@@ -67,7 +67,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID ?? CONST.DEFAULT_NUMBER_ID, email ?? '');
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED, {canBeMissing: true});
-
+    const [allBetas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -122,6 +122,7 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
                 hasViolations,
                 policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
                 false,
+                allBetas,
                 shouldDismissEmptyReportsConfirmation,
             );
             const selectedTransactionsKeys = Object.keys(selectedTransactions);
