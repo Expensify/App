@@ -207,7 +207,6 @@ function MoneyReportHeader({
     const activePolicy = usePolicy(activePolicyID);
     const [integrationsExportTemplates] = useOnyx(ONYXKEYS.NVP_INTEGRATION_SERVER_EXPORT_TEMPLATES, {canBeMissing: true});
     const [csvExportLayouts] = useOnyx(ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS, {canBeMissing: true});
-    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'Buildings',
         'Plus',

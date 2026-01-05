@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
@@ -731,7 +731,8 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[], vi
         return false;
     }
 
-    const reportTransactionViolations = (violations ? violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reportTransaction.transactionID}`] : transactionViolations) ?? [];
+    const reportTransactionViolations: TransactionViolation[] =
+        (violations ? violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reportTransaction.transactionID}`] : transactionViolations) ?? [];
 
     const hasCustomUnitOutOfPolicyViolation = reportTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
 
