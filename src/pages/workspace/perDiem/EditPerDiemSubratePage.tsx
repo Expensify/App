@@ -48,7 +48,7 @@ function EditPerDiemSubratePage({route}: EditPerDiemSubratePageProps) {
             if (!subrateTrimmed) {
                 errors.subrate = translate('common.error.fieldRequired');
             } else if (subrateTrimmed.length > CONST.MAX_LENGTH_256) {
-                errors.subrate = translate('common.error.characterLimitExceedCounter', {length: subrateTrimmed.length, limit: CONST.MAX_LENGTH_256});
+                errors.subrate = translate('common.error.characterLimitExceedCounter', subrateTrimmed.length, CONST.MAX_LENGTH_256);
             }
 
             return errors;
