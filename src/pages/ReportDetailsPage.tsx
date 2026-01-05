@@ -324,6 +324,8 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
         getReportPrivateNote(report?.reportID);
     }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const leaveChat = () => {
         if (isChatThread && report.parentReportID) {
             // For threads, navigate to parent report first to avoid white screen,
