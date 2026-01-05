@@ -601,7 +601,7 @@ function MoneyReportHeader({
 
     const duplicateExpenseTransaction = useCallback(
         (transactionList: OnyxTypes.Transaction[]) => {
-            if (!transactionList.length || !policy) {
+            if (!transactionList.length || !policy?.id) {
                 return;
             }
 
@@ -624,7 +624,7 @@ function MoneyReportHeader({
                 );
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction, policyRecentlyUsedCurrencies, policy.id],
+        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction, policyRecentlyUsedCurrencies, policy?.id],
     );
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
