@@ -33,7 +33,6 @@ import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
-    BankAccountList,
     PersonalDetails,
     Policy,
     PolicyCategories,
@@ -393,7 +392,6 @@ function dismissDuplicateTransactionViolation(
     expenseReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     isASAPSubmitBetaEnabled: boolean,
-    bankAccountList?: OnyxEntry<BankAccountList>,
 ) {
     const currentTransactionViolations = transactionIDs.map((id) => ({transactionID: id, violations: allTransactionViolation?.[id] ?? []}));
     const currentTransactions = transactionIDs.map((id) => allTransactions?.[id]);
@@ -421,7 +419,6 @@ function dismissDuplicateTransactionViolation(
             currentUserEmailParam: dismissedPersonalDetails.login ?? '',
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
-            bankAccountList,
         });
         const optimisticNextStep = buildOptimisticNextStep({
             report: expenseReport,
@@ -432,7 +429,6 @@ function dismissDuplicateTransactionViolation(
             currentUserEmailParam: dismissedPersonalDetails.login ?? '',
             hasViolations: hasOtherViolationsBesideDuplicates,
             isASAPSubmitBetaEnabled,
-            bankAccountList,
         });
 
         optimisticData.push({

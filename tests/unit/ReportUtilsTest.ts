@@ -5583,11 +5583,11 @@ describe('ReportUtils', () => {
         afterAll(() => Onyx.clear());
 
         it('should return false for admin of a group policy with reimbursement enabled and report not approved', () => {
-            expect(isPayer(currentUserAccountID, currentUserEmail, unapprovedReport, {}, undefined, false)).toBe(false);
+            expect(isPayer(currentUserAccountID, currentUserEmail, unapprovedReport, undefined, undefined, false)).toBe(false);
         });
 
         it('should return false for non-admin of a group policy', () => {
-            expect(isPayer(currentUserAccountID, currentUserEmail, approvedReport, {}, undefined, false)).toBe(false);
+            expect(isPayer(currentUserAccountID, currentUserEmail, approvedReport, undefined, undefined, false)).toBe(false);
         });
 
         it('should return true for a reimburser of a group policy on a closed report', async () => {
@@ -5602,7 +5602,7 @@ describe('ReportUtils', () => {
                 policyID: policyTest.id,
             };
 
-            expect(isPayer(currentUserAccountID, currentUserEmail, closedReport, {}, undefined, false)).toBe(true);
+            expect(isPayer(currentUserAccountID, currentUserEmail, closedReport, undefined, undefined, false)).toBe(true);
         });
 
         it('should return true for admin with bank account access via sharees', () => {

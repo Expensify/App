@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
-import type {BankAccountList, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {Message} from '@src/types/onyx/ReportNextStepDeprecated';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
@@ -39,7 +39,6 @@ type BuildNextStepNewParams = {
      * This is necessary in the case where report actions are not yet updated to determine the bypass action.
      */
     bypassNextApproverID?: number;
-    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 function buildNextStepMessage(nextStep: ReportNextStep, translate: LocaleContextProps['translate'], currentUserAccountID: number): string {
@@ -79,7 +78,6 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         isUnapprove,
         isReopen,
         bypassNextApproverID,
-        bankAccountList,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -214,7 +212,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                    actorAccountID: isPayer(currentUserAccountIDParam, currentUserEmailParam, report, bankAccountList) ? currentUserAccountIDParam : -1,
+                    actorAccountID: isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined) ? currentUserAccountIDParam : -1,
                 };
             }
             break;
@@ -232,7 +230,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED:
-            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, bankAccountList)) {
+            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined)) {
                 nextStep = nextStepNoActionRequired;
                 break;
             }
@@ -352,7 +350,6 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
         isUnapprove,
         isReopen,
         bypassNextApproverID,
-        bankAccountList,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -618,7 +615,7 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
                     {
                         text: 'Waiting for ',
                     },
-                    isPayer(currentUserAccountIDParam, currentUserEmailParam, report, bankAccountList)
+                    isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined)
                         ? {
                               text: `you`,
                               type: 'strong',
@@ -655,14 +652,14 @@ function buildNextStepNew(params: BuildNextStepNewParams): ReportNextStepDepreca
 
         // Generates an optimistic nextStep once a report has been approved
         case CONST.REPORT.STATUS_NUM.APPROVED: {
-            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, bankAccountList) || reimbursableSpend === 0) {
+            if (isInvoiceReport(report) || !isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined) || reimbursableSpend === 0) {
                 optimisticNextStep = noActionRequired;
 
                 break;
             }
             // Self review
             let payerMessage: Message;
-            if (isPayer(currentUserAccountIDParam, currentUserEmailParam, report, bankAccountList)) {
+            if (isPayer(currentUserAccountIDParam, currentUserEmailParam, report, undefined)) {
                 payerMessage = {text: 'you', type: 'strong'};
             } else if (reimburserAccountID === -1) {
                 payerMessage = {text: 'an admin'};

@@ -10457,11 +10457,7 @@ function canIOUBePaid(
 }
 
 function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxEntry<OnyxTypes.Session>, bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>) {
-    return (
-        isPayerReportUtils(session?.accountID, session?.email, iouReport, bankAccountList, undefined, false) &&
-        (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) &&
-        isExpenseReport(iouReport)
-    );
+    return isPayerReportUtils(session?.accountID, session?.email, iouReport, bankAccountList) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
 }
 
 function canSubmitReport(
