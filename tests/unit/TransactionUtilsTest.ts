@@ -1334,4 +1334,182 @@ describe('TransactionUtils', () => {
             expect(result.at(0)?.accountID).toBe(CURRENT_USER_ID);
         });
     });
+
+    describe('isCategoryBeingAnalyzed', () => {
+        it('should return false for undefined transaction', () => {
+            expect(TransactionUtils.isCategoryBeingAnalyzed(undefined)).toBe(false);
+        });
+
+        it('should return false when category is not missing', () => {
+            const transaction = generateTransaction({
+                category: 'Food',
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false for partial transactions (empty merchant and zero amount)', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                amount: 0,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return true when pendingAction is ADD and category is missing', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
+        });
+
+        it('should return true when within auto-categorization grace period', () => {
+            // Set pendingAutoCategorizationTime to 30 seconds ago (within 1 minute grace period)
+            const thirtySecondsAgo = new Date(Date.now() - 30 * 1000);
+            const pendingAutoCategorizationTime = thirtySecondsAgo.toISOString().replace('T', ' ').replace('Z', '');
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                comment: {
+                    pendingAutoCategorizationTime,
+                },
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(true);
+        });
+
+        it('should return false when auto-categorization grace period has passed', () => {
+            // Set pendingAutoCategorizationTime to 2 minutes ago (outside 1 minute grace period)
+            const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+            const pendingAutoCategorizationTime = twoMinutesAgo.toISOString().replace('T', ' ').replace('Z', '');
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: undefined,
+                comment: {
+                    pendingAutoCategorizationTime,
+                },
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false when pendingAutoCategorizationTime is invalid', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: undefined,
+                comment: {
+                    pendingAutoCategorizationTime: 'invalid-date',
+                },
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false when category is Uncategorized but no pending action or auto-categorization', () => {
+            const transaction = generateTransaction({
+                category: 'Uncategorized',
+                merchant: 'Some Merchant',
+                amount: 100,
+                pendingAction: undefined,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false for unreported expenses', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false for invoice expenses', async () => {
+            const invoiceReportID = 'invoice123';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {
+                reportID: invoiceReportID,
+                type: CONST.REPORT.TYPE.INVOICE,
+            });
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: invoiceReportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+    });
+
+    describe('shouldReuseInitialTransaction', () => {
+        const initialTransaction = generateTransaction({
+            transactionID: '1',
+            receipt: {},
+        });
+
+        it('should return false if initialTransaction is missing', () => {
+            expect(TransactionUtils.shouldReuseInitialTransaction(undefined, true, 0, true, [])).toBe(false);
+        });
+
+        it('should return true if shouldAcceptMultipleFiles is false regardless of index', () => {
+            expect(TransactionUtils.shouldReuseInitialTransaction(initialTransaction, false, 1, true, [])).toBe(true);
+        });
+
+        it('should return false if index is not 0', () => {
+            expect(TransactionUtils.shouldReuseInitialTransaction(initialTransaction, true, 1, true, [])).toBe(false);
+        });
+
+        it('should return true if isMultiScanEnabled is false', () => {
+            expect(TransactionUtils.shouldReuseInitialTransaction(initialTransaction, true, 0, false, [])).toBe(true);
+        });
+
+        it('should return true if isMultiScanEnabled is true, transactions length is 1, and initialTransaction has no receipt source', () => {
+            const transactionWithNoReceiptSource = generateTransaction({
+                ...initialTransaction,
+                receipt: {source: ''},
+            });
+            expect(TransactionUtils.shouldReuseInitialTransaction(transactionWithNoReceiptSource, true, 0, true, [initialTransaction])).toBe(true);
+        });
+
+        it('should return true if isMultiScanEnabled is true, transactions length is 1, and initialTransaction is a test receipt', () => {
+            const testReceiptTransaction = generateTransaction({
+                ...initialTransaction,
+                receipt: {source: 'source', isTestReceipt: true},
+            });
+            expect(TransactionUtils.shouldReuseInitialTransaction(testReceiptTransaction, true, 0, true, [initialTransaction])).toBe(true);
+        });
+
+        it('should return false if isMultiScanEnabled is true and transactions length is not 1', () => {
+            expect(TransactionUtils.shouldReuseInitialTransaction(initialTransaction, true, 0, true, [])).toBe(false);
+            expect(TransactionUtils.shouldReuseInitialTransaction(initialTransaction, true, 0, true, [initialTransaction, initialTransaction])).toBe(false);
+        });
+
+        it('should return false if isMultiScanEnabled is true, transactions length is 1, and initialTransaction has a receipt source and is not a test receipt', () => {
+            const transactionWithReceiptSource = generateTransaction({
+                ...initialTransaction,
+                receipt: {source: 'source'},
+            });
+            expect(TransactionUtils.shouldReuseInitialTransaction(transactionWithReceiptSource, true, 0, true, [initialTransaction])).toBe(false);
+        });
+    });
 });

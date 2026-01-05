@@ -1,9 +1,12 @@
 import Computer from '@assets/images/computer.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import LaptopOnDeskDeprecated from '@assets/images/laptop-on-desk-deprecated.svg';
 import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import LaptopWithSecondScreenSync from '@assets/images/laptop-with-second-screen-sync.svg';
 import LaptopWithSecondScreenX from '@assets/images/laptop-with-second-screen-x.svg';
+import PendingTravel from '@assets/images/pending-travel.svg';
+import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
@@ -13,7 +16,6 @@ import BlueShield from '@assets/images/simple-illustrations/simple-illustration_
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
-import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
 import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
@@ -46,7 +48,6 @@ import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 export {
     Encryption,
     ChatBubbles,
-    PinkCar,
     Computer,
     Clock,
     EmailAddress,
@@ -86,6 +87,9 @@ export {
     Filters,
     TurtleInShell,
     Flash,
+    PendingTravel,
+    EmptyStateTravel,
     EmptyShelves,
     BlueShield,
+    LaptopOnDeskDeprecated,
 };
