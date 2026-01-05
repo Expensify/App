@@ -1198,17 +1198,13 @@ function buildUserReadableQueryString(
     currentUserAccountID: number,
     autoCompleteWithSpace = false,
 ) {
-    const {type, status, groupBy, policyID, rawFilterList, flatFilters: filters = []} = queryJSON;
+    const {type, status, groupBy, columns, policyID, rawFilterList, flatFilters: filters = []} = queryJSON;
 
     if (rawFilterList && rawFilterList.length > 0) {
         const segments: string[] = [];
 
         for (const rawFilter of rawFilterList) {
             if (!rawFilter) {
-                continue;
-            }
-
-            if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS) {
                 continue;
             }
 
