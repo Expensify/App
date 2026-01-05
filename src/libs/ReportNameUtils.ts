@@ -25,6 +25,7 @@ import {convertToDisplayString} from './CurrencyUtils';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
+// eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
@@ -40,6 +41,7 @@ import {
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
+    getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getRenamedAction,
     getReopenedMessage,
@@ -71,6 +73,7 @@ import {
     isTransactionThread,
     isUnapprovedAction,
 } from './ReportActionsUtils';
+// eslint-disable-next-line import/no-cycle
 import {
     formatReportLastMessageText,
     getDisplayNameForParticipant,
@@ -434,6 +437,9 @@ function computeReportNameBasedOnReportAction(parentReportAction?: ReportAction,
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE)) {
+        return getPolicyChangeLogDefaultTitleMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && getOriginalMessage(parentReportAction)?.resolution) {
