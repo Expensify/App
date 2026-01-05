@@ -11,6 +11,4 @@ function ReportVerifyAccountPage({route}: ReportVerifyAccountPageProps) {
     return <VerifyAccountPageBase navigateBackTo={ROUTES.REPORT_WITH_ID.getRoute(route.params.reportID)} />;
 }
 
-ReportVerifyAccountPage.displayName = 'ReportVerifyAccountPage';
-
 export default ReportVerifyAccountPage;

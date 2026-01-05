@@ -120,7 +120,8 @@ function ReportActionItemContentCreated({
                     <View>
                         <MoneyRequestView
                             allReports={allReports}
-                            report={report}
+                            transactionThreadReport={report}
+                            parentReportID={report?.parentReportID}
                             expensePolicy={policy}
                             shouldShowAnimatedBackground
                         />
@@ -182,7 +183,8 @@ function ReportActionItemContentCreated({
                             <View>
                                 <MoneyRequestView
                                     allReports={allReports}
-                                    report={transactionThreadReport}
+                                    transactionThreadReport={transactionThreadReport}
+                                    parentReportID={transactionThreadReport?.parentReportID}
                                     expensePolicy={policy}
                                     shouldShowAnimatedBackground={false}
                                 />
@@ -209,8 +211,6 @@ function ReportActionItemContentCreated({
         />
     );
 }
-
-ReportActionItemContentCreated.displayName = 'ReportActionItemContentCreated';
 
 export default memo(
     ReportActionItemContentCreated,

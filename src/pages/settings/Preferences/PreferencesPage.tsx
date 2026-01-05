@@ -18,7 +18,6 @@ import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalPolicy} from '@libs/PolicyUtils';
 import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import {isFullySupportedLocale, LOCALE_TO_LANGUAGE_STRING} from '@src/CONST/LOCALES';
@@ -38,7 +37,9 @@ function PreferencesPage() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME, {canBeMissing: true});
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
-    const personalPolicy = usePolicy(getPersonalPolicy()?.id);
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+
+    const personalPolicy = usePolicy(personalPolicyID);
 
     const paymentCurrency = personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -51,7 +52,7 @@ function PreferencesPage() {
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={PreferencesPage.displayName}
+            testID="PreferencesPage"
         >
             <HeaderWithBackButton
                 title={translate('common.preferences')}
@@ -133,7 +134,5 @@ function PreferencesPage() {
         </ScreenWrapper>
     );
 }
-
-PreferencesPage.displayName = 'PreferencesPage';
 
 export default PreferencesPage;

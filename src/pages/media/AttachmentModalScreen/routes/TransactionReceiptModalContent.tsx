@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 // eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
+import useAllTransactions from '@hooks/useAllTransactions';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -12,6 +13,7 @@ import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt
 import {openReport} from '@libs/actions/Report';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
@@ -29,7 +31,7 @@ import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
-    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, isFromReviewDuplicates: isFromReviewDuplicatesParam, mergeTransactionID} = route.params;
+    const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID} = route.params;
 
     const icons = useMemoizedLazyExpensifyIcons(['Download']);
     const {translate} = useLocalize();
@@ -37,15 +39,16 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
-    const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
-    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
+    const allTransactions = useAllTransactions();
+    const transactionMain = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const [reportMetadata = CONST.DEFAULT_REPORT_METADATA] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
 
     // If we have a merge transaction, we need to use the receipt from the merge transaction
-    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${mergeTransactionID}`, {canBeMissing: true});
+    const [mergeTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(mergeTransactionID)}`, {canBeMissing: true});
 
     const isDraftTransaction = !!action;
     const draftTransactionID = isDraftTransaction ? transactionID : undefined;
@@ -71,7 +74,6 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isLocalFile = receiptURIs.isLocalFile;
     const isAuthTokenRequired = !isLocalFile && !isDraftTransaction;
     const readonly = readonlyParam === 'true';
-    const isFromReviewDuplicates = isFromReviewDuplicatesParam === 'true';
     const source = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
@@ -162,9 +164,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        isTrackExpenseReportValue || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID || isFromReviewDuplicates
-            ? !transaction
-            : moneyRequestReportID !== transaction?.reportID;
+        isTrackExpenseReportValue || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORT_ID || readonly ? !transaction : moneyRequestReportID !== transaction?.reportID;
 
     const originalFileName = isDraftTransaction ? transaction?.receipt?.filename : receiptURIs?.filename;
     const headerTitle = translate('common.receipt');
@@ -267,6 +267,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                                 ),
                         });
                     },
+                    sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.REPLACE_RECEIPT,
                 });
             }
             if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID) {
@@ -274,6 +275,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     icon: icons.Download,
                     text: translate('common.download'),
                     onSelected: () => onDownloadAttachment({source: innerSource, file}),
+                    sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.DOWNLOAD_RECEIPT,
                 });
             }
 
@@ -284,6 +286,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     text: translate('receipt.deleteReceipt'),
                     onSelected: () => setIsDeleteReceiptConfirmModalVisible?.(true),
                     shouldCallAfterModalHide: true,
+                    sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.DELETE_RECEIPT,
                 });
             }
             return menuItems;
@@ -367,6 +370,5 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         />
     );
 }
-TransactionReceiptModalContent.displayName = 'TransactionReceiptModalContent';
 
 export default TransactionReceiptModalContent;

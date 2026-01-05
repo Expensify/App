@@ -60,7 +60,12 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
     const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
     const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
 
-    const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false, localeCompare);
+    const assigneeTooltipDetails = getDisplayNamesWithTooltips(
+        getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails),
+        false,
+        localeCompare,
+        formatPhoneNumber,
+    );
 
     const isOpen = isOpenTaskReport(report);
     const isCompleted = isCompletedTaskReport(report);
@@ -120,6 +125,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 ]}
                                 accessibilityLabel={taskTitle || translate('task.task')}
                                 disabled={isDisableInteractive}
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_TITLE}
                             >
                                 {({pressed}) => (
                                     <OfflineWithFeedback pendingAction={report?.pendingFields?.reportName}>
@@ -144,6 +150,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                                 caretSize={16}
                                                 accessibilityLabel={taskTitle || translate('task.task')}
                                                 disabled={!isTaskActionable}
+                                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_CHECKBOX}
                                             />
                                             <View style={[styles.flexRow, styles.flex1]}>
                                                 <RenderHTML html={taskTitle} />
@@ -176,6 +183,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                             numberOfLinesTitle={0}
                             interactive={!isDisableInteractive}
                             shouldUseDefaultCursorWhenDisabled
+                            sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_DESCRIPTION}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={report?.pendingFields?.managerID}>
@@ -196,6 +204,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 interactive={!isDisableInteractive}
                                 titleWithTooltips={assigneeTooltipDetails}
                                 shouldUseDefaultCursorWhenDisabled
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE}
                             />
                         ) : (
                             <MenuItemWithTopDescription
@@ -207,6 +216,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                 shouldGreyOutWhenDisabled={false}
                                 interactive={!isDisableInteractive}
                                 shouldUseDefaultCursorWhenDisabled
+                                sentryLabel={CONST.SENTRY_LABEL.TASK.VIEW_ASSIGNEE}
                             />
                         )}
                     </OfflineWithFeedback>
@@ -215,7 +225,5 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
         </ShowContextMenuContext.Provider>
     );
 }
-
-TaskView.displayName = 'TaskView';
 
 export default TaskView;
