@@ -127,6 +127,8 @@ function OptionRowLHNData({
     );
 }
 
+OptionRowLHNData.displayName = 'OptionRowLHNData';
+
 /**
  * This component is rendered in a list.
  * On scroll we want to avoid that a item re-renders

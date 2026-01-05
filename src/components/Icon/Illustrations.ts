@@ -16,7 +16,6 @@ import BlueShield from '@assets/images/simple-illustrations/simple-illustration_
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
-import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
 import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
@@ -49,7 +48,6 @@ import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 export {
     Encryption,
     ChatBubbles,
-    PinkCar,
     Computer,
     Clock,
     EmailAddress,

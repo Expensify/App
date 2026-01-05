@@ -48,6 +48,8 @@ function PopoverWithMeasuredContent(props: PopoverWithMeasuredContentProps) {
     return <PopoverWithMeasuredContentBase {...props} />;
 }
 
+PopoverWithMeasuredContent.displayName = 'PopoverWithMeasuredContent';
+
 export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => {
     if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {
         return true;

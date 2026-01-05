@@ -10,10 +10,10 @@ import useCompanyCards from '@hooks/useCompanyCards';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getDomainOrWorkspaceAccountID, isMaskedCardNumberEqual} from '@libs/CardUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
 import WorkspaceCompanyCardPageEmptyState from '@pages/workspace/companyCards/WorkspaceCompanyCardPageEmptyState';
 import WorkspaceCompanyCardsFeedAddedEmptyPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedAddedEmptyPage';
 import WorkspaceCompanyCardsFeedPendingPage from '@pages/workspace/companyCards/WorkspaceCompanyCardsFeedPendingPage';
@@ -44,7 +44,6 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const {isOffline} = useNetwork();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
 
     const {
         feedName,
@@ -78,7 +77,7 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
     const showTableControls = showCards && !!selectedFeed && !isLoadingCards;
 
     const isGB = countryByIp === CONST.COUNTRY.GB;
-    const shouldShowGBDisclaimer = isGB && isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && (isNoFeed || hasNoAssignedCard);
+    const shouldShowGBDisclaimer = isGB && (isNoFeed || hasNoAssignedCard);
 
     // When we reach the medium screen width or the narrow layout is active,
     // we want to hide the table header and the middle column of the card rows, so that the content is not overlapping.
@@ -171,13 +170,10 @@ function WorkspaceCompanyCardsTable({policy, onAssignCard, isAssigningCardDisabl
         const isAssignedCardMatch = assignedKeyword.startsWith(searchLower) && item.isAssigned;
         const isUnassignedCardMatch = unassignedKeyword.startsWith(searchLower) && !item.isAssigned;
 
-        const isMatch =
-            item.cardName.toLowerCase().includes(searchLower) ||
-            (item.customCardName?.toLowerCase().includes(searchLower) ?? false) ||
-            (item.cardholder?.displayName?.toLowerCase().includes(searchLower) ?? false) ||
-            (item.cardholder?.login?.toLowerCase().includes(searchLower) ?? false);
+        const searchTokens = [item.cardName, item.customCardName ?? '', item.cardholder?.displayName ?? '', item.cardholder?.login ?? ''];
 
-        return isMatch || isAssignedCardMatch || isUnassignedCardMatch;
+        const matchingItems = tokenizedSearch([item], searchString, () => searchTokens);
+        return matchingItems.length > 0 || isAssignedCardMatch || isUnassignedCardMatch;
     };
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceCompanyCardTableItemData> = (item, filterValues) => {

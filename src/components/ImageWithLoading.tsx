@@ -118,4 +118,6 @@ function ImageWithLoading({
     );
 }
 
+ImageWithLoading.displayName = 'ImageWithLoading';
+
 export default React.memo(ImageWithLoading);

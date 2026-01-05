@@ -1,4 +1,5 @@
 import type {ForwardedRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
 import React, {forwardRef, useEffect, useRef} from 'react';
 import type {FlatList as RNFlatList} from 'react-native';
 import useFlatListScrollKey from '@hooks/useFlatListScrollKey';

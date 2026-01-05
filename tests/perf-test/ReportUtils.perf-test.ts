@@ -9,7 +9,8 @@ import {
     getDisplayNamesWithTooltips,
     getIcons,
     getIconsForParticipants,
-    getIOUReportActionDisplayMessage, // Will be fixed in https://github.com/Expensify/App/issues/76852
+    getIOUReportActionDisplayMessage,
+    // Will be fixed in https://github.com/Expensify/App/issues/76852
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getReportPreviewMessage,
@@ -135,7 +136,7 @@ describe('ReportUtils', () => {
         const shouldFallbackToHidden = true;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, localeCompare, shouldFallbackToHidden));
+        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, localeCompare, formatPhoneNumber, shouldFallbackToHidden));
     });
 
     test('[ReportUtils] getReportPreviewMessage on 1k policies', async () => {

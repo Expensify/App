@@ -1,5 +1,4 @@
 /* eslint-disable default-case */
-
 /* eslint-disable max-classes-per-file */
 import {isMatch, isValid} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -1471,7 +1470,7 @@ function getReasonAndReportActionForRBRInLHNRow(
 }
 
 function getTransactionID(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>) {
-    const transactionID = TransactionUtilsGetTransactionID(report?.reportID);
+    const transactionID = TransactionUtilsGetTransactionID(report);
 
     return Number(transactionID) > 0
         ? transactionID

@@ -42,7 +42,7 @@ export default function <TProps extends Record<string, unknown>>(WrappedComponen
         );
     }
 
-    WithNavigationFallback.displayName = 'WithNavigationFocusWithFallback';
+    WithNavigationFallback.displayName = `WithNavigationFallback(${WrappedComponent.displayName ?? WrappedComponent.name ?? 'Component'})`;
 
     return WithNavigationFallback;
 }
