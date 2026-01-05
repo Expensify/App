@@ -129,7 +129,9 @@ type TransactionItemRowProps = {
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: () => void;
+    isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
+    customCardNames?: Record<number, string>;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -175,7 +177,9 @@ function TransactionItemRow({
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
+    isHover = false,
     shouldShowArrowRightOnNarrowLayout,
+    customCardNames,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -233,6 +237,17 @@ function TransactionItemRow({
     }, [transactionItem, translate, report]);
 
     const exchangeRateMessage = getExchangeRate(transactionItem);
+
+    const cardName = useMemo(() => {
+        if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
+            return '';
+        }
+        const cardID = transactionItem.cardID;
+        if (cardID && customCardNames?.[cardID]) {
+            return customCardNames[cardID];
+        }
+        return transactionItem.cardName;
+    }, [transactionItem.cardID, transactionItem.cardName, customCardNames]);
 
     const columnComponent = useMemo(
         () => ({
@@ -443,7 +458,7 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.CARD}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}
                 >
-                    <TextCell text={transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : (transactionItem.cardName ?? '')} />
+                    <TextCell text={cardName} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: (
@@ -562,18 +577,20 @@ function TransactionItemRow({
             report?.total,
             isApprovedColumnWide,
             isPostedColumnWide,
-            translate,
             isExportedColumnWide,
+            translate,
             isReportItemChild,
             onButtonPress,
             isActionLoading,
             merchant,
             description,
+            cardName,
             isInSingleTransactionReport,
             exchangeRateMessage,
             isAmountColumnWide,
             isTaxAmountColumnWide,
             isLargeScreenWidth,
+            hash,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
@@ -747,16 +764,12 @@ function TransactionItemRow({
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
                         >
-                            {({hovered}) => {
-                                return (
-                                    <Icon
-                                        src={expensicons.ArrowRight}
-                                        fill={theme.icon}
-                                        additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                        small
-                                    />
-                                );
-                            }}
+                            <Icon
+                                src={expensicons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={!isHover && styles.opacitySemiTransparent}
+                                small
+                            />
                         </PressableWithFeedback>
                     )}
                 </View>

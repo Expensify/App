@@ -179,4 +179,6 @@ function BaseGenericTooltip({
     );
 }
 
+BaseGenericTooltip.displayName = 'BaseGenericTooltip';
+
 export default React.memo(BaseGenericTooltip);
