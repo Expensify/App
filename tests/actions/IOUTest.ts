@@ -5747,6 +5747,7 @@ describe('actions/IOU', () => {
                         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                         deleteWorkspace({
                             policyID: policy.id,
+                            personalPolicyID: undefined,
                             activePolicyID: undefined,
                             policyName: policy.name,
                             lastAccessedWorkspacePolicyID: undefined,
