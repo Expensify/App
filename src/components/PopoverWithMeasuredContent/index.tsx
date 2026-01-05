@@ -11,7 +11,7 @@ import type PopoverWithMeasuredContentProps from './types';
  * This component is a perf optimization, it return BOTTOM_DOCKED early, for small screens avoiding Popover measurement logic calculations.
  * It defers rendering of PopoverWithMeasuredContentBase to idle time to avoid blocking more priority UI updates with measurements.
  */
-function PopoverWithMeasuredContent({...props}: PopoverWithMeasuredContentProps) {
+function PopoverWithMeasuredContent(props: PopoverWithMeasuredContentProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
@@ -47,6 +47,8 @@ function PopoverWithMeasuredContent({...props}: PopoverWithMeasuredContentProps)
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <PopoverWithMeasuredContentBase {...props} />;
 }
+
+PopoverWithMeasuredContent.displayName = 'PopoverWithMeasuredContent';
 
 export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => {
     if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {

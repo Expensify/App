@@ -11,7 +11,7 @@ import type {Route} from '@src/ROUTES';
  * Accept Spotnana terms and conditions to receive a proper token used for authenticating further actions
  */
 function acceptSpotnanaTerms(domain?: string, policyID?: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRAVEL_SETTINGS | typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
@@ -29,7 +29,7 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_PROVISIONING | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.TRAVEL_PROVISIONING,
@@ -48,7 +48,7 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.TRAVEL_PROVISIONING>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.TRAVEL_PROVISIONING,
@@ -68,12 +68,12 @@ function acceptSpotnanaTerms(domain?: string, policyID?: string) {
 }
 
 function requestTravelAccess() {
-    const optimisticData: OnyxUpdate[] = [
-        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_TRAVEL_SETTINGS>> = [
         {
             onyxMethod: 'merge',
             key: ONYXKEYS.NVP_TRAVEL_SETTINGS,
             value: {
+                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 lastTravelSignupRequestTime: Date.now(),
             },
         },
