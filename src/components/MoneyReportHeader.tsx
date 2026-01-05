@@ -617,7 +617,7 @@ function MoneyReportHeader({
                     isASAPSubmitBetaEnabled,
                     policyRecentlyUsedCurrencies ?? [],
                     quickAction,
-                    policy.id,
+                    policy?.id ?? '',
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,
                     activePolicyExpenseChat,

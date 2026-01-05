@@ -190,7 +190,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     isASAPSubmitBetaEnabled,
                     policyRecentlyUsedCurrencies ?? [],
                     quickAction,
-                    policy.id,
+                    policy?.id ?? '',
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,
                     activePolicyExpenseChat,

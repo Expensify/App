@@ -27,6 +27,7 @@ type CreateDistanceRequestParams = {
     description?: string;
     attendees?: string;
     distance?: number;
+    customUnitPolicyID?: string;
 };
 
 export default CreateDistanceRequestParams;
