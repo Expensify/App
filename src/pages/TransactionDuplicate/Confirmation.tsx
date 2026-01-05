@@ -72,14 +72,15 @@ function Confirmation() {
         [duplicates, reviewDuplicates, newTransaction],
     );
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
-    const childReportID = reportAction?.childReportID;
 
     const mergeDuplicates = useCallback(() => {
-        const transactionThreadReportID = childReportID ?? generateReportID();
-        const params = childReportID ? transactionsMergeParams : {...transactionsMergeParams, transactionThreadReportID};
-        IOU.mergeDuplicates(params);
+        const transactionThreadReportID = reportAction?.childReportID ?? generateReportID();
+        if (!reportAction?.childReportID) {
+            transactionsMergeParams.transactionThreadReportID = transactionThreadReportID;
+        }
+        IOU.mergeDuplicates(transactionsMergeParams);
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
-    }, [childReportID, transactionsMergeParams]);
+    }, [reportAction?.childReportID, transactionsMergeParams]);
 
     const resolveDuplicates = useCallback(() => {
         IOU.resolveDuplicates(transactionsMergeParams);
