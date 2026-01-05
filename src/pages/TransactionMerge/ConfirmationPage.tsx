@@ -17,12 +17,15 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeTransactionRequest} from '@libs/actions/MergeTransaction';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {buildMergedTransactionData} from '@libs/MergeTransactionUtils';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MergeTransactionNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -37,7 +40,7 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
     const {transactionID, isOnSearch, backTo} = route.params;
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [mergeTransaction, mergeTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.MERGE_TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
     const {targetTransaction, sourceTransaction, targetTransactionReport} = useMergeTransactions({mergeTransaction});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         canBeMissing: false,
@@ -81,7 +84,18 @@ function ConfirmationPage({route}: ConfirmationPageProps) {
 
         // If we're on search, dismiss the modal and stay on search
         if (!isOnSearch && reportIDToDismiss && reportID !== targetTransaction.reportID) {
-            Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
+            // Navigate to search money report screen if we're on Reports
+            if (isSearchTopmostFullScreenRoute()) {
+                // Close the current modal screen
+                Navigation.dismissModal();
+                // Ensure the dismiss completes first
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    // Navigate to the money request report in search results
+                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: reportIDToDismiss}));
+                });
+            } else {
+                Navigation.dismissModalWithReport({reportID: reportIDToDismiss});
+            }
         } else {
             Navigation.dismissModal();
         }
