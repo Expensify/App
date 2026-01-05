@@ -170,7 +170,7 @@ import {
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {isOnHold} from '@libs/TransactionUtils';
+import {getAmount, getCurrency, isOnHold, shouldClearConvertedAmount} from '@libs/TransactionUtils';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
@@ -5732,9 +5732,15 @@ function buildOptimisticChangePolicyData(
     optimisticPolicyExpenseChatReport?: Report,
 ) {
     const optimisticData: OnyxUpdate[] = [];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>> = [];
     const failureData: Array<
-        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.NEXT_STEP | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS>
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.COLLECTION.NEXT_STEP
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+        >
     > = [];
 
     // 1. Optimistically set the policyID on the report (and all its threads) by:
@@ -6060,6 +6066,103 @@ function buildOptimisticChangePolicyData(
             private_isArchived: DateUtils.getDBTime(),
         },
     });
+
+    // 6. Handle transactions when moving to a workspace with a different currency
+    // Clear convertedAmount (which is calculated for the old workspace currency) and add pendingAction for proper UI feedback
+    // Only clear for transactions that don't match the destination currency - matching transactions can keep their values
+    const sourceCurrency = report.currency;
+    const destinationCurrency = policy.outputCurrency;
+    const transactions = getReportTransactions(reportID);
+
+    for (const transaction of transactions) {
+        if (!shouldClearConvertedAmount(transaction, sourceCurrency, destinationCurrency)) {
+            continue;
+        }
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                convertedAmount: null,
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                pendingAction: null,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                pendingAction: transaction.pendingAction ?? null,
+                convertedAmount: transaction.convertedAmount,
+            },
+        });
+    }
+
+    // 7. Update report totals when source and destination currencies differ
+    // Only include transactions that match the destination currency (their amounts can be used directly)
+    // Transactions with cleared convertedAmount cannot contribute to the total until server recalculates
+    if (sourceCurrency && destinationCurrency && sourceCurrency !== destinationCurrency) {
+        let newTotal = 0;
+        let newNonReimbursableTotal = 0;
+        let newUnheldNonReimbursableTotal = 0;
+
+        for (const transaction of transactions) {
+            const transactionCurrency = getCurrency(transaction);
+            // Only include transactions that match the destination currency
+            if (transactionCurrency === destinationCurrency) {
+                const transactionAmount = getAmount(transaction);
+                newTotal -= transactionAmount;
+                if (!transaction.reimbursable) {
+                    newNonReimbursableTotal -= transactionAmount;
+                }
+                if (!transaction.reimbursable || isOnHold(transaction)) {
+                    newUnheldNonReimbursableTotal -= transactionAmount;
+                }
+            }
+        }
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                total: newTotal,
+                nonReimbursableTotal: newNonReimbursableTotal,
+                unheldNonReimbursableTotal: newUnheldNonReimbursableTotal,
+                pendingFields: {
+                    ...(report.pendingFields ?? {}),
+                    total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                pendingFields: {
+                    total: null,
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                total: report.total,
+                nonReimbursableTotal: report.nonReimbursableTotal,
+                unheldNonReimbursableTotal: report.unheldNonReimbursableTotal,
+                pendingFields: {
+                    ...(report.pendingFields ?? {}),
+                    total: null,
+                },
+            },
+        });
+    }
 
     return {optimisticData, successData, failureData, optimisticReportPreviewAction, optimisticMovedReportAction};
 }
