@@ -17,6 +17,7 @@ import EmailUtils from '@libs/EmailUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import fileDownload from '@libs/fileDownload';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
+import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
 import {getForReportActionTemp} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
@@ -756,7 +757,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
                     Clipboard.setString(translate('iou.paidElsewhere'));
                 } else if (isReimbursementQueuedAction(reportAction)) {
-                    Clipboard.setString(getReimbursementQueuedActionMessage({reportAction, reportOrID: reportID, shouldUseShortDisplayName: false}));
+                    Clipboard.setString(
+                        getReimbursementQueuedActionMessage({reportAction, formatPhoneNumber: formatPhoneNumberPhoneUtils, reportOrID: reportID, shouldUseShortDisplayName: false}),
+                    );
                 } else if (isActionableMentionWhisper(reportAction)) {
                     const mentionWhisperMessage = getActionableMentionWhisperMessage(reportAction);
                     setClipboardMessage(mentionWhisperMessage);
