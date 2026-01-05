@@ -339,28 +339,26 @@ function mergeTransactionRequest({
         value: sourceTransaction,
     };
     const transactionsOfSourceReport = getReportTransactions(sourceTransaction.reportID);
-    const optimisticSourceReportData: OnyxUpdate[] =
-        transactionsOfSourceReport.length === 1
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.SET,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
-                      value: null,
-                  },
-              ]
-            : [];
-
+    const shouldDeleteSourceReport = transactionsOfSourceReport.length === 1 && mergeTransaction.reportID !== sourceTransaction.reportID;
+    const optimisticSourceReportData: OnyxUpdate[] = shouldDeleteSourceReport
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
+                  value: null,
+              },
+          ]
+        : [];
     // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
-    const failureSourceReportData: OnyxUpdate[] =
-        transactionsOfSourceReport.length === 1
-            ? [
-                  {
-                      onyxMethod: Onyx.METHOD.SET,
-                      key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
-                      value: getReportOrDraftReport(sourceTransaction.reportID),
-                  },
-              ]
-            : [];
+    const failureSourceReportData: OnyxUpdate[] = shouldDeleteSourceReport
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${sourceTransaction.reportID}`,
+                  value: getReportOrDraftReport(sourceTransaction.reportID),
+              },
+          ]
+        : [];
     const iouActionOfSourceTransaction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
     const optimisticSourceReportActionData: OnyxUpdate[] = iouActionOfSourceTransaction
         ? [
