@@ -97,6 +97,7 @@ import {
 import {
     getAllReportActions,
     getIOUActionForReportID,
+    getIOUActionForTransactionID,
     getLastVisibleAction,
     getLastVisibleMessage,
     getOriginalMessage,
@@ -144,6 +145,7 @@ import {
     buildOptimisticUnHoldReportAction,
     buildTransactionThread,
     canBeAutoReimbursed,
+    canEditFieldOfMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     doesReportReceiverMatchParticipant,
     findSelfDMReportID,
@@ -15048,12 +15050,14 @@ function addReportApprover(
 }
 
 function updateMultipleMoneyRequests(
-    transactionChangesMap: Record<string, TransactionChanges>,
+    transactionIDs: string[],
+    changes: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
     reports: OnyxCollection<OnyxTypes.Report>,
     transactions: OnyxCollection<OnyxTypes.Transaction>,
+    allReportActions: OnyxCollection<OnyxTypes.ReportActions>,
 ) {
-    for (const [transactionID, transactionChanges] of Object.entries(transactionChangesMap)) {
+    for (const transactionID of transactionIDs) {
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
             continue;
@@ -15063,6 +15067,46 @@ function updateMultipleMoneyRequests(
         const transactionThread = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
         const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
         const isFromExpenseReport = isExpenseReport(iouReport);
+
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
+        const reportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
+
+        const canEditField = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
+            return canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, iouReport, policy);
+        };
+
+        const transactionChanges: TransactionChanges = {};
+
+        if (changes.merchant && canEditField(CONST.EDIT_REQUEST_FIELD.MERCHANT)) {
+            transactionChanges.merchant = changes.merchant;
+        }
+        if (changes.created && canEditField(CONST.EDIT_REQUEST_FIELD.DATE)) {
+            transactionChanges.created = changes.created;
+        }
+        if (changes.amount && canEditField(CONST.EDIT_REQUEST_FIELD.AMOUNT)) {
+            transactionChanges.amount = changes.amount;
+        }
+        if (changes.currency && canEditField(CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
+            transactionChanges.currency = changes.currency;
+        }
+        if (changes.category && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
+            transactionChanges.category = changes.category;
+        }
+        if (changes.tag && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
+            transactionChanges.tag = changes.tag;
+        }
+        if (changes.comment && canEditField(CONST.EDIT_REQUEST_FIELD.DESCRIPTION)) {
+            transactionChanges.comment = changes.comment;
+        }
+        if (changes.taxCode && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
+            transactionChanges.taxCode = changes.taxCode;
+        }
+        if (changes.billable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
+            transactionChanges.billable = changes.billable;
+        }
+        if (changes.reimbursable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
+            transactionChanges.reimbursable = changes.reimbursable;
+        }
 
         const updates: Record<string, string | number> = {};
         if (transactionChanges.merchant) {

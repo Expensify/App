@@ -123,64 +123,7 @@ function SearchEditMultiplePage() {
             return;
         }
 
-        const transactionIDToChanges: Record<string, TransactionChanges> = {};
-
-        for (const transactionID of selectedTransactionIDs) {
-            const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            if (!transaction) {
-                continue;
-            }
-
-            const transactionThreadReportID = transaction.reportID;
-            const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
-            const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
-
-            const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
-            const reportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
-
-            const canEditField = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
-                return canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, iouReport, policy);
-            };
-
-            const currentTransactionChanges: TransactionChanges = {};
-
-            if (changes.merchant && canEditField(CONST.EDIT_REQUEST_FIELD.MERCHANT)) {
-                currentTransactionChanges.merchant = changes.merchant;
-            }
-            if (changes.created && canEditField(CONST.EDIT_REQUEST_FIELD.DATE)) {
-                currentTransactionChanges.created = changes.created;
-            }
-            if (changes.amount && canEditField(CONST.EDIT_REQUEST_FIELD.AMOUNT)) {
-                currentTransactionChanges.amount = changes.amount;
-            }
-            if (changes.currency && canEditField(CONST.EDIT_REQUEST_FIELD.CURRENCY)) {
-                currentTransactionChanges.currency = changes.currency;
-            }
-            if (changes.category && canEditField(CONST.EDIT_REQUEST_FIELD.CATEGORY)) {
-                currentTransactionChanges.category = changes.category;
-            }
-            if (changes.tag && canEditField(CONST.EDIT_REQUEST_FIELD.TAG)) {
-                currentTransactionChanges.tag = changes.tag;
-            }
-            if (changes.comment && canEditField(CONST.EDIT_REQUEST_FIELD.DESCRIPTION)) {
-                currentTransactionChanges.comment = changes.comment;
-            }
-            if (changes.taxCode && canEditField(CONST.EDIT_REQUEST_FIELD.TAX_RATE)) {
-                currentTransactionChanges.taxCode = changes.taxCode;
-            }
-            if (changes.billable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
-                currentTransactionChanges.billable = changes.billable;
-            }
-            if (changes.reimbursable !== undefined && canEditField(CONST.EDIT_REQUEST_FIELD.REIMBURSABLE)) {
-                currentTransactionChanges.reimbursable = changes.reimbursable;
-            }
-
-            if (Object.keys(currentTransactionChanges).length > 0) {
-                transactionIDToChanges[transactionID] = currentTransactionChanges;
-            }
-        }
-
-        updateMultipleMoneyRequests(transactionIDToChanges, policy, allReports, allTransactions);
+        updateMultipleMoneyRequests(selectedTransactionIDs, changes, policy, allReports, allTransactions, allReportActions);
 
         Navigation.dismissModal();
     };
