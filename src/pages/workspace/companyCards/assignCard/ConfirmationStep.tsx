@@ -155,6 +155,9 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     title={cardToAssign?.encryptedCardNumber ?? maskCardNumber(cardToAssign?.cardNumber ?? '', cardToAssign?.bankName)}
                     interactive={false}
                 />
+                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
+                </View>
                 <MenuItem
                     title={cardholderName && cardholderName !== cardholderEmail ? cardholderName : cardholderEmail}
                     description={cardholderName && cardholderName !== cardholderEmail ? cardholderEmail : undefined}
