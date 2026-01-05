@@ -77,8 +77,8 @@ function StatusPage() {
     const customClearAfter = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const dataToShow = draftClearAfter || currentUserClearAfter;
-        return DateUtils.getLocalizedTimePeriodDescription(dataToShow);
-    }, [draftClearAfter, currentUserClearAfter]);
+        return DateUtils.getLocalizedTimePeriodDescription(translate, dataToShow);
+    }, [draftClearAfter, currentUserClearAfter, translate]);
 
     const isValidClearAfterDate = useCallback(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -179,10 +179,7 @@ function StatusPage() {
             }
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> = {};
             if (statusText.length > CONST.STATUS_TEXT_MAX_LENGTH) {
-                errors[INPUT_IDS.STATUS_TEXT] = translate('common.error.characterLimitExceedCounter', {
-                    length: statusText.length,
-                    limit: CONST.STATUS_TEXT_MAX_LENGTH,
-                });
+                errors[INPUT_IDS.STATUS_TEXT] = translate('common.error.characterLimitExceedCounter', statusText.length, CONST.STATUS_TEXT_MAX_LENGTH);
             }
             return errors;
         },

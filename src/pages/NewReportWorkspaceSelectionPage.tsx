@@ -117,7 +117,14 @@ function NewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelectionPag
 
     const createReport = useCallback(
         (policyID: string, shouldDismissEmptyReportsConfirmation?: boolean) => {
-            const optimisticReport = createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policyID, false, shouldDismissEmptyReportsConfirmation);
+            const optimisticReport = createNewReport(
+                currentUserPersonalDetails,
+                isASAPSubmitBetaEnabled,
+                hasViolations,
+                policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`],
+                false,
+                shouldDismissEmptyReportsConfirmation,
+            );
             const selectedTransactionsKeys = Object.keys(selectedTransactions);
 
             if (isMovingExpenses && (!!selectedTransactionsKeys.length || !!selectedTransactionIDs.length)) {
