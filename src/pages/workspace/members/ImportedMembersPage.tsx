@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -33,6 +34,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const [shouldShowConfirmModal, setShouldShowConfirmModal] = useState(true);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const isFocused = useIsFocused();
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -177,7 +179,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
 
     return (
         <ScreenWrapper
-            testID={ImportedMembersPage.displayName}
+            testID="ImportedMembersPage"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicatorInWideScreen
         >
@@ -195,7 +197,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 learnMoreLink={CONST.IMPORT_SPREADSHEET.MEMBERS_ARTICLE_LINK}
             />
             <ImportSpreadsheetConfirmModal
-                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal}
+                isVisible={spreadsheet?.shouldFinalModalBeOpened && shouldShowConfirmModal && isFocused}
                 closeImportPageAndModal={closeImportPageAndModal}
                 onModalHide={() => {
                     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -205,7 +207,5 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         </ScreenWrapper>
     );
 }
-
-ImportedMembersPage.displayName = 'ImportedMembersPage';
 
 export default ImportedMembersPage;

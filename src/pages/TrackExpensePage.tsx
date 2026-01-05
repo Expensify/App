@@ -7,11 +7,11 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {startMoneyRequest} from '@libs/actions/IOU';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {findSelfDMReportID, generateReportID} from '@libs/ReportUtils';
-import {confirmReadyToOpenApp} from '@userActions/App';
-import {startMoneyRequest} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -60,7 +60,7 @@ function TrackExpensePage() {
     );
 
     return (
-        <ScreenWrapper testID={TrackExpensePage.displayName}>
+        <ScreenWrapper testID="TrackExpensePage">
             <View style={[styles.borderBottom]}>
                 <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
             </View>
@@ -68,7 +68,5 @@ function TrackExpensePage() {
         </ScreenWrapper>
     );
 }
-
-TrackExpensePage.displayName = 'TrackExpensePage';
 
 export default TrackExpensePage;

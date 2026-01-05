@@ -76,7 +76,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
             onChangeText: setSearchText,
             headerMessage: searchText.trim() && !filteredDaysOfMonth.length ? translate('common.noResultsFound') : '',
         }),
-        [searchText, filteredDaysOfMonth, setSearchText, translate],
+        [searchText, filteredDaysOfMonth.length, setSearchText, translate],
     );
 
     return (
@@ -86,7 +86,7 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceAutoReportingMonthlyOffsetPage.displayName}
+                testID="WorkspaceAutoReportingMonthlyOffsetPage"
             >
                 <FullPageNotFoundView
                     onBackButtonPress={goBackFromInvalidPolicy}
@@ -116,5 +116,4 @@ function WorkspaceAutoReportingMonthlyOffsetPage({policy, route}: WorkspaceAutoR
     );
 }
 
-WorkspaceAutoReportingMonthlyOffsetPage.displayName = 'WorkspaceAutoReportingMonthlyOffsetPage';
 export default withPolicy(WorkspaceAutoReportingMonthlyOffsetPage);

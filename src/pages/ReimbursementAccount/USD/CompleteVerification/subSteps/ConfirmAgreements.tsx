@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isRequiredFulfilled} from '@libs/ValidationUtils';
+import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -39,12 +40,17 @@ function TermsAndConditionsLabel() {
 
 function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const confirmAgreementsValues = useMemo(
+        () => getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount),
+        [reimbursementAccount, reimbursementAccountDraft],
+    );
     const defaultValues = {
-        isAuthorizedToUseBankAccount: reimbursementAccount?.achData?.isAuthorizedToUseBankAccount ?? false,
-        certifyTrueInformation: reimbursementAccount?.achData?.certifyTrueInformation ?? false,
-        acceptTermsAndConditions: reimbursementAccount?.achData?.acceptTermsAndConditions ?? false,
+        isAuthorizedToUseBankAccount: confirmAgreementsValues.isAuthorizedToUseBankAccount ?? false,
+        certifyTrueInformation: confirmAgreementsValues.certifyTrueInformation ?? false,
+        acceptTermsAndConditions: confirmAgreementsValues.acceptTermsAndConditions ?? false,
     };
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -107,7 +113,5 @@ function ConfirmAgreements({onNext}: ConfirmAgreementsProps) {
         </FormProvider>
     );
 }
-
-ConfirmAgreements.displayName = 'ConfirmAgreements';
 
 export default ConfirmAgreements;

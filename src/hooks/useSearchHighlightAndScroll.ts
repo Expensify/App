@@ -92,7 +92,7 @@ function useSearchHighlightAndScroll({
 
         // Only proceed if we have previous data to compare against
         // This prevents triggering on initial data load
-        if (previousTransactionsIDs.length === 0 && previousReportActionsIDs.length === 0) {
+        if ((previousTransactionsIDs.length === 0 && previousReportActionsIDs.length === 0) || searchTriggeredRef.current) {
             return;
         }
 
@@ -134,7 +134,7 @@ function useSearchHighlightAndScroll({
             // Trigger the search
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                search({queryJSON, searchKey, offset, shouldCalculateTotals});
+                search({queryJSON, searchKey, offset, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
             });
 
             // Set the ref to prevent further triggers until reset
@@ -154,7 +154,16 @@ function useSearchHighlightAndScroll({
         searchResults?.data,
         existingSearchResultIDs,
         isOffline,
+        searchResults?.search?.isLoading,
     ]);
+
+    useEffect(() => {
+        if (searchResults?.search?.isLoading) {
+            return;
+        }
+
+        searchTriggeredRef.current = false;
+    }, [searchResults?.search?.isLoading]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {

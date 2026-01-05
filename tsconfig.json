@@ -34,6 +34,7 @@
     },
     "include": [
         "src",
+        "desktop",
         "web",
         "website",
         "docs",
@@ -45,6 +46,7 @@
         "__mocks__",
         ".github/**/*",
         ".storybook/**/*",
+        ".claude/**/*",
         "scripts",
         "modules",
         "**/*.nitro/*.ts",

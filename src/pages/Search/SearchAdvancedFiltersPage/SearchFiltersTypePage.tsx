@@ -27,12 +27,12 @@ function SearchFiltersTypePage() {
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
 
     const listData: Array<ListItem<SearchDataTypes>> = useMemo(() => {
-        return getTypeOptions(allPolicies, session?.email).map((typeOption) => ({
+        return getTypeOptions(translate, allPolicies, session?.email).map((typeOption) => ({
             text: typeOption.text,
             keyForList: typeOption.value,
             isSelected: selectedItem === typeOption.value,
         }));
-    }, [allPolicies, selectedItem, session?.email]);
+    }, [translate, allPolicies, selectedItem, session?.email]);
 
     const updateSelectedItem = useCallback((type: ListItem<SearchDataTypes>) => {
         setSelectedItem(type?.keyForList ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
@@ -57,7 +57,7 @@ function SearchFiltersTypePage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersTypePage.displayName}
+            testID="SearchFiltersTypePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -85,7 +85,5 @@ function SearchFiltersTypePage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersTypePage.displayName = 'SearchFiltersTypePage';
 
 export default SearchFiltersTypePage;

@@ -19,10 +19,13 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {enablePerDiem} from '@userActions/Policy/PerDiem';
 import CONST from '@src/CONST';
 import {
+    enableAutoApprovalOptions,
     enableCompanyCards,
+    enablePolicyAutoReimbursementLimit,
     enablePolicyReportFields,
     enablePolicyRules,
     setPolicyPreventMemberCreatedTitle,
+    setPolicyPreventSelfApproval,
     setWorkspaceApprovalMode,
     upgradeToCorporate,
 } from '@src/libs/actions/Policy/Policy';
@@ -75,6 +78,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
 
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const categoryId = route.params?.categoryId;
+
+    const defaultApprover = getDefaultApprover(policy);
 
     const goBack = useCallback(() => {
         if ((!feature && featureNameAlias !== CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.alias) || !policyID) {
@@ -131,6 +136,15 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
         switch (feature.id) {
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.preventSelfApproval.id:
+                setPolicyPreventSelfApproval(policyID, true);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoApproveCompliantReports.id:
+                enableAutoApprovalOptions(policyID, true);
+                break;
+            case CONST.UPGRADE_FEATURE_INTRO_MAPPING.autoPayApprovedReports.id:
+                enablePolicyAutoReimbursementLimit(policyID, true);
+                break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields.id:
                 switch (route.params.featureName) {
                     case CONST.REPORT_FIELDS_FEATURE.qbo.classes:
@@ -169,21 +183,23 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
-                setWorkspaceApprovalMode(policyID, getDefaultApprover(policy), CONST.POLICY.APPROVAL_MODE.ADVANCED);
+                setWorkspaceApprovalMode(policyID, defaultApprover, CONST.POLICY.APPROVAL_MODE.ADVANCED);
                 break;
             default:
         }
     }, [
-        policyID,
+        categoryId,
         feature,
-        featureNameAlias,
-        route.params.featureName,
         perDiemCustomUnit?.customUnitID,
-        policy,
+        policy?.connections?.xero?.config,
+        policy?.connections?.xero?.data,
+        policyID,
         qboConfig?.syncClasses,
         qboConfig?.syncCustomers,
         qboConfig?.syncLocations,
-        categoryId,
+        route.params?.featureName,
+        featureNameAlias,
+        defaultApprover,
     ]);
 
     useFocusEffect(
