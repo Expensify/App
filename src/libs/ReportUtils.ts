@@ -195,6 +195,7 @@ import {
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
+    getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getRenamedAction,
     getReopenedMessage,
@@ -2084,7 +2085,7 @@ function pushTransactionViolationsOnyxData(
                   }
 
                   const tagList = policyData.tags?.[tagListName];
-                  const tags = tagList.tags ?? {};
+                  const tags = tagList?.tags ?? {};
                   const tagsUpdate = tagListUpdate?.tags ?? {};
 
                   acc[tagListName] = {
@@ -2971,7 +2972,7 @@ function canDeleteMoneyRequestReport(report: Report, reportTransactions: Transac
         return true;
     }
 
-    const isUnreported = isSelfDM(report);
+    const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
         return isOwner && canCardTransactionBeDeleted;
@@ -4545,6 +4546,11 @@ function canEditMoneyRequest(
         return true;
     }
 
+    // Allow workflow approvers to edit OPEN expense reports
+    if (isExpenseReport(moneyRequestReport) && isOpenReport(moneyRequestReport) && currentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport)) {
+        return true;
+    }
+
     if (reportPolicy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport)) {
         const isForwarded = getSubmitToAccountID(reportPolicy, moneyRequestReport) !== moneyRequestReport.managerID;
         return !isForwarded;
@@ -4613,7 +4619,8 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
 
     if (isExpenseType) {
         if (isOpen) {
-            return isSubmitter || isAdmin;
+            const isApprover = currentUserAccountID === getManagerAccountID(reportPolicy, report);
+            return isSubmitter || isAdmin || isApprover;
         }
 
         if (isSubmitted) {
@@ -4687,13 +4694,14 @@ function canEditFieldOfMoneyRequest(
     const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
+    const isApprover = isExpenseReport(moneyRequestReport) && isOpenReport(moneyRequestReport) && currentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
-        return isAdmin || isManager || isRequestor;
+        return isAdmin || isManager || isRequestor || isApprover;
     }
 
     if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isDistanceRequest(transaction)) {
-        return isAdmin || isManager || isRequestor;
+        return isAdmin || isManager || isRequestor || isApprover;
     }
 
     if (
@@ -4709,7 +4717,7 @@ function canEditFieldOfMoneyRequest(
             !isReceiptBeingScanned(transaction) &&
             !isPerDiemRequest(transaction) &&
             (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction)) &&
-            (isAdmin || isManager || isRequestor) &&
+            (isAdmin || isManager || isRequestor || isApprover) &&
             (isDeleteAction ? isRequestor : true)
         );
     }
@@ -5676,6 +5684,9 @@ function getReportName(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE)) {
+        return getPolicyChangeLogDefaultTitleMessage(parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED)) {
         return getWorkspaceAttendeeTrackingUpdateMessage(parentReportAction);
