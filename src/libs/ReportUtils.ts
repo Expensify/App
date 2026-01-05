@@ -195,6 +195,7 @@ import {
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
+    getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getRenamedAction,
     getReopenedMessage,
@@ -2084,7 +2085,7 @@ function pushTransactionViolationsOnyxData(
                   }
 
                   const tagList = policyData.tags?.[tagListName];
-                  const tags = tagList.tags ?? {};
+                  const tags = tagList?.tags ?? {};
                   const tagsUpdate = tagListUpdate?.tags ?? {};
 
                   acc[tagListName] = {
@@ -2971,7 +2972,7 @@ function canDeleteMoneyRequestReport(report: Report, reportTransactions: Transac
         return true;
     }
 
-    const isUnreported = isSelfDM(report);
+    const isUnreported = isSelfDM(report) || transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const canCardTransactionBeDeleted = canDeleteCardTransactionByLiabilityType(transaction);
     if (isUnreported) {
         return isOwner && canCardTransactionBeDeleted;
@@ -5676,6 +5677,9 @@ function getReportName(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
         return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE)) {
+        return getPolicyChangeLogDefaultTitleMessage(parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED)) {
         return getWorkspaceAttendeeTrackingUpdateMessage(parentReportAction);
