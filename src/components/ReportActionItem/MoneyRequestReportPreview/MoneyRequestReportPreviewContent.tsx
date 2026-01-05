@@ -264,7 +264,7 @@ function MoneyRequestReportPreviewContent({
                         activePolicy,
                     });
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy);
+                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy, policy);
                 }
             }
         },
@@ -279,6 +279,7 @@ function MoneyRequestReportPreviewContent({
             activePolicy,
             currentUserAccountID,
             currentUserEmail,
+            policy,
         ],
     );
 
@@ -728,7 +729,7 @@ function MoneyRequestReportPreviewContent({
                                                 ) : (
                                                     (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
-                                                            {!!reportStatus && !!action?.childMoneyRequestCount && (
+                                                            {!!reportStatus && !!expenseCount && (
                                                                 <View
                                                                     style={[
                                                                         styles.reportStatusContainer,

@@ -3881,7 +3881,6 @@ ${
             deepDiveExpensifyCard: `<muted-text-label>Les transactions de la carte Expensify seront automatiquement exportées vers un « Compte de passif de carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
         },
         receiptPartners: {
-            connect: 'Connecter maintenant',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Connecté à ${organizationName}` : 'Automatisez les dépenses de voyage et de livraison de repas dans toute votre organisation.',
@@ -3909,8 +3908,6 @@ ${
                 invitationFailure: 'Échec de l’invitation du membre à Uber for Business',
                 autoInvite: 'Inviter de nouveaux membres de l’espace de travail à Uber for Business',
                 autoRemove: 'Désactiver les membres retirés de l’espace de travail dans Uber for Business',
-                bannerTitle: 'Expensify + Uber for Business',
-                bannerDescription: 'Connectez Uber for Business pour automatiser les notes de frais de déplacement et de livraison de repas dans toute votre organisation.',
                 emptyContent: {
                     title: 'Aucune invitation en attente',
                     subtitle: 'Hourra ! Nous avons cherché partout et n’avons trouvé aucune invitation en attente.',
@@ -5277,7 +5274,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: "Vous n'avez créé aucune étiquette",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Ajoutez une étiquette pour suivre les projets, les lieux, les services et plus encore.',
-                subtitleHTML: `<muted-text><centered-text>Importez une feuille de calcul pour ajouter des tags afin de suivre les projets, les sites, les services, et plus encore. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">En savoir plus</a> sur le formatage des fichiers de tags.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Ajoutez des tags pour suivre les projets, les sites, les services, et plus encore. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">En savoir plus</a> sur le formatage des fichiers de tags pour l’importation.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>Vos tags sont actuellement importés depuis une connexion comptable. Rendez-vous dans la section <a href="${accountingPageURL}">Comptabilité</a> pour effectuer des modifications.</centered-text></muted-text>`,
             },
@@ -6551,6 +6548,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `a modifié la formule du nom du rapport personnalisé en « ${newValue} » (auparavant « ${oldValue} »)`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `a modifié l'approbateur par défaut pour ${newApprover} (précédemment ${previousApprover})` : `a remplacé l'approbateur par défaut par ${newApprover}`,
         changedSubmitsToApprover: ({

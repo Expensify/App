@@ -82,6 +82,7 @@ import {
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
+    getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
@@ -956,6 +957,7 @@ function PureReportActionItem({
         }
 
         const actionableMentionWhisperOptions = [];
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const isReportInPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
 
         // Show the invite to submit expense button even if one of the mentioned users is a not a policy member
@@ -1426,6 +1428,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDefaultReimbursableMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDefaultTitleEnforcedMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE)) {
+            children = <ReportActionItemBasicMessage message={getPolicyChangeLogDefaultTitleMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogAddEmployeeMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {

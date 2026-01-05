@@ -118,6 +118,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transaction?.transactionID ? [transaction.transactionID] : []);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
@@ -188,8 +189,8 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     optimisticChatReportID,
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
-                    policyRecentlyUsedCurrencies ?? [],
                     quickAction,
+                    policyRecentlyUsedCurrencies ?? [],
                     policy.id,
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,

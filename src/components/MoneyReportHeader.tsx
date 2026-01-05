@@ -481,6 +481,7 @@ function MoneyReportHeader({
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const kycWallRef = useContext(KYCWallContext);
 
@@ -524,7 +525,7 @@ function MoneyReportHeader({
                 });
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy);
+                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy, policy);
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
@@ -549,6 +550,7 @@ function MoneyReportHeader({
             existingB2BInvoiceReport,
             shouldCalculateTotals,
             activePolicy,
+            policy,
             currentSearchQueryJSON,
             currentSearchKey,
             isOffline,
@@ -615,8 +617,8 @@ function MoneyReportHeader({
                     optimisticChatReportID,
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
-                    policyRecentlyUsedCurrencies ?? [],
                     quickAction,
+                    policyRecentlyUsedCurrencies ?? [],
                     policy.id,
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,
