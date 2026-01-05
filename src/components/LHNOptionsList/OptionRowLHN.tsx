@@ -388,4 +388,6 @@ function OptionRowLHN({
     );
 }
 
+OptionRowLHN.displayName = 'OptionRowLHN';
+
 export default React.memo(OptionRowLHN);
