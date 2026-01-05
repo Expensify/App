@@ -36,21 +36,21 @@ Each type has its own filters and search options.
 
 # How to filter Reports
 
-Use filters to narrow down results by type, status, category, or date.
+Filter reports by type, status, category, or date to find specific information.
 
 1. Go to the **Reports** tab.
-2. (Optional) Enter a keyword in the search bar.
-3. Choose a type tab—**Expenses**, **Invoices**, **Trips**, or **Chats**.
+2. Enter a keyword in the search bar (optional). 
+3. Choose a type tab - **Expense**, **Expense Report**, **Chat**, **Invoice**, **Trip**, or **Task**.
 4. Click **Filters**.
 5. Select filters such as:
-   - **Type:** Expense, Expense Report, Chat
+   - **Date:** This month, last month
    - **Status:** Outstanding, Paid
    - **From:** You, or someone else
-6. Click **Apply** to see the filtered results.
+6. Click **View Results** to see the filtered results.
 
 ---
 
-## How to customize columns in Reports
+## How to customize the Reports column view 
 
 On the web, you can customize which columns appear when viewing **Reports** or **Expenses**. This helps surface key details and tailor the view to your workflow.
 
@@ -77,7 +77,7 @@ To view the full list of available columns, click the **Columns** icon in the **
 
 ---
 
-# How to use search commands in Reports
+# How to use Reports search query commands
 
 Use search commands in the search bar to run advanced queries based on specific fields. 
 
@@ -114,16 +114,17 @@ Below are some example queries you can use depending on your role:
 3. Enter a name, or use the suggested one.
 
 To view saved searches:
+
 - **Web:** Go to the **Saved** section in the left-hand sidebar.
 - **Mobile:** Tap the **Type** dropdown at the top and select **Saved**.
 
-To rename or delete a saved search click the three dots next to it.
+To rename or delete a saved search, click the three dots next to it.
 
 ---
 
 # Report types
 
-Each report type offers different filters and search tools to help you find exactly what you need.
+Each report type has specific filters and search tools for finding the information you need. 
 
 ## Expenses
 
@@ -169,7 +170,7 @@ Each report type offers different filters and search tools to help you find exac
 Filters are enabled incrementally. If a filter isn’t visible, ensure that your workspace or account settings support the relevant feature (e.g., categories, statuses).
 
 ## Why are my mobile and desktop report experiences slightly different?
-Expensify ensures cross-platform consistency where possible. However, certain features — like customizable columns — are only available on web to support larger screen layouts.
+Expensify ensures cross-platform consistency where possible. However, certain features (like customizable columns) are only available on web for larger screen layouts.
 
 ## How do I find unsubmitted reports?
 1. Go to the **Reports** tab.
