@@ -1,7 +1,6 @@
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
-import type {ValueOf} from 'type-fest';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchAutocompleteQueryRange, SearchAutocompleteResult} from '@components/Search/types';
 import CONST from '@src/CONST';
@@ -160,7 +159,7 @@ function filterOutRangesWithCorrectValue(
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
     const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
-    const columnList = Object.values(CONST.SEARCH.TABLE_COLUMNS);
+    const columnList = Object.values(CONST.SEARCH.USER_FRIENDLY_TABLE_COLUMNS) as string[];
 
     if (range.key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         return range.value.length > 0;
@@ -230,7 +229,7 @@ function filterOutRangesWithCorrectValue(
             // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
             return /^-?(?!.*[.,].*[.,])\d{0,8}(?:[.,]\d{0,2})?$/.test(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
-            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS).includes(range.value as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS>);
+            return columnList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
             return isList.includes(range.value);
         default:

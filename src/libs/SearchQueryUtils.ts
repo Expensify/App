@@ -86,7 +86,7 @@ const createKeyToUserFriendlyMap = () => {
 };
 
 const createColumnIdToUserFriendlyMap = () => {
-     const map = new Map<string, string>();
+    const map = new Map<string, string>();
 
     for (const [keyName, keyValue] of Object.entries(CONST.SEARCH.TABLE_COLUMNS)) {
         if (!(keyName in CONST.SEARCH.USER_FRIENDLY_TABLE_COLUMNS)) {
@@ -96,7 +96,7 @@ const createColumnIdToUserFriendlyMap = () => {
     }
 
     return map;
-}
+};
 
 // Create the maps once at module initialization for performance
 const keyToUserFriendlyMap = createKeyToUserFriendlyMap();
@@ -1278,7 +1278,9 @@ function buildUserReadableQueryString(
         title += ` workspace:${policyID.map((id) => sanitizeSearchValue(getPolicyNameWithFallback(id, policies, reports))).join(',')}`;
     }
 
-    if (columns && )
+    if (columns && columns.length > 0) {
+        title += ` columns:${columns.map(getUserFriendlyColumnId).join(',')}`;
+    }
 
     for (const filterObject of filters) {
         const key = filterObject.key;
