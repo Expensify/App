@@ -927,6 +927,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
+                policyRecentlyUsedCurrencies: [],
             });
             return waitForBatchedUpdates()
                 .then(
@@ -1180,6 +1181,7 @@ describe('actions/IOU', () => {
                         transactionViolations: {},
                         currentUserAccountIDParam: 123,
                         currentUserEmailParam: 'existing@example.com',
+                        policyRecentlyUsedCurrencies: [],
                     });
                     return waitForBatchedUpdates();
                 })
@@ -1406,6 +1408,7 @@ describe('actions/IOU', () => {
                             transactionViolations: {},
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1568,6 +1571,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
+                policyRecentlyUsedCurrencies: [],
             });
             return (
                 waitForBatchedUpdates()
@@ -2067,6 +2071,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
+                policyRecentlyUsedCurrencies: [],
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -2092,6 +2097,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
+                policyRecentlyUsedCurrencies: [],
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -2133,6 +2139,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
+                policyRecentlyUsedCurrencies: [],
                 currentUserEmailParam: 'existing@example.com',
             });
 
@@ -2171,6 +2178,7 @@ describe('actions/IOU', () => {
                 transactionViolations: {},
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -3229,6 +3237,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 currentUserPersonalDetails,
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -3335,6 +3344,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 currentUserPersonalDetails,
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -3454,6 +3464,7 @@ describe('actions/IOU', () => {
                 isASAPSubmitBetaEnabled: false,
                 currentUserPersonalDetails,
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -3502,6 +3513,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
             return waitForBatchedUpdates()
                 .then(
@@ -3744,6 +3756,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -3881,6 +3894,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -4054,6 +4068,86 @@ describe('actions/IOU', () => {
                     expect(notifyNewAction).toHaveBeenCalledWith(topMostReportID, expect.anything());
                 });
         });
+
+        it('new expense report should be a draft report when paying partially and the approval is disabled', async () => {
+            const adminAccountID = 1;
+            const employeeAccountID = 3;
+            const adminEmail = 'admin@test.com';
+            const employeeEmail = 'employee@test.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    login: adminEmail,
+                    displayName: 'Admin User',
+                },
+                [employeeAccountID]: {
+                    accountID: employeeAccountID,
+                    login: employeeEmail,
+                    displayName: 'Employee User',
+                },
+            });
+
+            // Create policy with no approval required
+            const policy = {
+                id: '1',
+                name: 'Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: adminEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: adminEmail,
+                    },
+                    [adminEmail]: {
+                        email: adminEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: '',
+                        forwardsTo: '',
+                    },
+                },
+            };
+
+            // Create expense report
+            const expenseReport = {
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: employeeAccountID,
+                managerID: adminAccountID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                total: 1000,
+                currency: 'USD',
+                parentReportID: '456',
+                chatReportID: '456',
+            };
+
+            const chatReport = {
+                reportID: '456',
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: employeeAccountID,
+                iouReportID: expenseReport.reportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+
+            const newExpenseReportID = payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport, undefined, undefined, false, undefined, policy);
+            await waitForBatchedUpdates();
+            const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
+            expect(newExpenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(newExpenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+        });
     });
 
     describe('a expense chat with a cancelled payment', () => {
@@ -4113,6 +4207,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -4217,6 +4312,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
             await waitForBatchedUpdates();
 
@@ -4458,6 +4554,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -5025,6 +5122,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
             }
 
@@ -5096,6 +5194,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
             await waitForBatchedUpdates();
 
@@ -5357,6 +5456,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5422,6 +5522,73 @@ describe('actions/IOU', () => {
                         }),
                 );
         });
+        it('merges policyRecentlyUsedCurrencies into recently used currencies', () => {
+            const amount = 10000;
+            const comment = 'Test expense';
+            const merchant = 'Test Merchant';
+            const initialCurrencies = [CONST.CURRENCY.USD, CONST.CURRENCY.EUR];
+            let chatReport: OnyxEntry<Report>;
+
+            return waitForBatchedUpdates()
+                .then(() => {
+                    const policyID = generatePolicyID();
+                    createWorkspace({
+                        policyOwnerEmail: CARLOS_EMAIL,
+                        makeMeAdmin: true,
+                        policyName: "Carlos's Workspace",
+                        policyID,
+                    });
+
+                    setWorkspaceApprovalMode(policyID, CARLOS_EMAIL, CONST.POLICY.APPROVAL_MODE.BASIC);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: ONYXKEYS.COLLECTION.REPORT,
+                                waitForCollectionCallback: true,
+                                callback: (allReports) => {
+                                    Onyx.disconnect(connection);
+                                    chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(() => {
+                    if (chatReport) {
+                        requestMoney({
+                            report: chatReport,
+                            participantParams: {
+                                payeeEmail: RORY_EMAIL,
+                                payeeAccountID: RORY_ACCOUNT_ID,
+                                participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID, isPolicyExpenseChat: true, reportID: chatReport.reportID},
+                            },
+                            transactionParams: {
+                                amount,
+                                attendees: [],
+                                currency: CONST.CURRENCY.GBP,
+                                created: '',
+                                merchant,
+                                comment,
+                            },
+                            shouldGenerateTransactionThreadReport: true,
+                            isASAPSubmitBetaEnabled: false,
+                            currentUserAccountIDParam: 123,
+                            currentUserEmailParam: 'existing@example.com',
+                            transactionViolations: {},
+                            policyRecentlyUsedCurrencies: initialCurrencies,
+                        });
+                    }
+                    return waitForBatchedUpdates();
+                })
+                .then(async () => {
+                    const recentlyUsedCurrencies = await getOnyxValue(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+                    expect(recentlyUsedCurrencies).toEqual([CONST.CURRENCY.GBP, ...initialCurrencies]);
+                });
+        });
         it('correctly submits a report with Submit and Close approval mode', () => {
             const amount = 10000;
             const comment = '💸💸💸💸';
@@ -5478,6 +5645,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -5580,6 +5748,7 @@ describe('actions/IOU', () => {
                         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                         deleteWorkspace({
                             policyID: policy.id,
+                            personalPolicyID: undefined,
                             activePolicyID: undefined,
                             policyName: policy.name,
                             lastAccessedWorkspacePolicyID: undefined,
@@ -5668,6 +5837,7 @@ describe('actions/IOU', () => {
                             currentUserAccountIDParam: 123,
                             currentUserEmailParam: 'existing@example.com',
                             transactionViolations: {},
+                            policyRecentlyUsedCurrencies: [],
                         });
                     }
                     return waitForBatchedUpdates();
@@ -6746,6 +6916,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 transactionViolations: {},
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -7570,6 +7741,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
             }
             await waitForBatchedUpdates();
@@ -7659,6 +7831,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
             }
             await waitForBatchedUpdates();
@@ -8551,6 +8724,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -8648,6 +8822,7 @@ describe('actions/IOU', () => {
                     isASAPSubmitBetaEnabled: false,
                     currentUserPersonalDetails,
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -8701,6 +8876,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
                 await waitForBatchedUpdates();
                 await getOnyxData({
@@ -8798,6 +8974,7 @@ describe('actions/IOU', () => {
                     isASAPSubmitBetaEnabled: false,
                     currentUserPersonalDetails,
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -8856,6 +9033,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -8962,6 +9140,7 @@ describe('actions/IOU', () => {
                     isASAPSubmitBetaEnabled: false,
                     currentUserPersonalDetails,
                     transactionViolations: {},
+                    policyRecentlyUsedCurrencies: [],
                 });
                 await waitForBatchedUpdates();
 
@@ -11005,6 +11184,106 @@ describe('actions/IOU', () => {
         });
     });
 
+    describe('approveMoneyRequest partially', () => {
+        const adminAccountID = 1;
+        const employeeAccountID = 3;
+        const adminEmail = 'admin@test.com';
+        const employeeEmail = 'employee@test.com';
+
+        let expenseReport: Report;
+        let policy: Policy;
+        let chatReport: Report;
+        beforeEach(async () => {
+            await Onyx.clear();
+
+            // Set up personal details
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    login: adminEmail,
+                    displayName: 'Admin User',
+                },
+                [employeeAccountID]: {
+                    accountID: employeeAccountID,
+                    login: employeeEmail,
+                    displayName: 'Employee User',
+                },
+            });
+
+            // Create policy with approval required
+            policy = {
+                id: '1',
+                name: 'Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: adminEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: adminEmail,
+                    },
+                    [adminEmail]: {
+                        email: adminEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: '',
+                        forwardsTo: '',
+                    },
+                },
+            };
+
+            // Create expense report
+            expenseReport = {
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: employeeAccountID,
+                managerID: adminAccountID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 1000,
+                currency: 'USD',
+                parentReportID: '456',
+                chatReportID: '456',
+            };
+
+            chatReport = {
+                reportID: '456',
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: employeeAccountID,
+                iouReportID: expenseReport.reportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('the new expense report should be an outstanding report when approving partially', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
+
+            const newExpenseReportID = approveMoneyRequest(expenseReport, policy, adminAccountID, adminEmail, false, false, undefined, false);
+            await waitForBatchedUpdates();
+
+            const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
+            expect(newExpenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(newExpenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+        });
+    });
+
     describe('Invoice recipient change while offline', () => {
         const userAAccountID = 1;
         const userBAccountID = 2;
@@ -11189,6 +11468,7 @@ describe('actions/IOU', () => {
                 mockOptimisticIOUReportID,
                 mockIsASAPSubmitBetaEnabled,
                 undefined,
+                [],
                 mockPolicy,
                 fakePolicyCategories,
                 policyExpenseChat,
