@@ -957,6 +957,7 @@ function PureReportActionItem({
         }
 
         const actionableMentionWhisperOptions = [];
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const isReportInPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
 
         // Show the invite to submit expense button even if one of the mentioned users is a not a policy member
