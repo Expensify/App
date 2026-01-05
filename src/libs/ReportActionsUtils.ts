@@ -1181,7 +1181,7 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
  */
 function isVisiblePreviewOrMoneyRequest(action: ReportAction): boolean {
     const isDeletedMoneyRequest = isDeletedParentAction(action) && isMoneyRequestAction(action);
-    const isHiddenReportPreviewWithoutPendingAction = isReportPreviewAction(action) && action.pendingAction === undefined && !action.shouldShow;
+    const isHiddenReportPreviewWithoutPendingAction = isReportPreviewAction(action) && action.pendingAction === undefined && action.shouldShow === false;
 
     return !isDeletedMoneyRequest && !isHiddenReportPreviewWithoutPendingAction;
 }
@@ -2718,39 +2718,6 @@ function getWorkspaceTaxUpdateMessage(action: ReportAction): string {
     return getReportActionText(action);
 }
 
-function getCustomTaxNameUpdateMessage(action: ReportAction): string {
-    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME>) ?? {};
-
-    if (newName) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.updateCustomTaxName', {oldName, newName});
-    }
-
-    return getReportActionText(action);
-}
-
-function getCurrencyDefaultTaxUpdateMessage(action: ReportAction): string {
-    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX>) ?? {};
-
-    if (newName) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.updateCurrencyDefaultTax', {oldName, newName});
-    }
-
-    return getReportActionText(action);
-}
-
-function getForeignCurrencyDefaultTaxUpdateMessage(action: ReportAction): string {
-    const {oldName = '', newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX>) ?? {};
-
-    if (newName) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.updateForeignCurrencyDefaultTax', {oldName, newName});
-    }
-
-    return getReportActionText(action);
-}
-
 function getWorkspaceTagUpdateMessage(action: ReportAction | undefined): string {
     const {tagListName, tagName, enabled, newName, newValue, oldName, oldValue, updatedField, count} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
@@ -3246,6 +3213,20 @@ function getPolicyChangeLogDefaultReimbursableMessage(action: ReportAction): str
         return translateLocal('workspaceActions.updateDefaultReimbursable', {
             oldValue: oldDefaultReimbursable,
             newValue: newDefaultReimbursable,
+        });
+    }
+
+    return getReportActionText(action);
+}
+
+function getPolicyChangeLogDefaultTitleMessage(action: ReportAction): string {
+    const {oldDefaultTitle, newDefaultTitle} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE>) ?? {};
+
+    if (typeof oldDefaultTitle === 'string' && typeof newDefaultTitle === 'string') {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('workspaceActions.changedCustomReportNameFormula', {
+            newValue: newDefaultTitle,
+            oldValue: oldDefaultTitle,
         });
     }
 
@@ -3827,13 +3808,11 @@ export {
     getWorkspaceReimbursementUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceTaxUpdateMessage,
-    getCustomTaxNameUpdateMessage,
-    getCurrencyDefaultTaxUpdateMessage,
-    getForeignCurrencyDefaultTaxUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getWorkspaceDescriptionUpdatedMessage,
     getWorkspaceReportFieldAddMessage,
