@@ -432,9 +432,9 @@ function MoneyRequestParticipantsSelector({
         InteractionManager.runAfterInteractions(importAndSaveContacts);
     }, [importAndSaveContacts, setContactPermissionState]);
 
-    const footerContentAbovePaginationComponent = useMemo(() => {
+    const importContactsButtonComponent = useMemo(() => {
         const shouldShowImportContactsButton = contactState?.showImportUI ?? showImportContacts;
-        if (!shouldShowImportContactsButton || searchTerm.length) {
+        if (!shouldShowImportContactsButton || showLoadingPlaceholder || shouldShowListEmptyContent) {
             return null;
         }
         return (
@@ -446,16 +446,16 @@ function MoneyRequestParticipantsSelector({
                 style={styles.ph0}
             />
         );
-    }, [contactState?.showImportUI, showImportContacts, translate, icons.UserPlus, styles.ph0, searchTerm.length]);
+    }, [icons.UserPlus, contactState?.showImportUI, showImportContacts, translate, styles.ph0, showLoadingPlaceholder, shouldShowListEmptyContent]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !selectedOptions.length) {
-            return footerContentAbovePaginationComponent;
+            return importContactsButtonComponent;
         }
 
         return (
             <>
-                {footerContentAbovePaginationComponent}
+                {importContactsButtonComponent}
 
                 {shouldShowReferralBanner && !isCategorizeOrShareAction && (
                     <ReferralProgramCTA
@@ -504,7 +504,7 @@ function MoneyRequestParticipantsSelector({
         shouldShowReferralBanner,
         isCategorizeOrShareAction,
         onFinish,
-        footerContentAbovePaginationComponent,
+        importContactsButtonComponent,
     ]);
 
     const onSelectRow = useCallback(
