@@ -73,9 +73,12 @@ function IOURequestStepMerchant({
         Navigation.goBack(backTo);
     }, [backTo]);
 
-    useFocusEffect(() => {
-        setIsSaved(false);
-    });
+    useFocusEffect(
+        useCallback(() => {
+            setIsSaved(false);
+            setCurrentMerchant(initialMerchant);
+        }, [initialMerchant]),
+    );
 
     useEffect(() => {
         if (!isSaved || !shouldNavigateAfterSaveRef.current) {
@@ -169,6 +172,7 @@ function IOURequestStepMerchant({
                         inputID={INPUT_IDS.MONEY_REQUEST_MERCHANT}
                         name={INPUT_IDS.MONEY_REQUEST_MERCHANT}
                         defaultValue={initialMerchant}
+                        value={currentMerchant}
                         onValueChange={updateMerchantRef}
                         label={translate('common.merchant')}
                         accessibilityLabel={translate('common.merchant')}

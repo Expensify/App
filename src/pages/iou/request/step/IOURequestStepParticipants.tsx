@@ -378,21 +378,24 @@ function IOURequestStepParticipants({
                     iouType === CONST.IOU.TYPE.CREATE || iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.SUBMIT : iouType,
                     initialTransactionID,
                     newReportID,
-                    undefined,
                 )
               : iouConfirmationPageRoute;
 
         Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
         waitForKeyboardDismiss(() => {
             // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
-            if (backTo) {
+            if (backTo && !isMerchantRequired) {
                 // We don't want to compare params because we just changed the participants.
                 Navigation.goBack(route, {compareParams: false});
             } else {
+                // If the merchant step is required and the backTo parameter is set, we need to go back the the confirmation screen first and then navigate to the merchant page with forceReplace to remove this screen from the stack
+                if (isMerchantRequired && backTo) {
+                    Navigation.goBack();
+                }
                 // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
                 // More information can be found here: https://github.com/Expensify/App/issues/73728
                 Navigation.setNavigationActionToMicrotaskQueue(() => {
-                    Navigation.navigate(route);
+                    Navigation.navigate(route, {forceReplace: isMerchantRequired && !!backTo});
                 });
             }
         });
