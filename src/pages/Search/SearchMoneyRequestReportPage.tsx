@@ -20,7 +20,14 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getFilteredReportActionsForReportView,
+    getIOUActionForTransactionID,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getReportAction,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
@@ -137,6 +144,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     // Wait for all data to load to avoid duplicates or stale data when navigating between reports.
     useEffect(() => {
         if (hasCreatedLegacyThreadRef.current || transactionThreadReportID || (Object.keys(allReportTransactions).length !== 1 && !snapshotTransaction)) {
+            return;
+        }
+
+        // Because when switching between reports, reportActions may contain data from the previous report.
+        // So we need to check that reportActions belongs to the current report.
+        const isFirstActionBelongsToCurrentReport = !!getReportAction(reportIDFromRoute, reportActions.at(0)?.reportActionID);
+        if (report?.reportID && reportActions.length === 1 && !isFirstActionBelongsToCurrentReport) {
             return;
         }
 
