@@ -4774,6 +4774,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     isASAPSubmitBetaEnabled: false,
+                    policyRecentlyUsedCurrencies: [],
                 });
             }
             await waitForBatchedUpdates();
@@ -7525,6 +7526,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -7588,6 +7590,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -7675,6 +7678,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
