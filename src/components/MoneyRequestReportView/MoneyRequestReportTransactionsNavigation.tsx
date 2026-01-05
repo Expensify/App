@@ -20,7 +20,7 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 type MoneyRequestReportRHPNavigationButtonsProps = {
     currentTransactionID: string;
     isFromReviewDuplicates?: boolean;
-    reportID?: string;
+    parentReportID?: string;
 };
 
 const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => {
@@ -35,7 +35,7 @@ const parentReportActionIDsSelector = (reportActions: OnyxEntry<OnyxTypes.Report
     return parentActions;
 };
 
-function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates, reportID}: MoneyRequestReportRHPNavigationButtonsProps) {
+function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromReviewDuplicates, parentReportID}: MoneyRequestReportRHPNavigationButtonsProps) {
     const [transactionIDsList = getEmptyArray<string>()] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS, {
         canBeMissing: true,
     });
@@ -71,10 +71,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
 
     const parentReportActionsSelector = useCallback(
         (allReportActions: OnyxCollection<OnyxTypes.ReportActions>) => {
-            const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
+            const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`];
             return parentReportActionIDsSelector(reportActions);
         },
-        [reportID],
+        [parentReportID],
     );
 
     const [parentReportActions = new Map<string, OnyxTypes.ReportAction>()] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
