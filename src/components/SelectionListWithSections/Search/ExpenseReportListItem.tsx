@@ -14,7 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {handleActionButtonPress} from '@libs/actions/Search';
-import {isSettled} from '@libs/ReportUtils';
+import {isOpenExpenseReport, isProcessingReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
@@ -26,6 +26,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     isLoading,
     isFocused,
     showTooltip,
+    columns,
     canSelectMultiple,
     onSelectRow,
     onFocus,
@@ -43,7 +44,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     const snapshotData = snapshot?.data;
 
@@ -121,8 +122,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
+    const shouldShowViolationDescription = isOpenExpenseReport(reportItem) || isProcessingReport(reportItem);
+
     const getDescription = useMemo(() => {
-        if (!reportItem?.hasVisibleViolations || isSettled(reportItem.reportID)) {
+        if (!reportItem?.hasVisibleViolations || !shouldShowViolationDescription) {
             return;
         }
         return (
@@ -139,16 +142,16 @@ function ExpenseReportListItem<TItem extends ListItem>({
         );
     }, [
         reportItem?.hasVisibleViolations,
-        reportItem.reportID,
-        styles.alignItemsCenter,
+        shouldShowViolationDescription,
         styles.flexRow,
-        styles.mr1,
+        styles.alignItemsCenter,
         styles.mt2,
-        styles.textDanger,
+        styles.mr1,
         styles.textMicro,
+        styles.textDanger,
+        expensifyIcons.DotIndicator,
         theme.danger,
         translate,
-        expensifyIcons.DotIndicator,
     ]);
 
     return (
@@ -174,7 +177,9 @@ function ExpenseReportListItem<TItem extends ListItem>({
             {(hovered) => (
                 <View style={[styles.flex1]}>
                     <ExpenseReportListItemRow
+                        hash={currentSearchHash}
                         item={reportItem}
+                        columns={columns}
                         policy={snapshotPolicy}
                         isActionLoading={isActionLoading ?? isLoading}
                         showTooltip={showTooltip}
@@ -193,7 +198,5 @@ function ExpenseReportListItem<TItem extends ListItem>({
         </BaseListItem>
     );
 }
-
-ExpenseReportListItem.displayName = 'ExpenseReportListItem';
 
 export default ExpenseReportListItem;
