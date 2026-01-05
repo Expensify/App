@@ -40,7 +40,7 @@ function SearchEditMultiplePage() {
         return isDistanceRequest(transaction) || isPerDiemRequest(transaction);
     });
 
-    const canBillableBeEnabled = selectedTransactionIDs.every((transactionID) => {
+    const areSelectedTransactionsBillable = selectedTransactionIDs.every((transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
             return false;
@@ -51,7 +51,7 @@ function SearchEditMultiplePage() {
         return transactionPolicy?.disabledFields?.defaultBillable === false;
     });
 
-    const canReimbursableBeEnabled = selectedTransactionIDs.every((transactionID) => {
+    const areSelectedTransactionsReimbursable = selectedTransactionIDs.every((transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         if (!transaction) {
             return false;
@@ -256,7 +256,7 @@ function SearchEditMultiplePage() {
                             interactive={!field.disabled}
                         />
                     ))}
-                    {canBillableBeEnabled && (
+                    {areSelectedTransactionsBillable && (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
                             <Text>{translate('common.billable')}</Text>
                             <Switch
@@ -266,7 +266,7 @@ function SearchEditMultiplePage() {
                             />
                         </View>
                     )}
-                    {canReimbursableBeEnabled && (
+                    {areSelectedTransactionsReimbursable && (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
                             <Text>{translate('iou.reimbursable')}</Text>
                             <Switch
