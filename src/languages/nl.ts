@@ -2002,8 +2002,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'Om veiligheidsredenen vereist Xero tweefactorauthenticatie om de integratie te verbinden.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Authenticatie in twee stappen vereist',
         twoFactorAuthIsRequiredForAdminsTitle: 'Schakel twee-factor-authenticatie in',
-        twoFactorAuthIsRequiredXero: 'Je Xero-boekhoudkoppeling vereist het gebruik van tweeledige verificatie. Schakel dit in om Expensify te blijven gebruiken.',
-        twoFactorAuthIsRequiredCompany: 'Uw bedrijf vereist het gebruik van twee-factor-authenticatie. Schakel dit in om Expensify te kunnen blijven gebruiken.',
+        twoFactorAuthIsRequiredXero: 'Uw Xero-accountingverbinding vereist tweeledige verificatie.',
+        twoFactorAuthIsRequiredCompany: 'Je bedrijf vereist tweefactorauthenticatie.',
         twoFactorAuthCannotDisable: 'Kan 2FA niet uitschakelen',
         twoFactorAuthRequired: 'Tweefactorauthenticatie (2FA) is vereist voor je Xero-verbinding en kan niet worden uitgeschakeld.',
     },
@@ -3859,7 +3859,6 @@ ${
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card-transacties worden automatisch geëxporteerd naar een “Expensify Card Liability Account” dat is aangemaakt met <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
         },
         receiptPartners: {
-            connect: 'Nu verbinden',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Verbonden met ${organizationName}` : 'Automatiseer reis- en maaltijdbezorgingskosten in uw hele organisatie.',
@@ -3886,8 +3885,6 @@ ${
                 invitationFailure: 'Uitnodigen van lid voor Uber for Business mislukt',
                 autoInvite: 'Nieuwe werkruimteleden uitnodigen voor Uber for Business',
                 autoRemove: 'Deactiveer verwijderde werkruimteleden in Uber for Business',
-                bannerTitle: 'Expensify + Uber for Business',
-                bannerDescription: 'Verbind Uber for Business om reis- en maaltijdbezorgingskosten in je hele organisatie te automatiseren.',
                 emptyContent: {
                     title: 'Geen openstaande uitnodigingen',
                     subtitle: 'Hoera! We hebben hoog en laag gezocht en konden geen openstaande uitnodigingen vinden.',
@@ -5246,7 +5243,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 title: 'Je hebt nog geen tags aangemaakt',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Voeg een tag toe om projecten, locaties, afdelingen en meer bij te houden.',
-                subtitleHTML: `<muted-text><centered-text>Importeer een spreadsheet om tags toe te voegen voor het bijhouden van projecten, locaties, afdelingen en meer. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Meer informatie</a> over het formatteren van tagbestanden.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Voeg tags toe om projecten, locaties, afdelingen en meer bij te houden. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Meer informatie</a> over het opmaken van tagbestanden voor import.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>Je tags worden momenteel geïmporteerd vanuit een boekhoudkoppeling. Ga naar <a href="${accountingPageURL}">Boekhouding</a> om wijzigingen aan te brengen.</centered-text></muted-text>`,
             },
@@ -6511,6 +6508,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `heeft de formule voor de aangepaste rapportnaam gewijzigd in "${newValue}" (voorheen "${oldValue}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `standaardgoedkeurder gewijzigd in ${newApprover} (voorheen ${previousApprover})` : `heeft de standaardgoedkeurder gewijzigd naar ${newApprover}`,
         changedSubmitsToApprover: ({
