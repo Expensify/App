@@ -5693,7 +5693,7 @@ function getInvoicesChatName({
     receiverPolicy: OnyxEntry<Policy>;
     personalDetails?: Partial<PersonalDetailsList>;
     policies?: Policy[];
-    currentUserAccountIDParam?: number;
+    currentUserAccountIDParam: number;
 }): string {
     const invoiceReceiver = report?.invoiceReceiver;
     const isIndividual = invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
@@ -5702,8 +5702,8 @@ function getInvoicesChatName({
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const invoiceReceiverPolicy = receiverPolicy ?? getPolicy(invoiceReceiverPolicyID);
-    const isCurrentUserReceiver =
-        (isIndividual && invoiceReceiverAccountID === (currentUserAccountIDParam ?? currentUserAccountID)) || (!isIndividual && isPolicyAdminPolicyUtils(invoiceReceiverPolicy));
+    const resolvedCurrentUserAccountID = currentUserAccountIDParam ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === resolvedCurrentUserAccountID) || (!isIndividual && isPolicyAdminPolicyUtils(invoiceReceiverPolicy));
 
     if (isCurrentUserReceiver) {
         return getPolicyName({report, policies});
@@ -6123,7 +6123,14 @@ function getReportName(
     if (isInvoiceRoom(report)) {
         // This will be fixed as follow up https://github.com/Expensify/App/pull/75357
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails, policies});
+        const resolvedCurrentUserAccountID = currentUserAccountIDParam ?? currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+        formattedName = getInvoicesChatName({
+            report,
+            receiverPolicy: invoiceReceiverPolicy,
+            personalDetails,
+            policies,
+            currentUserAccountIDParam: resolvedCurrentUserAccountID,
+        });
     }
 
     if (isSelfDM(report)) {

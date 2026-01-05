@@ -472,6 +472,7 @@ describe('ReportNameUtils', () => {
                 report,
                 receiverPolicy,
                 personalDetails: participantsPersonalDetails,
+                currentUserAccountID,
             });
 
             const normalizedName = name?.replaceAll('\u00A0', ' ');
