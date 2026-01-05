@@ -1,10 +1,10 @@
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import type {ImageStyle, StyleProp} from 'react-native';
-import {Image, StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
+import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -24,7 +24,6 @@ import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolationOfWorkspace from '@hooks/useTransactionViolationOfWorkspace';
 import {close} from '@libs/actions/Modal';
@@ -58,7 +57,6 @@ import type SCREENS from '@src/SCREENS';
 import {reimbursementAccountErrorSelector} from '@src/selectors/ReimbursementAccount';
 import type {CurrencyList} from '@src/types/onyx';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
-import WorkspaceReceiptPartnersPromotionBanner from './receiptPartners/WorkspaceReceiptPartnersPromotionBanner';
 import type {WithPolicyProps} from './withPolicy';
 import withPolicy from './withPolicy';
 import WorkspacePageWithSections from './WorkspacePageWithSections';
@@ -70,7 +68,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const illustrations = useThemeIllustrations();
     const illustrationIcons = useMemoizedLazyIllustrations(['Building']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'FallbackWorkspaceAvatar', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'UserPlus']);
 
@@ -155,7 +152,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const readOnly = !isPolicyAdminPolicyUtils(policy);
     const currencyReadOnly = readOnly || isBankAccountVerified;
     const isOwner = isPolicyOwner(policy, currentUserPersonalDetails.accountID);
-    const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
     const shouldShowAddress = !readOnly || !!formattedAddress;
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
@@ -385,19 +381,26 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     };
 
     const renderDropdownMenu = (options: Array<DropdownOption<string>>) => (
-        <View style={[!shouldUseNarrowLayout && styles.flexRow, !shouldUseNarrowLayout && styles.gap2]}>
-            <ButtonWithDropdownMenu
-                ref={dropdownMenuRef}
-                success={false}
-                onPress={() => {}}
-                shouldAlwaysShowDropdownMenu
-                customText={translate('common.more')}
-                options={options}
-                isSplitButton={false}
-                wrapperStyle={styles.flexGrow1}
-            />
-        </View>
+        <ButtonWithDropdownMenu
+            ref={dropdownMenuRef}
+            success={false}
+            onPress={() => {}}
+            shouldAlwaysShowDropdownMenu
+            customText={translate('common.more')}
+            options={options}
+            isSplitButton={false}
+            wrapperStyle={isPolicyAdmin ? styles.flexGrow0 : styles.flexGrow1}
+        />
     );
+
+    const handleInvitePress = useCallback(() => {
+        if (isAccountLocked) {
+            showLockedAccountModal();
+            return;
+        }
+        clearInviteDraft(route.params.policyID);
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
+    }, [isAccountLocked, showLockedAccountModal, route.params.policyID]);
 
     const getHeaderButtons = () => {
         const secondaryActions: Array<DropdownOption<string>> = [];
@@ -416,21 +419,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             return null;
         }
 
-        if (isPolicyAdmin) {
-            secondaryActions.push({
-                value: 'invite',
-                text: translate('common.invite'),
-                icon: expensifyIcons.UserPlus,
-                onSelected: () => {
-                    if (isAccountLocked) {
-                        showLockedAccountModal();
-                        return;
-                    }
-                    clearInviteDraft(route.params.policyID);
-                    Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
-                },
-            });
-        }
         secondaryActions.push({
             value: 'share',
             text: translate('common.share'),
@@ -467,7 +455,22 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             });
         }
 
-        return renderDropdownMenu(secondaryActions);
+        return (
+            <View style={[styles.flexRow, styles.gap2]}>
+                {isPolicyAdmin && (
+                    <Button
+                        success
+                        text={translate('common.invite')}
+                        icon={expensifyIcons.UserPlus}
+                        onPress={handleInvitePress}
+                        medium
+                        innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                        style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                    />
+                )}
+                {renderDropdownMenu(secondaryActions)}
+            </View>
+        );
     };
 
     const modals = (
@@ -535,19 +538,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5, styles.pb5]}>{getHeaderButtons()}</View>}
-                    <WorkspaceReceiptPartnersPromotionBanner
-                        policy={policy}
-                        readOnly={readOnly}
-                    />
                     <Section
                         isCentralPane
                         title=""
                     >
-                        <Image
-                            style={StyleSheet.flatten([styles.wAuto, styles.h68, imageStyle])}
-                            source={illustrations.WorkspaceProfile}
-                            resizeMode="cover"
-                        />
                         <AvatarWithImagePicker
                             onViewPhotoPress={() => {
                                 if (!policy?.id) {
@@ -564,12 +558,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             DefaultAvatar={DefaultAvatar}
                             type={CONST.ICON_TYPE_WORKSPACE}
                             fallbackIcon={expensifyIcons.FallbackWorkspaceAvatar}
-                            style={[
-                                (policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3,
-                                shouldUseNarrowLayout ? styles.mtn17 : styles.mtn20,
-                                styles.alignItemsStart,
-                                styles.sectionMenuItemTopDescription,
-                            ]}
+                            style={[(policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout) ? styles.mb1 : styles.mb3, styles.alignItemsStart, styles.sectionMenuItemTopDescription]}
                             editIconStyle={styles.smallEditIconWorkspace}
                             isUsingDefaultAvatar={!policy?.avatarURL}
                             onImageSelected={(file) => {

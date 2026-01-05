@@ -143,7 +143,9 @@ function MoneyRequestReportPreviewContent({
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow', 'Location']);
+    const currentUserAccountID = currentUserDetails.accountID;
+    const currentUserEmail = currentUserDetails.email ?? '';
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'BackArrow', 'Location', 'ReceiptPlus']);
 
     const {areAllRequestsBeingSmartScanned, hasNonReimbursableTransactions} = useMemo(
         () => ({
@@ -168,7 +170,7 @@ function MoneyRequestReportPreviewContent({
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
+    const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
     const getCanIOUBePaid = useCallback(
         (shouldShowOnlyPayElsewhere = false) => canIOUBePaidIOUActions(iouReport, chatReport, policy, transactions, shouldShowOnlyPayElsewhere),
@@ -248,13 +250,37 @@ function MoneyRequestReportPreviewContent({
             } else if (chatReport && iouReport) {
                 startAnimation();
                 if (isInvoiceReportUtils(iouReport)) {
-                    payInvoice(type, chatReport, iouReport, introSelected, payAsBusiness, existingB2BInvoiceReport, methodID, paymentMethod, activePolicy);
+                    payInvoice({
+                        paymentMethodType: type,
+                        chatReport,
+                        invoiceReport: iouReport,
+                        introSelected,
+                        currentUserAccountIDParam: currentUserAccountID,
+                        currentUserEmailParam: currentUserEmail,
+                        payAsBusiness,
+                        existingB2BInvoiceReport,
+                        methodID,
+                        paymentMethod,
+                        activePolicy,
+                    });
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy);
+                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy, policy);
                 }
             }
         },
-        [isDelegateAccessRestricted, iouReport, chatReport, showDelegateNoAccessModal, startAnimation, introSelected, existingB2BInvoiceReport, activePolicy],
+        [
+            isDelegateAccessRestricted,
+            iouReport,
+            chatReport,
+            showDelegateNoAccessModal,
+            startAnimation,
+            introSelected,
+            existingB2BInvoiceReport,
+            activePolicy,
+            currentUserAccountID,
+            currentUserEmail,
+            policy,
+        ],
     );
 
     const confirmApproval = () => {
@@ -269,7 +295,7 @@ function MoneyRequestReportPreviewContent({
             setIsHoldMenuVisible(true);
         } else {
             startApprovedAnimation();
-            approveMoneyRequest(iouReport, activePolicy, currentUserDetails.accountID, currentUserDetails.email ?? '', hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
+            approveMoneyRequest(iouReport, activePolicy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep, true);
         }
     };
 
@@ -491,30 +517,31 @@ function MoneyRequestReportPreviewContent({
     }, [iouReportID]);
 
     const reportPreviewAction = useMemo(() => {
-        return getReportPreviewAction(
-            isIouReportArchived || isChatReportArchived,
-            currentUserDetails.accountID,
-            iouReport,
+        return getReportPreviewAction({
+            isReportArchived: isIouReportArchived || isChatReportArchived,
+            currentUserAccountID: currentUserDetails.accountID,
+            currentUserEmail: currentUserDetails.email ?? '',
+            report: iouReport,
             policy,
             transactions,
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
-            {currentUserEmail: currentUserDetails.email ?? '', violations: transactionViolations},
-        );
+            violationsData: transactionViolations,
+        });
     }, [
-        isPaidAnimationRunning,
-        isApprovedAnimationRunning,
-        isSubmittingAnimationRunning,
-        iouReport,
-        policy,
-        transactions,
         isIouReportArchived,
-        invoiceReceiverPolicy,
         isChatReportArchived,
         currentUserDetails.accountID,
         currentUserDetails.email,
+        iouReport,
+        policy,
+        transactions,
+        invoiceReceiverPolicy,
+        isPaidAnimationRunning,
+        isApprovedAnimationRunning,
+        isSubmittingAnimationRunning,
         transactionViolations,
     ]);
 
@@ -537,7 +564,7 @@ function MoneyRequestReportPreviewContent({
                         return;
                     }
                     startSubmittingAnimation();
-                    submitReport(iouReport, policy, currentUserDetails.accountID, currentUserDetails.email ?? '', hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep);
+                    submitReport(iouReport, policy, currentUserAccountID, currentUserEmail, hasViolations, isASAPSubmitBetaEnabled, iouReportNextStep);
                 }}
                 isSubmittingAnimationRunning={isSubmittingAnimationRunning}
                 onAnimationFinish={stopAnimation}

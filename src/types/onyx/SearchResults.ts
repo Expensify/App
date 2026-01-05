@@ -146,6 +146,9 @@ type SearchTransaction = {
     /** The ID of the report the transaction is associated with */
     reportID: string;
 
+    /** The policyID of the report */
+    policyID?: string;
+
     /** The MCC Group associated with the transaction */
     mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
 
@@ -169,6 +172,9 @@ type SearchTransaction = {
 
     /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
     groupCurrency?: string;
+
+    /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
+    groupExchangeRate?: number;
 
     /** Reimbursable status of the transaction */
     reimbursable?: boolean;

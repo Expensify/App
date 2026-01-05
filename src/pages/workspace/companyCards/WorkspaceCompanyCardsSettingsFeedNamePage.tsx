@@ -57,10 +57,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
             if (!isRequiredFulfilled(value)) {
                 errors.name = translate('workspace.moreFeatures.companyCards.error.feedNameRequired');
             } else if (value.length > CONST.NAME.MAX_LENGTH) {
-                errors.name = translate('common.error.characterLimitExceedCounter', {
-                    length: value.length,
-                    limit: CONST.NAME.MAX_LENGTH,
-                });
+                errors.name = translate('common.error.characterLimitExceedCounter', value.length, CONST.NAME.MAX_LENGTH);
             }
 
             return errors;
