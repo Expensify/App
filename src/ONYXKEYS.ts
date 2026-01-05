@@ -135,6 +135,9 @@ const ONYXKEYS = {
     /** Whether the user is a member of a policy other than their personal */
     HAS_NON_PERSONAL_POLICY: 'hasNonPersonalPolicy',
 
+    /** Key under which personal policy id is stored. Returned by OpenApp */
+    PERSONAL_POLICY_ID: 'personalPolicyID',
+
     /** NVP keys */
 
     /** This NVP contains list of at most 5 recent attendees */
@@ -178,9 +181,6 @@ const ONYXKEYS = {
 
     /** This NVP contains the referral banners the user dismissed */
     NVP_DISMISSED_REFERRAL_BANNERS: 'nvp_dismissedReferralBanners',
-
-    /** This NVP contains the uber banners the user dismissed */
-    NVP_DISMISSED_UBER_BANNERS: 'nvp_dismissedUber4BusinessBanner',
 
     /**
      * This NVP contains if user has ever seen the ASAP submit explanation modal and user intent to not show the ASAP submit explanation modal again
@@ -1240,7 +1240,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ARE_TRANSLATIONS_LOADING]: boolean;
     [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: string;
     [ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS]: OnyxTypes.DismissedReferralBanners;
-    [ONYXKEYS.NVP_DISMISSED_UBER_BANNERS]: Record<string, boolean>;
     [ONYXKEYS.NVP_HAS_SEEN_TRACK_TRAINING]: boolean;
     [ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION]: OnyxTypes.PrivateSubscription;
     [ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID]: OnyxTypes.StripeCustomerID;
@@ -1375,6 +1374,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY]: string;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;
     [ONYXKEYS.IS_OPEN_CONFIRM_NAVIGATE_EXPENSIFY_CLASSIC_MODAL_OPEN]: boolean;
+    [ONYXKEYS.PERSONAL_POLICY_ID]: string;
 };
 
 type OnyxDerivedValuesMapping = {
