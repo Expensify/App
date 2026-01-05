@@ -6106,16 +6106,6 @@ function buildOptimisticChangePolicyData(
 
     // 7. Update report totals when source and destination currencies differ
     // Only include transactions that match the destination currency (their amounts can be used directly)
-    // Transactions with cleared convertedAmount cannot contribute to the total until server recalculates
-    console.log(
-        '[DEBUG buildOptimisticChangePolicyData] Currency change detected:',
-        JSON.stringify({
-            sourceCurrency,
-            destinationCurrency,
-            transactionCount: transactions.length,
-        }),
-    );
-
     if (sourceCurrency && destinationCurrency && sourceCurrency !== destinationCurrency) {
         let newTotal = 0;
         let newNonReimbursableTotal = 0;
@@ -6123,20 +6113,6 @@ function buildOptimisticChangePolicyData(
 
         for (const transaction of transactions) {
             const transactionCurrency = getCurrency(transaction);
-            console.log(
-                '[DEBUG buildOptimisticChangePolicyData] Transaction:',
-                JSON.stringify({
-                    transactionID: transaction.transactionID,
-                    rawAmount: transaction.amount,
-                    convertedAmount: transaction.convertedAmount,
-                    getAmountDefault: getAmount(transaction),
-                    getAmountFromExpenseReport: getAmount(transaction, true),
-                    transactionCurrency,
-                    destinationCurrency,
-                    matchesDestination: transactionCurrency === destinationCurrency,
-                    reimbursable: transaction.reimbursable,
-                }),
-            );
 
             // Only include transactions that match the destination currency
             if (transactionCurrency === destinationCurrency) {
@@ -6150,15 +6126,6 @@ function buildOptimisticChangePolicyData(
                 }
             }
         }
-
-        console.log(
-            '[DEBUG buildOptimisticChangePolicyData] Calculated totals:',
-            JSON.stringify({
-                newTotal,
-                newNonReimbursableTotal,
-                newUnheldNonReimbursableTotal,
-            }),
-        );
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
