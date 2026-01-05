@@ -61,6 +61,7 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
+    isExpenseReport,
     isInvoiceReport,
     isPaidGroupPolicy,
     isReportApproved,
@@ -76,6 +77,7 @@ import {
     getDescription,
     getDistanceInMeters,
     getFormattedCreated,
+    getOriginalAmountForDisplay,
     getOriginalTransactionWithSplitInfo,
     getReimbursable,
     getTagArrayFromName,
@@ -264,7 +266,6 @@ function MoneyRequestView({
         billable: transactionBillable,
         category: transactionCategory,
         tag: transactionTag,
-        originalAmount: transactionOriginalAmount,
         originalCurrency: transactionOriginalCurrency,
         postedDate: transactionPostedDate,
     } = getTransactionDetails(transaction, undefined, undefined, allowNegativeAmount, false, currentUserPersonalDetails) ?? {};
@@ -284,6 +285,7 @@ function MoneyRequestView({
     const formattedTransactionAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount, actualCurrency) : '';
     const formattedPerAttendeeAmount = shouldDisplayTransactionAmount ? convertToDisplayString(actualAmount / (actualAttendees?.length ?? 1), actualCurrency) : '';
 
+    const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isManagedCardTransaction = isCardTransactionTransactionUtils(transaction);
     const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, cardList);

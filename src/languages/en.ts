@@ -3823,13 +3823,14 @@ const translations = {
                 monthly: 'Monthly',
             },
             planType: 'Plan type',
+            youCantDowngradeInvoicing:
+                "You can't downgrade your plan on an invoiced subscription. To discuss or make changes to your subscription, reach out to your account manager or Concierge for help.",
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expenses`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
         },
         receiptPartners: {
-            connect: 'Connect now',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Connected to ${organizationName}` : 'Automate travel and meal delivery expenses across your organization.',
@@ -3856,8 +3857,6 @@ const translations = {
                 invitationFailure: 'Failed to invite member to Uber for Business',
                 autoInvite: 'Invite new workspace members to Uber for Business',
                 autoRemove: 'Deactivate removed workspace members from Uber for Business',
-                bannerTitle: 'Expensify + Uber for Business',
-                bannerDescription: 'Connect Uber for Business to automate travel and meal delivery expenses across your organization.',
                 emptyContent: {
                     title: 'No outstanding invites',
                     subtitle: 'Huzzah! We looked high and low and couldn’t find any outstanding invites.',
@@ -5150,7 +5149,7 @@ const translations = {
                 title: "You haven't created any tags",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Add a tag to track projects, locations, departments, and more.',
-                subtitleHTML: `<muted-text><centered-text>Import a spreadsheet to add tags for tracking projects, locations, departments, and more. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Learn more</a> about formatting tag files.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Add tags to track projects, locations, departments, and more. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Learn more</a> about formatting tag files for import.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>Your tags are currently importing from an accounting connection. Head over to <a href="${accountingPageURL}">accounting</a> to make any changes.</centered-text></muted-text>`,
             },
@@ -6315,6 +6314,8 @@ const translations = {
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Cash expense default" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `changed the custom report name formula to "${newValue}" (previously "${oldValue}")`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription
@@ -7053,6 +7054,34 @@ const translations = {
         },
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
+        },
+    },
+    gps: {
+        tooltip: "GPS tracking in progress! When you're done, stop tracking below.",
+        disclaimer: 'Use GPS to create an expense from your journey. Tap Start below to begin tracking.',
+        error: {
+            failedToStart: 'Failed to start location tracking.',
+            failedToGetPermissions: 'Failed to get required location permissions.',
+        },
+        trackingDistance: 'Tracking distance...',
+        stopped: 'Stopped',
+        start: 'Start',
+        stop: 'Stop',
+        discard: 'Discard',
+        stopGpsTrackingModal: {
+            title: 'Stop GPS tracking',
+            prompt: 'Are you sure? This will end your current journey.',
+            cancel: 'Resume tracking',
+            confirm: 'Stop GPS tracking',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Discard distance tracking',
+            prompt: "Are you sure? This will discard your current journey and can't be undone.",
+            confirm: 'Discard distance tracking',
+        },
+        zeroDistanceTripModal: {
+            title: "Can't create expense",
+            prompt: "You can't create an expense with the same start and stop location.",
         },
     },
     reportCardLostOrDamaged: {

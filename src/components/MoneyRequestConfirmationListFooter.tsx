@@ -351,14 +351,14 @@ function MoneyRequestConfirmationListFooter({
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
         return name;
-    }, [allPolicies, allReports, isUnreported, selectedReport, translate]);
+    }, [isUnreported, selectedReport, allReports, allPolicies, translate]);
 
     const shouldReportBeEditableFromFAB = isUnreported ? allOutstandingReports.length >= 1 : allOutstandingReports.length > 1;
 
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = (isFromGlobalCreate ? shouldReportBeEditableFromFAB : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
-
+    const shouldReportBeEditable =
+        (isFromGlobalCreate && !isPerDiemRequest ? shouldReportBeEditableFromFAB : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
     const taxRates = policy?.taxRates ?? null;
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;

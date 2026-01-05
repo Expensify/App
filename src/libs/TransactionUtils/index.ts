@@ -1428,7 +1428,6 @@ function shouldShowViolation(
     const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
     const isReportOpen = isOpenExpenseReport(iouReport);
-    const isOpenOrProcessingReport = isReportOpen || isProcessingReport(iouReport);
     const isAttendeeTrackingEnabled = policy?.isAttendeeTrackingEnabled ?? false;
 
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
@@ -1436,7 +1435,7 @@ function shouldShowViolation(
     }
 
     if (violationName === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT) {
-        return isPolicyAdmin(policy) && !isSubmitter && isOpenOrProcessingReport;
+        return isPolicyAdmin(policy) && !isSubmitter && isProcessingReport(iouReport);
     }
 
     if (violationName === CONST.VIOLATIONS.RTER) {
