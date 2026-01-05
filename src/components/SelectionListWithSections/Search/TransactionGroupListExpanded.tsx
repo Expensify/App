@@ -22,6 +22,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {createAndOpenSearchTransactionThread, getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import {getTransactionViolations} from '@libs/TransactionUtils';
 import {setActiveTransactionIDs} from '@userActions/TransactionThreadNavigation';
+import reportsSelector from '@selectors/Attributes';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,6 +56,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const {translate} = useLocalize();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     const transactionsSnapshotMetadata = useMemo(() => {
         return transactionsSnapshot?.search;
@@ -212,6 +214,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         shouldShowBottomBorder={shouldShowBottomBorder}
                         onArrowRightPress={() => openReportInRHP(transaction)}
                         shouldShowArrowRightOnNarrowLayout
+                        reportAttributesDerived={reportAttributesDerived}
                     />
                 );
                 return (
