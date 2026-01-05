@@ -246,6 +246,73 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 )
 ```
 
+---
+
+### [DESIGN-1] Favor composition over configuration
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A component's props type definition OR function signature is being **added or modified**
+  - The change **adds new boolean flags** that control rendering behavior (e.g., `shouldShowX`, `shouldUseY`, `canZ`, `isXEnabled`)
+  - The feature could instead be expressed as a **composed child component**
+
+  **DO NOT flag if:**
+
+  - The boolean controls simple state (e.g., `isLoading`, `isDisabled`, `isSelected`)
+  - The prop is for accessibility or platform-specific behavior
+  - The component is a leaf component with no children
+  - The boolean is required for coordination between composed parts (narrow, stable props)
+
+- **Reasoning**: When features are added via configuration props, the component grows vertically, accumulating responsibilities. Each new flag increases coupling, surface area, and regression risk. Composition (expressing features as child components) keeps the parent stable—new features are added as new children, not new props.
+
+**Indicators of violation:**
+
+- Component has 5+ boolean `should*`/`can*`/`is*Enabled` props controlling rendering
+- Conditional rendering inside component based on many boolean props
+- Adding a new `shouldShowX` prop instead of accepting `<Component.X />` as a child
+
+Good (composition):
+
+```tsx
+// Features expressed as composable children
+<Table data={items} columns={columns}>
+  <Table.SearchBar />
+  <Table.Header />
+  <Table.Body />
+</Table>
+
+// Parent stays stable; add features by adding children
+<SelectionList data={items}>
+  <SelectionList.TextInput />
+  <SelectionList.Body />
+</SelectionList>
+```
+
+Bad (configuration):
+
+```tsx
+// Features controlled by boolean flags
+<SelectionList
+  data={items}
+  shouldShowTextInput
+  shouldShowTooltips
+  shouldScrollToFocusedIndex
+  shouldDebounceScrolling
+  shouldUpdateFocusedIndex
+  canSelectMultiple
+  disableKeyboardShortcuts
+/>
+
+// Adding a new feature requires modifying the component's API
+type SelectionListProps = {
+  shouldShowTextInput?: boolean;      // ❌ Could be <SelectionList.TextInput />
+  shouldShowConfirmButton?: boolean;  // ❌ Could be <SelectionList.ConfirmButton />
+  textInputOptions?: {...};           // ❌ Configuration object for the above
+};
+```
+
+---
+
 ## Instructions
 
 1. **First, get the list of changed files and their diffs:**
