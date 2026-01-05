@@ -1,4 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import {createTransaction, handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -6,8 +7,9 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import CONST from '@src/CONST';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {QuickAction} from '@src/types/onyx';
+import type {QuickAction, Transaction} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
 import createRandomPolicy from '../../utils/collections/policies';
@@ -32,9 +34,23 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
-const currentUserAccountID = 5;
+jest.mock('@src/libs/DistanceRequestUtils', () => ({
+    getCustomUnitRateID: jest.fn(),
+}));
 
 describe('MoneyRequest', () => {
+    const currentUserAccountID = 5;
+
+    beforeAll(() => {
+        Onyx.init({
+            keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: null,
+            },
+        });
+        return waitForBatchedUpdates();
+    });
+
     describe('createTransaction', () => {
         const fakeTransaction = createRandomTransaction(1);
         const fakeReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
@@ -233,7 +249,7 @@ describe('MoneyRequest', () => {
             policy: fakePolicy,
             transaction: fakeTransaction,
             reportID: '1',
-            transactionID: 'tx1',
+            transactionID: '121',
             reportAttributesDerived: {},
             personalDetails: {},
             waypoints: {},
@@ -268,6 +284,10 @@ describe('MoneyRequest', () => {
                 return participantAccountID ? getParticipantsOption(participant, baseParams.personalDetails) : getReportOption(participant, baseParams.reportAttributesDerived);
             });
         }
+
+        beforeEach(() => {
+            Onyx.clear();
+        });
 
         afterEach(() => {
             jest.clearAllMocks();
@@ -511,7 +531,93 @@ describe('MoneyRequest', () => {
             );
         });
 
-        it('should navigate to participant page when no other condition matches', () => {
+        it('should navigate to confirmation page for CREATE flow from global menu', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, {...fakeReport, reportID: '1'});
+
+            const defaultExpensePolicy = {
+                ...fakePolicy,
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                report: undefined,
+                defaultExpensePolicy,
+                isAutoReporting: true,
+                iouType: CONST.IOU.TYPE.CREATE,
+            });
+            await waitForBatchedUpdates();
+
+            const draftTransactionOnyx = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            const rateID = DistanceRequestUtils.getCustomUnitRateID({
+                reportID: fakeReport.reportID,
+                isPolicyExpenseChat: true,
+                policy: defaultExpensePolicy,
+                lastSelectedDistanceRates: {},
+            });
+
+            expect(DistanceRequestUtils.getCustomUnitRateID).toHaveBeenCalledWith({
+                reportID: fakeReport.reportID,
+                isPolicyExpenseChat: true,
+                policy: defaultExpensePolicy,
+                lastSelectedDistanceRates: {},
+            });
+
+            expect(draftTransactionOnyx).toMatchObject({reportID: '1'});
+
+            expect(IOU.setCustomUnitRateID).toHaveBeenCalledWith(baseParams.transactionID, rateID);
+            expect(IOU.setMoneyRequestParticipantsFromReport).toHaveBeenCalledWith(baseParams.transactionID, fakeReport, baseParams.currentUserAccountID);
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, baseParams.transactionID, fakeReport?.reportID),
+            );
+        });
+
+        it('should use UNREPORTED_REPORT_ID for transaction when autoReporting is disabled', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, {...fakeReport, reportID: '1'});
+
+            const defaultExpensePolicy = {
+                ...fakePolicy,
+                autoReporting: false,
+                isPolicyExpenseChatEnabled: true,
+            };
+
+            handleMoneyRequestStepDistanceNavigation({
+                ...baseParams,
+                report: undefined,
+                defaultExpensePolicy,
+                iouType: CONST.IOU.TYPE.CREATE,
+            });
+            await waitForBatchedUpdates();
+
+            const draftTransactionOnyx = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`,
+                    waitForCollectionCallback: false,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(draftTransactionOnyx).toMatchObject({reportID: '0'});
+            expect(DistanceRequestUtils.getCustomUnitRateID).toHaveBeenCalledWith(expect.objectContaining({reportID: '0'}));
+        });
+
+        it('should navigate to participants page when the user click create expense option (combined submit/track flow)', () => {
             handleMoneyRequestStepDistanceNavigation({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.CREATE,
