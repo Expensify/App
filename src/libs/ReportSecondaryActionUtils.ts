@@ -702,13 +702,17 @@ function isReportLayoutAction(report: Report, reportTransactions: Transaction[])
     return reportTransactions.length >= 2;
 }
 
-function isDuplicateAction(report: Report, reportTransactions: Transaction[]): boolean {
+function isDuplicateAction(report: Report, reportTransactions: Transaction[], violations?: OnyxCollection<TransactionViolation[]>, transactionViolations?: TransactionViolations): boolean {
     // Only single transactions are supported for now
     if (reportTransactions.length !== 1) {
         return false;
     }
 
     const reportTransaction = reportTransactions.at(0);
+
+    if (!reportTransaction) {
+        return false;
+    }
 
     // Per diem and distance requests will be handled separately in a follow-up
     if (isPerDiemRequestTransactionUtils(reportTransaction)) {
@@ -724,6 +728,14 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
     }
 
     if (isManagedCardTransactionTransactionUtils(reportTransaction)) {
+        return false;
+    }
+
+    const reportTransactionViolations = (violations ? violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${reportTransaction.transactionID}`] : transactionViolations) ?? [];
+
+    const hasCustomUnitOutOfPolicyViolation = reportTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+
+    if (hasCustomUnitOutOfPolicyViolation) {
         return false;
     }
 
@@ -832,7 +844,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MERGE);
     }
 
-    if (isDuplicateAction(report, reportTransactions)) {
+    if (isDuplicateAction(report, reportTransactions, violations)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.DUPLICATE);
     }
 
@@ -896,6 +908,7 @@ function getSecondaryTransactionThreadActions(
     originalTransaction: OnyxEntry<Transaction>,
     policy: OnyxEntry<Policy>,
     transactionThreadReport?: OnyxEntry<Report>,
+    violations?: TransactionViolations,
 ): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
@@ -919,7 +932,7 @@ function getSecondaryTransactionThreadActions(
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MERGE);
     }
 
-    if (isDuplicateAction(parentReport, [reportTransaction])) {
+    if (isDuplicateAction(parentReport, [reportTransaction], undefined, violations)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.DUPLICATE);
     }
 
