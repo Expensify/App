@@ -7,6 +7,7 @@ import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
@@ -25,6 +26,8 @@ function SearchEditMultipleCategoryPage() {
 
     const saveCategory = (item: ListItem) => {
         if (!item.searchText) {
+            Log.hmmm(`[SearchEditMultipleCategoryPage] no category selected for bulk edit`);
+            Navigation.goBack();
             return;
         }
         updateBulkEditDraftTransaction({
