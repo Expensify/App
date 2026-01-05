@@ -2217,7 +2217,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
                 [tagName]: {name: tagName},
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
 
             // When requesting money
             requestMoney({
@@ -2395,13 +2395,13 @@ describe('actions/IOU', () => {
                 policyID,
                 type: CONST.REPORT.TYPE.EXPENSE,
                 ownerAccountID: currentUserPersonalDetails.accountID,
-            }
+            };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {reportID: iouReport.reportID, policyID})
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {reportID: iouReport.reportID, policyID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
                 [tagName]: {name: tagName},
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
 
             // When creating a distance request
             createDistanceRequest({
@@ -2459,7 +2459,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
                 [tagName]: {name: tagName},
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
 
             // When creating a split distance request
             createDistanceRequest({
@@ -3419,9 +3419,7 @@ describe('actions/IOU', () => {
 
             // When doing a split bill with a receipt
             startSplitBill({
-                participants: [
-                    {isPolicyExpenseChat: true, policyID}
-                ],
+                participants: [{isPolicyExpenseChat: true, policyID}],
                 currentUserLogin: currentUserPersonalDetails.login ?? '',
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 comment: '',
@@ -6664,10 +6662,8 @@ describe('actions/IOU', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(1),
                 tag: transactionTag,
-                participants: [
-                    {isSender: true, policyID},
-                ],
-             };
+                participants: [{isSender: true, policyID}],
+            };
             const tagName = 'Tag';
             const policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags> = {
                 [tagName]: ['old tag'],
@@ -6675,7 +6671,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
                 [tagName]: {name: tagName},
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
 
             // When sending an invoice
             sendInvoice({
@@ -10555,7 +10551,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
                 [tagName]: {name: tagName},
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags)
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
 
             // When submitting a per diem expense
             submitPerDiemExpense({
@@ -10581,7 +10577,7 @@ describe('actions/IOU', () => {
                         name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
                         customUnitRateID: 'B',
                         subRates: [{id: '1', name: 'rate_a', quantity: 1, rate: 2}],
-                        attributes: {dates: {end: '', start: ''}}
+                        attributes: {dates: {end: '', start: ''}},
                     },
                 },
                 policyRecentlyUsedCurrencies: [],
@@ -11057,8 +11053,8 @@ describe('actions/IOU', () => {
             const iouReportID = '3';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, policyTags);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policy.id}`, policyRecentlyUsedTags);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID, parentReportID: iouReportID})
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {reportID: iouReportID, policyID: policy.id})
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {reportID: transactionThreadReportID, parentReportID: iouReportID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {reportID: iouReportID, policyID: policy.id});
 
             // When updating the expense tag
             updateMoneyRequestTag({
