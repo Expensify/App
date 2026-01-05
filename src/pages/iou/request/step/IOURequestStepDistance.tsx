@@ -26,6 +26,7 @@ import usePrevious from '@hooks/usePrevious';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getIOURequestPolicyID, setMoneyRequestAmount, setSplitShares, updateMoneyRequestDistance} from '@libs/actions/IOU';
+import {handleMoneyRequestStepDistanceNavigation} from '@libs/actions/IOU/MoneyRequest';
 import {init, stop} from '@libs/actions/MapboxToken';
 import {openReport} from '@libs/actions/Report';
 import {openDraftDistanceExpense, removeWaypoint, updateWaypoints as updateWaypointsUtil} from '@libs/actions/Transaction';
@@ -33,7 +34,7 @@ import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransac
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import type {MileageRate} from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
-import {handleMoneyRequestStepDistanceNavigation, shouldUseTransactionDraft} from '@libs/IOUUtils';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicy} from '@libs/PolicyUtils';
 import {isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
