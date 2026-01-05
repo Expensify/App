@@ -136,48 +136,6 @@ function mapTransactionItemToSelectedEntry(
     ];
 }
 
-function mapToTransactionItemWithAdditionalInfo(
-    item: TransactionListItemType,
-    selectedTransactions: SelectedTransactions,
-    canSelectMultiple: boolean,
-    shouldAnimateInHighlight: boolean,
-    hash?: number,
-) {
-    return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple, hash};
-}
-
-function mapToItemWithAdditionalInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean, hash?: number) {
-    if (isTaskListItemType(item)) {
-        return {
-            ...item,
-            shouldAnimateInHighlight,
-            hash,
-        };
-    }
-
-    if (isReportActionListItemType(item)) {
-        return {
-            ...item,
-            shouldAnimateInHighlight,
-            hash,
-        };
-    }
-
-    return isTransactionListItemType(item)
-        ? mapToTransactionItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash)
-        : {
-              ...item,
-              shouldAnimateInHighlight,
-              transactions: item.transactions?.map((transaction) =>
-                  mapToTransactionItemWithAdditionalInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash),
-              ),
-              isSelected:
-                  item?.transactions?.length > 0 &&
-                  item.transactions?.filter((t) => !isTransactionPendingDelete(t)).every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
-              hash,
-          };
-}
-
 function prepareTransactionsList(
     item: TransactionListItemType,
     itemTransaction: OnyxEntry<Transaction>,
@@ -287,6 +245,7 @@ function Search({
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [isActionLoadingSet = new Set<string>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}`, {canBeMissing: true, selector: isActionLoadingSetSelector});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
@@ -314,7 +273,7 @@ function Search({
                 const transactionViolations = violations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`];
                 if (transactionViolations) {
                     const filteredTransactionViolations = mergeProhibitedViolations(
-                        transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, email ?? '')),
+                        transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, email ?? '', true, transaction)),
                     );
 
                     if (filteredTransactionViolations.length > 0) {
@@ -884,17 +843,15 @@ function Search({
     const canSelectMultiple = !isChat && !isTask && (!isSmallScreenWidth || isMobileSelectionModeEnabled);
     const ListItem = getListItem(type, status, validGroupBy);
 
-    const sortedSelectedData = useMemo(
+    const sortedData = useMemo(
         () =>
             getSortedSections(type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy).map((item) => {
                 const baseKey = isChat
                     ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
                     : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;
 
-                // Check if the base key matches the newSearchResultKey (TransactionListItemType)
                 const isBaseKeyMatch = !!newSearchResultKeys?.has(baseKey);
 
-                // Check if any transaction within the transactions array (TransactionGroupListItemType) matches the newSearchResultKey
                 const isAnyTransactionMatch =
                     !isChat &&
                     (item as TransactionGroupListItemType)?.transactions?.some((transaction) => {
@@ -902,12 +859,15 @@ function Search({
                         return !!newSearchResultKeys?.has(transactionKey);
                     });
 
-                // Determine if either the base key or any transaction key matches
                 const shouldAnimateInHighlight = isBaseKeyMatch || isAnyTransactionMatch;
 
-                return mapToItemWithAdditionalInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight, hash);
+                if (item.shouldAnimateInHighlight === shouldAnimateInHighlight && item.hash === hash) {
+                    return item;
+                }
+
+                return {...item, shouldAnimateInHighlight, hash};
             }),
-        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, selectedTransactions, canSelectMultiple, hash],
+        [type, status, filteredData, localeCompare, translate, sortBy, sortOrder, validGroupBy, isChat, newSearchResultKeys, hash],
     );
 
     useEffect(() => {
@@ -988,8 +948,8 @@ function Search({
 
     const onLayout = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS_TAB);
-        handleSelectionListScroll(sortedSelectedData, searchListRef.current);
-    }, [handleSelectionListScroll, sortedSelectedData]);
+        handleSelectionListScroll(sortedData, searchListRef.current);
+    }, [handleSelectionListScroll, sortedData]);
 
     const onLayoutSkeleton = useCallback(() => {
         endSpan(CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS);
@@ -1068,12 +1028,13 @@ function Search({
             <Animated.View style={[styles.flex1, animatedStyle]}>
                 <SearchList
                     ref={searchListRef}
-                    data={sortedSelectedData}
+                    data={sortedData}
                     ListItem={ListItem}
                     onSelectRow={onSelectRow}
                     onCheckboxPress={toggleTransaction}
                     onAllCheckboxPress={toggleAllTransactions}
                     canSelectMultiple={canSelectMultiple}
+                    selectedTransactions={selectedTransactions}
                     shouldPreventLongPressRow={isChat || isTask}
                     isFocused={isFocused}
                     onDEWModalOpen={handleDEWModalOpen}
@@ -1121,6 +1082,7 @@ function Search({
                     isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                     shouldAnimate={type === CONST.SEARCH.DATA_TYPES.EXPENSE}
                     newTransactions={newTransactions}
+                    customCardNames={customCardNames}
                 />
                 <ConfirmModal
                     title={translate('customApprovalWorkflow.title')}
