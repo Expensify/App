@@ -1,7 +1,6 @@
 /* eslint-disable max-lines */
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import escapeRegExp from 'lodash/escapeRegExp';
-import lodashUnion from 'lodash/union';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -464,6 +463,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             .filter((p) => p && p.id !== activePolicyID && p.type !== CONST.POLICY.TYPE.PERSONAL && p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .sort((policyA, policyB) => localeCompare(policyB?.created ?? '', policyA?.created ?? ''))
             .at(0);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const newActivePolicyID = mostRecentlyCreatedGroupPolicy?.id ?? PolicyUtils.getPersonalPolicy()?.id;
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
