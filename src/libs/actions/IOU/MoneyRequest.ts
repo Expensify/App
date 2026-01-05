@@ -47,6 +47,7 @@ type CreateTransactionParams = {
     isASAPSubmitBetaEnabled: boolean;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     quickAction: OnyxEntry<QuickAction>;
+    policyRecentlyUsedCurrencies?: string[];
     files: ReceiptFile[];
     participant: Participant;
     gpsPoint?: GpsPoint;
@@ -132,6 +133,7 @@ function createTransaction({
     isASAPSubmitBetaEnabled,
     transactionViolations,
     quickAction,
+    policyRecentlyUsedCurrencies,
     files,
     participant,
     gpsPoint,
@@ -194,6 +196,7 @@ function createTransaction({
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: currentUserEmail ?? '',
                 transactionViolations,
+                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             });
         }
     }
@@ -310,6 +313,7 @@ function handleMoneyRequestStepScanParticipants({
                             isASAPSubmitBetaEnabled,
                             transactionViolations,
                             quickAction,
+                            policyRecentlyUsedCurrencies,
                             files,
                             participant,
                             gpsPoint,
@@ -332,6 +336,7 @@ function handleMoneyRequestStepScanParticipants({
                             isASAPSubmitBetaEnabled,
                             transactionViolations,
                             quickAction,
+                            policyRecentlyUsedCurrencies,
                             files,
                             participant,
                         });
@@ -350,6 +355,7 @@ function handleMoneyRequestStepScanParticipants({
                 isASAPSubmitBetaEnabled,
                 transactionViolations,
                 quickAction,
+                policyRecentlyUsedCurrencies,
                 files,
                 participant,
             });

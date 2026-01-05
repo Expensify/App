@@ -370,6 +370,7 @@ function IOURequestStepScan({
             personalPolicy?.autoReporting,
             isASAPSubmitBetaEnabled,
             transactionViolations,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
@@ -559,10 +560,8 @@ function IOURequestStepScan({
         if (!dismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
             setShouldShowMultiScanEducationalPopup(true);
         }
-        if (isMultiScanEnabled) {
-            removeDraftTransactions(true);
-        }
         removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+        removeDraftTransactions(true);
         setIsMultiScanEnabled?.(!isMultiScanEnabled);
     };
 
