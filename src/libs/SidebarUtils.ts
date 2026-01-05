@@ -31,8 +31,11 @@ import {
     getAddedConnectionMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
+    getCurrencyDefaultTaxUpdateMessage,
+    getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
+    getForeignCurrencyDefaultTaxUpdateMessage,
     getForwardsToUpdateMessage,
     getIntegrationSyncFailedMessage,
     getLastVisibleMessage,
@@ -52,6 +55,7 @@ import {
     getRenamedAction,
     getReopenedMessage,
     getReportAction,
+    getReportActionActorAccountID,
     getReportActionMessageText,
     getRetractedMessage,
     getRoomAvatarUpdatedMessage,
@@ -103,7 +107,6 @@ import {
     getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
-    getReportActionActorAccountID,
     getReportDescription,
     getReportMetadata,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -765,7 +768,13 @@ function getOptionData({
     }
 
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, localeCompare, undefined, isSelfDM(report));
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(
+        (participantPersonalDetailList || []).slice(0, 10),
+        hasMultipleParticipants,
+        localeCompare,
+        formatPhoneNumberPhoneUtils,
+        isSelfDM(report),
+    );
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
@@ -868,6 +877,12 @@ function getOptionData({
             isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX)
         ) {
             result.alternateText = getWorkspaceTaxUpdateMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_TAX_NAME)) {
+            result.alternateText = getCustomTaxNameUpdateMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY_DEFAULT_TAX)) {
+            result.alternateText = getCurrencyDefaultTaxUpdateMessage(lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX)) {
+            result.alternateText = getForeignCurrencyDefaultTaxUpdateMessage(lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME)) {
             result.alternateText = getCleanedTagName(getTagListNameUpdatedMessage(lastAction) ?? '');
         } else if (isTagModificationAction(lastAction?.actionName ?? '')) {
@@ -1072,7 +1087,7 @@ function getWelcomeMessage(
         return welcomeMessage;
     }
     const isMultipleParticipant = participantPersonalDetailList.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare, formatPhoneNumberPhoneUtils);
 
     if (!displayNamesWithTooltips.length) {
         return welcomeMessage;
