@@ -189,6 +189,7 @@ function EditReportFieldPage({route}: EditReportFieldPageProps) {
                     isRequired={!isReportFieldDeletable}
                     onSubmit={handleReportFieldChange}
                     fieldList={policy?.fieldList}
+                    disabled={reportField.deletable}
                 />
             )}
         </ScreenWrapper>
