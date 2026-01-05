@@ -52,6 +52,7 @@ import {
     updateSplitExpenseAmountField,
     updateSplitTransactionsFromSplitExpensesFlow,
 } from '@libs/actions/IOU';
+import {getSendInvoiceInformation} from '@libs/actions/IOU/SendInvoice';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {createWorkspace, deleteWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs/actions/Policy/Policy';
 import {addComment, createNewReport, deleteReport, notifyNewAction, openReport} from '@libs/actions/Report';
@@ -113,7 +114,6 @@ import {getGlobalFetchMock, getOnyxData, localeCompare, setPersonalDetails, sign
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
-import { getSendInvoiceInformation } from '@libs/actions/IOU/SendInvoice';
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
