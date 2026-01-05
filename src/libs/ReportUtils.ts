@@ -12191,7 +12191,7 @@ function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, 
     if (!submitterEmail || !newPolicy?.isPolicyExpenseChatEnabled) {
         return false;
     }
-    if (report && !isPolicyAdminPolicyUtils(newPolicy) && report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED) {
+    if (report && report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
         return false;
     }
     return isPaidGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role;
