@@ -5743,12 +5743,25 @@ function buildOptimisticChangePolicyData(
         >
     > = [];
 
+    console.log('[DEBUG buildOptimisticChangePolicyData] Start:', JSON.stringify({
+        reportID: report.reportID,
+        currentReportCurrency: report.currency,
+        currentReportPolicyID: report.policyID,
+        targetPolicyID: policy.id,
+        targetPolicyOutputCurrency: policy.outputCurrency,
+        currencyWillChange: report.currency !== policy.outputCurrency,
+    }));
+
     // 1. Optimistically set the policyID on the report (and all its threads) by:
     // 1.1 Preprocess reports to create a map of parentReportID to child reports list of reportIDs
     // 1.2 Recursively update the policyID of the report and all its child reports
     const reportID = report.reportID;
     const reportIDToThreadsReportIDsMap = buildReportIDToThreadsReportIDsMap();
     updatePolicyIdForReportAndThreads(reportID, policy.id, reportIDToThreadsReportIDsMap, optimisticData, failureData);
+
+    console.log('[DEBUG buildOptimisticChangePolicyData] After updatePolicyIdForReportAndThreads - optimisticData report updates:', JSON.stringify(
+        optimisticData.filter(d => d.key?.includes('report_')).map(d => ({key: d.key, value: d.value}))
+    ));
 
     // We reopen and reassign the report if the report is open/submitted and the manager is not a member of the new policy. This is to prevent the old manager from seeing a report that they can't action on.
     let newStatusNum = report?.statusNum;
@@ -6107,6 +6120,12 @@ function buildOptimisticChangePolicyData(
     // 7. Update report totals when source and destination currencies differ
     // Only include transactions that match the destination currency (their amounts can be used directly)
     // Transactions with cleared convertedAmount cannot contribute to the total until server recalculates
+    console.log('[DEBUG buildOptimisticChangePolicyData] Currency change detected:', JSON.stringify({
+        sourceCurrency,
+        destinationCurrency,
+        transactionCount: transactions.length,
+    }));
+
     if (sourceCurrency && destinationCurrency && sourceCurrency !== destinationCurrency) {
         let newTotal = 0;
         let newNonReimbursableTotal = 0;
@@ -6114,9 +6133,21 @@ function buildOptimisticChangePolicyData(
 
         for (const transaction of transactions) {
             const transactionCurrency = getCurrency(transaction);
+            console.log('[DEBUG buildOptimisticChangePolicyData] Transaction:', JSON.stringify({
+                transactionID: transaction.transactionID,
+                rawAmount: transaction.amount,
+                convertedAmount: transaction.convertedAmount,
+                getAmountDefault: getAmount(transaction),
+                getAmountFromExpenseReport: getAmount(transaction, true),
+                transactionCurrency,
+                destinationCurrency,
+                matchesDestination: transactionCurrency === destinationCurrency,
+                reimbursable: transaction.reimbursable,
+            }));
+
             // Only include transactions that match the destination currency
             if (transactionCurrency === destinationCurrency) {
-                const transactionAmount = getAmount(transaction);
+                const transactionAmount = getAmount(transaction, true);
                 newTotal -= transactionAmount;
                 if (!transaction.reimbursable) {
                     newNonReimbursableTotal -= transactionAmount;
@@ -6127,10 +6158,17 @@ function buildOptimisticChangePolicyData(
             }
         }
 
+        console.log('[DEBUG buildOptimisticChangePolicyData] Calculated totals:', JSON.stringify({
+            newTotal,
+            newNonReimbursableTotal,
+            newUnheldNonReimbursableTotal,
+        }));
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
+                currency: destinationCurrency,
                 total: newTotal,
                 nonReimbursableTotal: newNonReimbursableTotal,
                 unheldNonReimbursableTotal: newUnheldNonReimbursableTotal,
@@ -6153,6 +6191,7 @@ function buildOptimisticChangePolicyData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
+                currency: report.currency,
                 total: report.total,
                 nonReimbursableTotal: report.nonReimbursableTotal,
                 unheldNonReimbursableTotal: report.unheldNonReimbursableTotal,

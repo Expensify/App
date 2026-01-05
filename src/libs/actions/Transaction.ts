@@ -860,12 +860,13 @@ function changeTransactionsReport(
         };
 
         // 1. Optimistically change the reportID on the passed transactions
+        // Only set pendingAction for transactions that need convertedAmount recalculation
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 comment: {
                     hold: null,
                 },
@@ -879,7 +880,7 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
-                pendingAction: null,
+                ...(shouldClearAmount && {pendingAction: null}),
             },
         });
 
@@ -888,7 +889,7 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID: transaction.reportID,
-                pendingAction: transaction.pendingAction ?? null,
+                ...(shouldClearAmount && {pendingAction: transaction.pendingAction ?? null}),
                 comment: {
                     hold: transaction.comment?.hold,
                 },
