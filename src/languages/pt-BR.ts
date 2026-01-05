@@ -5240,7 +5240,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 title: 'Você não criou nenhuma tag',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Adicione uma tag para acompanhar projetos, locais, departamentos e muito mais.',
-                subtitleHTML: `<muted-text><centered-text>Importe uma planilha para adicionar tags para rastrear projetos, locais, departamentos e muito mais. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Saiba mais</a> sobre a formatação de arquivos de tags.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Adicione tags para acompanhar projetos, localizações, departamentos e muito mais. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Saiba mais</a> sobre como formatar arquivos de tags para importação.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>Suas tags estão sendo importadas de uma conexão contábil. Vá até <a href="${accountingPageURL}">contabilidade</a> para fazer qualquer alteração.</centered-text></muted-text>`,
             },
