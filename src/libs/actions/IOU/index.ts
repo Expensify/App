@@ -6523,6 +6523,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       introSelected: {choice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER},
                       engagementChoice: CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER,
                       onboardingMessage: getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER],
+                      companySize: undefined,
                   })?.guidedSetupData
                 : undefined;
 
