@@ -7,8 +7,14 @@ type WideRHPContextType = {
     // Route keys of screens that should be displayed in super wide format
     superWideRHPRouteKeys: string[];
 
-    // If the secondary overlay should be rendered. This value takes into account the delay of closing transition.
-    shouldRenderSecondaryOverlay: boolean;
+    // If the secondary overlay for wide RHP on super wide RHP should be rendered. This value takes into account the delay of closing transition.
+    shouldRenderSecondaryOverlayForWideRHP: boolean;
+
+    // If the secondary overlay for single RHP on wide RHP should be rendered. This value takes into account the delay of closing transition.
+    shouldRenderSecondaryOverlayForRHPOnWideRHP: boolean;
+
+    // If the secondary overlay for single RHP on super wide RHP should be rendered. This value takes into account the delay of closing transition.
+    shouldRenderSecondaryOverlayForRHPOnSuperWideRHP: boolean;
 
     // If the tertiary overlay should be rendered. This value takes into account the delay of closing transition.
     shouldRenderTertiaryOverlay: boolean;
@@ -43,17 +49,8 @@ type WideRHPContextType = {
     // Whether the currently focused route is inside the wide RHP set
     isWideRHPFocused: boolean;
 
-    // Whether the wide rhp modal is closing
-    isWideRHPClosing: boolean;
-
-    // Mark that wide rhp is being closed
-    setIsWideRHPClosing: (isClosing: boolean) => void;
-
-    // Sync wide RHP keys with the visible RHP screens
-    syncWideRHPKeys: () => void;
-
-    // Sync super wide RHP keys with the visible RHP screens
-    syncSuperWideRHPKeys: () => void;
+    // Sync super wide and wide RHP keys with the visible RHP screens
+    syncRHPKeys: () => void;
 
     // Clear the arrays of wide and super wide rhp keys
     clearWideRHPKeys: () => void;

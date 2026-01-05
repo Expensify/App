@@ -258,6 +258,4 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
     );
 }
 
-TaskListItemRow.displayName = 'TaskListItemRow';
-
 export default TaskListItemRow;

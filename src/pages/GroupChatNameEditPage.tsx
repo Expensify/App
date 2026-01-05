@@ -52,7 +52,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
             const name = values[INPUT_IDS.NEW_CHAT_NAME] ?? '';
             const nameLength = StringUtils.getUTF8ByteLength(name.trim());
             if (nameLength > CONST.REPORT_NAME_LIMIT) {
-                errors.newChatName = translate('common.error.characterLimitExceedCounter', {length: nameLength, limit: CONST.REPORT_NAME_LIMIT});
+                errors.newChatName = translate('common.error.characterLimitExceedCounter', nameLength, CONST.REPORT_NAME_LIMIT);
             }
 
             return errors;
@@ -81,7 +81,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             style={[styles.defaultModalContainer]}
-            testID={GroupChatNameEditPage.displayName}
+            testID="GroupChatNameEditPage"
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -110,7 +110,5 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
         </ScreenWrapper>
     );
 }
-
-GroupChatNameEditPage.displayName = 'GroupChatNameEditPage';
 
 export default GroupChatNameEditPage;
