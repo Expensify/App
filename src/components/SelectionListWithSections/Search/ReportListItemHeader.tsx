@@ -213,6 +213,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     const {currentSearchHash, currentSearchKey} = useSearchContext();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
@@ -240,6 +241,7 @@ function ReportListItemHeader<TItem extends ListItem>({
             isDEWBetaEnabled,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
+            personalPolicyID,
         });
     };
     return !isLargeScreenWidth ? (
