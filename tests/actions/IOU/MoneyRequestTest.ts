@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {QuickAction, Transaction} from '@src/types/onyx';
+import type {QuickAction} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 import * as IOU from '../../../src/libs/actions/IOU';
 import createRandomPolicy from '../../utils/collections/policies';
@@ -549,13 +549,14 @@ describe('MoneyRequest', () => {
             });
             await waitForBatchedUpdates();
 
-            const draftTransactionOnyx = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+            await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`,
                     waitForCollectionCallback: false,
-                    callback: (value) => {
+                    callback: (transaction) => {
                         Onyx.disconnect(connection);
-                        resolve(value);
+                        expect(transaction?.reportID).toBe('1');
+                        resolve();
                     },
                 });
             });
@@ -573,8 +574,6 @@ describe('MoneyRequest', () => {
                 policy: defaultExpensePolicy,
                 lastSelectedDistanceRates: {},
             });
-
-            expect(draftTransactionOnyx).toMatchObject({reportID: '1'});
 
             expect(IOU.setCustomUnitRateID).toHaveBeenCalledWith(baseParams.transactionID, rateID);
             expect(IOU.setMoneyRequestParticipantsFromReport).toHaveBeenCalledWith(baseParams.transactionID, fakeReport, baseParams.currentUserAccountID);
@@ -602,18 +601,18 @@ describe('MoneyRequest', () => {
             });
             await waitForBatchedUpdates();
 
-            const draftTransactionOnyx = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+            await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`,
                     waitForCollectionCallback: false,
-                    callback: (value) => {
+                    callback: (transaction) => {
                         Onyx.disconnect(connection);
-                        resolve(value);
+                        expect(transaction?.reportID).toBe('0');
+                        resolve();
                     },
                 });
             });
 
-            expect(draftTransactionOnyx).toMatchObject({reportID: '0'});
             expect(DistanceRequestUtils.getCustomUnitRateID).toHaveBeenCalledWith(expect.objectContaining({reportID: '0'}));
         });
 
