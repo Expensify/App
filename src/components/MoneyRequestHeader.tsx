@@ -173,7 +173,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
 
     const duplicateTransaction = useCallback(
         (transactions: Transaction[]) => {
-            if (!transactions.length) {
+            if (!transactions.length || !policy) {
                 return;
             }
 
@@ -190,14 +190,14 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     isASAPSubmitBetaEnabled,
                     policyRecentlyUsedCurrencies ?? [],
                     quickAction,
-                    policy?.id ?? '',
+                    policy.id,
                     defaultExpensePolicy ?? undefined,
                     activePolicyCategories,
                     activePolicyExpenseChat,
                 );
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction],
+        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction, policyRecentlyUsedCurrencies, policy.id],
     );
 
     const getStatusIcon: (src: IconAsset) => ReactNode = (src) => (
