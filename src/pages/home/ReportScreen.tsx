@@ -594,12 +594,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
     useEffect(() => {
-        // If transactionThreadReportID is undefined or CONST.FAKE_REPORT_ID, we do not call fetchReport.
-        // Only when transactionThreadReportID changes to a valid value, the fetchReport will be called to fetch the data again for the current report.
-        // Since fetchReport is always called once when opening a report,
-        // if that initial call is used to create a transactionThreadReport,
-        // then fetchReport needs to be called again after the transactionThreadReport has been fully created.
-        if ((!!prevTransactionThreadReportID && prevTransactionThreadReportID !== CONST.FAKE_REPORT_ID) || !transactionThreadReportID || transactionThreadReportID === CONST.FAKE_REPORT_ID) {
+        if (!!prevTransactionThreadReportID || !transactionThreadReportID) {
             return;
         }
 

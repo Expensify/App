@@ -350,6 +350,7 @@ function IOURequestStepAmount({
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
+            policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
         });
         navigateBack();
     };
