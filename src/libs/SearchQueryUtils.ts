@@ -1259,6 +1259,10 @@ function buildUserReadableQueryString(
         title += ` workspace:${policyID.map((id) => sanitizeSearchValue(getPolicyNameWithFallback(id, policies, reports))).join(',')}`;
     }
 
+    if (columns && columns.length > 0) {
+        title += ` columns:${columns.join(',')}`;
+    }
+
     for (const filterObject of filters) {
         const key = filterObject.key;
         const displayQueryFilters = getDisplayQueryFiltersForKey(key, filterObject.filters, PersonalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID);
