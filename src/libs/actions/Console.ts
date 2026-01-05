@@ -39,7 +39,8 @@ function flushAllLogsOnAppLaunch() {
     }
 
     isNewAppLaunch = false;
-    return Onyx.set(ONYXKEYS.LOGS, {});
+    // return Onyx.set(ONYXKEYS.LOGS, {});
+    return Promise.resolve();
 }
 
 export {addLog, setShouldStoreLogs, disableLoggingAndFlushLogs, flushAllLogsOnAppLaunch};

@@ -19,16 +19,16 @@ import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 let timeout: NodeJS.Timeout;
 let shouldCollectLogs = false;
 
-Onyx.connectWithoutView({
-    key: ONYXKEYS.SHOULD_STORE_LOGS,
-    callback: (val) => {
-        if (!val) {
-            shouldCollectLogs = false;
-        }
+// Onyx.connectWithoutView({
+//     key: ONYXKEYS.SHOULD_STORE_LOGS,
+//     callback: (val) => {
+//         if (!val) {
+//             shouldCollectLogs = false;
+//         }
 
-        shouldCollectLogs = !!val;
-    },
-});
+//         shouldCollectLogs = !!val;
+//     },
+// });
 
 type LogCommandParameters = {
     expensifyCashAppVersion: string;
@@ -75,12 +75,12 @@ const Log = new Logger({
             return;
         }
 
-        flushAllLogsOnAppLaunch().then(() => {
-            console.debug(message, extraData);
-            if (shouldCollectLogs) {
-                addLog({time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.DEBUG, message, extraData});
-            }
-        });
+        // flushAllLogsOnAppLaunch().then(() => {
+        //     console.debug(message, extraData);
+        //     // if (shouldCollectLogs) {
+        //     //     addLog({time: new Date(), level: CONST.DEBUG_CONSOLE.LEVELS.DEBUG, message, extraData});
+        //     // }
+        // });
     },
     maxLogLinesBeforeFlush: 150,
     isDebug: true,

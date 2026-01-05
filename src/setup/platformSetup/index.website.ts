@@ -55,11 +55,11 @@ export default function () {
         rootTag: document.getElementById('root'),
     });
 
-    // When app loads, get current version (production only)
-    if (Config.IS_IN_PRODUCTION) {
-        checkForUpdates(webUpdater());
-    }
+    // // When app loads, get current version (production only)
+    // if (Config.IS_IN_PRODUCTION) {
+    //     checkForUpdates(webUpdater());
+    // }
 
-    // Start current date updater
-    DateUtils.startCurrentDateUpdater();
+    // // Start current date updater
+    // DateUtils.startCurrentDateUpdater();
 }
