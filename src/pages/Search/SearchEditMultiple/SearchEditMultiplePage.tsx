@@ -14,6 +14,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearBulkEditDraftTransaction, initBulkEditDraftTransaction, updateBulkEditDraftTransaction, updateMultipleMoneyRequests} from '@libs/actions/IOU';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
+import {canEditFieldOfMoneyRequest} from '@libs/ReportUtils';
 import {getSearchBulkEditPolicyID} from '@libs/SearchUIUtils';
 import {getTaxName, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -35,6 +37,20 @@ function SearchEditMultiplePage() {
     const hasCustomUnitTransaction = selectedTransactionIDs.some((transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         return isDistanceRequest(transaction) || isPerDiemRequest(transaction);
+    });
+
+    const hasPartiallyEditableTransaction = selectedTransactionIDs.some((transactionID) => {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (!transaction) {
+            return false;
+        }
+
+        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction.reportID}`] ?? {};
+        const reportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
+        const transactionPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+
+        return !canEditFieldOfMoneyRequest(reportAction, CONST.EDIT_REQUEST_FIELD.AMOUNT, undefined, false, undefined, transaction, report, transactionPolicy);
     });
 
     const areSelectedTransactionsBillable = selectedTransactionIDs.every((transactionID) => {
@@ -65,6 +81,8 @@ function SearchEditMultiplePage() {
     const policyID = getSearchBulkEditPolicyID(selectedTransactions, activePolicyID);
 
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
+
+    const isTaxTrackingEnabled = !!policy?.tax?.trackingEnabled;
 
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
@@ -140,7 +158,7 @@ function SearchEditMultiplePage() {
             description: translate('iou.amount'),
             title: draftTransaction?.amount ? convertToDisplayString(Math.abs(draftTransaction.amount), displayCurrency) : '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP,
-            disabled: hasCustomUnitTransaction,
+            disabled: hasCustomUnitTransaction || hasPartiallyEditableTransaction,
         },
         {
             description: translate('common.description'),
@@ -157,6 +175,7 @@ function SearchEditMultiplePage() {
             description: translate('common.date'),
             title: draftTransaction?.created ?? '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_DATE_RHP,
+            disabled: hasPartiallyEditableTransaction,
         },
         {
             description: translate('common.category'),
@@ -168,12 +187,16 @@ function SearchEditMultiplePage() {
             title: draftTransaction?.tag ?? '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_TAG_RHP,
         },
-        {
-            description: translate('iou.taxRate'),
-            title: draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : '',
-            route: ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP,
-            disabled: hasCustomUnitTransaction,
-        },
+        ...(isTaxTrackingEnabled
+            ? [
+                  {
+                      description: translate('iou.taxRate'),
+                      title: draftTransaction?.taxCode ? (getTaxName(policy, draftTransaction) ?? '') : '',
+                      route: ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP,
+                      disabled: hasCustomUnitTransaction,
+                  },
+              ]
+            : []),
     ];
 
     return (
