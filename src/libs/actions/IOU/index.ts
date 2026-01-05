@@ -15068,7 +15068,7 @@ function updateMultipleMoneyRequests(
         const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
         const isFromExpenseReport = isExpenseReport(iouReport);
 
-        const transactionReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
+        const transactionReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
         const reportAction = getIOUActionForTransactionID(Object.values(transactionReportActions), transactionID);
 
         const canEditField = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
