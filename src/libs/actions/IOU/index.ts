@@ -15055,7 +15055,7 @@ function updateMultipleMoneyRequests(
     policy: OnyxEntry<OnyxTypes.Policy>,
     reports: OnyxCollection<OnyxTypes.Report>,
     transactions: OnyxCollection<OnyxTypes.Transaction>,
-    allReportActions: OnyxCollection<OnyxTypes.ReportActions>,
+    reportActions: OnyxCollection<OnyxTypes.ReportActions>,
 ) {
     for (const transactionID of transactionIDs) {
         const transaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
@@ -15068,8 +15068,8 @@ function updateMultipleMoneyRequests(
         const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
         const isFromExpenseReport = isExpenseReport(iouReport);
 
-        const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
-        const reportAction = getIOUActionForTransactionID(Object.values(reportActions), transactionID);
+        const transactionReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`] ?? {};
+        const reportAction = getIOUActionForTransactionID(Object.values(transactionReportActions), transactionID);
 
         const canEditField = (field: ValueOf<typeof CONST.EDIT_REQUEST_FIELD>) => {
             return canEditFieldOfMoneyRequest(reportAction, field, undefined, false, undefined, transaction, iouReport, policy);
