@@ -48,6 +48,7 @@ Filter reports by type, status, category, or date to find specific information.
    - **From:** You, or someone else
 6. Click **View Results** to see the filtered results.
 
+![Reports page showing available report filtering options]({{site.url}}/assets/images/Filter-reports.png){:width="100%"}
 ---
 
 ## How to customize the Reports column view 
