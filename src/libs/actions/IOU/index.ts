@@ -15089,11 +15089,17 @@ function updateMultipleMoneyRequests(
         if (transactionChanges.amount) {
             updates.amount = isFromExpenseReport ? -Math.abs(transactionChanges.amount) : transactionChanges.amount;
         }
-        if (transactionChanges.billable !== undefined) {
-            updates.state = transactionChanges.billable ? 3 : 4;
-        }
-        if (transactionChanges.reimbursable !== undefined) {
-            updates.state = transactionChanges.reimbursable ? 4 : 3;
+        if (transactionChanges.billable !== undefined || transactionChanges.reimbursable !== undefined) {
+            const billable = transactionChanges.billable;
+            const reimbursable = transactionChanges.reimbursable;
+
+            if (billable && reimbursable) {
+                updates.state = CONST.REPORT.STATE_NUM.REIMBURSABLE_BILLABLE;
+            } else if (billable) {
+                updates.state = CONST.REPORT.STATE_NUM.BILLING;
+            } else if (reimbursable) {
+                updates.state = CONST.REPORT.STATE_NUM.REIMBURSABLE;
+            }
         }
 
         // Skip if no updates

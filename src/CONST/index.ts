@@ -1469,6 +1469,8 @@ const CONST = {
             SUBMITTED: 1,
             APPROVED: 2,
             BILLING: 3,
+            REIMBURSABLE: 4,
+            REIMBURSABLE_BILLABLE: 5,
             AUTOREIMBURSED: 6,
         },
         STATUS_NUM: {
