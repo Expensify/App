@@ -24,7 +24,7 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
     const {translate} = useLocalize();
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {config} = policy?.connections?.xero ?? {};
     const {reimbursementAccountID, syncReimbursedReports} = policy?.connections?.xero?.config.sync ?? {};
     const xeroSelectorOptions = useMemo<SelectorType[]>(() => getXeroBankAccounts(policy ?? undefined, reimbursementAccountID), [reimbursementAccountID, policy]);
@@ -67,7 +67,7 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={XeroBillPaymentAccountSelectorPage.displayName}
+            displayName="XeroBillPaymentAccountSelectorPage"
             sections={xeroSelectorOptions.length ? [{data: xeroSelectorOptions}] : []}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
@@ -85,7 +85,5 @@ function XeroBillPaymentAccountSelectorPage({policy}: WithPolicyConnectionsProps
         />
     );
 }
-
-XeroBillPaymentAccountSelectorPage.displayName = 'XeroBillPaymentAccountSelectorPage';
 
 export default withPolicyConnections(XeroBillPaymentAccountSelectorPage);

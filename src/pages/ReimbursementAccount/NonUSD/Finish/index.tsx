@@ -1,8 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import {ChatBubble} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -22,8 +20,8 @@ function Finish() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Shield'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow', 'Shield', 'ChatBubble']);
+    const illustrations = useMemoizedLazyIllustrations(['ConciergeBubble', 'ShieldYellow']);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
@@ -35,7 +33,7 @@ function Finish() {
 
     return (
         <ScreenWrapper
-            testID={Finish.displayName}
+            testID="Finish"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -53,7 +51,7 @@ function Finish() {
                 >
                     <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
                     <MenuItem
-                        icon={ChatBubble}
+                        icon={icons.ChatBubble}
                         title={translate('finishStep.iHaveA')}
                         onPress={handleNavigateToConciergeChat}
                         outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
@@ -86,7 +84,5 @@ function Finish() {
         </ScreenWrapper>
     );
 }
-
-Finish.displayName = 'Finish';
 
 export default Finish;

@@ -33,10 +33,10 @@ import {setShouldShowComposeInput} from '@libs/actions/Composer';
 import {clearActive, isActive as isEmojiPickerActive, isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
 import {deleteReportActionDraft, editReportComment, saveReportActionDraft} from '@libs/actions/Report';
-import {isMobileChrome} from '@libs/Browser/index.website';
+import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
-import {extractEmojis, replaceAndExtractEmojis} from '@libs/EmojiUtils';
+import {extractEmojis, getZWNJCursorOffset, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
@@ -242,14 +242,17 @@ function ReportActionItemMessageEdit({
     const updateDraft = useCallback(
         (newDraftInput: string) => {
             raiseIsScrollLayoutTriggered();
-            const {text: newDraft, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
+            const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
+            const newDraft = insertZWNJBetweenDigitAndEmoji(emojiConvertedText);
+            const zwnjOffset = getZWNJCursorOffset(emojiConvertedText, cursorPosition);
 
             emojisPresentBefore.current = emojis;
 
             setDraft(newDraft);
 
             if (newDraftInput !== newDraft) {
-                const position = Math.max((selection?.end ?? 0) + (newDraft.length - draftRef.current.length), cursorPosition ?? 0);
+                const adjustedCursorPosition = cursorPosition !== undefined && cursorPosition !== null ? cursorPosition + zwnjOffset : undefined;
+                const position = Math.max((selection?.end ?? 0) + (newDraft.length - draftRef.current.length), adjustedCursorPosition ?? 0);
                 setSelection({
                     start: position,
                     end: position,
@@ -481,6 +484,7 @@ function ReportActionItemMessageEdit({
                                 pressDimmingValue={1}
                                 // Keep focus on the composer when cancel button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON}
                             >
                                 <Icon
                                     fill={theme.icon}
@@ -598,6 +602,7 @@ function ReportActionItemMessageEdit({
                                 pressDimmingValue={0.2}
                                 // Keep focus on the composer when send button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON}
                             >
                                 <Icon
                                     src={Expensicons.Checkmark}
@@ -612,8 +617,6 @@ function ReportActionItemMessageEdit({
         </>
     );
 }
-
-ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
 
 export default ReportActionItemMessageEdit;
 export type {ReportActionItemMessageEditProps};
