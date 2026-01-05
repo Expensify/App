@@ -2507,7 +2507,7 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
             adminsChatReportID,
             onboardingPolicyID: policyID,
             onboardingPurposeSelected,
-            companySize: companySize ?? introSelected?.companySize as OnboardingCompanySize,
+            companySize: companySize ?? (introSelected?.companySize as OnboardingCompanySize),
         });
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
