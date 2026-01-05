@@ -183,14 +183,10 @@ function ScreenWrapper({
     });
 
     useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
         // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
         const timeout = setTimeout(() => {
             setDidScreenTransitionEnd(true);
             onEntryTransitionEnd?.();
-            DeviceEventEmitter.emit(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER);
         }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
 
         const unsubscribeTransitionEnd = navigation.addListener?.('transitionEnd', (event) => {
@@ -201,7 +197,6 @@ function ScreenWrapper({
             clearTimeout(timeout);
             setDidScreenTransitionEnd(true);
             onEntryTransitionEnd?.();
-            DeviceEventEmitter.emit(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER);
         });
 
         // We need to have this prop to remove keyboard before going away from the screen, to avoid previous screen look weird for a brief moment,
@@ -227,6 +222,34 @@ function ScreenWrapper({
             }
         };
         // Rule disabled because this effect is only for component did mount & will component unmount lifecycle event
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
+
+    useEffect(() => {
+        // Only listen for the event to emit when the screen is focused
+        if (!isFocused) {
+            return;
+        }
+        // On iOS, the transitionEnd event doesn't trigger some times. As such, we need to set a timeout
+        const timeout = setTimeout(() => {
+            DeviceEventEmitter.emit(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER);
+        }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
+
+        const unsubscribeTransitionEnd = navigation.addListener?.('transitionEnd', (event) => {
+            // Prevent firing the prop callback when user is exiting the page.
+            if (event?.data?.closing) {
+                return;
+            }
+            clearTimeout(timeout);
+            DeviceEventEmitter.emit(CONST.EVENTS.TRANSITION_END_SCREEN_WRAPPER);
+        });
+
+        return () => {
+            clearTimeout(timeout);
+            if (unsubscribeTransitionEnd) {
+                unsubscribeTransitionEnd();
+            }
+        };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused]);
 
