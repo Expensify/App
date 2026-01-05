@@ -4774,6 +4774,7 @@ describe('actions/IOU', () => {
                     currentUserAccountIDParam: 123,
                     currentUserEmailParam: 'existing@example.com',
                     isASAPSubmitBetaEnabled: false,
+                    policyRecentlyUsedCurrencies: [],
                 });
             }
             await waitForBatchedUpdates();
@@ -7484,6 +7485,8 @@ describe('actions/IOU', () => {
 
     describe('updateMoneyRequestAmountAndCurrency', () => {
         it('update the amount of the money request successfully', async () => {
+            const initialCurrencies = [CONST.CURRENCY.EUR, CONST.CURRENCY.GBP];
+
             const fakeReport: Report = {
                 ...createRandomReport(1, undefined),
                 type: CONST.REPORT.TYPE.EXPENSE,
@@ -7496,7 +7499,7 @@ describe('actions/IOU', () => {
                 ...createRandomTransaction(1),
                 reportID: fakeReport.reportID,
                 amount: 100,
-                currency: 'USD',
+                currency: CONST.CURRENCY.USD,
             };
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
@@ -7526,6 +7529,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                policyRecentlyUsedCurrencies: initialCurrencies,
             });
 
             await waitForBatchedUpdates();
@@ -7544,6 +7548,9 @@ describe('actions/IOU', () => {
                 });
             });
             expect(updatedTransaction?.modifiedAmount).toBe(20000);
+
+            const recentlyUsedCurrencies = await getOnyxValue(ONYXKEYS.RECENTLY_USED_CURRENCIES);
+            expect(recentlyUsedCurrencies).toEqual([CONST.CURRENCY.USD, ...initialCurrencies]);
         });
 
         it('update the amount of the money request failed', async () => {
@@ -7589,6 +7596,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
@@ -7676,6 +7684,7 @@ describe('actions/IOU', () => {
                 currentUserAccountIDParam: 123,
                 currentUserEmailParam: 'existing@example.com',
                 isASAPSubmitBetaEnabled: false,
+                policyRecentlyUsedCurrencies: [],
             });
 
             await waitForBatchedUpdates();
