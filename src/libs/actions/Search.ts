@@ -81,6 +81,8 @@ function handleActionButtonPress(
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
     currentSearchKey?: SearchKey,
     onDEWModalOpen?: () => void,
+    isDelegateAccessRestricted?: boolean,
+    onDelegateAccessRestricted?: () => void,
 ) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
@@ -95,9 +97,17 @@ function handleActionButtonPress(
 
     switch (item.action) {
         case CONST.SEARCH.ACTION_TYPES.PAY:
+            if (isDelegateAccessRestricted) {
+                onDelegateAccessRestricted?.();
+                return;
+            }
             getPayActionCallback(hash, item, goToItem, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
+            if (isDelegateAccessRestricted) {
+                onDelegateAccessRestricted?.();
+                return;
+            }
             if (hasDynamicExternalWorkflow(snapshotPolicy)) {
                 onDEWModalOpen?.();
                 return;
@@ -974,8 +984,6 @@ function clearAdvancedFilters() {
     const values: Partial<Nullable<SearchAdvancedFiltersForm>> = {};
     for (const key of Object.values(FILTER_KEYS)) {
         switch (key) {
-            case FILTER_KEYS.GROUP_BY:
-                continue;
             case FILTER_KEYS.COLUMNS:
                 continue;
             case FILTER_KEYS.TYPE:
@@ -1056,22 +1064,43 @@ function isValidBulkPayOption(item: PopoverMenuItem) {
 /**
  * Handles the click event when user selects bulk pay action.
  */
-function handleBulkPayItemSelected(
-    item: PopoverMenuItem,
-    triggerKYCFlow: (params: ContinueActionParams) => void,
-    isAccountLocked: boolean,
-    showLockedAccountModal: () => void,
-    policy: OnyxEntry<Policy>,
-    latestBankItems: BankAccountMenuItem[] | undefined,
-    activeAdminPolicies: Policy[],
-    isUserValidated: boolean | undefined,
-    confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void,
-) {
+function handleBulkPayItemSelected(params: {
+    item: PopoverMenuItem;
+    triggerKYCFlow: (params: ContinueActionParams) => void;
+    isAccountLocked: boolean;
+    showLockedAccountModal: () => void;
+    policy: OnyxEntry<Policy>;
+    latestBankItems: BankAccountMenuItem[] | undefined;
+    activeAdminPolicies: Policy[];
+    isUserValidated: boolean | undefined;
+    isDelegateAccessRestricted: boolean;
+    showDelegateNoAccessModal: () => void;
+    confirmPayment?: (paymentType: PaymentMethodType | undefined, additionalData?: Record<string, unknown>) => void;
+}) {
+    const {
+        item,
+        triggerKYCFlow,
+        isAccountLocked,
+        showLockedAccountModal,
+        policy,
+        latestBankItems,
+        activeAdminPolicies,
+        isUserValidated,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+        confirmPayment,
+    } = params;
     const {paymentType, selectedPolicy, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, latestBankItems);
     // Policy id is also a last payment method so we shouldn't early return here for that case.
     if (!isValidBulkPayOption(item) && !selectedPolicy) {
         return;
     }
+
+    if (isDelegateAccessRestricted) {
+        showDelegateNoAccessModal();
+        return;
+    }
+
     if (isAccountLocked) {
         showLockedAccountModal();
         return;
@@ -1195,10 +1224,11 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 
     // Set optimistic transaction
     if (!hasTransaction) {
+        const {formattedFrom, formattedMerchant, formattedTo, formattedTotal, date, ...restItem} = item;
         onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: item,
+            value: restItem,
         });
     }
 

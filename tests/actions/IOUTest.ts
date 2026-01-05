@@ -113,6 +113,7 @@ import {getGlobalFetchMock, getOnyxData, localeCompare, setPersonalDetails, sign
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
+import { getSendInvoiceInformation } from '@libs/actions/IOU/SendInvoice';
 
 const topMostReportID = '23423423';
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -4051,6 +4052,86 @@ describe('actions/IOU', () => {
                     expect(notifyNewAction).toHaveBeenCalledWith(topMostReportID, expect.anything());
                 });
         });
+
+        it('new expense report should be a draft report when paying partially and the approval is disabled', async () => {
+            const adminAccountID = 1;
+            const employeeAccountID = 3;
+            const adminEmail = 'admin@test.com';
+            const employeeEmail = 'employee@test.com';
+
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    login: adminEmail,
+                    displayName: 'Admin User',
+                },
+                [employeeAccountID]: {
+                    accountID: employeeAccountID,
+                    login: employeeEmail,
+                    displayName: 'Employee User',
+                },
+            });
+
+            // Create policy with no approval required
+            const policy = {
+                id: '1',
+                name: 'Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: adminEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: adminEmail,
+                    },
+                    [adminEmail]: {
+                        email: adminEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: '',
+                        forwardsTo: '',
+                    },
+                },
+            };
+
+            // Create expense report
+            const expenseReport = {
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: employeeAccountID,
+                managerID: adminAccountID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                total: 1000,
+                currency: 'USD',
+                parentReportID: '456',
+                chatReportID: '456',
+            };
+
+            const chatReport = {
+                reportID: '456',
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: employeeAccountID,
+                iouReportID: expenseReport.reportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+
+            const newExpenseReportID = payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport, undefined, undefined, false, undefined, policy);
+            await waitForBatchedUpdates();
+            const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
+            expect(newExpenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(newExpenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+        });
     });
 
     describe('a expense chat with a cancelled payment', () => {
@@ -7096,8 +7177,9 @@ describe('actions/IOU', () => {
             policyID: '1',
             managerID: CARLOS_ACCOUNT_ID,
         };
-        const fakePersonalPolicy: Policy = {
-            ...createRandomPolicy(2),
+        const fakePersonalPolicy: Pick<Policy, 'id' | 'type' | 'autoReporting' | 'outputCurrency'> = {
+            id: '2',
+            autoReporting: true,
             type: CONST.POLICY.TYPE.PERSONAL,
             outputCurrency: 'NZD',
         };
@@ -7132,7 +7214,6 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.CURRENT_DATE}`, currentDate);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePersonalPolicy.id}`, fakePersonalPolicy);
             return waitForBatchedUpdates();
         });
 
@@ -7142,6 +7223,7 @@ describe('actions/IOU', () => {
                     initMoneyRequest({
                         reportID: fakeReport.reportID,
                         policy: fakePolicy,
+                        personalPolicy: fakePersonalPolicy,
                         isFromGlobalCreate: true,
                         newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                         report: fakeReport,
@@ -7162,6 +7244,7 @@ describe('actions/IOU', () => {
                     return initMoneyRequest({
                         reportID: fakeReport.reportID,
                         policy: fakePolicy,
+                        personalPolicy: fakePersonalPolicy,
                         isFromGlobalCreate: true,
                         currentIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                         newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
@@ -7184,6 +7267,7 @@ describe('actions/IOU', () => {
                 .then(() => {
                     return initMoneyRequest({
                         reportID: fakeReport.reportID,
+                        personalPolicy: fakePersonalPolicy,
                         isFromGlobalCreate: true,
                         newIouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
                         report: fakeReport,
@@ -10501,6 +10585,240 @@ describe('actions/IOU', () => {
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${singleApproverReport.reportID}`);
             expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.APPROVED);
             expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.APPROVED);
+        });
+    });
+
+    describe('approveMoneyRequest partially', () => {
+        const adminAccountID = 1;
+        const employeeAccountID = 3;
+        const adminEmail = 'admin@test.com';
+        const employeeEmail = 'employee@test.com';
+
+        let expenseReport: Report;
+        let policy: Policy;
+        let chatReport: Report;
+        beforeEach(async () => {
+            await Onyx.clear();
+
+            // Set up personal details
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [adminAccountID]: {
+                    accountID: adminAccountID,
+                    login: adminEmail,
+                    displayName: 'Admin User',
+                },
+                [employeeAccountID]: {
+                    accountID: employeeAccountID,
+                    login: employeeEmail,
+                    displayName: 'Employee User',
+                },
+            });
+
+            // Create policy with approval required
+            policy = {
+                id: '1',
+                name: 'Test Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: adminEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                employeeList: {
+                    [employeeEmail]: {
+                        email: employeeEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: adminEmail,
+                    },
+                    [adminEmail]: {
+                        email: adminEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: '',
+                        forwardsTo: '',
+                    },
+                },
+            };
+
+            // Create expense report
+            expenseReport = {
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: employeeAccountID,
+                managerID: adminAccountID,
+                policyID: policy.id,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                total: 1000,
+                currency: 'USD',
+                parentReportID: '456',
+                chatReportID: '456',
+            };
+
+            chatReport = {
+                reportID: '456',
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: employeeAccountID,
+                iouReportID: expenseReport.reportID,
+                policyID: policy.id,
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+        });
+
+        it('the new expense report should be an outstanding report when approving partially', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: adminEmail,
+                accountID: adminAccountID,
+            });
+
+            const newExpenseReportID = approveMoneyRequest(expenseReport, policy, adminAccountID, adminEmail, false, false, undefined, false);
+            await waitForBatchedUpdates();
+
+            const newExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReportID}`);
+            expect(newExpenseReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
+            expect(newExpenseReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+        });
+    });
+
+    describe('Invoice recipient change while offline', () => {
+        const userAAccountID = 1;
+        const userBAccountID = 2;
+        const senderAccountID = 3;
+        const senderWorkspaceID = 'workspace123';
+        const amount = 10000;
+        const currency = 'USD';
+
+        let transactionID: string;
+        let userAInvoiceReport: Report;
+
+        beforeEach(async () => {
+            initOnyxDerivedValues();
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+
+            // Set up current user as sender
+            await Onyx.set(ONYXKEYS.SESSION, {
+                email: 'sender@test.com',
+                accountID: senderAccountID,
+            });
+
+            // Set up personal details for both recipients
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [userAAccountID]: {
+                    accountID: userAAccountID,
+                    login: 'userA@test.com',
+                    displayName: 'User A',
+                },
+                [userBAccountID]: {
+                    accountID: userBAccountID,
+                    login: 'userB@test.com',
+                    displayName: 'User B',
+                },
+                [senderAccountID]: {
+                    accountID: senderAccountID,
+                    login: 'sender@test.com',
+                    displayName: 'Sender',
+                },
+            });
+
+            // Create a draft transaction with User A as initial recipient
+            transactionID = rand64();
+            const transaction = {
+                transactionID,
+                reportID: undefined,
+                amount,
+                currency,
+                merchant: 'Test Merchant',
+                created: '2024-01-01',
+                participants: [
+                    {
+                        accountID: userAAccountID,
+                        login: 'userA@test.com',
+                        selected: true,
+                    },
+                    {
+                        policyID: senderWorkspaceID,
+                        isSender: true,
+                        selected: false,
+                    },
+                ],
+            } as Transaction;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
+
+            // Create invoice report for User A
+            userAInvoiceReport = {
+                reportID: 'invoiceReportA',
+                chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                policyID: senderWorkspaceID,
+                invoiceReceiver: {
+                    type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
+                    accountID: userAAccountID,
+                },
+            } as Report;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${userAInvoiceReport.reportID}`, userAInvoiceReport);
+        });
+
+        it('should send invoice to correct recipient when recipient is changed while offline', async () => {
+            // Step 1: Verify initial state - transaction has User A as recipient
+            const initialTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(initialTransaction?.participants?.[0]?.accountID).toBe(userAAccountID);
+
+            // Step 2: User changes recipient to User B while offline
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                participants: [
+                    {
+                        accountID: userBAccountID,
+                        login: 'userB@test.com',
+                        selected: true,
+                    },
+                    {
+                        policyID: senderWorkspaceID,
+                        isSender: true,
+                        selected: false,
+                    },
+                ],
+            });
+            await waitForBatchedUpdates();
+
+            // Step 3: Get the updated transaction with User B as recipient
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(updatedTransaction?.participants?.[0]?.accountID).toBe(userBAccountID);
+
+            // Step 4: Call getSendInvoiceInformation with stale User A report
+            // This simulates the bug scenario where the report from route params is stale
+            const invoiceInfo = getSendInvoiceInformation({
+                transaction: updatedTransaction,
+                currentUserAccountID: senderAccountID,
+                policyRecentlyUsedCurrencies: [],
+                invoiceChatReport: userAInvoiceReport,
+                receiptFile: undefined,
+                policy: undefined,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                companyName: undefined,
+                companyWebsite: undefined,
+                policyRecentlyUsedCategories: undefined,
+            });
+
+            // Step 5: Verify that the invoice is created for User B, not User A
+            // The doesReportReceiverMatchParticipant utility should detect the mismatch
+            // and create a new chat report for User B instead of using the stale User A report
+            expect(invoiceInfo.receiver.accountID).toBe(userBAccountID);
+            expect(invoiceInfo.invoiceRoom.reportID).not.toBe(userAInvoiceReport.reportID);
+            expect(invoiceInfo.invoiceRoom.invoiceReceiver?.type).toBe(CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL);
+            if (invoiceInfo.invoiceRoom.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+                expect(invoiceInfo.invoiceRoom.invoiceReceiver.accountID).toBe(userBAccountID);
+            }
         });
     });
 
