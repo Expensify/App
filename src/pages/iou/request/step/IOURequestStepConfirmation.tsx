@@ -612,7 +612,7 @@ function IOURequestStepConfirmation({
                     backToReport,
                     isASAPSubmitBetaEnabled,
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                    currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                    currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                     transactionViolations,
                 });
                 existingIOUReport = iouReport;
@@ -624,6 +624,7 @@ function IOURequestStepConfirmation({
             archivedReportsIdSet,
             report,
             currentUserPersonalDetails.login,
+            currentUserPersonalDetails.email,
             currentUserPersonalDetails.accountID,
             policy,
             policyTags,

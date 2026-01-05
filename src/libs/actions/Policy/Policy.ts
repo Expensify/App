@@ -2389,11 +2389,11 @@ function buildPolicyData(options: BuildPolicyDataOptions) {
         },
     ];
 
-    if (shouldSetCreatedPolicyAsActive && activePolicyID) {
+    if (shouldSetCreatedPolicyAsActive) {
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-            value: activePolicyID,
+            value: activePolicyID ?? null,
         });
     }
 
