@@ -45,7 +45,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
-import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -701,7 +701,13 @@ function unholdMoneyRequestOnSearch(hash: number, transactionIDList: string[]) {
     API.write(WRITE_COMMANDS.UNHOLD_MONEY_REQUEST_ON_SEARCH, {hash, transactionIDList}, {optimisticData, finallyData});
 }
 
-function bulkDeleteReports(hash: number, selectedTransactions: Record<string, SelectedTransactionInfo>, currentUserEmailParam: string, transactions: Transaction[]) {
+function bulkDeleteReports(
+    hash: number,
+    selectedTransactions: Record<string, SelectedTransactionInfo>,
+    currentUserEmailParam: string,
+    reportTransactions: Record<string, Transaction>,
+    transactionsViolations: Record<string, TransactionViolations>,
+) {
     const transactionIDList: string[] = [];
     const reportIDList: string[] = [];
 
@@ -720,7 +726,7 @@ function bulkDeleteReports(hash: number, selectedTransactions: Record<string, Se
 
     if (reportIDList.length > 0) {
         for (const reportID of reportIDList) {
-            deleteAppReport(reportID, currentUserEmailParam, transactions);
+            deleteAppReport(reportID, currentUserEmailParam, reportTransactions, transactionsViolations);
         }
     }
 }
