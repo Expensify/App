@@ -341,7 +341,7 @@ function IOURequestStepScan({
                         shouldHandleNavigation: index === files.length - 1,
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                        currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                        currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                         introSelected,
                         activePolicyID,
                         quickAction,
@@ -370,7 +370,7 @@ function IOURequestStepScan({
                         shouldGenerateTransactionThreadReport,
                         isASAPSubmitBetaEnabled,
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                        currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                        currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                         transactionViolations,
                     });
                 }
@@ -381,6 +381,7 @@ function IOURequestStepScan({
             iouType,
             report,
             currentUserPersonalDetails.login,
+            currentUserPersonalDetails.email,
             currentUserPersonalDetails.accountID,
             backToReport,
             shouldGenerateTransactionThreadReport,
