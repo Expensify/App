@@ -3,19 +3,17 @@ import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Category from '@userActions/Policy/Category';
+import {removePolicyCategoryReceiptsRequired, setPolicyCategoryReceiptsRequired} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
@@ -40,9 +38,8 @@ function CategoryRequireReceiptsOverPage({
 }: EditCategoryPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policy = usePolicy(policyID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-
+    const policyData = usePolicyData(policyID);
+    const {policy, categories: policyCategories} = policyData;
     const isAlwaysSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === 0;
     const isNeverSelected = policyCategories?.[categoryName]?.maxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
     const maxExpenseAmountToDisplay = policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE ? 0 : policy?.maxExpenseAmountNoReceipt;
@@ -50,9 +47,10 @@ function CategoryRequireReceiptsOverPage({
     const requireReceiptsOverListData = [
         {
             value: null,
-            text: translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, {
-                defaultAmount: CurrencyUtils.convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-            }),
+            text: translate(
+                `workspace.rules.categoryRules.requireReceiptsOverList.default`,
+                convertToShortDisplayString(maxExpenseAmountToDisplay, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+            ),
             keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT,
             isSelected: !isAlwaysSelected && !isNeverSelected,
         },
@@ -81,7 +79,7 @@ function CategoryRequireReceiptsOverPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryRequireReceiptsOverPage.displayName}
+                testID="CategoryRequireReceiptsOverPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -89,26 +87,24 @@ function CategoryRequireReceiptsOverPage({
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
                 />
                 <SelectionList
-                    sections={[{data: requireReceiptsOverListData}]}
+                    data={requireReceiptsOverListData}
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
                         if (typeof item.value === 'number') {
-                            Category.setPolicyCategoryReceiptsRequired(policyID, categoryName, item.value);
+                            setPolicyCategoryReceiptsRequired(policyData, categoryName, item.value);
                         } else {
-                            Category.removePolicyCategoryReceiptsRequired(policyID, categoryName);
+                            removePolicyCategoryReceiptsRequired(policyData, categoryName);
                         }
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
+                    style={{containerStyle: styles.pt3}}
                     shouldSingleExecuteRowSelect
-                    containerStyle={[styles.pt3]}
-                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryRequireReceiptsOverPage.displayName = 'CategoryRequireReceiptsOverPage';
 
 export default CategoryRequireReceiptsOverPage;

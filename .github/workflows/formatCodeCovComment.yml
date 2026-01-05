@@ -1,0 +1,22 @@
+name: Format CodeCov Comment
+
+on:
+  issue_comment:
+    types: [created, edited]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  format-codecov-comment:
+    runs-on: ubuntu-latest
+    if: github.event.issue.pull_request && github.event.comment.user.login == 'codecov[bot]'
+    steps:
+      - name: Checkout
+      # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 
+      - name: Format CodeCov Comment
+        uses: ./.github/actions/javascript/formatCodeCovComment
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

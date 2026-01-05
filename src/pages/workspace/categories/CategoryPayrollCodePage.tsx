@@ -40,13 +40,13 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
             const newPayrollCode = values.payrollCode.trim();
             if (newPayrollCode !== payrollCode) {
-                setPolicyCategoryPayrollCode(policyID, categoryName, newPayrollCode);
+                setPolicyCategoryPayrollCode(policyID, categoryName, newPayrollCode, policyCategories);
             }
             Navigation.goBack(
                 isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_SETTINGS.getRoute(policyID, categoryName, backTo) : ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName),
             );
         },
-        [categoryName, payrollCode, policyID, isQuickSettingsFlow, backTo],
+        [payrollCode, isQuickSettingsFlow, policyID, categoryName, backTo, policyCategories],
     );
 
     const validate = useCallback(
@@ -55,10 +55,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
             const value = values[INPUT_IDS.PAYROLL_CODE];
 
             if (value.length > CONST.MAX_LENGTH_256) {
-                errors[INPUT_IDS.PAYROLL_CODE] = translate('common.error.characterLimitExceedCounter', {
-                    length: value.length,
-                    limit: CONST.MAX_LENGTH_256,
-                });
+                errors[INPUT_IDS.PAYROLL_CODE] = translate('common.error.characterLimitExceedCounter', value.length, CONST.MAX_LENGTH_256);
             }
 
             return errors;
@@ -75,7 +72,7 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryPayrollCodePage.displayName}
+                testID="CategoryPayrollCodePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -112,7 +109,5 @@ function CategoryPayrollCodePage({route}: EditCategoryPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryPayrollCodePage.displayName = 'CategoryPayrollCodePage';
 
 export default CategoryPayrollCodePage;

@@ -20,7 +20,7 @@ type ProfileAvatarWithIndicatorProps = {
 function ProfileAvatarWithIndicator({isSelected = false, containerStyles}: ProfileAvatarWithIndicatorProps) {
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoading = true] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     return (
         <OfflineWithFeedback
@@ -28,7 +28,10 @@ function ProfileAvatarWithIndicator({isSelected = false, containerStyles}: Profi
             style={containerStyles}
         >
             <View style={[styles.pRelative]}>
-                <View style={[isSelected && styles.selectedAvatarBorder, styles.pAbsolute]} />
+                <View
+                    style={[isSelected && styles.selectedAvatarBorder, styles.pAbsolute]}
+                    testID="avatar-ring"
+                />
                 <AvatarWithIndicator
                     source={currentUserPersonalDetails.avatar}
                     accountID={currentUserPersonalDetails.accountID}
@@ -39,7 +42,5 @@ function ProfileAvatarWithIndicator({isSelected = false, containerStyles}: Profi
         </OfflineWithFeedback>
     );
 }
-
-ProfileAvatarWithIndicator.displayName = 'ProfileAvatarWithIndicator';
 
 export default ProfileAvatarWithIndicator;

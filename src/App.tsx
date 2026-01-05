@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import * as Sentry from '@sentry/react-native';
 import React from 'react';
 import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
@@ -9,17 +10,21 @@ import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareS
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from './components/CurrentUserPersonalDetailsProvider';
 import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
+import {EnvironmentProvider} from './components/EnvironmentContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import FullScreenBlockingViewContextProvider from './components/FullScreenBlockingViewContextProvider';
 import FullScreenLoaderContextProvider from './components/FullScreenLoaderContext';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
+import {KeyboardDismissibleFlatListContextProvider} from './components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KeyboardProvider from './components/KeyboardProvider';
+import KYCWallContextProvider from './components/KYCWall/KYCWallContext';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
-import {ModalProvider} from './components/Modal/Global';
+import {ModalProvider} from './components/Modal/Global/ModalContext';
 import NavigationBar from './components/NavigationBar';
 import OnyxListItemProvider from './components/OnyxListItemProvider';
 import PopoverContextProvider from './components/PopoverProvider';
@@ -28,6 +33,7 @@ import SafeArea from './components/SafeArea';
 import ScrollOffsetContextProvider from './components/ScrollOffsetContextProvider';
 import {SearchRouterContextProvider} from './components/Search/SearchRouter/SearchRouterContext';
 import SidePanelContextProvider from './components/SidePanel/SidePanelContextProvider';
+import SVGDefinitionsProvider from './components/SVGDefinitionsProvider';
 import ThemeIllustrationsProvider from './components/ThemeIllustrationsProvider';
 import ThemeProvider from './components/ThemeProvider';
 import ThemeStylesProvider from './components/ThemeStylesProvider';
@@ -35,7 +41,7 @@ import {FullScreenContextProvider} from './components/VideoPlayerContexts/FullSc
 import {PlaybackContextProvider} from './components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from './components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from './components/VideoPlayerContexts/VolumeContext';
-import {EnvironmentProvider} from './components/withEnvironment';
+import WideRHPContextProvider from './components/WideRHPContextProvider';
 import {KeyboardStateProvider} from './components/withKeyboardState';
 import CONFIG from './CONFIG';
 import CONST from './CONST';
@@ -46,7 +52,9 @@ import HybridAppHandler from './HybridAppHandler';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import './libs/HybridApp';
 import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
+import ExpensifyCardContextProvider from './pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
 import './setup/backgroundTask';
+import './setup/fraudProtection';
 import './setup/hybridApp';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
@@ -89,13 +97,15 @@ function App() {
                                 <ComposeProviders
                                     components={[
                                         OnyxListItemProvider,
+                                        CurrentUserPersonalDetailsProvider,
+                                        LocaleContextProvider,
                                         ThemeProvider,
                                         ThemeStylesProvider,
                                         ThemeIllustrationsProvider,
+                                        SVGDefinitionsProvider,
                                         HTMLEngineProvider,
                                         PortalProvider,
                                         SafeArea,
-                                        LocaleContextProvider,
                                         PopoverContextProvider,
                                         CurrentReportIDContextProvider,
                                         ScrollOffsetContextProvider,
@@ -111,6 +121,7 @@ function App() {
                                         VideoPopoverMenuContextProvider,
                                         KeyboardProvider,
                                         KeyboardStateProvider,
+                                        KeyboardDismissibleFlatListContextProvider,
                                         SearchRouterContextProvider,
                                         ProductTrainingContextProvider,
                                         InputBlurContextProvider,
@@ -118,6 +129,9 @@ function App() {
                                         FullScreenLoaderContextProvider,
                                         ModalProvider,
                                         SidePanelContextProvider,
+                                        ExpensifyCardContextProvider,
+                                        KYCWallContextProvider,
+                                        WideRHPContextProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />
@@ -137,6 +151,6 @@ function App() {
     );
 }
 
-App.displayName = 'App';
-
-export default App;
+const WrappedApp = Sentry.wrap(App);
+WrappedApp.displayName = 'App';
+export default WrappedApp;

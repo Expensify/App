@@ -1,12 +1,12 @@
 import React, {useEffect} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
@@ -42,7 +42,6 @@ function ListBoundaryLoader({
     hasError = false,
     onRetry,
 }: ListBoundaryLoaderProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -75,6 +74,7 @@ function ListBoundaryLoader({
                         onPress={retry}
                         text={translate('listBoundary.tryAgain')}
                         isLoading={isRetrying}
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.LIST_BOUNDARY_LOADER_RETRY}
                     />
                 )}
             </View>
@@ -101,15 +101,10 @@ function ListBoundaryLoader({
         // the styles for android and the rest components are different that's why we use two different components
         return (
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.listBoundaryLoader]}>
-                <ActivityIndicator
-                    color={theme.spinner}
-                    size="small"
-                />
+                <ActivityIndicator />
             </View>
         );
     }
 }
-
-ListBoundaryLoader.displayName = 'ListBoundaryLoader';
 
 export default ListBoundaryLoader;

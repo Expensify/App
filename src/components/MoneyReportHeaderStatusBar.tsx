@@ -1,43 +1,50 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as NextStepUtils from '@libs/NextStepUtils';
+import {parseMessage} from '@libs/NextStepUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type ReportNextStep from '@src/types/onyx/ReportNextStep';
+import type ReportNextStepDeprecated from '@src/types/onyx/ReportNextStepDeprecated';
 import type IconAsset from '@src/types/utils/IconAsset';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
-    /** The next step for the report */
-    nextStep: ReportNextStep;
+    /** The next step for the report (deprecated old format) */
+    nextStep: ReportNextStepDeprecated | undefined;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
 type IconMap = Record<IconName, IconAsset>;
-const iconMap: IconMap = {
-    [CONST.NEXT_STEP.ICONS.HOURGLASS]: Expensicons.Hourglass,
-    [CONST.NEXT_STEP.ICONS.CHECKMARK]: Expensicons.Checkmark,
-    [CONST.NEXT_STEP.ICONS.STOPWATCH]: Expensicons.Stopwatch,
-};
 
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch']);
+    const iconMap: IconMap = useMemo(
+        () => ({
+            [CONST.NEXT_STEP.ICONS.HOURGLASS]: icons.Hourglass,
+            [CONST.NEXT_STEP.ICONS.CHECKMARK]: icons.Checkmark,
+            [CONST.NEXT_STEP.ICONS.STOPWATCH]: icons.Stopwatch,
+        }),
+        [icons],
+    );
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserEmail = currentUserPersonalDetails.login ?? '';
     const messageContent = useMemo(() => {
-        const messageArray = nextStep.message;
-        return NextStepUtils.parseMessage(messageArray);
-    }, [nextStep.message]);
+        const messageArray = nextStep?.message;
+        return parseMessage(messageArray, currentUserEmail);
+    }, [nextStep?.message, currentUserEmail]);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
             <View style={[styles.mr3]}>
                 <Icon
-                    src={iconMap[nextStep.icon] || Expensicons.Hourglass}
+                    src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? icons.Hourglass}
                     height={variables.iconSizeSmall}
                     width={variables.iconSizeSmall}
                     fill={theme.icon}
@@ -49,7 +56,5 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
         </View>
     );
 }
-
-MoneyReportHeaderStatusBar.displayName = 'MoneyReportHeaderStatusBar';
 
 export default MoneyReportHeaderStatusBar;

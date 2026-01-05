@@ -1,33 +1,28 @@
 import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {ImageStyle, StyleProp, ViewStyle} from 'react-native';
+import {View} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePopoverPosition from '@hooks/usePopoverPosition';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {validateAvatarImage} from '@libs/AvatarUtils';
 import {isSafari} from '@libs/Browser';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-import {splitExtensionFromFileName, validateImageForCorruption} from '@libs/fileDownload/FileUtils';
-import getImageResolution from '@libs/fileDownload/getImageResolution';
-import type {AvatarSource} from '@libs/UserUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
-import AttachmentModal from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';
-import Avatar from './Avatar';
+import AvatarButtonWithIcon from './AvatarButtonWithIcon';
+import type {AvatarButtonWithIconProps} from './AvatarButtonWithIcon';
 import AvatarCropModal from './AvatarCropModal/AvatarCropModal';
 import DotIndicatorMessage from './DotIndicatorMessage';
-import Icon from './Icon';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from './Icon/Expensicons';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PopoverMenu from './PopoverMenu';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
-import Tooltip from './Tooltip';
 
 type ErrorData = {
     validationError?: TranslationPaths | null | '';
@@ -46,21 +41,9 @@ type MenuItem = {
     shouldCallAfterModalHide?: boolean;
 };
 
-type AvatarWithImagePickerProps = {
-    /** Avatar source to display */
-    source?: AvatarSource;
-
-    /** Account id of user for which avatar is displayed  */
-    avatarID?: number | string;
-
+type AvatarWithImagePickerProps = Omit<AvatarButtonWithIconProps, 'text' | 'onPress' | 'anchorRef'> & {
     /** Additional style props */
     style?: StyleProp<ViewStyle>;
-
-    /** Additional style props for disabled picker */
-    disabledStyle?: StyleProp<ViewStyle>;
-
-    /** Additional style props for the edit icon */
-    editIconStyle?: StyleProp<ViewStyle>;
 
     /** Executed once an image has been selected */
     onImageSelected?: (file: File | CustomRNImageManipulatorResult) => void;
@@ -68,20 +51,8 @@ type AvatarWithImagePickerProps = {
     /** Execute when the user taps "remove" */
     onImageRemoved?: () => void;
 
-    /** A default avatar component to display when there is no source */
-    DefaultAvatar?: () => React.ReactNode;
-
     /** Whether we are using the default avatar */
     isUsingDefaultAvatar?: boolean;
-
-    /** Size of Indicator */
-    size?: typeof CONST.AVATAR_SIZE.X_LARGE | typeof CONST.AVATAR_SIZE.LARGE | typeof CONST.AVATAR_SIZE.DEFAULT;
-
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon?: AvatarSource;
-
-    /** Denotes whether it is an avatar or a workspace avatar */
-    type?: typeof CONST.ICON_TYPE_AVATAR | typeof CONST.ICON_TYPE_WORKSPACE;
 
     /** Image crop vector mask */
     editorMaskImage?: IconAsset;
@@ -92,38 +63,17 @@ type AvatarWithImagePickerProps = {
     /** A function to run when the X button next to the error is clicked */
     onErrorClose?: () => void;
 
-    /** The type of action that's pending  */
-    pendingAction?: OnyxCommon.PendingAction;
-
     /** The errors to display  */
     errors?: OnyxCommon.Errors | null;
 
-    /** Title for avatar preview modal */
-    headerTitle?: string;
-
-    /** Avatar source for avatar preview modal */
-    previewSource?: AvatarSource;
-
-    /** File name of the avatar */
-    originalFileName?: string;
-
-    /** Style applied to the avatar */
-    avatarStyle: StyleProp<ViewStyle & ImageStyle>;
-
-    /** Indicates if picker feature should be disabled */
-    disabled?: boolean;
-
-    /** Executed once click on view photo option */
+    /** If set, the AvatarWithImagePicker will show a "View Photo" option and use this callback on press */
     onViewPhotoPress?: () => void;
 
     /** Allows to open an image without Attachment Picker. */
     enablePreview?: boolean;
 
-    /** Hard disables the "View photo" option */
-    shouldDisableViewPhoto?: boolean;
-
-    /** Optionally override the default "Edit" icon */
-    editIcon?: IconAsset;
+    /** The name associated with avatar */
+    name?: string;
 };
 
 const anchorAlignment = {horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP};
@@ -142,9 +92,6 @@ function AvatarWithImagePicker({
     fallbackIcon = Expensicons.FallbackAvatar,
     size = CONST.AVATAR_SIZE.DEFAULT,
     type = CONST.ICON_TYPE_AVATAR,
-    headerTitle = '',
-    previewSource = '',
-    originalFileName = '',
     isUsingDefaultAvatar = false,
     onImageSelected = () => {},
     onImageRemoved = () => {},
@@ -153,10 +100,10 @@ function AvatarWithImagePicker({
     disabled = false,
     onViewPhotoPress,
     enablePreview = false,
-    shouldDisableViewPhoto = false,
-    editIcon = Expensicons.Pencil,
+    editIcon,
+    name = '',
 }: AvatarWithImagePickerProps) {
-    const theme = useTheme();
+    const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Upload']);
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const [popoverPosition, setPopoverPosition] = useState({horizontal: 0, vertical: 0});
@@ -193,68 +140,29 @@ function AvatarWithImagePicker({
     }, [source, avatarID]);
 
     /**
-     * Check if the attachment extension is allowed.
+     * Validates an image and opens avatar crop modal if valid
      */
-    const isValidExtension = useCallback((image: FileObject): boolean => {
-        const {fileExtension} = splitExtensionFromFileName(image?.name ?? '');
-        return CONST.AVATAR_ALLOWED_EXTENSIONS.some((extension) => extension === fileExtension.toLowerCase());
-    }, []);
+    const showAvatarCropModal = useCallback((image: FileObject) => {
+        validateAvatarImage(image)
+            .then((validationResult) => {
+                if (!validationResult.isValid) {
+                    setError(validationResult.errorKey ?? null, validationResult.errorParams ?? {});
+                    return;
+                }
 
-    /**
-     * Check if the attachment size is less than allowed size.
-     */
-    const isValidSize = useCallback((image: FileObject): boolean => (image?.size ?? 0) < CONST.AVATAR_MAX_ATTACHMENT_SIZE, []);
-
-    /**
-     * Check if the attachment resolution matches constraints.
-     */
-    const isValidResolution = (image: FileObject): Promise<boolean> =>
-        getImageResolution(image).then(
-            ({height, width}) => height >= CONST.AVATAR_MIN_HEIGHT_PX && width >= CONST.AVATAR_MIN_WIDTH_PX && height <= CONST.AVATAR_MAX_HEIGHT_PX && width <= CONST.AVATAR_MAX_WIDTH_PX,
-        );
-
-    /**
-     * Validates if an image has a valid resolution and opens an avatar crop modal
-     */
-    const showAvatarCropModal = useCallback(
-        (image: FileObject) => {
-            if (!isValidExtension(image)) {
-                setError('avatarWithImagePicker.notAllowedExtension', {allowedExtensions: CONST.AVATAR_ALLOWED_EXTENSIONS});
-                return;
-            }
-            if (!isValidSize(image)) {
-                setError('avatarWithImagePicker.sizeExceeded', {maxUploadSizeInMB: CONST.AVATAR_MAX_ATTACHMENT_SIZE / (1024 * 1024)});
-                return;
-            }
-
-            validateImageForCorruption(image)
-                .then(() => isValidResolution(image))
-                .then((isValid) => {
-                    if (!isValid) {
-                        setError('avatarWithImagePicker.resolutionConstraints', {
-                            minHeightInPx: CONST.AVATAR_MIN_HEIGHT_PX,
-                            minWidthInPx: CONST.AVATAR_MIN_WIDTH_PX,
-                            maxHeightInPx: CONST.AVATAR_MAX_HEIGHT_PX,
-                            maxWidthInPx: CONST.AVATAR_MAX_WIDTH_PX,
-                        });
-                        return;
-                    }
-
-                    setIsAvatarCropModalOpen(true);
-                    setError(null, {});
-                    setIsMenuVisible(false);
-                    setImageData({
-                        uri: image.uri ?? '',
-                        name: image.name ?? '',
-                        type: image.type ?? '',
-                    });
-                })
-                .catch(() => {
-                    setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
+                setIsAvatarCropModalOpen(true);
+                setError(null, {});
+                setIsMenuVisible(false);
+                setImageData({
+                    uri: image.uri ?? '',
+                    name: image.name ?? '',
+                    type: image.type ?? '',
                 });
-        },
-        [isValidExtension, isValidSize],
-    );
+            })
+            .catch(() => {
+                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
+            });
+    }, []);
 
     const hideAvatarCropModal = () => {
         setIsAvatarCropModalOpen(false);
@@ -266,7 +174,7 @@ function AvatarWithImagePicker({
     const createMenuItems = (openPicker: OpenPicker): MenuItem[] => {
         const menuItems: MenuItem[] = [
             {
-                icon: Expensicons.Upload,
+                icon: icons.Upload,
                 text: translate('avatarWithImagePicker.uploadPhoto'),
                 onSelected: () => {
                     if (isSafari()) {
@@ -296,6 +204,7 @@ function AvatarWithImagePicker({
 
     const onPressAvatar = useCallback(
         (openPicker: OpenPicker) => {
+            anchorRef.current?.blur();
             if (disabled && enablePreview && onViewPhotoPress) {
                 onViewPhotoPress();
                 return;
@@ -322,115 +231,77 @@ function AvatarWithImagePicker({
     return (
         <View style={[styles.w100, style]}>
             <View style={styles.w100}>
-                <AttachmentModal
-                    headerTitle={headerTitle}
-                    source={previewSource}
-                    originalFileName={originalFileName}
-                    fallbackSource={fallbackIcon}
-                    maybeIcon={isUsingDefaultAvatar}
+                <AttachmentPicker
+                    type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
+                    // We need to skip the validation in AttachmentPicker because it is handled in this component itself
+                    shouldValidateImage={false}
                 >
-                    {({show}) => (
-                        <AttachmentPicker
-                            type={CONST.ATTACHMENT_PICKER_TYPE.IMAGE}
-                            // We need to skip the validation in AttachmentPicker because it is handled in this component itself
-                            shouldValidateImage={false}
-                        >
-                            {({openPicker}) => {
-                                const menuItems = createMenuItems(openPicker);
+                    {({openPicker}) => {
+                        const menuItems = createMenuItems(openPicker);
 
-                                // If the current avatar isn't a default avatar and we are not overriding this behavior allow the "View Photo" option
-                                if (!shouldDisableViewPhoto && !isUsingDefaultAvatar) {
-                                    menuItems.push({
-                                        icon: Expensicons.Eye,
-                                        text: translate('avatarWithImagePicker.viewPhoto'),
-                                        onSelected: () => {
-                                            if (typeof onViewPhotoPress !== 'function') {
-                                                show();
-                                                return;
-                                            }
-                                            onViewPhotoPress();
-                                        },
-                                        shouldCallAfterModalHide: true,
-                                    });
-                                }
+                        // If the current avatar isn't a default avatar and we are not overriding this behavior allow the "View Photo" option
+                        if (onViewPhotoPress && !isUsingDefaultAvatar) {
+                            menuItems.push({
+                                icon: Expensicons.Eye,
+                                text: translate('avatarWithImagePicker.viewPhoto'),
+                                onSelected: onViewPhotoPress,
+                                shouldCallAfterModalHide: true,
+                            });
+                        }
 
-                                return (
-                                    <>
-                                        <OfflineWithFeedback
-                                            errors={errors}
-                                            errorRowStyles={errorRowStyles}
-                                            onClose={onErrorClose}
-                                        >
-                                            <Tooltip
-                                                shouldRender={!disabled}
-                                                text={translate('avatarWithImagePicker.editImage')}
-                                            >
-                                                <PressableWithoutFeedback
-                                                    onPress={() => onPressAvatar(openPicker)}
-                                                    accessibilityRole={CONST.ROLE.BUTTON}
-                                                    accessibilityLabel={translate('avatarWithImagePicker.editImage')}
-                                                    disabled={isAvatarCropModalOpen || (disabled && !enablePreview)}
-                                                    disabledStyle={disabledStyle}
-                                                    style={[styles.pRelative, type === CONST.ICON_TYPE_AVATAR && styles.alignSelfCenter, avatarStyle]}
-                                                    ref={anchorRef}
-                                                >
-                                                    <OfflineWithFeedback pendingAction={pendingAction}>
-                                                        {source ? (
-                                                            <Avatar
-                                                                containerStyles={avatarStyle}
-                                                                imageStyles={[styles.alignSelfCenter, avatarStyle]}
-                                                                source={source}
-                                                                avatarID={avatarID}
-                                                                fallbackIcon={fallbackIcon}
-                                                                size={size}
-                                                                type={type}
-                                                            />
-                                                        ) : (
-                                                            <DefaultAvatar />
-                                                        )}
-                                                    </OfflineWithFeedback>
-                                                    {!disabled && (
-                                                        <View style={StyleSheet.flatten([styles.smallEditIcon, styles.smallAvatarEditIcon, editIconStyle])}>
-                                                            <Icon
-                                                                src={editIcon}
-                                                                width={variables.iconSizeSmall}
-                                                                height={variables.iconSizeSmall}
-                                                                fill={theme.icon}
-                                                            />
-                                                        </View>
-                                                    )}
-                                                </PressableWithoutFeedback>
-                                            </Tooltip>
-                                        </OfflineWithFeedback>
-                                        <PopoverMenu
-                                            anchorPosition={popoverPosition}
-                                            isVisible={isMenuVisible}
-                                            onClose={() => setIsMenuVisible(false)}
-                                            onItemSelected={(item, index) => {
-                                                setIsMenuVisible(false);
-                                                // In order for the file picker to open dynamically, the click
-                                                // function must be called from within an event handler that was initiated
-                                                // by the user on Safari.
-                                                if (index === 0 && isSafari()) {
-                                                    openPicker({
-                                                        onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
-                                                    });
-                                                }
-                                            }}
-                                            menuItems={menuItems}
-                                            anchorAlignment={anchorAlignment}
-                                            anchorRef={anchorRef}
-                                        />
-                                    </>
-                                );
-                            }}
-                        </AttachmentPicker>
-                    )}
-                </AttachmentModal>
+                        return (
+                            <>
+                                <OfflineWithFeedback
+                                    errors={errors}
+                                    errorRowStyles={errorRowStyles}
+                                    onClose={onErrorClose}
+                                >
+                                    <AvatarButtonWithIcon
+                                        text={translate('avatarWithImagePicker.editImage')}
+                                        source={source}
+                                        avatarID={avatarID}
+                                        onPress={() => onPressAvatar(openPicker)}
+                                        avatarStyle={avatarStyle}
+                                        pendingAction={pendingAction}
+                                        fallbackIcon={fallbackIcon}
+                                        anchorRef={anchorRef}
+                                        DefaultAvatar={DefaultAvatar}
+                                        editIcon={editIcon ?? icons.Pencil}
+                                        size={size}
+                                        type={type}
+                                        disabled={disabled}
+                                        disabledStyle={disabledStyle}
+                                        editIconStyle={editIconStyle}
+                                        name={name}
+                                    />
+                                </OfflineWithFeedback>
+                                <PopoverMenu
+                                    anchorPosition={popoverPosition}
+                                    isVisible={isMenuVisible}
+                                    onClose={() => setIsMenuVisible(false)}
+                                    onItemSelected={(item, index) => {
+                                        setIsMenuVisible(false);
+                                        // In order for the file picker to open dynamically, the click
+                                        // function must be called from within an event handler that was initiated
+                                        // by the user on Safari.
+                                        if (index === 0 && isSafari()) {
+                                            openPicker({
+                                                onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
+                                            });
+                                        }
+                                    }}
+                                    menuItems={menuItems}
+                                    anchorAlignment={anchorAlignment}
+                                    anchorRef={anchorRef}
+                                />
+                            </>
+                        );
+                    }}
+                </AttachmentPicker>
             </View>
             {!!errorData.validationError && (
                 <DotIndicatorMessage
-                    style={[styles.mt6]}
+                    style={styles.mt6}
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     messages={{0: translate(errorData.validationError, errorData.phraseParam as never)}}
                     type="error"
@@ -448,7 +319,5 @@ function AvatarWithImagePicker({
         </View>
     );
 }
-
-AvatarWithImagePicker.displayName = 'AvatarWithImagePicker';
 
 export default AvatarWithImagePicker;

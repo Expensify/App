@@ -11,12 +11,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
+import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate, getDecodedCategoryName} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -35,7 +36,6 @@ import {
     setWorkspaceCategoryEnabled,
 } from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -50,23 +50,30 @@ function CategorySettingsPage({
     },
     navigation,
 }: CategorySettingsPageProps) {
-    const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [policyTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
-    const policy = usePolicy(policyID);
+    const policyData = usePolicyData(policyID);
+    const {policy, categories: policyCategories} = policyData;
     const {environmentURL} = useEnvironment();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
-    const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === categoryName);
+    const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories).find((category) => category.previousCategoryName === categoryName);
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
+    const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
 
     const [isCannotDeleteOrDisableLastCategoryModalVisible, setIsCannotDeleteOrDisableLastCategoryModalVisible] = useState(false);
-    const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [policyCategory]);
+    const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS;
+    const {
+        taskReport: setupCategoryTaskReport,
+        taskParentReport: setupCategoryTaskParentReport,
+        isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
+        hasOutstandingChildTask,
+        parentReportAction,
+    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
@@ -129,7 +136,16 @@ function CategorySettingsPage({
             setIsCannotDeleteOrDisableLastCategoryModalVisible(true);
             return;
         }
-        setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}}, policyTagLists, allTransactionViolations);
+        setWorkspaceCategoryEnabled(
+            policyData,
+            {[policyCategory.name]: {name: policyCategory.name, enabled: value}},
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
+            hasOutstandingChildTask,
+            parentReportAction,
+        );
     };
 
     const navigateToEditCategory = () => {
@@ -139,7 +155,16 @@ function CategorySettingsPage({
     };
 
     const deleteCategory = () => {
-        deleteWorkspaceCategories(policyID, [categoryName], policyTagLists, allTransactionViolations);
+        deleteWorkspaceCategories(
+            policyData,
+            [categoryName],
+            isSetupCategoryTaskParentReportArchived,
+            setupCategoryTaskReport,
+            setupCategoryTaskParentReport,
+            currentUserPersonalDetails.accountID,
+            hasOutstandingChildTask,
+            parentReportAction,
+        );
         setDeleteCategoryConfirmModalVisible(false);
         navigateBack();
     };
@@ -157,10 +182,10 @@ function CategorySettingsPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategorySettingsPage.displayName}
+                testID="CategorySettingsPage"
             >
                 <HeaderWithBackButton
-                    title={categoryName}
+                    title={decodedCategoryName}
                     onBackButtonPress={navigateBack}
                 />
                 <ConfirmModal
@@ -190,7 +215,7 @@ function CategorySettingsPage({
                         errors={getLatestErrorMessageField(policyCategory)}
                         pendingAction={policyCategory?.pendingFields?.enabled}
                         errorRowStyles={styles.mh5}
-                        onClose={() => clearCategoryErrors(policyID, categoryName)}
+                        onClose={() => clearCategoryErrors(policyID, categoryName, policyCategories)}
                     >
                         <View style={[styles.mt2, styles.mh5]}>
                             <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -206,7 +231,7 @@ function CategorySettingsPage({
                     </OfflineWithFeedback>
                     <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
                         <MenuItemWithTopDescription
-                            title={policyCategory.name}
+                            title={decodedCategoryName}
                             description={translate('common.name')}
                             onPress={navigateToEditCategory}
                             shouldShowRightIcon
@@ -277,9 +302,9 @@ function CategorySettingsPage({
                                             accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
                                             onToggle={() => {
                                                 if (policyCategory.commentHint && areCommentsRequired) {
-                                                    setWorkspaceCategoryDescriptionHint(policyID, categoryName, '');
+                                                    setWorkspaceCategoryDescriptionHint(policyID, categoryName, '', policyCategories);
                                                 }
-                                                setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired);
+                                                setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired, policyCategories);
                                             }}
                                         />
                                     </View>
@@ -365,7 +390,5 @@ function CategorySettingsPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategorySettingsPage.displayName = 'CategorySettingsPage';
 
 export default CategorySettingsPage;

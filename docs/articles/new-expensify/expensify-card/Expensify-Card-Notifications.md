@@ -17,7 +17,7 @@ Get real-time updates about your Expensify Visa® Commercial Card spending by en
 
 # Enable Workspace Notifications
 
-1. Head to your **Inbox** in the left-hand menu.
+1. Head to your **Inbox** in the navigation tabs (on the left on web, and at the bottom on mobile).
 2. Search for the workspace you'd like to update.
 3. In your inbox, open the chat titled with your workspace name.
 4. Click the chat header at the top.

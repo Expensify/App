@@ -1,8 +1,11 @@
+import {Platform} from 'react-native';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {Merge} from 'type-fest';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {isMobile} from '@libs/Browser';
 import Log from '@libs/Log';
+import triggerNotifications from '@libs/Notification/triggerNotifications';
 import Performance from '@libs/Performance';
 import PusherUtils from '@libs/PusherUtils';
 import CONST from '@src/CONST';
@@ -38,9 +41,25 @@ function applyHTTPSOnyxUpdates(request: Request, response: Response, lastUpdateI
     // First apply any onyx data updates that are being sent back from the API. We wait for this to complete and then
     // apply successData or failureData. This ensures that we do not update any pending, loading, or other UI states contained
     // in successData/failureData until after the component has received and API data.
-    const onyxDataUpdatePromise = response.onyxData ? updateHandler(response.onyxData) : Promise.resolve();
+    const onyxDataUpdatePromise = response.onyxData
+        ? updateHandler(response.onyxData).catch((error: unknown) => {
+              // Sometimes we get a SQL error here if the previous queued write failed. In that case, we want to still apply the Onyx update
+              // This is temporary fix until we can identify what causes SQL errors. Ideally we would only like to catch errors here.
+              // Related issue - https://github.com/Expensify/App/issues/69808
+              if (String(error).includes('[SqlExecutionError]') && request.command === READ_COMMANDS.OPEN_UNREPORTED_EXPENSES_PAGE && response.onyxData !== undefined) {
+                  Log.warn(`${String(error)}, retrying Onyx update`);
+                  return updateHandler(response.onyxData);
+              }
+              Log.warn(String(error));
+          })
+        : Promise.resolve();
+
     return onyxDataUpdatePromise
         .then(() => {
+            // Trigger notifications only on successful responses.
+            if (Platform.OS === 'web' && !isMobile() && response.jsonCode === 200 && response.onyxData?.length) {
+                triggerNotifications(response.onyxData);
+            }
             // Handle the request's success/failure data (client-side data)
             if (response.jsonCode === 200 && request.successData) {
                 return updateHandler(request.successData);

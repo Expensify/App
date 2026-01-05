@@ -3,11 +3,11 @@ import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import UserListItem from '@components/SelectionList/UserListItem';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,15 +31,17 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
     const connectionName = route?.params?.connectionName;
     const reportID = route.params.reportID;
     const backTo = route.params.backTo;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
     const policyID = report?.policyID;
 
     const {translate} = useLocalize();
     const [modalStatus, setModalStatus] = useState<ExportType | null>(null);
     const styles = useThemeStyles();
+    const lazyIllustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenAndHourglass']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare']);
 
-    const iconToDisplay = getIntegrationIcon(connectionName);
+    const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
     const canBeExported = canBeExportedUtil(report);
     const isExported = isExportedUtil(reportActions);
 
@@ -83,13 +85,13 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
 
     if (!canBeExported) {
         return (
-            <ScreenWrapper testID={ReportDetailsExportPage.displayName}>
+            <ScreenWrapper testID="ReportDetailsExportPage">
                 <HeaderWithBackButton
                     title={translate('common.export')}
                     onBackButtonPress={() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID, backTo))}
                 />
                 <ConfirmationPage
-                    illustration={Illustrations.LaptopWithSecondScreenAndHourglass}
+                    illustration={lazyIllustrations.LaptopWithSecondScreenAndHourglass}
                     heading={translate('workspace.export.notReadyHeading')}
                     description={translate('workspace.export.notReadyDescription')}
                     shouldShowButton
@@ -108,7 +110,7 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
                 policyID={policyID}
                 accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
                 featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-                displayName={ReportDetailsExportPage.displayName}
+                displayName="ReportDetailsExportPage"
                 sections={[{data: exportSelectorOptions}]}
                 listItem={UserListItem}
                 shouldBeBlocked={false}
@@ -135,8 +137,6 @@ function ReportDetailsExportPage({route}: ReportDetailsExportPageProps) {
         </>
     );
 }
-
-ReportDetailsExportPage.displayName = 'ReportDetailsExportPage';
 
 export default ReportDetailsExportPage;
 export type {ExportType};

@@ -5,8 +5,8 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import BankAccount from '@libs/models/BankAccount';
 import {getFieldRequiredErrors, isValidCompanyName} from '@libs/ValidationUtils';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -16,13 +16,18 @@ const STEP_FIELDS = [COMPANY_NAME_KEY];
 function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
 
     const defaultCompanyName = reimbursementAccount?.achData?.companyName ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
 
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
-    const shouldDisableCompanyName = !!(bankAccountID && defaultCompanyName && ![BankAccount.STATE.SETUP, BankAccount.STATE.VERIFYING].includes(bankAccountState));
+    const shouldDisableCompanyName = !!(
+        bankAccountID &&
+        defaultCompanyName &&
+        bankAccountState !== CONST.BANK_ACCOUNT.STATE.SETUP &&
+        bankAccountState !== CONST.BANK_ACCOUNT.STATE.VERIFYING
+    );
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
@@ -61,7 +66,5 @@ function NameBusiness({onNext, onMove, isEditing}: SubStepProps) {
         />
     );
 }
-
-NameBusiness.displayName = 'NameBusiness';
 
 export default NameBusiness;

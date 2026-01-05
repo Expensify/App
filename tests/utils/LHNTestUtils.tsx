@@ -4,9 +4,9 @@ import {render} from '@testing-library/react-native';
 import type {ReactElement} from 'react';
 import React from 'react';
 import ComposeProviders from '@components/ComposeProviders';
+import {EnvironmentProvider} from '@components/EnvironmentContext';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import {EnvironmentProvider} from '@components/withEnvironment';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import DateUtils from '@libs/DateUtils';
@@ -133,12 +133,12 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
 
     const participants = buildParticipantsFromAccountIDs(participantAccountIDs);
 
-    adminIDs.forEach((id) => {
+    for (const id of adminIDs) {
         participants[id] = {
             notificationPreference: 'always',
             role: CONST.REPORT.ROLE.ADMIN,
         };
-    });
+    }
 
     return {
         type: CONST.REPORT.TYPE.CHAT,

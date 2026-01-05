@@ -2,16 +2,6 @@ import 'react-native-url-polyfill/auto';
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
-/**
- * Add / to the end of any URL if not present
- */
-function addTrailingForwardSlash(url: string): string {
-    if (!url.endsWith('/')) {
-        return `${url}/`;
-    }
-    return url;
-}
-
 function addLeadingForwardSlash(url: string): string {
     if (!url.startsWith('/')) {
         return `/${url}`;
@@ -37,7 +27,7 @@ function getPathFromURL(url: string): string {
  * Determine if two urls have the same origin
  */
 function hasSameExpensifyOrigin(url1: string, url2: string): boolean {
-    const removeW3 = (host: string) => host.replace(/^www\./i, '');
+    const removeW3 = (host: string) => host.replaceAll(/^www\./gi, '');
     try {
         const parsedUrl1 = new URL(url1);
         const parsedUrl2 = new URL(url2);
@@ -80,4 +70,27 @@ function getSearchParamFromUrl(currentUrl: string, param: string) {
     return currentUrl ? new URL(currentUrl).searchParams.get(param) : null;
 }
 
-export {getSearchParamFromUrl, addTrailingForwardSlash, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain};
+type UrlWithParams<TBase extends string> = `${TBase}${'' | `?${string}` | `&${string}`}`;
+type UrlParams = {backTo?: string; forwardTo?: string} & Record<string, string | number | undefined>;
+/**
+ * Generate a URL with properly encoded query parameters.
+ *
+ * @param baseUrl - The base URL.
+ * @param params - Object containing key-value pairs for query parameters.
+ * @returns A URL string with encoded query parameters.
+ */
+function getUrlWithParams<TBase extends string, TParams extends UrlParams>(baseUrl: TBase, params: TParams): UrlWithParams<TBase> {
+    const [path, existingQuery] = baseUrl.split('?', 2);
+    const searchParams = new URLSearchParams(existingQuery || '');
+
+    for (const [key, value] of Object.entries(params)) {
+        if (value) {
+            searchParams.set(key, String(value));
+        }
+    }
+
+    const queryString = searchParams.toString();
+    return (queryString ? `${path}?${queryString}` : path) as UrlWithParams<TBase>;
+}
+
+export {getSearchParamFromUrl, hasSameExpensifyOrigin, getPathFromURL, appendParam, hasURL, addLeadingForwardSlash, extractUrlDomain, getUrlWithParams};

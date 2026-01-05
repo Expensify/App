@@ -2,7 +2,7 @@ import type {RefObject} from 'react';
 import type {LayoutChangeEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
 import type {Locale, OnboardingPurpose, PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
@@ -128,11 +128,19 @@ type OptionRowLHNDataProps = {
     /** Function to compare locale strings */
     localeCompare: LocaleContextProps['localeCompare'];
 
+    /** Function to translate locale strings */
+    translate: LocalizedTranslate;
+
     /** TestID of the row, indicating order */
     testID: number;
 
     /** Whether the report is archived */
     isReportArchived: boolean;
+
+    /** The last action should be displayed */
+    lastAction: ReportAction | undefined;
+
+    lastActionReport: OnyxEntry<Report> | undefined;
 };
 
 type OptionRowLHNProps = {
@@ -156,9 +164,6 @@ type OptionRowLHNProps = {
 
     /** The item that should be rendered */
     optionItem?: OptionData;
-
-    /** The active policy ID */
-    activePolicyID?: string;
 
     /** The onboarding purpose */
     onboardingPurpose?: OnboardingPurpose;

@@ -4,7 +4,7 @@ import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
 import CONST from './CONST';
 import getPlatform from './libs/getPlatform';
-import * as Url from './libs/Url';
+import addTrailingForwardSlash from './libs/UrlUtils';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
 // add a trim() call to prevent headaches
@@ -32,13 +32,13 @@ const getDefaultLegacyPartnerConfig = () => {
 
 // Set default values to contributor friendly values to make development work out of the box without an .env file
 const ENVIRONMENT = get(Config, 'ENVIRONMENT', CONST.ENVIRONMENT.DEV);
-const newExpensifyURL = Url.addTrailingForwardSlash(get(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com/'));
-const expensifyURL = Url.addTrailingForwardSlash(get(Config, 'EXPENSIFY_URL', 'https://www.expensify.com/'));
-const stagingExpensifyURL = Url.addTrailingForwardSlash(get(Config, 'STAGING_EXPENSIFY_URL', 'https://staging.expensify.com/'));
-const stagingSecureExpensifyUrl = Url.addTrailingForwardSlash(get(Config, 'STAGING_SECURE_EXPENSIFY_URL', 'https://staging-secure.expensify.com/'));
-const ngrokURL = Url.addTrailingForwardSlash(get(Config, 'NGROK_URL', ''));
-const secureNgrokURL = Url.addTrailingForwardSlash(get(Config, 'SECURE_NGROK_URL', ''));
-const secureExpensifyUrl = Url.addTrailingForwardSlash(get(Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/'));
+const newExpensifyURL = addTrailingForwardSlash(get(Config, 'NEW_EXPENSIFY_URL', 'https://new.expensify.com/'));
+const expensifyURL = addTrailingForwardSlash(get(Config, 'EXPENSIFY_URL', 'https://www.expensify.com/'));
+const stagingExpensifyURL = addTrailingForwardSlash(get(Config, 'STAGING_EXPENSIFY_URL', 'https://staging.expensify.com/'));
+const stagingSecureExpensifyUrl = addTrailingForwardSlash(get(Config, 'STAGING_SECURE_EXPENSIFY_URL', 'https://staging-secure.expensify.com/'));
+const ngrokURL = addTrailingForwardSlash(get(Config, 'NGROK_URL', ''));
+const secureNgrokURL = addTrailingForwardSlash(get(Config, 'SECURE_NGROK_URL', ''));
+const secureExpensifyUrl = addTrailingForwardSlash(get(Config, 'SECURE_EXPENSIFY_URL', 'https://secure.expensify.com/'));
 const useNgrok = get(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = get(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
@@ -99,7 +99,7 @@ export default {
         SUFFIX: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? get(Config, 'PUSHER_DEV_SUFFIX', '') : '',
         CLUSTER: 'mt1',
     },
-    SITE_TITLE: 'New Expensify',
+    SITE_TITLE: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? 'New Expensify [dev]' : 'New Expensify',
     FAVICON: {
         DEFAULT: '/favicon.png',
         UNREAD: '/favicon-unread.png',
@@ -142,4 +142,5 @@ export default {
     IS_TEST_ENV: process.env.NODE_ENV === 'test',
     // eslint-disable-next-line no-restricted-properties
     IS_HYBRID_APP: HybridAppModule.isHybridApp(),
+    SENTRY_DSN: get(Config, 'SENTRY_DSN', 'https://7b463fb4d4402d342d1166d929a62f4e@o4510228013121536.ingest.us.sentry.io/4510228107427840'),
 } as const;

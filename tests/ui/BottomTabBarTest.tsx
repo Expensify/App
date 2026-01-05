@@ -1,18 +1,66 @@
 import {NavigationContainer} from '@react-navigation/native';
-import {render, screen} from '@testing-library/react-native';
+import {cleanup, render, screen} from '@testing-library/react-native';
+import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import DebugTabView from '@components/Navigation/DebugTabView';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
+import navigationRef from '@libs/Navigation/navigationRef';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-jest.mock('@src/hooks/useRootNavigationState');
+jest.mock('@src/hooks/useRootNavigationState', () => {
+    return jest.fn(() => ({
+        routes: [
+            {
+                name: 'Main',
+                state: {
+                    routes: [
+                        {
+                            name: 'Home',
+                            params: {},
+                        },
+                    ],
+                    index: 0,
+                },
+            },
+        ],
+        index: 0,
+    }));
+});
+
+// Mock the specific function that's causing the navigation error
+jest.mock('@libs/Navigation/helpers/navigateToWorkspacesPage', () => ({
+    default: jest.fn(),
+    getWorkspaceNavigationRouteState: jest.fn(() => ({
+        lastWorkspacesTabNavigatorRoute: null,
+        workspacesTabState: null,
+        topmostFullScreenRoute: {
+            name: 'Main',
+            params: {},
+        },
+    })),
+}));
+
+// Helper function to render with proper navigation setup
+const renderWithNavigation = (component: React.ReactElement) => {
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
+            <NavigationContainer
+                ref={navigationRef}
+                onReady={() => {
+                    // Navigation is ready, but we still need to handle the timing issue
+                }}
+            >
+                {component}
+            </NavigationContainer>
+        </ComposeProviders>,
+    );
+};
 
 describe('NavigationTabBar', () => {
     beforeAll(() => {
@@ -23,10 +71,16 @@ describe('NavigationTabBar', () => {
     beforeEach(() => {
         Onyx.clear([ONYXKEYS.NVP_PREFERRED_LOCALE]);
     });
+
+    afterEach(async () => {
+        cleanup();
+        jest.clearAllMocks();
+        await Onyx.clear();
+    });
     describe('Home tab', () => {
         describe('Debug mode enabled', () => {
             beforeEach(() => {
-                Onyx.set(ONYXKEYS.ACCOUNT, {isDebugModeEnabled: true});
+                Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, true);
             });
             describe('Has GBR', () => {
                 it('renders DebugTabView', async () => {
@@ -39,15 +93,9 @@ describe('NavigationTabBar', () => {
                         lastMessageText: 'Hello world!',
                     });
 
-                    render(
-                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
-                            <NavigationContainer>
-                                <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />
-                            </NavigationContainer>
-                        </ComposeProviders>,
-                    );
+                    renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
             describe('Has RBR', () => {
@@ -65,15 +113,9 @@ describe('NavigationTabBar', () => {
                         lastMessageText: 'Hello world!',
                     });
 
-                    render(
-                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
-                            <NavigationContainer>
-                                <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />
-                            </NavigationContainer>
-                        </ComposeProviders>,
-                    );
+                    renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
         });
@@ -81,7 +123,7 @@ describe('NavigationTabBar', () => {
     describe('Settings tab', () => {
         describe('Debug mode enabled', () => {
             beforeEach(() => {
-                Onyx.set(ONYXKEYS.ACCOUNT, {isDebugModeEnabled: true});
+                Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, true);
             });
             describe('Has GBR', () => {
                 it('renders DebugTabView', async () => {
@@ -98,15 +140,9 @@ describe('NavigationTabBar', () => {
                         },
                     });
 
-                    render(
-                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
-                            <NavigationContainer>
-                                <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />
-                            </NavigationContainer>
-                        </ComposeProviders>,
-                    );
+                    renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
             describe('Has RBR', () => {
@@ -123,15 +159,9 @@ describe('NavigationTabBar', () => {
                         },
                     });
 
-                    render(
-                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, SidebarOrderedReportsContextProvider]}>
-                            <NavigationContainer>
-                                <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />
-                            </NavigationContainer>
-                        </ComposeProviders>,
-                    );
+                    renderWithNavigation(<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />);
 
-                    expect(await screen.findByTestId(DebugTabView.displayName)).toBeOnTheScreen();
+                    expect(await screen.findByTestId('DebugTabView')).toBeOnTheScreen();
                 });
             });
         });

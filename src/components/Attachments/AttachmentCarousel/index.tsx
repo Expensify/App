@@ -15,7 +15,18 @@ import extractAttachments from './extractAttachments';
 import type {AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
-function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink, onAttachmentError}: AttachmentCarouselProps) {
+function AttachmentCarousel({
+    report,
+    attachmentID,
+    source,
+    onNavigate,
+    setDownloadButtonVisibility,
+    type,
+    accountID,
+    onSwipeDown,
+    attachmentLink,
+    onAttachmentError,
+}: AttachmentCarouselProps) {
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`, {canEvict: false, canBeMissing: true});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {canEvict: false, canBeMissing: true});
     const canUseTouchScreen = canUseTouchScreenUtil();
@@ -105,7 +116,7 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
             autoHideArrows={autoHideArrows}
             cancelAutoHideArrow={cancelAutoHideArrows}
             setShouldShowArrows={setShouldShowArrows}
-            onClose={onClose}
+            onSwipeDown={onSwipeDown}
             onAttachmentError={onAttachmentError}
             report={report}
             attachmentID={attachmentID}
@@ -114,7 +125,5 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
         />
     );
 }
-
-AttachmentCarousel.displayName = 'AttachmentCarousel';
 
 export default AttachmentCarousel;

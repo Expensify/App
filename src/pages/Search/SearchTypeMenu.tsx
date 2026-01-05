@@ -1,9 +1,9 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
+import {accountIDSelector} from '@selectors/Session';
+import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView, ScrollViewProps} from 'react-native';
-import Animated, {FadeIn} from 'react-native-reanimated';
 import MenuItem from '@components/MenuItem';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import MenuItemList from '@components/MenuItemList';
@@ -15,25 +15,27 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
+import useSuggestedSearchDefaultNavigation from '@hooks/useSuggestedSearchDefaultNavigation';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearAllFilters} from '@libs/actions/Search';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {setSearchContext} from '@libs/actions/Search';
+import {filterPersonalCards, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, shouldSkipSuggestedSearchNavigation as shouldSkipSuggestedSearchNavigationForQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
-import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
+import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON | undefined;
@@ -41,12 +43,13 @@ type SearchTypeMenuProps = {
 
 function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {hash, similarSearchHash} = queryJSON ?? {};
+    const shouldSkipSuggestedSearchNavigation = useMemo(() => shouldSkipSuggestedSearchNavigationForQuery(queryJSON), [queryJSON]);
 
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-    const {typeMenuSections} = useSearchTypeMenuSections();
+    const {typeMenuSections, CreateReportConfirmationModal, shouldShowSuggestedSearchSkeleton} = useSearchTypeMenuSections();
     const isFocused = useIsFocused();
     const {
         shouldShowProductTrainingTooltip: shouldShowSavedSearchTooltip,
@@ -56,42 +59,49 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
         !!typeMenuSections.find((section) => section.translationPath === 'search.savedSearchesMenuItemTitle') && isFocused,
     );
-    const {
-        shouldShowProductTrainingTooltip: shouldShowExpenseReportsTypeTooltip,
-        renderProductTrainingTooltip: renderExpenseReportsTypeTooltip,
-        hideProductTrainingTooltip: hideExpenseReportsTypeTooltip,
-    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.EXPENSE_REPORTS_FILTER, true);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'Bookmark',
+        'Pencil',
+        'Receipt',
+        'ChatBubbles',
+        'MoneyBag',
+        'CreditCard',
+        'MoneyHourglass',
+        'CreditCardHourglass',
+        'Bank',
+    ] as const);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
-    const taxRates = getAllTaxRates();
+    const taxRates = getAllTaxRates(allPolicies);
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector, canBeMissing: false});
     const {clearSelectedTransactions} = useSearchContext();
-    const initialSearchKeys = useRef<string[]>([]);
 
-    // The first time we render all of the sections the user can see, we need to mark these as 'rendered', such that we
-    // dont animate them in. We only animate in items that a user gains access to later on
-    useEffect(() => {
-        if (initialSearchKeys.current.length) {
-            return;
-        }
+    const flattenedMenuItems = useMemo(() => typeMenuSections.flatMap((section) => section.menuItems), [typeMenuSections]);
 
-        initialSearchKeys.current = typeMenuSections.flatMap((section) => {
-            return section.menuItems.map((item) => item.key);
-        });
-    }, [typeMenuSections]);
+    useSuggestedSearchDefaultNavigation({
+        shouldShowSkeleton: shouldShowSuggestedSearchSkeleton,
+        flattenedMenuItems,
+        similarSearchHash,
+        clearSelectedTransactions,
+        shouldSkipNavigation: shouldSkipSuggestedSearchNavigation,
+    });
 
-    const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
+    const getOverflowMenu = useCallback(
+        (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(expensifyIcons, itemName, itemHash, itemQuery, translate, showDeleteModal),
+        [translate, showDeleteModal, expensifyIcons],
+    );
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, index: number) => {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies);
+                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, allFeeds, allPolicies, currentUserAccountID);
             }
 
             const isItemFocused = Number(key) === hash;
@@ -100,7 +110,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             return {
                 ...baseMenuItem,
                 onPress: () => {
-                    clearAllFilters();
+                    setSearchContext(false);
                     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item?.query ?? '', name: item?.name}));
                 },
                 rightComponent: (
@@ -138,6 +148,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             taxRates,
             allCards,
             allFeeds,
+            currentUserAccountID,
             allPolicies,
         ],
     );
@@ -192,13 +203,13 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             <MenuItemList
                 menuItems={menuItems}
                 wrapperStyle={styles.sectionMenuItem}
-                icon={Expensicons.Bookmark}
+                icon={expensifyIcons.Bookmark}
                 iconWidth={variables.iconSizeNormal}
                 iconHeight={variables.iconSizeNormal}
                 shouldUseSingleExecution
             />
         ),
-        [styles],
+        [expensifyIcons.Bookmark, styles.sectionMenuItem],
     );
 
     const activeItemIndex = useMemo(() => {
@@ -207,87 +218,74 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             return -1;
         }
 
-        const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
         return flattenedMenuItems.findIndex((item) => item.similarSearchHash === similarSearchHash);
-    }, [similarSearchHash, isSavedSearchActive, typeMenuSections]);
+    }, [similarSearchHash, isSavedSearchActive, flattenedMenuItems]);
 
     return (
-        <ScrollView
-            onScroll={onScroll}
-            ref={scrollViewRef}
-            showsVerticalScrollIndicator={false}
-        >
-            <View style={[styles.pb4, styles.mh3, styles.gap4]}>
-                {typeMenuSections.map((section, sectionIndex) => (
-                    <View key={section.translationPath}>
-                        <Text style={styles.sectionTitle}>{translate(section.translationPath)}</Text>
-
-                        {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
-                            <>
-                                {renderSavedSearchesSection(savedSearchesMenuItems)}
-                                {/* DeleteConfirmModal is a stable JSX element returned by the hook.
-                                Returning the element directly keeps the component identity across re-renders so React
-                                can play its exit animation instead of removing it instantly. */}
-                                {DeleteConfirmModal}
-                            </>
-                        ) : (
-                            <>
-                                {section.menuItems.map((item, itemIndex) => {
-                                    const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
-                                    const flattenedIndex = previousItemCount + itemIndex;
-                                    const focused = activeItemIndex === flattenedIndex;
-                                    const shouldShowTooltip = item.translationPath === 'common.reports' && !focused && shouldShowExpenseReportsTypeTooltip;
-
-                                    const onPress = singleExecution(() => {
-                                        if (shouldShowTooltip) {
-                                            hideExpenseReportsTypeTooltip();
-                                        }
-                                        clearAllFilters();
-                                        clearSelectedTransactions();
-                                        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
-                                    });
-
-                                    const isInitialItem = !initialSearchKeys.current.length || initialSearchKeys.current.includes(item.key);
-
-                                    return (
-                                        <Animated.View
-                                            key={item.translationPath}
-                                            entering={!isInitialItem ? FadeIn : undefined}
-                                        >
-                                            <MenuItem
-                                                key={item.key}
-                                                disabled={false}
-                                                interactive
-                                                title={translate(item.translationPath)}
-                                                icon={item.icon}
-                                                iconWidth={variables.iconSizeNormal}
-                                                iconHeight={variables.iconSizeNormal}
-                                                wrapperStyle={styles.sectionMenuItem}
-                                                focused={focused}
-                                                onPress={onPress}
-                                                shouldIconUseAutoWidthStyle
-                                                shouldRenderTooltip={shouldShowTooltip}
-                                                renderTooltipContent={renderExpenseReportsTypeTooltip}
-                                                tooltipAnchorAlignment={{
-                                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                                                }}
-                                                tooltipShiftHorizontal={variables.expenseReportsTypeTooltipShiftHorizontal}
-                                                tooltipWrapperStyle={styles.productTrainingTooltipWrapper}
-                                                onEducationTooltipPress={onPress}
-                                            />
-                                        </Animated.View>
-                                    );
-                                })}
-                            </>
-                        )}
+        <>
+            {CreateReportConfirmationModal}
+            <ScrollView
+                onScroll={onScroll}
+                ref={scrollViewRef}
+                showsVerticalScrollIndicator={false}
+            >
+                {shouldShowSuggestedSearchSkeleton ? (
+                    <View style={[styles.pb4, styles.mh3, styles.gap4]}>
+                        <SuggestedSearchSkeleton />
                     </View>
-                ))}
-            </View>
-        </ScrollView>
+                ) : (
+                    <View style={[styles.pb4, styles.mh3, styles.gap4]}>
+                        {typeMenuSections.map((section, sectionIndex) => (
+                            <View key={section.translationPath}>
+                                <Text style={styles.sectionTitle}>{translate(section.translationPath)}</Text>
+
+                                {section.translationPath === 'search.savedSearchesMenuItemTitle' ? (
+                                    <>
+                                        {renderSavedSearchesSection(savedSearchesMenuItems)}
+                                        {/* DeleteConfirmModal is a stable JSX element returned by the hook.
+                                        Returning the element directly keeps the component identity across re-renders so React
+                                        can play its exit animation instead of removing it instantly. */}
+                                        {DeleteConfirmModal}
+                                    </>
+                                ) : (
+                                    <>
+                                        {section.menuItems.map((item, itemIndex) => {
+                                            const previousItemCount = typeMenuSections.slice(0, sectionIndex).reduce((acc, sec) => acc + sec.menuItems.length, 0);
+                                            const flattenedIndex = previousItemCount + itemIndex;
+                                            const focused = activeItemIndex === flattenedIndex;
+                                            const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon] : item.icon;
+
+                                            const onPress = singleExecution(() => {
+                                                clearSelectedTransactions();
+                                                setSearchContext(false);
+                                                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: item.searchQuery}));
+                                            });
+
+                                            return (
+                                                <MenuItem
+                                                    key={item.key}
+                                                    disabled={false}
+                                                    interactive
+                                                    title={translate(item.translationPath)}
+                                                    icon={icon}
+                                                    iconWidth={variables.iconSizeNormal}
+                                                    iconHeight={variables.iconSizeNormal}
+                                                    wrapperStyle={styles.sectionMenuItem}
+                                                    focused={focused}
+                                                    onPress={onPress}
+                                                    shouldIconUseAutoWidthStyle
+                                                />
+                                            );
+                                        })}
+                                    </>
+                                )}
+                            </View>
+                        ))}
+                    </View>
+                )}
+            </ScrollView>
+        </>
     );
 }
-
-SearchTypeMenu.displayName = 'SearchTypeMenu';
 
 export default SearchTypeMenu;

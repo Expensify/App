@@ -4,14 +4,16 @@ import {Rect} from 'react-native-svg';
 import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 
 function SearchInputSelectionSkeleton() {
     const theme = useTheme();
     const styles = useThemeStyles();
+    useSkeletonSpan('SearchInputSelectionSkeleton');
 
     return (
-        <View style={[styles.flex1, styles.searchRouterTextInputContainer, styles.searchAutocompleteInputResults, styles.br2, styles.justifyContentCenter]}>
+        <View style={[styles.searchRouterTextInputContainer, styles.searchAutocompleteInputResults, styles.br2, styles.justifyContentCenter]}>
             <SkeletonViewContentLoader
                 height={variables.searchAutocompleteInputSkeletonHeight}
                 backgroundColor={theme.skeletonLHNIn}
@@ -19,8 +21,6 @@ function SearchInputSelectionSkeleton() {
                 style={[styles.ml1]}
             >
                 <Rect
-                    x="0"
-                    y="0"
                     width={variables.searchAutocompleteInputSkeletonWidth}
                     height={variables.searchAutocompleteInputSkeletonHeight}
                 />

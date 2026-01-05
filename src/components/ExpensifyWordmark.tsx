@@ -3,8 +3,8 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import AdHocLogo from '@assets/images/expensify-logo--adhoc.svg';
 import DevLogo from '@assets/images/expensify-logo--dev.svg';
+import ProductionLogo from '@assets/images/expensify-logo--prod.svg';
 import StagingLogo from '@assets/images/expensify-logo--staging.svg';
-import ProductionLogo from '@assets/images/expensify-wordmark.svg';
 import useEnvironment from '@hooks/useEnvironment';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -50,7 +50,5 @@ function ExpensifyWordmark({style}: ExpensifyWordmarkProps) {
         </View>
     );
 }
-
-ExpensifyWordmark.displayName = 'ExpensifyWordmark';
 
 export default ExpensifyWordmark;

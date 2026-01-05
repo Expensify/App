@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {IndicatorStatus} from '@hooks/useIndicatorStatus';
@@ -130,6 +130,26 @@ const getMockForStatus = (status: IndicatorStatus, isAdmin = true) =>
         },
         [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL]: status === CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO,
         [ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED]: status === CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_ERRORS,
+        [ONYXKEYS.CARD_LIST]: {
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            '123456': {
+                cardID: 123456,
+                bank: CONST.EXPENSIFY_CARD.BANK,
+                accountID: 123,
+                state: status === CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO ? CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED : CONST.EXPENSIFY_CARD.STATE.OPEN,
+            },
+        },
+        [ONYXKEYS.PRIVATE_PERSONAL_DETAILS]: {
+            legalFirstName: 'John',
+            legalLastName: 'Doe',
+            dob: '2000-08-08',
+            phoneNumber: '0123456789',
+            addresses: [
+                {
+                    street: '123 Main St',
+                },
+            ],
+        },
     }) as OnyxMultiSetInput;
 
 type TestCase = {
@@ -212,6 +232,12 @@ const TEST_CASES: TestCase[] = [
         status: CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO,
         policyIDWithErrors: undefined,
     },
+    {
+        name: 'has pending card info',
+        indicatorColor: defaultTheme.success,
+        status: CONST.INDICATOR_STATUS.HAS_PENDING_CARD_INFO,
+        policyIDWithErrors: undefined,
+    },
 ];
 
 const TEST_CASES_NON_ADMIN: TestCase[] = [
@@ -244,31 +270,45 @@ describe('useIndicatorStatusTest', () => {
         });
     });
     describe.each(TEST_CASES)('$name', (testCase) => {
-        beforeAll(() => {
-            return Onyx.multiSet(getMockForStatus(testCase.status)).then(waitForBatchedUpdates);
+        beforeAll(async () => {
+            await Onyx.multiSet(getMockForStatus(testCase.status));
+            await waitForBatchedUpdates();
         });
-        it('returns correct indicatorColor', () => {
+        it('returns correct indicatorColor', async () => {
             const {result} = renderHook(() => useIndicatorStatus());
+            await act(async () => {
+                await waitForBatchedUpdates();
+            });
             const {indicatorColor} = result.current;
             expect(indicatorColor).toBe(testCase.indicatorColor);
         });
-        it('returns correct status', () => {
+        it('returns correct status', async () => {
             const {result} = renderHook(() => useIndicatorStatus());
+            await act(async () => {
+                await waitForBatchedUpdates();
+            });
             const {status} = result.current;
             expect(status).toBe(testCase.status);
         });
-        it('returns correct policyIDWithErrors', () => {
+        it('returns correct policyIDWithErrors', async () => {
             const {result} = renderHook(() => useIndicatorStatus());
+            await act(async () => {
+                await waitForBatchedUpdates();
+            });
             const {policyIDWithErrors} = result.current;
             expect(policyIDWithErrors).toBe(testCase.policyIDWithErrors);
         });
     });
     describe.each(TEST_CASES_NON_ADMIN)('$name', (testCase) => {
-        beforeAll(() => {
-            return Onyx.multiSet(getMockForStatus(testCase.status, false)).then(waitForBatchedUpdates);
+        beforeAll(async () => {
+            await Onyx.multiSet(getMockForStatus(testCase.status, false));
+            await waitForBatchedUpdates();
         });
-        it('returns correct indicatorColor', () => {
+        it('returns correct indicatorColor', async () => {
             const {result} = renderHook(() => useIndicatorStatus());
+            await act(async () => {
+                await waitForBatchedUpdates();
+            });
             const {indicatorColor} = result.current;
             expect(indicatorColor).toBe(testCase.indicatorColor);
         });

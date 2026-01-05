@@ -6,18 +6,19 @@ import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
-import TableListItem from '@components/SelectionList/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import TableListItem from '@components/SelectionListWithSections/TableListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
@@ -75,12 +76,13 @@ function ReportFieldsListValuesPage({
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT, {canBeMissing: true});
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const illustrations = useMemoizedLazyIllustrations(['FolderWithPapers']);
 
     const [selectedValues, setSelectedValues] = useState<Record<string, boolean>>({});
     const [deleteValuesConfirmModalVisible, setDeleteValuesConfirmModalVisible] = useState(false);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
 
-    const canSelectMultiple = !hasAccountingConnections && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
+    const canSelectMultiple = isSmallScreenWidth ? isMobileSelectionModeEnabled : true;
 
     const [listValues, disabledListValues] = useMemo(() => {
         let reportFieldValues: string[];
@@ -102,13 +104,17 @@ function ReportFieldsListValuesPage({
     const updateReportFieldListValueEnabled = useCallback(
         (value: boolean, valueIndex: number) => {
             if (reportFieldID) {
-                updateReportFieldListValueEnabledReportField(policyID, reportFieldID, [Number(valueIndex)], value);
+                updateReportFieldListValueEnabledReportField({policy, reportFieldID, valueIndexes: [Number(valueIndex)], enabled: value});
                 return;
             }
 
-            setReportFieldsListValueEnabled([valueIndex], value);
+            setReportFieldsListValueEnabled({
+                valueIndexes: [valueIndex],
+                enabled: value,
+                disabledListValues,
+            });
         },
-        [policyID, reportFieldID],
+        [disabledListValues, policy, reportFieldID],
     );
 
     useSearchBackPress({
@@ -175,20 +181,25 @@ function ReportFieldsListValuesPage({
         }, []);
 
         if (reportFieldID) {
-            removeReportFieldListValue(policyID, reportFieldID, valuesToDelete);
+            removeReportFieldListValue({policy, reportFieldID, valueIndexes: valuesToDelete});
         } else {
-            deleteReportFieldsListValue(valuesToDelete);
+            deleteReportFieldsListValue({
+                valueIndexes: valuesToDelete,
+                listValues,
+                disabledListValues,
+            });
         }
 
         setDeleteValuesConfirmModalVisible(false);
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             setSelectedValues({});
         });
     };
 
     const openListValuePage = (valueItem: ValueListItem) => {
-        if (valueItem.index === undefined || hasAccountingConnections) {
+        if (valueItem.index === undefined) {
             return;
         }
 
@@ -204,6 +215,7 @@ function ReportFieldsListValuesPage({
                 canSelectMultiple={canSelectMultiple}
                 leftHeaderText={translate('common.name')}
                 rightHeaderText={translate('common.enabled')}
+                shouldShowRightCaret
             />
         );
     };
@@ -211,7 +223,7 @@ function ReportFieldsListValuesPage({
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         if (isSmallScreenWidth ? isMobileSelectionModeEnabled : selectedValuesArray.length > 0) {
-            if (selectedValuesArray.length > 0) {
+            if (selectedValuesArray.length > 0 && !hasAccountingConnections) {
                 options.push({
                     icon: Expensicons.Trashcan,
                     text: translate(selectedValuesArray.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
@@ -242,11 +254,15 @@ function ReportFieldsListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToDisable, false);
+                            updateReportFieldListValueEnabledReportField({policy, reportFieldID, valueIndexes: valuesToDisable, enabled: false});
                             return;
                         }
 
-                        setReportFieldsListValueEnabled(valuesToDisable, false);
+                        setReportFieldsListValueEnabled({
+                            valueIndexes: valuesToDisable,
+                            enabled: false,
+                            disabledListValues,
+                        });
                     },
                 });
             }
@@ -274,11 +290,15 @@ function ReportFieldsListValuesPage({
                         setSelectedValues({});
 
                         if (reportFieldID) {
-                            updateReportFieldListValueEnabledReportField(policyID, reportFieldID, valuesToEnable, true);
+                            updateReportFieldListValueEnabledReportField({policy, reportFieldID, valueIndexes: valuesToEnable, enabled: true});
                             return;
                         }
 
-                        setReportFieldsListValueEnabled(valuesToEnable, true);
+                        setReportFieldsListValueEnabled({
+                            valueIndexes: valuesToEnable,
+                            enabled: true,
+                            disabledListValues,
+                        });
                     },
                 });
             }
@@ -297,15 +317,17 @@ function ReportFieldsListValuesPage({
             );
         }
 
-        return (
-            <Button
-                style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
-                success
-                icon={Expensicons.Plus}
-                text={translate('workspace.reportFields.addValue')}
-                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_ADD_VALUE.getRoute(policyID, reportFieldID))}
-            />
-        );
+        if (!hasAccountingConnections) {
+            return (
+                <Button
+                    style={[isSmallScreenWidth && styles.flexGrow1, isSmallScreenWidth && styles.mb3]}
+                    success
+                    icon={Expensicons.Plus}
+                    text={translate('workspace.reportFields.addValue')}
+                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_ADD_VALUE.getRoute(policyID, reportFieldID))}
+                />
+            );
+        }
     };
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
@@ -335,7 +357,7 @@ function ReportFieldsListValuesPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
-                testID={ReportFieldsListValuesPage.displayName}
+                testID="ReportFieldsListValuesPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -349,9 +371,9 @@ function ReportFieldsListValuesPage({
                         Navigation.goBack();
                     }}
                 >
-                    {!isSmallScreenWidth && !hasAccountingConnections && getHeaderButtons()}
+                    {!isSmallScreenWidth && getHeaderButtons()}
                 </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{!hasAccountingConnections && getHeaderButtons()}</View>}
+                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
                 {shouldShowEmptyState && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         {headerContent}
@@ -360,7 +382,7 @@ function ReportFieldsListValuesPage({
                             subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}
                             SkeletonComponent={TableListItemSkeleton}
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}
-                            headerMedia={Illustrations.FolderWithPapers}
+                            headerMedia={illustrations.FolderWithPapers}
                             headerStyles={styles.emptyFolderDarkBG}
                             headerContentStyles={styles.emptyStateFolderWithPaperIconSize}
                         />
@@ -370,7 +392,7 @@ function ReportFieldsListValuesPage({
                     <SelectionListWithModal
                         addBottomSafeAreaPadding
                         canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={!hasAccountingConnections}
+                        turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
                         sections={sections}
                         selectedItems={selectedValuesArray}
@@ -385,6 +407,7 @@ function ReportFieldsListValuesPage({
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         showScrollIndicator={false}
+                        shouldShowRightCaret
                     />
                 )}
                 <ConfirmModal
@@ -401,7 +424,5 @@ function ReportFieldsListValuesPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportFieldsListValuesPage.displayName = 'ReportFieldsListValuesPage';
 
 export default withPolicyAndFullscreenLoading(ReportFieldsListValuesPage);

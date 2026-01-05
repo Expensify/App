@@ -1,16 +1,15 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {Emoji} from '@assets/emojis/types';
 import EmojiSuggestions from '@components/EmojiSuggestions';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {getPreferredSkinToneIndex, suggestEmojis} from '@libs/EmojiUtils';
+import {suggestEmojis} from '@libs/EmojiUtils';
 import {trimLeadingSpace} from '@libs/SuggestionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SuggestionsRef} from './ReportActionCompose';
 import type {SuggestionProps} from './Suggestions';
 
 type SuggestionsValue = {
@@ -38,11 +37,18 @@ const defaultSuggestionsValues: SuggestionsValue = {
     shouldShowSuggestionMenu: false,
 };
 
-function SuggestionEmoji(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, resetKeyboardInput, measureParentContainerAndReportCursor, isComposerFocused}: SuggestionEmojiProps,
-    ref: ForwardedRef<SuggestionsRef>,
-) {
-    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true, selector: getPreferredSkinToneIndex});
+function SuggestionEmoji({
+    value,
+    selection,
+    setSelection,
+    updateComment,
+    isAutoSuggestionPickerLarge,
+    resetKeyboardInput,
+    measureParentContainerAndReportCursor,
+    isComposerFocused,
+    ref,
+}: SuggestionEmojiProps) {
+    const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
     const suggestionValuesRef = useRef(suggestionValues);
     // eslint-disable-next-line react-compiler/react-compiler
@@ -170,13 +176,23 @@ function SuggestionEmoji(
         [preferredLocale, setHighlightedEmojiIndex, resetSuggestions],
     );
 
+    const debouncedCalculateEmojiSuggestion = useDebounce(
+        useCallback(
+            (newValue: string, selectionStart?: number, selectionEnd?: number) => {
+                calculateEmojiSuggestion(newValue, selectionStart, selectionEnd);
+            },
+            [calculateEmojiSuggestion],
+        ),
+        CONST.TIMING.SUGGESTION_DEBOUNCE_TIME,
+    );
+
     useEffect(() => {
         if (!isComposerFocused) {
             return;
         }
 
-        calculateEmojiSuggestion(value, selection.start, selection.end);
-    }, [value, selection, calculateEmojiSuggestion, isComposerFocused]);
+        debouncedCalculateEmojiSuggestion(value, selection.start, selection.end);
+    }, [value, selection.start, selection.end, debouncedCalculateEmojiSuggestion, isComposerFocused]);
 
     const setShouldBlockSuggestionCalc = useCallback(
         (shouldBlockSuggestionCalc: boolean) => {
@@ -185,7 +201,7 @@ function SuggestionEmoji(
         [shouldBlockCalc],
     );
 
-    const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues]);
+    const getSuggestions = useCallback(() => suggestionValues.suggestedEmojis, [suggestionValues.suggestedEmojis]);
 
     const getIsSuggestionsMenuVisible = useCallback(() => isEmojiSuggestionsMenuVisible, [isEmojiSuggestionsMenuVisible]);
 
@@ -220,6 +236,4 @@ function SuggestionEmoji(
     );
 }
 
-SuggestionEmoji.displayName = 'SuggestionEmoji';
-
-export default forwardRef(SuggestionEmoji);
+export default SuggestionEmoji;

@@ -1,10 +1,12 @@
-import React, {useCallback, useState} from 'react';
+import {emailSelector} from '@selectors/Session';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -32,14 +34,15 @@ function SearchFiltersWorkspacePage() {
 
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
     const [policies, policiesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+    const selectionListRef = useRef<SelectionListHandle>(null);
 
     const [selectedOptions, setSelectedOptions] = useState<string[]>(() => (searchAdvancedFiltersForm?.policyID ? Array.from(searchAdvancedFiltersForm?.policyID) : []));
 
-    const {sections, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
+    const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
         policies,
         currentUserLogin,
         shouldShowPendingDeletePolicy: false,
@@ -57,6 +60,10 @@ function SearchFiltersWorkspacePage() {
 
             if (optionIndex === -1 && option?.policyID) {
                 setSelectedOptions([...selectedOptions, option.policyID]);
+
+                requestAnimationFrame(() => {
+                    selectionListRef.current?.scrollAndHighlightItem([option.keyForList]);
+                });
             } else {
                 const newSelectedOptions = [...selectedOptions.slice(0, optionIndex), ...selectedOptions.slice(optionIndex + 1)];
                 setSelectedOptions(newSelectedOptions);
@@ -74,9 +81,19 @@ function SearchFiltersWorkspacePage() {
         setSelectedOptions([]);
     }, []);
 
+    const textInputOptions = useMemo(
+        () => ({
+            label: shouldShowSearchInput ? translate('common.search') : undefined,
+            value: searchTerm,
+            onChangeText: setSearchTerm,
+            headerMessage: shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : '',
+        }),
+        [searchTerm, setSearchTerm, shouldShowNoResultsFoundMessage, shouldShowSearchInput, translate],
+    );
+
     return (
         <ScreenWrapper
-            testID={SearchFiltersWorkspacePage.displayName}
+            testID="SearchFiltersWorkspacePage"
             includeSafeAreaPaddingBottom
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
@@ -94,16 +111,15 @@ function SearchFiltersWorkspacePage() {
                         <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                     ) : (
                         <SelectionList<WorkspaceListItem>
+                            ref={selectionListRef}
+                            data={data}
                             ListItem={UserListItem}
-                            sections={sections}
+                            onSelectRow={selectWorkspace}
+                            textInputOptions={textInputOptions}
                             canSelectMultiple
                             shouldUseDefaultRightHandSideCheckmark
-                            textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
-                            textInputValue={searchTerm}
-                            onChangeText={setSearchTerm}
-                            onSelectRow={selectWorkspace}
-                            headerMessage={shouldShowNoResultsFoundMessage ? translate('common.noResultsFound') : ''}
                             showLoadingPlaceholder={isLoadingOnyxValue(policiesResult) || !didScreenTransitionEnd}
+                            disableMaintainingScrollPosition
                             footerContent={
                                 <SearchFilterPageFooterButtons
                                     applyChanges={applyChanges}
@@ -117,7 +133,5 @@ function SearchFiltersWorkspacePage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersWorkspacePage.displayName = 'SearchFiltersWorkspacePage';
 
 export default SearchFiltersWorkspacePage;

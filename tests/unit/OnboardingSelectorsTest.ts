@@ -1,5 +1,5 @@
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import type {OnyxValue} from 'react-native-onyx';
-import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 

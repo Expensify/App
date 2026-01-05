@@ -1,5 +1,5 @@
-import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
-import React, {forwardRef} from 'react';
+import type {ComponentType} from 'react';
+import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -32,8 +32,8 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET
     | typeof SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_FREQUENCY
     | typeof SCREENS.WORKSPACE.MEMBER_DETAILS
+    | typeof SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE
     | typeof SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD
-    | typeof SCREENS.WORKSPACE.MEMBER_NEW_CARD
     | typeof SCREENS.WORKSPACE.INVOICES
     | typeof SCREENS.WORKSPACE.OWNER_CHANGE_CHECK
     | typeof SCREENS.WORKSPACE.TAX_EDIT
@@ -49,7 +49,7 @@ type PolicyRouteName =
     | typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION
     | typeof SCREENS.WORKSPACE.RULES
     | typeof SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW
-    | typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD;
+    | typeof SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION;
 
 type PolicyRoute = PlatformStackRouteProp<NavigatorsParamList, PolicyRouteName>;
 
@@ -76,10 +76,8 @@ const policyDefaultProps: WithPolicyOnyxProps = {
 /*
  * HOC for connecting a policy in Onyx corresponding to the policyID in route params
  */
-export default function <TProps extends WithPolicyProps, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps> & RefAttributes<TRef>> {
-    function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>, ref: ForwardedRef<TRef>) {
+export default function <TProps extends WithPolicyProps>(WrappedComponent: ComponentType<TProps>): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps>> {
+    function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>) {
         const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
         const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: true});
         const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
@@ -98,14 +96,11 @@ export default function <TProps extends WithPolicyProps, TRef>(
                 policy={policy}
                 policyDraft={policyDraft}
                 isLoadingPolicy={isLoadingPolicy}
-                ref={ref}
             />
         );
     }
 
-    WithPolicy.displayName = `WithPolicy`;
-
-    return forwardRef(WithPolicy);
+    return WithPolicy;
 }
 
 export {policyDefaultProps};

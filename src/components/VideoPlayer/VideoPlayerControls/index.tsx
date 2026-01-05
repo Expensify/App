@@ -1,5 +1,5 @@
 import type {Video} from 'expo-av';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -28,7 +28,7 @@ type VideoPlayerControlsProps = {
     url: string;
 
     /** Ref for video player. */
-    videoPlayerRef: MutableRefObject<Video | null>;
+    videoPlayerRef: RefObject<Video | null>;
 
     /** Is video playing. */
     isPlaying: boolean;
@@ -109,6 +109,7 @@ function VideoPlayerControls({
                             onPress={togglePlayCurrentVideo}
                             style={styles.mr2}
                             small={small}
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.PLAY_PAUSE_BUTTON}
                         />
                         {shouldShowTime && (
                             <View style={[styles.videoPlayerControlsRow]}>
@@ -126,12 +127,14 @@ function VideoPlayerControls({
                             onPress={enterFullScreenMode}
                             style={iconSpacing}
                             small={small}
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.FULLSCREEN_BUTTON}
                         />
                         <IconButton
                             src={Expensicons.ThreeDots}
                             tooltipText={translate('common.more')}
                             onPress={showPopoverMenu}
                             small={small}
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.MORE_BUTTON}
                         />
                     </View>
                 </View>
@@ -149,7 +152,5 @@ function VideoPlayerControls({
         </Animated.View>
     );
 }
-
-VideoPlayerControls.displayName = 'VideoPlayerControls';
 
 export default VideoPlayerControls;

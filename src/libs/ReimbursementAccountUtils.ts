@@ -1,6 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
+import type {ACHDataReimbursementAccount, ReimbursementAccountStep} from '@src/types/onyx/ReimbursementAccount';
 
 type ReimbursementAccountStepToOpen = ValueOf<typeof REIMBURSEMENT_ACCOUNT_ROUTE_NAMES> | '';
 
@@ -35,5 +35,26 @@ function getRouteForCurrentStep(currentStep: ReimbursementAccountStep): Reimburs
     }
 }
 
-export {getRouteForCurrentStep, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES};
+/**
+ * Returns true if a VBBA exists in any state other than OPEN or LOCKED
+ */
+const hasInProgressUSDVBBA = (achData?: ACHDataReimbursementAccount): boolean => {
+    return !!achData?.bankAccountID && !!achData?.state && achData?.state !== CONST.BANK_ACCOUNT.STATE.OPEN && achData?.state !== CONST.BANK_ACCOUNT.STATE.LOCKED;
+};
+
+/** Returns true if user passed first step of flow for non USD VBBA */
+const hasInProgressNonUSDVBBA = (achData?: ACHDataReimbursementAccount, nonUSDCountryDraftValue?: string): boolean => {
+    return (!!achData?.bankAccountID && !!achData?.created) || nonUSDCountryDraftValue !== '';
+};
+
+/** Returns true if VBBA flow is in progress */
+const hasInProgressVBBA = (achData?: ACHDataReimbursementAccount, isNonUSDWorkspace?: boolean, nonUSDCountryDraftValue?: string) => {
+    if (isNonUSDWorkspace) {
+        return hasInProgressNonUSDVBBA(achData, nonUSDCountryDraftValue);
+    }
+
+    return hasInProgressUSDVBBA(achData);
+};
+
+export {getRouteForCurrentStep, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES, hasInProgressUSDVBBA, hasInProgressVBBA, hasInProgressNonUSDVBBA};
 export type {ReimbursementAccountStepToOpen};

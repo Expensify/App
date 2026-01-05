@@ -1,7 +1,13 @@
+# Reminder: If this workflow's name changes, update the name in the dependent workflow at .github/workflows/failureNotifier.yml.
 name: Remote Build Android
 
 on:
   workflow_dispatch:
+    inputs:
+      mobile_expensify_pr:
+        description: 'Mobile-Expensify PR number to use for hybrid build'
+        required: false
+        type: string
   push:
     branches-ignore: [staging, production, cherry-pick-*]
     paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**']
@@ -35,13 +41,30 @@ jobs:
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
-      - name: RNEF Remote Build - Android
-        # rnef v2
-        uses: callstackincubator/android@d9a81f860e436ff2971323990244e32830dcabd1
+      - name: Checkout specific Mobile-Expensify PR
+        if: ${{ matrix.is_hybrid_build && github.event.inputs.mobile_expensify_pr }}
+        run: |
+          cd Mobile-Expensify
+          git fetch origin pull/${{ github.event.inputs.mobile_expensify_pr }}/head:pr-${{ github.event.inputs.mobile_expensify_pr }}
+          git checkout pr-${{ github.event.inputs.mobile_expensify_pr }}
+          echo "Checked out Mobile-Expensify PR #${{ github.event.inputs.mobile_expensify_pr }}"
+
+      - name: Configure AWS Credentials
+        # v4
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Rock Remote Build - Android
+        # rock v3
+        uses: callstackincubator/android@1a7d52dfe3ca195ccbe5ad2f06c15f2fc3835115
         env:
+          GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}
         with:
           variant: ${{ matrix.variant }}
-          rnef-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
+          rock-build-extra-params: '--extra-params -PreactNativeArchitectures=arm64-v8a,x86_64'
           comment-bot: false

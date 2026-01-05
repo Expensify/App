@@ -2,11 +2,11 @@ import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import {TeleScope} from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,6 +33,7 @@ function SageIntacctDefaultVendorPage() {
     const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
     const backTo = route.params.backTo;
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const isReimbursable = route.params.reimbursable === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE;
     const goBack = useCallback(() => {
@@ -64,7 +65,7 @@ function SageIntacctDefaultVendorPage() {
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.defaultVendorDescription', {isReimbursable})}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.defaultVendorDescription', isReimbursable)}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
@@ -83,7 +84,7 @@ function SageIntacctDefaultVendorPage() {
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.sageIntacct.noAccountsFound')}
@@ -91,14 +92,14 @@ function SageIntacctDefaultVendorPage() {
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [translate, styles.pb10, illustrations.Telescope],
     );
 
     return (
         <SelectionScreen
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctDefaultVendorPage.displayName}
+            displayName="SageIntacctDefaultVendorPage"
             sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}
@@ -116,7 +117,5 @@ function SageIntacctDefaultVendorPage() {
         />
     );
 }
-
-SageIntacctDefaultVendorPage.displayName = 'SageIntacctDefaultVendorPage';
 
 export default SageIntacctDefaultVendorPage;

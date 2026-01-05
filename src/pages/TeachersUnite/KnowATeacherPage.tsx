@@ -26,12 +26,12 @@ function KnowATeacherPage() {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
-
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
-        const phoneLogin = getPhoneLogin(values.partnerUserID);
+        const phoneLogin = getPhoneLogin(values.partnerUserID, countryCode);
         const validateIfNumber = validateNumber(phoneLogin);
         const contactMethod = (validateIfNumber || values.partnerUserID).trim().toLowerCase();
         const firstName = values.firstName.trim();
@@ -48,32 +48,18 @@ function KnowATeacherPage() {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.I_KNOW_A_TEACHER_FORM>) => {
             const errors = getFieldRequiredErrors(values, [INPUT_IDS.FIRST_NAME, INPUT_IDS.LAST_NAME]);
-            const phoneLogin = getPhoneLogin(values.partnerUserID);
+            const phoneLogin = getPhoneLogin(values.partnerUserID, countryCode);
             const validateIfNumber = validateNumber(phoneLogin);
 
             if (!isValidDisplayName(values.firstName)) {
                 addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
             } else if (values.firstName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(
-                    errors,
-                    'firstName',
-                    translate('common.error.characterLimitExceedCounter', {
-                        length: values.firstName.length,
-                        limit: CONST.NAME.MAX_LENGTH,
-                    }),
-                );
+                addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.NAME.MAX_LENGTH));
             }
             if (!isValidDisplayName(values.lastName)) {
                 addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
             } else if (values.lastName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(
-                    errors,
-                    'lastName',
-                    translate('common.error.characterLimitExceedCounter', {
-                        length: values.lastName.length,
-                        limit: CONST.NAME.MAX_LENGTH,
-                    }),
-                );
+                addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.NAME.MAX_LENGTH));
             }
             if (!values.partnerUserID) {
                 addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterPhoneEmail'));
@@ -87,13 +73,13 @@ function KnowATeacherPage() {
 
             return errors;
         },
-        [loginList, translate],
+        [countryCode, loginList, translate],
     );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={KnowATeacherPage.displayName}
+            testID="KnowATeacherPage"
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iKnowATeacher')}
@@ -146,7 +132,5 @@ function KnowATeacherPage() {
         </ScreenWrapper>
     );
 }
-
-KnowATeacherPage.displayName = 'KnowATeacherPage';
 
 export default KnowATeacherPage;

@@ -52,8 +52,8 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
     };
 
     const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => validateRateValue(values, customUnit?.rates ?? {}, toLocaleDigit, rate?.rate),
-        [toLocaleDigit, customUnit?.rates, rate?.rate],
+        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.POLICY_DISTANCE_RATE_EDIT_FORM>) => validateRateValue(values, toLocaleDigit, translate),
+        [toLocaleDigit, translate],
     );
 
     if (!rate) {
@@ -69,7 +69,7 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={PolicyDistanceRateEditPage.displayName}
+                testID="PolicyDistanceRateEditPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -103,7 +103,5 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-PolicyDistanceRateEditPage.displayName = 'PolicyDistanceRateEditPage';
 
 export default PolicyDistanceRateEditPage;

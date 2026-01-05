@@ -1,4 +1,5 @@
-import {rand, randBoolean, randCurrencyCode, randNumber, randWord} from '@ngneat/falso';
+import {randBoolean, randCurrencyCode, randNumber, randWord} from '@ngneat/falso';
+import type {ValueOf} from 'type-fest';
 import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
@@ -6,10 +7,10 @@ import type {Report} from '@src/types/onyx';
 /**
  * Creates a report with random settings
  */
-function createRandomReport(index: number): Report {
+function createRandomReport(index: number, chatType: ValueOf<typeof CONST.REPORT.CHAT_TYPE> | undefined): Report {
     return {
         reportID: index.toString(),
-        chatType: rand(Object.values(CONST.REPORT.CHAT_TYPE)),
+        chatType,
         currency: randCurrencyCode(),
         ownerAccountID: index,
         isPinned: randBoolean(),
@@ -25,8 +26,7 @@ function createRandomReport(index: number): Report {
  */
 function createPolicyExpenseChat(index: number, isOwnPolicyExpenseChat = true): Report {
     return {
-        ...createRandomReport(index),
-        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        ...createRandomReport(index, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
         isOwnPolicyExpenseChat,
         type: CONST.REPORT.TYPE.CHAT,
 
@@ -41,9 +41,8 @@ function createPolicyExpenseChat(index: number, isOwnPolicyExpenseChat = true): 
  */
 function createWorkspaceThread(index: number): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
         type: CONST.REPORT.TYPE.CHAT,
-        chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
         parentReportID: `${randNumber()}`,
         parentReportActionID: `${randNumber()}`,
     };
@@ -54,13 +53,10 @@ function createWorkspaceThread(index: number): Report {
  */
 function createExpenseRequestReport(index: number, parentReportID = `${randNumber()}`, parentReportActionID = `${randNumber()}`): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, undefined),
         type: CONST.REPORT.TYPE.IOU,
         parentReportID,
         parentReportActionID,
-
-        // Clear random chat type
-        chatType: undefined,
         isOwnPolicyExpenseChat: false,
     };
 }
@@ -70,13 +66,10 @@ function createExpenseRequestReport(index: number, parentReportID = `${randNumbe
  */
 function createExpenseReport(index: number): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, undefined),
         type: CONST.REPORT.TYPE.EXPENSE,
         parentReportID: `${randNumber()}`,
         parentReportActionID: `${randNumber()}`,
-
-        // Clear random chat type
-        chatType: undefined,
         isOwnPolicyExpenseChat: false,
     };
 }
@@ -86,7 +79,7 @@ function createExpenseReport(index: number): Report {
  */
 function createWorkspaceTaskReport(index: number, accountIDs: number[], parentReportID = `${randNumber()}`): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, undefined),
         type: CONST.REPORT.TYPE.TASK,
         policyID: `policy${index}`,
         participants: buildParticipantsFromAccountIDs(accountIDs),
@@ -103,9 +96,8 @@ function createWorkspaceTaskReport(index: number, accountIDs: number[], parentRe
  */
 function createInvoiceRoom(index: number): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, CONST.REPORT.CHAT_TYPE.INVOICE),
         type: CONST.REPORT.TYPE.CHAT,
-        chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
     };
 }
 
@@ -114,7 +106,7 @@ function createInvoiceRoom(index: number): Report {
  */
 function createInvoiceReport(index: number): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, undefined),
         type: CONST.REPORT.TYPE.INVOICE,
     };
 }
@@ -124,9 +116,8 @@ function createInvoiceReport(index: number): Report {
  */
 function createGroupChat(index: number, accountIDs: number[]): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, CONST.REPORT.CHAT_TYPE.GROUP),
         type: CONST.REPORT.TYPE.CHAT,
-        chatType: CONST.REPORT.CHAT_TYPE.GROUP,
         participants: buildParticipantsFromAccountIDs(accountIDs),
     };
 }
@@ -136,9 +127,8 @@ function createGroupChat(index: number, accountIDs: number[]): Report {
  */
 function createSelfDM(index: number, currentUserAccountID: number): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, CONST.REPORT.CHAT_TYPE.SELF_DM),
         type: CONST.REPORT.TYPE.CHAT,
-        chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
         participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
     };
 }
@@ -148,9 +138,8 @@ function createSelfDM(index: number, currentUserAccountID: number): Report {
  */
 function createAdminRoom(index: number): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
         type: CONST.REPORT.TYPE.CHAT,
-        chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
         reportName: '#admins',
     };
 }
@@ -160,9 +149,8 @@ function createAdminRoom(index: number): Report {
  */
 function createAnnounceRoom(index: number): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE),
         type: CONST.REPORT.TYPE.CHAT,
-        chatType: CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE,
         reportName: '#announce',
     };
 }
@@ -172,9 +160,8 @@ function createAnnounceRoom(index: number): Report {
  */
 function createDomainRoom(index: number): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, CONST.REPORT.CHAT_TYPE.DOMAIN_ALL),
         type: CONST.REPORT.TYPE.CHAT,
-        chatType: CONST.REPORT.CHAT_TYPE.DOMAIN_ALL,
         reportName: '#domain',
     };
 }
@@ -184,7 +171,7 @@ function createDomainRoom(index: number): Report {
  */
 function createRegularTaskReport(index: number, currentUserAccountID: number): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, undefined),
         type: CONST.REPORT.TYPE.TASK,
 
         // No policy makes it a regular task
@@ -198,7 +185,7 @@ function createRegularTaskReport(index: number, currentUserAccountID: number): R
  */
 function createRegularChat(index: number, accountIDs: number[]): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, undefined),
         type: CONST.REPORT.TYPE.CHAT,
 
         // No specific chat type makes it regular
@@ -220,8 +207,7 @@ function createRegularChat(index: number, accountIDs: number[]): Report {
  */
 function createPolicyExpenseChatThread(index: number): Report {
     return {
-        ...createRandomReport(index),
-        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+        ...createRandomReport(index, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
         isOwnPolicyExpenseChat: true,
         parentReportID: `${randNumber()}`,
         parentReportActionID: `${randNumber()}`,
@@ -233,9 +219,8 @@ function createPolicyExpenseChatThread(index: number): Report {
  */
 function createPolicyExpenseChatTask(index: number): Report {
     return {
-        ...createRandomReport(index),
+        ...createRandomReport(index, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
         type: CONST.REPORT.TYPE.TASK,
-        chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
         isOwnPolicyExpenseChat: true,
     };
 }

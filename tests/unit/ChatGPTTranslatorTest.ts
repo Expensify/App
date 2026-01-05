@@ -66,4 +66,17 @@ describe('ChatGPTTranslator.performTranslation', () => {
         expect(MockedOpenAIUtils.prototype.promptChatCompletions).toHaveBeenCalledTimes(2);
         expect(result).toBe(validHTMLTranslation);
     });
+
+    it('fixes Chinese brackets in markdown syntax after translation', async () => {
+        const originalText = '[Click here](https://example.com)';
+        const translatedWithChineseBrackets = '【点击这里】(https://example.com)';
+        const expectedFixed = '[点击这里](https://example.com)';
+
+        (MockedOpenAIUtils.prototype.promptChatCompletions as jest.Mock).mockResolvedValueOnce(translatedWithChineseBrackets);
+
+        // @ts-expect-error TS2445
+        const result = await translator.performTranslation(targetLang, originalText);
+
+        expect(result).toBe(expectedFixed);
+    });
 });

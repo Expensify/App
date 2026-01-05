@@ -4,6 +4,7 @@ import React, {memo, useEffect, useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -14,6 +15,7 @@ import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmoj
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
+import {endSpan} from '@libs/telemetry/activeSpans';
 import variables from '@styles/variables';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -56,6 +58,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const text = getTextFromHtml(html);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {adjustExpensifyLinksForEnv} = useEnvironment();
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
@@ -64,6 +67,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.SEND_MESSAGE, {message: text});
         Timing.end(CONST.TIMING.SEND_MESSAGE);
+        endSpan(CONST.TELEMETRY.SPAN_SEND_MESSAGE);
     }, [text]);
 
     // If the only difference between fragment.text and fragment.html is <br /> tags and emoji tag
@@ -74,7 +78,9 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
-        const htmlWithDeletedTag = styleAsDeleted ? `<del>${html}</del>` : html;
+        // We need to replace the space at the beginning of each line with &nbsp;
+        const escapedHtml = html.replaceAll(/(^|<br \/>)[ ]+/gm, (match: string, p1: string) => p1 + '&nbsp;'.repeat(match.length - p1.length));
+        const htmlWithDeletedTag = styleAsDeleted ? `<del>${escapedHtml}</del>` : escapedHtml;
 
         let htmlContent = htmlWithDeletedTag;
         if (containsOnlyEmojis) {
@@ -93,7 +99,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             htmlWithTag = `<muted-text>${htmlWithTag}<muted-text>`;
         }
 
-        htmlWithTag = getHtmlWithAttachmentID(htmlWithTag, reportActionID);
+        htmlWithTag = adjustExpensifyLinksForEnv(getHtmlWithAttachmentID(htmlWithTag, reportActionID));
 
         return (
             <RenderCommentHTML
@@ -116,7 +122,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                     style={[
                         styles.ltr,
                         style,
-                        styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                        styleAsDeleted ? styles.offlineFeedbackDeleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
                         !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                     ]}
@@ -127,7 +133,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                         containsOnlyEmojis ? styles.onlyEmojisText : undefined,
                         styles.ltr,
                         style,
-                        styleAsDeleted ? styles.offlineFeedback.deleted : undefined,
+                        styleAsDeleted ? styles.offlineFeedbackDeleted : undefined,
                         styleAsMuted ? styles.colorMuted : undefined,
                         !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone,
                         containsOnlyCustomEmoji && styles.customEmojiFont,
@@ -142,7 +148,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={theme.textSupporting}
-                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedback.deleted, style]}
+                        style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedbackDeleted, style]}
                     >
                         {translate('reportActionCompose.edited')}
                     </Text>
@@ -151,7 +157,5 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
         </Text>
     );
 }
-
-TextCommentFragment.displayName = 'TextCommentFragment';
 
 export default memo(TextCommentFragment);

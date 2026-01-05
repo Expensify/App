@@ -1,3 +1,4 @@
+import {transactionDraftReceiptsViewSelector} from '@selectors/TransactionDraft';
 import React, {useCallback, useEffect, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/AttachmentCarouselView';
@@ -41,10 +42,7 @@ function ReceiptView({route}: ReceiptViewProps) {
     const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
 
     const [receipts = getEmptyArray<ReceiptWithTransactionIDAndSource>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) =>
-            Object.values(items ?? {})
-                .map((transaction) => (transaction?.receipt ? {...transaction?.receipt, transactionID: transaction.transactionID} : undefined))
-                .filter((receipt): receipt is ReceiptWithTransactionIDAndSource => !!receipt),
+        selector: transactionDraftReceiptsViewSelector,
         canBeMissing: true,
     });
     const secondTransactionID = receipts.at(1)?.transactionID;
@@ -66,6 +64,7 @@ function ReceiptView({route}: ReceiptViewProps) {
             return;
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             if (currentReceipt.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
                 if (receipts.length === 1) {
@@ -97,7 +96,7 @@ function ReceiptView({route}: ReceiptViewProps) {
 
     return (
         <ScreenWrapper
-            testID={ReceiptView.displayName}
+            testID="ReceiptView"
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
@@ -120,7 +119,7 @@ function ReceiptView({route}: ReceiptViewProps) {
                 page={page}
                 setPage={setPage}
                 attachmentID={currentReceipt?.transactionID}
-                onClose={handleGoBack}
+                onSwipeDown={handleGoBack}
                 autoHideArrows={autoHideArrows}
                 cancelAutoHideArrow={cancelAutoHideArrows}
                 setShouldShowArrows={setShouldShowArrows}
@@ -141,7 +140,5 @@ function ReceiptView({route}: ReceiptViewProps) {
         </ScreenWrapper>
     );
 }
-
-ReceiptView.displayName = 'ReceiptView';
 
 export default ReceiptView;

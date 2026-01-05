@@ -17,10 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     env:
       CI: true
+      NODE_OPTIONS: "--experimental-vm-modules --max-old-space-size=8192"
     strategy:
       fail-fast: false
       matrix:
-        chunk: [ 1, 2, 3 ]
+        chunk: [1, 2, 3, 4, 5, 6, 7, 8]
     name: test (job ${{ fromJSON(matrix.chunk) }})
     steps:
       - name: Checkout
@@ -43,7 +44,42 @@ jobs:
           key: ${{ runner.os }}-jest
 
       - name: Jest tests
-        run: NODE_OPTIONS="$NODE_OPTIONS --experimental-vm-modules" npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --max-workers ${{ steps.cpu-cores.outputs.count }}
+        run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=2 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
+
+      - name: Upload coverage to Codecov (PRs - tokenless)
+        if: ${{ github.event_name == 'pull_request' }}
+        # v5
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
+        with:
+          files: coverage/shard-${{ matrix.chunk }}/coverage-final.json,coverage/shard-${{ matrix.chunk }}/lcov.info
+          flags: unit
+          name: jest-${{ matrix.chunk }}
+          disable_search: true
+          fail_ci_if_error: true
+
+      - name: Load Codecov token from 1Password
+        id: load-codecov-token
+        # Codecov needs a token to be run on the default branch (which happens in preDeploy.yml after a PR is merged to main)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        # v2
+        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          CODECOV_TOKEN: op://${{ vars.OP_VAULT }}//CodeCov-API/key
+
+      - name: Upload coverage to Codecov (token required)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        # v5
+        uses: codecov/codecov-action@5a1091511ad55cbe89839c7260b706298ca349f7
+        with:
+          token: ${{ steps.load-codecov-token.outputs.CODECOV_TOKEN }}
+          files: coverage/shard-${{ matrix.chunk }}/coverage-final.json,coverage/shard-${{ matrix.chunk }}/lcov.info
+          flags: unit
+          name: jest-${{ matrix.chunk }}
+          disable_search: true
+          fail_ci_if_error: true
 
   storybookTests:
     if: ${{ github.event.head_commit.author.name != 'OSBotify' && github.event.head_commit.author.name != 'imgbot[bot]' || github.event_name == 'workflow_call' }}

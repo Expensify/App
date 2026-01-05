@@ -3,8 +3,9 @@ import {deepEqual} from 'fast-equals';
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
 import React, {createRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import type {NativeSyntheticEvent, StyleProp, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
+import type {StyleProp, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import {useInputBlurContext} from '@components/InputBlurContext';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import useDebounceNonReactive from '@hooks/useDebounceNonReactive';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -52,7 +53,7 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     children: ((props: {inputValues: FormOnyxValues<TFormID>}) => ReactNode) | ReactNode;
 
     /** Callback to validate the form */
-    validate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
+    validate?: (values: FormOnyxValues<TFormID>, translate: LocalizedTranslate) => FormInputErrors<TFormID>;
 
     /** Should validate function be called when input loose focus */
     shouldValidateOnBlur?: boolean;
@@ -100,7 +101,7 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     shouldPreventDefaultFocusOnPressSubmit?: boolean;
 
     /** Reference to the outer element */
-    forwardedRef?: ForwardedRef<FormRef>;
+    ref?: ForwardedRef<FormRef>;
 };
 
 function FormProvider({
@@ -117,7 +118,7 @@ function FormProvider({
     shouldRenderFooterAboveSubmit = false,
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
-    forwardedRef,
+    ref,
     ...rest
 }: FormProviderProps) {
     const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
@@ -149,14 +150,14 @@ function FormProvider({
             }
             clearErrorFields(formID);
 
-            const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues) ?? {};
+            const validateErrors: GenericFormInputErrors = validate?.(trimmedStringValues, translate) ?? {};
 
             if (!allowHTML) {
                 // Validate the input for html tags. It should supersede any other error
-                Object.entries(trimmedStringValues).forEach(([inputID, inputValue]) => {
+                for (const [inputID, inputValue] of Object.entries(trimmedStringValues)) {
                     // If the input value is empty OR is non-string, we don't need to validate it for HTML tags
                     if (!inputValue || typeof inputValue !== 'string') {
-                        return;
+                        continue;
                     }
                     const validateForHtmlTagRegex = shouldUseStrictHtmlTagValidation ? CONST.STRICT_VALIDATE_FOR_HTML_TAG_REGEX : CONST.VALIDATE_FOR_HTML_TAG_REGEX;
                     const foundHtmlTagIndex = inputValue.search(validateForHtmlTagRegex);
@@ -164,7 +165,7 @@ function FormProvider({
 
                     // Return early if there are no HTML characters
                     if (leadingSpaceIndex === -1 && foundHtmlTagIndex === -1) {
-                        return;
+                        continue;
                     }
 
                     const matchedHtmlTags = inputValue.match(validateForHtmlTagRegex);
@@ -181,12 +182,12 @@ function FormProvider({
                     }
 
                     if (isMatch && leadingSpaceIndex === -1) {
-                        return;
+                        continue;
                     }
 
                     // Add a validation error here because it is a string value that contains HTML characters
                     validateErrors[inputID] = translate('common.error.invalidCharacter');
-                });
+                }
             }
 
             if (typeof validateErrors !== 'object') {
@@ -242,7 +243,9 @@ function FormProvider({
             const trimmedStringValues = shouldTrimValues ? prepareValues(inputValues) : inputValues;
 
             // Touches all form inputs, so we can validate the entire form
-            Object.keys(inputRefs.current).forEach((inputID) => (touchedInputs.current[inputID] = true));
+            for (const inputID of Object.keys(inputRefs.current)) {
+                touchedInputs.current[inputID] = true;
+            }
 
             // Validate form and return early if any errors are found
             if (!isEmptyObject(onValidate(trimmedStringValues))) {
@@ -275,7 +278,7 @@ function FormProvider({
 
     const resetForm = useCallback(
         (optionalValue: FormOnyxValues) => {
-            Object.keys(inputValues).forEach((inputID) => {
+            for (const inputID of Object.keys(inputValues)) {
                 setInputValues((prevState) => {
                     const copyPrevState = {...prevState};
 
@@ -284,7 +287,7 @@ function FormProvider({
 
                     return copyPrevState;
                 });
-            });
+            }
             setErrors({});
         },
         [inputValues],
@@ -306,7 +309,7 @@ function FormProvider({
         [errors, formID],
     );
 
-    useImperativeHandle(forwardedRef, () => ({
+    useImperativeHandle(ref, () => ({
         resetForm,
         resetErrors,
         resetFormFieldError,
@@ -344,7 +347,7 @@ function FormProvider({
             return {
                 ...inputProps,
                 ...(shouldSubmitForm && {
-                    onSubmitEditing: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => {
+                    onSubmitEditing: (event: TextInputSubmitEditingEvent) => {
                         submit();
 
                         inputProps.onSubmitEditing?.(event);
@@ -417,6 +420,7 @@ function FormProvider({
                     }
                     inputProps.onBlur?.(event);
                     if (isSafari()) {
+                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                         InteractionManager.runAfterInteractions(() => {
                             setIsBlurred(true);
                         });
@@ -466,8 +470,6 @@ function FormProvider({
         </FormContext.Provider>
     );
 }
-
-FormProvider.displayName = 'Form';
 
 export default FormProvider as <TFormID extends OnyxFormKey>(props: FormProviderProps<TFormID>) => ReactNode;
 

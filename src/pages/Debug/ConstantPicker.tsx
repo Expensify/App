@@ -1,7 +1,7 @@
 import isObject from 'lodash/isObject';
 import React, {useMemo, useState} from 'react';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -51,18 +51,24 @@ function ConstantPicker({formType, fieldName, fieldValue, onSubmit}: ConstantPic
                 }),
         [fieldName, fieldValue, formType, searchValue],
     );
-    const selectedOptionKey = useMemo(() => sections.filter((option) => option.searchText === fieldValue).at(0)?.keyForList, [sections, fieldValue]);
+    const selectedOptionKey = useMemo(() => sections.find((option) => option.searchText === fieldValue)?.keyForList, [sections, fieldValue]);
+
+    const textInputOptions = useMemo(
+        () => ({
+            value: searchValue,
+            label: translate('common.search'),
+            onChangeText: setSearchValue,
+        }),
+        [searchValue, translate, setSearchValue],
+    );
 
     return (
         <SelectionList
-            sections={[{data: sections}]}
-            textInputValue={searchValue}
-            textInputLabel={translate('common.search')}
-            onChangeText={setSearchValue}
+            data={sections}
+            textInputOptions={textInputOptions}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
-            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            isRowMultilineSupported
+            initiallyFocusedItemKey={selectedOptionKey}
         />
     );
 }

@@ -1,10 +1,15 @@
-import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import type {InnerReactionListRef} from '@hooks/useBasePopoverReactionList/types';
 import type {ReactionListRef} from '@pages/home/ReportScreenContext';
 import BasePopoverReactionList from './BasePopoverReactionList';
 
-function PopoverReactionList(props: unknown, ref: ForwardedRef<ReactionListRef>) {
+type PopoverReactionListProps = {
+    /** Reference to the outer element */
+    ref?: ForwardedRef<ReactionListRef>;
+};
+
+function PopoverReactionList({ref}: PopoverReactionListProps) {
     const innerReactionListRef = useRef<InnerReactionListRef>(null);
     const [reactionListReportActionID, setReactionListReportActionID] = useState('');
     const [reactionListEmojiName, setReactionListEmojiName] = useState('');
@@ -34,4 +39,4 @@ function PopoverReactionList(props: unknown, ref: ForwardedRef<ReactionListRef>)
 
 PopoverReactionList.displayName = 'PopoverReactionList';
 
-export default React.memo(forwardRef(PopoverReactionList));
+export default React.memo(PopoverReactionList);

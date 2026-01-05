@@ -43,6 +43,7 @@ function CategoryShortcutButton({code, icon, onPress}: CategoryShortcutButtonPro
                 style={({pressed}) => [StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)), styles.categoryShortcutButton, isHighlighted && styles.emojiItemHighlighted]}
                 accessibilityLabel={`emojiPicker.headers.${code}`}
                 role={CONST.ROLE.BUTTON}
+                sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.CATEGORY_SHORTCUT}
             >
                 <Icon
                     fill={theme.icon}
@@ -56,4 +57,5 @@ function CategoryShortcutButton({code, icon, onPress}: CategoryShortcutButtonPro
 }
 
 CategoryShortcutButton.displayName = 'CategoryShortcutButton';
+
 export default React.memo(CategoryShortcutButton);

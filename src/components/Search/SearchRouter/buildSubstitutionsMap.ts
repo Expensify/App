@@ -32,6 +32,7 @@ function buildSubstitutionsMap(
     cardList: CardList,
     cardFeeds: OnyxCollection<CardFeeds>,
     policies: OnyxCollection<Policy>,
+    currentUserAccountID: number,
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
@@ -51,12 +52,12 @@ function buildSubstitutionsMap(
 
             const taxRateNames = taxRates.length > 0 ? taxRates : [taxRateID];
             const uniqueTaxRateNames = [...new Set(taxRateNames)];
-            uniqueTaxRateNames.forEach((taxRateName) => {
+            for (const taxRateName of uniqueTaxRateNames) {
                 const substitutionKey = getSubstitutionsKey(filterKey, taxRateName);
 
                 // eslint-disable-next-line no-param-reassign
                 map[substitutionKey] = taxRateID;
-            });
+            }
         } else if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
@@ -67,9 +68,10 @@ function buildSubstitutionsMap(
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
-            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
-            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeeds, policies);
+            const displayValue = getFilterDisplayValue(filterKey, filterValue, personalDetails, reports, cardList, cardFeeds, policies, currentUserAccountID);
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
             if (displayValue !== filterValue) {

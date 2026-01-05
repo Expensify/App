@@ -1,10 +1,9 @@
-import {differenceInDays, differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
+import {differenceInSeconds, fromUnixTime, isAfter, isBefore} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {SvgProps} from 'react-native-svg';
 import type {ValueOf} from 'type-fest';
-import * as Illustrations from '@components/Icon/Illustrations';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
 import type {PersonalPolicyTypeExcludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
 import type {SubscriptionType} from '@src/CONST';
@@ -12,8 +11,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod, BillingStatus, Fund, FundList, IntroSelected, Policy, StripeCustomerID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type IconAsset from '@src/types/utils/IconAsset';
 import {convertToShortDisplayString} from './CurrencyUtils';
-import {translateLocal} from './Localize';
 import {getOwnedPaidPolicies, isPolicyOwner} from './PolicyUtils';
 
 const PAYMENT_STATUS = {
@@ -44,8 +43,13 @@ type SubscriptionPlanInfo = {
     subtitle: string;
     note: string | undefined;
     benefits: string[];
-    src: React.FC<SvgProps>;
+    src: IconAsset;
     description: string;
+};
+
+type SubscriptionPlanIllustrations = {
+    Mailbox: IconAsset;
+    ShieldYellow: IconAsset;
 };
 
 let currentUserAccountID = -1;
@@ -62,94 +66,10 @@ Onyx.connect({
     callback: (value) => (amountOwed = value),
 });
 
-let billingDisputePending: OnyxEntry<number>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_BILLING_DISPUTE_PENDING,
-    callback: (value) => (billingDisputePending = value),
-});
-
-let billingStatus: OnyxEntry<BillingStatus>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_BILLING_STATUS,
-    callback: (value) => (billingStatus = value),
-});
-
-let firstPolicyDate: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE,
-    callback: (value) => {
-        firstPolicyDate = value;
-    },
-});
-
-let hasManualTeam2025Pricing: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING,
-    callback: (value) => {
-        hasManualTeam2025Pricing = value;
-    },
-});
-
 let ownerBillingGraceEndPeriod: OnyxEntry<number>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
     callback: (value) => (ownerBillingGraceEndPeriod = value),
-});
-
-let fundList: OnyxEntry<FundList>;
-Onyx.connect({
-    key: ONYXKEYS.FUND_LIST,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-
-        fundList = value;
-    },
-});
-
-let retryBillingSuccessful: OnyxEntry<boolean>;
-Onyx.connect({
-    key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL,
-    initWithStoredValues: false,
-    callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-
-        retryBillingSuccessful = value;
-    },
-});
-
-let retryBillingFailed: OnyxEntry<boolean>;
-Onyx.connect({
-    key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
-    callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-
-        retryBillingFailed = value;
-    },
-    initWithStoredValues: false,
-});
-
-let firstDayFreeTrial: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL,
-    callback: (value) => (firstDayFreeTrial = value),
-});
-
-let lastDayFreeTrial: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL,
-    callback: (value) => (lastDayFreeTrial = value),
-});
-
-let userBillingFundID: OnyxEntry<number>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_BILLING_FUND_ID,
-    callback: (value) => (userBillingFundID = value),
 });
 
 let userBillingGraceEndPeriodCollection: OnyxCollection<BillingGraceEndPeriod>;
@@ -164,21 +84,6 @@ Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
     callback: (value) => (allPolicies = value),
     waitForCollectionCallback: true,
-});
-
-// Indicates if downgrading the current subscription plan is allowed for the user.
-let canDowngrade = false;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (val) => {
-        canDowngrade = val?.canDowngrade ?? false;
-    },
-});
-
-let introSelected: OnyxEntry<IntroSelected>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_INTRO_SELECTED,
-    callback: (value) => (introSelected = value),
 });
 
 /**
@@ -226,47 +131,47 @@ function hasCardAuthenticatedError(stripeCustomerId: OnyxEntry<StripeCustomerID>
 /**
  * @returns Whether there is a billing dispute pending.
  */
-function hasBillingDisputePending() {
+function hasBillingDisputePending(billingDisputePending: number | undefined) {
     return !!billingDisputePending;
 }
 
 /**
  * @returns Whether there is a card expired error.
  */
-function hasCardExpiredError() {
+function hasCardExpiredError(billingStatus: OnyxEntry<BillingStatus>) {
     return billingStatus?.declineReason === 'expired_card' && amountOwed !== 0;
 }
 
 /**
  * @returns Whether there is an insufficient funds error.
  */
-function hasInsufficientFundsError() {
+function hasInsufficientFundsError(billingStatus: OnyxEntry<BillingStatus>) {
     return billingStatus?.declineReason === 'insufficient_funds' && getAmountOwed() !== 0;
 }
 
-function shouldShowPreTrialBillingBanner(): boolean {
+function shouldShowPreTrialBillingBanner(introSelected: OnyxEntry<IntroSelected>, firstDayFreeTrial: string | undefined, lastDayFreeTrial: string | undefined): boolean {
     // We don't want to show the Pre Trial banner if the user was a Test Drive Receiver that created their workspace
     // with the promo code.
     const wasUserTestDriveReceiver = introSelected?.previousChoices?.some((choice) => choice === CONST.ONBOARDING_CHOICES.TEST_DRIVE_RECEIVER);
 
-    return !isUserOnFreeTrial() && !hasUserFreeTrialEnded() && !wasUserTestDriveReceiver;
+    return !isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial) && !hasUserFreeTrialEnded(lastDayFreeTrial) && !wasUserTestDriveReceiver;
 }
 /**
  * @returns The card to be used for subscription billing.
  */
-function getCardForSubscriptionBilling(): Fund | undefined {
+function getCardForSubscriptionBilling(fundList: OnyxEntry<FundList>): Fund | undefined {
     return Object.values(fundList ?? {}).find((card) => card?.accountData?.additionalData?.isBillingCard);
 }
 
 /**
  * @returns Whether the card is due to expire soon.
  */
-function hasCardExpiringSoon(): boolean {
+function hasCardExpiringSoon(fundList: OnyxEntry<FundList>, billingStatus: OnyxEntry<BillingStatus>): boolean {
     if (!isEmptyObject(billingStatus)) {
         return false;
     }
 
-    const card = getCardForSubscriptionBilling();
+    const card = getCardForSubscriptionBilling(fundList);
 
     if (!card) {
         return false;
@@ -283,16 +188,22 @@ function hasCardExpiringSoon(): boolean {
     return isExpiringThisMonth || isExpiringNextMonth;
 }
 
-function shouldShowDiscountBanner(hasTeam2025Pricing: boolean, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null): boolean {
+function shouldShowDiscountBanner(
+    hasTeam2025Pricing: boolean,
+    subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null,
+    firstDayFreeTrial: string | undefined,
+    lastDayFreeTrial: string | undefined,
+    userBillingFundID: number | undefined,
+): boolean {
     if (!getOwnedPaidPolicies(allPolicies, currentUserAccountID)?.length) {
         return false;
     }
 
-    if (!isUserOnFreeTrial()) {
+    if (!isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
         return false;
     }
 
-    if (doesUserHavePaymentCardAdded()) {
+    if (doesUserHavePaymentCardAdded(userBillingFundID)) {
         return false;
     }
 
@@ -310,7 +221,7 @@ function shouldShowDiscountBanner(hasTeam2025Pricing: boolean, subscriptionPlan:
     return dateNow <= firstDayTimestamp + CONST.TRIAL_DURATION_DAYS * CONST.DATE.SECONDS_PER_DAY;
 }
 
-function getEarlyDiscountInfo(): DiscountInfo | null {
+function getEarlyDiscountInfo(firstDayFreeTrial: string | undefined): DiscountInfo | null {
     if (!firstDayFreeTrial) {
         return null;
     }
@@ -341,14 +252,14 @@ function getEarlyDiscountInfo(): DiscountInfo | null {
 /**
  * @returns Whether there is a retry billing error.
  */
-function hasRetryBillingError(): boolean {
+function hasRetryBillingError(retryBillingFailed: boolean | undefined): boolean {
     return !!retryBillingFailed;
 }
 
 /**
  * @returns Whether the retry billing was successful.
  */
-function isRetryBillingSuccessful(): boolean {
+function isRetryBillingSuccessful(retryBillingSuccessful: boolean | undefined): boolean {
     return !!retryBillingSuccessful;
 }
 
@@ -360,7 +271,14 @@ type SubscriptionStatus = {
 /**
  * @returns The subscription status.
  */
-function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): SubscriptionStatus | undefined {
+function getSubscriptionStatus(
+    stripeCustomerId: OnyxEntry<StripeCustomerID>,
+    retryBillingSuccessful: boolean | undefined,
+    billingDisputePending: number | undefined,
+    retryBillingFailed: boolean | undefined,
+    fundList: OnyxEntry<FundList>,
+    billingStatus: OnyxEntry<BillingStatus>,
+): SubscriptionStatus | undefined {
     if (hasOverdueGracePeriod()) {
         if (hasAmountOwed()) {
             // 1. Policy owner with amount owed, within grace period
@@ -397,7 +315,7 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): S
         }
     }
     // 5. Billing disputed by cardholder
-    if (hasBillingDisputePending()) {
+    if (hasBillingDisputePending(billingDisputePending)) {
         return {
             status: PAYMENT_STATUS.BILLING_DISPUTE_PENDING,
             isError: true,
@@ -413,7 +331,7 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): S
     }
 
     // 7. Insufficient funds
-    if (hasInsufficientFundsError()) {
+    if (hasInsufficientFundsError(billingStatus)) {
         return {
             status: PAYMENT_STATUS.INSUFFICIENT_FUNDS,
             isError: true,
@@ -421,7 +339,7 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): S
     }
 
     // 8. Card expired
-    if (hasCardExpiredError()) {
+    if (hasCardExpiredError(billingStatus)) {
         return {
             status: PAYMENT_STATUS.CARD_EXPIRED,
             isError: true,
@@ -429,14 +347,14 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): S
     }
 
     // 9. Card due to expire soon
-    if (hasCardExpiringSoon()) {
+    if (hasCardExpiringSoon(fundList, billingStatus)) {
         return {
             status: PAYMENT_STATUS.CARD_EXPIRE_SOON,
         };
     }
 
     // 10. Retry billing success
-    if (isRetryBillingSuccessful()) {
+    if (isRetryBillingSuccessful(retryBillingSuccessful)) {
         return {
             status: PAYMENT_STATUS.RETRY_BILLING_SUCCESS,
             isError: false,
@@ -444,7 +362,7 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): S
     }
 
     // 11. Retry billing error
-    if (hasRetryBillingError()) {
+    if (hasRetryBillingError(retryBillingFailed)) {
         return {
             status: PAYMENT_STATUS.RETRY_BILLING_ERROR,
             isError: true,
@@ -457,21 +375,35 @@ function getSubscriptionStatus(stripeCustomerId: OnyxEntry<StripeCustomerID>): S
 /**
  * @returns Whether there is a subscription red dot error.
  */
-function hasSubscriptionRedDotError(stripeCustomerId: OnyxEntry<StripeCustomerID>): boolean {
-    return getSubscriptionStatus(stripeCustomerId)?.isError ?? false;
+function hasSubscriptionRedDotError(
+    stripeCustomerId: OnyxEntry<StripeCustomerID>,
+    retryBillingSuccessful: boolean | undefined,
+    billingDisputePending: number | undefined,
+    retryBillingFailed: boolean | undefined,
+    fundList: OnyxEntry<FundList>,
+    billingStatus: OnyxEntry<BillingStatus>,
+): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)?.isError ?? false;
 }
 
 /**
  * @returns Whether there is a subscription green dot info.
  */
-function hasSubscriptionGreenDotInfo(stripeCustomerId: OnyxEntry<StripeCustomerID>): boolean {
-    return getSubscriptionStatus(stripeCustomerId)?.isError === false;
+function hasSubscriptionGreenDotInfo(
+    stripeCustomerId: OnyxEntry<StripeCustomerID>,
+    retryBillingSuccessful: boolean | undefined,
+    billingDisputePending: number | undefined,
+    retryBillingFailed: boolean | undefined,
+    fundList: OnyxEntry<FundList>,
+    billingStatus: OnyxEntry<BillingStatus>,
+): boolean {
+    return getSubscriptionStatus(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)?.isError === false;
 }
 
 /**
  * Calculates the remaining number of days of the workspace owner's free trial before it ends.
  */
-function calculateRemainingFreeTrialDays(): number {
+function calculateRemainingFreeTrialDays(lastDayFreeTrial: string | undefined): number {
     if (!lastDayFreeTrial) {
         return 0;
     }
@@ -488,17 +420,23 @@ function calculateRemainingFreeTrialDays(): number {
  * @param policies - The policies collection.
  * @returns The free trial badge text .
  */
-function getFreeTrialText(policies: OnyxCollection<Policy> | null): string | undefined {
+function getFreeTrialText(
+    translate: LocalizedTranslate,
+    policies: OnyxCollection<Policy> | null,
+    introSelected: OnyxEntry<IntroSelected>,
+    firstDayFreeTrial: string | undefined,
+    lastDayFreeTrial: string | undefined,
+): string | undefined {
     const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
     if (isEmptyObject(ownedPaidPolicies)) {
         return undefined;
     }
 
-    if (shouldShowPreTrialBillingBanner()) {
-        return translateLocal('subscription.billingBanner.preTrial.title');
+    if (shouldShowPreTrialBillingBanner(introSelected, firstDayFreeTrial, lastDayFreeTrial)) {
+        return translate('subscription.billingBanner.preTrial.title');
     }
-    if (isUserOnFreeTrial()) {
-        return translateLocal('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays()});
+    if (isUserOnFreeTrial(firstDayFreeTrial, lastDayFreeTrial)) {
+        return translate('subscription.billingBanner.trialStarted.title', {numOfDays: calculateRemainingFreeTrialDays(lastDayFreeTrial)});
     }
 
     return undefined;
@@ -507,7 +445,7 @@ function getFreeTrialText(policies: OnyxCollection<Policy> | null): string | und
 /**
  * Whether the workspace's owner is on its free trial period.
  */
-function isUserOnFreeTrial(): boolean {
+function isUserOnFreeTrial(firstDayFreeTrial: string | undefined, lastDayFreeTrial: string | undefined): boolean {
     if (!firstDayFreeTrial || !lastDayFreeTrial) {
         return false;
     }
@@ -524,7 +462,7 @@ function isUserOnFreeTrial(): boolean {
 /**
  * Whether the workspace owner's free trial period has ended.
  */
-function hasUserFreeTrialEnded(): boolean {
+function hasUserFreeTrialEnded(lastDayFreeTrial: string | undefined): boolean {
     if (!lastDayFreeTrial) {
         return false;
     }
@@ -538,7 +476,7 @@ function hasUserFreeTrialEnded(): boolean {
 /**
  * Whether the user has a payment card added to its account.
  */
-function doesUserHavePaymentCardAdded(): boolean {
+function doesUserHavePaymentCardAdded(userBillingFundID: number | undefined): boolean {
     return userBillingFundID !== undefined;
 }
 
@@ -581,28 +519,19 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     return false;
 }
 
-function shouldCalculateBillNewDot(): boolean {
+function shouldCalculateBillNewDot(canDowngrade: boolean | undefined = false): boolean {
     return canDowngrade && getOwnedPaidPolicies(allPolicies, currentUserAccountID).length === 1;
 }
 
-function checkIfHasTeam2025Pricing() {
-    if (hasManualTeam2025Pricing) {
-        return true;
-    }
-
-    if (!firstPolicyDate) {
-        return true;
-    }
-
-    return differenceInDays(firstPolicyDate, CONST.SUBSCRIPTION.TEAM_2025_PRICING_START_DATE) >= 0;
-}
-
-function getSubscriptionPrice(plan: PersonalPolicyTypeExcludedProps | null, preferredCurrency: PreferredCurrency, privateSubscriptionType: SubscriptionType | undefined): number {
+function getSubscriptionPrice(
+    plan: PersonalPolicyTypeExcludedProps | null,
+    preferredCurrency: PreferredCurrency,
+    privateSubscriptionType: SubscriptionType | undefined,
+    hasTeam2025Pricing: boolean,
+): number {
     if (!privateSubscriptionType || !plan) {
         return 0;
     }
-
-    const hasTeam2025Pricing = checkIfHasTeam2025Pricing();
 
     if (hasTeam2025Pricing && plan === CONST.POLICY.TYPE.TEAM) {
         return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.PRICING_TYPE_2025];
@@ -612,65 +541,71 @@ function getSubscriptionPrice(plan: PersonalPolicyTypeExcludedProps | null, pref
 }
 
 function getSubscriptionPlanInfo(
+    translate: LocalizedTranslate,
     subscriptionPlan: PersonalPolicyTypeExcludedProps | null,
     privateSubscriptionType: SubscriptionType | undefined,
     preferredCurrency: PreferredCurrency,
     isFromComparisonModal: boolean,
+    hasTeam2025Pricing: boolean,
+    illustrations: Record<'Mailbox' | 'ShieldYellow', IconAsset>,
 ): SubscriptionPlanInfo {
-    const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType);
+    const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType, hasTeam2025Pricing);
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
-    const hasTeam2025Pricing = checkIfHasTeam2025Pricing();
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
-        let subtitle = translateLocal('subscription.yourPlan.customPricing');
-        let note: string | undefined = translateLocal('subscription.yourPlan.asLowAs', {price});
+        let subtitle = translate('subscription.yourPlan.customPricing');
+        let note: string | undefined = translate('subscription.yourPlan.asLowAs', {price});
 
         if (hasTeam2025Pricing) {
             if (isFromComparisonModal) {
                 subtitle = price;
-                note = translateLocal('subscription.yourPlan.perMemberMonth');
+                note = translate('subscription.yourPlan.perMemberMonth');
             } else {
-                subtitle = translateLocal('subscription.yourPlan.pricePerMemberMonth', {price});
+                subtitle = translate('subscription.yourPlan.pricePerMemberMonth', {price});
                 note = undefined;
             }
         }
 
         return {
-            title: translateLocal('subscription.yourPlan.collect.title'),
+            title: translate('subscription.yourPlan.collect.title'),
             subtitle,
             note,
             benefits: [
-                translateLocal('subscription.yourPlan.collect.benefit1'),
-                translateLocal('subscription.yourPlan.collect.benefit2'),
-                translateLocal('subscription.yourPlan.collect.benefit3'),
-                translateLocal('subscription.yourPlan.collect.benefit4'),
-                translateLocal('subscription.yourPlan.collect.benefit5'),
-                translateLocal('subscription.yourPlan.collect.benefit6'),
-                translateLocal('subscription.yourPlan.collect.benefit7'),
-                translateLocal('subscription.yourPlan.collect.benefit8'),
+                translate('subscription.yourPlan.collect.benefit1'),
+                translate('subscription.yourPlan.collect.benefit2'),
+                translate('subscription.yourPlan.collect.benefit3'),
+                translate('subscription.yourPlan.collect.benefit4'),
+                translate('subscription.yourPlan.collect.benefit5'),
+                translate('subscription.yourPlan.collect.benefit6'),
+                translate('subscription.yourPlan.collect.benefit7'),
+                translate('subscription.yourPlan.collect.benefit8'),
             ],
-            src: Illustrations.Mailbox,
-            description: translateLocal('subscription.yourPlan.collect.description'),
+            src: illustrations.Mailbox,
+            description: translate('subscription.yourPlan.collect.description'),
         };
     }
 
     return {
-        title: translateLocal('subscription.yourPlan.control.title'),
-        subtitle: translateLocal('subscription.yourPlan.customPricing'),
-        note: translateLocal('subscription.yourPlan.asLowAs', {price}),
+        title: translate('subscription.yourPlan.control.title'),
+        subtitle: translate('subscription.yourPlan.customPricing'),
+        note: translate('subscription.yourPlan.asLowAs', {price}),
         benefits: [
-            translateLocal('subscription.yourPlan.control.benefit1'),
-            translateLocal('subscription.yourPlan.control.benefit2'),
-            translateLocal('subscription.yourPlan.control.benefit3'),
-            translateLocal('subscription.yourPlan.control.benefit4'),
-            translateLocal('subscription.yourPlan.control.benefit5'),
-            translateLocal('subscription.yourPlan.control.benefit6'),
-            translateLocal('subscription.yourPlan.control.benefit7'),
-            translateLocal('subscription.yourPlan.control.benefit8'),
+            translate('subscription.yourPlan.control.benefit1'),
+            translate('subscription.yourPlan.control.benefit2'),
+            translate('subscription.yourPlan.control.benefit3'),
+            translate('subscription.yourPlan.control.benefit4'),
+            translate('subscription.yourPlan.control.benefit5'),
+            translate('subscription.yourPlan.control.benefit6'),
+            translate('subscription.yourPlan.control.benefit7'),
+            translate('subscription.yourPlan.control.benefit8'),
         ],
-        src: Illustrations.ShieldYellow,
-        description: translateLocal('subscription.yourPlan.control.description'),
+        src: illustrations.ShieldYellow,
+        description: translate('subscription.yourPlan.control.description'),
     };
+}
+
+function isSubscriptionTypeOfInvoicing(privateSubscriptionType: SubscriptionType | undefined) {
+    return privateSubscriptionType === CONST.SUBSCRIPTION.TYPE.INVOICING;
 }
 
 export {
@@ -695,4 +630,7 @@ export {
     shouldCalculateBillNewDot,
     getSubscriptionPlanInfo,
     getSubscriptionPrice,
+    isSubscriptionTypeOfInvoicing,
 };
+
+export type {SubscriptionPlanIllustrations};

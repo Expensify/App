@@ -11845,6 +11845,7 @@ const GIT_CONST = {
     GITHUB_OWNER: process.env.GITHUB_REPOSITORY_OWNER ?? 'Expensify',
     APP_REPO: (process.env.GITHUB_REPOSITORY ?? 'Expensify/App').split('/').at(1) ?? '',
     MOBILE_EXPENSIFY_REPO: 'Mobile-Expensify',
+    DEFAULT_BASE_REF: 'main',
 };
 const CONST = {
     ...GIT_CONST,
@@ -12066,7 +12067,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replaceAll('`', '');
             return {
                 title: issue.title,
                 url: issue.url,
@@ -12175,7 +12176,7 @@ class GithubUtils {
                 console.log('Found the following Internal QA PRs:', internalQAPRMap);
                 const noQAPRs = Array.isArray(data) ? data.filter((PR) => /\[No\s?QA]/i.test(PR.title)).map((item) => item.html_url) : [];
                 console.log('Found the following NO QA PRs:', noQAPRs);
-                const verifiedOrNoQAPRs = [...new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs])];
+                const verifiedOrNoQAPRs = new Set([...verifiedPRList, ...verifiedPRListMobileExpensify, ...noQAPRs]);
                 const sortedPRList = [...new Set((0, arrayDifference_1.default)(PRList, Object.keys(internalQAPRMap)))].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
                 const sortedPRListMobileExpensify = [...new Set(PRListMobileExpensify)].sort((a, b) => GithubUtils.getPullRequestNumberFromURL(a) - GithubUtils.getPullRequestNumberFromURL(b));
                 const sortedDeployBlockers = [...new Set(deployBlockers)].sort((a, b) => GithubUtils.getIssueOrPullRequestNumberFromURL(a) - GithubUtils.getIssueOrPullRequestNumberFromURL(b));
@@ -12190,43 +12191,43 @@ class GithubUtils {
                 // PR list
                 if (sortedPRList.length > 0) {
                     issueBody += '**This release contains changes from the following pull requests:**\r\n';
-                    sortedPRList.forEach((URL) => {
-                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                    for (const URL of sortedPRList) {
+                        issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Mobile-Expensify PR list
                 if (sortedPRListMobileExpensify.length > 0) {
                     issueBody += '**Mobile-Expensify PRs:**\r\n';
-                    sortedPRListMobileExpensify.forEach((URL) => {
-                        issueBody += verifiedOrNoQAPRs.includes(URL) ? '- [x]' : '- [ ]';
+                    for (const URL of sortedPRListMobileExpensify) {
+                        issueBody += verifiedOrNoQAPRs.has(URL) ? '- [x]' : '- [ ]';
                         issueBody += ` ${URL}\r\n`;
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Internal QA PR list
                 if (!(0, isEmptyObject_1.isEmptyObject)(internalQAPRMap)) {
                     console.log('Found the following verified Internal QA PRs:', resolvedInternalQAPRs);
                     issueBody += '**Internal QA:**\r\n';
-                    Object.keys(internalQAPRMap).forEach((URL) => {
+                    for (const URL of Object.keys(internalQAPRMap)) {
                         const merger = internalQAPRMap[URL];
                         const mergerMention = `@${merger}`;
                         issueBody += `${resolvedInternalQAPRs.includes(URL) ? '- [x]' : '- [ ]'} `;
                         issueBody += `${URL}`;
                         issueBody += ` - ${mergerMention}`;
                         issueBody += '\r\n';
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 // Deploy blockers
                 if (deployBlockers.length > 0) {
                     issueBody += '**Deploy Blockers:**\r\n';
-                    sortedDeployBlockers.forEach((URL) => {
+                    for (const URL of sortedDeployBlockers) {
                         issueBody += resolvedDeployBlockers.includes(URL) ? '- [x] ' : '- [ ] ';
                         issueBody += URL;
                         issueBody += '\r\n';
-                    });
+                    }
                     issueBody += '\r\n\r\n';
                 }
                 issueBody += '**Deployer verifications:**';
@@ -12428,7 +12429,7 @@ class GithubUtils {
     /**
      * Get the contents of a file from the API at a given ref as a string.
      */
-    static async getFileContents(path, ref = 'main') {
+    static async getFileContents(path, ref = CONST_1.default.DEFAULT_BASE_REF) {
         const { data } = await this.octokit.repos.getContent({
             owner: CONST_1.default.GITHUB_OWNER,
             repo: CONST_1.default.APP_REPO,
@@ -12442,6 +12443,15 @@ class GithubUtils {
             throw new Error(`Provided path ${path} is invalid`);
         }
         return Buffer.from(data.content, 'base64').toString('utf8');
+    }
+    static async getPullRequestChangedSVGFileNames(pullRequestNumber) {
+        const files = this.paginate(this.octokit.pulls.listFiles, {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+            per_page: 100,
+        }, (response) => response.data.filter((file) => file.filename.endsWith('.svg') && (file.status === 'added' || file.status === 'modified')).map((file) => file.filename));
+        return files;
     }
     /**
      * Get commits between two tags via the GitHub API
@@ -12502,6 +12512,21 @@ class GithubUtils {
             console.log('');
             throw error;
         }
+    }
+    static async getPullRequestDiff(pullRequestNumber) {
+        if (!this.internalOctokit) {
+            this.initOctokit();
+        }
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        const response = await this.internalOctokit.request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            pull_number: pullRequestNumber,
+            mediaType: {
+                format: 'diff',
+            },
+        });
+        return response.data;
     }
 }
 exports["default"] = GithubUtils;
@@ -12570,7 +12595,7 @@ function sanitizeJSONStringValues(inputString) {
         // Function to recursively sanitize string values in an object
         const sanitizeValues = (obj) => {
             if (typeof obj === 'string') {
-                return obj.replace(/\\|\t|\n|\r|\f|"/g, replacer);
+                return obj.replaceAll(/\\|\t|\n|\r|\f|"/g, replacer);
             }
             if (Array.isArray(obj)) {
                 return obj.map((item) => sanitizeValues(item));
@@ -12674,7 +12699,7 @@ class OpenAIUtils {
     /**
      * Prompt the Chat Completions API.
      */
-    async promptChatCompletions({ userPrompt, systemPrompt = '', model = 'gpt-4o' }) {
+    async promptChatCompletions({ userPrompt, systemPrompt = '', model = 'gpt-5.1' }) {
         const messages = [{ role: 'user', content: userPrompt }];
         if (systemPrompt) {
             messages.unshift({ role: 'system', content: systemPrompt });
@@ -12682,7 +12707,8 @@ class OpenAIUtils {
         const response = await (0, retryWithBackoff_1.default)(() => this.client.chat.completions.create({
             model,
             messages,
-            temperature: 0.3,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            reasoning_effort: 'low',
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
         const result = response.choices.at(0)?.message?.content?.trim();
         if (!result) {
@@ -12696,13 +12722,13 @@ class OpenAIUtils {
     async promptAssistant(assistantID, userMessage) {
         // 1. Create a thread
         const thread = await (0, retryWithBackoff_1.default)(() => 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         this.client.beta.threads.create({
             messages: [{ role: OpenAIUtils.USER, content: userMessage }],
         }), { isRetryable: (err) => OpenAIUtils.isRetryableError(err) });
         // 2. Create a run on the thread
         let run = await (0, retryWithBackoff_1.default)(() => 
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         this.client.beta.threads.runs.create(thread.id, {
             // eslint-disable-next-line @typescript-eslint/naming-convention
             assistant_id: assistantID,
@@ -12711,7 +12737,7 @@ class OpenAIUtils {
         let response = '';
         let count = 0;
         while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // eslint-disable-next-line @typescript-eslint/naming-convention, deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-deprecated
             run = await this.client.beta.threads.runs.retrieve(run.id, { thread_id: thread.id });
             if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
                 count++;
@@ -12720,7 +12746,7 @@ class OpenAIUtils {
                 });
                 continue;
             }
-            // eslint-disable-next-line deprecation/deprecation
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             for await (const message of this.client.beta.threads.messages.list(thread.id)) {
                 if (message.role !== OpenAIUtils.ASSISTANT) {
                     continue;
@@ -14609,10 +14635,10 @@ exports.partialParse = partialParse;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AzureOpenAI = void 0;
 const tslib_1 = __nccwpck_require__(19762);
+const headers_1 = __nccwpck_require__(63591);
 const Errors = tslib_1.__importStar(__nccwpck_require__(8905));
 const utils_1 = __nccwpck_require__(40126);
 const client_1 = __nccwpck_require__(65427);
-const headers_1 = __nccwpck_require__(63591);
 /** API Client for interfacing with the Azure OpenAI API. */
 class AzureOpenAI extends client_1.OpenAI {
     /**
@@ -14645,8 +14671,6 @@ class AzureOpenAI extends client_1.OpenAI {
         if (azureADTokenProvider && apiKey) {
             throw new Errors.OpenAIError('The `apiKey` and `azureADTokenProvider` arguments are mutually exclusive; only one can be passed at a time.');
         }
-        // define a sentinel value to avoid any typing issues
-        apiKey ?? (apiKey = API_KEY_SENTINEL);
         opts.defaultQuery = { ...opts.defaultQuery, 'api-version': apiVersion };
         if (!baseURL) {
             if (!endpoint) {
@@ -14663,17 +14687,16 @@ class AzureOpenAI extends client_1.OpenAI {
             }
         }
         super({
-            apiKey,
+            apiKey: azureADTokenProvider ?? apiKey,
             baseURL,
             ...opts,
             ...(dangerouslyAllowBrowser !== undefined ? { dangerouslyAllowBrowser } : {}),
         });
         this.apiVersion = '';
-        this._azureADTokenProvider = azureADTokenProvider;
         this.apiVersion = apiVersion;
         this.deploymentName = deployment;
     }
-    buildRequest(options, props = {}) {
+    async buildRequest(options, props = {}) {
         if (_deployments_endpoints.has(options.path) && options.method === 'post' && options.body !== undefined) {
             if (!(0, utils_1.isObj)(options.body)) {
                 throw new Error('Expected request body to be an object');
@@ -14685,41 +14708,11 @@ class AzureOpenAI extends client_1.OpenAI {
         }
         return super.buildRequest(options, props);
     }
-    async _getAzureADToken() {
-        if (typeof this._azureADTokenProvider === 'function') {
-            const token = await this._azureADTokenProvider();
-            if (!token || typeof token !== 'string') {
-                throw new Errors.OpenAIError(`Expected 'azureADTokenProvider' argument to return a string but it returned ${token}`);
-            }
-            return token;
+    async authHeaders(opts) {
+        if (typeof this._options.apiKey === 'string') {
+            return (0, headers_1.buildHeaders)([{ 'api-key': this.apiKey }]);
         }
-        return undefined;
-    }
-    authHeaders(opts) {
-        return;
-    }
-    async prepareOptions(opts) {
-        opts.headers = (0, headers_1.buildHeaders)([opts.headers]);
-        /**
-         * The user should provide a bearer token provider if they want
-         * to use Azure AD authentication. The user shouldn't set the
-         * Authorization header manually because the header is overwritten
-         * with the Azure AD token if a bearer token provider is provided.
-         */
-        if (opts.headers.values.get('Authorization') || opts.headers.values.get('api-key')) {
-            return super.prepareOptions(opts);
-        }
-        const token = await this._getAzureADToken();
-        if (token) {
-            opts.headers.values.set('Authorization', `Bearer ${token}`);
-        }
-        else if (this.apiKey !== API_KEY_SENTINEL) {
-            opts.headers.values.set('api-key', this.apiKey);
-        }
-        else {
-            throw new Errors.OpenAIError('Unable to handle auth');
-        }
-        return super.prepareOptions(opts);
+        return super.authHeaders(opts);
     }
 }
 exports.AzureOpenAI = AzureOpenAI;
@@ -14734,7 +14727,6 @@ const _deployments_endpoints = new Set([
     '/batches',
     '/images/edits',
 ]);
-const API_KEY_SENTINEL = '<Missing Key>';
 //# sourceMappingURL=azure.js.map
 
 /***/ }),
@@ -14770,13 +14762,17 @@ const files_1 = __nccwpck_require__(53873);
 const images_1 = __nccwpck_require__(32621);
 const models_1 = __nccwpck_require__(16467);
 const moderations_1 = __nccwpck_require__(2085);
+const videos_1 = __nccwpck_require__(76172);
+const webhooks_1 = __nccwpck_require__(67993);
 const audio_1 = __nccwpck_require__(86376);
 const beta_1 = __nccwpck_require__(40853);
 const chat_1 = __nccwpck_require__(7670);
 const containers_1 = __nccwpck_require__(48613);
+const conversations_1 = __nccwpck_require__(37303);
 const evals_1 = __nccwpck_require__(510);
 const fine_tuning_1 = __nccwpck_require__(21364);
 const graders_1 = __nccwpck_require__(89603);
+const realtime_1 = __nccwpck_require__(59676);
 const responses_1 = __nccwpck_require__(96214);
 const uploads_1 = __nccwpck_require__(37175);
 const vector_stores_1 = __nccwpck_require__(79162);
@@ -14795,6 +14791,7 @@ class OpenAI {
      * @param {string | undefined} [opts.apiKey=process.env['OPENAI_API_KEY'] ?? undefined]
      * @param {string | null | undefined} [opts.organization=process.env['OPENAI_ORG_ID'] ?? null]
      * @param {string | null | undefined} [opts.project=process.env['OPENAI_PROJECT_ID'] ?? null]
+     * @param {string | null | undefined} [opts.webhookSecret=process.env['OPENAI_WEBHOOK_SECRET'] ?? null]
      * @param {string} [opts.baseURL=process.env['OPENAI_BASE_URL'] ?? https://api.openai.com/v1] - Override the default base URL for the API.
      * @param {number} [opts.timeout=10 minutes] - The maximum amount of time (in milliseconds) the client will wait for a response before timing out.
      * @param {MergedRequestInit} [opts.fetchOptions] - Additional `RequestInit` options to be passed to `fetch` calls.
@@ -14804,7 +14801,7 @@ class OpenAI {
      * @param {Record<string, string | undefined>} opts.defaultQuery - Default query parameters to include with every request to the API.
      * @param {boolean} [opts.dangerouslyAllowBrowser=false] - By default, client-side use of this library is not allowed, as it risks exposing your secret API credentials to attackers.
      */
-    constructor({ baseURL = (0, env_1.readEnv)('OPENAI_BASE_URL'), apiKey = (0, env_1.readEnv)('OPENAI_API_KEY'), organization = (0, env_1.readEnv)('OPENAI_ORG_ID') ?? null, project = (0, env_1.readEnv)('OPENAI_PROJECT_ID') ?? null, ...opts } = {}) {
+    constructor({ baseURL = (0, env_1.readEnv)('OPENAI_BASE_URL'), apiKey = (0, env_1.readEnv)('OPENAI_API_KEY'), organization = (0, env_1.readEnv)('OPENAI_ORG_ID') ?? null, project = (0, env_1.readEnv)('OPENAI_PROJECT_ID') ?? null, webhookSecret = (0, env_1.readEnv)('OPENAI_WEBHOOK_SECRET') ?? null, ...opts } = {}) {
         _OpenAI_instances.add(this);
         _OpenAI_encoder.set(this, void 0);
         this.completions = new API.Completions(this);
@@ -14818,19 +14815,24 @@ class OpenAI {
         this.fineTuning = new API.FineTuning(this);
         this.graders = new API.Graders(this);
         this.vectorStores = new API.VectorStores(this);
+        this.webhooks = new API.Webhooks(this);
         this.beta = new API.Beta(this);
         this.batches = new API.Batches(this);
         this.uploads = new API.Uploads(this);
         this.responses = new API.Responses(this);
+        this.realtime = new API.Realtime(this);
+        this.conversations = new API.Conversations(this);
         this.evals = new API.Evals(this);
         this.containers = new API.Containers(this);
+        this.videos = new API.Videos(this);
         if (apiKey === undefined) {
-            throw new Errors.OpenAIError("The OPENAI_API_KEY environment variable is missing or empty; either provide it, or instantiate the OpenAI client with an apiKey option, like new OpenAI({ apiKey: 'My API Key' }).");
+            throw new Errors.OpenAIError('Missing credentials. Please pass an `apiKey`, or set the `OPENAI_API_KEY` environment variable.');
         }
         const options = {
             apiKey,
             organization,
             project,
+            webhookSecret,
             ...opts,
             baseURL: baseURL || `https://api.openai.com/v1`,
         };
@@ -14852,27 +14854,31 @@ class OpenAI {
         this.fetch = options.fetch ?? Shims.getDefaultFetch();
         tslib_1.__classPrivateFieldSet(this, _OpenAI_encoder, Opts.FallbackEncoder, "f");
         this._options = options;
-        this.apiKey = apiKey;
+        this.apiKey = typeof apiKey === 'string' ? apiKey : 'Missing Key';
         this.organization = organization;
         this.project = project;
+        this.webhookSecret = webhookSecret;
     }
     /**
      * Create a new client instance re-using the same options given to the current client with optional overriding.
      */
     withOptions(options) {
-        return new this.constructor({
+        const client = new this.constructor({
             ...this._options,
             baseURL: this.baseURL,
             maxRetries: this.maxRetries,
             timeout: this.timeout,
             logger: this.logger,
             logLevel: this.logLevel,
+            fetch: this.fetch,
             fetchOptions: this.fetchOptions,
             apiKey: this.apiKey,
             organization: this.organization,
             project: this.project,
+            webhookSecret: this.webhookSecret,
             ...options,
         });
+        return client;
     }
     defaultQuery() {
         return this._options.defaultQuery;
@@ -14880,7 +14886,7 @@ class OpenAI {
     validateHeaders({ values, nulls }) {
         return;
     }
-    authHeaders(opts) {
+    async authHeaders(opts) {
         return (0, headers_1.buildHeaders)([{ Authorization: `Bearer ${this.apiKey}` }]);
     }
     stringifyQuery(query) {
@@ -14894,6 +14900,27 @@ class OpenAI {
     }
     makeStatusError(status, error, message, headers) {
         return Errors.APIError.generate(status, error, message, headers);
+    }
+    async _callApiKey() {
+        const apiKey = this._options.apiKey;
+        if (typeof apiKey !== 'function')
+            return false;
+        let token;
+        try {
+            token = await apiKey();
+        }
+        catch (err) {
+            if (err instanceof Errors.OpenAIError)
+                throw err;
+            throw new Errors.OpenAIError(`Failed to get token from 'apiKey' function: ${err.message}`, 
+            // @ts-ignore
+            { cause: err });
+        }
+        if (typeof token !== 'string' || !token) {
+            throw new Errors.OpenAIError(`Expected 'apiKey' function argument to return a string but it returned ${token}`);
+        }
+        this.apiKey = token;
+        return true;
     }
     buildURL(path, query, defaultBaseURL) {
         const baseURL = (!tslib_1.__classPrivateFieldGet(this, _OpenAI_instances, "m", _OpenAI_baseURLOverridden).call(this) && defaultBaseURL) || this.baseURL;
@@ -14912,7 +14939,9 @@ class OpenAI {
     /**
      * Used as a callback for mutating the given `FinalRequestOptions` object.
      */
-    async prepareOptions(options) { }
+    async prepareOptions(options) {
+        await this._callApiKey();
+    }
     /**
      * Used as a callback for mutating the given `RequestInit` object.
      *
@@ -14950,7 +14979,9 @@ class OpenAI {
             retriesRemaining = maxRetries;
         }
         await this.prepareOptions(options);
-        const { req, url, timeout } = this.buildRequest(options, { retryCount: maxRetries - retriesRemaining });
+        const { req, url, timeout } = await this.buildRequest(options, {
+            retryCount: maxRetries - retriesRemaining,
+        });
         await this.prepareRequest(req, { url, options });
         /** Not an API request ID, just for correlating local log entries. */
         const requestLogID = 'log_' + ((Math.random() * (1 << 24)) | 0).toString(16).padStart(6, '0');
@@ -14969,7 +15000,7 @@ class OpenAI {
         const controller = new AbortController();
         const response = await this.fetchWithTimeout(url, req, timeout, controller).catch(errors_1.castToError);
         const headersTime = Date.now();
-        if (response instanceof Error) {
+        if (response instanceof globalThis.Error) {
             const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
             if (options.signal?.aborted) {
                 throw new Errors.APIUserAbortError();
@@ -15008,7 +15039,7 @@ class OpenAI {
             .join('');
         const responseInfo = `[${requestLogID}${retryLogStr}${specialHeaders}] ${req.method} ${url} ${response.ok ? 'succeeded' : 'failed'} with status ${response.status} in ${headersTime - startTime}ms`;
         if (!response.ok) {
-            const shouldRetry = this.shouldRetry(response);
+            const shouldRetry = await this.shouldRetry(response);
             if (retriesRemaining && shouldRetry) {
                 const retryMessage = `retrying, ${retriesRemaining} attempts remaining`;
                 // We don't need the body of this response.
@@ -15082,7 +15113,7 @@ class OpenAI {
             clearTimeout(timeout);
         }
     }
-    shouldRetry(response) {
+    async shouldRetry(response) {
         // Note this is not a standard header.
         const shouldRetryHeader = response.headers.get('x-should-retry');
         // If the server explicitly says whether or not to retry, obey.
@@ -15144,7 +15175,7 @@ class OpenAI {
         const jitter = 1 - Math.random() * 0.25;
         return sleepSeconds * jitter * 1000;
     }
-    buildRequest(inputOptions, { retryCount = 0 } = {}) {
+    async buildRequest(inputOptions, { retryCount = 0 } = {}) {
         const options = { ...inputOptions };
         const { method, path, query, defaultBaseURL } = options;
         const url = this.buildURL(path, query, defaultBaseURL);
@@ -15152,7 +15183,7 @@ class OpenAI {
             (0, values_1.validatePositiveInteger)('timeout', options.timeout);
         options.timeout = options.timeout ?? this.timeout;
         const { bodyHeaders, body } = this.buildBody({ options });
-        const reqHeaders = this.buildHeaders({ options: inputOptions, method, bodyHeaders, retryCount });
+        const reqHeaders = await this.buildHeaders({ options: inputOptions, method, bodyHeaders, retryCount });
         const req = {
             method,
             headers: reqHeaders,
@@ -15165,7 +15196,7 @@ class OpenAI {
         };
         return { req, url, timeout: options.timeout };
     }
-    buildHeaders({ options, method, bodyHeaders, retryCount, }) {
+    async buildHeaders({ options, method, bodyHeaders, retryCount, }) {
         let idempotencyHeaders = {};
         if (this.idempotencyHeader && method !== 'get') {
             if (!options.idempotencyKey)
@@ -15183,7 +15214,7 @@ class OpenAI {
                 'OpenAI-Organization': this.organization,
                 'OpenAI-Project': this.project,
             },
-            this.authHeaders(options),
+            await this.authHeaders(options),
             this._options.defaultHeaders,
             bodyHeaders,
             options.headers,
@@ -15205,7 +15236,7 @@ class OpenAI {
                 // Preserve legacy string encoding behavior for now
                 headers.values.has('content-type')) ||
             // `Blob` is superset of `File`
-            body instanceof Blob ||
+            (globalThis.Blob && body instanceof globalThis.Blob) ||
             // `FormData` -> `multipart/form-data`
             body instanceof FormData ||
             // `URLSearchParams` -> `application/x-www-form-urlencoded`
@@ -15243,6 +15274,7 @@ OpenAI.AuthenticationError = Errors.AuthenticationError;
 OpenAI.InternalServerError = Errors.InternalServerError;
 OpenAI.PermissionDeniedError = Errors.PermissionDeniedError;
 OpenAI.UnprocessableEntityError = Errors.UnprocessableEntityError;
+OpenAI.InvalidWebhookSignatureError = Errors.InvalidWebhookSignatureError;
 OpenAI.toFile = Uploads.toFile;
 OpenAI.Completions = completions_1.Completions;
 OpenAI.Chat = chat_1.Chat;
@@ -15255,12 +15287,16 @@ OpenAI.Models = models_1.Models;
 OpenAI.FineTuning = fine_tuning_1.FineTuning;
 OpenAI.Graders = graders_1.Graders;
 OpenAI.VectorStores = vector_stores_1.VectorStores;
+OpenAI.Webhooks = webhooks_1.Webhooks;
 OpenAI.Beta = beta_1.Beta;
 OpenAI.Batches = batches_1.Batches;
 OpenAI.Uploads = uploads_1.Uploads;
 OpenAI.Responses = responses_1.Responses;
+OpenAI.Realtime = realtime_1.Realtime;
+OpenAI.Conversations = conversations_1.Conversations;
 OpenAI.Evals = evals_1.Evals;
 OpenAI.Containers = containers_1.Containers;
+OpenAI.Videos = videos_1.Videos;
 //# sourceMappingURL=client.js.map
 
 /***/ }),
@@ -15355,7 +15391,7 @@ _APIPromise_client = new WeakMap();
 
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.ContentFilterFinishReasonError = exports.LengthFinishReasonError = exports.InternalServerError = exports.RateLimitError = exports.UnprocessableEntityError = exports.ConflictError = exports.NotFoundError = exports.PermissionDeniedError = exports.AuthenticationError = exports.BadRequestError = exports.APIConnectionTimeoutError = exports.APIConnectionError = exports.APIUserAbortError = exports.APIError = exports.OpenAIError = void 0;
+exports.InvalidWebhookSignatureError = exports.ContentFilterFinishReasonError = exports.LengthFinishReasonError = exports.InternalServerError = exports.RateLimitError = exports.UnprocessableEntityError = exports.ConflictError = exports.NotFoundError = exports.PermissionDeniedError = exports.AuthenticationError = exports.BadRequestError = exports.APIConnectionTimeoutError = exports.APIConnectionError = exports.APIUserAbortError = exports.APIError = exports.OpenAIError = void 0;
 const errors_1 = __nccwpck_require__(64601);
 class OpenAIError extends Error {
 }
@@ -15481,6 +15517,12 @@ class ContentFilterFinishReasonError extends OpenAIError {
     }
 }
 exports.ContentFilterFinishReasonError = ContentFilterFinishReasonError;
+class InvalidWebhookSignatureError extends Error {
+    constructor(message) {
+        super(message);
+    }
+}
+exports.InvalidWebhookSignatureError = InvalidWebhookSignatureError;
 //# sourceMappingURL=error.js.map
 
 /***/ }),
@@ -15493,7 +15535,7 @@ exports.ContentFilterFinishReasonError = ContentFilterFinishReasonError;
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 var _AbstractPage_client;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.CursorPage = exports.Page = exports.PagePromise = exports.AbstractPage = void 0;
+exports.ConversationCursorPage = exports.CursorPage = exports.Page = exports.PagePromise = exports.AbstractPage = void 0;
 const tslib_1 = __nccwpck_require__(19762);
 const error_1 = __nccwpck_require__(92643);
 const parse_1 = __nccwpck_require__(37176);
@@ -15613,6 +15655,37 @@ class CursorPage extends AbstractPage {
     }
 }
 exports.CursorPage = CursorPage;
+class ConversationCursorPage extends AbstractPage {
+    constructor(client, response, body, options) {
+        super(client, response, body, options);
+        this.data = body.data || [];
+        this.has_more = body.has_more || false;
+        this.last_id = body.last_id || '';
+    }
+    getPaginatedItems() {
+        return this.data ?? [];
+    }
+    hasNextPage() {
+        if (this.has_more === false) {
+            return false;
+        }
+        return super.hasNextPage();
+    }
+    nextPageRequestOptions() {
+        const cursor = this.last_id;
+        if (!cursor) {
+            return null;
+        }
+        return {
+            ...this.options,
+            query: {
+                ...(0, values_1.maybeObj)(this.options.query),
+                after: cursor,
+            },
+        };
+    }
+}
+exports.ConversationCursorPage = ConversationCursorPage;
 //# sourceMappingURL=pagination.js.map
 
 /***/ }),
@@ -15640,23 +15713,29 @@ exports.APIResource = APIResource;
 
 "use strict";
 
+var _Stream_client;
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.Stream = void 0;
 exports._iterSSEMessages = _iterSSEMessages;
+const tslib_1 = __nccwpck_require__(19762);
 const error_1 = __nccwpck_require__(92643);
 const shims_1 = __nccwpck_require__(75436);
 const line_1 = __nccwpck_require__(13837);
 const shims_2 = __nccwpck_require__(75436);
 const errors_1 = __nccwpck_require__(64601);
 const bytes_1 = __nccwpck_require__(45837);
+const log_1 = __nccwpck_require__(12276);
 const error_2 = __nccwpck_require__(92643);
 class Stream {
-    constructor(iterator, controller) {
+    constructor(iterator, controller, client) {
         this.iterator = iterator;
+        _Stream_client.set(this, void 0);
         this.controller = controller;
+        tslib_1.__classPrivateFieldSet(this, _Stream_client, client, "f");
     }
-    static fromSSEResponse(response, controller) {
+    static fromSSEResponse(response, controller, client) {
         let consumed = false;
+        const logger = client ? (0, log_1.loggerFor)(client) : console;
         async function* iterator() {
             if (consumed) {
                 throw new error_1.OpenAIError('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
@@ -15671,16 +15750,14 @@ class Stream {
                         done = true;
                         continue;
                     }
-                    if (sse.event === null ||
-                        sse.event.startsWith('response.') ||
-                        sse.event.startsWith('transcript.')) {
+                    if (sse.event === null || !sse.event.startsWith('thread.')) {
                         let data;
                         try {
                             data = JSON.parse(sse.data);
                         }
                         catch (e) {
-                            console.error(`Could not parse message into JSON:`, sse.data);
-                            console.error(`From chunk:`, sse.raw);
+                            logger.error(`Could not parse message into JSON:`, sse.data);
+                            logger.error(`From chunk:`, sse.raw);
                             throw e;
                         }
                         if (data && data.error) {
@@ -15719,13 +15796,13 @@ class Stream {
                     controller.abort();
             }
         }
-        return new Stream(iterator, controller);
+        return new Stream(iterator, controller, client);
     }
     /**
      * Generates a Stream from a newline-separated ReadableStream
      * where each item is a JSON value.
      */
-    static fromReadableStream(readableStream, controller) {
+    static fromReadableStream(readableStream, controller, client) {
         let consumed = false;
         async function* iterLines() {
             const lineDecoder = new line_1.LineDecoder();
@@ -15766,9 +15843,9 @@ class Stream {
                     controller.abort();
             }
         }
-        return new Stream(iterator, controller);
+        return new Stream(iterator, controller, client);
     }
-    [Symbol.asyncIterator]() {
+    [(_Stream_client = new WeakMap(), Symbol.asyncIterator)]() {
         return this.iterator();
     }
     /**
@@ -15792,8 +15869,8 @@ class Stream {
             };
         };
         return [
-            new Stream(() => teeIterator(left), this.controller),
-            new Stream(() => teeIterator(right), this.controller),
+            new Stream(() => teeIterator(left), this.controller, tslib_1.__classPrivateFieldGet(this, _Stream_client, "f")),
+            new Stream(() => teeIterator(right), this.controller, tslib_1.__classPrivateFieldGet(this, _Stream_client, "f")),
         ];
     }
     /**
@@ -15967,7 +16044,7 @@ exports = module.exports = function (...args) {
   return new exports.default(...args)
 }
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.AzureOpenAI = exports.UnprocessableEntityError = exports.PermissionDeniedError = exports.InternalServerError = exports.AuthenticationError = exports.BadRequestError = exports.RateLimitError = exports.ConflictError = exports.NotFoundError = exports.APIUserAbortError = exports.APIConnectionTimeoutError = exports.APIConnectionError = exports.APIError = exports.OpenAIError = exports.PagePromise = exports.OpenAI = exports.APIPromise = exports.toFile = exports["default"] = void 0;
+exports.AzureOpenAI = exports.InvalidWebhookSignatureError = exports.UnprocessableEntityError = exports.PermissionDeniedError = exports.InternalServerError = exports.AuthenticationError = exports.BadRequestError = exports.RateLimitError = exports.ConflictError = exports.NotFoundError = exports.APIUserAbortError = exports.APIConnectionTimeoutError = exports.APIConnectionError = exports.APIError = exports.OpenAIError = exports.PagePromise = exports.OpenAI = exports.APIPromise = exports.toFile = exports["default"] = void 0;
 var client_1 = __nccwpck_require__(65427);
 Object.defineProperty(exports, "default", ({ enumerable: true, get: function () { return client_1.OpenAI; } }));
 var uploads_1 = __nccwpck_require__(42821);
@@ -15992,6 +16069,7 @@ Object.defineProperty(exports, "AuthenticationError", ({ enumerable: true, get: 
 Object.defineProperty(exports, "InternalServerError", ({ enumerable: true, get: function () { return error_1.InternalServerError; } }));
 Object.defineProperty(exports, "PermissionDeniedError", ({ enumerable: true, get: function () { return error_1.PermissionDeniedError; } }));
 Object.defineProperty(exports, "UnprocessableEntityError", ({ enumerable: true, get: function () { return error_1.UnprocessableEntityError; } }));
+Object.defineProperty(exports, "InvalidWebhookSignatureError", ({ enumerable: true, get: function () { return error_1.InvalidWebhookSignatureError; } }));
 var azure_1 = __nccwpck_require__(2816);
 Object.defineProperty(exports, "AzureOpenAI", ({ enumerable: true, get: function () { return azure_1.AzureOpenAI; } }));
 //# sourceMappingURL=index.js.map
@@ -16440,9 +16518,9 @@ async function defaultParseResponse(client, props) {
             // Note: there is an invariant here that isn't represented in the type system
             // that if you set `stream: true` the response type must also be `Stream<T>`
             if (props.options.__streamClass) {
-                return props.options.__streamClass.fromSSEResponse(response, props.controller);
+                return props.options.__streamClass.fromSSEResponse(response, props.controller, client);
             }
-            return streaming_1.Stream.fromSSEResponse(response, props.controller);
+            return streaming_1.Stream.fromSSEResponse(response, props.controller, client);
         }
         // fetch refuses to read the body when the status code is 204.
         if (response.status === 204) {
@@ -17198,7 +17276,7 @@ const isResponseLike = (value) => value != null &&
     typeof value.blob === 'function';
 /**
  * Helper for creating a {@link File} to pass to an SDK upload method from a variety of different data formats
- * @param value the raw content of the file.  Can be an {@link Uploadable}, {@link BlobLikePart}, or {@link AsyncIterable} of {@link BlobLikePart}s
+ * @param value the raw content of the file. Can be an {@link Uploadable}, BlobLikePart, or AsyncIterable of BlobLikeParts
  * @param {string=} name the name of the file. If omitted, toFile will try to determine a file name from bits if possible
  * @param {Object=} options additional properties
  * @param {string=} options.type the MIME type of the content
@@ -17408,7 +17486,7 @@ const multipartFormRequestOptions = async (opts, fetch) => {
     return { ...opts, body: await (0, exports.createForm)(opts.body, fetch) };
 };
 exports.multipartFormRequestOptions = multipartFormRequestOptions;
-const supportsFormDataMap = /** @__PURE__ */ new WeakMap();
+const supportsFormDataMap = /* @__PURE__ */ new WeakMap();
 /**
  * node-fetch doesn't support the global FormData object in recent node versions. Instead of sending
  * properly-encoded form data, it just stringifies the object, resulting in a request body of "[object FormData]".
@@ -17697,7 +17775,7 @@ const noopLogger = {
     info: noop,
     debug: noop,
 };
-let cachedLoggers = /** @__PURE__ */ new WeakMap();
+let cachedLoggers = /* @__PURE__ */ new WeakMap();
 function loggerFor(client) {
     const logger = client.logger;
     const logLevel = client.logLevel ?? 'off';
@@ -17765,21 +17843,38 @@ const error_1 = __nccwpck_require__(92643);
 function encodeURIPath(str) {
     return str.replace(/[^A-Za-z0-9\-._~!$&'()*+,;=:@]+/g, encodeURIComponent);
 }
+const EMPTY = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.create(null));
 const createPathTagFunction = (pathEncoder = encodeURIPath) => function path(statics, ...params) {
     // If there are no params, no processing is needed.
     if (statics.length === 1)
         return statics[0];
     let postPath = false;
+    const invalidSegments = [];
     const path = statics.reduce((previousValue, currentValue, index) => {
         if (/[?#]/.test(currentValue)) {
             postPath = true;
         }
-        return (previousValue +
-            currentValue +
-            (index === params.length ? '' : (postPath ? encodeURIComponent : pathEncoder)(String(params[index]))));
+        const value = params[index];
+        let encoded = (postPath ? encodeURIComponent : pathEncoder)('' + value);
+        if (index !== params.length &&
+            (value == null ||
+                (typeof value === 'object' &&
+                    // handle values from other realms
+                    value.toString ===
+                        Object.getPrototypeOf(Object.getPrototypeOf(value.hasOwnProperty ?? EMPTY) ?? EMPTY)
+                            ?.toString))) {
+            encoded = value + '';
+            invalidSegments.push({
+                start: previousValue.length + currentValue.length,
+                length: encoded.length,
+                error: `Value of type ${Object.prototype.toString
+                    .call(value)
+                    .slice(8, -1)} is not a valid path parameter`,
+            });
+        }
+        return previousValue + currentValue + (index === params.length ? '' : encoded);
     }, '');
     const pathOnly = path.split(/[?#]/, 1)[0];
-    const invalidSegments = [];
     const invalidSegmentPattern = /(?<=^|\/)(?:\.|%2e){1,2}(?=\/|$)/gi;
     let match;
     // Find all invalid segments
@@ -17787,8 +17882,10 @@ const createPathTagFunction = (pathEncoder = encodeURIPath) => function path(sta
         invalidSegments.push({
             start: match.index,
             length: match[0].length,
+            error: `Value "${match[0]}" can\'t be safely passed as a path parameter`,
         });
     }
+    invalidSegments.sort((a, b) => a.start - b.start);
     if (invalidSegments.length > 0) {
         let lastEnd = 0;
         const underline = invalidSegments.reduce((acc, segment) => {
@@ -17797,7 +17894,9 @@ const createPathTagFunction = (pathEncoder = encodeURIPath) => function path(sta
             lastEnd = segment.start + segment.length;
             return acc + spaces + arrows;
         }, '');
-        throw new error_1.OpenAIError(`Path parameters result in path with invalid segments:\n${path}\n${underline}`);
+        throw new error_1.OpenAIError(`Path parameters result in path with invalid segments:\n${invalidSegments
+            .map((e) => e.error)
+            .join('\n')}\n${path}\n${underline}`);
     }
     return path;
 };
@@ -17936,21 +18035,21 @@ const coerceBoolean = (value) => {
 };
 exports.coerceBoolean = coerceBoolean;
 const maybeCoerceInteger = (value) => {
-    if (value === undefined) {
+    if (value == null) {
         return undefined;
     }
     return (0, exports.coerceInteger)(value);
 };
 exports.maybeCoerceInteger = maybeCoerceInteger;
 const maybeCoerceFloat = (value) => {
-    if (value === undefined) {
+    if (value == null) {
         return undefined;
     }
     return (0, exports.coerceFloat)(value);
 };
 exports.maybeCoerceFloat = maybeCoerceFloat;
 const maybeCoerceBoolean = (value) => {
-    if (value === undefined) {
+    if (value == null) {
         return undefined;
     }
     return (0, exports.coerceBoolean)(value);
@@ -17979,10 +18078,10 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.AbstractChatCompletionRunner = void 0;
 const tslib_1 = __nccwpck_require__(19762);
 const error_1 = __nccwpck_require__(8905);
-const RunnableFunction_1 = __nccwpck_require__(75464);
+const parser_1 = __nccwpck_require__(81543);
 const chatCompletionUtils_1 = __nccwpck_require__(87858);
 const EventStream_1 = __nccwpck_require__(80132);
-const parser_1 = __nccwpck_require__(81543);
+const RunnableFunction_1 = __nccwpck_require__(75464);
 const DEFAULT_MAX_CHAT_COMPLETIONS = 10;
 class AbstractChatCompletionRunner extends EventStream_1.EventStream {
     constructor() {
@@ -18105,7 +18204,7 @@ class AbstractChatCompletionRunner extends EventStream_1.EventStream {
     async _runTools(client, params, options) {
         const role = 'tool';
         const { tool_choice = 'auto', stream, ...restParams } = params;
-        const singleFunctionToCall = typeof tool_choice !== 'string' && tool_choice?.function?.name;
+        const singleFunctionToCall = typeof tool_choice !== 'string' && tool_choice.type === 'function' && tool_choice?.function?.name;
         const { maxChatCompletions = DEFAULT_MAX_CHAT_COMPLETIONS } = options || {};
         // TODO(someday): clean this logic up
         const inputTools = params.tools.map((tool) => {
@@ -18224,7 +18323,7 @@ _AbstractChatCompletionRunner_instances = new WeakSet(), _AbstractChatCompletion
     for (let i = this.messages.length - 1; i >= 0; i--) {
         const message = this.messages[i];
         if ((0, chatCompletionUtils_1.isAssistantMessage)(message) && message?.tool_calls?.length) {
-            return message.tool_calls.at(-1)?.function;
+            return message.tool_calls.filter((x) => x.type === 'function').at(-1)?.function;
         }
     }
     return;
@@ -18867,11 +18966,11 @@ var _ChatCompletionStream_instances, _ChatCompletionStream_params, _ChatCompleti
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ChatCompletionStream = void 0;
 const tslib_1 = __nccwpck_require__(19762);
+const parser_1 = __nccwpck_require__(59304);
 const error_1 = __nccwpck_require__(8905);
-const AbstractChatCompletionRunner_1 = __nccwpck_require__(98398);
+const parser_2 = __nccwpck_require__(81543);
 const streaming_1 = __nccwpck_require__(20884);
-const parser_1 = __nccwpck_require__(81543);
-const parser_2 = __nccwpck_require__(59304);
+const AbstractChatCompletionRunner_1 = __nccwpck_require__(98398);
 class ChatCompletionStream extends AbstractChatCompletionRunner_1.AbstractChatCompletionRunner {
     constructor(params) {
         super();
@@ -19051,12 +19150,12 @@ class ChatCompletionStream extends AbstractChatCompletionRunner_1.AbstractChatCo
             throw new Error('tool call snapshot missing `type`');
         }
         if (toolCallSnapshot.type === 'function') {
-            const inputTool = tslib_1.__classPrivateFieldGet(this, _ChatCompletionStream_params, "f")?.tools?.find((tool) => tool.type === 'function' && tool.function.name === toolCallSnapshot.function.name);
+            const inputTool = tslib_1.__classPrivateFieldGet(this, _ChatCompletionStream_params, "f")?.tools?.find((tool) => (0, parser_2.isChatCompletionFunctionTool)(tool) && tool.function.name === toolCallSnapshot.function.name); // TS doesn't narrow based on isChatCompletionTool
             this._emit('tool_calls.function.arguments.done', {
                 name: toolCallSnapshot.function.name,
                 index: toolCallIndex,
                 arguments: toolCallSnapshot.function.arguments,
-                parsed_arguments: (0, parser_1.isAutoParsableTool)(inputTool) ? inputTool.$parseRaw(toolCallSnapshot.function.arguments)
+                parsed_arguments: (0, parser_2.isAutoParsableTool)(inputTool) ? inputTool.$parseRaw(toolCallSnapshot.function.arguments)
                     : inputTool?.function.strict ? JSON.parse(toolCallSnapshot.function.arguments)
                         : null,
             });
@@ -19099,7 +19198,7 @@ class ChatCompletionStream extends AbstractChatCompletionRunner_1.AbstractChatCo
         return finalizeChatCompletion(snapshot, tslib_1.__classPrivateFieldGet(this, _ChatCompletionStream_params, "f"));
     }, _ChatCompletionStream_getAutoParseableResponseFormat = function _ChatCompletionStream_getAutoParseableResponseFormat() {
         const responseFormat = tslib_1.__classPrivateFieldGet(this, _ChatCompletionStream_params, "f")?.response_format;
-        if ((0, parser_1.isAutoParsableResponseFormat)(responseFormat)) {
+        if ((0, parser_2.isAutoParsableResponseFormat)(responseFormat)) {
             return responseFormat;
         }
         return null;
@@ -19141,7 +19240,7 @@ class ChatCompletionStream extends AbstractChatCompletionRunner_1.AbstractChatCo
             }
             if (finish_reason) {
                 choice.finish_reason = finish_reason;
-                if (tslib_1.__classPrivateFieldGet(this, _ChatCompletionStream_params, "f") && (0, parser_1.hasAutoParseableInput)(tslib_1.__classPrivateFieldGet(this, _ChatCompletionStream_params, "f"))) {
+                if (tslib_1.__classPrivateFieldGet(this, _ChatCompletionStream_params, "f") && (0, parser_2.hasAutoParseableInput)(tslib_1.__classPrivateFieldGet(this, _ChatCompletionStream_params, "f"))) {
                     if (finish_reason === 'length') {
                         throw new error_1.LengthFinishReasonError();
                     }
@@ -19177,7 +19276,7 @@ class ChatCompletionStream extends AbstractChatCompletionRunner_1.AbstractChatCo
             if (content) {
                 choice.message.content = (choice.message.content || '') + content;
                 if (!choice.message.refusal && tslib_1.__classPrivateFieldGet(this, _ChatCompletionStream_instances, "m", _ChatCompletionStream_getAutoParseableResponseFormat).call(this)) {
-                    choice.message.parsed = (0, parser_2.partialParse)(choice.message.content);
+                    choice.message.parsed = (0, parser_1.partialParse)(choice.message.content);
                 }
             }
             if (tool_calls) {
@@ -19196,8 +19295,8 @@ class ChatCompletionStream extends AbstractChatCompletionRunner_1.AbstractChatCo
                         tool_call.function.name = fn.name;
                     if (fn?.arguments) {
                         tool_call.function.arguments += fn.arguments;
-                        if ((0, parser_1.shouldParseToolCall)(tslib_1.__classPrivateFieldGet(this, _ChatCompletionStream_params, "f"), tool_call)) {
-                            tool_call.function.parsed_arguments = (0, parser_2.partialParse)(tool_call.function.arguments);
+                        if ((0, parser_2.shouldParseToolCall)(tslib_1.__classPrivateFieldGet(this, _ChatCompletionStream_params, "f"), tool_call)) {
+                            tool_call.function.parsed_arguments = (0, parser_1.partialParse)(tool_call.function.arguments);
                         }
                     }
                 }
@@ -19340,7 +19439,7 @@ function finalizeChatCompletion(snapshot, params) {
         object: 'chat.completion',
         ...(system_fingerprint ? { system_fingerprint } : {}),
     };
-    return (0, parser_1.maybeParseChatCompletion)(completion, params);
+    return (0, parser_2.maybeParseChatCompletion)(completion, params);
 }
 function str(x) {
     return JSON.stringify(x);
@@ -19851,6 +19950,7 @@ function isPresent(obj) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.isChatCompletionFunctionTool = isChatCompletionFunctionTool;
 exports.makeParseableResponseFormat = makeParseableResponseFormat;
 exports.makeParseableTextFormat = makeParseableTextFormat;
 exports.isAutoParsableResponseFormat = isAutoParsableResponseFormat;
@@ -19860,8 +19960,12 @@ exports.maybeParseChatCompletion = maybeParseChatCompletion;
 exports.parseChatCompletion = parseChatCompletion;
 exports.shouldParseToolCall = shouldParseToolCall;
 exports.hasAutoParseableInput = hasAutoParseableInput;
+exports.assertToolCallsAreChatCompletionFunctionToolCalls = assertToolCallsAreChatCompletionFunctionToolCalls;
 exports.validateInputTools = validateInputTools;
 const error_1 = __nccwpck_require__(8905);
+function isChatCompletionFunctionTool(tool) {
+    return tool !== undefined && 'function' in tool && tool.function !== undefined;
+}
 function makeParseableResponseFormat(response_format, parser) {
     const obj = { ...response_format };
     Object.defineProperties(obj, {
@@ -19918,18 +20022,21 @@ function maybeParseChatCompletion(completion, params) {
     if (!params || !hasAutoParseableInput(params)) {
         return {
             ...completion,
-            choices: completion.choices.map((choice) => ({
-                ...choice,
-                message: {
-                    ...choice.message,
-                    parsed: null,
-                    ...(choice.message.tool_calls ?
-                        {
-                            tool_calls: choice.message.tool_calls,
-                        }
-                        : undefined),
-                },
-            })),
+            choices: completion.choices.map((choice) => {
+                assertToolCallsAreChatCompletionFunctionToolCalls(choice.message.tool_calls);
+                return {
+                    ...choice,
+                    message: {
+                        ...choice.message,
+                        parsed: null,
+                        ...(choice.message.tool_calls ?
+                            {
+                                tool_calls: choice.message.tool_calls,
+                            }
+                            : undefined),
+                    },
+                };
+            }),
         };
     }
     return parseChatCompletion(completion, params);
@@ -19942,6 +20049,7 @@ function parseChatCompletion(completion, params) {
         if (choice.finish_reason === 'content_filter') {
             throw new error_1.ContentFilterFinishReasonError();
         }
+        assertToolCallsAreChatCompletionFunctionToolCalls(choice.message.tool_calls);
         return {
             ...choice,
             message: {
@@ -19973,7 +20081,7 @@ function parseResponseFormat(params, content) {
     return null;
 }
 function parseToolCall(params, toolCall) {
-    const inputTool = params.tools?.find((inputTool) => inputTool.function?.name === toolCall.function.name);
+    const inputTool = params.tools?.find((inputTool) => isChatCompletionFunctionTool(inputTool) && inputTool.function?.name === toolCall.function.name); // TS doesn't narrow based on isChatCompletionTool
     return {
         ...toolCall,
         function: {
@@ -19985,17 +20093,25 @@ function parseToolCall(params, toolCall) {
     };
 }
 function shouldParseToolCall(params, toolCall) {
-    if (!params) {
+    if (!params || !('tools' in params) || !params.tools) {
         return false;
     }
-    const inputTool = params.tools?.find((inputTool) => inputTool.function?.name === toolCall.function.name);
-    return isAutoParsableTool(inputTool) || inputTool?.function.strict || false;
+    const inputTool = params.tools?.find((inputTool) => isChatCompletionFunctionTool(inputTool) && inputTool.function?.name === toolCall.function.name);
+    return (isChatCompletionFunctionTool(inputTool) &&
+        (isAutoParsableTool(inputTool) || inputTool?.function.strict || false));
 }
 function hasAutoParseableInput(params) {
     if (isAutoParsableResponseFormat(params.response_format)) {
         return true;
     }
     return (params.tools?.some((t) => isAutoParsableTool(t) || (t.type === 'function' && t.function.strict === true)) ?? false);
+}
+function assertToolCallsAreChatCompletionFunctionToolCalls(toolCalls) {
+    for (const toolCall of toolCalls || []) {
+        if (toolCall.type !== 'function') {
+            throw new error_1.OpenAIError(`Currently only \`function\` tool calls are supported; Received \`${toolCall.type}\``);
+        }
+    }
 }
 function validateInputTools(tools) {
     for (const tool of tools ?? []) {
@@ -20149,8 +20265,16 @@ class ResponseStream extends EventStream_1.EventStream {
                 if (!output) {
                     throw new error_1.OpenAIError(`missing output at index ${event.output_index}`);
                 }
-                if (output.type === 'message') {
-                    output.content.push(event.part);
+                const type = output.type;
+                const part = event.part;
+                if (type === 'message' && part.type !== 'reasoning_text') {
+                    output.content.push(part);
+                }
+                else if (type === 'reasoning' && part.type === 'reasoning_text') {
+                    if (!output.content) {
+                        output.content = [];
+                    }
+                    output.content.push(part);
                 }
                 break;
             }
@@ -20178,6 +20302,23 @@ class ResponseStream extends EventStream_1.EventStream {
                 }
                 if (output.type === 'function_call') {
                     output.arguments += event.delta;
+                }
+                break;
+            }
+            case 'response.reasoning_text.delta': {
+                const output = snapshot.output[event.output_index];
+                if (!output) {
+                    throw new error_1.OpenAIError(`missing output at index ${event.output_index}`);
+                }
+                if (output.type === 'reasoning') {
+                    const content = output.content?.[event.content_index];
+                    if (!content) {
+                        throw new error_1.OpenAIError(`missing content at index ${event.content_index}`);
+                    }
+                    if (content.type !== 'reasoning_text') {
+                        throw new error_1.OpenAIError(`expected content to be 'reasoning_text', got ${content.type}`);
+                    }
+                    content.text += event.delta;
                 }
                 break;
             }
@@ -20535,21 +20676,189 @@ const AssistantsAPI = tslib_1.__importStar(__nccwpck_require__(70616));
 const assistants_1 = __nccwpck_require__(70616);
 const RealtimeAPI = tslib_1.__importStar(__nccwpck_require__(87884));
 const realtime_1 = __nccwpck_require__(87884);
+const ChatKitAPI = tslib_1.__importStar(__nccwpck_require__(76577));
+const chatkit_1 = __nccwpck_require__(76577);
 const ThreadsAPI = tslib_1.__importStar(__nccwpck_require__(21931));
 const threads_1 = __nccwpck_require__(21931);
 class Beta extends resource_1.APIResource {
     constructor() {
         super(...arguments);
         this.realtime = new RealtimeAPI.Realtime(this._client);
+        this.chatkit = new ChatKitAPI.ChatKit(this._client);
         this.assistants = new AssistantsAPI.Assistants(this._client);
         this.threads = new ThreadsAPI.Threads(this._client);
     }
 }
 exports.Beta = Beta;
 Beta.Realtime = realtime_1.Realtime;
+Beta.ChatKit = chatkit_1.ChatKit;
 Beta.Assistants = assistants_1.Assistants;
 Beta.Threads = threads_1.Threads;
 //# sourceMappingURL=beta.js.map
+
+/***/ }),
+
+/***/ 76577:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ChatKit = void 0;
+const tslib_1 = __nccwpck_require__(19762);
+const resource_1 = __nccwpck_require__(19318);
+const SessionsAPI = tslib_1.__importStar(__nccwpck_require__(13223));
+const sessions_1 = __nccwpck_require__(13223);
+const ThreadsAPI = tslib_1.__importStar(__nccwpck_require__(40997));
+const threads_1 = __nccwpck_require__(40997);
+class ChatKit extends resource_1.APIResource {
+    constructor() {
+        super(...arguments);
+        this.sessions = new SessionsAPI.Sessions(this._client);
+        this.threads = new ThreadsAPI.Threads(this._client);
+    }
+}
+exports.ChatKit = ChatKit;
+ChatKit.Sessions = sessions_1.Sessions;
+ChatKit.Threads = threads_1.Threads;
+//# sourceMappingURL=chatkit.js.map
+
+/***/ }),
+
+/***/ 13223:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Sessions = void 0;
+const resource_1 = __nccwpck_require__(19318);
+const headers_1 = __nccwpck_require__(63591);
+const path_1 = __nccwpck_require__(10706);
+class Sessions extends resource_1.APIResource {
+    /**
+     * Create a ChatKit session
+     *
+     * @example
+     * ```ts
+     * const chatSession =
+     *   await client.beta.chatkit.sessions.create({
+     *     user: 'x',
+     *     workflow: { id: 'id' },
+     *   });
+     * ```
+     */
+    create(body, options) {
+        return this._client.post('/chatkit/sessions', {
+            body,
+            ...options,
+            headers: (0, headers_1.buildHeaders)([{ 'OpenAI-Beta': 'chatkit_beta=v1' }, options?.headers]),
+        });
+    }
+    /**
+     * Cancel a ChatKit session
+     *
+     * @example
+     * ```ts
+     * const chatSession =
+     *   await client.beta.chatkit.sessions.cancel('cksess_123');
+     * ```
+     */
+    cancel(sessionID, options) {
+        return this._client.post((0, path_1.path) `/chatkit/sessions/${sessionID}/cancel`, {
+            ...options,
+            headers: (0, headers_1.buildHeaders)([{ 'OpenAI-Beta': 'chatkit_beta=v1' }, options?.headers]),
+        });
+    }
+}
+exports.Sessions = Sessions;
+//# sourceMappingURL=sessions.js.map
+
+/***/ }),
+
+/***/ 40997:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Threads = void 0;
+const resource_1 = __nccwpck_require__(19318);
+const pagination_1 = __nccwpck_require__(81815);
+const headers_1 = __nccwpck_require__(63591);
+const path_1 = __nccwpck_require__(10706);
+class Threads extends resource_1.APIResource {
+    /**
+     * Retrieve a ChatKit thread
+     *
+     * @example
+     * ```ts
+     * const chatkitThread =
+     *   await client.beta.chatkit.threads.retrieve('cthr_123');
+     * ```
+     */
+    retrieve(threadID, options) {
+        return this._client.get((0, path_1.path) `/chatkit/threads/${threadID}`, {
+            ...options,
+            headers: (0, headers_1.buildHeaders)([{ 'OpenAI-Beta': 'chatkit_beta=v1' }, options?.headers]),
+        });
+    }
+    /**
+     * List ChatKit threads
+     *
+     * @example
+     * ```ts
+     * // Automatically fetches more pages as needed.
+     * for await (const chatkitThread of client.beta.chatkit.threads.list()) {
+     *   // ...
+     * }
+     * ```
+     */
+    list(query = {}, options) {
+        return this._client.getAPIList('/chatkit/threads', (pagination_1.ConversationCursorPage), {
+            query,
+            ...options,
+            headers: (0, headers_1.buildHeaders)([{ 'OpenAI-Beta': 'chatkit_beta=v1' }, options?.headers]),
+        });
+    }
+    /**
+     * Delete a ChatKit thread
+     *
+     * @example
+     * ```ts
+     * const thread = await client.beta.chatkit.threads.delete(
+     *   'cthr_123',
+     * );
+     * ```
+     */
+    delete(threadID, options) {
+        return this._client.delete((0, path_1.path) `/chatkit/threads/${threadID}`, {
+            ...options,
+            headers: (0, headers_1.buildHeaders)([{ 'OpenAI-Beta': 'chatkit_beta=v1' }, options?.headers]),
+        });
+    }
+    /**
+     * List ChatKit thread items
+     *
+     * @example
+     * ```ts
+     * // Automatically fetches more pages as needed.
+     * for await (const thread of client.beta.chatkit.threads.listItems(
+     *   'cthr_123',
+     * )) {
+     *   // ...
+     * }
+     * ```
+     */
+    listItems(threadID, query = {}, options) {
+        return this._client.getAPIList((0, path_1.path) `/chatkit/threads/${threadID}/items`, (pagination_1.ConversationCursorPage), { query, ...options, headers: (0, headers_1.buildHeaders)([{ 'OpenAI-Beta': 'chatkit_beta=v1' }, options?.headers]) });
+    }
+}
+exports.Threads = Threads;
+//# sourceMappingURL=threads.js.map
 
 /***/ }),
 
@@ -20567,6 +20876,9 @@ const SessionsAPI = tslib_1.__importStar(__nccwpck_require__(85731));
 const sessions_1 = __nccwpck_require__(85731);
 const TranscriptionSessionsAPI = tslib_1.__importStar(__nccwpck_require__(1059));
 const transcription_sessions_1 = __nccwpck_require__(1059);
+/**
+ * @deprecated Realtime has now launched and is generally available. The old beta API is now deprecated.
+ */
 class Realtime extends resource_1.APIResource {
     constructor() {
         super(...arguments);
@@ -21462,6 +21774,104 @@ Files.Content = content_1.Content;
 
 /***/ }),
 
+/***/ 37303:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Conversations = void 0;
+const tslib_1 = __nccwpck_require__(19762);
+const resource_1 = __nccwpck_require__(19318);
+const ItemsAPI = tslib_1.__importStar(__nccwpck_require__(37206));
+const items_1 = __nccwpck_require__(37206);
+const path_1 = __nccwpck_require__(10706);
+class Conversations extends resource_1.APIResource {
+    constructor() {
+        super(...arguments);
+        this.items = new ItemsAPI.Items(this._client);
+    }
+    /**
+     * Create a conversation.
+     */
+    create(body = {}, options) {
+        return this._client.post('/conversations', { body, ...options });
+    }
+    /**
+     * Get a conversation
+     */
+    retrieve(conversationID, options) {
+        return this._client.get((0, path_1.path) `/conversations/${conversationID}`, options);
+    }
+    /**
+     * Update a conversation
+     */
+    update(conversationID, body, options) {
+        return this._client.post((0, path_1.path) `/conversations/${conversationID}`, { body, ...options });
+    }
+    /**
+     * Delete a conversation. Items in the conversation will not be deleted.
+     */
+    delete(conversationID, options) {
+        return this._client.delete((0, path_1.path) `/conversations/${conversationID}`, options);
+    }
+}
+exports.Conversations = Conversations;
+Conversations.Items = items_1.Items;
+//# sourceMappingURL=conversations.js.map
+
+/***/ }),
+
+/***/ 37206:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Items = void 0;
+const resource_1 = __nccwpck_require__(19318);
+const pagination_1 = __nccwpck_require__(81815);
+const path_1 = __nccwpck_require__(10706);
+class Items extends resource_1.APIResource {
+    /**
+     * Create items in a conversation with the given ID.
+     */
+    create(conversationID, params, options) {
+        const { include, ...body } = params;
+        return this._client.post((0, path_1.path) `/conversations/${conversationID}/items`, {
+            query: { include },
+            body,
+            ...options,
+        });
+    }
+    /**
+     * Get a single item from a conversation with the given IDs.
+     */
+    retrieve(itemID, params, options) {
+        const { conversation_id, ...query } = params;
+        return this._client.get((0, path_1.path) `/conversations/${conversation_id}/items/${itemID}`, { query, ...options });
+    }
+    /**
+     * List all items for a conversation with the given ID.
+     */
+    list(conversationID, query = {}, options) {
+        return this._client.getAPIList((0, path_1.path) `/conversations/${conversationID}/items`, (pagination_1.ConversationCursorPage), { query, ...options });
+    }
+    /**
+     * Delete an item from a conversation with the given IDs.
+     */
+    delete(itemID, params, options) {
+        const { conversation_id } = params;
+        return this._client.delete((0, path_1.path) `/conversations/${conversation_id}/items/${itemID}`, options);
+    }
+}
+exports.Items = Items;
+//# sourceMappingURL=items.js.map
+
+/***/ }),
+
 /***/ 8064:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -21701,22 +22111,21 @@ class Files extends resource_1.APIResource {
     /**
      * Upload a file that can be used across various endpoints. Individual files can be
      * up to 512 MB, and the size of all files uploaded by one organization can be up
-     * to 100 GB.
+     * to 1 TB.
      *
-     * The Assistants API supports files up to 2 million tokens and of specific file
-     * types. See the
-     * [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools) for
-     * details.
-     *
-     * The Fine-tuning API only supports `.jsonl` files. The input also has certain
-     * required formats for fine-tuning
-     * [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input) or
-     * [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
-     * models.
-     *
-     * The Batch API only supports `.jsonl` files up to 200 MB in size. The input also
-     * has a specific required
-     * [format](https://platform.openai.com/docs/api-reference/batch/request-input).
+     * - The Assistants API supports files up to 2 million tokens and of specific file
+     *   types. See the
+     *   [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools)
+     *   for details.
+     * - The Fine-tuning API only supports `.jsonl` files. The input also has certain
+     *   required formats for fine-tuning
+     *   [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input)
+     *   or
+     *   [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+     *   models.
+     * - The Batch API only supports `.jsonl` files up to 200 MB in size. The input
+     *   also has a specific required
+     *   [format](https://platform.openai.com/docs/api-reference/batch/request-input).
      *
      * Please [contact us](https://help.openai.com/) if you need to increase these
      * storage limits.
@@ -21737,7 +22146,7 @@ class Files extends resource_1.APIResource {
         return this._client.getAPIList('/files', (pagination_1.CursorPage), { query, ...options });
     }
     /**
-     * Delete a file.
+     * Delete a file and remove it from all vector stores.
      */
     delete(fileID, options) {
         return this._client.delete((0, path_1.path) `/files/${fileID}`, options);
@@ -21920,16 +22329,17 @@ class Permissions extends resource_1.APIResource {
      *
      * @example
      * ```ts
-     * // Automatically fetches more pages as needed.
-     * for await (const permissionRetrieveResponse of client.fineTuning.checkpoints.permissions.retrieve(
-     *   'ft-AF1WoRqd3aJAHsqc9NY7iL8F',
-     * )) {
-     *   // ...
-     * }
+     * const permission =
+     *   await client.fineTuning.checkpoints.permissions.retrieve(
+     *     'ft-AF1WoRqd3aJAHsqc9NY7iL8F',
+     *   );
      * ```
      */
     retrieve(fineTunedModelCheckpoint, query = {}, options) {
-        return this._client.getAPIList((0, path_1.path) `/fine_tuning/checkpoints/${fineTunedModelCheckpoint}/permissions`, (pagination_1.CursorPage), { query, ...options });
+        return this._client.get((0, path_1.path) `/fine_tuning/checkpoints/${fineTunedModelCheckpoint}/permissions`, {
+            query,
+            ...options,
+        });
     }
     /**
      * **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
@@ -22239,34 +22649,11 @@ class Images extends resource_1.APIResource {
     createVariation(body, options) {
         return this._client.post('/images/variations', (0, uploads_1.multipartFormRequestOptions)({ body, ...options }, this._client));
     }
-    /**
-     * Creates an edited or extended image given one or more source images and a
-     * prompt. This endpoint only supports `gpt-image-1` and `dall-e-2`.
-     *
-     * @example
-     * ```ts
-     * const imagesResponse = await client.images.edit({
-     *   image: fs.createReadStream('path/to/file'),
-     *   prompt: 'A cute baby sea otter wearing a beret',
-     * });
-     * ```
-     */
     edit(body, options) {
-        return this._client.post('/images/edits', (0, uploads_1.multipartFormRequestOptions)({ body, ...options }, this._client));
+        return this._client.post('/images/edits', (0, uploads_1.multipartFormRequestOptions)({ body, ...options, stream: body.stream ?? false }, this._client));
     }
-    /**
-     * Creates an image given a prompt.
-     * [Learn more](https://platform.openai.com/docs/guides/images).
-     *
-     * @example
-     * ```ts
-     * const imagesResponse = await client.images.generate({
-     *   prompt: 'A cute baby sea otter',
-     * });
-     * ```
-     */
     generate(body, options) {
-        return this._client.post('/images/generations', { body, ...options });
+        return this._client.post('/images/generations', { body, ...options, stream: body.stream ?? false });
     }
 }
 exports.Images = Images;
@@ -22281,7 +22668,7 @@ exports.Images = Images;
 
 // File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.VectorStores = exports.Uploads = exports.Responses = exports.Moderations = exports.Models = exports.Images = exports.Graders = exports.FineTuning = exports.Files = exports.Evals = exports.Embeddings = exports.Containers = exports.Completions = exports.Beta = exports.Batches = exports.Audio = void 0;
+exports.Webhooks = exports.Videos = exports.VectorStores = exports.Uploads = exports.Responses = exports.Realtime = exports.Moderations = exports.Models = exports.Images = exports.Graders = exports.FineTuning = exports.Files = exports.Evals = exports.Embeddings = exports.Conversations = exports.Containers = exports.Completions = exports.Beta = exports.Batches = exports.Audio = void 0;
 const tslib_1 = __nccwpck_require__(19762);
 tslib_1.__exportStar(__nccwpck_require__(18240), exports);
 tslib_1.__exportStar(__nccwpck_require__(4866), exports);
@@ -22295,6 +22682,8 @@ var completions_1 = __nccwpck_require__(99327);
 Object.defineProperty(exports, "Completions", ({ enumerable: true, get: function () { return completions_1.Completions; } }));
 var containers_1 = __nccwpck_require__(48613);
 Object.defineProperty(exports, "Containers", ({ enumerable: true, get: function () { return containers_1.Containers; } }));
+var conversations_1 = __nccwpck_require__(37303);
+Object.defineProperty(exports, "Conversations", ({ enumerable: true, get: function () { return conversations_1.Conversations; } }));
 var embeddings_1 = __nccwpck_require__(8064);
 Object.defineProperty(exports, "Embeddings", ({ enumerable: true, get: function () { return embeddings_1.Embeddings; } }));
 var evals_1 = __nccwpck_require__(510);
@@ -22311,12 +22700,18 @@ var models_1 = __nccwpck_require__(16467);
 Object.defineProperty(exports, "Models", ({ enumerable: true, get: function () { return models_1.Models; } }));
 var moderations_1 = __nccwpck_require__(2085);
 Object.defineProperty(exports, "Moderations", ({ enumerable: true, get: function () { return moderations_1.Moderations; } }));
+var realtime_1 = __nccwpck_require__(59676);
+Object.defineProperty(exports, "Realtime", ({ enumerable: true, get: function () { return realtime_1.Realtime; } }));
 var responses_1 = __nccwpck_require__(96214);
 Object.defineProperty(exports, "Responses", ({ enumerable: true, get: function () { return responses_1.Responses; } }));
 var uploads_1 = __nccwpck_require__(37175);
 Object.defineProperty(exports, "Uploads", ({ enumerable: true, get: function () { return uploads_1.Uploads; } }));
 var vector_stores_1 = __nccwpck_require__(79162);
 Object.defineProperty(exports, "VectorStores", ({ enumerable: true, get: function () { return vector_stores_1.VectorStores; } }));
+var videos_1 = __nccwpck_require__(76172);
+Object.defineProperty(exports, "Videos", ({ enumerable: true, get: function () { return videos_1.Videos; } }));
+var webhooks_1 = __nccwpck_require__(67993);
+Object.defineProperty(exports, "Webhooks", ({ enumerable: true, get: function () { return webhooks_1.Webhooks; } }));
 //# sourceMappingURL=index.js.map
 
 /***/ }),
@@ -22383,6 +22778,144 @@ exports.Moderations = Moderations;
 
 /***/ }),
 
+/***/ 86894:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Calls = void 0;
+const resource_1 = __nccwpck_require__(19318);
+const headers_1 = __nccwpck_require__(63591);
+const path_1 = __nccwpck_require__(10706);
+class Calls extends resource_1.APIResource {
+    /**
+     * Accept an incoming SIP call and configure the realtime session that will handle
+     * it.
+     *
+     * @example
+     * ```ts
+     * await client.realtime.calls.accept('call_id', {
+     *   type: 'realtime',
+     * });
+     * ```
+     */
+    accept(callID, body, options) {
+        return this._client.post((0, path_1.path) `/realtime/calls/${callID}/accept`, {
+            body,
+            ...options,
+            headers: (0, headers_1.buildHeaders)([{ Accept: '*/*' }, options?.headers]),
+        });
+    }
+    /**
+     * End an active Realtime API call, whether it was initiated over SIP or WebRTC.
+     *
+     * @example
+     * ```ts
+     * await client.realtime.calls.hangup('call_id');
+     * ```
+     */
+    hangup(callID, options) {
+        return this._client.post((0, path_1.path) `/realtime/calls/${callID}/hangup`, {
+            ...options,
+            headers: (0, headers_1.buildHeaders)([{ Accept: '*/*' }, options?.headers]),
+        });
+    }
+    /**
+     * Transfer an active SIP call to a new destination using the SIP REFER verb.
+     *
+     * @example
+     * ```ts
+     * await client.realtime.calls.refer('call_id', {
+     *   target_uri: 'tel:+14155550123',
+     * });
+     * ```
+     */
+    refer(callID, body, options) {
+        return this._client.post((0, path_1.path) `/realtime/calls/${callID}/refer`, {
+            body,
+            ...options,
+            headers: (0, headers_1.buildHeaders)([{ Accept: '*/*' }, options?.headers]),
+        });
+    }
+    /**
+     * Decline an incoming SIP call by returning a SIP status code to the caller.
+     *
+     * @example
+     * ```ts
+     * await client.realtime.calls.reject('call_id');
+     * ```
+     */
+    reject(callID, body = {}, options) {
+        return this._client.post((0, path_1.path) `/realtime/calls/${callID}/reject`, {
+            body,
+            ...options,
+            headers: (0, headers_1.buildHeaders)([{ Accept: '*/*' }, options?.headers]),
+        });
+    }
+}
+exports.Calls = Calls;
+//# sourceMappingURL=calls.js.map
+
+/***/ }),
+
+/***/ 46529:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ClientSecrets = void 0;
+const resource_1 = __nccwpck_require__(19318);
+class ClientSecrets extends resource_1.APIResource {
+    /**
+     * Create a Realtime client secret with an associated session configuration.
+     *
+     * @example
+     * ```ts
+     * const clientSecret =
+     *   await client.realtime.clientSecrets.create();
+     * ```
+     */
+    create(body, options) {
+        return this._client.post('/realtime/client_secrets', { body, ...options });
+    }
+}
+exports.ClientSecrets = ClientSecrets;
+//# sourceMappingURL=client-secrets.js.map
+
+/***/ }),
+
+/***/ 59676:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Realtime = void 0;
+const tslib_1 = __nccwpck_require__(19762);
+const resource_1 = __nccwpck_require__(19318);
+const CallsAPI = tslib_1.__importStar(__nccwpck_require__(86894));
+const calls_1 = __nccwpck_require__(86894);
+const ClientSecretsAPI = tslib_1.__importStar(__nccwpck_require__(46529));
+const client_secrets_1 = __nccwpck_require__(46529);
+class Realtime extends resource_1.APIResource {
+    constructor() {
+        super(...arguments);
+        this.clientSecrets = new ClientSecretsAPI.ClientSecrets(this._client);
+        this.calls = new CallsAPI.Calls(this._client);
+    }
+}
+exports.Realtime = Realtime;
+Realtime.ClientSecrets = client_secrets_1.ClientSecrets;
+Realtime.Calls = calls_1.Calls;
+//# sourceMappingURL=realtime.js.map
+
+/***/ }),
+
 /***/ 46867:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -22417,6 +22950,33 @@ exports.InputItems = InputItems;
 
 /***/ }),
 
+/***/ 37133:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InputTokens = void 0;
+const resource_1 = __nccwpck_require__(19318);
+class InputTokens extends resource_1.APIResource {
+    /**
+     * Get input token counts
+     *
+     * @example
+     * ```ts
+     * const response = await client.responses.inputTokens.count();
+     * ```
+     */
+    count(body = {}, options) {
+        return this._client.post('/responses/input_tokens', { body, ...options });
+    }
+}
+exports.InputTokens = InputTokens;
+//# sourceMappingURL=input-tokens.js.map
+
+/***/ }),
+
 /***/ 96214:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -22431,12 +22991,15 @@ const ResponseStream_1 = __nccwpck_require__(66784);
 const resource_1 = __nccwpck_require__(19318);
 const InputItemsAPI = tslib_1.__importStar(__nccwpck_require__(46867));
 const input_items_1 = __nccwpck_require__(46867);
+const InputTokensAPI = tslib_1.__importStar(__nccwpck_require__(37133));
+const input_tokens_1 = __nccwpck_require__(37133);
 const headers_1 = __nccwpck_require__(63591);
 const path_1 = __nccwpck_require__(10706);
 class Responses extends resource_1.APIResource {
     constructor() {
         super(...arguments);
         this.inputItems = new InputItemsAPI.InputItems(this._client);
+        this.inputTokens = new InputTokensAPI.InputTokens(this._client);
     }
     create(body, options) {
         return this._client.post('/responses', { body, ...options, stream: body.stream ?? false })._thenUnwrap((rsp) => {
@@ -22451,6 +23014,11 @@ class Responses extends resource_1.APIResource {
             query,
             ...options,
             stream: query?.stream ?? false,
+        })._thenUnwrap((rsp) => {
+            if ('object' in rsp && rsp.object === 'response') {
+                (0, ResponsesParser_1.addOutputText)(rsp);
+            }
+            return rsp;
         });
     }
     /**
@@ -22498,6 +23066,7 @@ class Responses extends resource_1.APIResource {
 }
 exports.Responses = Responses;
 Responses.InputItems = input_items_1.InputItems;
+Responses.InputTokens = input_tokens_1.InputTokens;
 //# sourceMappingURL=responses.js.map
 
 /***/ }),
@@ -23000,6 +23569,175 @@ VectorStores.FileBatches = file_batches_1.FileBatches;
 
 /***/ }),
 
+/***/ 76172:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Videos = void 0;
+const resource_1 = __nccwpck_require__(19318);
+const pagination_1 = __nccwpck_require__(81815);
+const headers_1 = __nccwpck_require__(63591);
+const uploads_1 = __nccwpck_require__(67620);
+const path_1 = __nccwpck_require__(10706);
+class Videos extends resource_1.APIResource {
+    /**
+     * Create a video
+     */
+    create(body, options) {
+        return this._client.post('/videos', (0, uploads_1.maybeMultipartFormRequestOptions)({ body, ...options }, this._client));
+    }
+    /**
+     * Retrieve a video
+     */
+    retrieve(videoID, options) {
+        return this._client.get((0, path_1.path) `/videos/${videoID}`, options);
+    }
+    /**
+     * List videos
+     */
+    list(query = {}, options) {
+        return this._client.getAPIList('/videos', (pagination_1.ConversationCursorPage), { query, ...options });
+    }
+    /**
+     * Delete a video
+     */
+    delete(videoID, options) {
+        return this._client.delete((0, path_1.path) `/videos/${videoID}`, options);
+    }
+    /**
+     * Download video content
+     */
+    downloadContent(videoID, query = {}, options) {
+        return this._client.get((0, path_1.path) `/videos/${videoID}/content`, {
+            query,
+            ...options,
+            headers: (0, headers_1.buildHeaders)([{ Accept: 'application/binary' }, options?.headers]),
+            __binaryResponse: true,
+        });
+    }
+    /**
+     * Create a video remix
+     */
+    remix(videoID, body, options) {
+        return this._client.post((0, path_1.path) `/videos/${videoID}/remix`, (0, uploads_1.maybeMultipartFormRequestOptions)({ body, ...options }, this._client));
+    }
+}
+exports.Videos = Videos;
+//# sourceMappingURL=videos.js.map
+
+/***/ }),
+
+/***/ 67993:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+var _Webhooks_instances, _Webhooks_validateSecret, _Webhooks_getRequiredHeader;
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.Webhooks = void 0;
+const tslib_1 = __nccwpck_require__(19762);
+const error_1 = __nccwpck_require__(8905);
+const resource_1 = __nccwpck_require__(19318);
+const headers_1 = __nccwpck_require__(63591);
+class Webhooks extends resource_1.APIResource {
+    constructor() {
+        super(...arguments);
+        _Webhooks_instances.add(this);
+    }
+    /**
+     * Validates that the given payload was sent by OpenAI and parses the payload.
+     */
+    async unwrap(payload, headers, secret = this._client.webhookSecret, tolerance = 300) {
+        await this.verifySignature(payload, headers, secret, tolerance);
+        return JSON.parse(payload);
+    }
+    /**
+     * Validates whether or not the webhook payload was sent by OpenAI.
+     *
+     * An error will be raised if the webhook payload was not sent by OpenAI.
+     *
+     * @param payload - The webhook payload
+     * @param headers - The webhook headers
+     * @param secret - The webhook secret (optional, will use client secret if not provided)
+     * @param tolerance - Maximum age of the webhook in seconds (default: 300 = 5 minutes)
+     */
+    async verifySignature(payload, headers, secret = this._client.webhookSecret, tolerance = 300) {
+        if (typeof crypto === 'undefined' ||
+            typeof crypto.subtle.importKey !== 'function' ||
+            typeof crypto.subtle.verify !== 'function') {
+            throw new Error('Webhook signature verification is only supported when the `crypto` global is defined');
+        }
+        tslib_1.__classPrivateFieldGet(this, _Webhooks_instances, "m", _Webhooks_validateSecret).call(this, secret);
+        const headersObj = (0, headers_1.buildHeaders)([headers]).values;
+        const signatureHeader = tslib_1.__classPrivateFieldGet(this, _Webhooks_instances, "m", _Webhooks_getRequiredHeader).call(this, headersObj, 'webhook-signature');
+        const timestamp = tslib_1.__classPrivateFieldGet(this, _Webhooks_instances, "m", _Webhooks_getRequiredHeader).call(this, headersObj, 'webhook-timestamp');
+        const webhookId = tslib_1.__classPrivateFieldGet(this, _Webhooks_instances, "m", _Webhooks_getRequiredHeader).call(this, headersObj, 'webhook-id');
+        // Validate timestamp to prevent replay attacks
+        const timestampSeconds = parseInt(timestamp, 10);
+        if (isNaN(timestampSeconds)) {
+            throw new error_1.InvalidWebhookSignatureError('Invalid webhook timestamp format');
+        }
+        const nowSeconds = Math.floor(Date.now() / 1000);
+        if (nowSeconds - timestampSeconds > tolerance) {
+            throw new error_1.InvalidWebhookSignatureError('Webhook timestamp is too old');
+        }
+        if (timestampSeconds > nowSeconds + tolerance) {
+            throw new error_1.InvalidWebhookSignatureError('Webhook timestamp is too new');
+        }
+        // Extract signatures from v1,<base64> format
+        // The signature header can have multiple values, separated by spaces.
+        // Each value is in the format v1,<base64>. We should accept if any match.
+        const signatures = signatureHeader
+            .split(' ')
+            .map((part) => (part.startsWith('v1,') ? part.substring(3) : part));
+        // Decode the secret if it starts with whsec_
+        const decodedSecret = secret.startsWith('whsec_') ?
+            Buffer.from(secret.replace('whsec_', ''), 'base64')
+            : Buffer.from(secret, 'utf-8');
+        // Create the signed payload: {webhook_id}.{timestamp}.{payload}
+        const signedPayload = webhookId ? `${webhookId}.${timestamp}.${payload}` : `${timestamp}.${payload}`;
+        // Import the secret as a cryptographic key for HMAC
+        const key = await crypto.subtle.importKey('raw', decodedSecret, { name: 'HMAC', hash: 'SHA-256' }, false, ['verify']);
+        // Check if any signature matches using timing-safe WebCrypto verify
+        for (const signature of signatures) {
+            try {
+                const signatureBytes = Buffer.from(signature, 'base64');
+                const isValid = await crypto.subtle.verify('HMAC', key, signatureBytes, new TextEncoder().encode(signedPayload));
+                if (isValid) {
+                    return; // Valid signature found
+                }
+            }
+            catch {
+                // Invalid base64 or signature format, continue to next signature
+                continue;
+            }
+        }
+        throw new error_1.InvalidWebhookSignatureError('The given webhook signature does not match the expected signature');
+    }
+}
+exports.Webhooks = Webhooks;
+_Webhooks_instances = new WeakSet(), _Webhooks_validateSecret = function _Webhooks_validateSecret(secret) {
+    if (typeof secret !== 'string' || secret.length === 0) {
+        throw new Error(`The webhook secret must either be set using the env var, OPENAI_WEBHOOK_SECRET, on the client class, OpenAI({ webhookSecret: '123' }), or passed to this function`);
+    }
+}, _Webhooks_getRequiredHeader = function _Webhooks_getRequiredHeader(headers, name) {
+    if (!headers) {
+        throw new Error(`Headers are required`);
+    }
+    const value = headers.get(name);
+    if (value === null || value === undefined) {
+        throw new Error(`Missing required header: ${name}`);
+    }
+    return value;
+};
+//# sourceMappingURL=webhooks.js.map
+
+/***/ }),
+
 /***/ 20884:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -23020,7 +23758,7 @@ tslib_1.__exportStar(__nccwpck_require__(11364), exports);
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VERSION = void 0;
-exports.VERSION = '5.5.1'; // x-release-please-version
+exports.VERSION = '6.9.1'; // x-release-please-version
 //# sourceMappingURL=version.js.map
 
 /***/ }),

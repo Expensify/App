@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import SelectionList from '@components/SelectionList';
-import MultiSelectListItem from '@components/SelectionList/MultiSelectListItem';
+// eslint-disable-next-line no-restricted-imports
+import SelectionList from '@components/SelectionListWithSections';
+import MultiSelectListItem from '@components/SelectionListWithSections/MultiSelectListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
@@ -123,8 +124,6 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
         />
     );
 }
-
-SearchMultipleSelectionPicker.displayName = 'SearchMultipleSelectionPicker';
 
 export default SearchMultipleSelectionPicker;
 export type {SearchMultipleSelectionPickerItem};

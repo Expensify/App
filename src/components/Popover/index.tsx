@@ -84,7 +84,6 @@ function Popover(props: PopoverProps) {
                 popoverAnchorPosition={anchorPosition}
                 animationInTiming={disableAnimation ? DISABLED_ANIMATION_DURATION : animationInTiming}
                 animationOutTiming={disableAnimation ? DISABLED_ANIMATION_DURATION : animationOutTiming}
-                shouldCloseOnOutsideClick
                 onLayout={onLayout}
                 animationIn={animationIn}
                 animationOut={animationOut}
@@ -123,7 +122,5 @@ function Popover(props: PopoverProps) {
         />
     );
 }
-
-Popover.displayName = 'Popover';
 
 export default Popover;

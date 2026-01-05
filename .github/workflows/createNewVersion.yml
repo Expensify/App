@@ -84,9 +84,7 @@ jobs:
       - name: Commit new Mobile-Expensify version
         working-directory: Mobile-Expensify
         run: |
-          # Checkout main branch in Mobile-Expensify submodule.
-          # This is IMPORTANT so that when we make changes, we aren't in a detached head state, and when we later push those changes to main, it works!
-          git checkout main
+          # First commit the version changes on detached HEAD
           git add \
             ./Android/AndroidManifest.xml \
             ./app/config/config.json \
@@ -94,6 +92,13 @@ jobs:
             ./iOS/SmartScanExtension/Info.plist \
             ./iOS/NotificationServiceExtension/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
+
+          # Store the commit hash before checkout to ensure we cherry-pick the right commit
+          DETACHED_COMMIT=$(git rev-parse HEAD)
+          
+          # Cherry-pick the version bump commit onto main, to safely handle case where new commits exist on main
+          git checkout main && git pull origin main
+          git cherry-pick "$DETACHED_COMMIT"
           if ! git push origin main; then
             echo "Race condition! Mobile-Expensify main was updated while this workflow was running, so push failed. Fetching remote, rebasing, and retrying push once."
             git fetch origin main

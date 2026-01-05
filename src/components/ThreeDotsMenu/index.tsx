@@ -2,13 +2,13 @@ import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, use
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type BaseModalProps from '@components/Modal/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
@@ -24,7 +24,7 @@ import type ThreeDotsMenuProps from './types';
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
-    icon = Expensicons.ThreeDots,
+    icon,
     iconFill,
     iconStyles,
     onIconPress = () => {},
@@ -44,6 +44,7 @@ function ThreeDotsMenu({
     isNested = false,
     shouldSelfPosition = false,
     threeDotsMenuRef,
+    sentryLabel,
 }: ThreeDotsMenuProps) {
     const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
 
@@ -54,6 +55,7 @@ function ThreeDotsMenu({
     const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
     const {translate} = useLocalize();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
     const {windowWidth, windowHeight} = useWindowDimensions();
     const showPopoverMenu = () => {
@@ -67,33 +69,11 @@ function ThreeDotsMenu({
         setPopupMenuVisible(false);
     }, []);
 
-    useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}> | undefined, () => ({
-        isPopupMenuVisible,
-        hidePopoverMenu,
-    }));
-
-    useEffect(() => {
-        if (!isBehindModal || !isPopupMenuVisible) {
-            return;
-        }
-        hidePopoverMenu();
-    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
-
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => calculatePopoverPosition(buttonRef, anchorAlignment), [anchorAlignment, calculatePopoverPosition]);
 
     const getMenuPosition = shouldSelfPosition ? calculateAndSetThreeDotsMenuPosition : getAnchorPosition;
-
-    useLayoutEffect(() => {
-        if (!getMenuPosition || !isPopupMenuVisible) {
-            return;
-        }
-
-        getMenuPosition?.().then((value) => {
-            setPosition(value);
-        });
-    }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
 
     const onThreeDotsPress = () => {
         if (isPopupMenuVisible) {
@@ -114,6 +94,29 @@ function ThreeDotsMenu({
 
         onIconPress?.();
     };
+
+    useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}> | undefined, () => ({
+        isPopupMenuVisible,
+        hidePopoverMenu,
+        onThreeDotsPress,
+    }));
+
+    useEffect(() => {
+        if (!isBehindModal || !isPopupMenuVisible) {
+            return;
+        }
+        hidePopoverMenu();
+    }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible]);
+
+    useLayoutEffect(() => {
+        if (!getMenuPosition || !isPopupMenuVisible) {
+            return;
+        }
+
+        getMenuPosition?.().then((value) => {
+            setPosition(value);
+        });
+    }, [windowWidth, windowHeight, shouldSelfPosition, getMenuPosition, isPopupMenuVisible]);
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip
@@ -151,9 +154,10 @@ function ThreeDotsMenu({
                         role={getButtonRole(isNested)}
                         isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}
+                        sentryLabel={sentryLabel}
                     >
                         <Icon
-                            src={icon}
+                            src={icon ?? expensifyIcons.ThreeDots}
                             fill={(iconFill ?? isPopupMenuVisible) ? theme.success : theme.icon}
                         />
                     </PressableWithoutFeedback>
@@ -179,7 +183,5 @@ function ThreeDotsMenu({
         </>
     );
 }
-
-ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 
 export default ThreeDotsMenu;

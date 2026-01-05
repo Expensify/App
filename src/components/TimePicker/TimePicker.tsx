@@ -42,6 +42,9 @@ type TimePickerProps = {
 
     /** Whether the picker shows hours, minutes, seconds and milliseconds */
     showFullFormat?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<TimePickerRef>;
 };
 
 const AMOUNT_VIEW_ID = 'amountView';
@@ -121,10 +124,7 @@ function clearSelectedValue(
     setSelection({start: newCursorPosition, end: newCursorPosition});
 }
 
-function TimePicker(
-    {defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, shouldValidateFutureTime = true, showFullFormat = false}: TimePickerProps,
-    ref: ForwardedRef<TimePickerRef>,
-) {
+function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shouldValidate = true, shouldValidateFutureTime = true, showFullFormat = false, ref}: TimePickerProps) {
     const {numberFormat, translate} = useLocalize();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -132,17 +132,18 @@ function TimePicker(
     const value = DateUtils.extractTime12Hour(defaultValue, showFullFormat);
     const canUseTouchScreen = canUseTouchScreenDeviceCapabilities();
 
-    const [isError, setError] = useState(false);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
-    const [selectionMinute, setSelectionMinute] = useState(showFullFormat ? {start: 0, end: 0} : {start: 2, end: 2}); // we focus it by default so need  to have selection on the end
-    const [selectionSecond, setSelectionSecond] = useState({start: 0, end: 0});
-    const [selectionMillisecond, setSelectionMillisecond] = useState(showFullFormat ? {start: 6, end: 6} : {start: 0, end: 0});
     const [hours, setHours] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).hour);
     const [minutes, setMinutes] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).minute);
     const [seconds, setSeconds] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).seconds);
     const [milliseconds, setMilliseconds] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).milliseconds);
     const [amPmValue, setAmPmValue] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).period);
+
+    const [isError, setError] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    const [selectionHour, setSelectionHour] = useState({start: 0, end: 0});
+    const [selectionMinute, setSelectionMinute] = useState(showFullFormat ? {start: 0, end: 0} : {start: minutes.length, end: minutes.length}); // we focus it by default so need to have selection on the end
+    const [selectionSecond, setSelectionSecond] = useState({start: 0, end: 0});
+    const [selectionMillisecond, setSelectionMillisecond] = useState(showFullFormat ? {start: milliseconds.length, end: milliseconds.length} : {start: 0, end: 0});
 
     const lastPressedKey = useRef('');
     const hourInputRef = useRef<TextInput | null>(null);
@@ -207,7 +208,7 @@ function TimePicker(
     // The valid format is HH(from 00 to 12). If the user input 9, it will be 09. If user try to change 09 to 19 it would skip the first character
     const handleHourChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
-        const trimmedText = text.replace(/ /g, '0');
+        const trimmedText = text.replaceAll(' ', '0');
         if (!trimmedText) {
             resetHours();
             return;
@@ -323,7 +324,7 @@ function TimePicker(
     */
     const handleMinutesChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
-        const trimmedText = text.replace(/ /g, '0');
+        const trimmedText = text.replaceAll(' ', '0');
         if (!trimmedText) {
             resetMinutes();
             return;
@@ -402,7 +403,7 @@ function TimePicker(
     */
     const handleSecondsChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
-        const trimmedText = text.replace(/ /g, '0');
+        const trimmedText = text.replaceAll(' ', '0');
         if (!trimmedText) {
             resetSeconds();
             return;
@@ -481,7 +482,7 @@ function TimePicker(
     */
     const handleMillisecondsChange = (text: string) => {
         // Replace spaces with 0 to implement the following digit removal by pressing space
-        const trimmedText = text.replace(/ /g, '0');
+        const trimmedText = text.replaceAll(' ', '0');
         if (!trimmedText) {
             resetMilliseconds();
             return;
@@ -603,7 +604,7 @@ function TimePicker(
                 }
                 return;
             }
-            const trimmedKey = key.replace(/[^0-9]/g, '');
+            const trimmedKey = key.replaceAll(/[^0-9]/g, '');
 
             if (isHourFocused) {
                 handleHourChange(insertAtPosition(hours, trimmedKey, selectionHour.start, selectionHour.end));
@@ -651,7 +652,7 @@ function TimePicker(
             }
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [selectionHour, selectionMinute],
+        [selectionHour, selectionMinute.start],
     );
     const arrowRightCallback = useCallback(
         (e?: GestureResponderEvent | KeyboardEvent) => {
@@ -672,7 +673,7 @@ function TimePicker(
             }
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [selectionHour, selectionMinute, selectionSecond, selectionMillisecond],
+        [selectionHour.start, selectionMinute.start, selectionSecond.start, selectionMillisecond],
     );
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT, arrowLeftCallback, arrowConfig);
@@ -919,6 +920,6 @@ function TimePicker(
     );
 }
 
-TimePicker.displayName = 'TimePicker';
+export default TimePicker;
 
-export default React.forwardRef(TimePicker);
+export type {TimePickerProps, TimePickerRef, TimePickerRefName};

@@ -1,8 +1,8 @@
 import {NavigationContext} from '@react-navigation/core';
 import type {NavigationProp} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
-import React, {forwardRef, useContext, useMemo} from 'react';
+import type {ComponentType, ReactElement} from 'react';
+import React, {useContext, useMemo} from 'react';
 
 type AddListenerCallback = () => void;
 
@@ -14,8 +14,8 @@ type NavigationContextValue = {
     removeListener: () => RemoveListenerCallback;
 };
 
-export default function <TProps, TRef>(WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>): (props: TProps & RefAttributes<TRef>) => ReactElement | null {
-    function WithNavigationFallback(props: TProps, ref: ForwardedRef<TRef>) {
+export default function <TProps extends Record<string, unknown>>(WrappedComponent: ComponentType<TProps>): (props: TProps) => ReactElement | null {
+    function WithNavigationFallback(props: TProps) {
         const context = useContext(NavigationContext);
 
         const navigationContextValue: NavigationContextValue = useMemo(
@@ -31,20 +31,18 @@ export default function <TProps, TRef>(WrappedComponent: ComponentType<TProps & 
             <WrappedComponent
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
-                ref={ref}
             />
         ) : (
             <NavigationContext.Provider value={navigationContextValue as unknown as NavigationProp<ParamListBase>}>
                 <WrappedComponent
                     // eslint-disable-next-line react/jsx-props-no-spreading
                     {...props}
-                    ref={ref}
                 />
             </NavigationContext.Provider>
         );
     }
 
-    WithNavigationFallback.displayName = 'WithNavigationFocusWithFallback';
+    WithNavigationFallback.displayName = `WithNavigationFallback(${WrappedComponent.displayName ?? WrappedComponent.name ?? 'Component'})`;
 
-    return forwardRef(WithNavigationFallback);
+    return WithNavigationFallback;
 }

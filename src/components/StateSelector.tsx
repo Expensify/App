@@ -35,12 +35,12 @@ type StateSelectorProps = {
 
     /** object to get route details from */
     stateSelectorRoute?: typeof ROUTES.SETTINGS_ADDRESS_STATE | typeof ROUTES.MONEY_REQUEST_STATE_SELECTOR;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
-function StateSelector(
-    {errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, stateSelectorRoute = ROUTES.SETTINGS_ADDRESS_STATE}: StateSelectorProps,
-    ref: ForwardedRef<View>,
-) {
+function StateSelector({errorText, onBlur, value: stateCode, label, onInputChange, wrapperStyle, stateSelectorRoute = ROUTES.SETTINGS_ADDRESS_STATE, ref}: StateSelectorProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {state: stateFromUrl} = useGeographicalStateAndCountryFromRoute();
@@ -74,7 +74,7 @@ function StateSelector(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [stateFromUrl, onBlur, isFocused]);
 
-    const title = stateCode && Object.keys(COMMON_CONST.STATES).includes(stateCode) ? translate(`allStates.${stateCode}.stateName`) : '';
+    const title = stateCode && stateCode in COMMON_CONST.STATES ? translate(`allStates.${stateCode}.stateName`) : '';
     const descStyle = title.length === 0 ? styles.textNormal : null;
 
     return (
@@ -98,8 +98,6 @@ function StateSelector(
     );
 }
 
-StateSelector.displayName = 'StateSelector';
-
-export default React.forwardRef(StateSelector);
+export default StateSelector;
 
 export type {State};

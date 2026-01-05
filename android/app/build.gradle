@@ -66,7 +66,7 @@ react {
     autolinkLibrariesWithApp()
     // Added by install-expo-modules
     entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", rootDir.getAbsoluteFile().getParentFile().getAbsolutePath(), "android", "absolute"].execute(null, rootDir).text.trim())
-    cliFile = file("../../node_modules/@rnef/cli/dist/src/bin.js")
+    cliFile = file("../../node_modules/rock/dist/src/bin.js")
     bundleCommand = "bundle"
 }
 
@@ -114,8 +114,8 @@ android {
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         multiDexEnabled rootProject.ext.multiDexEnabled
-        versionCode 1009020100
-        versionName "9.2.1-0"
+        versionCode 1009029300
+        versionName "9.2.93-0"
         // Supported language variants must be declared here to avoid from being removed during the compilation.
         // This also helps us to not include unnecessary language variants in the APK.
         resConfigs "en", "es"
@@ -249,8 +249,8 @@ dependencies {
     implementation "com.google.firebase:firebase-crashlytics"
 
     // GIF support
-    implementation 'com.facebook.fresco:fresco:2.5.0'
-    implementation 'com.facebook.fresco:animated-gif:2.5.0'
+    implementation 'com.facebook.fresco:fresco:3.4.0'
+    implementation 'com.facebook.fresco:animated-gif:3.4.0'
 
     // AndroidX support library
     implementation 'androidx.legacy:legacy-support-core-utils:1.0.0'

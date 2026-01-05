@@ -1,6 +1,7 @@
+/* eslint-disable rulesdir/no-deep-equal-in-memo */
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
-import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {memo, use, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -14,10 +15,9 @@ import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Icon from '@components/Icon';
-import {Eye} from '@components/Icon/Expensicons';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
@@ -33,13 +33,16 @@ import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {SearchContext} from '@components/Search/SearchContext';
+import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
+import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -47,24 +50,30 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyOwner} from '@libs/PolicyUtils';
+import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
+    getActionableCardFraudAlertMessage,
     getActionableMentionWhisperMessage,
     getAddedApprovalRuleMessage,
     getAddedConnectionMessage,
     getChangedApproverActionMessage,
+    getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
     getDemotedFromWorkspaceMessage,
     getDismissedViolationMessageText,
+    getForwardsToUpdateMessage,
+    getHarvestCreatedExpenseReportMessage,
     getIntegrationSyncFailedMessage,
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
@@ -73,6 +82,7 @@ import {
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultReimbursableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
+    getPolicyChangeLogDefaultTitleMessage,
     getPolicyChangeLogDeleteMemberMessage,
     getPolicyChangeLogMaxExpenseAmountMessage,
     getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
@@ -83,25 +93,31 @@ import {
     getReopenedMessage,
     getReportActionMessage,
     getReportActionText,
+    getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
     getTravelUpdateMessage,
     getUpdatedApprovalRuleMessage,
     getUpdatedAuditRateMessage,
     getUpdatedManualApprovalThresholdMessage,
     getWhisperedTo,
+    getWorkspaceAttendeeTrackingUpdateMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
     getWorkspaceCustomUnitRateDeletedMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
+    getWorkspaceFeatureEnabledMessage,
     getWorkspaceFrequencyUpdateMessage,
+    getWorkspaceReimbursementUpdateMessage,
     getWorkspaceReportFieldAddMessage,
     getWorkspaceReportFieldDeleteMessage,
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceTagUpdateMessage,
+    getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
     isActionableAddPaymentCard,
+    isActionableCardFraudAlert,
     isActionableJoinRequest,
     isActionableMentionInviteToSubmitExpenseConfirmWhisper,
     isActionableMentionWhisper,
@@ -111,6 +127,7 @@ import {
     isCardIssuedAction,
     isChronosOOOListAction,
     isConciergeCategoryOptions,
+    isConciergeDescriptionOptions,
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
@@ -123,7 +140,9 @@ import {
     isReimbursementQueuedAction,
     isRenamedAction,
     isResolvedConciergeCategoryOptions,
+    isResolvedConciergeDescriptionOptions,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
+    isSystemUserMentioned,
     isTagModificationAction,
     isTaskAction,
     isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
@@ -132,6 +151,7 @@ import {
     isWhisperActionTargetedToOthers,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import {
     canWriteInReport,
@@ -140,6 +160,7 @@ import {
     getDeletedTransactionMessage,
     getDisplayNamesWithTooltips,
     getDowngradeWorkspaceMessage,
+    getForcedCorporateUpgradeMessage,
     getMovedActionMessage,
     getMovedTransactionMessage,
     getPolicyChangeMessage,
@@ -152,6 +173,7 @@ import {
     isChatThread,
     isCompletedTaskReport,
     isExpenseReport,
+    isHarvestCreatedExpenseReport as isHarvestCreatedExpenseReportUtils,
     isTaskReport,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
@@ -161,9 +183,16 @@ import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+import {resolveFraudAlert} from '@userActions/Card';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {expandURLPreview, resolveActionableMentionConfirmWhisper, resolveConciergeCategoryOptions} from '@userActions/Report';
+import {
+    createTransactionThreadReport,
+    expandURLPreview,
+    resolveActionableMentionConfirmWhisper,
+    resolveConciergeCategoryOptions,
+    resolveConciergeDescriptionOptions,
+} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -173,9 +202,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type {JoinWorkspaceResolution, OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
-import type {SearchReport} from '@src/types/onyx/SearchResults';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {JoinWorkspaceResolution, OriginalMessageMovedTransaction, OriginalMessageUnreportedTransaction} from '@src/types/onyx/OriginalMessage';
+import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
 import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
@@ -198,6 +226,9 @@ type PureReportActionItemProps = {
     /** All the data of the policy collection */
     policies: OnyxCollection<OnyxTypes.Policy>;
 
+    /** Model of onboarding selected */
+    introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
+
     /** Report for this action */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -215,8 +246,6 @@ type PureReportActionItemProps = {
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** The transaction thread report's parentReportAction */
-    /** It's used by withOnyx HOC */
-    // eslint-disable-next-line react/no-unused-prop-types
     parentReportActionForTransactionThread?: OnyxEntry<OnyxTypes.ReportAction>;
 
     /** All the data of the action item */
@@ -309,18 +338,27 @@ type PureReportActionItemProps = {
         reportAction: OnyxTypes.ReportAction,
         reactionObject: Emoji,
         existingReactions: OnyxEntry<OnyxTypes.ReportActionReactions>,
-        paramSkinTone: number | undefined,
+        paramSkinTone: number,
         ignoreSkinToneOnCompare: boolean | undefined,
     ) => void;
 
     /** Function to create a draft transaction and navigate to participant selector */
-    createDraftTransactionAndNavigateToParticipantSelector?: (transactionID: string | undefined, reportID: string | undefined, actionName: IOUAction, reportActionID: string) => void;
+    createDraftTransactionAndNavigateToParticipantSelector?: (
+        transactionID: string | undefined,
+        reportID: string | undefined,
+        actionName: IOUAction,
+        reportActionID: string,
+        introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+        isRestrictedToPreferredPolicy?: boolean,
+        preferredPolicyID?: string,
+    ) => void;
 
     /** Function to resolve actionable report mention whisper */
     resolveActionableReportMentionWhisper?: (
         reportId: string | undefined,
         reportAction: OnyxEntry<OnyxTypes.ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION>,
+        isReportArchived?: boolean,
     ) => void;
 
     /** Function to resolve actionable mention whisper */
@@ -328,8 +366,6 @@ type PureReportActionItemProps = {
         reportId: string | undefined,
         reportAction: OnyxEntry<OnyxTypes.ReportAction>,
         resolution: ValueOf<typeof CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION>,
-        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-        policy: OnyxEntry<OnyxTypes.Policy>,
         isReportArchived: boolean,
     ) => void;
 
@@ -374,6 +410,15 @@ type PureReportActionItemProps = {
 
     /** Current user's account id */
     currentUserAccountID?: number;
+
+    /** The bank account list */
+    bankAccountList?: OnyxTypes.BankAccountList | undefined;
+
+    /** Report name value pairs origin */
+    reportNameValuePairsOrigin?: string;
+
+    /** Report name value pairs originalID */
+    reportNameValuePairsOriginalID?: string;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -390,6 +435,7 @@ const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean =
 function PureReportActionItem({
     allReports,
     policies,
+    introSelected,
     action,
     report,
     policy,
@@ -440,9 +486,13 @@ function PureReportActionItem({
     shouldHighlight = false,
     isTryNewDotNVPDismissed = false,
     currentUserAccountID,
+    bankAccountList,
+    reportNameValuePairsOrigin,
+    reportNameValuePairsOriginalID,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
-    const {translate, datetimeToCalendarTime, formatPhoneNumber, localeCompare} = useLocalize();
+    const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
+    const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
     const theme = useTheme();
@@ -451,12 +501,13 @@ function PureReportActionItem({
     const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
-    const {isBetaEnabled} = usePermissions();
+    const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const shouldRenderViewBasedOnAction = useTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
+    const kycWallRef = useContext(KYCWallContext);
     const composerTextInputRef = useRef<TextInput | HTMLTextAreaElement>(null);
     const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
     const downloadedPreviews = useRef<string[]>([]);
@@ -465,7 +516,10 @@ function PureReportActionItem({
     const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
     const isActionableWhisper =
         isActionableMentionWhisper(action) || isActionableMentionInviteToSubmitExpenseConfirmWhisper(action) || isActionableTrackExpense(action) || isActionableReportMentionWhisper(action);
-    const isReportArchived = useReportIsArchived(report?.reportID);
+    const isReportArchived = useReportIsArchived(reportID);
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const isHarvestCreatedExpenseReport = isHarvestCreatedExpenseReportUtils(reportNameValuePairsOrigin, reportNameValuePairsOriginalID);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
 
     const highlightedBackgroundColorIfNeeded = useMemo(
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -492,7 +546,14 @@ function PureReportActionItem({
         },
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
-    const {isOnSearch, currentSearchHash} = useSearchContext();
+
+    const isOnSearch = useIsOnSearch();
+    let currentSearchHash: number | undefined;
+    if (isOnSearch) {
+        const {currentSearchHash: searchContextCurrentSearchHash} = use(SearchContext);
+        currentSearchHash = searchContextCurrentSearchHash;
+    }
+
     const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
     const dismissError = useCallback(() => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
@@ -630,7 +691,7 @@ function PureReportActionItem({
     const showPopover = useCallback(
         (event: GestureResponderEvent | MouseEvent) => {
             // Block menu on the message being Edited or if the report action item has errors
-            if (draftMessage !== undefined || !isEmptyObject(action.errors) || !shouldDisplayContextMenu) {
+            if (draftMessage !== undefined || !isEmptyValueObject(action.errors) || !shouldDisplayContextMenu) {
                 return;
             }
 
@@ -664,7 +725,8 @@ function PureReportActionItem({
         },
         [
             draftMessage,
-            action,
+            action.errors,
+            action.reportActionID,
             reportID,
             toggleContextMenuFromActiveReportAction,
             originalReportID,
@@ -678,8 +740,8 @@ function PureReportActionItem({
     );
 
     const toggleReaction = useCallback(
-        (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => {
-            toggleEmojiReaction(reportID, action, emoji, emojiReactions, undefined, ignoreSkinToneOnCompare);
+        (emoji: Emoji, preferredSkinTone: number, ignoreSkinToneOnCompare?: boolean) => {
+            toggleEmojiReaction(reportID, action, emoji, emojiReactions, preferredSkinTone, ignoreSkinToneOnCompare);
         },
         [reportID, action, emojiReactions, toggleEmojiReaction],
     );
@@ -721,6 +783,7 @@ function PureReportActionItem({
             ];
         }
 
+        const reportActionReportID = originalReportID ?? reportID;
         if (isConciergeCategoryOptions(action)) {
             const options = getOriginalMessage(action)?.options;
             if (!options) {
@@ -731,7 +794,7 @@ function PureReportActionItem({
                 return [];
             }
 
-            if (!reportID) {
+            if (!reportActionReportID) {
                 return [];
             }
 
@@ -739,12 +802,35 @@ function PureReportActionItem({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
-                    resolveConciergeCategoryOptions(reportID, originalReportID, action.reportActionID, option);
+                    resolveConciergeCategoryOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                 },
             }));
         }
 
-        if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
+        if (isConciergeDescriptionOptions(action)) {
+            const options = getOriginalMessage(action)?.options;
+            if (!options) {
+                return [];
+            }
+
+            if (isResolvedConciergeDescriptionOptions(action)) {
+                return [];
+            }
+
+            if (!reportActionReportID) {
+                return [];
+            }
+
+            return options.map((option, i) => ({
+                text: `${i + 1} - ${option}`,
+                key: `${action.reportActionID}-conciergeDescriptionOptions-${option}`,
+                onPress: () => {
+                    resolveConciergeDescriptionOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                },
+            }));
+        }
+
+        if (!isActionableWhisper && !isActionableCardFraudAlert(action) && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
             return [];
         }
 
@@ -755,25 +841,33 @@ function PureReportActionItem({
                     text: 'actionableMentionTrackExpense.submit',
                     key: `${action.reportActionID}-actionableMentionTrackExpense-submit`,
                     onPress: () => {
-                        createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SUBMIT, action.reportActionID);
+                        createDraftTransactionAndNavigateToParticipantSelector(
+                            transactionID,
+                            reportActionReportID,
+                            CONST.IOU.ACTION.SUBMIT,
+                            action.reportActionID,
+                            introSelected,
+                            isRestrictedToPreferredPolicy,
+                            preferredPolicyID,
+                        );
                     },
                 },
             ];
 
-            if (isBetaEnabled(CONST.BETAS.TRACK_FLOWS)) {
+            if (Permissions.canUseTrackFlows()) {
                 options.push(
                     {
                         text: 'actionableMentionTrackExpense.categorize',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-categorize`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID);
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.CATEGORIZE, action.reportActionID, introSelected);
                         },
                     },
                     {
                         text: 'actionableMentionTrackExpense.share',
                         key: `${action.reportActionID}-actionableMentionTrackExpense-share`,
                         onPress: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportID, CONST.IOU.ACTION.SHARE, action.reportActionID);
+                            createDraftTransactionAndNavigateToParticipantSelector(transactionID, reportActionReportID, CONST.IOU.ACTION.SHARE, action.reportActionID, introSelected);
                         },
                     },
                 );
@@ -782,10 +876,35 @@ function PureReportActionItem({
                 text: 'actionableMentionTrackExpense.nothing',
                 key: `${action.reportActionID}-actionableMentionTrackExpense-nothing`,
                 onPress: () => {
-                    dismissTrackExpenseActionableWhisper(reportID, action);
+                    dismissTrackExpenseActionableWhisper(reportActionReportID, action);
                 },
             });
             return options;
+        }
+
+        if (isActionableCardFraudAlert(action)) {
+            if (getOriginalMessage(action)?.resolution) {
+                return [];
+            }
+
+            const cardID = getOriginalMessage(action)?.cardID;
+            return [
+                {
+                    text: translate('cardPage.cardFraudAlert.confirmButtonText'),
+                    key: `${action.reportActionID}-cardFraudAlert-confirm`,
+                    onPress: () => {
+                        resolveFraudAlert(cardID, false, reportID, action?.reportActionID);
+                    },
+                    isPrimary: true,
+                },
+                {
+                    text: translate('cardPage.cardFraudAlert.reportFraudButtonText'),
+                    key: `${action.reportActionID}-cardFraudAlert-reportFraud`,
+                    onPress: () => {
+                        resolveFraudAlert(cardID, true, reportID, action?.reportActionID);
+                    },
+                },
+            ];
         }
 
         if (isActionableJoinRequest(action)) {
@@ -793,13 +912,13 @@ function PureReportActionItem({
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.accept',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                    onPress: () => acceptJoinRequest(reportID, action),
+                    onPress: () => acceptJoinRequest(reportActionReportID, action),
                     isPrimary: true,
                 },
                 {
                     text: 'actionableMentionJoinWorkspaceOptions.decline',
                     key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                    onPress: () => declineJoinRequest(reportID, action),
+                    onPress: () => declineJoinRequest(reportActionReportID, action),
                 },
             ];
         }
@@ -809,13 +928,13 @@ function PureReportActionItem({
                 {
                     text: 'common.yes',
                     key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE}`,
-                    onPress: () => resolveActionableReportMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE),
+                    onPress: () => resolveActionableReportMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.CREATE, isReportArchived),
                     isPrimary: true,
                 },
                 {
                     text: 'common.no',
                     key: `${action.reportActionID}-actionableReportMentionWhisper-${CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                    onPress: () => resolveActionableReportMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING),
+                    onPress: () => resolveActionableReportMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING, isReportArchived),
                 },
             ];
         }
@@ -827,11 +946,10 @@ function PureReportActionItem({
                     key: `${action.reportActionID}-actionableReportMentionConfirmWhisper-${CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE}`,
                     onPress: () =>
                         resolveActionableMentionConfirmWhisper(
-                            reportID,
+                            reportActionReportID,
                             action,
                             CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE,
-                            formatPhoneNumber,
-                            isReportArchived,
+                            isOriginalReportArchived,
                         ),
                     isPrimary: true,
                 },
@@ -839,21 +957,18 @@ function PureReportActionItem({
         }
 
         const actionableMentionWhisperOptions = [];
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const isReportInPolicy = !!report?.policyID && report.policyID !== CONST.POLICY.ID_FAKE && getPersonalPolicy()?.id !== report.policyID;
 
-        if (isReportInPolicy && (isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID))) {
+        // Show the invite to submit expense button even if one of the mentioned users is a not a policy member
+        const hasMentionedPolicyMembers = getOriginalMessage(action)?.inviteeEmails?.every((login) => isPolicyMember(policy, login)) ?? false;
+
+        if ((isPolicyAdmin(policy) || isPolicyOwner(policy, currentUserAccountID)) && isReportInPolicy && !isSystemUserMentioned(action) && !hasMentionedPolicyMembers) {
             actionableMentionWhisperOptions.push({
                 text: 'actionableMentionWhisperOptions.inviteToSubmitExpense',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE}`,
                 onPress: () =>
-                    resolveActionableMentionWhisper(
-                        reportID,
-                        action,
-                        CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE,
-                        formatPhoneNumber,
-                        policy,
-                        isReportArchived,
-                    ),
+                    resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE_TO_SUBMIT_EXPENSE, isOriginalReportArchived),
                 isMediumSized: true,
             });
         }
@@ -862,13 +977,13 @@ function PureReportActionItem({
             {
                 text: 'actionableMentionWhisperOptions.inviteToChat',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, formatPhoneNumber, policy, isReportArchived),
+                onPress: () => resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, isOriginalReportArchived),
                 isMediumSized: true,
             },
             {
                 text: 'actionableMentionWhisperOptions.nothing',
                 key: `${action.reportActionID}-actionableMentionWhisper-${CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING}`,
-                onPress: () => resolveActionableMentionWhisper(reportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, formatPhoneNumber, policy, isReportArchived),
+                onPress: () => resolveActionableMentionWhisper(reportActionReportID, action, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, isOriginalReportArchived),
                 isMediumSized: true,
             },
         );
@@ -876,19 +991,23 @@ function PureReportActionItem({
     }, [
         action,
         userBillingFundID,
+        originalReportID,
+        reportID,
         isActionableWhisper,
         report?.policyID,
         policy,
         currentUserAccountID,
-        reportID,
-        originalReportID,
-        isBetaEnabled,
+        personalDetail.timezone,
         createDraftTransactionAndNavigateToParticipantSelector,
+        isRestrictedToPreferredPolicy,
+        preferredPolicyID,
         dismissTrackExpenseActionableWhisper,
+        translate,
         resolveActionableReportMentionWhisper,
-        formatPhoneNumber,
-        resolveActionableMentionWhisper,
         isReportArchived,
+        isOriginalReportArchived,
+        resolveActionableMentionWhisper,
+        introSelected,
     ]);
 
     /**
@@ -950,11 +1069,17 @@ function PureReportActionItem({
                                         return;
                                     }
 
+                                    // If no childReportID exists, create transaction thread on-demand
                                     if (!action.childReportID) {
+                                        const createdTransactionThreadReport = createTransactionThreadReport(iouReport, action);
+                                        if (createdTransactionThreadReport?.reportID) {
+                                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(createdTransactionThreadReport.reportID, undefined, undefined, Navigation.getActiveRoute()));
+                                            return;
+                                        }
                                         return;
                                     }
 
-                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID, undefined, undefined, Navigation.getActiveRoute()));
                                 }}
                                 isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
                             />
@@ -1040,6 +1165,7 @@ function PureReportActionItem({
                         )}
                         {missingPaymentMethod === 'wallet' && (
                             <KYCWall
+                                ref={kycWallRef}
                                 onSuccessfulKYC={() => Navigation.navigate(ROUTES.ENABLE_PAYMENTS)}
                                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                 addBankAccountRoute={ROUTES.BANK_ACCOUNT_PERSONAL}
@@ -1054,7 +1180,9 @@ function PureReportActionItem({
                                         large
                                         style={[styles.w100, styles.requestPreviewBox]}
                                         text={translate('iou.enableWallet')}
-                                        onPress={triggerKYCFlow}
+                                        onPress={(event) => {
+                                            triggerKYCFlow({event});
+                                        }}
                                     />
                                 )}
                             </KYCWall>
@@ -1065,7 +1193,11 @@ function PureReportActionItem({
         } else if (isReimbursementDeQueuedOrCanceledAction(action)) {
             children = <ReportActionItemBasicMessage message={reimbursementDeQueuedOrCanceledActionMessage} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE) {
-            children = <ReportActionItemBasicMessage message={modifiedExpenseMessage} />;
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<comment><muted-text>${modifiedExpenseMessage}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
             const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
             if (wasSubmittedViaHarvesting) {
@@ -1098,7 +1230,7 @@ function PureReportActionItem({
                 const last4Digits = policy?.achAccount?.accountNumber?.slice(-4) ?? '';
 
                 if (wasAutoPaid) {
-                    const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', {amount: '', last4Digits});
+                    const translation = translate('iou.automaticallyPaidWithBusinessBankAccount', '', last4Digits);
 
                     children = (
                         <ReportActionItemBasicMessage>
@@ -1106,7 +1238,7 @@ function PureReportActionItem({
                         </ReportActionItemBasicMessage>
                     );
                 } else {
-                    children = <ReportActionItemBasicMessage message={translate('iou.businessBankAccount', {amount: '', last4Digits})?.toLowerCase()} />;
+                    children = <ReportActionItemBasicMessage message={translate('iou.businessBankAccount', '', last4Digits)} />;
                 }
             } else if (wasAutoPaid) {
                 children = (
@@ -1115,8 +1247,27 @@ function PureReportActionItem({
                     </ReportActionItemBasicMessage>
                 );
             } else {
-                children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
+                const originalMessage = getOriginalMessage(action);
+                const amount = convertToDisplayString(Math.abs(originalMessage?.amount ?? 0), originalMessage?.currency);
+                if (originalMessage?.bankAccountID) {
+                    const bankAccount = bankAccountList?.[originalMessage.bankAccountID];
+                    children = (
+                        <ReportActionItemBasicMessage
+                            message={translate(
+                                originalMessage?.payAsBusiness ? 'iou.settleInvoiceBusiness' : 'iou.settleInvoicePersonal',
+                                amount,
+                                bankAccount?.accountData?.accountNumber?.slice(-4) ?? '',
+                            )}
+                        />
+                    );
+                } else {
+                    children = <ReportActionItemBasicMessage message={translate('iou.paidWithExpensify')} />;
+                }
             }
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
+            const isFromNewDot = getOriginalMessage(action)?.isNewDot ?? false;
+
+            children = isFromNewDot ? emptyHTML : <ReportActionItemBasicMessage message={translate('iou.paidElsewhere')} />;
         } else if (isUnapprovedAction(action)) {
             children = <ReportActionItemBasicMessage message={translate('iou.unapproved')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.FORWARDED)) {
@@ -1134,6 +1285,12 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getRejectedReportMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
             children = <ReportActionItemBasicMessage message={getUpgradeWorkspaceMessage()} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_FORCE_UPGRADE) {
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<muted-text>${getForcedCorporateUpgradeMessage()}</muted-text>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
             children = <ReportActionItemBasicMessage message={getDowngradeWorkspaceMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
@@ -1142,6 +1299,10 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getReportActionText(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.unheldExpense')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD) {
+            children = <ReportActionItemBasicMessage message={translate('iou.reject.reportActions.rejectedExpense')} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
+            children = <ReportActionItemBasicMessage message={translate('iou.reject.reportActions.markedAsResolved')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.RETRACTED) {
             children = <ReportActionItemBasicMessage message={translate('iou.retracted')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REOPENED) {
@@ -1152,13 +1313,27 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
             const movedTransactionOriginalMessage = getOriginalMessage(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
-            const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+            const {toReportID, fromReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
             const toReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`];
-            children = (
-                <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(toReport)}</muted-text></comment>`} />
-                </ReportActionItemBasicMessage>
-            );
+            const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+            const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            // When the transaction is moved from personal space (unreported), fromReportID will be "0" which doesn't exist in allReports
+            const hasFromReport = fromReportID === CONST.REPORT.UNREPORTED_REPORT_ID ? true : !!fromReport;
+            const htmlContent = isPendingDelete
+                ? `<del><comment><muted-text>${Parser.htmlToText(getMovedTransactionMessage(action))}</muted-text></comment></del>`
+                : `<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`;
+            // When expenses are merged multiple times, the previous fromReportID may reference a deleted report,
+            // making it impossible to retrieve the report name for display
+            // Ref: https://github.com/Expensify/App/issues/70338
+            if (!toReport && !hasFromReport) {
+                children = emptyHTML;
+            } else {
+                children = (
+                    <ReportActionItemBasicMessage message="">
+                        <RenderHTML html={htmlContent} />
+                    </ReportActionItemBasicMessage>
+                );
+            }
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED) {
             children = (
                 <ReportActionItemBasicMessage message="">
@@ -1168,13 +1343,22 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getTravelUpdateMessage(action, datetimeToCalendarTime)}</muted-text></comment>`} />
+                    <RenderHTML html={`<comment><muted-text>${getTravelUpdateMessage(action, formatTravelDate)}</muted-text></comment>`} />
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
+            const unreportedTransactionOriginalMessage = getOriginalMessage(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>) ?? {};
+            const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+            const fromReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`];
+            const isPendingDelete = fromReport?.pendingFields?.preview === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            const unreportedTransactionMessage = getUnreportedTransactionMessage(action);
+            const htmlContent = isPendingDelete
+                ? `<del><comment><muted-text>${Parser.htmlToText(unreportedTransactionMessage)}</muted-text></comment></del>`
+                : `<comment><muted-text>${unreportedTransactionMessage}</muted-text></comment>`;
+
             children = (
                 <ReportActionItemBasicMessage message="">
-                    <RenderHTML html={`<comment><muted-text>${getUnreportedTransactionMessage()}</muted-text></comment>`} />
+                    <RenderHTML html={htmlContent} />
                 </ReportActionItemBasicMessage>
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
@@ -1196,6 +1380,12 @@ function PureReportActionItem({
             action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME
         ) {
             children = <ReportActionItemBasicMessage message={getWorkspaceCategoryUpdateMessage(action, policy)} />;
+        } else if (
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX ||
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAX ||
+            action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAX
+        ) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceTaxUpdateMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_NAME) {
             children = <ReportActionItemBasicMessage message={getCleanedTagName(getTagListNameUpdatedMessage(action))} />;
         } else if (isTagModificationAction(action.actionName)) {
@@ -1216,6 +1406,18 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getWorkspaceReportFieldDeleteMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD)) {
             children = <ReportActionItemBasicMessage message={getWorkspaceUpdateFieldMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED)) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceFeatureEnabledMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED)) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceAttendeeTrackingUpdateMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER)) {
+            children = <ReportActionItemBasicMessage message={getDefaultApproverUpdateMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO)) {
+            children = <ReportActionItemBasicMessage message={getSubmitsToUpdateMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO)) {
+            children = <ReportActionItemBasicMessage message={getForwardsToUpdateMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED)) {
+            children = <ReportActionItemBasicMessage message={getWorkspaceReimbursementUpdateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT)) {
@@ -1226,6 +1428,8 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDefaultReimbursableMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogDefaultTitleEnforcedMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE)) {
+            children = <ReportActionItemBasicMessage message={getPolicyChangeLogDefaultTitleMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
             children = <ReportActionItemBasicMessage message={getPolicyChangeLogAddEmployeeMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
@@ -1240,6 +1444,23 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedApprovalRuleMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN)) {
             children = <ReportActionItemBasicMessage message={getRemovedFromApprovalChainMessage(action)} />;
+        } else if (isActionableCardFraudAlert(action)) {
+            const message = getActionableCardFraudAlertMessage(action, getLocalDateFromDatetime);
+
+            children = (
+                <View
+                    accessibilityRole={CONST.ROLE.ALERT}
+                    accessibilityLabel={translate('reportFraudConfirmationPage.title')}
+                >
+                    <ReportActionItemBasicMessage message={message} />
+                    {actionableItemButtons.length > 0 && (
+                        <ActionableItemButtons
+                            items={actionableItemButtons}
+                            layout="horizontal"
+                        />
+                    )}
+                </View>
+            );
         } else if (isActionableJoinRequest(action)) {
             children = (
                 <View>
@@ -1283,6 +1504,14 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getUpdatedAuditRateMessage(action)} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD)) {
             children = <ReportActionItemBasicMessage message={getUpdatedManualApprovalThresholdMessage(action)} />;
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED) && isHarvestCreatedExpenseReport) {
+            const harvestReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportNameValuePairsOriginalID}`];
+            const harvestReportName = getReportName(harvestReport);
+            children = (
+                <ReportActionItemBasicMessage>
+                    <RenderHTML html={`<comment><muted-text>${getHarvestCreatedExpenseReportMessage(harvestReport?.reportID, harvestReportName, translate)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (isActionableMentionWhisper(action)) {
             children = (
                 <ReportActionItemBasicMessage>
@@ -1291,12 +1520,12 @@ function PureReportActionItem({
                         <ActionableItemButtons
                             items={actionableItemButtons}
                             shouldUseLocalization
-                            layout="horizontal"
+                            layout="vertical"
                         />
                     )}
                 </ReportActionItemBasicMessage>
             );
-        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL)) {
+        } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REROUTE)) {
             children = (
                 <ReportActionItemBasicMessage>
                     <RenderHTML html={`<comment><muted-text>${getChangedApproverActionMessage(action)}</muted-text></comment>`} />
@@ -1305,6 +1534,8 @@ function PureReportActionItem({
         } else {
             const hasBeenFlagged =
                 ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action);
+
+            const isConciergeOptions = isConciergeCategoryOptions(action) || isConciergeDescriptionOptions(action);
             children = (
                 <MentionReportContext.Provider value={mentionReportContextValue}>
                     <ShowContextMenuContext.Provider value={contextValue}>
@@ -1322,6 +1553,7 @@ function PureReportActionItem({
                                             small
                                             style={[styles.mt2, styles.alignSelfStart]}
                                             onPress={() => updateHiddenState(!isHidden)}
+                                            sentryLabel={CONST.SENTRY_LABEL.REPORT.MODERATION_BUTTON}
                                         >
                                             <Text
                                                 style={[styles.buttonSmallText, styles.userSelectNone]}
@@ -1332,15 +1564,24 @@ function PureReportActionItem({
                                         </Button>
                                     )}
                                     {/**
-                                These are the actionable buttons that appear at the bottom of a Concierge message
-                                for example: Invite a user mentioned but not a member of the room
-                                https://github.com/Expensify/App/issues/32741
-                            */}
+                                     These are the actionable buttons that appear at the bottom of a Concierge message
+                                     for example: Invite a user mentioned but not a member of the room
+                                     https://github.com/Expensify/App/issues/32741
+                                     */}
                                     {actionableItemButtons.length > 0 && (
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
-                                            layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) || isActionableMentionWhisper(action) ? 'vertical' : 'horizontal'}
-                                            shouldUseLocalization={!isConciergeCategoryOptions(action)}
+                                            layout={
+                                                isActionableTrackExpense(action) ||
+                                                isConciergeCategoryOptions(action) ||
+                                                isConciergeDescriptionOptions(action) ||
+                                                isActionableMentionWhisper(action)
+                                                    ? 'vertical'
+                                                    : 'horizontal'
+                                            }
+                                            shouldUseLocalization={!isConciergeOptions}
+                                            primaryTextNumberOfLines={isConciergeOptions ? 2 : 1}
+                                            textStyles={isConciergeOptions ? styles.textAlignLeft : undefined}
                                         />
                                     )}
                                 </View>
@@ -1349,6 +1590,7 @@ function PureReportActionItem({
                                     action={action}
                                     draftMessage={draftMessage}
                                     reportID={reportID}
+                                    originalReportID={originalReportID}
                                     policyID={report?.policyID}
                                     index={index}
                                     ref={composerTextInputRef}
@@ -1387,15 +1629,16 @@ function PureReportActionItem({
                             reportAction={action}
                             emojiReactions={isOnSearch ? {} : emojiReactions}
                             shouldBlockReactions={hasErrors}
-                            toggleReaction={(emoji, ignoreSkinToneOnCompare) => {
+                            toggleReaction={(emoji, preferredSkinTone, ignoreSkinToneOnCompare) => {
                                 if (isAnonymousUser()) {
                                     hideContextMenu(false);
 
+                                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                                     InteractionManager.runAfterInteractions(() => {
                                         signOutAndRedirectToSignIn();
                                     });
                                 } else {
-                                    toggleReaction(emoji, ignoreSkinToneOnCompare);
+                                    toggleReaction(emoji, preferredSkinTone, ignoreSkinToneOnCompare);
                                 }
                             }}
                             setIsEmojiPickerActive={setIsEmojiPickerActive}
@@ -1466,7 +1709,8 @@ function PureReportActionItem({
 
         return <ReportActionItemGrouped wrapperStyle={isWhisper ? styles.pt1 : {}}>{content}</ReportActionItemGrouped>;
     };
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
+
+    const createdActionContent = useMemo(() => {
         const transactionID = isMoneyRequestAction(parentReportActionForTransactionThread) ? getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID : undefined;
 
         return (
@@ -1480,7 +1724,15 @@ function PureReportActionItem({
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
             />
         );
+    }, [contextValue, allReports, parentReportAction, parentReport, draftMessage, shouldHideThreadDividerLine, parentReportActionForTransactionThread]);
+
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !isHarvestCreatedExpenseReport) {
+        return createdActionContent;
     }
+
+    // Should show createdActionContent if:
+    // - Harvest report is shown in ReportActionsList (one-transaction view)
+    const shouldShowCreatedAction = action.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && !!isHarvestCreatedExpenseReport && !!parentReportActionForTransactionThread;
 
     if (isTripPreview(action) && isThreadReportParentAction) {
         return <TripSummary reportID={getOriginalMessage(action)?.linkedReportID} />;
@@ -1508,7 +1760,7 @@ function PureReportActionItem({
         return null;
     }
 
-    const hasErrors = !isEmptyObject(action.errors);
+    const hasErrors = !isEmptyValueObject(action.errors);
     const whisperedTo = getWhisperedTo(action);
     const isMultipleParticipant = whisperedTo.length > 1;
 
@@ -1519,7 +1771,7 @@ function PureReportActionItem({
         ? (Object.values(personalDetails ?? {}).filter((details) => whisperedTo.includes(details?.accountID ?? CONST.DEFAULT_NUMBER_ID)) as OnyxTypes.PersonalDetails[])
         : [];
     const isWhisperOnlyVisibleByUser = isWhisper && isCurrentUserTheOnlyParticipant(whisperedTo);
-    const displayNamesWithTooltips = isWhisper ? getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant, localeCompare) : [];
+    const displayNamesWithTooltips = isWhisper ? getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant, localeCompare, formatPhoneNumber) : [];
 
     const renderSearchHeader = (children: React.ReactNode) => {
         if (!isOnSearch) {
@@ -1538,7 +1790,7 @@ function PureReportActionItem({
                             }}
                             numberOfLines={1}
                         >
-                            {getChatListItemReportName(action, report as SearchReport)}
+                            {getChatListItemReportName(action, report)}
                         </TextLink>
                     </View>
                     {children}
@@ -1548,131 +1800,136 @@ function PureReportActionItem({
     };
 
     return (
-        <PressableWithSecondaryInteraction
-            ref={popoverAnchorRef}
-            onPress={() => {
-                if (draftMessage === undefined) {
-                    onPress?.();
-                }
-                if (!Keyboard.isVisible()) {
-                    return;
-                }
-                Keyboard.dismiss();
-            }}
-            style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
-            onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
-            onPressOut={() => ControlSelection.unblock()}
-            onSecondaryInteraction={showPopover}
-            preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
-            withoutFocusOnSecondaryInteraction
-            accessibilityLabel={translate('accessibilityHints.chatMessage')}
-            accessible
-        >
-            <Hoverable
-                shouldHandleScroll
-                isDisabled={draftMessage !== undefined}
-                shouldFreezeCapture={isPaymentMethodPopoverActive}
-                onHoverIn={() => {
-                    setIsReportActionActive(false);
+        <View>
+            {shouldShowCreatedAction && createdActionContent}
+            <PressableWithSecondaryInteraction
+                ref={popoverAnchorRef}
+                onPress={() => {
+                    if (draftMessage === undefined) {
+                        onPress?.();
+                    }
+                    if (!Keyboard.isVisible()) {
+                        return;
+                    }
+                    Keyboard.dismiss();
                 }}
-                onHoverOut={() => {
-                    setIsReportActionActive(!!isReportActionLinked);
-                }}
+                style={[action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDeletedParentAction ? styles.pointerEventsNone : styles.pointerEventsAuto]}
+                onPressIn={() => shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
+                onPressOut={() => ControlSelection.unblock()}
+                onSecondaryInteraction={showPopover}
+                preventDefaultContextMenu={draftMessage === undefined && !hasErrors}
+                withoutFocusOnSecondaryInteraction
+                accessibilityLabel={translate('accessibilityHints.chatMessage')}
+                accessible
+                sentryLabel={CONST.SENTRY_LABEL.REPORT.PURE_REPORT_ACTION_ITEM}
             >
-                {(hovered) => (
-                    <View style={highlightedBackgroundColorIfNeeded}>
-                        {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
-                        {shouldDisplayContextMenu && (
-                            <MiniReportActionContextMenu
-                                reportID={reportID}
-                                reportActionID={action.reportActionID}
-                                anchor={popoverAnchorRef}
-                                originalReportID={originalReportID}
-                                isArchivedRoom={isArchivedRoom}
-                                displayAsGroup={displayAsGroup}
-                                disabledActions={disabledActions}
-                                isVisible={hovered && draftMessage === undefined && !hasErrors}
-                                isThreadReportParentAction={isThreadReportParentAction}
-                                draftMessage={draftMessage}
-                                isChronosReport={isChronosReport}
-                                checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                                setIsEmojiPickerActive={setIsEmojiPickerActive}
-                            />
-                        )}
-                        <View
-                            style={StyleUtils.getReportActionItemStyle(
-                                hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined || isPaymentMethodPopoverActive,
-                                draftMessage === undefined && !!onPress,
+                <Hoverable
+                    shouldHandleScroll
+                    isDisabled={draftMessage !== undefined}
+                    shouldFreezeCapture={isPaymentMethodPopoverActive}
+                    onHoverIn={() => {
+                        setIsReportActionActive(false);
+                    }}
+                    onHoverOut={() => {
+                        setIsReportActionActive(!!isReportActionLinked);
+                    }}
+                >
+                    {(hovered) => (
+                        <View style={highlightedBackgroundColorIfNeeded}>
+                            {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && <UnreadActionIndicator reportActionID={action.reportActionID} />}
+                            {shouldDisplayContextMenu && (
+                                <MiniReportActionContextMenu
+                                    reportID={reportID}
+                                    reportActionID={action.reportActionID}
+                                    anchor={popoverAnchorRef}
+                                    originalReportID={originalReportID}
+                                    isArchivedRoom={isArchivedRoom}
+                                    displayAsGroup={displayAsGroup}
+                                    disabledActions={disabledActions}
+                                    isVisible={hovered && draftMessage === undefined && !hasErrors}
+                                    isThreadReportParentAction={isThreadReportParentAction}
+                                    draftMessage={draftMessage}
+                                    isChronosReport={isChronosReport}
+                                    checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                                    setIsEmojiPickerActive={setIsEmojiPickerActive}
+                                />
                             )}
-                        >
-                            <OfflineWithFeedback
-                                onClose={onClose}
-                                dismissError={dismissError}
-                                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                pendingAction={
-                                    draftMessage !== undefined ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
-                                }
-                                shouldHideOnDelete={!isDeletedParentAction}
-                                errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
-                                errorRowStyles={[styles.ml10, styles.mr2]}
-                                needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
-                                shouldDisableStrikeThrough
+                            <View
+                                style={StyleUtils.getReportActionItemStyle(
+                                    hovered || isWhisper || isContextMenuActive || !!isEmojiPickerActive || draftMessage !== undefined || isPaymentMethodPopoverActive,
+                                    draftMessage === undefined && !!onPress,
+                                )}
                             >
-                                {renderSearchHeader(
-                                    <>
-                                        {isWhisper && (
-                                            <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
-                                                <View style={[styles.pl6, styles.mr3]}>
-                                                    <Icon
-                                                        fill={theme.icon}
-                                                        src={Eye}
-                                                        small
+                                <OfflineWithFeedback
+                                    onClose={onClose}
+                                    dismissError={dismissError}
+                                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                    pendingAction={
+                                        draftMessage !== undefined ? undefined : (action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined))
+                                    }
+                                    shouldHideOnDelete={!isDeletedParentAction}
+                                    errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
+                                    errorRowStyles={[styles.ml10, styles.mr2]}
+                                    needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
+                                    shouldDisableStrikeThrough
+                                >
+                                    {renderSearchHeader(
+                                        <>
+                                            {isWhisper && (
+                                                <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
+                                                    <View style={[styles.pl6, styles.mr3]}>
+                                                        <Icon
+                                                            fill={theme.icon}
+                                                            src={expensifyIcons.Eye}
+                                                            small
+                                                        />
+                                                    </View>
+                                                    <Text style={[styles.chatItemMessageHeaderTimestamp]}>
+                                                        {translate('reportActionContextMenu.onlyVisible')}
+                                                        &nbsp;
+                                                    </Text>
+                                                    <DisplayNames
+                                                        fullTitle={getWhisperDisplayNames(formatPhoneNumber, whisperedTo) ?? ''}
+                                                        displayNamesWithTooltips={displayNamesWithTooltips}
+                                                        tooltipEnabled
+                                                        numberOfLines={1}
+                                                        textStyles={[styles.chatItemMessageHeaderTimestamp, styles.flex1]}
+                                                        shouldUseFullTitle={isWhisperOnlyVisibleByUser}
                                                     />
                                                 </View>
-                                                <Text style={[styles.chatItemMessageHeaderTimestamp]}>
-                                                    {translate('reportActionContextMenu.onlyVisible')}
-                                                    &nbsp;
-                                                </Text>
-                                                <DisplayNames
-                                                    fullTitle={getWhisperDisplayNames(whisperedTo) ?? ''}
-                                                    displayNamesWithTooltips={displayNamesWithTooltips}
-                                                    tooltipEnabled
-                                                    numberOfLines={1}
-                                                    textStyles={[styles.chatItemMessageHeaderTimestamp, styles.flex1]}
-                                                    shouldUseFullTitle={isWhisperOnlyVisibleByUser}
-                                                />
-                                            </View>
-                                        )}
-                                        {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper, hasErrors)}
-                                    </>,
-                                )}
-                            </OfflineWithFeedback>
+                                            )}
+                                            {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper, hasErrors)}
+                                        </>,
+                                    )}
+                                </OfflineWithFeedback>
+                            </View>
                         </View>
-                    </View>
-                )}
-            </Hoverable>
-            <View style={styles.reportActionSystemMessageContainer}>
-                <InlineSystemMessage message={action.error} />
-            </View>
-            <ConfirmModal
-                isVisible={showConfirmDismissReceiptError}
-                onConfirm={() => {
-                    dismissError();
-                    setShowConfirmDismissReceiptError(false);
-                }}
-                onCancel={() => {
-                    setShowConfirmDismissReceiptError(false);
-                }}
-                title={translate('iou.dismissReceiptError')}
-                prompt={translate('iou.dismissReceiptErrorConfirmation')}
-                confirmText={translate('common.dismiss')}
-                cancelText={translate('common.cancel')}
-                shouldShowCancelButton
-                danger
-            />
-        </PressableWithSecondaryInteraction>
+                    )}
+                </Hoverable>
+                <View style={styles.reportActionSystemMessageContainer}>
+                    <InlineSystemMessage message={action.error} />
+                </View>
+                <ConfirmModal
+                    isVisible={showConfirmDismissReceiptError}
+                    onConfirm={() => {
+                        dismissError();
+                        setShowConfirmDismissReceiptError(false);
+                    }}
+                    onCancel={() => {
+                        setShowConfirmDismissReceiptError(false);
+                    }}
+                    title={translate('iou.dismissReceiptError')}
+                    prompt={translate('iou.dismissReceiptErrorConfirmation')}
+                    confirmText={translate('common.dismiss')}
+                    cancelText={translate('common.cancel')}
+                    shouldShowCancelButton
+                    danger
+                />
+            </PressableWithSecondaryInteraction>
+        </View>
     );
 }
+
 export type {PureReportActionItemProps};
 export default memo(PureReportActionItem, (prevProps, nextProps) => {
     const prevParentReportAction = prevProps.parentReportAction;
@@ -1712,6 +1969,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.isUserValidated === nextProps.isUserValidated &&
         prevProps.parentReport?.reportID === nextProps.parentReport?.reportID &&
         deepEqual(prevProps.personalDetails, nextProps.personalDetails) &&
+        deepEqual(prevProps.introSelected, nextProps.introSelected) &&
         deepEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
         prevProps.originalReportID === nextProps.originalReportID &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
@@ -1720,7 +1978,11 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.missingPaymentMethod, nextProps.missingPaymentMethod) &&
         prevProps.reimbursementDeQueuedOrCanceledActionMessage === nextProps.reimbursementDeQueuedOrCanceledActionMessage &&
         prevProps.modifiedExpenseMessage === nextProps.modifiedExpenseMessage &&
+        prevProps.userBillingFundID === nextProps.userBillingFundID &&
+        deepEqual(prevProps.taskReport, nextProps.taskReport) &&
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
-        prevProps.userBillingFundID === nextProps.userBillingFundID
+        deepEqual(prevProps.bankAccountList, nextProps.bankAccountList) &&
+        prevProps.reportNameValuePairsOrigin === nextProps.reportNameValuePairsOrigin &&
+        prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID
     );
 });

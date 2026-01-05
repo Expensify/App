@@ -6,20 +6,19 @@ import {StyleSheet} from 'react-native';
 import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAccountIDsByLogins, getDisplayNameOrDefault, getShortMentionIfFound} from '@libs/PersonalDetailsUtils';
 import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import asMutable from '@src/types/utils/asMutable';
@@ -32,7 +31,7 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
     const StyleUtils = useStyleUtils();
     const {formatPhoneNumber} = useLocalize();
     const htmlAttribAccountID = tnode.attributes.accountid;
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const personalDetails = usePersonalDetails();
     const htmlAttributeAccountID = tnode.attributes.accountid;
 
     let accountID: number;
@@ -102,7 +101,14 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
                         <Text
                             // eslint-disable-next-line react/jsx-props-no-spreading
                             {...defaultRendererProps}
-                            style={[styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isOurMention), {color: StyleUtils.getMentionTextColor(isOurMention)}]}
+                            style={[
+                                styles.link,
+                                styleWithoutColor,
+                                StyleUtils.getMentionStyle(isOurMention),
+                                {color: StyleUtils.getMentionTextColor(isOurMention)},
+                                styles.breakWord,
+                                styles.textWrap,
+                            ]}
                             role={CONST.ROLE.LINK}
                             testID="mention-user"
                             href={`/${navigationRoute}`}
@@ -115,7 +121,5 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
         </ShowContextMenuContext.Consumer>
     );
 }
-
-MentionUserRenderer.displayName = 'MentionUserRenderer';
 
 export default withCurrentUserPersonalDetails(MentionUserRenderer);

@@ -53,10 +53,11 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         const membersToRemove = initialApprovalWorkflow.members.filter((initialMember) => !approvalWorkflow.members.some((member) => member.email === initialMember.email));
         const approversToRemove = initialApprovalWorkflow.approvers.filter((initialApprover) => !approvalWorkflow.approvers.some((approver) => approver.email === initialApprover.email));
         Navigation.dismissModal();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
-            updateApprovalWorkflow(route.params.policyID, approvalWorkflow, membersToRemove, approversToRemove);
+            updateApprovalWorkflow(approvalWorkflow, membersToRemove, approversToRemove, policy);
         });
-    }, [approvalWorkflow, initialApprovalWorkflow, route.params.policyID]);
+    }, [approvalWorkflow, initialApprovalWorkflow, policy]);
 
     const removeApprovalWorkflowCallback = useCallback(() => {
         if (!initialApprovalWorkflow) {
@@ -65,11 +66,12 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
 
         setIsDeleteModalVisible(false);
         Navigation.dismissModal();
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             // Remove the approval workflow using the initial data as it could be already edited
-            removeApprovalWorkflow(route.params.policyID, initialApprovalWorkflow);
+            removeApprovalWorkflow(initialApprovalWorkflow, policy);
         });
-    }, [initialApprovalWorkflow, route.params.policyID]);
+    }, [initialApprovalWorkflow, policy]);
 
     const {currentApprovalWorkflow, defaultWorkflowMembers, usedApproverEmails} = useMemo(() => {
         if (!policy || !personalDetails) {
@@ -124,7 +126,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceWorkflowsApprovalsEditPage.displayName}
+                testID="WorkspaceWorkflowsApprovalsEditPage"
             >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
@@ -174,7 +176,5 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceWorkflowsApprovalsEditPage.displayName = 'WorkspaceWorkflowsApprovalsEditPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsApprovalsEditPage);

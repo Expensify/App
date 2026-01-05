@@ -14,18 +14,8 @@ import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {Locale, Onboarding} from '@src/types/onyx';
-
-let onboardingValues: Onboarding;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ONBOARDING,
-    callback: (value) => {
-        if (value === undefined) {
-            return;
-        }
-        onboardingValues = value;
-    },
-});
 
 type OnboardingCompanySize = ValueOf<typeof CONST.ONBOARDING_COMPANY_SIZE>;
 type OnboardingPurpose = ValueOf<typeof CONST.ONBOARDING_CHOICES>;
@@ -37,6 +27,7 @@ type GetOnboardingInitialPathParamsType = {
     currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
     currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
     onboardingInitialPath: OnyxEntry<string>;
+    onboardingValues: OnyxEntry<Onboarding>;
 };
 
 type OnboardingTaskLinks = Partial<{
@@ -75,6 +66,18 @@ type OnboardingMessage = {
     type?: string;
 };
 
+let onboardingData: OnyxEntry<Onboarding>;
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_ONBOARDING,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        onboardingData = value;
+    },
+});
+
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
@@ -103,6 +106,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         currentOnboardingPurposeSelected,
         currentOnboardingCompanySize,
         onboardingInitialPath = '',
+        onboardingValues,
     } = getOnboardingInitialPathParams;
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const currentOnboardingValues = onboardingValuesParam ?? onboardingValues;
@@ -110,6 +114,10 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     const isSmb = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const isIndividual = currentOnboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
     const isCurrentOnboardingPurposeManageTeam = currentOnboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
+
+    if (onboardingInitialPath.includes(ROUTES.TEST_DRIVE_MODAL_ROOT.route)) {
+        return `/${ROUTES.TEST_DRIVE_MODAL_ROOT.route}`;
+    }
 
     if (isVsb) {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
@@ -127,6 +135,9 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
     }
 
     if (!isUserFromPublicDomain && hasAccessiblePolicies) {
+        if (onboardingInitialPath) {
+            return onboardingInitialPath;
+        }
         return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
 
@@ -141,11 +152,14 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         return `/${ROUTES.ONBOARDING_ROOT.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && !isCurrentOnboardingPurposeManageTeam) {
+    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_EMPLOYEES.route) && currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
-    if (onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) && (!isCurrentOnboardingPurposeManageTeam || !currentOnboardingCompanySize)) {
+    if (
+        onboardingInitialPath.includes(ROUTES.ONBOARDING_ACCOUNTING.route) &&
+        ((currentOnboardingPurposeSelected !== null && !isCurrentOnboardingPurposeManageTeam) || (currentOnboardingCompanySize === null && currentOnboardingPurposeSelected !== null))
+    ) {
         return `/${ROUTES.ONBOARDING_PURPOSE.route}`;
     }
 
@@ -164,6 +178,13 @@ const getOnboardingMessages = (locale?: Locale) => {
             DESCRIPTION: translate(resolvedLocale, 'onboarding.testDrive.employeeFakeReceipt.description'),
             MERCHANT: "Tommy's Tires",
         },
+    };
+    const addExpenseApprovalsTask: OnboardingTask = {
+        type: CONST.ONBOARDING_TASK_TYPE.ADD_EXPENSE_APPROVALS,
+        autoCompleted: false,
+        title: () => translate(resolvedLocale, 'onboarding.tasks.addExpenseApprovalsTask.title'),
+        description: ({workspaceMoreFeaturesLink}) => translate(resolvedLocale, 'onboarding.tasks.addExpenseApprovalsTask.description', {workspaceMoreFeaturesLink}),
+        mediaAttributes: {},
     };
     const createReportTask: OnboardingTask = {
         type: CONST.ONBOARDING_TASK_TYPE.CREATE_REPORT,
@@ -336,9 +357,20 @@ const getOnboardingMessages = (locale?: Locale) => {
         tasks: [testDriveEmployeeTask, trackExpenseTask],
     };
 
+    const isOnboardingFlow = hasCompletedGuidedSetupFlowSelector(onboardingData);
     const onboardingManageTeamMessage: OnboardingMessage = {
-        message: translate(resolvedLocale, 'onboarding.messages.onboardingManageTeamMessage'),
-        tasks: [createWorkspaceTask, testDriveAdminTask, addAccountingIntegrationTask, connectCorporateCardTask, inviteTeamTask, setupCategoriesAndTags, setupCategoriesTask, setupTagsTask],
+        message: translate(resolvedLocale, 'onboarding.messages.onboardingManageTeamMessage', {isOnboardingFlow}),
+        tasks: [
+            createWorkspaceTask,
+            testDriveAdminTask,
+            addAccountingIntegrationTask,
+            connectCorporateCardTask,
+            inviteTeamTask,
+            setupCategoriesAndTags,
+            setupCategoriesTask,
+            setupTagsTask,
+            addExpenseApprovalsTask,
+        ],
     };
 
     const onboardingTrackWorkspaceMessage: OnboardingMessage = {
@@ -393,5 +425,5 @@ const getOnboardingMessages = (locale?: Locale) => {
     };
 };
 
-export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize};
+export type {OnboardingMessage, OnboardingTask, OnboardingTaskLinks, OnboardingPurpose, OnboardingCompanySize, GetOnboardingInitialPathParamsType};
 export {getOnboardingInitialPath, startOnboardingFlow, getOnboardingMessages};

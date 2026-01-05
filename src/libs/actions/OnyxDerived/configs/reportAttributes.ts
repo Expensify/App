@@ -1,12 +1,16 @@
-import {generateIsEmptyReport, generateReportAttributes, generateReportName, isArchivedReport, isValidReport} from '@libs/ReportUtils';
+import type {OnyxEntry} from 'react-native-onyx';
+import {computeReportName} from '@libs/ReportNameUtils';
+import {generateIsEmptyReport, generateReportAttributes, isArchivedReport, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import {hasKeyTriggeredCompute} from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {PersonalDetailsList, ReportAttributesDerivedValue} from '@src/types/onyx';
 
 let isFullyComputed = false;
+let previousDisplayNames: Record<string, string | undefined> = {};
+let previousPersonalDetails: OnyxEntry<PersonalDetailsList> | undefined;
 
 const prepareReportKeys = (keys: string[]) => {
     return [
@@ -19,6 +23,35 @@ const prepareReportKeys = (keys: string[]) => {
             ),
         ),
     ];
+};
+
+const checkDisplayNamesChanged = (personalDetails: OnyxEntry<PersonalDetailsList>) => {
+    if (!personalDetails) {
+        return false;
+    }
+
+    // Fast path: if reference hasn't changed, display names are definitely the same
+    if (previousPersonalDetails === personalDetails) {
+        return false;
+    }
+
+    const currentDisplayNames = Object.fromEntries(Object.entries(personalDetails).map(([key, value]) => [key, value?.displayName]));
+
+    if (Object.keys(previousDisplayNames).length === 0) {
+        previousDisplayNames = currentDisplayNames;
+        previousPersonalDetails = personalDetails;
+        return Object.keys(currentDisplayNames).length > 0;
+    }
+
+    const currentKeys = Object.keys(currentDisplayNames);
+    const previousKeys = Object.keys(previousDisplayNames);
+
+    const displayNamesChanged = currentKeys.length !== previousKeys.length || currentKeys.some((key) => currentDisplayNames[key] !== previousDisplayNames[key]);
+
+    previousDisplayNames = currentDisplayNames;
+    previousPersonalDetails = personalDetails;
+
+    return displayNamesChanged;
 };
 
 /**
@@ -38,16 +71,33 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
     ],
-    compute: ([reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions], {currentValue, sourceValues, areAllConnectionsSet}) => {
+    compute: (
+        [reports, preferredLocale, transactionViolations, reportActions, reportNameValuePairs, transactions, personalDetails, policies],
+        {currentValue, sourceValues, areAllConnectionsSet},
+    ) => {
         if (!areAllConnectionsSet) {
             return {
                 reports: {},
                 locale: null,
             };
         }
+
+        // Check if display names changed when personal details are updated
+        let displayNamesChanged = false;
+        if (hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
+            displayNamesChanged = checkDisplayNamesChanged(personalDetails);
+
+            if (!displayNamesChanged) {
+                return currentValue ?? {reports: {}, locale: null};
+            }
+        } else if (!sourceValues) {
+            previousDisplayNames = {};
+            previousPersonalDetails = undefined;
+        }
+
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
         // we need to recompute all report attributes on locale change because the report names are locale dependent
-        if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
+        if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || displayNamesChanged) {
             isFullyComputed = false;
         }
 
@@ -93,6 +143,18 @@ export default createOnyxDerivedValueConfig({
             if (updates.length > 0 || !!transactionsUpdates || !!transactionViolationsUpdates) {
                 if (updates.length > 0) {
                     dataToIterate = prepareReportKeys(updates);
+
+                    // When an IOU report changes, we need to re-evaluate its parent chat report as well.
+                    const parentChatReportIDsToUpdate = new Set<string>();
+                    for (const reportKey of dataToIterate) {
+                        const report = reports[reportKey];
+                        if (report?.chatReportID && report.reportID !== report.chatReportID) {
+                            parentChatReportIDsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${report.chatReportID}`);
+                        }
+                    }
+                    if (parentChatReportIDsToUpdate.size > 0) {
+                        dataToIterate.push(...Array.from(parentChatReportIDsToUpdate));
+                    }
                 }
                 if (!!transactionsUpdates || !!transactionViolationsUpdates) {
                     let transactionReportIDs: string[] = [];
@@ -127,6 +189,10 @@ export default createOnyxDerivedValueConfig({
             const report = reports[key];
 
             if (!report || !isValidReport(report)) {
+                const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT, '');
+                if (acc[reportID]) {
+                    delete acc[reportID];
+                }
                 return acc;
             }
 
@@ -153,7 +219,7 @@ export default createOnyxDerivedValueConfig({
             }
 
             acc[report.reportID] = {
-                reportName: generateReportName(report),
+                reportName: report ? computeReportName(report, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions) : '',
                 isEmpty: generateIsEmptyReport(report, isReportArchived),
                 brickRoadStatus,
                 requiresAttention,
@@ -162,6 +228,31 @@ export default createOnyxDerivedValueConfig({
 
             return acc;
         }, currentValue?.reports ?? {});
+
+        // Propagate errors from IOU reports to their parent chat reports.
+        const chatReportIDsWithErrors = new Set<string>();
+        for (const report of Object.values(reports)) {
+            if (!report?.reportID) {
+                continue;
+            }
+
+            // If this is an IOU report and its calculated attributes have an error,
+            // then we need to mark its parent chat report.
+            const attributes = reportAttributes[report.reportID];
+            if (report.chatReportID && report.reportID !== report.chatReportID && attributes?.brickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR) {
+                chatReportIDsWithErrors.add(report.chatReportID);
+            }
+        }
+
+        // Apply the error status to the parent chat reports.
+        for (const chatReportID of chatReportIDsWithErrors) {
+            if (!reportAttributes[chatReportID]) {
+                continue;
+            }
+
+            reportAttributes[chatReportID].brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+
         // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputation on all objects
         if (!Object.keys(reportUpdates).length && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
             isFullyComputed = true;

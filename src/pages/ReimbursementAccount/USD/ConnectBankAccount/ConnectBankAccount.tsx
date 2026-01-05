@@ -7,9 +7,9 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import BankAccount from '@libs/models/BankAccount';
 import ConnectedVerifiedBankAccount from '@pages/ReimbursementAccount/ConnectedVerifiedBankAccount';
 import {navigateToConciergeChat} from '@userActions/Report';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BankAccountValidationForm from './components/BankAccountValidationForm';
 import FinishChatCard from './components/FinishChatCard';
@@ -30,14 +30,14 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}`, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(true);
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
 
     // If a user tries to navigate directly to the validate page we'll show them the EnableStep
-    if (bankAccountState === BankAccount.STATE.OPEN) {
+    if (bankAccountState === CONST.BANK_ACCOUNT.STATE.OPEN) {
         return (
             <ConnectedVerifiedBankAccount
                 reimbursementAccount={reimbursementAccount}
@@ -50,13 +50,13 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     }
 
     const maxAttemptsReached = reimbursementAccount?.maxAttemptsReached ?? false;
-    const isBankAccountVerifying = !maxAttemptsReached && bankAccountState === BankAccount.STATE.VERIFYING;
-    const isBankAccountPending = bankAccountState === BankAccount.STATE.PENDING;
+    const isBankAccountVerifying = !maxAttemptsReached && bankAccountState === CONST.BANK_ACCOUNT.STATE.VERIFYING;
+    const isBankAccountPending = bankAccountState === CONST.BANK_ACCOUNT.STATE.PENDING;
     const requiresTwoFactorAuth = account?.requiresTwoFactorAuth ?? false;
 
     return (
         <ScreenWrapper
-            testID={ConnectBankAccount.displayName}
+            testID="ConnectBankAccount"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -90,7 +90,5 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
         </ScreenWrapper>
     );
 }
-
-ConnectBankAccount.displayName = 'ConnectBankAccount';
 
 export default ConnectBankAccount;

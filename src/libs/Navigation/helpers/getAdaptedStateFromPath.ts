@@ -5,16 +5,18 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import {config} from '@libs/Navigation/linkingConfig/config';
-import {RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE} from '@libs/Navigation/linkingConfig/RELATIONS';
+import {RHP_TO_DOMAIN, RHP_TO_SEARCH, RHP_TO_SETTINGS, RHP_TO_SIDEBAR, RHP_TO_WORKSPACE, RHP_TO_WORKSPACES_LIST} from '@libs/Navigation/linkingConfig/RELATIONS';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import getMatchingNewRoute from './getMatchingNewRoute';
 import getParamsFromRoute from './getParamsFromRoute';
 import {isFullScreenName} from './isNavigatorName';
+import normalizePath from './normalizePath';
 import replacePathInNestedState from './replacePathInNestedState';
 
 let allReports: OnyxCollection<Report>;
@@ -86,6 +88,15 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
         });
     }
 
+    if (RHP_TO_WORKSPACES_LIST[route.name]) {
+        return {
+            name: SCREENS.WORKSPACES_LIST,
+            // prepending a slash to ensure closing the RHP after refreshing the page
+            // replaces the whole path with "/workspaces", instead of just replacing the last url segment ("/x/y/workspaces")
+            path: normalizePath(ROUTES.WORKSPACES_LIST.route),
+        };
+    }
+
     if (RHP_TO_WORKSPACE[route.name]) {
         const paramsFromRoute = getParamsFromRoute(RHP_TO_WORKSPACE[route.name]);
 
@@ -110,6 +121,21 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute) {
             },
             {
                 name: RHP_TO_SETTINGS[route.name],
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            },
+        );
+    }
+
+    if (RHP_TO_DOMAIN[route.name]) {
+        const paramsFromRoute = getParamsFromRoute(RHP_TO_DOMAIN[route.name]);
+
+        return getInitialSplitNavigatorState(
+            {
+                name: SCREENS.DOMAIN.INITIAL,
+                params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
+            },
+            {
+                name: RHP_TO_DOMAIN[route.name],
                 params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
             },
         );

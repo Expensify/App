@@ -1,4 +1,4 @@
-import type {Meta} from '@storybook/react';
+import type {Meta} from '@storybook/react-webpack5';
 // eslint-disable-next-line no-restricted-imports
 import {ExpensiMark} from 'expensify-common';
 import React, {useState} from 'react';
@@ -9,10 +9,10 @@ import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useStyleUtils from '@hooks/useStyleUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
 import {defaultStyles} from '@src/styles';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 const ComposerWithNavigation = withNavigationFallback(Composer);
 
@@ -35,7 +35,7 @@ const DEFAULT_VALUE = `Composer can do the following:
 
 function Default(props: ComposerProps) {
     const StyleUtils = useStyleUtils();
-    const [pastedFile, setPastedFile] = useState<FileObject | null>(null);
+    const [pastedFile, setPastedFile] = useState<FileObject | FileObject[]>();
     const [comment, setComment] = useState(DEFAULT_VALUE);
     const renderedHTML = parser.replace(comment ?? '');
     const [selection, setSelection] = useState<TextSelection>(() => ({start: DEFAULT_VALUE.length, end: DEFAULT_VALUE.length, positionX: 0, positionY: 0}));

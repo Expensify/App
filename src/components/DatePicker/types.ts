@@ -1,8 +1,10 @@
-import type {PopoverWithMeasuredContentProps} from '@components/PopoverWithMeasuredContent';
-import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+import type {ForwardedRef} from 'react';
+import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
-type DatePickerBaseProps = {
+type DatePickerBaseProps = ForwardedFSClassProps & {
     /**
      * The datepicker supports any value that `new Date()` can parse.
      * `onInputChange` would always be called with a Date (or null)
@@ -53,6 +55,11 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * @default false
          */
         shouldHideClearButton?: boolean;
+
+        /**
+         * Reference to the outer element
+         */
+        ref?: ForwardedRef<BaseTextInputRef>;
     };
 
 type DatePickerProps = {

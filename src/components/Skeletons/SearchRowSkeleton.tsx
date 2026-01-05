@@ -5,6 +5,7 @@ import {Circle, Rect} from 'react-native-svg';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ItemListSkeletonView from './ItemListSkeletonView';
@@ -36,12 +37,13 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
+    useSkeletonSpan('SearchRowSkeleton');
 
     if (shouldUseNarrowLayout) {
         return (
             <View style={[styles.flex1, containerStyle]}>
                 <ItemListSkeletonView
-                    itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT}
+                    itemViewHeight={CONST.SEARCH_SKELETON_VIEW_ITEM_HEIGHT_SMALL}
                     itemViewStyle={[styles.highlightBG, styles.mb2, styles.br3, styles.ml5]}
                     gradientOpacityEnabled={gradientOpacityEnabled}
                     shouldAnimate={shouldAnimate}
@@ -50,66 +52,58 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                         <>
                             <Circle
                                 cx={24}
-                                cy={26}
-                                r={8}
+                                cy={22}
+                                r={6}
                             />
 
                             <Rect
-                                x={40}
-                                y={24}
                                 width={40}
                                 height={4}
+                                transform={[{translateX: 40}, {translateY: 20}]}
                             />
                             <Circle
                                 cx={96}
-                                cy={26}
-                                r={8}
+                                cy={22}
+                                r={6}
                             />
 
                             <Rect
-                                x={112}
-                                y={24}
                                 width={40}
                                 height={4}
+                                transform={[{translateX: 112}, {translateY: 20}]}
                             />
                             <Rect
-                                x={windowWidth - 130}
-                                y={12}
-                                width={80}
-                                height={28}
-                                rx={14}
+                                transform={[{translateX: windowWidth - 122}, {translateY: 8}]}
+                                width={72}
+                                height={20}
+                                rx={10}
                                 ry={14}
                             />
 
                             <Rect
-                                x={16}
-                                y={56}
+                                transform={[{translateX: 16}, {translateY: 44}]}
                                 width={36}
                                 height={40}
                                 rx={4}
                                 ry={4}
                             />
                             <Rect
-                                x={64}
-                                y={65}
+                                transform={[{translateX: 64}, {translateY: 53}]}
                                 width={124}
                                 height={8}
                             />
                             <Rect
-                                x={64}
-                                y={79}
+                                transform={[{translateX: 64}, {translateY: 67}]}
                                 width={60}
                                 height={8}
                             />
                             <Rect
-                                x={windowWidth - 130}
-                                y={65}
+                                transform={[{translateX: windowWidth - 130}, {translateY: 53}]}
                                 width={80}
                                 height={8}
                             />
                             <Rect
-                                x={windowWidth - 110}
-                                y={79}
+                                transform={[{translateX: windowWidth - 110}, {translateY: 67}]}
                                 width={60}
                                 height={8}
                             />
@@ -130,37 +124,32 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
                 renderSkeletonItem={() => (
                     <>
                         <Rect
-                            x={12}
-                            y={12}
+                            transform={[{translateX: 12}, {translateY: 12}]}
                             rx={5}
                             ry={5}
                             width={36}
                             height={40}
                         />
                         <Rect
-                            x={60}
-                            y={28}
+                            transform={[{translateX: 60}, {translateY: 28}]}
                             width={30}
                             height={barHeight}
                         />
                         <Rect
-                            x={102}
-                            y={28}
+                            transform={[{translateX: 102}, {translateY: 28}]}
                             width={longBarWidth}
                             height={barHeight}
                         />
                         {isLargeScreenWidth && (
                             <>
                                 <Rect
-                                    x={234}
-                                    y={28}
+                                    transform={[{translateX: 234}, {translateY: 28}]}
                                     width={longBarWidth}
                                     height={barHeight}
                                 />
 
                                 <Rect
-                                    x={366}
-                                    y={28}
+                                    transform={[{translateX: 366}, {translateY: 28}]}
                                     width={60}
                                     height={barHeight}
                                 />
@@ -169,16 +158,14 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
 
                         <Rect
                             // We have to calculate this value to make sure the element is aligned to the button on the right side.
-                            x={windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth}
-                            y={28}
+                            transform={[{translateX: windowWidth - leftPaneWidth - rightButtonWidth - gapWidth - centralPanePadding - gapWidth - rightSideElementWidth}, {translateY: 28}]}
                             width={80}
                             height={barHeight}
                         />
 
                         <Rect
                             // We have to calculate this value to make sure the element is aligned to the right border.
-                            x={windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding}
-                            y={18}
+                            transform={[{translateX: windowWidth - leftPaneWidth - rightSideElementWidth - gapWidth - centralPanePadding}, {translateY: 18}]}
                             rx={15}
                             ry={15}
                             width={80}
@@ -190,7 +177,5 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
         </View>
     );
 }
-
-SearchRowSkeleton.displayName = 'SearchRowSkeleton';
 
 export default SearchRowSkeleton;

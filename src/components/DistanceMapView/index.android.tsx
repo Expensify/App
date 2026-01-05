@@ -1,9 +1,9 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MapView from '@components/MapView';
 import PendingMapView from '@components/MapView/PendingMapView';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -18,6 +18,7 @@ function DistanceMapView({overlayStyle, requireRouteToDisplayMap, ...rest}: Dist
     const {translate} = useLocalize();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
+    const icons = useMemoizedLazyExpensifyIcons(['EmptyStateRoutePending']);
 
     return (
         <>
@@ -36,7 +37,7 @@ function DistanceMapView({overlayStyle, requireRouteToDisplayMap, ...rest}: Dist
                     {/* The "map pending" text should only be shown in the IOU create flow. In the created IOU preview, only the icon should be shown. */}
                     {!requireRouteToDisplayMap ? (
                         <BlockingView
-                            icon={Expensicons.EmptyStateRoutePending}
+                            icon={icons.EmptyStateRoutePending}
                             title={translate('distance.mapPending.title')}
                             subtitle={isOffline ? translate('distance.mapPending.subtitle') : translate('distance.mapPending.onlineSubtitle')}
                             iconColor={theme.border}
@@ -52,7 +53,5 @@ function DistanceMapView({overlayStyle, requireRouteToDisplayMap, ...rest}: Dist
         </>
     );
 }
-
-DistanceMapView.displayName = 'DistanceMapView';
 
 export default DistanceMapView;

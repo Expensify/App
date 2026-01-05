@@ -9,13 +9,11 @@ function WorkspacesListRowDisplayName({isDeleted, ownerName}: WorkspacesListRowD
     return (
         <Text
             numberOfLines={1}
-            style={[styles.labelStrong, isDeleted ? styles.offlineFeedback.deleted : {}]}
+            style={[styles.labelStrong, isDeleted ? styles.offlineFeedbackDeleted : {}]}
         >
             {ownerName}
         </Text>
     );
 }
-
-WorkspacesListRowDisplayName.displayName = 'WorkspacesListRowDisplayName';
 
 export default WorkspacesListRowDisplayName;

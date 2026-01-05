@@ -9,7 +9,7 @@ on:
 jobs:
   perf-tests:
     if: ${{ github.actor != 'OSBotify' }}
-    runs-on: ubuntu-24.04-v4
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout
         # v4
@@ -40,6 +40,9 @@ jobs:
                 echo "Deleted file: $file"
               fi
             done
+      - name: Capture PR head SHA
+        if: ${{ github.event_name == 'pull_request' }}
+        run: echo "PR_SHA=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_ENV"
 
       - name: Run performance testing script
         shell: bash
@@ -47,20 +50,17 @@ jobs:
           set -e
           BASELINE_BRANCH=${BASELINE_BRANCH:="main"}
           git fetch origin "$BASELINE_BRANCH" --no-tags --depth=1
-          git switch "$BASELINE_BRANCH"
-          cd Mobile-Expensify
-          git checkout "$(git rev-parse HEAD)"
-          cd ..
-          git add Mobile-Expensify
-          npm install --force || (rm -rf node_modules && npm install --force) 
+          
+          git checkout --force --detach "origin/$BASELINE_BRANCH" --no-recurse-submodules
+          npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --baseline
-          git switch --force --detach -
-          cd Mobile-Expensify
-          git checkout "$(git rev-parse HEAD)"
-          cd ..
-          git add Mobile-Expensify
-          git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours
-          git checkout --ours .
+          
+          git checkout --force --detach "${PR_SHA:-${GITHUB_SHA}}" --no-recurse-submodules
+          
+          if ! git merge --no-commit --allow-unrelated-histories "$BASELINE_BRANCH" -X ours; then
+            git checkout --ours .
+          fi
+          
           npm install --force || (rm -rf node_modules && npm install --force)
           NODE_OPTIONS=--experimental-vm-modules npx reassure --branch
 

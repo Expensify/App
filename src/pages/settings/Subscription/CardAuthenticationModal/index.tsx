@@ -9,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearPaymentCard3dsVerification, verifySetupIntent} from '@userActions/PaymentMethods';
 import {verifySetupIntentAndRequestPolicyOwnerChange} from '@userActions/Policy/Policy';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -18,6 +19,9 @@ type CardAuthenticationModalProps = {
 
     policyID?: string;
 };
+
+const SECURE_ORIGIN = new URL(CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL).origin;
+
 function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModalProps) {
     const styles = useThemeStyles();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to be consistent with BaseModal component
@@ -42,6 +46,9 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
 
     const handleSCAAuthentication = useCallback(
         (event: MessageEvent<string>) => {
+            if (event.origin !== SECURE_ORIGIN) {
+                return;
+            }
             const message = event.data;
             if (message === CONST.SCA_AUTHENTICATION_COMPLETE) {
                 if (policyID) {
@@ -72,7 +79,7 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
                 style={styles.pb0}
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom={false}
-                testID={CardAuthenticationModal.displayName}
+                testID="CardAuthenticationModal"
             >
                 <HeaderWithBackButton
                     title={headerTitle}
@@ -101,7 +108,5 @@ function CardAuthenticationModal({headerTitle, policyID}: CardAuthenticationModa
         </Modal>
     );
 }
-
-CardAuthenticationModal.displayName = 'CardAuthenticationModal';
 
 export default CardAuthenticationModal;

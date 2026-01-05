@@ -1,3 +1,5 @@
+import {isActingAsDelegateSelector} from '@selectors/Account';
+import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
 import useOnyx from '@hooks/useOnyx';
@@ -46,11 +48,11 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
     const removeListener = useRef<(() => void) | undefined>(undefined);
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {
-        selector: (account) => !!account?.delegatedAccess?.delegate,
+        selector: isActingAsDelegateSelector,
         canBeMissing: true,
     });
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {
-        selector: (session) => session?.accountID,
+        selector: accountIDSelector,
         canBeMissing: true,
     });
     const isActingAsDelegateRef = useRef(isActingAsDelegate);
@@ -123,7 +125,5 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
 
     return children;
 }
-
-DeeplinkWrapper.displayName = 'DeeplinkWrapper';
 
 export default DeeplinkWrapper;

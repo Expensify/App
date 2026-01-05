@@ -1,9 +1,11 @@
 import type {FocusTrapProps} from 'focus-trap-react';
-import type {GestureResponderEvent, PanResponderGestureState, ViewStyle} from 'react-native';
-import type {Direction, ModalProps as ReactNativeModalProps} from 'react-native-modal';
+import type {ForwardedRef} from 'react';
+import type {View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type CONST from '@src/CONST';
 import type ReanimatedModalProps from './ReanimatedModal/types';
+import type {SwipeDirection} from './ReanimatedModal/types';
 
 type FocusTrapOptions = Exclude<FocusTrapProps['focusTrapOptions'], undefined>;
 
@@ -18,13 +20,10 @@ type WindowState = {
     shouldGoBack: boolean;
 };
 
-type BaseModalProps = Partial<ReactNativeModalProps> &
-    Partial<ReanimatedModalProps> & {
+type BaseModalProps = Partial<ReanimatedModalProps> &
+    ForwardedFSClassProps & {
         /** Decides whether the modal should cover fullscreen. FullScreen modal has backdrop */
         fullscreen?: boolean;
-
-        /** Should we close modal on outside click */
-        shouldCloseOnOutsideClick?: boolean;
 
         /** Should we announce the Modal visibility changes? */
         shouldSetModalVisibility?: boolean;
@@ -50,6 +49,7 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         /** The anchor position of a popover modal. Has no effect on other modal types. */
         popoverAnchorPosition?: PopoverAnchorPosition;
 
+        /** Styles for the outer most view wrapper */
         outerStyle?: ViewStyle;
 
         /** Whether the modal should go under the system statusbar */
@@ -64,21 +64,13 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         /** Modal container styles  */
         innerContainerStyle?: ViewStyle;
 
-        /**
-         * Whether the modal should hide its content while animating. On iOS, set to true
-         * if `useNativeDriver` is also true, to avoid flashes in the UI.
-         *
-         * See: https://github.com/react-native-modal/react-native-modal/pull/116
-         * */
-        hideModalContentWhileAnimating?: boolean;
-
         /** Whether handle navigation back when modal show. */
         shouldHandleNavigationBack?: boolean;
 
         /** Should we use a custom backdrop for the modal? (This prevents focus issues on desktop) */
         shouldUseCustomBackdrop?: boolean;
 
-        /** unique id for the modal */
+        /** Unique id for the modal */
         modalId?: number;
 
         /**
@@ -93,23 +85,17 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         /** Should we apply padding style in modal itself. If this value is false, we will handle it in ScreenWrapper */
         shouldUseModalPaddingStyle?: boolean;
 
-        /** Whether swipe gestures should propagate to parent components */
-        propagateSwipe?: boolean | ((event?: GestureResponderEvent, gestureState?: PanResponderGestureState) => boolean);
-
         /** After swipe more than threshold modal will close */
         swipeThreshold?: number;
 
         /** In which direction modal will swipe */
-        swipeDirection?: Direction;
+        swipeDirection?: SwipeDirection;
 
         /** Used to set the element that should receive the initial focus */
         initialFocus?: FocusTrapOptions['initialFocus'];
 
         /** Whether to prevent the focus trap from scrolling the element into view. */
         shouldPreventScrollOnFocus?: boolean;
-
-        /** Whether to disable the animation in */
-        disableAnimationIn?: boolean;
 
         /**
          * Temporary flag to disable safe area bottom spacing in modals and to allow edge-to-edge content.
@@ -130,9 +116,14 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         shouldDisableBottomSafeAreaPadding?: boolean;
 
         /**
-         * Whether the modal should use ReanimatedModal implementation.
+         * Reference to the outer element.
          */
-        shouldUseReanimatedModal?: boolean;
+        ref?: ForwardedRef<View>;
+
+        /**
+         * Whether the modal should display under the side panel.
+         */
+        shouldDisplayBelowModals?: boolean;
     };
 
 export default BaseModalProps;

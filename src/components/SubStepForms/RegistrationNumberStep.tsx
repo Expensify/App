@@ -1,15 +1,15 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useDelayedAutoFocus from '@hooks/useDelayedAutoFocus';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useTheme from '@hooks/useTheme';
@@ -51,9 +51,13 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-
+    const icons = useMemoizedLazyExpensifyIcons(['QuestionMark']);
     const internalInputRef = useRef<AnimatedTextInputRef>(null);
     useDelayedAutoFocus(internalInputRef, shouldDelayAutoFocus);
+
+    const helpLink = useMemo(() => {
+        return CONST.REGISTRATION_NUMBER_HELP_URL[country as keyof typeof CONST.REGISTRATION_NUMBER_HELP_URL] ?? CONST.REGISTRATION_NUMBER_HELP_URL.EU;
+    }, [country]);
 
     const validate = useCallback(
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
@@ -76,7 +80,7 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
             style={[styles.mh5, styles.flexGrow1]}
             shouldHideFixErrorsAlert
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.whatsTheBusinessRegistrationNumber', {country})}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.whatsTheBusinessRegistrationNumber', country)}</Text>
             <InputWrapper
                 InputComponent={TextInput}
                 label={translate('businessInfoStep.registrationNumber')}
@@ -88,10 +92,11 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
                 shouldSaveDraft={!isEditing}
                 autoFocus={!shouldDelayAutoFocus}
                 ref={internalInputRef}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             />
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt6]}>
                 <Icon
-                    src={Expensicons.QuestionMark}
+                    src={icons.QuestionMark}
                     width={12}
                     height={12}
                     fill={theme.icon}
@@ -99,7 +104,7 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
                 <View style={[styles.ml2, styles.dFlex, styles.flexRow]}>
                     <TextLink
                         style={[styles.textMicro]}
-                        href={CONST.HELP_LINK_URL}
+                        href={helpLink}
                     >
                         {translate('businessInfoStep.whatsThisNumber')}
                     </TextLink>
@@ -108,7 +113,5 @@ function RegistrationNumberStep<TFormID extends keyof OnyxFormValuesMapping>({
         </FormProvider>
     );
 }
-
-RegistrationNumberStep.displayName = 'RegistrationNumberStep';
 
 export default RegistrationNumberStep;

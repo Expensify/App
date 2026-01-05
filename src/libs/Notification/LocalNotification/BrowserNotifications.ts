@@ -3,13 +3,14 @@ import {Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 import * as AppUpdate from '@libs/actions/AppUpdate';
-import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
+import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import {getTextFromHtml} from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import type {Report, ReportAction} from '@src/types/onyx';
+import SafeString from '@src/utils/SafeString';
 import focusApp from './focusApp';
-import type {LocalNotificationClickHandler, LocalNotificationData} from './types';
+import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
 const notificationCache: Record<string, Notification> = {};
 
@@ -64,7 +65,7 @@ function push(
         const notificationID = Str.guid();
         notificationCache[notificationID] = new Notification(title, {
             body,
-            icon: String(icon),
+            icon: SafeString(icon),
             data,
             silent: true,
             tag,
@@ -129,9 +130,14 @@ export default {
         push(title, body, icon, data, onClick);
     },
 
-    pushModifiedExpenseNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, usesIcon = false) {
+    pushModifiedExpenseNotification({report, reportAction, movedFromReport, movedToReport, onClick, usesIcon = false}: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
-        const body = ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction});
+        const body = getForReportAction({
+            reportAction,
+            policyID: report.policyID,
+            movedFromReport,
+            movedToReport,
+        });
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
         const data = {
             reportID: report.reportID,
@@ -162,8 +168,11 @@ export default {
      * @param shouldClearNotification a function that receives notification.data and returns true/false if the notification should be cleared
      */
     clearNotifications(shouldClearNotification: (notificationData: LocalNotificationData) => boolean) {
-        Object.values(notificationCache)
-            .filter((notification) => shouldClearNotification(notification.data as LocalNotificationData))
-            .forEach((notification) => notification.close());
+        for (const notification of Object.values(notificationCache)) {
+            if (!shouldClearNotification(notification.data as LocalNotificationData)) {
+                continue;
+            }
+            notification.close();
+        }
     },
 };

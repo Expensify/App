@@ -19,14 +19,12 @@ function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps
                 {...defaultRendererProps}
                 fontSize={variables.fontSizeSmall}
                 color={theme.textSupporting}
-                style={[styles.editedLabelStyles, isPendingDelete && styles.offlineFeedback.deleted]}
+                style={[styles.editedLabelStyles, isPendingDelete && styles.offlineFeedbackDeleted]}
             >
                 {translate('reportActionCompose.edited')}
             </Text>
         </Text>
     );
 }
-
-EditedRenderer.displayName = 'EditedRenderer';
 
 export default EditedRenderer;

@@ -1,11 +1,11 @@
-import {screen, waitFor} from '@testing-library/react-native';
+import {act, screen, waitFor} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 describe('ReportActionItemSingle', () => {
@@ -16,16 +16,22 @@ describe('ReportActionItemSingle', () => {
         }),
     );
 
-    beforeEach(() => {
+    beforeEach(async () => {
         // Wrap Onyx each onyx action with waitForBatchedUpdates
         wrapOnyxWithWaitForBatchedUpdates(Onyx);
         // Initialize the network key for OfflineWithFeedback
-        return Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     // Clear out Onyx after each test so that each test starts with a clean slate
-    afterEach(() => {
-        Onyx.clear();
+    afterEach(async () => {
+        await act(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     describe('when the Report is a DM chat', () => {
@@ -44,27 +50,27 @@ describe('ReportActionItemSingle', () => {
                 },
             };
 
-            function setup() {
+            async function setup() {
                 const policyCollectionDataSet = toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [fakePolicy], (item) => item.id);
-                return waitForBatchedUpdates()
-                    .then(() =>
-                        Onyx.multiSet({
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
-                            [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
-                            [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {
-                                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`]: {
-                                    [fakeReportAction.reportActionID]: fakeReportAction,
-                                },
+                await waitForBatchedUpdatesWithAct();
+                await act(async () => {
+                    await Onyx.multiSet({
+                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: fakePersonalDetails,
+                        [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                        [ONYXKEYS.COLLECTION.REPORT_ACTIONS]: {
+                            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${fakeReport.reportID}`]: {
+                                [fakeReportAction.reportActionID]: fakeReportAction,
                             },
-                            [ONYXKEYS.COLLECTION.REPORT]: {
-                                [fakeReport.reportID]: fakeReport,
-                            },
-                            ...policyCollectionDataSet,
-                        }),
-                    )
-                    .then(() => {
-                        LHNTestUtils.getDefaultRenderedReportActionItemSingle(fakeReport, fakeReportAction);
+                        },
+                        [ONYXKEYS.COLLECTION.REPORT]: {
+                            [fakeReport.reportID]: fakeReport,
+                        },
+                        ...policyCollectionDataSet,
                     });
+                    await waitForBatchedUpdatesWithAct();
+                });
+                LHNTestUtils.getDefaultRenderedReportActionItemSingle(fakeReport, fakeReportAction);
+                await waitForBatchedUpdatesWithAct();
             }
 
             it('renders avatar properly', async () => {

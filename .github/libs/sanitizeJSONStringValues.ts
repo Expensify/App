@@ -24,7 +24,7 @@ export default function sanitizeJSONStringValues(inputString: string): string {
         // Function to recursively sanitize string values in an object
         const sanitizeValues = (obj: unknown): unknown => {
             if (typeof obj === 'string') {
-                return obj.replace(/\\|\t|\n|\r|\f|"/g, replacer);
+                return obj.replaceAll(/\\|\t|\n|\r|\f|"/g, replacer);
             }
             if (Array.isArray(obj)) {
                 return obj.map((item) => sanitizeValues(item));

@@ -5,9 +5,9 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import FormHelpMessage from '@components/FormHelpMessage';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import RenderHTML from '@components/RenderHTML';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import type CustomSubStepProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
-import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow} from '@userActions/BankAccounts';
+import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow, hideBankAccountErrors} from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,12 +34,7 @@ type MenuItemProps = {
 
 function TermsAndConditionsLabel() {
     const {translate} = useLocalize();
-    return (
-        <Text>
-            {translate('common.iAcceptThe')}
-            <TextLink href={CONST.OLD_DOT_PUBLIC_URLS.TERMS_URL}>{`${translate('common.addCardTermsOfService')}`}</TextLink>
-        </Text>
-    );
+    return <RenderHTML html={translate('common.acceptTermsOfService')} />;
 }
 
 function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProps) {
@@ -76,6 +71,17 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         }
     }, [reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess, reimbursementAccount?.errors, onNext]);
 
+    // We want to clear errors every time we leave this page.
+    // Therefore, we use useEffect, which clears errors when unmounted.
+    // This is necessary so that when we close the BA flow or move on to another step, the error is cleared.
+    // Additionally, we add error clearing to useEffect itself so that errors are cleared if this page opens after reloading.
+    useEffect(() => {
+        hideBankAccountErrors();
+        return () => {
+            hideBankAccountErrors();
+        };
+    }, []);
+
     const summaryItems: MenuItemProps[] = [
         {
             description: translate('common.country'),
@@ -97,7 +103,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         },
     ];
 
-    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {}).forEach(([fieldName, field]) => {
+    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS] ?? {})) {
         summaryItems.push({
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
@@ -106,9 +112,9 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
                 onMove(STEP_INDEXES.BANK_ACCOUNT_DETAILS);
             },
         });
-    });
+    }
 
-    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE] ?? {}).forEach(([fieldName, field]) => {
+    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_TYPE] ?? {})) {
         summaryItems.push({
             description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
             title: getTitle(field, fieldName),
@@ -117,34 +123,34 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
                 onMove(STEP_INDEXES.ACCOUNT_TYPE);
             },
         });
-    });
+    }
 
-    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION] ?? {})
-        .sort(([field1], [field2]) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field2))
-        .forEach(([fieldName, field]) => {
-            summaryItems.push({
-                description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
-                title: getTitle(field, fieldName),
-                shouldShowRightIcon: true,
-                onPress: () => {
-                    onMove(STEP_INDEXES.BANK_INFORMATION);
-                },
-            });
+    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_INFORMATION] ?? {}).sort(
+        ([field1], [field2]) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(field2),
+    )) {
+        summaryItems.push({
+            description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
+            title: getTitle(field, fieldName),
+            shouldShowRightIcon: true,
+            onPress: () => {
+                onMove(STEP_INDEXES.BANK_INFORMATION);
+            },
         });
+    }
 
-    Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION] ?? {})
-        .sort(([field1], [field2]) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field2))
-        .forEach(([fieldName, field]) => {
-            summaryItems.push({
-                description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
-                title: fieldName === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? translate(`allCountries.${formValues.bankCountry}` as TranslationPaths) : getTitle(field, fieldName),
-                shouldShowRightIcon: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
-                onPress: () => {
-                    onMove(STEP_INDEXES.ACCOUNT_HOLDER_INFORMATION);
-                },
-                interactive: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
-            });
+    for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.ACCOUNT_HOLDER_INFORMATION] ?? {}).sort(
+        ([field1], [field2]) => CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field1) - CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_FIELDS.indexOf(field2),
+    )) {
+        summaryItems.push({
+            description: field.label + (field.isRequired ? '' : ` (${translate('common.optional')})`),
+            title: fieldName === CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY ? translate(`allCountries.${formValues.bankCountry}` as TranslationPaths) : getTitle(field, fieldName),
+            shouldShowRightIcon: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
+            onPress: () => {
+                onMove(STEP_INDEXES.ACCOUNT_HOLDER_INFORMATION);
+            },
+            interactive: fieldName !== CONST.CORPAY_FIELDS.ACCOUNT_HOLDER_COUNTRY_KEY,
         });
+    }
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
@@ -204,7 +210,5 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
         </ScrollView>
     );
 }
-
-Confirmation.displayName = 'Confirmation';
 
 export default Confirmation;

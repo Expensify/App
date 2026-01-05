@@ -8,20 +8,20 @@ import RNFetchBlob from 'react-native-blob-util';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {cleanFileName, resizeImageIfNeeded, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
-import type {FileObject, ImagePickerResponse as FileResponse} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type {FileObject, ImagePickerResponse as FileResponse} from '@src/types/utils/Attachment';
 import type IconAsset from '@src/types/utils/IconAsset';
 import launchCamera from './launchCamera/launchCamera';
 import type AttachmentPickerProps from './types';
@@ -40,6 +40,26 @@ type Item = {
     textTranslationKey: TranslationPaths;
     /** Function to call when the user clicks the item */
     pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
+};
+
+/**
+ * Ensures asset has proper fileName and type properties
+ */
+const processAssetWithFallbacks = (asset: Asset): Asset => {
+    // Generate fallback name: extract from URI if available, otherwise use timestamped default
+    const fallbackName = asset.uri
+        ? asset.uri
+              .substring(asset.uri.lastIndexOf('/') + 1)
+              .split('?')
+              .at(0)
+        : `image_${Date.now()}.jpeg`;
+    const fileName = asset.fileName ?? fallbackName;
+    return {
+        ...asset,
+        fileName,
+        // Default to JPEG if no type specified
+        type: asset.type ?? 'image/jpeg',
+    };
 };
 
 /**
@@ -103,6 +123,7 @@ function AttachmentPicker({
     fileLimit = 1,
     onOpenPicker,
 }: AttachmentPickerProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Camera', 'Gallery', 'Paperclip']);
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
     const StyleUtils = useStyleUtils();
@@ -143,7 +164,7 @@ function AttachmentPicker({
                     if (response.errorCode) {
                         switch (response.errorCode) {
                             case 'permission':
-                                showCameraPermissionsAlert();
+                                showCameraPermissionsAlert(translate);
                                 return resolve();
                             default:
                                 showGeneralAlert();
@@ -168,10 +189,10 @@ function AttachmentPicker({
                         }
                     };
 
-                    assets.forEach((asset) => {
+                    for (const asset of assets) {
                         if (!asset.uri) {
                             checkAllProcessed();
-                            return;
+                            continue;
                         }
 
                         if (asset.type?.startsWith('image')) {
@@ -202,7 +223,9 @@ function AttachmentPicker({
                                                 checkAllProcessed();
                                             });
                                     } else {
-                                        processedAssets.push(asset);
+                                        // Ensure the asset has proper fileName and type for non-HEIC images
+                                        const processedAsset = processAssetWithFallbacks(asset);
+                                        processedAssets.push(processedAsset);
                                         checkAllProcessed();
                                     }
                                 })
@@ -211,18 +234,19 @@ function AttachmentPicker({
                                     checkAllProcessed();
                                 });
                         } else {
-                            processedAssets.push(asset);
+                            // Ensure the asset has proper fileName and type
+                            const processedAsset = processAssetWithFallbacks(asset);
+                            processedAssets.push(processedAsset);
                             checkAllProcessed();
                         }
-                    });
+                    }
                 });
             }),
-        [fileLimit, showGeneralAlert, type],
+        [fileLimit, showGeneralAlert, translate, type],
     );
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      */
-    // eslint-disable-next-line @lwc/lwc/no-async-await
     const showDocumentPicker = useCallback(async (): Promise<LocalCopy[]> => {
         const pickedFiles = await pick({
             type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
@@ -258,28 +282,28 @@ function AttachmentPicker({
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
             {
-                icon: Expensicons.Paperclip,
+                icon: icons.Paperclip,
                 textTranslationKey: 'attachmentPicker.chooseDocument',
                 pickAttachment: showDocumentPicker,
             },
         ];
         if (!shouldHideGalleryOption) {
             data.unshift({
-                icon: Expensicons.Gallery,
+                icon: icons.Gallery,
                 textTranslationKey: 'attachmentPicker.chooseFromGallery',
                 pickAttachment: () => showImagePicker(launchImageLibrary),
             });
         }
         if (!shouldHideCameraOption) {
             data.unshift({
-                icon: Expensicons.Camera,
+                icon: icons.Camera,
                 textTranslationKey: 'attachmentPicker.takePhoto',
                 pickAttachment: () => showImagePicker(launchCamera),
             });
         }
 
         return data;
-    }, [showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
+    }, [icons.Camera, icons.Paperclip, icons.Gallery, showDocumentPicker, shouldHideGalleryOption, shouldHideCameraOption, showImagePicker]);
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: -1, maxIndex: menuItemData.length - 1, isActive: isVisible});
 
@@ -495,7 +519,5 @@ function AttachmentPicker({
         </>
     );
 }
-
-AttachmentPicker.displayName = 'AttachmentPicker';
 
 export default AttachmentPicker;

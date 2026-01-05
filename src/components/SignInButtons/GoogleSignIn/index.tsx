@@ -1,11 +1,14 @@
 import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Session from '@userActions/Session';
+import {beginGoogleSignIn} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type Response from '@src/types/modules/google';
+import type Locale from '@src/types/onyx/Locale';
 
 type GoogleSignInProps = {
     isDesktopFlow?: boolean;
@@ -18,8 +21,8 @@ type GoogleSignInProps = {
 const mainId = 'google-sign-in-main';
 const desktopId = 'google-sign-in-desktop';
 
-const signIn = (response: Response) => {
-    Session.beginGoogleSignIn(response.credential);
+const signIn = (response: Response, preferredLocale?: Locale) => {
+    beginGoogleSignIn(response.credential, preferredLocale);
 };
 
 /**
@@ -31,13 +34,14 @@ const signIn = (response: Response) => {
 function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const loadScript = useCallback(() => {
         const google = window.google;
         if (google) {
             google.accounts.id.initialize({
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 client_id: CONFIG.GOOGLE_SIGN_IN.WEB_CLIENT_ID,
-                callback: signIn,
+                callback: (response) => signIn(response, preferredLocale),
             });
             // Apply styles for each button
             google.accounts.id.renderButton(document.getElementById(mainId), {
@@ -54,7 +58,7 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
                 width: '300px',
             });
         }
-    }, []);
+    }, [preferredLocale]);
 
     React.useEffect(() => {
         const script = document.createElement('script');
@@ -91,8 +95,6 @@ function GoogleSignIn({isDesktopFlow = false, onPointerDown}: GoogleSignInProps)
         </View>
     );
 }
-
-GoogleSignIn.displayName = 'GoogleSignIn';
 
 export default GoogleSignIn;
 export type {GoogleSignInProps};

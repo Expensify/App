@@ -13,7 +13,7 @@ type ModalCardStyleInterpolatorProps = {
     shouldFadeScreen?: boolean;
     shouldAnimateSidePanel?: boolean;
     props: StackCardInterpolationProps;
-    outputRangeMultiplier?: number;
+    outputRangeMultiplier?: Animated.AnimatedNode;
     animationEnabled?: boolean;
 };
 
@@ -22,7 +22,7 @@ type ModalCardStyleInterpolator = (props: ModalCardStyleInterpolatorProps) => St
 const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
-    const {sidePanelOffset} = useSidePanel();
+    const {sidePanelOffset, sidePanelNVP, isSidePanelTransitionEnded} = useSidePanel();
 
     const modalCardStyleInterpolator: ModalCardStyleInterpolator = ({
         props: {
@@ -44,17 +44,25 @@ const useModalCardStyleInterpolator = (): ModalCardStyleInterpolator => {
         }
 
         const translateX = Animated.multiply(
-            progress.interpolate({
-                inputRange: [0, 1],
-                outputRange: [outputRangeMultiplier * (shouldUseNarrowLayout ? screen.width : variables.sideBarWidth), 0],
-                extrapolate: 'clamp',
-            }),
+            Animated.multiply(
+                progress.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [shouldUseNarrowLayout ? screen.width : variables.sideBarWidth, 0],
+                    extrapolate: 'clamp',
+                }),
+                outputRangeMultiplier,
+            ),
             inverted,
         );
 
         const cardStyle = StyleUtils.getCardStyles(screen.width);
 
-        if (animationEnabled && (!isFullScreenModal || shouldUseNarrowLayout)) {
+        // Screen should animate if:
+        // 1. The animation is enabled
+        // 2. The modal is not a full screen on wide layout
+        // 3. The side panel transition is in progress on narrow layout
+        const shouldAnimate = animationEnabled && (!isFullScreenModal || shouldUseNarrowLayout) && (isSidePanelTransitionEnded || !!sidePanelNVP?.openNarrowScreen || !shouldUseNarrowLayout);
+        if (shouldAnimate) {
             cardStyle.transform = [{translateX}];
         }
 

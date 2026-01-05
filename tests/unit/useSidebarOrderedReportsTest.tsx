@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import React from 'react';
 import type {OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -9,7 +9,7 @@ import SidebarUtils from '@libs/SidebarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock dependencies
 jest.mock('@libs/SidebarUtils', () => ({
@@ -31,53 +31,62 @@ describe('useSidebarOrderedReports', () => {
     beforeAll(async () => {
         Onyx.init({keys: ONYXKEYS});
         // Set up basic session data
-        await Onyx.set(ONYXKEYS.SESSION, {
-            accountID: 12345,
-            email: 'test@example.com',
-            authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                accountID: 12345,
+                email: 'test@example.com',
+                authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
+            });
         });
-        return waitForBatchedUpdates();
+        return waitForBatchedUpdatesWithAct();
     });
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        Onyx.clear();
+        await act(async () => {
+            await Onyx.clear();
 
-        // Set up basic session data for each test
-        await Onyx.set(ONYXKEYS.SESSION, {
-            accountID: 12345,
-            email: 'test@example.com',
-            authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
+            // Set up basic session data for each test
+            await Onyx.set(ONYXKEYS.SESSION, {
+                accountID: 12345,
+                email: 'test@example.com',
+                authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
+            });
+
+            // Set up required Onyx data that the hook depends on
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
+                [ONYXKEYS.COLLECTION.REPORT]: {},
+                [ONYXKEYS.COLLECTION.POLICY]: {},
+                [ONYXKEYS.COLLECTION.TRANSACTION]: {},
+                [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {},
+                [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: {},
+                [ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT]: {},
+                [ONYXKEYS.BETAS]: [],
+                [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {reports: {}},
+            } as unknown as OnyxMultiSetInput);
         });
 
-        // Set up required Onyx data that the hook depends on
-        await Onyx.multiSet({
-            [ONYXKEYS.NVP_PRIORITY_MODE]: CONST.PRIORITY_MODE.DEFAULT,
-            [ONYXKEYS.COLLECTION.REPORT]: {},
-            [ONYXKEYS.COLLECTION.POLICY]: {},
-            [ONYXKEYS.COLLECTION.TRANSACTION]: {},
-            [ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS]: {},
-            [ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS]: {},
-            [ONYXKEYS.BETAS]: [],
-            [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: {reports: {}},
-        } as unknown as OnyxMultiSetInput);
+        await waitForBatchedUpdatesWithAct();
 
         // Default mock implementations
         mockSidebarUtils.getReportsToDisplayInLHN.mockImplementation(() => ({}));
-        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation((prev) => prev);
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => ({...displayedReports}));
         mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue([]);
 
-        return waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
     });
 
     afterAll(async () => {
-        Onyx.clear();
-        await waitForBatchedUpdates();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
     });
 
     const createMockReports = (reports: Record<string, Partial<Report>>) => {
         const mockReports: Record<string, Report> = {};
-        Object.entries(reports).forEach(([key, report]) => {
+        for (const [key, report] of Object.entries(reports)) {
             const reportId = key.replace('report', '');
             mockReports[reportId] = {
                 reportID: reportId,
@@ -86,7 +95,7 @@ describe('useSidebarOrderedReports', () => {
                 type: CONST.REPORT.TYPE.CHAT,
                 ...report,
             } as Report;
-        });
+        }
         return mockReports;
     };
 
@@ -102,7 +111,7 @@ describe('useSidebarOrderedReports', () => {
         );
     }
 
-    it('should prevent unnecessary re-renders when reports have same content but different references', () => {
+    it('should prevent unnecessary re-renders when reports have same content but different references', async () => {
         // Given reports with same content but different object references
         const reportsContent = {
             report1: {reportName: 'Chat 1', lastVisibleActionCreated: '2024-01-01 10:00:00'},
@@ -112,13 +121,15 @@ describe('useSidebarOrderedReports', () => {
         // When the initial reports are set
         const initialReports = createMockReports(reportsContent);
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(initialReports);
-        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation((prev) => ({...prev}));
+        mockSidebarUtils.updateReportsToDisplayInLHN.mockImplementation(({displayedReports}) => ({...displayedReports}));
         currentReportIDForTestsValue = '1';
 
         // When the hook is rendered
         const {rerender} = renderHook(() => useSidebarOrderedReports(), {
             wrapper: TestWrapper,
         });
+
+        await waitForBatchedUpdatesWithAct();
 
         // Then the mock calls are cleared
         mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
@@ -128,6 +139,8 @@ describe('useSidebarOrderedReports', () => {
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(newReportsWithSameContent);
 
         rerender({});
+
+        await waitForBatchedUpdatesWithAct();
 
         // Then sortReportsToDisplayInLHN should not be called again since deep comparison shows no change
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).not.toHaveBeenCalled();
@@ -148,10 +161,14 @@ describe('useSidebarOrderedReports', () => {
         });
 
         // Then the initial reports are set
-        await Onyx.multiSet({
-            [`${ONYXKEYS.COLLECTION.REPORT}1`]: initialReports['1'],
-            [`${ONYXKEYS.COLLECTION.REPORT}2`]: initialReports['2'],
-        } as unknown as OnyxMultiSetInput);
+        await act(async () => {
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: initialReports['1'],
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: initialReports['2'],
+            } as unknown as OnyxMultiSetInput);
+        });
+
+        await waitForBatchedUpdatesWithAct();
 
         // When the mock is updated
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(initialReports);
@@ -161,7 +178,7 @@ describe('useSidebarOrderedReports', () => {
             wrapper: TestWrapper,
         });
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then the mock calls are cleared
         mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
@@ -170,17 +187,20 @@ describe('useSidebarOrderedReports', () => {
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(updatedReports);
 
         // When the priority mode is changed
-        await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
+        });
 
         rerender({});
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then sortReportsToDisplayInLHN should be called with the updated reports
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).toHaveBeenCalledWith(
             updatedReports,
             expect.any(String), // priorityMode
             expect.any(Function), // localeCompare
+            expect.any(Object), // reportsDrafts
             expect.any(Object), // reportNameValuePairs
             expect.any(Object), // reportAttributes
         );
@@ -195,7 +215,7 @@ describe('useSidebarOrderedReports', () => {
             wrapper: TestWrapper,
         });
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then the mock calls are cleared
         mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
@@ -205,13 +225,13 @@ describe('useSidebarOrderedReports', () => {
 
         rerender({});
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then sortReportsToDisplayInLHN should not be called again since reports are empty
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).not.toHaveBeenCalled();
     });
 
-    it('should maintain referential stability across multiple renders with same content', () => {
+    it('should maintain referential stability across multiple renders with same content', async () => {
         // Given the initial reports are set
         const reportsContent = {
             report1: {reportName: 'Stable Chat'},
@@ -227,11 +247,14 @@ describe('useSidebarOrderedReports', () => {
             wrapper: TestWrapper,
         });
 
+        await waitForBatchedUpdatesWithAct();
+
         // When the mock is updated
         const newReportsWithSameContent = createMockReports(reportsContent);
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(newReportsWithSameContent);
 
         rerender({});
+        await waitForBatchedUpdatesWithAct();
         currentReportIDForTestsValue = '2';
 
         // When the mock is updated
@@ -239,6 +262,7 @@ describe('useSidebarOrderedReports', () => {
         mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(thirdReportsWithSameContent);
 
         rerender({});
+        await waitForBatchedUpdatesWithAct();
         currentReportIDForTestsValue = '3';
 
         // Then sortReportsToDisplayInLHN should be called only once (initial render)
@@ -260,18 +284,22 @@ describe('useSidebarOrderedReports', () => {
             wrapper: TestWrapper,
         });
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then the mock calls are cleared
         mockSidebarUtils.sortReportsToDisplayInLHN.mockClear();
         currentReportIDForTestsValue = '2';
 
         // When the priority mode is changed
-        await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PRIORITY_MODE, CONST.PRIORITY_MODE.GSD);
+        });
+
+        await waitForBatchedUpdatesWithAct();
 
         rerender({});
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         // Then sortReportsToDisplayInLHN should be called when priority mode changes
         expect(mockSidebarUtils.sortReportsToDisplayInLHN).toHaveBeenCalled();

@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type Form from './Form';
 
 const INPUT_IDS = {

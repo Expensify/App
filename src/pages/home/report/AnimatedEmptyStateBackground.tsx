@@ -1,6 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
 import Animated, {clamp, SensorType, useAnimatedSensor, useAnimatedStyle, useReducedMotion, useSharedValue, withSpring} from 'react-native-reanimated';
+import ImageSVG from '@components/ImageSVG';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -21,8 +22,10 @@ function AnimatedEmptyStateBackground() {
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const illustrations = useThemeIllustrations();
+    const illustrationWidth = CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT; // or whatever your SVG's natural width is
+    const maxBackgroundWidth = variables.sideBarWidth + illustrationWidth;
     // If window width is greater than the max background width, repeat the background image
-    const maxBackgroundWidth = variables.sideBarWidth + CONST.EMPTY_STATE_BACKGROUND.ASPECT_RATIO * CONST.EMPTY_STATE_BACKGROUND.WIDE_SCREEN.IMAGE_HEIGHT;
+    const numberOfRepeats = windowWidth > maxBackgroundWidth ? Math.ceil(windowWidth / illustrationWidth) : 1;
 
     // Get data from phone rotation sensor and prep other variables for animation
     const animatedSensor = useAnimatedSensor(SensorType.GYROSCOPE);
@@ -50,14 +53,20 @@ function AnimatedEmptyStateBackground() {
 
     return (
         <View style={StyleUtils.getReportWelcomeBackgroundContainerStyle()}>
-            <Animated.Image
-                source={illustrations.EmptyStateBackgroundImage}
-                style={[StyleUtils.getReportWelcomeBackgroundImageStyle(shouldUseNarrowLayout), animatedStyles]}
-                resizeMode={windowWidth > maxBackgroundWidth ? 'repeat' : 'cover'}
-            />
+            <Animated.View style={[StyleUtils.getReportWelcomeBackgroundImageStyle(shouldUseNarrowLayout), animatedStyles]}>
+                {Array.from({length: numberOfRepeats}).map((_, index) => (
+                    <ImageSVG
+                        // eslint-disable-next-line react/no-array-index-key
+                        key={index}
+                        src={illustrations.EmptyStateBackgroundImage}
+                        width={numberOfRepeats > 1 ? illustrationWidth : undefined}
+                        style={{position: 'absolute', left: index * illustrationWidth}}
+                        preserveAspectRatio="xMidYMid slice"
+                    />
+                ))}
+            </Animated.View>
         </View>
     );
 }
 
-AnimatedEmptyStateBackground.displayName = 'AnimatedEmptyStateBackground';
 export default AnimatedEmptyStateBackground;

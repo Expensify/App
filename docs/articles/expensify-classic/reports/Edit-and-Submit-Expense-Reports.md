@@ -38,7 +38,7 @@ Expenses may be automatically added to a report if your Workspace has this setti
 3. Click **Add to Report**.
 4. Choose the destination report.
 
-**Note:** Only **Open** expenses can be moved. Expenses in **Processing**, **Approved**, **Reimbursed**, or **Closed** statuses cannot be moved.
+**Note:** Only **Draft** expenses can be moved. Expenses in **Outstanding**, **Approved**, **Paid**, or **Done** statuses cannot be moved.
 
 ## Create a New Report
 
@@ -141,7 +141,7 @@ Some Workspaces automatically handle this. Otherwise, submit manually.
    - **Attach PDF** – Optional.
 3. Tap **Submit**.
 
-**Note:** The **CC** field is "sticky"—Expensify remembers previous entries. Remove them next time to stop future auto-CCs. 
+**Note:** The **CC** field is "sticky" — Expensify remembers previous entries. Remove them next time to stop future auto-CCs. 
 
 ## Submit via Guided Review (web-only)
 
@@ -154,7 +154,7 @@ Some Workspaces automatically handle this. Otherwise, submit manually.
 
 **On Desktop:**
 1. Open the report.
-2. Click **Undo Submit**.
+2. Click **Retract**.
 
 **On Mobile:**
 1. Tap the report.
@@ -211,25 +211,25 @@ When impactful changes are made to the report, such as changing an expense's rei
 
 Every report passes through several statuses. Here’s what they mean:
 
-- **Open** – In progress, not yet submitted. If also labeled **Rejected**, open the report to review comments and revise.
-- **Processing** – Submitted and awaiting approval.
+- **Draft** – In progress, not yet submitted. If also labeled **Rejected**, open the report to review comments and revise.
+- **Outstanding** – Submitted and awaiting approval.
 - **Approved** – Fully approved but not reimbursed.
-- **Reimbursed** – Payment sent. **Withdrawing** or **Confirmed** may appear based on ACH status. 
-- **Closed** – Finalized and no longer editable.
+- **Paid** – Payment sent. **Withdrawing** or **Confirmed** may appear based on ACH status. 
+- **Done** – Finalized and no longer editable.
 
-**Note:** A report will only move to the **Closed** status if it's submitted on an **Individual workspace** or a **Group workspace** using the **Submit & Close** approval workflow.
+**Note:** A report will only move to the **Done** status if it's submitted on an **Individual workspace** or a **Group workspace** using the **Submit & Close** approval workflow.
 
 ## Finalized state by workflow
 
 - **Non-reimbursable** – Finalized at **Approved**.
-- **Reimbursable** – Finalized at **Reimbursed**.
-- **Mixed** – Finalized at **Reimbursed**, even if only some expenses are reimbursable.
+- **Reimbursable** – Finalized at **Paid**.
+- **Mixed** – Finalized at **Paid**, even if only some expenses are reimbursable.
 
 ---
 
 ## Reports Marked as Closed
 
-A report is automatically marked **Closed** under these conditions:
+A report is automatically marked as **Done** under these conditions:
 
 - **Individual Workspace** – Reports are closed by default after submission.  
 - **Group Workspace with Submit and Close Workflow** – Reports automatically close upon submission.  
@@ -303,3 +303,14 @@ They appear as **negative expenses** (e.g., -$1.00) and reduce the report total.
 - **Invoice** – Sent between businesses to request payment.
 - **Bill** – Generated at the point of sale (e.g., in-store or service receipt).
 
+## Have the names of the report states changed?
+
+Yes! Report states have changed to make it clearer where the report is currently in your approval workflow. 
+
+| Old name | New name 
+| -- | --
+| Open | Draft
+| Processing | Outstanding
+| Approved | Approved (no change)
+| Reimbursed | Paid
+| Closed | Done

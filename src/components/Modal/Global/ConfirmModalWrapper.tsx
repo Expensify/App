@@ -1,6 +1,10 @@
-import React, {useCallback} from 'react';
+import React, {useState} from 'react';
 import type {ConfirmModalProps} from '@components/ConfirmModal';
 import ConfirmModal from '@components/ConfirmModal';
+import useActiveElementRole from '@hooks/useActiveElementRole';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import CONST from '@src/CONST';
+import {ModalActions} from './ModalContext';
 import type {ModalProps} from './ModalContext';
 
 type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm' | 'onCancel' | 'isVisible'>;
@@ -10,54 +14,46 @@ type ConfirmModalWrapperProps = ModalProps & Omit<ConfirmModalProps, 'onConfirm'
 // - handle closeModal inside ConfirmModal
 // - remove ConfirmModalWrapper
 
-function ConfirmModalWrapper({
-    closeModal,
-    title = '',
-    prompt = '',
-    confirmText = '',
-    cancelText = '',
-    success = true,
-    danger = false,
-    shouldDisableConfirmButtonWhenOffline = false,
-    shouldShowCancelButton = true,
-    shouldSetModalVisibility = true,
-    shouldShowDismissIcon = false,
-    shouldCenterContent = false,
-    shouldStackButtons = true,
-    shouldReverseStackedButtons = false,
-    isConfirmLoading = false,
-}: ConfirmModalWrapperProps) {
-    const handleConfirm = useCallback(() => {
-        closeModal({action: 'CONFIRM'});
-    }, [closeModal]);
+function ConfirmModalWrapper({closeModal, ...props}: ConfirmModalWrapperProps) {
+    const activeElementRole = useActiveElementRole();
+    const [isVisible, setIsVisible] = useState(true);
+    const [closeAction, setCloseAction] = useState<typeof ModalActions.CONFIRM | typeof ModalActions.CLOSE>(ModalActions.CLOSE);
 
-    const handleCancel = useCallback(() => {
-        closeModal({action: 'CLOSE'});
-    }, [closeModal]);
+    const handleConfirm = () => {
+        setCloseAction(ModalActions.CONFIRM);
+        setIsVisible(false);
+    };
+
+    const handleCancel = () => {
+        setCloseAction(ModalActions.CLOSE);
+        setIsVisible(false);
+    };
+
+    const handleModalHide = () => {
+        if (isVisible) {
+            return;
+        }
+        closeModal({action: closeAction});
+    };
+
+    const shortcutConfig = {
+        isActive: activeElementRole !== CONST.ROLE.BUTTON,
+        shouldPreventDefault: false,
+        shouldBubble: false,
+    };
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, handleConfirm, shortcutConfig);
 
     return (
         <ConfirmModal
-            title={title}
-            isVisible
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...props}
+            isVisible={isVisible}
             onConfirm={handleConfirm}
             onCancel={handleCancel}
-            prompt={prompt}
-            confirmText={confirmText}
-            cancelText={cancelText}
-            success={success}
-            danger={danger}
-            shouldDisableConfirmButtonWhenOffline={shouldDisableConfirmButtonWhenOffline}
-            shouldShowCancelButton={shouldShowCancelButton}
-            shouldSetModalVisibility={shouldSetModalVisibility}
-            shouldShowDismissIcon={shouldShowDismissIcon}
-            shouldCenterContent={shouldCenterContent}
-            shouldStackButtons={shouldStackButtons}
-            shouldReverseStackedButtons={shouldReverseStackedButtons}
-            isConfirmLoading={isConfirmLoading}
+            onModalHide={handleModalHide}
         />
     );
 }
-
-ConfirmModalWrapper.displayName = 'ConfirmModalWrapper';
 
 export default ConfirmModalWrapper;

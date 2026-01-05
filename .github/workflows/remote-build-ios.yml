@@ -1,7 +1,13 @@
+# Reminder: If this workflow's name changes, update the name in the dependent workflow at .github/workflows/failureNotifier.yml.
 name: Remote Build iOS
 
 on:
   workflow_dispatch:
+    inputs:
+      mobile_expensify_pr:
+        description: 'Mobile-Expensify PR number to use for hybrid build'
+        required: false
+        type: string
   push:
     branches-ignore: [staging, production, cherry-pick-*]
     paths-ignore: ['docs/**', 'contributingGuides/**', 'help/**', '.github/**', 'scripts/**', 'tests/**']
@@ -14,7 +20,7 @@ jobs:
   build:
     runs-on: ${{ github.repository_owner == 'Expensify' && 'macos-15-xlarge' || 'macos-15' }}
     env:
-      DEVELOPER_DIR: /Applications/Xcode_16.4.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
     strategy:
       fail-fast: false
       matrix:
@@ -39,9 +45,25 @@ jobs:
         with:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
-      - name: RNEF Remote Build - iOS
-        # rnef v2
-        uses: callstackincubator/ios@7847e0676242cefa801cba8ede6736140b7bae91 
+      - name: Checkout specific Mobile-Expensify PR
+        if: ${{ matrix.is_hybrid_build && github.event.inputs.mobile_expensify_pr }}
+        run: |
+          cd Mobile-Expensify
+          git fetch origin pull/${{ github.event.inputs.mobile_expensify_pr }}/head:pr-${{ github.event.inputs.mobile_expensify_pr }}
+          git checkout pr-${{ github.event.inputs.mobile_expensify_pr }}
+          echo "Checked out Mobile-Expensify PR #${{ github.event.inputs.mobile_expensify_pr }}"
+
+      - name: Configure AWS Credentials
+        # v4
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Rock Remote Build - iOS
+        # rock v3
+        uses: callstackincubator/ios@08a533dbeda6adec39f94d08d820091514d1f7af
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_APP: ${{ matrix.is_hybrid_build }}

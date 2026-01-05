@@ -3,24 +3,10 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-const {
-    CONCIERGE_LHN_GBR,
-    RENAME_SAVED_SEARCH,
-    BOTTOM_NAV_INBOX_TOOLTIP,
-    LHN_WORKSPACE_CHAT_TOOLTIP,
-    GLOBAL_CREATE_TOOLTIP,
-    SCAN_TEST_TOOLTIP,
-    SCAN_TEST_TOOLTIP_MANAGER,
-    SCAN_TEST_CONFIRMATION,
-    OUTSTANDING_FILTER,
-    GBR_RBR_CHAT,
-    ACCOUNT_SWITCHER,
-    EXPENSE_REPORTS_FILTER,
-    SCAN_TEST_DRIVE_CONFIRMATION,
-    MULTI_SCAN_EDUCATIONAL_MODAL,
-} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+const {CONCIERGE_LHN_GBR, RENAME_SAVED_SEARCH, SCAN_TEST_TOOLTIP, SCAN_TEST_TOOLTIP_MANAGER, SCAN_TEST_CONFIRMATION, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION} =
+    CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
-type ProductTrainingTooltipName = Exclude<ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>, typeof MULTI_SCAN_EDUCATIONAL_MODAL>;
+type ProductTrainingTooltipName = Exclude<ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>, typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL>;
 
 type ShouldShowConditionProps = {
     shouldUseNarrowLayout: boolean;
@@ -56,48 +42,12 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         priority: 1250,
         shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
     },
-    [GLOBAL_CREATE_TOOLTIP]: {
-        content: 'productTrainingTooltip.globalCreateTooltip',
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(GLOBAL_CREATE_TOOLTIP, isDismissedUsingCloseButton),
-        name: GLOBAL_CREATE_TOOLTIP,
-        priority: 1950,
-        shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
-    },
-    [BOTTOM_NAV_INBOX_TOOLTIP]: {
-        content: 'productTrainingTooltip.bottomNavInboxTooltip',
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP, isDismissedUsingCloseButton),
-        name: BOTTOM_NAV_INBOX_TOOLTIP,
-        priority: 1700,
-        shouldShow: ({hasBeenAddedToNudgeMigration}) => hasBeenAddedToNudgeMigration,
-    },
-    [LHN_WORKSPACE_CHAT_TOOLTIP]: {
-        content: 'productTrainingTooltip.workspaceChatTooltip',
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP, isDismissedUsingCloseButton),
-        name: LHN_WORKSPACE_CHAT_TOOLTIP,
-        priority: 1800,
-        shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
-    },
-    [GBR_RBR_CHAT]: {
-        content: 'productTrainingTooltip.GBRRBRChat',
-        onHideTooltip: () => dismissProductTraining(GBR_RBR_CHAT),
-        name: GBR_RBR_CHAT,
-        priority: 1900,
-        shouldShow: () => true,
-    },
     [ACCOUNT_SWITCHER]: {
         content: 'productTrainingTooltip.accountSwitcher',
         onHideTooltip: () => dismissProductTraining(ACCOUNT_SWITCHER),
         name: ACCOUNT_SWITCHER,
         priority: 1600,
         shouldShow: () => true,
-    },
-    [EXPENSE_REPORTS_FILTER]: {
-        content: 'productTrainingTooltip.expenseReportsFilter',
-        onHideTooltip: () => dismissProductTraining(EXPENSE_REPORTS_FILTER),
-        name: EXPENSE_REPORTS_FILTER,
-        priority: 2000,
-        shouldShow: ({shouldUseNarrowLayout, isUserPolicyAdmin, hasBeenAddedToNudgeMigration}: ShouldShowConditionProps) =>
-            !shouldUseNarrowLayout && isUserPolicyAdmin && hasBeenAddedToNudgeMigration,
     },
     [SCAN_TEST_TOOLTIP]: {
         content: 'productTrainingTooltip.scanTestTooltip.main',

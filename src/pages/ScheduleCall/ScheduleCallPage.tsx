@@ -9,6 +9,8 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useSession} from '@components/OnyxListItemProvider';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -16,7 +18,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getGuideCallAvailabilitySchedule, saveBookingDraft} from '@libs/actions/ScheduleCall';
+import {getGuideCallAvailabilitySchedule, saveBookingDraft, sendScheduleCallNudge} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,6 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ReportNameValuePairs} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import AvailableBookingDay from './AvailableBookingDay';
 
@@ -36,6 +39,10 @@ type TimeSlot = {
     scheduleURL: string;
 };
 
+const adminReportNameValuePairsSelector = (data?: ReportNameValuePairs) => ({
+    calendlySchedule: data?.calendlySchedule,
+});
+
 function ScheduleCallPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -43,13 +50,13 @@ function ScheduleCallPage() {
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const userTimezone = currentUserPersonalDetails?.timezone?.selected ? currentUserPersonalDetails?.timezone.selected : CONST.DEFAULT_TIME_ZONE.selected;
+    const session = useSession();
 
     const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
     const reportID = route.params?.reportID;
+
     const [adminReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
-        selector: (data) => ({
-            calendlySchedule: data?.calendlySchedule,
-        }),
+        selector: adminReportNameValuePairsSelector,
         canBeMissing: true,
     });
     const calendlySchedule = adminReportNameValuePairs?.calendlySchedule;
@@ -68,6 +75,13 @@ function ScheduleCallPage() {
         }, []),
     );
 
+    useEffect(() => {
+        return () => {
+            sendScheduleCallNudge(session?.accountID ?? CONST.DEFAULT_NUMBER_ID, reportID);
+        };
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, []);
+
     const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
         saveBookingDraft({date});
     }, []);
@@ -80,31 +94,33 @@ function ScheduleCallPage() {
 
         const allTimeSlots = guides.reduce((allSlots, guideAccountID) => {
             const guideSchedule = calendlySchedule?.data?.[guideAccountID];
-            guideSchedule?.timeSlots.forEach((timeSlot) => {
-                allSlots.push({
-                    guideAccountID: Number(guideAccountID),
-                    guideEmail: guideSchedule.guideEmail,
-                    startTime: timeSlot.startTime,
-                    scheduleURL: timeSlot.schedulingURL,
-                });
-            });
+            if (guideSchedule) {
+                for (const timeSlot of guideSchedule.timeSlots) {
+                    allSlots.push({
+                        guideAccountID: Number(guideAccountID),
+                        guideEmail: guideSchedule.guideEmail,
+                        startTime: timeSlot.startTime,
+                        scheduleURL: timeSlot.schedulingURL,
+                    });
+                }
+            }
             return allSlots;
         }, [] as TimeSlot[]);
 
         // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
-        allTimeSlots.forEach((timeSlot) => {
+        for (const timeSlot of allTimeSlots) {
             const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
             if (!timeSlotMap[timeSlotDate]) {
                 timeSlotMap[timeSlotDate] = [];
             }
             timeSlotMap[timeSlotDate].push(timeSlot);
-        });
+        }
 
         // Sort time slots within each date array to have in chronological order
-        Object.values(timeSlotMap).forEach((slots) => {
+        for (const slots of Object.values(timeSlotMap)) {
             slots.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-        });
+        }
 
         return timeSlotMap;
     }, [calendlySchedule?.data, userTimezone]);
@@ -143,7 +159,7 @@ function ScheduleCallPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID={ScheduleCallPage.displayName}
+            testID="ScheduleCallPage"
         >
             <HeaderWithBackButton
                 title={translate('scheduledCall.book.title')}
@@ -185,11 +201,12 @@ function ScheduleCallPage() {
                         )}
                         {!!scheduleCallDraft?.date && (
                             <View style={[styles.ph5, styles.mb5]}>
-                                <Text style={[styles.mb5, styles.colorMuted]}>
-                                    {translate('scheduledCall.book.slots')}
-                                    <Text style={[styles.textStrong, styles.colorMuted]}>
-                                        {DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT)}
-                                    </Text>
+                                <Text style={[styles.mb5]}>
+                                    <RenderHTML
+                                        html={translate('scheduledCall.book.slots', {
+                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT),
+                                        })}
+                                    />
                                 </Text>
                                 <View style={[styles.flexRow, styles.flexWrap, styles.justifyContentStart, styles.gap2]}>
                                     {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
@@ -224,7 +241,5 @@ function ScheduleCallPage() {
         </ScreenWrapper>
     );
 }
-
-ScheduleCallPage.displayName = 'ScheduleCallPage';
 
 export default ScheduleCallPage;

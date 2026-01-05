@@ -1,13 +1,15 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import ImportSpreadsheet from '@components/ImportSpreadsheet';
+import ImportSpreadsheetConfirmModal from '@components/ImportSpreadsheetConfirmModal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -44,7 +46,10 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [isImportingTags, setIsImportingTags] = useState(false);
+    const {setIsClosing} = useCloseImportPage();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
+
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         setImportedSpreadsheetIsFirstLineHeader(true);
@@ -60,6 +65,12 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
         return;
     }
 
+    const closeImportPageAndModal = () => {
+        setIsClosing(true);
+        setIsImportingTags(false);
+        Navigation.goBack(ROUTES.WORKSPACE_TAGS.getRoute(policyID));
+    };
+
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
     }
@@ -71,7 +82,7 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
         >
             <ScreenWrapper
                 shouldEnableKeyboardAvoidingView={false}
-                testID={ImportSpreadsheet.displayName}
+                testID="ImportSpreadsheet"
                 shouldEnableMaxHeight={canUseTouchScreen()}
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -134,12 +145,14 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                             large
                         />
                     </FixedFooter>
+                    <ImportSpreadsheetConfirmModal
+                        isVisible={isFocused && (spreadsheet?.shouldFinalModalBeOpened ?? false)}
+                        closeImportPageAndModal={closeImportPageAndModal}
+                    />
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-ImportMultiLevelTagsSettingsPage.displayName = 'ImportMultiLevelTagsSettingsPage';
 
 export default ImportMultiLevelTagsSettingsPage;

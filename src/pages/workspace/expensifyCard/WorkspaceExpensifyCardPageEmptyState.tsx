@@ -1,54 +1,41 @@
-import React, {useCallback, useContext} from 'react';
+import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import ConfirmModal from '@components/ConfirmModal';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeatureList from '@components/FeatureList';
 import type {FeatureListItem} from '@components/FeatureList';
-import * as Illustrations from '@components/Icon/Illustrations';
 import {LockedAccountContext} from '@components/LockedAccountModalProvider';
 import Text from '@components/Text';
 import useDismissModalForUSD from '@hooks/useDismissModalForUSD';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
+import {hasInProgressUSDVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import Navigation from '@navigation/Navigation';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
+import variables from '@styles/variables';
 import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
-
-const expensifyCardFeatures: FeatureListItem[] = [
-    {
-        icon: Illustrations.MoneyReceipts,
-        translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.cashBack',
-    },
-    {
-        icon: Illustrations.CreditCardsNew,
-        translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.unlimited',
-    },
-    {
-        icon: Illustrations.MoneyWings,
-        translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend',
-    },
-];
 
 type WorkspaceExpensifyCardPageEmptyStateProps = {
     route: PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.EXPENSIFY_CARD>['route'];
 } & WithPolicyAndFullscreenLoadingProps;
 
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {
+    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'HandCard', 'ExpensifyCardIllustration']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -56,12 +43,11 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: false});
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const [isCurrencyModalOpen, setIsCurrencyModalOpen] = useDismissModalForUSD(policy?.outputCurrency);
-
+    const {windowHeight} = useWindowDimensions();
     const {isActingAsDelegate, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
 
-    const reimbursementAccountStatus = reimbursementAccount?.achData?.state ?? '';
-    const isSetupUnfinished = isEmptyObject(bankAccountList) && reimbursementAccountStatus && reimbursementAccountStatus !== CONST.BANK_ACCOUNT.STATE.OPEN;
+    const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
 
     const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountList);
@@ -73,6 +59,29 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_BANK_ACCOUNT.getRoute(policy?.id));
         }
     }, [eligibleBankAccounts.length, isSetupUnfinished, policy?.id]);
+
+    const expensifyCardFeatures: FeatureListItem[] = useMemo(() => {
+        const features = [
+            {
+                icon: illustrations.MoneyReceipts,
+                translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.cashBack' as const,
+            },
+            {
+                icon: illustrations.CreditCardsNew,
+                translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.unlimited' as const,
+            },
+            {
+                icon: illustrations.MoneyWings,
+                translationKey: 'workspace.moreFeatures.expensifyCard.feed.features.spend' as const,
+            },
+        ];
+        return features
+            .filter((feature) => feature.icon !== null)
+            .map((feature) => ({
+                icon: feature.icon,
+                translationKey: feature.translationKey,
+            }));
+    }, [illustrations.CreditCardsNew, illustrations.MoneyReceipts, illustrations.MoneyWings]);
 
     const confirmCurrencyChangeAndHideModal = useCallback(() => {
         if (!policy) {
@@ -86,14 +95,14 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
-            icon={Illustrations.HandCard}
+            icon={illustrations.HandCard}
             headerText={translate('workspace.common.expensifyCard')}
             route={route}
             showLoadingAsFirstRender={false}
             shouldShowOfflineIndicatorInWideScreen
             addBottomSafeAreaPadding
         >
-            <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, {minHeight: windowHeight - variables.contentHeaderHeight}]}>
                 <FeatureList
                     menuItems={isUkEuCurrencySupported ? expensifyCardFeatures.slice(1) : expensifyCardFeatures}
                     title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
@@ -116,7 +125,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                         startFlow();
                     }}
                     illustrationBackgroundColor={theme.fallbackIconColor}
-                    illustration={Illustrations.ExpensifyCardIllustration}
+                    illustration={illustrations.ExpensifyCardIllustration}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
                 />
@@ -130,6 +139,8 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     cancelText={translate('common.cancel')}
                     danger
                 />
+            </View>
+            <View style={[shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <Text style={[styles.textMicroSupporting, styles.m5]}>
                     {translate(isUkEuCurrencySupported ? 'workspace.expensifyCard.euUkDisclaimer' : 'workspace.expensifyCard.disclaimer')}
                 </Text>
@@ -137,7 +148,5 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         </WorkspacePageWithSections>
     );
 }
-
-WorkspaceExpensifyCardPageEmptyState.displayName = 'WorkspaceExpensifyCardPageEmptyState';
 
 export default withPolicyAndFullscreenLoading(WorkspaceExpensifyCardPageEmptyState);

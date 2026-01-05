@@ -1,22 +1,21 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import useAncestors from '@hooks/useAncestors';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import onyxSubscribe from '@libs/onyxSubscribe';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isTripPreview} from '@libs/ReportActionsUtils';
-import type {Ancestor} from '@libs/ReportUtils';
 import {
     canCurrentUserOpenReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getAllAncestorReportActionIDs,
-    getAllAncestorReportActions,
     getOriginalReportID,
     isArchivedReport,
     navigateToLinkedReportAction,
+    shouldExcludeAncestorReportAction,
 } from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -116,129 +115,109 @@ function ReportActionItemParentAction({
     isReportArchived = false,
 }: ReportActionItemParentActionProps) {
     const styles = useThemeStyles();
-    const ancestorIDs = useRef(getAllAncestorReportActionIDs(report));
-    const ancestorReports = useRef<Record<string, OnyxEntry<OnyxTypes.Report>>>({});
-    const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
+    const ancestors = useAncestors(report, shouldExcludeAncestorReportAction);
     const {isOffline} = useNetwork();
     const {isInNarrowPaneModal} = useResponsiveLayout();
-    const [ancestorReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
-        canBeMissing: true,
-        selector: (allPairs) => {
-            const ancestorIDsToSelect = new Set(ancestorIDs.current.reportIDs);
 
-            return Object.fromEntries(
-                Object.entries(allPairs ?? {}).filter(([key]) => {
-                    const id = key.split('_').at(1);
-                    return id && ancestorIDsToSelect.has(id);
-                }),
-            );
+    const ancestorReportNameValuePairsSelector = useCallback(
+        (allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>) => {
+            if (!allReportNameValuePairs) {
+                return {};
+            }
+            const ancestorReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs> = {};
+            for (const ancestor of ancestors) {
+                ancestorReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`] =
+                    allReportNameValuePairs[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestor.report.reportID}`];
+            }
+            return ancestorReportNameValuePairs;
         },
-    });
+        [ancestors],
+    );
 
-    useEffect(() => {
-        const unsubscribeReports: Array<() => void> = [];
-        const unsubscribeReportActions: Array<() => void> = [];
-        ancestorIDs.current.reportIDs.forEach((ancestorReportID) => {
-            unsubscribeReports.push(
-                onyxSubscribe({
-                    key: `${ONYXKEYS.COLLECTION.REPORT}${ancestorReportID}`,
-                    callback: (val) => {
-                        ancestorReports.current[ancestorReportID] = val;
-                        //  getAllAncestorReportActions use getReportOrDraftReport to get parent reports which gets the report from allReports that
-                        // holds the report collection. However, allReports is not updated by the time this current callback is called.
-                        // Therefore we need to pass the up-to-date report to getAllAncestorReportActions so that it uses the up-to-date report value
-                        // to calculate, for instance, unread marker.
-                        setAllAncestors(getAllAncestorReportActions(report, val));
-                    },
-                }),
-            );
-            unsubscribeReportActions.push(
-                onyxSubscribe({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${ancestorReportID}`,
-                    callback: () => {
-                        setAllAncestors(getAllAncestorReportActions(report));
-                    },
-                }),
-            );
-        });
-
-        return () => {
-            unsubscribeReports.forEach((unsubscribeReport) => unsubscribeReport());
-            unsubscribeReportActions.forEach((unsubscribeReportAction) => unsubscribeReportAction());
-        };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    const [ancestorsReportNameValuePairs] = useOnyx(
+        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+        {
+            canBeMissing: true,
+            selector: ancestorReportNameValuePairsSelector,
+        },
+        [ancestors],
+    );
 
     return (
         <View style={[styles.pRelative]}>
             <AnimatedEmptyStateBackground />
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
-            {allAncestors.map((ancestor) => {
-                const ancestorReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${ancestor.report.reportID}`];
-                const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, isReportArchived);
-                const shouldDisplayThreadDivider = !isTripPreview(ancestor.reportAction);
-                const reportNameValuePair =
-                    ancestorReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReports.current?.[ancestor?.report?.reportID]?.reportID}`];
-                const isAncestorReportArchived = isArchivedReport(reportNameValuePair);
+            <OfflineWithFeedback
+                shouldDisableOpacity
+                errors={
+                    report?.errorFields?.createChatThread ?? (report?.errorFields?.createChat ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : null)
+                }
+                errorRowStyles={[styles.ml10, styles.mr2]}
+                onClose={() => navigateToConciergeChatAndDeleteReport(report?.reportID, undefined, true)}
+            >
+                {/* eslint-disable-next-line react-compiler/react-compiler */}
+                {ancestors.map((ancestor) => {
+                    const {report: ancestorReport, reportAction: ancestorReportAction} = ancestor;
+                    const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(ancestorReport, isReportArchived);
+                    const shouldDisplayThreadDivider = !isTripPreview(ancestorReportAction);
+                    const isAncestorReportArchived = isArchivedReport(ancestorsReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${ancestorReport.reportID}`]);
 
-                const originalReportID = getOriginalReportID(ancestor.report.reportID, ancestor.reportAction);
-                const reportDraftMessages = originalReportID ? allDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
-                const matchingDraftMessage = reportDraftMessages?.[ancestor.reportAction.reportActionID];
-                const matchingDraftMessageString = typeof matchingDraftMessage === 'string' ? matchingDraftMessage : matchingDraftMessage?.message;
-                const actionEmojiReactions = allEmojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestor.reportAction.reportActionID}`];
+                    const originalReportID = getOriginalReportID(ancestorReport.reportID, ancestorReportAction);
+                    const reportDraftMessages = originalReportID ? allDraftMessages?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`] : undefined;
+                    const matchingDraftMessage = reportDraftMessages?.[ancestorReportAction.reportActionID];
+                    const matchingDraftMessageString = matchingDraftMessage?.message;
+                    const actionEmojiReactions = allEmojiReactions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${ancestorReportAction.reportActionID}`];
 
-                return (
-                    <OfflineWithFeedback
-                        key={ancestor.reportAction.reportActionID}
-                        shouldDisableOpacity={!!ancestor.reportAction?.pendingAction}
-                        pendingAction={ancestor.report?.pendingFields?.addWorkspaceRoom ?? ancestor.report?.pendingFields?.createChat}
-                        errors={ancestor.report?.errorFields?.addWorkspaceRoom ?? ancestor.report?.errorFields?.createChat}
-                        errorRowStyles={[styles.ml10, styles.mr2]}
-                        onClose={() => navigateToConciergeChatAndDeleteReport(ancestor.report.reportID)}
-                    >
-                        {shouldDisplayThreadDivider && (
-                            <ThreadDivider
-                                ancestor={ancestor}
-                                isLinkDisabled={!canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID], isAncestorReportArchived)}
+                    return (
+                        <OfflineWithFeedback
+                            key={ancestorReportAction.reportActionID}
+                            shouldDisableOpacity={!!ancestorReportAction?.pendingAction}
+                            pendingAction={ancestorReport?.pendingFields?.addWorkspaceRoom ?? ancestorReport?.pendingFields?.createChat}
+                            errors={ancestorReport?.errorFields?.addWorkspaceRoom ?? ancestorReport?.errorFields?.createChat}
+                            errorRowStyles={[styles.ml10, styles.mr2]}
+                            onClose={() => navigateToConciergeChatAndDeleteReport(ancestorReport.reportID)}
+                        >
+                            {shouldDisplayThreadDivider && (
+                                <ThreadDivider
+                                    ancestor={ancestor}
+                                    isLinkDisabled={!canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)}
+                                />
+                            )}
+                            <ReportActionItem
+                                allReports={allReports}
+                                policies={policies}
+                                onPress={
+                                    canCurrentUserOpenReport(ancestorReport, isAncestorReportArchived)
+                                        ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)
+                                        : undefined
+                                }
+                                parentReportAction={parentReportAction}
+                                report={ancestorReport}
+                                reportActions={reportActions}
+                                transactionThreadReport={transactionThreadReport}
+                                action={ancestorReportAction}
+                                displayAsGroup={false}
+                                isMostRecentIOUReportAction={false}
+                                shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
+                                index={index}
+                                isFirstVisibleReportAction={isFirstVisibleReportAction}
+                                shouldUseThreadDividerLine={shouldUseThreadDividerLine}
+                                isThreadReportParentAction
+                                userWalletTierName={userWalletTierName}
+                                isUserValidated={isUserValidated}
+                                personalDetails={personalDetails}
+                                draftMessage={matchingDraftMessageString}
+                                emojiReactions={actionEmojiReactions}
+                                linkedTransactionRouteError={linkedTransactionRouteError}
+                                userBillingFundID={userBillingFundID}
+                                isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
                             />
-                        )}
-                        <ReportActionItem
-                            allReports={allReports}
-                            policies={policies}
-                            onPress={
-                                canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID], isAncestorReportArchived)
-                                    ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)
-                                    : undefined
-                            }
-                            parentReportAction={parentReportAction}
-                            report={ancestor.report}
-                            reportActions={reportActions}
-                            transactionThreadReport={transactionThreadReport}
-                            action={ancestor.reportAction}
-                            displayAsGroup={false}
-                            isMostRecentIOUReportAction={false}
-                            shouldDisplayNewMarker={ancestor.shouldDisplayNewMarker}
-                            index={index}
-                            isFirstVisibleReportAction={isFirstVisibleReportAction}
-                            shouldUseThreadDividerLine={shouldUseThreadDividerLine}
-                            isThreadReportParentAction
-                            userWalletTierName={userWalletTierName}
-                            isUserValidated={isUserValidated}
-                            personalDetails={personalDetails}
-                            draftMessage={matchingDraftMessageString}
-                            emojiReactions={actionEmojiReactions}
-                            linkedTransactionRouteError={linkedTransactionRouteError}
-                            userBillingFundID={userBillingFundID}
-                            isTryNewDotNVPDismissed={isTryNewDotNVPDismissed}
-                        />
-                    </OfflineWithFeedback>
-                );
-            })}
+                        </OfflineWithFeedback>
+                    );
+                })}
+            </OfflineWithFeedback>
             {shouldDisplayReplyDivider && <RepliesDivider shouldHideThreadDividerLine={shouldHideThreadDividerLine} />}
         </View>
     );
 }
-
-ReportActionItemParentAction.displayName = 'ReportActionItemParentAction';
 
 export default ReportActionItemParentAction;

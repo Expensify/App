@@ -17,7 +17,7 @@ function RecordTroubleshootDataToolMenu() {
 
     const createAndSaveFile = (logs: Log[]) => {
         const newFileName = appendTimeToFileName('logs.txt');
-        const zipFileName = 'troubleshoot.zip';
+        const zipFileName = appendTimeToFileName('troubleshoot.zip');
         const tempZipPath = `${RNFetchBlob.fs.dirs.CacheDir}/${zipFileName}`;
 
         zipRef.current.file(newFileName, JSON.stringify(logs, null, 2));
@@ -44,9 +44,9 @@ function RecordTroubleshootDataToolMenu() {
                 });
             })
             .then((path: string) => {
-                return RNFetchBlob.fs.stat(path).then(({size}) => {
+                return RNFetchBlob.fs.stat(path).then(({size, path: realPath}) => {
                     setFile({
-                        path,
+                        path: realPath,
                         newFileName: zipFileName,
                         size,
                     });

@@ -1,16 +1,16 @@
 ---
 title: Navigating New Expensify
-description: A guide to navigating New Expensify using the left-hand bar, workspace filters, and mobile layout.
-keywords: [New Expensify, navigation, LHB, left-hand bar, workspace filter, mobile tabs, UI layout, reports tab, account page]
+description: A guide to navigating New Expensify using the navigation tabs, workspace filters, and mobile layout.
+keywords: [New Expensify, navigation, LHB, navigation tabs, workspace filter, mobile tabs, UI layout, reports tab, account page]
 ---
 
 New Expensify features an intuitive, cross-platform navigation experience that makes it easy to access key tools like Inbox, Reports, Workspaces, and Account settings. This article outlines how to navigate New Expensify on both desktop and mobile.
 
 ---
 
-# Left-hand bar (LHB) Navigation
+# Navigation tabs
 
-The vertical **left-hand bar** is the primary navigation hub in your account. It includes:
+The **navigation tabs** (on the left on web, and at the bottom on mobile) are primary orientation hubs in your account. They includes:
 
 - The **Expensify logo**, which acts as a **Home** button and takes you to your Inbox
 - Top-level tabs:
@@ -18,7 +18,8 @@ The vertical **left-hand bar** is the primary navigation hub in your account. It
   - **Reports**
   - **Workspaces**
   - **Account**
-- The **Global Create** button for quick access to actions like creating reports, expenses, invoices, and chats
+- The green **Camera/Receipt** button to easily create expenses 
+- The grey **Global Create** button for additional actions like creating reports, tracking distance, sending invoices, and more.
 
 ---
 
@@ -85,7 +86,7 @@ The **Account** tab includes all personal and account-level settings. Here’s w
 
 # FAQ
 
-## What does the Expensify logo do in the left-hand bar?
+## What does the Expensify logo do in the navigation tabs?
 
 Clicking the logo takes you to your **Inbox**, which serves as the homepage of New Expensify. It’s where you’ll find action items, system suggestions, and task reminders.
 

@@ -68,7 +68,7 @@ function WorkspaceCardListHeader({cardSettings}: WorkspaceCardListHeaderProps) {
                         {translate('workspace.expensifyCard.lastFour')}
                     </Text>
                 </View>
-                <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex3 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
+                <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex3 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd, styles.mr8]}>
                     <Text
                         numberOfLines={1}
                         style={[styles.textMicroSupporting, styles.lh16]}
@@ -80,7 +80,5 @@ function WorkspaceCardListHeader({cardSettings}: WorkspaceCardListHeaderProps) {
         </View>
     );
 }
-
-WorkspaceCardListHeader.displayName = 'WorkspaceCardListHeader';
 
 export default WorkspaceCardListHeader;

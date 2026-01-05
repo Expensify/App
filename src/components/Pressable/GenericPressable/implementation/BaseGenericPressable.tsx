@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 
 function GenericPressable({
     children,
-    onPress = () => {},
+    onPress,
     onLongPress,
     onKeyDown,
     disabled,
@@ -37,6 +37,8 @@ function GenericPressable({
     interactive = true,
     isNested = false,
     ref,
+    dataSet,
+    forwardedFSClass,
     ...rest
 }: PressableProps) {
     const styles = useThemeStyles();
@@ -45,6 +47,7 @@ function GenericPressable({
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
     const [isHovered, setIsHovered] = useState(false);
+    const isRoleButton = [rest.accessibilityRole, rest.role].includes(CONST.ROLE.BUTTON);
 
     const isDisabled = useMemo(() => {
         let shouldBeDisabledByScreenReader = false;
@@ -72,11 +75,16 @@ function GenericPressable({
         if (shouldUseDisabledCursor) {
             return styles.cursorDisabled;
         }
+
+        if (onPress) {
+            return styles.cursorPointer;
+        }
+
         if ([rest.accessibilityRole, rest.role].includes(CONST.ROLE.PRESENTATION) && !isNested) {
             return styles.cursorText;
         }
         return styles.cursorPointer;
-    }, [interactive, shouldUseDisabledCursor, rest.accessibilityRole, rest.role, isNested, styles.cursorPointer, styles.cursorDefault, styles.cursorDisabled, styles.cursorText]);
+    }, [onPress, interactive, shouldUseDisabledCursor, rest.accessibilityRole, rest.role, isNested, styles.cursorPointer, styles.cursorDefault, styles.cursorDisabled, styles.cursorText]);
 
     const onLongPressHandler = useCallback(
         (event: GestureResponderEvent) => {
@@ -152,6 +160,7 @@ function GenericPressable({
             onKeyDown={!isDisabled ? onKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
+            dataSet={{...(isRoleButton ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : {}), ...(dataSet ?? {})}}
             style={(state) => [
                 cursorStyle,
                 StyleUtils.parseStyleFromFunction(style, state),
@@ -160,6 +169,7 @@ function GenericPressable({
                 (state.hovered || isHovered) && StyleUtils.parseStyleFromFunction(hoverStyle, state),
                 state.pressed && StyleUtils.parseStyleFromFunction(pressStyle, state),
                 isDisabled && [StyleUtils.parseStyleFromFunction(disabledStyle, state), styles.noSelect],
+                isRoleButton && styles.userSelectNone,
             ]}
             // accessibility props
             accessibilityState={{
@@ -172,6 +182,7 @@ function GenericPressable({
             onMagicTap={!isDisabled ? voidOnPressHandler : undefined}
             onAccessibilityTap={!isDisabled ? voidOnPressHandler : undefined}
             accessible={accessible}
+            fsClass={forwardedFSClass}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...rest}
             onHoverOut={(event) => {
@@ -194,7 +205,5 @@ function GenericPressable({
         </Pressable>
     );
 }
-
-GenericPressable.displayName = 'GenericPressable';
 
 export default GenericPressable;

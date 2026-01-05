@@ -1,8 +1,9 @@
 import {Str} from 'expensify-common';
 import {ResizeMode, Video} from 'expo-av';
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {cleanFileName, getFileName} from '@libs/fileDownload/FileUtils';
 import variables from '@styles/variables';
 import {checkIsFileImage} from './Attachments/AttachmentView';
 import DefaultAttachmentView from './Attachments/AttachmentView/DefaultAttachmentView';
@@ -29,9 +30,12 @@ type AttachmentPreviewProps = {
 function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: AttachmentPreviewProps) {
     const styles = useThemeStyles();
 
-    const fileName = source.split('/').pop() ?? undefined;
     const fillStyle = aspectRatio < 1 ? styles.h100 : styles.w100;
     const [isEncryptedPDF, setIsEncryptedPDF] = useState(false);
+    const fileName = useMemo(() => {
+        const rawFileName = getFileName(source);
+        return cleanFileName(rawFileName);
+    }, [source]);
 
     if (typeof source === 'string' && Str.isVideo(source)) {
         return (
@@ -109,7 +113,5 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
 
     return <DefaultAttachmentView fileName={fileName} />;
 }
-
-AttachmentPreview.displayName = 'AttachmentPreview';
 
 export default AttachmentPreview;

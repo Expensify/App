@@ -1,4 +1,5 @@
 import {useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import type {ReactNode} from 'react';
 import React, {useContext, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -16,10 +17,11 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
+import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -40,14 +42,18 @@ type ScreenWrapperChildrenProps = {
 };
 
 type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
-    Omit<ScreenWrapperOfflineIndicatorsProps, 'addBottomSafeAreaPadding' | 'addWideScreenBottomSafeAreaPadding'> & {
+    Omit<ScreenWrapperOfflineIndicatorsProps, 'addBottomSafeAreaPadding' | 'addWideScreenBottomSafeAreaPadding'> &
+    ForwardedFSClassProps & {
         /**
          * The navigation prop is passed by the navigator. It is used to trigger the onEntryTransitionEnd callback
          * when the screen transition ends.
          *
          * This is required because transitionEnd event doesn't trigger in the testing environment.
          */
-        navigation?: PlatformStackNavigationProp<RootNavigatorParamList> | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>;
+        navigation?:
+            | PlatformStackNavigationProp<RootNavigatorParamList>
+            | PlatformStackNavigationProp<ReportsSplitNavigatorParamList>
+            | PlatformStackNavigationProp<RightModalNavigatorParamList>;
 
         /** A unique ID to find the screen wrapper in tests */
         testID: string;
@@ -106,7 +112,7 @@ function ScreenWrapper({
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     const styles = useThemeStyles();
     const {isDevelopment} = useEnvironment();
@@ -157,7 +163,7 @@ function ScreenWrapper({
     /** If there is no bottom content, the mobile offline indicator will stick to the bottom of the screen by default. */
     const displayStickySmallScreenOfflineIndicator = shouldSmallScreenOfflineIndicatorStickToBottom && !bottomContent;
     const displaySmallScreenOfflineIndicator = isSmallScreenWidth && (shouldShowSmallScreenOfflineIndicator ?? showOnSmallScreens ?? true);
-    const displayWideScreenOfflineIndicator = !shouldUseNarrowLayout && (shouldShowWideScreenOfflineIndicator ?? showOnWideScreens ?? false);
+    const displayWideScreenOfflineIndicator = !isSmallScreenWidth && (shouldShowWideScreenOfflineIndicator ?? showOnWideScreens ?? false);
 
     /** In edge-to-edge mode, we always want to apply the bottom safe area padding to the mobile offline indicator. */
     const addSmallScreenOfflineIndicatorBottomSafeAreaPadding = isUsingEdgeToEdgeMode ? enableEdgeToEdgeBottomSafeAreaPadding : !includeSafeAreaPaddingBottom;
@@ -167,7 +173,7 @@ function ScreenWrapper({
     const shouldOffsetMobileOfflineIndicator = displaySmallScreenOfflineIndicator && addSmallScreenOfflineIndicatorBottomSafeAreaPadding && isOffline;
 
     const {initialURL} = useContext(InitialURLContext);
-    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: (hybridApp) => hybridApp?.isSingleNewDotEntry, canBeMissing: true});
+    const [isSingleNewDotEntry = false] = useOnyx(ONYXKEYS.HYBRID_APP, {selector: isSingleNewDotEntrySelector, canBeMissing: true});
 
     usePreventRemove(isSingleNewDotEntry && !!initialURL?.endsWith(Navigation.getActiveRouteWithoutParams()), () => {
         if (!CONFIG.IS_HYBRID_APP) {
@@ -183,7 +189,7 @@ function ScreenWrapper({
             onEntryTransitionEnd?.();
         }, CONST.SCREEN_TRANSITION_END_TIMEOUT);
 
-        const unsubscribeTransitionEnd = navigation.addListener('transitionEnd', (event) => {
+        const unsubscribeTransitionEnd = navigation.addListener?.('transitionEnd', (event) => {
             // Prevent firing the prop callback when user is exiting the page.
             if (event?.data?.closing) {
                 return;
@@ -262,7 +268,6 @@ function ScreenWrapper({
         </FocusTrapForScreen>
     );
 }
-ScreenWrapper.displayName = 'ScreenWrapper';
 
 export default withNavigationFallback(ScreenWrapper);
 export type {ScreenWrapperProps, ScreenWrapperChildrenProps};

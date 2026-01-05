@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {isEmailPublicDomain} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import {generateReportID} from '@libs/ReportUtils';
 import {isValidPersonName} from '@libs/ValidationUtils';
 import TeachersUnite from '@userActions/TeachersUnite';
 import CONST from '@src/CONST';
@@ -27,14 +28,35 @@ function IntroSchoolPrincipalPage() {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+    const [formState] = useOnyx(ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM, {canBeMissing: true});
     const {localCurrencyCode, login, accountID} = useCurrentUserPersonalDetails();
+    const optimisticReportID = useRef(generateReportID());
+    const hasSubmittedRef = useRef(false);
+
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (hasSubmittedRef.current && formState && !formState.isLoading && !formState.errors) {
+            Navigation.dismissModalWithReport({reportID: optimisticReportID.current});
+            hasSubmittedRef.current = false;
+        }
+    }, [formState, isProduction]);
 
     /**
      * Submit form to pass firstName, partnerUserID and lastName
      */
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTRO_SCHOOL_PRINCIPAL_FORM>) => {
+        hasSubmittedRef.current = true;
         const policyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
-        TeachersUnite.addSchoolPrincipal(values.firstName.trim(), values.partnerUserID.trim(), values.lastName.trim(), policyID, localCurrencyCode, login ?? '', accountID);
+        TeachersUnite.addSchoolPrincipal(
+            values.firstName.trim(),
+            values.partnerUserID.trim(),
+            values.lastName.trim(),
+            policyID,
+            localCurrencyCode,
+            login ?? '',
+            accountID,
+            optimisticReportID.current,
+        );
     };
 
     /**
@@ -47,26 +69,12 @@ function IntroSchoolPrincipalPage() {
             if (!values.firstName || !isValidPersonName(values.firstName)) {
                 addErrorMessage(errors, 'firstName', translate('bankAccount.error.firstName'));
             } else if (values.firstName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(
-                    errors,
-                    'firstName',
-                    translate('common.error.characterLimitExceedCounter', {
-                        length: values.firstName.length,
-                        limit: CONST.NAME.MAX_LENGTH,
-                    }),
-                );
+                addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.NAME.MAX_LENGTH));
             }
             if (!values.lastName || !isValidPersonName(values.lastName)) {
                 addErrorMessage(errors, 'lastName', translate('bankAccount.error.lastName'));
             } else if (values.lastName.length > CONST.NAME.MAX_LENGTH) {
-                addErrorMessage(
-                    errors,
-                    'lastName',
-                    translate('common.error.characterLimitExceedCounter', {
-                        length: values.lastName.length,
-                        limit: CONST.NAME.MAX_LENGTH,
-                    }),
-                );
+                addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.NAME.MAX_LENGTH));
             }
             if (!values.partnerUserID) {
                 addErrorMessage(errors, 'partnerUserID', translate('teachersUnitePage.error.enterEmail'));
@@ -89,7 +97,7 @@ function IntroSchoolPrincipalPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={IntroSchoolPrincipalPage.displayName}
+            testID="IntroSchoolPrincipalPage"
         >
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.introSchoolPrincipal')}
@@ -142,7 +150,5 @@ function IntroSchoolPrincipalPage() {
         </ScreenWrapper>
     );
 }
-
-IntroSchoolPrincipalPage.displayName = 'IntroSchoolPrincipalPage';
 
 export default IntroSchoolPrincipalPage;

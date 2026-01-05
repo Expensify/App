@@ -1,21 +1,20 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
-import Computer from '@assets/images/laptop-with-second-screen-sync.svg';
+import {View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ImageSVG from '@components/ImageSVG';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -31,9 +30,9 @@ type RequireQuickBooksDesktopModalProps = PlatformStackScreenProps<SettingsNavig
 
 function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalProps) {
     const {translate} = useLocalize();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass', 'LaptopWithSecondScreenSync']);
     const policyID: string = route.params.policyID;
     const [hasError, setHasError] = useState(false);
     const [codatSetupLink, setCodatSetupLink] = useState<string>('');
@@ -84,7 +83,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         <ScreenWrapper
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
-            testID={RequireQuickBooksDesktopModal.displayName}
+            testID="RequireQuickBooksDesktopModal"
         >
             <HeaderWithBackButton
                 title={translate('workspace.qbd.qbdSetup')}
@@ -95,7 +94,7 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 {shouldShowError && (
                     <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
                         <Icon
-                            src={Illustrations.BrokenMagnifyingGlass}
+                            src={illustrations.BrokenMagnifyingGlass}
                             width={116}
                             height={168}
                         />
@@ -108,17 +107,14 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
                 {!shouldShowError && (
                     <View style={[styles.flex1, styles.ph5]}>
                         <View style={[styles.alignSelfCenter, styles.computerIllustrationContainer, styles.pv6]}>
-                            <ImageSVG src={Computer} />
+                            <ImageSVG src={illustrations.LaptopWithSecondScreenSync} />
                         </View>
 
                         <Text style={[styles.textHeadlineH1, styles.pt5]}>{translate('workspace.qbd.setupPage.title')}</Text>
                         <Text style={[styles.textSupporting, styles.textNormal, styles.pt4]}>{translate('workspace.qbd.setupPage.body')}</Text>
                         <View style={[styles.qbdSetupLinkBox, styles.mt5]}>
                             {!hasResultOfFetchingSetupLink ? (
-                                <ActivityIndicator
-                                    color={theme.spinner}
-                                    size="small"
-                                />
+                                <ActivityIndicator />
                             ) : (
                                 <CopyTextToClipboard
                                     text={codatSetupLink}
@@ -144,7 +140,5 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
         </ScreenWrapper>
     );
 }
-
-RequireQuickBooksDesktopModal.displayName = 'RequireQuickBooksDesktopModal';
 
 export default RequireQuickBooksDesktopModal;

@@ -1,5 +1,5 @@
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {cleanFileName, validateImageForCorruption} from './fileDownload/FileUtils';
 
 type AttachmentValidationError = CorruptionError | 'fileDoesNotExist' | 'fileInvalid';
@@ -22,8 +22,9 @@ function validateAttachmentFile(file: FileObject): Promise<AttachmentValidationR
     }
 
     let fileObject = file;
-    if ('getAsFile' in file && typeof file.getAsFile === 'function') {
-        fileObject = file.getAsFile() as FileObject;
+    const fileConverted = file.getAsFile?.();
+    if (fileConverted) {
+        fileObject = fileConverted;
     }
     if (!fileObject) {
         return Promise.resolve({isValid: false, error: 'fileInvalid'});

@@ -58,6 +58,8 @@ Please be aware that compensation for any support in solving an issue is provide
 
 **Important:** Payment amounts are variable, dependent on if there are any [regressions](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#regressions). Your PR will be reviewed by a [Contributor+ (C+)](https://github.com/Expensify/App/blob/main/contributingGuides/HOW_TO_BECOME_A_CONTRIBUTOR_PLUS.md) team member and an internal engineer.  All tests must pass and all code must pass lint checks before a merge. 
 
+Contributors are eligible to be paid via Expensify 18 months after they were first assigned to a job. More details at [PAYMENT_VIA_EXPENSIFY.md](https://github.com/Expensify/App/blob/main/contributingGuides/PAYMENT_VIA_EXPENSIFY.md)
+
 ### Regressions
 
 If a PR causes a regression at any point within the regression period (starting when the code is merged and ending 168 hours (that's 7 days) after being deployed to production): 
@@ -139,7 +141,7 @@ Additionally, if you want to discuss an idea with the open source community with
 3. If you cannot reproduce the problem, pause on this step and add a comment to the issue explaining where you are stuck or that you don't think the issue can be reproduced.
 
 ### Propose a solution for the job
-4. You can propose solutions on any issue at any time, but if you propose solutions to jobs before the `Help Wanted` label is applied, you do so at your own risk. Proposals will not be reviewed until the label is added and there is always a chance that we might not add the label or hire an external contributor for the job.
+4. You can propose solutions on any Github issue at any time, do not post proposals in Slack. If you propose solutions to jobs before the `Help Wanted` label is applied, you do so at your own risk. Proposals will not be reviewed until the label is added and there is always a chance that we might not add the label or hire an external contributor for the job.
 5. Contributors should **not** submit proposals on issues when they have assigned issues or PRs that are awaiting an action from them. If so, they will be in violation of Rule #1 (Get Shit Done) in our [Code of Conduct](https://github.com/Expensify/App/blob/main/CODE_OF_CONDUCT.md) and will receive a warning. Multiple warnings can lead to removal from the program. 
 6. After you reproduce the issue, complete the [proposal template here](./PROPOSAL_TEMPLATE.md) and post it as a comment in the corresponding GitHub issue (linked in the Upwork job).
     - Note: Before submitting a proposal on an issue, be sure to read any other existing proposals. ALL NEW PROPOSALS MUST BE DIFFERENT FROM EXISTING PROPOSALS. The *difference* should be important, meaningful or considerable.
@@ -178,8 +180,8 @@ Additionally, if you want to discuss an idea with the open source community with
 	3. Lint - All code must pass lint checks before a merge of a pull request
 15. Please never force push when a PR review has already started (because this messes with the PR review history)
 16. Please pay attention to the pull request template, especially to how we link PRs with issues they fix. Make sure you don't use GitHub keywords such as `fixes` in your PR description, as this can break our current automated steps for issue management. Follow the PR template format carefully.
-17. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, Desktop, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
-18. Please add a screenshot of the app running on each platform (Web, Desktop, iOS, Android, Mobile Web).
+17. Upon submission of a PR, please include a numbered list of explicit testing steps for each platform (Web, iOS, Android, and Mobile Web) to confirm the fix works as expected and there are no regressions.
+18. Please add a screenshot of the app running on each platform (Web, iOS, Android, Mobile Web).
 
 ### Completing the final checklist
 19. Once your PR has been deployed to production, a checklist will automatically be commented in the GH issue. You're required to complete the steps that have your name mentioned before payment will be issued.

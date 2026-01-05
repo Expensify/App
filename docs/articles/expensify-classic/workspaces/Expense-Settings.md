@@ -52,7 +52,7 @@ If your **Group Workspace** integrates with Xero, QuickBooks Online, NetSuite, o
 Expensify generates **eReceipts**, which are digital replacements for receipts of **$75 or less** for credit card transactions.
 
 - **Enabled** – Expensify will generate eReceipts for all US-based card transactions up to $75.
-- **Disabled** – No eReceipts will be generated.
+- **Disabled** – No eReceipts will be generated. Disabling **eReceipts** after enabling them will hide existing eReceipts. Enable **eReceipts** again to restore them.
 
 **Note:** Expensify does not generate eReceipts for lodging expenses.
 
@@ -128,6 +128,9 @@ Expensify generates eReceipts for **Expensify Card purchases** of any amount in 
 - Car rental
 - Taxis
 - Utilities
+
+## Can I disable SmartScan for my workspace?
+No, SmartScan can’t be disabled for group (paid) workspaces. It’s always enabled by default.
 
 ## Why didn’t my mileage rate update to the latest IRS rate?
 

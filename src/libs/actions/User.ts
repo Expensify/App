@@ -34,6 +34,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {isOffline} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import triggerNotifications from '@libs/Notification/triggerNotifications';
 import * as NumberUtils from '@libs/NumberUtils';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import Pusher from '@libs/Pusher';
@@ -47,7 +48,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
+import type {AppReview, BlockedFromConcierge, CustomStatusDraft, LoginList, Policy} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {OnyxServerUpdate, OnyxUpdatesFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
 import type OnyxPersonalDetails from '@src/types/onyx/PersonalDetails';
@@ -57,7 +58,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {reconnectApp} from './App';
 import applyOnyxUpdatesReliably from './applyOnyxUpdatesReliably';
 import {openOldDotLink} from './Link';
-import {showReportActionNotification} from './Report';
 import {resendValidateCode as sessionResendValidateCode} from './Session';
 import Timing from './Timing';
 
@@ -68,18 +68,6 @@ Onyx.connect({
     callback: (value) => {
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         currentEmail = value?.email ?? '';
-    },
-});
-
-let myPersonalDetails: OnyxEntry<OnyxPersonalDetails>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        if (!value || currentUserAccountID === -1) {
-            return;
-        }
-
-        myPersonalDetails = value[currentUserAccountID] ?? undefined;
     },
 });
 
@@ -97,14 +85,14 @@ function closeAccount(reason: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
     // command succeeds, a Pusher response will clear all Onyx data.
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
             value: {isLoading: true},
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM,
@@ -138,7 +126,7 @@ function resendValidateCode(login: string) {
  * @param contactMethod - the new contact method that the user is trying to verify
  */
 function requestContactMethodValidateCode(contactMethod: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -156,7 +144,7 @@ function requestContactMethodValidateCode(contactMethod: string) {
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -171,7 +159,7 @@ function requestContactMethodValidateCode(contactMethod: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -198,14 +186,14 @@ function requestContactMethodValidateCode(contactMethod: string) {
  * Sets whether the user account is subscribed to Expensify news
  */
 function updateNewsletterSubscription(isSubscribed: boolean) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {isSubscribedToNewsletter: isSubscribed},
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -229,7 +217,7 @@ function updateNewsletterSubscription(isSubscribed: boolean) {
 function deleteContactMethod(contactMethod: string, loginList: Record<string, Login>, backTo?: string) {
     const oldLoginData = loginList[contactMethod];
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -244,7 +232,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -253,7 +241,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -354,7 +342,7 @@ function clearPendingContactActionErrors() {
  * So we add the temporary contact method to Onyx to use it later, after user verified magic code.
  */
 function addPendingContactMethod(contactMethod: string) {
-    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
+    Onyx.set(ONYXKEYS.PENDING_CONTACT_ACTION, {
         contactMethod,
     });
 }
@@ -363,7 +351,7 @@ function addPendingContactMethod(contactMethod: string) {
  * Adds a secondary login to a user's account
  */
 function addNewContactMethod(contactMethod: string, validateCode = '') {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -383,7 +371,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             value: {isLoading: true},
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.PENDING_CONTACT_ACTION | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
@@ -402,7 +390,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
             value: {isLoading: false},
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -424,7 +412,7 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
  * Requests a magic code to verify current user
  */
 function requestValidateCodeAction() {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
@@ -440,7 +428,7 @@ function requestValidateCodeAction() {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
@@ -457,7 +445,7 @@ function requestValidateCodeAction() {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.VALIDATE_ACTION_CODE,
@@ -481,13 +469,14 @@ function requestValidateCodeAction() {
  * Validates a secondary login / contact method
  */
 function validateSecondaryLogin(
+    currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
     loginList: OnyxEntry<LoginList>,
     contactMethod: string,
     validateCode: string,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     shouldResetActionCode?: boolean,
 ) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -561,16 +550,16 @@ function validateSecondaryLogin(
                     value: {
                         [currentUserAccountID]: {
                             login: contactMethod,
-                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, myPersonalDetails, formatPhoneNumber),
+                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, currentUserPersonalDetails, formatPhoneNumber),
                         },
                     },
                 },
             ],
         );
 
-        Object.values(allPolicies ?? {}).forEach((policy) => {
+        for (const policy of Object.values(allPolicies ?? {})) {
             if (!policy) {
-                return;
+                continue;
             }
 
             let optimisticPolicyDataValue;
@@ -599,7 +588,7 @@ function validateSecondaryLogin(
                     value: optimisticPolicyDataValue,
                 });
             }
-        });
+        }
     }
 
     const failureData: OnyxUpdate[] = [
@@ -660,22 +649,10 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
     return isBefore(new Date(), new Date(blockedFromConciergeNVP.expiresAt));
 }
 
-function triggerNotifications(onyxUpdates: OnyxServerUpdate[]) {
-    onyxUpdates.forEach((update) => {
-        if (!update.shouldNotify && !update.shouldShowPushNotification) {
-            return;
-        }
-
-        const reportID = update.key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
-        const reportActions = Object.values((update.value as OnyxCollection<ReportAction>) ?? {});
-
-        reportActions.forEach((action) => action && showReportActionNotification(reportID, action));
-    });
-}
-
 const isChannelMuted = (reportId: string) =>
     new Promise((resolve) => {
-        const connection = Onyx.connect({
+        // We use `connectWithoutView` here since this connection is non-reactive in nature.
+        const connection = Onyx.connectWithoutView({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
                 Onyx.disconnect(connection);
@@ -972,7 +949,7 @@ function subscribeToUserEvents() {
  * Sync preferredSkinTone with Onyx and Server
  */
 function updatePreferredSkinTone(skinTone: number) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE,
@@ -992,7 +969,7 @@ function updatePreferredSkinTone(skinTone: number) {
  */
 function updateChatPriorityMode(mode: ValueOf<typeof CONST.PRIORITY_MODE>, automatic = false) {
     const autoSwitchedToFocusMode = mode === CONST.PRIORITY_MODE.GSD && automatic;
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PRIORITY_MODE | typeof ONYXKEYS.NVP_TRY_FOCUS_MODE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PRIORITY_MODE,
@@ -1022,7 +999,7 @@ function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
     if (CONFIG.IS_HYBRID_APP) {
         HybridAppModule.shouldUseStaging(shouldUseStagingServer);
     }
-    Onyx.merge(ONYXKEYS.ACCOUNT, {shouldUseStagingServer});
+    Onyx.set(ONYXKEYS.SHOULD_USE_STAGING_SERVER, shouldUseStagingServer);
 }
 
 function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<Platform, true>>) {
@@ -1030,14 +1007,14 @@ function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<P
         ? {...mutedPlatforms, [platform]: undefined} // Remove platform if it's muted
         : {...mutedPlatforms, [platform]: true}; // Add platform if it's not muted
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_MUTED_PLATFORMS>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_MUTED_PLATFORMS,
             value: newMutedPlatforms,
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_MUTED_PLATFORMS>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.NVP_MUTED_PLATFORMS,
@@ -1075,7 +1052,7 @@ function joinScreenShare(accessToken: string, roomName: string) {
  * @param period YYYYMM format
  */
 function generateStatementPDF(period: string) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_STATEMENT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_STATEMENT,
@@ -1084,7 +1061,7 @@ function generateStatementPDF(period: string) {
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_STATEMENT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_STATEMENT,
@@ -1093,7 +1070,7 @@ function generateStatementPDF(period: string) {
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.WALLET_STATEMENT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.WALLET_STATEMENT,
@@ -1115,9 +1092,16 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], backTo?: string) {
+function setContactMethodAsDefault(
+    currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
+    newDefaultContactMethod: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    backTo?: string,
+) {
     const oldDefaultContactMethod = currentEmail;
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<
+        OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.POLICY>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1152,12 +1136,12 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
             value: {
                 [currentUserAccountID]: {
                     login: newDefaultContactMethod,
-                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, myPersonalDetails, formatPhoneNumber),
+                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, currentUserPersonalDetails, formatPhoneNumber),
                 },
             },
         },
     ];
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.LOGIN_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LOGIN_LIST,
@@ -1170,7 +1154,9 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
             },
         },
     ];
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<
+        OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.POLICY>
+    > = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1203,14 +1189,14 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {...myPersonalDetails},
+                [currentUserAccountID]: {...currentUserPersonalDetails},
             },
         },
     ];
 
-    Object.values(allPolicies ?? {}).forEach((policy) => {
+    for (const policy of Object.values(allPolicies ?? {})) {
         if (!policy) {
-            return;
+            continue;
         }
 
         let optimisticPolicyDataValue;
@@ -1255,7 +1241,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
                 value: failurePolicyDataValue,
             });
         }
-    });
+    }
     const parameters: SetContactMethodAsDefaultParams = {
         partnerUserID: newDefaultContactMethod,
     };
@@ -1269,7 +1255,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
 }
 
 function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PREFERRED_THEME>> = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: ONYXKEYS.PREFERRED_THEME,
@@ -1290,7 +1276,7 @@ function updateTheme(theme: ValueOf<typeof CONST.THEME>) {
  * Sets a custom status
  */
 function updateCustomStatus(status: Status) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -1313,7 +1299,7 @@ function updateCustomStatus(status: Status) {
  * Clears the custom status
  */
 function clearCustomStatus() {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
@@ -1339,6 +1325,14 @@ function updateDraftCustomStatus(status: CustomStatusDraft) {
 }
 
 /**
+ * Sets a clear after date for the custom status
+ *
+ */
+function updateStatusDraftCustomClearAfterDate(date: string) {
+    Onyx.set(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE, date);
+}
+
+/**
  * Clear the custom draft status
  */
 function clearDraftCustomStatus() {
@@ -1346,7 +1340,7 @@ function clearDraftCustomStatus() {
 }
 
 function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTENT_TYPES>) {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_DISMISSED_REFERRAL_BANNERS,
@@ -1364,13 +1358,14 @@ function dismissReferralBanner(type: ValueOf<typeof CONST.REFERRAL_PROGRAM.CONTE
     );
 }
 
-function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value']) {
+function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'], revertedValue: SetNameValuePairParams['value'], shouldRevertValue = true) {
     const parameters: SetNameValuePairParams = {
         name,
         value,
     };
 
     const optimisticData: OnyxUpdate[] = [
+        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: name,
@@ -1378,13 +1373,16 @@ function setNameValuePair(name: OnyxKey, value: SetNameValuePairParams['value'],
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: name,
-            value: revertedValue,
-        },
-    ];
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
+    const failureData: OnyxUpdate[] | undefined = shouldRevertValue
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: name,
+                  value: revertedValue,
+              },
+          ]
+        : undefined;
 
     API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
         optimisticData,
@@ -1405,15 +1403,11 @@ function requestRefund() {
 }
 
 function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {isDebugModeEnabled});
-}
-
-function setShouldBlockTransactionThreadReportCreation(shouldBlockTransactionThreadReportCreation: boolean) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {shouldBlockTransactionThreadReportCreation});
+    Onyx.set(ONYXKEYS.IS_DEBUG_MODE_ENABLED, isDebugModeEnabled);
 }
 
 function lockAccount() {
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1426,7 +1420,7 @@ function lockAccount() {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1439,7 +1433,7 @@ function lockAccount() {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -1457,6 +1451,104 @@ function lockAccount() {
     // We need to know if this command fails so that we can navigate the user to a failure page.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
+}
+
+function requestUnlockAccount() {
+    const params: LockAccountParams = {
+        accountID: currentUserAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.REQUEST_UNLOCK_ACCOUNT, params);
+}
+
+type RespondToProactiveAppReviewParams = {
+    response: 'positive' | 'negative' | 'skip';
+    optimisticReportActionID?: string;
+};
+
+/**
+ * Respond to the proactive app review prompt and optionally create a Concierge message
+ */
+function respondToProactiveAppReview(response: 'positive' | 'negative' | 'skip', currentProactiveAppReview: AppReview | null | undefined, message?: string, conciergeChatReportID?: string) {
+    const params: RespondToProactiveAppReviewParams = {response};
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
+
+    // Capture current values for failure data
+    const originalResponse = currentProactiveAppReview?.response;
+    const originalLastPrompt = currentProactiveAppReview?.lastPrompt;
+
+    // For positive/negative responses, create an optimistic Concierge message
+    if (message && conciergeChatReportID && response !== 'skip') {
+        const conciergeAccountID = CONST.ACCOUNT_ID.CONCIERGE;
+        const optimisticReportAction = ReportUtils.buildOptimisticAddCommentReportAction(message, undefined, conciergeAccountID, undefined, undefined, conciergeChatReportID);
+        const optimisticReportActionID = optimisticReportAction.reportAction.reportActionID;
+        const currentTime = DateUtils.getDBTime();
+
+        params.optimisticReportActionID = optimisticReportActionID;
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+                value: {
+                    [optimisticReportActionID]: optimisticReportAction.reportAction,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`,
+                value: {
+                    lastVisibleActionCreated: optimisticReportAction.reportAction.created,
+                    lastMessageText: message,
+                    lastActorAccountID: conciergeAccountID,
+                    lastReadTime: currentTime,
+                },
+            },
+        );
+
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+            value: {
+                [optimisticReportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReportID}`,
+            value: {
+                [optimisticReportActionID]: {
+                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        });
+    }
+
+    // Always add the NVP_APP_REVIEW updates
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_APP_REVIEW,
+        value: {
+            response,
+            lastPrompt: DateUtils.getDBTime(),
+        },
+    });
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: ONYXKEYS.NVP_APP_REVIEW,
+        value: {
+            response: originalResponse,
+            lastPrompt: originalLastPrompt,
+        },
+    });
+
+    API.write(WRITE_COMMANDS.RESPOND_TO_PROACTIVE_APP_REVIEW, params, {optimisticData, successData, failureData});
 }
 
 export {
@@ -1486,6 +1578,7 @@ export {
     updateCustomStatus,
     clearCustomStatus,
     updateDraftCustomStatus,
+    updateStatusDraftCustomClearAfterDate,
     clearDraftCustomStatus,
     requestRefund,
     setNameValuePair,
@@ -1495,7 +1588,8 @@ export {
     addPendingContactMethod,
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
-    setShouldBlockTransactionThreadReportCreation,
     resetValidateActionCodeSent,
     lockAccount,
+    requestUnlockAccount,
+    respondToProactiveAppReview,
 };

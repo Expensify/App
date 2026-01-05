@@ -1,14 +1,17 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import isEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+import TextWithEmojiFragment from '@pages/home/report/comment/TextWithEmojiFragment';
 import CONST from '@src/CONST';
 import type {EmptyStateComponentProps, VideoLoadedEventType} from './types';
 
@@ -35,6 +38,7 @@ function EmptyStateComponent({
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const doesSubtitleContainCustomEmojiAndMore = containsCustomEmoji(subtitle ?? '') && !containsOnlyCustomEmoji(subtitle ?? '');
 
     const setAspectRatio = (event: VideoReadyForDisplayEvent | VideoLoadedEventType | undefined) => {
         if (!event) {
@@ -76,7 +80,7 @@ function EmptyStateComponent({
             case CONST.EMPTY_STATE_MEDIA.ILLUSTRATION:
                 return (
                     <ImageSVG
-                        style={headerContentStyles}
+                        style={StyleSheet.flatten(headerContentStyles)}
                         src={headerMedia}
                     />
                 );
@@ -97,25 +101,45 @@ function EmptyStateComponent({
             )}
             <View style={styles.emptyStateForeground}>
                 <View style={[styles.emptyStateContent, cardStyles]}>
-                    <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
+                    <View style={[styles.emptyStateHeader, styles.emptyStateHeaderPosition(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
                     <View style={[shouldUseNarrowLayout ? styles.p5 : styles.p8, cardContentStyles]}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
-                        {subtitleText ?? <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>}
+                        {subtitleText ??
+                            (doesSubtitleContainCustomEmojiAndMore ? (
+                                <TextWithEmojiFragment
+                                    style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}
+                                    message={subtitle}
+                                />
+                            ) : (
+                                <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
+                            ))}
                         {children}
                         {!isEmpty(buttons) && (
-                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn]}>
-                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style}) => (
-                                    <Button
-                                        key={buttonText}
-                                        success={success}
-                                        onPress={buttonAction}
-                                        text={buttonText}
-                                        icon={icon}
-                                        large
-                                        isDisabled={isDisabled}
-                                        style={[styles.flex1, style]}
-                                    />
-                                ))}
+                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : styles.flexColumn, styles.justifyContentCenter]}>
+                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled, style, dropDownOptions}) =>
+                                    dropDownOptions ? (
+                                        <ButtonWithDropdownMenu
+                                            key={buttonText}
+                                            onPress={() => {}}
+                                            shouldAlwaysShowDropdownMenu
+                                            customText={buttonText}
+                                            options={dropDownOptions}
+                                            isSplitButton={false}
+                                            style={[styles.flex1, style]}
+                                        />
+                                    ) : (
+                                        <Button
+                                            key={buttonText}
+                                            success={success}
+                                            onPress={buttonAction}
+                                            text={buttonText}
+                                            icon={icon}
+                                            large
+                                            isDisabled={isDisabled}
+                                            style={[styles.flex1, style]}
+                                        />
+                                    ),
+                                )}
                             </View>
                         )}
                     </View>
@@ -125,5 +149,4 @@ function EmptyStateComponent({
     );
 }
 
-EmptyStateComponent.displayName = 'EmptyStateComponent';
 export default EmptyStateComponent;

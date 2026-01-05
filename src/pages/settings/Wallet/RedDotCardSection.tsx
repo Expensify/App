@@ -17,7 +17,7 @@ function RedDotCardSection({title, description}: RedDotCardSectionProps) {
 
     return (
         <View style={[styles.p5, styles.flexRow, styles.alignItemsStart]}>
-            <View style={styles.offlineFeedback.errorDot}>
+            <View style={styles.offlineFeedbackErrorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
                     fill={theme.danger}
@@ -32,7 +32,5 @@ function RedDotCardSection({title, description}: RedDotCardSectionProps) {
         </View>
     );
 }
-
-RedDotCardSection.displayName = 'RedDotCardSection';
 
 export default RedDotCardSection;

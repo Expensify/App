@@ -4,12 +4,14 @@ import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormValue} from '@components/Form/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import type {Report, TaxRates} from '@src/types/onyx';
 import {getMonthFromExpirationDateString, getYearFromExpirationDateString} from './CardUtils';
 import DateUtils from './DateUtils';
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 import {translateLocal} from './Localize';
 import {getPhoneNumberWithoutSpecialChars} from './LoginUtils';
 import {parsePhoneNumber} from './PhoneNumber';
@@ -123,13 +125,13 @@ function isRequiredFulfilled(value?: FormValue | number[] | string[] | Record<st
 function getFieldRequiredErrors<TFormID extends OnyxFormKey>(values: FormOnyxValues<TFormID>, requiredFields: Array<FormOnyxKeys<TFormID>>): FormInputErrors<TFormID> {
     const errors: FormInputErrors<TFormID> = {};
 
-    requiredFields.forEach((fieldKey) => {
+    for (const fieldKey of requiredFields) {
         if (isRequiredFulfilled(values[fieldKey] as FormValue)) {
-            return;
+            continue;
         }
-
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         errors[fieldKey] = translateLocal('common.error.fieldRequired');
-    });
+    }
 
     return errors;
 }
@@ -216,6 +218,7 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     const testDate = parse(date, CONST.DATE.FNS_FORMAT_STRING, currentDate);
 
     if (!isValid(testDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.dateInvalid');
     }
 
@@ -227,10 +230,11 @@ function getAgeRequirementError(date: string, minimumAge: number, maximumAge: nu
     }
 
     if (isSameDay(testDate, maximalDate) || isAfter(testDate, maximalDate)) {
-        return translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: format(maximalDate, CONST.DATE.FNS_FORMAT_STRING)});
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        return translateLocal('privatePersonalDetails.error.dateShouldBeBefore', format(maximalDate, CONST.DATE.FNS_FORMAT_STRING));
     }
-
-    return translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: format(minimalDate, CONST.DATE.FNS_FORMAT_STRING)});
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    return translateLocal('privatePersonalDetails.error.dateShouldBeAfter', format(minimalDate, CONST.DATE.FNS_FORMAT_STRING));
 }
 
 /**
@@ -242,6 +246,7 @@ function getDatePassedError(inputDate: string): string {
 
     // If input date is not valid, return an error
     if (!isValid(parsedDate)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.dateInvalid');
     }
 
@@ -249,6 +254,7 @@ function getDatePassedError(inputDate: string): string {
     currentDate.setHours(0, 0, 0, 0);
 
     if (parsedDate < currentDate) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('common.error.dateInvalid');
     }
 
@@ -273,12 +279,12 @@ function validateIdentity(identity: Record<string, string>): Record<string, bool
     const errors: Record<string, boolean> = {};
 
     // Check that all required fields are filled
-    requiredFields.forEach((fieldName) => {
+    for (const fieldName of requiredFields) {
         if (isRequiredFulfilled(identity[fieldName])) {
-            return;
+            continue;
         }
         errors[fieldName] = true;
-    });
+    }
 
     if (!isValidAddress(identity.street)) {
         errors.street = true;
@@ -464,7 +470,7 @@ type DateTimeValidationErrorKeys = {
  * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
  * returns an object containing the error messages for the date and time
  */
-const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): DateTimeValidationErrorKeys => {
+const validateDateTimeIsAtLeastOneMinuteInFuture = (translate: LocalizedTranslate, data: string): DateTimeValidationErrorKeys => {
     if (!data) {
         return {
             dateValidationErrorKey: '',
@@ -473,8 +479,8 @@ const validateDateTimeIsAtLeastOneMinuteInFuture = (data: string): DateTimeValid
     }
     const parsedInputData = parseISO(data);
 
-    const dateValidationErrorKey = DateUtils.getDayValidationErrorKey(parsedInputData);
-    const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(parsedInputData);
+    const dateValidationErrorKey = DateUtils.getDayValidationErrorKey(translate, parsedInputData);
+    const timeValidationErrorKey = DateUtils.getTimeValidationErrorKey(translate, parsedInputData);
     return {
         dateValidationErrorKey,
         timeValidationErrorKey,
@@ -567,13 +573,13 @@ function isValidOwnershipPercentage(value: string, totalOwnedPercentage: Record<
 
     let totalOwnedPercentageSum = 0;
     const totalOwnedPercentageKeys = Object.keys(totalOwnedPercentage);
-    totalOwnedPercentageKeys.forEach((key) => {
+    for (const key of totalOwnedPercentageKeys) {
         if (key === ownerBeingModifiedID) {
-            return;
+            continue;
         }
 
         totalOwnedPercentageSum += totalOwnedPercentage[key];
-    });
+    }
 
     const isTotalSumValid = totalOwnedPercentageSum + parsedValue <= 100;
 
@@ -645,12 +651,36 @@ function isValidCARegistrationNumber(registrationNumber: string): boolean {
     return /^\d{9}(?:[A-Z]{2}\d{4})?$/.test(registrationNumber);
 }
 
+type EUCountry = keyof typeof CONST.ALL_EUROPEAN_UNION_COUNTRIES;
+
+/**
+ * Validates the given value if it is EU member country
+ * @param country
+ */
+function isEUMember(country: Country | ''): boolean {
+    return country in CONST.ALL_EUROPEAN_UNION_COUNTRIES;
+}
+
+/**
+ * Validates the given values if its is correct registration number for given EU member country
+ * @param registrationNumber
+ * @param country
+ */
+function isValidEURegistrationNumber(registrationNumber: string, country: EUCountry): boolean {
+    const regex = CONST.EU_REGISTRATION_NUMBER_REGEX[country];
+    return !!regex && regex.test(registrationNumber);
+}
+
 /**
  * Validates the given value if it is correct registration number for the given country.
  * @param registrationNumber
  * @param country
  */
 function isValidRegistrationNumber(registrationNumber: string, country: Country | '') {
+    if (isEUMember(country)) {
+        return isValidEURegistrationNumber(registrationNumber, country as EUCountry);
+    }
+
     switch (country) {
         case CONST.COUNTRY.AU:
             return isValidAURegistrationNumber(registrationNumber);

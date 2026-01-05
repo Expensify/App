@@ -1,4 +1,5 @@
-import React, {useEffect, useMemo, useRef} from 'react';
+import {transactionDraftReceiptsSelector} from '@selectors/TransactionDraft';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {FlatList as FlatListType} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
@@ -14,7 +15,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@libs/Navigation/Navigation';
-import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,7 +25,7 @@ type ReceiptWithTransactionID = Receipt & {transactionID: string};
 
 type ReceiptPreviewsProps = {
     /** Submit method */
-    submit: (files: ReceiptFile[]) => void;
+    submit: () => void;
 
     /** If the receipts preview should be shown */
     isMultiScanEnabled: boolean;
@@ -39,18 +39,12 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
     const isPreviewsVisible = useSharedValue(false);
     const previewsHeight = styles.receiptPlaceholder.height + styles.pv2.paddingVertical * 2;
     const previewItemWidth = styles.receiptPlaceholder.width + styles.receiptPlaceholder.marginRight;
-    const initialReceiptsAmount = useMemo(
-        () => (windowWidth - styles.ph4.paddingHorizontal * 2 - styles.singleAvatarMedium.width) / previewItemWidth,
-        [windowWidth, styles, previewItemWidth],
-    );
+    const initialReceiptsAmount = (windowWidth - styles.ph4.paddingHorizontal * 2 - styles.singleAvatarMedium.width) / previewItemWidth;
     const [optimisticTransactionsReceipts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {
-        selector: (items) =>
-            Object.values(items ?? {})
-                .map((transaction) => (transaction?.receipt ? {...transaction?.receipt, transactionID: transaction.transactionID} : undefined))
-                .filter((receipt): receipt is ReceiptWithTransactionID => !!receipt),
+        selector: transactionDraftReceiptsSelector,
         canBeMissing: true,
     });
-    const receipts = useMemo(() => {
+    const receipts = (() => {
         if (optimisticTransactionsReceipts && optimisticTransactionsReceipts.length >= initialReceiptsAmount) {
             return optimisticTransactionsReceipts;
         }
@@ -59,7 +53,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
             receiptsWithPlaceholders.push(undefined);
         }
         return receiptsWithPlaceholders;
-    }, [initialReceiptsAmount, optimisticTransactionsReceipts]);
+    })();
     const isScrollEnabled = optimisticTransactionsReceipts ? optimisticTransactionsReceipts.length >= receipts.length : false;
     const flatListRef = useRef<FlatListType<ReceiptWithTransactionID | undefined>>(null);
     const receiptsPhotosLength = optimisticTransactionsReceipts?.length ?? 0;
@@ -72,6 +66,14 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
             isPreviewsVisible.set(false);
         }
     }, [isMultiScanEnabled, isPreviewsVisible]);
+
+    useEffect(() => {
+        const hasRemovedReceipt = receiptsPhotosLength < previousReceiptsPhotosLength;
+
+        if (hasRemovedReceipt) {
+            flatListRef.current?.scrollToOffset({offset: 0, animated: true});
+        }
+    }, [receiptsPhotosLength, previousReceiptsPhotosLength]);
 
     useEffect(() => {
         const shouldScrollToReceipt = receiptsPhotosLength && receiptsPhotosLength > previousReceiptsPhotosLength && receiptsPhotosLength > Math.floor(initialReceiptsAmount);
@@ -94,7 +96,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
                 onPress={() => Navigation.navigate(ROUTES.MONEY_REQUEST_RECEIPT_VIEW.getRoute(item.transactionID, Navigation.getActiveRoute()))}
             >
                 <Image
-                    source={{uri: item.source}}
+                    source={typeof item.source === 'string' ? {uri: item.source} : item.source}
                     style={[styles.receiptPlaceholder, styles.overflowHidden]}
                     loadingIconSize="small"
                     loadingIndicatorStyles={styles.bgTransparent}
@@ -110,11 +112,6 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
             }),
         };
     });
-
-    const submitReceipts = () => {
-        const transactionReceipts = (optimisticTransactionsReceipts ?? []).filter((receipt): receipt is ReceiptWithTransactionID & {source: string} => !!receipt.source);
-        submit(transactionReceipts);
-    };
 
     return (
         <Animated.View style={slideInStyle}>
@@ -138,7 +135,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
                         innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
                         icon={Expensicons.ArrowRight}
                         iconFill={theme.white}
-                        onPress={submitReceipts}
+                        onPress={submit}
                     />
                 </SubmitButtonShadow>
             </View>

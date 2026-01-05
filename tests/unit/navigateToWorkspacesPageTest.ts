@@ -26,6 +26,7 @@ const mockParams = {currentUserLogin: 'test@example.com', shouldUseNarrowLayout:
 describe('navigateToWorkspacesPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        (navigationRef.isReady as jest.Mock).mockReturnValue(true);
     });
 
     function mockIntercept() {

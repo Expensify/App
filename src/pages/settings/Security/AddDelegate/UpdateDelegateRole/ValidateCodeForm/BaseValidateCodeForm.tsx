@@ -16,9 +16,9 @@ import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
-import * as Delegate from '@userActions/Delegate';
+import {getLatestError} from '@libs/ErrorUtils';
+import {isValidValidateCode} from '@libs/ValidationUtils';
+import {clearDelegateErrorsByField, requestValidationCode, updateDelegateRole} from '@userActions/Delegate';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -60,14 +60,14 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const login = account?.primaryLogin;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === delegate);
     const errorFields = account?.delegatedAccess?.errorFields ?? {};
-    const validateLoginError = ErrorUtils.getLatestError(errorFields.updateDelegateRole?.[currentDelegate?.email ?? '']);
+    const validateLoginError = getLatestError(errorFields.updateDelegateRole?.[currentDelegate?.email ?? '']);
 
     const shouldDisableResendValidateCode = !!isOffline || currentDelegate?.isLoading;
 
@@ -115,7 +115,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
         if (!login) {
             return;
         }
-        Delegate.requestValidationCode();
+        requestValidationCode();
 
         inputValidateCodeRef.current?.clear();
     };
@@ -128,10 +128,10 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
             setValidateCode(text);
             setFormError({});
             if (validateLoginError) {
-                Delegate.clearDelegateErrorsByField(currentDelegate?.email ?? '', 'updateDelegateRole');
+                clearDelegateErrorsByField({email: currentDelegate?.email ?? '', fieldName: 'updateDelegateRole', delegatedAccess: account?.delegatedAccess});
             }
         },
-        [currentDelegate?.email, validateLoginError],
+        [currentDelegate?.email, validateLoginError, account?.delegatedAccess],
     );
 
     /**
@@ -143,15 +143,15 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
             return;
         }
 
-        if (!ValidationUtils.isValidValidateCode(validateCode)) {
+        if (!isValidValidateCode(validateCode)) {
             setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
             return;
         }
 
         setFormError({});
 
-        Delegate.updateDelegateRole(delegate, role, validateCode);
-    }, [delegate, role, validateCode]);
+        updateDelegateRole({email: delegate, role, validateCode, delegatedAccess: account?.delegatedAccess});
+    }, [delegate, role, validateCode, account?.delegatedAccess]);
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, wrapperStyle]}>
@@ -187,7 +187,7 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
             <FixedFooter>
                 <OfflineWithFeedback>
                     <Button
-                        isDisabled={isOffline}
+                        isDisabled={isOffline || !!account?.delegatedAccess}
                         text={translate('common.verify')}
                         onPress={validateAndSubmitForm}
                         style={[styles.mt4]}
@@ -201,8 +201,6 @@ function BaseValidateCodeForm({autoComplete = 'one-time-code', innerRef = () => 
         </View>
     );
 }
-
-BaseValidateCodeForm.displayName = 'BaseValidateCodeForm';
 
 export type {BaseValidateCodeFormProps, ValidateCodeFormHandle};
 

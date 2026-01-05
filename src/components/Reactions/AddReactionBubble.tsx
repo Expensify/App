@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
+import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
 import {emojiPickerRef, resetEmojiPopoverAnchor, showEmojiPicker} from '@userActions/EmojiPickerAction';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
@@ -37,7 +38,7 @@ type AddReactionBubbleProps = {
     /**
      * Called when the user selects an emoji.
      */
-    onSelectEmoji: (emoji: Emoji) => void;
+    onSelectEmoji: (emoji: Emoji, preferredSkinTone: number) => void;
 
     /**
      * ReportAction for EmojiPicker.
@@ -58,18 +59,19 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
 
     const onPress = () => {
         const openPicker = (refParam?: PickerRefElement, anchorOrigin?: AnchorOrigin) => {
-            showEmojiPicker(
-                () => {
+            showEmojiPicker({
+                onModalHide: () => {
                     setIsEmojiPickerActive?.(false);
                 },
-                (emojiCode, emojiObject) => {
-                    onSelectEmoji(emojiObject);
+                onEmojiSelected: (emojiCode, emojiObject, preferredSkinTone) => {
+                    onSelectEmoji(emojiObject, preferredSkinTone);
                 },
-                refParam ?? ref,
+                emojiPopoverAnchor: refParam ?? ref,
                 anchorOrigin,
-                onWillShowPicker,
-                reportAction.reportActionID,
-            );
+                onWillShow: onWillShowPicker,
+                id: reportAction.reportActionID,
+                composerToRefocusOnClose: contextMenuRef.current?.composerToRefocusOnCloseEmojiPicker,
+            });
         };
 
         if (!emojiPickerRef.current?.isEmojiPickerVisible) {
@@ -105,6 +107,7 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                 // disable dimming
                 pressDimmingValue={1}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                sentryLabel={CONST.SENTRY_LABEL.EMOJI_REACTIONS.ADD_REACTION_BUBBLE}
             >
                 {({hovered, pressed}) => (
                     <>
@@ -126,7 +129,5 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
         </Tooltip>
     );
 }
-
-AddReactionBubble.displayName = 'AddReactionBubble';
 
 export default AddReactionBubble;

@@ -1,10 +1,10 @@
 import {Image} from 'expo-image';
 import React, {useEffect} from 'react';
-import type {ImageSourcePropType} from 'react-native';
 import type ImageSVGProps from './types';
 
 function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cover', style, onLoadEnd}: ImageSVGProps) {
     const tintColorProp = fill ? {tintColor: fill} : {};
+    const isReactComponent = typeof src === 'function';
 
     // Clear memory cache when unmounting images to avoid memory overload
     useEffect(() => {
@@ -14,6 +14,40 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
         };
     }, []);
 
+    // Call onLoadEnd immediately for React components since they don't have a loading state
+    useEffect(() => {
+        if (!isReactComponent) {
+            return;
+        }
+        onLoadEnd?.();
+    }, [isReactComponent, onLoadEnd]);
+
+    if (!src) {
+        return null;
+    }
+
+    // Check if src is a React component (from dynamic loading) or a static image source
+    if (isReactComponent) {
+        // Handle React SVG components (from dynamic loading)
+        const ImageSvgComponent = src;
+        const additionalProps: Pick<ImageSVGProps, 'fill'> = {};
+
+        if (fill) {
+            additionalProps.fill = fill;
+        }
+
+        return (
+            <ImageSvgComponent
+                width={width}
+                height={height}
+                style={style}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...additionalProps}
+            />
+        );
+    }
+
+    // Handle static image sources (traditional approach)
     return (
         <Image
             onLoadEnd={onLoadEnd}
@@ -21,7 +55,7 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
             // See issue: https://github.com/Expensify/App/issues/34881
             cachePolicy="memory"
             contentFit={contentFit}
-            source={src as ImageSourcePropType}
+            source={src}
             style={[{width, height}, style]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...tintColorProp}
@@ -29,5 +63,4 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
     );
 }
 
-ImageSVG.displayName = 'ImageSVG';
 export default ImageSVG;

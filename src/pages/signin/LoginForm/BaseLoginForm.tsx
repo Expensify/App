@@ -40,10 +40,11 @@ import type LoginFormProps from './types';
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
-function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProps) {
+function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFormProps) {
     const {login, setLogin} = useLogin();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -67,7 +68,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
                 return false;
             }
 
-            const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim));
+            const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
             const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
             if (!Str.isValidEmail(loginTrim) && !parsedPhoneNumber.possible) {
@@ -82,7 +83,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
             setFormError(undefined);
             return true;
         },
-        [setFormError],
+        [setFormError, countryCode],
     );
 
     /**
@@ -104,7 +105,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
                 setDefaultData();
             }
         },
-        [account, closeAccount, input, setLogin, validate],
+        [account?.errors, account?.message, closeAccount?.success, input, setLogin, validate],
     );
 
     function getSignInWithStyles() {
@@ -138,12 +139,12 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
 
         const loginTrim = StringUtils.removeInvisibleCharacters(login.trim());
 
-        const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim));
+        const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
         const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
 
         // Check if this login has an account associated with it or not
         beginSignIn(parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim);
-    }, [login, account, closeAccount, isOffline, validate]);
+    }, [login, account?.isLoading, closeAccount?.success, isOffline, validate, countryCode]);
 
     useEffect(() => {
         // Call clearAccountMessages on the login page (home route).
@@ -174,7 +175,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
     }, [account?.isLoading]);
 
     useEffect(() => {
-        if (blurOnSubmit) {
+        if (submitBehavior === 'blurAndSubmit') {
             input.current?.blur();
         }
 
@@ -183,7 +184,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
             return;
         }
         input.current?.focus();
-    }, [blurOnSubmit, isVisible, prevIsVisible]);
+    }, [submitBehavior, isVisible, prevIsVisible]);
 
     useImperativeHandle(ref, () => ({
         isInputFocused() {
@@ -216,6 +217,7 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
         // On mobile WebKit browsers, when an input field gains focus, the keyboard appears and the virtual viewport is resized and scrolled to make the input field visible.
         // This occurs even when there is enough space to display both the input field and the submit button in the current view.
         // so this change to correct the scroll position when the input field gains focus.
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             htmlDivElementRef(submitContainerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
         });
@@ -329,7 +331,5 @@ function BaseLoginForm({blurOnSubmit = false, isVisible, ref}: BaseLoginFormProp
         </>
     );
 }
-
-BaseLoginForm.displayName = 'BaseLoginForm';
 
 export default withToggleVisibilityView(BaseLoginForm);

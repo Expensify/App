@@ -1,61 +1,26 @@
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {clearSignInData, setAccountError} from './actions/Session';
 import Navigation from './Navigation/Navigation';
 import {parsePhoneNumber} from './PhoneNumber';
 
-let countryCodeByIPOnyx: number;
-Onyx.connect({
-    key: ONYXKEYS.COUNTRY_CODE,
-    callback: (val) => (countryCodeByIPOnyx = val ?? 1),
-});
-
 /**
  * Remove the special chars from the phone number
  */
 function getPhoneNumberWithoutSpecialChars(phone: string): string {
-    return phone.replace(CONST.REGEX.SPECIAL_CHARS_WITHOUT_NEWLINE, '');
+    return phone.replaceAll(CONST.REGEX.SPECIAL_CHARS_WITHOUT_NEWLINE, '');
 }
 
 /**
  * Append user country code to the phone number
- */
-function appendCountryCode(phone: string): string {
-    if (phone.startsWith('+')) {
-        return phone;
-    }
-    const phoneWithCountryCode = `+${countryCodeByIPOnyx}${phone}`;
-    if (parsePhoneNumber(phoneWithCountryCode).possible) {
-        return phoneWithCountryCode;
-    }
-    return `+${phone}`;
-}
-
-/**
- * MIGRATION STEP 1: Temporary function for transitioning away from Onyx.connect to useOnyx
- *
- * This function serves as a bridge during our migration from Onyx.connect to useOnyx hooks.
- * The main appendCountryCode() function currently uses countryCodeByIPOnyx (via Onyx.connect),
- * but UI components need to use useOnyx hooks for better React integration.
- *
- * Migration plan:
- * 1. Add this function with explicit countryCode parameter (current step)
- * 2. Update UI components to use useOnyx(ONYXKEYS.COUNTRY_CODE)
- * 3. Update UI components to call this function with explicit countryCode
- * 4. Remove Onyx.connect from main appendCountryCode function
- * 5. Remove this temporary function and update all calls to use main function
  *
  * @param phone - Phone number to append country code to
  * @param countryCode - Country code (e.g., "1" for US, "44" for UK)
  * @returns Phone number with country code appended
- *
- * TODO: Remove this function after completing Onyx.connect deprecation (issue #66329)
  */
-function appendCountryCodeWithCountryCode(phone: string, countryCode: number): string {
+function appendCountryCode(phone: string, countryCode: number): string {
     if (phone.startsWith('+')) {
         return phone;
     }
@@ -70,8 +35,19 @@ function appendCountryCodeWithCountryCode(phone: string, countryCode: number): s
  * Check email is public domain or not
  */
 function isEmailPublicDomain(email: string): boolean {
-    const emailDomain = Str.extractEmailDomain(email).toLowerCase();
+    const emailDomain = getEmailDomain(email);
     return PUBLIC_DOMAINS_SET.has(emailDomain);
+}
+
+function isDomainPublic(domain: string): boolean {
+    return PUBLIC_DOMAINS_SET.has(domain);
+}
+
+/**
+ * Get the domain for an email
+ */
+function getEmailDomain(email: string): string {
+    return Str.extractEmailDomain(email).toLowerCase();
 }
 
 /**
@@ -92,12 +68,12 @@ function validateNumber(values: string): string {
  * Check number is valid and attach country code
  * @returns a valid phone number with country code
  */
-function getPhoneLogin(partnerUserID: string): string {
+function getPhoneLogin(partnerUserID: string, countryCode: number): string {
     if (partnerUserID.length === 0) {
         return '';
     }
 
-    return appendCountryCode(getPhoneNumberWithoutSpecialChars(partnerUserID));
+    return appendCountryCode(getPhoneNumberWithoutSpecialChars(partnerUserID), countryCode);
 }
 
 /**
@@ -132,8 +108,8 @@ function handleSAMLLoginError(errorMessage: string, shouldClearSignInData: boole
     Navigation.goBack(ROUTES.HOME);
 }
 
-function formatE164PhoneNumber(phoneNumber: string) {
-    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
+function formatE164PhoneNumber(phoneNumber: string, countryCode: number) {
+    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber, countryCode);
     const parsedPhoneNumber = parsePhoneNumber(phoneNumberWithCountryCode);
 
     return parsedPhoneNumber.number?.e164;
@@ -142,7 +118,6 @@ function formatE164PhoneNumber(phoneNumber: string) {
 export {
     getPhoneNumberWithoutSpecialChars,
     appendCountryCode,
-    appendCountryCodeWithCountryCode,
     isEmailPublicDomain,
     validateNumber,
     getPhoneLogin,
@@ -150,4 +125,6 @@ export {
     postSAMLLogin,
     handleSAMLLoginError,
     formatE164PhoneNumber,
+    getEmailDomain,
+    isDomainPublic,
 };

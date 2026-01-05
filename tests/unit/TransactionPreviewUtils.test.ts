@@ -11,7 +11,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions} from '@src/types/onyx';
+import type {ReportActions, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
@@ -43,6 +43,8 @@ const basicProps = {
     shouldShowRBR: false,
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
+    currentUserEmail: '',
+    currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
 };
 
 describe('TransactionPreviewUtils', () => {
@@ -84,7 +86,7 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com'},
+                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined},
                         },
                     },
                 },
@@ -160,7 +162,7 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.translationPath).toEqual('iou.receiptStatusTitle');
         });
 
-        it('handles currency and amount display correctly for scan split bill manually completed', async () => {
+        it('handles currency and amount display correctly for scan split bill manually completed', () => {
             const modifiedAmount = 300;
             const currency = 'EUR';
             const originalTransactionID = '2';
@@ -169,20 +171,20 @@ describe('TransactionPreviewUtils', () => {
                 transactionDetails: {amount: modifiedAmount / 2, currency},
                 transaction: {...basicProps.transaction, amount: modifiedAmount / 2, currency, comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT}},
                 isBillSplit: true,
+                originalTransaction: {
+                    reportID: CONST.REPORT.SPLIT_REPORT_ID,
+                    transactionID: originalTransactionID,
+                    comment: {
+                        splits: [
+                            {accountID: 1, email: 'aa@gmail.com'},
+                            {accountID: 2, email: 'cc@gmail.com'},
+                        ],
+                    },
+                    modifiedAmount,
+                    amount: 0,
+                    currency,
+                } as Transaction,
             };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`, {
-                reportID: CONST.REPORT.SPLIT_REPORT_ID,
-                transactionID: originalTransactionID,
-                comment: {
-                    splits: [
-                        {accountID: 1, email: 'aa@gmail.com'},
-                        {accountID: 2, email: 'cc@gmail.com'},
-                    ],
-                },
-                modifiedAmount,
-                amount: 0,
-                currency,
-            });
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
@@ -247,7 +249,7 @@ describe('TransactionPreviewUtils', () => {
                             source: 'source.com',
                             filename: 'file_name.png',
                             action: 'replaceReceipt',
-                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com'},
+                            retryParams: {transactionID: basicProps.transaction.transactionID, source: 'source.com', transactionPolicy: undefined},
                         },
                     },
                 },
@@ -382,27 +384,27 @@ describe('TransactionPreviewUtils', () => {
             ].slice(0, count);
 
         test('returns translationPath when there is at least one violation and transaction is on hold', () => {
-            expect(getViolationTranslatePath(mockViolations(1), false, message, true)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(1), false, message, true, false)).toEqual(reviewRequired);
         });
 
         test('returns translationPath if violation message is too long', () => {
-            expect(getViolationTranslatePath(mockViolations(1), false, longMessage, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(1), false, longMessage, false, false)).toEqual(reviewRequired);
         });
 
         test('returns translationPath when there are multiple violations', () => {
-            expect(getViolationTranslatePath(mockViolations(2), false, message, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(2), false, message, false, false)).toEqual(reviewRequired);
         });
 
         test('returns translationPath when there is at least one violation and there are field errors', () => {
-            expect(getViolationTranslatePath(mockViolations(1), true, message, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(1), true, message, false, false)).toEqual(reviewRequired);
         });
 
         test('returns text when there are no violations, no hold, no field errors, and message is short', () => {
-            expect(getViolationTranslatePath(mockViolations(0), false, message, false)).toEqual({text: message});
+            expect(getViolationTranslatePath(mockViolations(0), false, message, false, false)).toEqual({text: message});
         });
 
         test('returns translationPath when there are no violations but message is too long', () => {
-            expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false)).toEqual(reviewRequired);
+            expect(getViolationTranslatePath(mockViolations(0), false, longMessage, false, false)).toEqual(reviewRequired);
         });
     });
 

@@ -52,7 +52,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 includePaddingTop={false}
-                testID={AmountSelectorModal.displayName}
+                testID="AmountSelectorModal"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -69,7 +69,7 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
                             {...rest}
                             value={currentValue}
                             onInputChange={setValue}
-                            forwardedRef={(ref) => inputCallbackRef(ref)}
+                            ref={(ref) => inputCallbackRef(ref)}
                         />
                         <Button
                             success
@@ -85,7 +85,5 @@ function AmountSelectorModal({value, description = '', onValueSelected, isVisibl
         </Modal>
     );
 }
-
-AmountSelectorModal.displayName = 'AmountSelectorModal';
 
 export default AmountSelectorModal;

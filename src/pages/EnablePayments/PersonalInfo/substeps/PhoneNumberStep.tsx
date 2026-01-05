@@ -17,7 +17,8 @@ const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.PHONE_NUMBER];
 function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
+    const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const defaultPhoneNumber = walletAdditionalDetails?.[PERSONAL_INFO_STEP_KEY.PHONE_NUMBER] ?? '';
 
     const validate = useCallback(
@@ -25,8 +26,8 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
             if (values.phoneNumber) {
-                const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber);
-                const e164FormattedPhoneNumber = formatE164PhoneNumber(values.phoneNumber);
+                const phoneNumberWithCountryCode = appendCountryCode(values.phoneNumber, countryCode);
+                const e164FormattedPhoneNumber = formatE164PhoneNumber(values.phoneNumber, countryCode);
 
                 if (!isValidPhoneNumber(phoneNumberWithCountryCode) || !isValidUSPhone(e164FormattedPhoneNumber)) {
                     errors.phoneNumber = translate('common.error.phoneNumber');
@@ -35,7 +36,7 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
 
             return errors;
         },
-        [translate],
+        [countryCode, translate],
     );
 
     const handleSubmit = useWalletAdditionalDetailsStepFormSubmit({
@@ -54,17 +55,17 @@ function PhoneNumberStep({onNext, onMove, isEditing}: SubStepProps) {
             formDisclaimer={translate('personalInfoStep.weNeedThisToVerify')}
             validate={validate}
             onSubmit={(values) => {
-                handleSubmit({...values, phoneNumber: formatE164PhoneNumber(values.phoneNumber) ?? ''});
+                handleSubmit({...values, phoneNumber: formatE164PhoneNumber(values.phoneNumber, countryCode) ?? ''});
             }}
             inputId={PERSONAL_INFO_STEP_KEY.PHONE_NUMBER}
             inputLabel={translate('common.phoneNumber')}
             inputMode={CONST.INPUT_MODE.TEL}
             defaultValue={defaultPhoneNumber}
             enabledWhenOffline
+            shouldShowPatriotActLink
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         />
     );
 }
-
-PhoneNumberStep.displayName = 'PhoneNumberStep';
 
 export default PhoneNumberStep;

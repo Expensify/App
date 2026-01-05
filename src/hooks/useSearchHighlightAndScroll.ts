@@ -1,8 +1,9 @@
 import {useIsFocused} from '@react-navigation/native';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {InteractionManager} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
-import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import {search} from '@libs/actions/Search';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
@@ -45,7 +46,7 @@ function useSearchHighlightAndScroll({
     const searchTriggeredRef = useRef(false);
     const hasNewItemsRef = useRef(false);
     const previousSearchResults = usePrevious(searchResults?.data);
-    const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
+    const [newSearchResultKeys, setNewSearchResultKeys] = useState<Set<string> | null>(null);
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
@@ -57,6 +58,25 @@ function useSearchHighlightAndScroll({
         }
         return isChat ? extractReportActionIDsFromSearchResults(searchResults.data) : extractTransactionIDsFromSearchResults(searchResults.data);
     }, [searchResults?.data, isChat]);
+
+    const newTransactions = useMemo(() => {
+        const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
+
+        if (previousTransactionsIDs.length === 0) {
+            return [];
+        }
+
+        const previousIDs = new Set(previousTransactionsIDs);
+        const result: Transaction[] = [];
+
+        for (const [id, transaction] of Object.entries(transactions ?? {})) {
+            if (!previousIDs.has(id) && transaction) {
+                result.push(transaction);
+            }
+        }
+
+        return result;
+    }, [previousTransactions, transactions]);
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
@@ -72,7 +92,7 @@ function useSearchHighlightAndScroll({
 
         // Only proceed if we have previous data to compare against
         // This prevents triggering on initial data load
-        if (previousTransactionsIDs.length === 0 && previousReportActionsIDs.length === 0) {
+        if ((previousTransactionsIDs.length === 0 && previousReportActionsIDs.length === 0) || searchTriggeredRef.current) {
             return;
         }
 
@@ -112,7 +132,10 @@ function useSearchHighlightAndScroll({
             triggeredByHookRef.current = true;
 
             // Trigger the search
-            search({queryJSON, searchKey, offset, shouldCalculateTotals});
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            InteractionManager.runAfterInteractions(() => {
+                search({queryJSON, searchKey, offset, shouldCalculateTotals, isLoading: !!searchResults?.search?.isLoading});
+            });
 
             // Set the ref to prevent further triggers until reset
             searchTriggeredRef.current = true;
@@ -131,7 +154,16 @@ function useSearchHighlightAndScroll({
         searchResults?.data,
         existingSearchResultIDs,
         isOffline,
+        searchResults?.search?.isLoading,
     ]);
+
+    useEffect(() => {
+        if (searchResults?.search?.isLoading) {
+            return;
+        }
+
+        searchTriggeredRef.current = false;
+    }, [searchResults?.search?.isLoading]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
@@ -159,11 +191,13 @@ function useSearchHighlightAndScroll({
                 return;
             }
 
-            const newReportActionID = newReportActionIDs.at(0) ?? '';
-            const newReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${newReportActionID}`;
-
-            setNewSearchResultKey(newReportActionKey);
-            highlightedIDs.current.add(newReportActionID);
+            const newKeys = new Set<string>();
+            for (const id of newReportActionIDs) {
+                const newReportActionKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${id}`;
+                highlightedIDs.current.add(newReportActionKey);
+                newKeys.add(newReportActionKey);
+            }
+            setNewSearchResultKeys(newKeys);
         } else {
             const previousTransactionIDs = extractTransactionIDsFromSearchResults(previousSearchResults);
             const currentTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
@@ -175,26 +209,28 @@ function useSearchHighlightAndScroll({
                 return;
             }
 
-            const newTransactionID = newTransactionIDs.at(0) ?? '';
-            const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${newTransactionID}`;
-
-            setNewSearchResultKey(newTransactionKey);
-            highlightedIDs.current.add(newTransactionID);
+            const newKeys = new Set<string>();
+            for (const id of newTransactionIDs) {
+                const newTransactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`;
+                highlightedIDs.current.add(newTransactionKey);
+                newKeys.add(newTransactionKey);
+            }
+            setNewSearchResultKeys(newKeys);
         }
     }, [searchResults?.data, previousSearchResults, isChat]);
 
     // Reset newSearchResultKey after it's been used
     useEffect(() => {
-        if (newSearchResultKey === null) {
+        if (newSearchResultKeys === null) {
             return;
         }
 
         const timer = setTimeout(() => {
-            setNewSearchResultKey(null);
+            setNewSearchResultKeys(null);
         }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
 
         return () => clearTimeout(timer);
-    }, [newSearchResultKey]);
+    }, [newSearchResultKeys]);
 
     /**
      * Callback to handle scrolling to the new search result.
@@ -203,7 +239,8 @@ function useSearchHighlightAndScroll({
         (data: SearchListItem[], ref: SelectionListHandle | null) => {
             // Early return if there's no ref, new transaction wasn't brought in by this hook
             // or there's no new search result key
-            if (!ref || !triggeredByHookRef.current || newSearchResultKey === null) {
+            const newSearchResultKey = newSearchResultKeys?.values().next().value;
+            if (!ref || !triggeredByHookRef.current || !newSearchResultKey) {
                 return;
             }
 
@@ -241,10 +278,10 @@ function useSearchHighlightAndScroll({
             // Reset the trigger flag to prevent unintended future scrolls and highlights
             triggeredByHookRef.current = false;
         },
-        [newSearchResultKey, isChat],
+        [newSearchResultKeys, isChat],
     );
 
-    return {newSearchResultKey, handleSelectionListScroll};
+    return {newSearchResultKeys, handleSelectionListScroll, newTransactions};
 }
 
 /**
@@ -253,7 +290,7 @@ function useSearchHighlightAndScroll({
 function extractTransactionIDsFromSearchResults(searchResultsData: Partial<SearchResults['data']>): string[] {
     const transactionIDs: string[] = [];
 
-    Object.values(searchResultsData).forEach((item) => {
+    for (const item of Object.values(searchResultsData)) {
         // Check for transactionID directly on the item (TransactionListItemType)
         if ((item as TransactionListItemType)?.transactionID) {
             transactionIDs.push((item as TransactionListItemType).transactionID);
@@ -261,14 +298,14 @@ function extractTransactionIDsFromSearchResults(searchResultsData: Partial<Searc
 
         // Check for transactions array within the item (TransactionGroupListItemType)
         if (Array.isArray((item as TransactionGroupListItemType)?.transactions)) {
-            (item as TransactionGroupListItemType).transactions.forEach((transaction) => {
+            for (const transaction of (item as TransactionGroupListItemType).transactions) {
                 if (!transaction?.transactionID) {
-                    return;
+                    continue;
                 }
                 transactionIDs.push(transaction.transactionID);
-            });
+            }
         }
-    });
+    }
 
     return transactionIDs;
 }

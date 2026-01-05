@@ -4,7 +4,6 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
@@ -44,12 +43,11 @@ function RulesCustomPage({
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesCustomPage.displayName}
+                testID="RulesCustomPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.customRules.title')}
@@ -71,7 +69,7 @@ function RulesCustomPage({
                         <InputWrapper
                             InputComponent={TextInput}
                             inputID={INPUT_IDS.CUSTOM_RULES}
-                            label={translate('workspace.rules.customRules.subtitle')}
+                            label={translate('workspace.rules.customRules.title')}
                             role={CONST.ROLE.PRESENTATION}
                             value={customRulesValue}
                             onChangeText={onChangeCustomRules}
@@ -80,14 +78,11 @@ function RulesCustomPage({
                             autoGrowHeight
                             maxLength={CONST.DESCRIPTION_LIMIT}
                         />
-                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.customRules.description')}</Text>
                     </View>
                 </FormProvider>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesCustomPage.displayName = 'RulesCustomPage';
 
 export default RulesCustomPage;

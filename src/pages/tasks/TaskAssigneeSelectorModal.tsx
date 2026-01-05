@@ -1,32 +1,32 @@
 /* eslint-disable es/no-optional-chaining */
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {useBetas, useSession} from '@components/OnyxListItemProvider';
-import {useOptionsList} from '@components/OptionListContextProvider';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import type {ListItem} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
+// eslint-disable-next-line no-restricted-imports
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem} from '@components/SelectionListWithSections/types';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDebouncedState from '@hooks/useDebouncedState';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useSearchSelector from '@hooks/useSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {canModifyTask, editTaskAssignee, setAssigneeValue} from '@libs/actions/Task';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
-import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import {filterAndOrderOptions, getHeaderMessage, getValidOptions, isCurrentUser} from '@libs/OptionsListUtils';
+import {getHeaderMessage, isCurrentUser} from '@libs/OptionsListUtils';
 import {isOpenTaskReport, isTaskReport} from '@libs/ReportUtils';
 import type {TaskDetailsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -35,87 +35,52 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'TaskAssigneeSelectorModal.getValidOptions'});
-
-function useOptions() {
-    const betas = useBetas();
-    const [isLoading, setIsLoading] = useState(true);
-    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
-    const {options: optionsList, areOptionsInitialized} = useOptionsList();
-    const session = useSession();
-
-    const defaultOptions = useMemo(() => {
-        const {recentReports, personalDetails, userToInvite, currentUserOption} = memoizedGetValidOptions(
-            {
-                reports: optionsList.reports,
-                personalDetails: optionsList.personalDetails,
-            },
-            {
-                betas,
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                includeCurrentUser: true,
-            },
-        );
-
-        const headerMessage = getHeaderMessage((recentReports?.length || 0) + (personalDetails?.length || 0) !== 0 || !!currentUserOption, !!userToInvite, '');
-
-        if (isLoading) {
-            // eslint-disable-next-line react-compiler/react-compiler
-            setIsLoading(false);
-        }
-
-        return {
-            userToInvite,
-            recentReports,
-            personalDetails,
-            currentUserOption,
-            headerMessage,
-        };
-    }, [optionsList.reports, optionsList.personalDetails, betas, isLoading]);
-
-    const optionsWithoutCurrentUser = useMemo(() => {
-        if (!session?.accountID) {
-            return defaultOptions;
-        }
-
-        return {
-            ...defaultOptions,
-            personalDetails: defaultOptions.personalDetails.filter((detail) => detail.accountID !== session.accountID),
-            recentReports: defaultOptions.recentReports.filter((report) => report.accountID !== session.accountID),
-        };
-    }, [defaultOptions, session?.accountID]);
-
-    const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(optionsWithoutCurrentUser, debouncedSearchValue.trim(), {
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        });
-        const headerMessage = getHeaderMessage(
-            (filteredOptions.recentReports?.length || 0) + (filteredOptions.personalDetails?.length || 0) !== 0 || !!filteredOptions.currentUserOption,
-            !!filteredOptions.userToInvite,
-            debouncedSearchValue,
-        );
-
-        return {
-            ...filteredOptions,
-            headerMessage,
-        };
-    }, [debouncedSearchValue, optionsWithoutCurrentUser]);
-
-    return {...options, searchValue, debouncedSearchValue, setSearchValue, areOptionsInitialized};
-}
-
 function TaskAssigneeSelectorModal() {
     const styles = useThemeStyles();
     const route = useRoute<PlatformStackRouteProp<TaskDetailsNavigatorParamList, typeof SCREENS.TASK.ASSIGNEE>>();
     const {translate} = useLocalize();
-    const session = useSession();
     const backTo = route.params?.backTo;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [task] = useOnyx(ONYXKEYS.TASK, {canBeMissing: false});
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {userToInvite, recentReports, personalDetails, currentUserOption, searchValue, debouncedSearchValue, setSearchValue, headerMessage, areOptionsInitialized} = useOptions();
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
+
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, areOptionsInitialized} = useSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_GENERAL,
+        includeUserToInvite: true,
+        excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+        getValidOptionsConfig: {
+            includeCurrentUser: true,
+        },
+    });
+
+    const optionsWithoutCurrentUser = useMemo(() => {
+        if (!currentUserPersonalDetails?.accountID) {
+            return availableOptions;
+        }
+
+        return {
+            ...availableOptions,
+            personalDetails: availableOptions.personalDetails.filter((detail) => detail.accountID !== currentUserPersonalDetails.accountID),
+            recentReports: availableOptions.recentReports.filter((report) => report.accountID !== currentUserPersonalDetails.accountID),
+        };
+    }, [availableOptions, currentUserPersonalDetails?.accountID]);
+
+    const headerMessage = useMemo(() => {
+        return getHeaderMessage(
+            (optionsWithoutCurrentUser.recentReports?.length || 0) + (optionsWithoutCurrentUser.personalDetails?.length || 0) !== 0 || !!optionsWithoutCurrentUser.currentUserOption,
+            !!optionsWithoutCurrentUser.userToInvite,
+            debouncedSearchTerm,
+            countryCode,
+            false,
+        );
+    }, [optionsWithoutCurrentUser, debouncedSearchTerm, countryCode]);
+
+    const allPersonalDetails = usePersonalDetails();
 
     const report: OnyxEntry<Report> = useMemo(() => {
         if (!route.params?.reportID) {
@@ -128,35 +93,39 @@ function TaskAssigneeSelectorModal() {
             });
         }
         return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${route.params?.reportID}`];
-    }, [reports, route]);
+    }, [reports, route.params?.reportID]);
+
+    const parentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`];
+
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const sections = useMemo(() => {
         const sectionsList = [];
 
-        if (currentUserOption) {
+        if (optionsWithoutCurrentUser.currentUserOption) {
             sectionsList.push({
                 title: translate('newTaskPage.assignMe'),
-                data: [currentUserOption],
+                data: [optionsWithoutCurrentUser.currentUserOption],
                 shouldShow: true,
             });
         }
 
         sectionsList.push({
             title: translate('common.recents'),
-            data: recentReports,
-            shouldShow: recentReports?.length > 0,
+            data: optionsWithoutCurrentUser.recentReports,
+            shouldShow: optionsWithoutCurrentUser.recentReports?.length > 0,
         });
 
         sectionsList.push({
             title: translate('common.contacts'),
-            data: personalDetails,
-            shouldShow: personalDetails?.length > 0,
+            data: optionsWithoutCurrentUser.personalDetails,
+            shouldShow: optionsWithoutCurrentUser.personalDetails?.length > 0,
         });
 
-        if (userToInvite) {
+        if (optionsWithoutCurrentUser.userToInvite) {
             sectionsList.push({
                 title: '',
-                data: [userToInvite],
+                data: [optionsWithoutCurrentUser.userToInvite],
                 shouldShow: true,
             });
         }
@@ -171,9 +140,14 @@ function TaskAssigneeSelectorModal() {
                 isDisabled: option.isDisabled ?? undefined,
                 login: option.login ?? undefined,
                 shouldShowSubscript: option.shouldShowSubscript ?? undefined,
+                isSelected: task?.assigneeAccountID === option.accountID || task?.report?.managerID === option.accountID,
             })),
         }));
-    }, [currentUserOption, personalDetails, recentReports, translate, userToInvite]);
+    }, [optionsWithoutCurrentUser, task?.assigneeAccountID, translate, task?.report?.managerID]);
+
+    const initiallyFocusedOptionKey = useMemo(() => {
+        return sections.flatMap((section) => section.data).find((mode) => mode.isSelected === true)?.keyForList;
+    }, [sections]);
 
     const selectReport = useCallback(
         (option: ListItem) => {
@@ -182,37 +156,55 @@ function TaskAssigneeSelectorModal() {
                 return;
             }
 
+            const assigneePersonalDetails = {
+                ...allPersonalDetails?.[option?.accountID ?? CONST.DEFAULT_NUMBER_ID],
+                accountID: option.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                login: option.login ?? '',
+            };
+
             // Check to see if we're editing a task and if so, update the assignee
             if (report) {
                 if (option.accountID !== report.managerID) {
-                    const assigneeChatReport = setAssigneeValue(
-                        option?.login ?? '',
-                        option?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    const {report: assigneeChatReport, isOptimisticReport} = setAssigneeValue(
+                        currentUserPersonalDetails.accountID,
+                        assigneePersonalDetails,
                         report.reportID,
                         undefined, // passing null as report because for editing task the report will be task details report page not the actual report where task was created
-                        isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}),
+                        isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? ''}, loginList),
                     );
                     // Pass through the selected assignee
-                    editTaskAssignee(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, option?.login ?? '', option?.accountID, assigneeChatReport);
+                    editTaskAssignee(
+                        report,
+                        parentReport,
+                        currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        option?.login ?? '',
+                        currentUserPersonalDetails.accountID,
+                        hasOutstandingChildTask,
+                        option?.accountID,
+                        assigneeChatReport,
+                        isOptimisticReport,
+                    );
                 }
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     Navigation.dismissModalWithReport({reportID: report?.reportID});
                 });
                 // If there's no report, we're creating a new task
             } else if (option.accountID) {
                 setAssigneeValue(
-                    option?.login ?? '',
-                    option.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserPersonalDetails.accountID,
+                    assigneePersonalDetails,
                     task?.shareDestination ?? '',
                     undefined, // passing null as report is null in this condition
-                    isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}),
+                    isCurrentUser({...option, accountID: option?.accountID ?? CONST.DEFAULT_NUMBER_ID, login: option?.login ?? undefined}, loginList),
                 );
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     Navigation.goBack(ROUTES.NEW_TASK.getRoute(backTo));
                 });
             }
         },
-        [session?.accountID, task?.shareDestination, report, backTo],
+        [allPersonalDetails, report, currentUserPersonalDetails.accountID, loginList, parentReport, hasOutstandingChildTask, task?.shareDestination, backTo],
     );
 
     const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);
@@ -223,13 +215,13 @@ function TaskAssigneeSelectorModal() {
     const isTaskNonEditable = isTaskReport(report) && (!isTaskModifiable || !isOpen);
 
     useEffect(() => {
-        searchInServer(debouncedSearchValue);
-    }, [debouncedSearchValue]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={TaskAssigneeSelectorModal.displayName}
+            testID="TaskAssigneeSelectorModal"
         >
             <FullPageNotFoundView shouldShow={isTaskNonEditable}>
                 <HeaderWithBackButton
@@ -242,9 +234,11 @@ function TaskAssigneeSelectorModal() {
                         ListItem={UserListItem}
                         onSelectRow={selectReport}
                         shouldSingleExecuteRowSelect
-                        onChangeText={setSearchValue}
-                        textInputValue={searchValue}
+                        onChangeText={setSearchTerm}
+                        textInputValue={searchTerm}
                         headerMessage={headerMessage}
+                        initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                        shouldUpdateFocusedIndex
                         textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
                         showLoadingPlaceholder={!areOptionsInitialized}
                         isLoadingNewOptions={!!isSearchingForReports}
@@ -254,7 +248,5 @@ function TaskAssigneeSelectorModal() {
         </ScreenWrapper>
     );
 }
-
-TaskAssigneeSelectorModal.displayName = 'TaskAssigneeSelectorModal';
 
 export default withNavigationTransitionEnd(withCurrentUserPersonalDetails(TaskAssigneeSelectorModal));

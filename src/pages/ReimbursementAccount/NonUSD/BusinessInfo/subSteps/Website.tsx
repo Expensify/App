@@ -28,7 +28,7 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
     const currency = policy?.outputCurrency ?? '';
     const isWebsiteRequired = currency === CONST.CURRENCY.USD || CONST.CURRENCY.CAD;
 
-    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
+    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account, true), [session, account]);
     const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
     const validate = useCallback(
@@ -72,7 +72,5 @@ function Website({onNext, onMove, isEditing}: WebsiteProps) {
         />
     );
 }
-
-Website.displayName = 'Website';
 
 export default Website;

@@ -3,11 +3,10 @@ require('dotenv').config();
 const IS_E2E_TESTING = process.env.E2E_TESTING === 'true';
 
 const ReactCompilerConfig = {
-    target: '18',
+    target: '19',
     environment: {
         enableTreatRefLikeIdentifiersAsRefs: true,
     },
-    // We exclude 'tests' directory from compilation, but still compile components imported in test files.
     sources: (filename) => !filename.includes('tests/') && !filename.includes('node_modules/'),
 };
 
@@ -43,9 +42,10 @@ const defaultPluginsForWebpack = [
     // We use `@babel/plugin-transform-class-properties` for transforming ReactNative libraries and do not use it for our own
     // source code transformation as we do not use class property assignment.
     '@babel/plugin-transform-class-properties',
-
+    '@babel/plugin-proposal-export-namespace-from',
     // Keep it last
-    'react-native-reanimated/plugin',
+    'react-native-worklets/plugin',
+    '@babel/plugin-transform-export-namespace-from',
 ];
 
 // The Fullstory annotate plugin generated a few errors when executed in Electron. Let's
@@ -81,8 +81,6 @@ const metro = {
         ['@babel/plugin-proposal-class-properties', {loose: true}],
         ['@babel/plugin-proposal-private-methods', {loose: true}],
         ['@babel/plugin-proposal-private-property-in-object', {loose: true}],
-        // The reanimated babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/installation
-        'react-native-reanimated/plugin',
 
         /* Fullstory */
         '@fullstory/react-native',
@@ -129,9 +127,13 @@ const metro = {
                     '@userActions': './src/libs/actions',
                     '@desktop': './desktop',
                     '@github': './.github',
+                    '@selectors': './src/selectors',
                 },
             },
         ],
+        '@babel/plugin-transform-export-namespace-from',
+        // The worklets babel plugin needs to be last, as stated here: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
+        'react-native-worklets/plugin',
     ],
     env: {
         production: {

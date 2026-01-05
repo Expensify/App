@@ -1,10 +1,10 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import {TeleScope} from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteDefaultVendor} from '@libs/actions/connections/NetSuiteCommands';
@@ -26,6 +26,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
     const {translate} = useLocalize();
 
     const policyID = policy?.id;
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT>>();
     const params = route.params;
@@ -54,7 +55,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.netsuite.noVendorsFound')}
@@ -62,7 +63,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [translate, styles.pb10, illustrations.Telescope],
     );
 
     return (
@@ -70,7 +71,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteExportExpensesVendorSelectPage.displayName}
+            displayName="NetSuiteExportExpensesVendorSelectPage"
             sections={netsuiteVendorOptions.length ? [{data: netsuiteVendorOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}
@@ -87,7 +88,5 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
         />
     );
 }
-
-NetSuiteExportExpensesVendorSelectPage.displayName = 'NetSuiteExportExpensesVendorSelectPage';
 
 export default withPolicyConnections(NetSuiteExportExpensesVendorSelectPage);

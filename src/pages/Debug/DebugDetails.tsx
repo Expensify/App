@@ -101,14 +101,14 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
     const validator = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM> => {
             const newErrors: Record<string, string | undefined> = {};
-            Object.entries(values).forEach(([key, value]) => {
+            for (const [key, value] of Object.entries(values)) {
                 try {
                     validate(key, DebugUtils.onyxDataToString(value));
                 } catch (e) {
                     const {cause, message} = e as SyntaxError;
                     newErrors[key] = cause || message === 'debug.missingValue' ? translate(message as TranslationPaths, cause as never) : message;
                 }
-            });
+            }
             return newErrors;
         },
         [translate, validate],
@@ -260,7 +260,5 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
         </ScrollView>
     );
 }
-
-DebugDetails.displayName = 'DebugDetails';
 
 export default DebugDetails;

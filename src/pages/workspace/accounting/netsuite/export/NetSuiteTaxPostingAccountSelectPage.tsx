@@ -1,9 +1,9 @@
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {isBetaEnabled} = usePermissions();
 
     const policyID = policy?.id;
@@ -49,7 +50,7 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.netsuite.noAccountsFound')}
@@ -57,7 +58,7 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10],
     );
 
     return (
@@ -65,7 +66,7 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteTaxPostingAccountSelectPage.displayName}
+            displayName="NetSuiteTaxPostingAccountSelectPage"
             sections={netsuiteTaxAccountOptions.length ? [{data: netsuiteTaxAccountOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateTaxAccount}
@@ -82,7 +83,5 @@ function NetSuiteTaxPostingAccountSelectPage({policy}: WithPolicyConnectionsProp
         />
     );
 }
-
-NetSuiteTaxPostingAccountSelectPage.displayName = 'NetSuiteTaxPostingAccountSelectPage';
 
 export default withPolicyConnections(NetSuiteTaxPostingAccountSelectPage);

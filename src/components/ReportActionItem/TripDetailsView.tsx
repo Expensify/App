@@ -9,6 +9,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -43,16 +44,17 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowRightLong', 'Plane', 'Bed', 'CarWithKey', 'Train', 'Luggage']);
 
-    const reservationIcon = getTripReservationIcon(reservation.type);
+    const reservationIcon = getTripReservationIcon(expensifyIcons, reservation.type);
 
     const getFormattedDate = () => {
         switch (reservation.type) {
             case CONST.RESERVATION_TYPE.FLIGHT:
-                return DateUtils.getFormattedTransportDate(new Date(reservation.start.date));
+                return DateUtils.getFormattedTransportDate(translate, new Date(reservation.start.date));
             case CONST.RESERVATION_TYPE.HOTEL:
             case CONST.RESERVATION_TYPE.CAR:
-                return DateUtils.getFormattedReservationRangeDate(new Date(reservation.start.date), new Date(reservation.end.date));
+                return DateUtils.getFormattedReservationRangeDate(translate, new Date(reservation.start.date), new Date(reservation.end.date));
             default:
                 return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date));
         }
@@ -194,7 +196,7 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
 
             switch (firstReservation?.type) {
                 case CONST.RESERVATION_TYPE.FLIGHT: {
-                    const destinationReservation = reservations.filter((reservation) => reservation.reservation.legId === firstReservation.legId).at(-1);
+                    const destinationReservation = reservations.findLast((reservation) => reservation.reservation.legId === firstReservation.legId);
                     if (!destinationReservation) {
                         return '';
                     }
@@ -279,8 +281,6 @@ function TripDetailsView({tripRoomReport, shouldShowHorizontalRule, tripTransact
         </View>
     );
 }
-
-TripDetailsView.displayName = 'TripDetailsView';
 
 export default TripDetailsView;
 export {ReservationView};

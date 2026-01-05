@@ -2,13 +2,14 @@ import * as API from '@libs/API';
 import type GraphiteParams from '@libs/API/parameters/GraphiteParams';
 import {READ_COMMANDS} from '@libs/API/types';
 import * as Environment from '@libs/Environment/Environment';
+import getEnvironment from '@libs/Environment/getEnvironment';
 import getPlatform from '@libs/getPlatform';
 import pkg from '../../../package.json';
 
 const StatsCounter = (eventName: string, value = 1) => {
-    Environment.getEnvironment().then((envName) => {
+    getEnvironment().then((envName) => {
         const platform = getPlatform();
-        const version = pkg.version.replace(/\./g, '-');
+        const version = pkg.version.replaceAll('.', '-');
 
         // This normalizes the name of the web platform so it will be more consistent in Grafana
         const grafanaEventName = `${platform === 'web' ? 'webApp' : platform}.${envName}.new.expensify.${eventName}.${version}`;

@@ -47,8 +47,8 @@ Export settings determine how Expensify sends data to Xero.
 1. Under the Xero connection, click **Export**.
 2. Configure the following:
 
-- **Preferred exporter** – Assign a Workspace Admin to automatically receive reports to export.  
-  - Other Workspace Admins can still export to Xero.  
+- **Preferred exporter** – Assign a Workspace Admin to automatically receive reports to export.
+  - Other Workspace Admins can still export to Xero.
   - If card-specific export settings are configured under your domain, the Preferred Exporter must be a Domain Admin.
 
 - **Export out-of-pocket expenses as** – All out-of-pocket expenses are exported as purchase bills (not editable).

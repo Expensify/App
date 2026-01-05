@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Currency, CurrencyList} from '@src/types/onyx';
+import type {CurrencyList, Locale} from '@src/types/onyx';
 import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
@@ -31,11 +31,6 @@ function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD): number {
     return decimals ?? 2;
 }
 
-function getCurrency(currency: string = CONST.CURRENCY.USD): Currency | null {
-    const currencyItem = currencyList?.[currency];
-    return currencyItem;
-}
-
 /**
  * Returns the currency's minor unit quantity
  * e.g. Cent in USD
@@ -49,8 +44,8 @@ function getCurrencyUnit(currency: string = CONST.CURRENCY.USD): number {
 /**
  * Get localized currency symbol for currency(ISO 4217) Code
  */
-function getLocalizedCurrencySymbol(currencyCode: string): string | undefined {
-    const parts = formatToParts(IntlStore.getCurrentLocale(), 0, {
+function getLocalizedCurrencySymbol(locale: Locale | undefined, currencyCode: string): string | undefined {
+    const parts = formatToParts(locale, 0, {
         style: 'currency',
         currency: currencyCode,
     });
@@ -105,7 +100,7 @@ function convertToFrontendAmountAsString(amountAsInt: number | null | undefined,
  * @param amountInCents – should be an integer. Anything after a decimal place will be dropped.
  * @param currency - IOU currency
  */
-function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD): string {
+function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURRENCY.USD, shouldUseLocalCurrencySymbol = false): string {
     const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
     /**
      * Fallback currency to USD if it empty string or undefined
@@ -114,6 +109,20 @@ function convertToDisplayString(amountInCents = 0, currency: string = CONST.CURR
     if (!currency) {
         currencyWithFallback = CONST.CURRENCY.USD;
     }
+
+    if (shouldUseLocalCurrencySymbol) {
+        const currencySymbol = getCurrencySymbol(currencyWithFallback);
+
+        if (currencySymbol) {
+            const formattedNumber = format(IntlStore.getCurrentLocale(), convertedAmount, {
+                style: 'decimal',
+                minimumFractionDigits: getCurrencyDecimals(currency),
+                maximumFractionDigits: 2,
+            });
+            return `${currencySymbol}${formattedNumber}`;
+        }
+    }
+
     return format(IntlStore.getCurrentLocale(), convertedAmount, {
         style: 'currency',
         currency: currencyWithFallback,
@@ -221,6 +230,5 @@ export {
     convertToDisplayStringWithoutCurrency,
     isValidCurrencyCode,
     convertToShortDisplayString,
-    getCurrency,
     sanitizeCurrencyCode,
 };

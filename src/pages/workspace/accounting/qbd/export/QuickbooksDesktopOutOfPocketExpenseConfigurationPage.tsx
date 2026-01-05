@@ -82,7 +82,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
         {
             // We use the logical OR (||) here instead of ?? because `reimbursableAccount` can be an empty string
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            title: accountsList.find(({id}) => qbdConfig?.export.reimbursableAccount === id)?.name || accountsList.at(0)?.name || translate('workspace.qbd.notConfigured'),
+            title: accountsList.find(({id}) => qbdConfig?.export.reimbursableAccount === id)?.name || accountsList.at(0)?.name,
             description: accountDescription,
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             subscribedSettings: account,
@@ -93,7 +93,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
 
     return (
         <ConnectionLayout
-            displayName={QuickbooksDesktopOutOfPocketExpenseConfigurationPage.displayName}
+            displayName="QuickbooksDesktopOutOfPocketExpenseConfigurationPage"
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.qbd.exportOutOfPocketExpensesDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -147,7 +147,5 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
         </ConnectionLayout>
     );
 }
-
-QuickbooksDesktopOutOfPocketExpenseConfigurationPage.displayName = 'QuickbooksDesktopOutOfPocketExpenseConfigurationPage';
 
 export default withPolicyConnections(QuickbooksDesktopOutOfPocketExpenseConfigurationPage);

@@ -4,6 +4,7 @@ import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackground';
+import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
@@ -101,7 +102,7 @@ function getRenderOptions({
 
     // True, if the user has SAML required, and we haven't yet initiated SAML for their account
     const shouldInitiateSAMLLogin = hasAccount && hasLogin && isSAMLRequired && !hasInitiatedSAMLLogin && !!account.isLoading;
-    const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode;
+    const shouldShowChooseSSOOrMagicCode = hasAccount && hasLogin && isSAMLEnabled && !isSAMLRequired && !isUsingMagicCode && !hasValidateCode;
 
     // SAML required users may reload the login page after having already entered their login details, in which
     // case we want to clear their sign in data so they don't end up in an infinite loop redirecting back to their
@@ -179,7 +180,9 @@ function SignInPage({ref}: SignInPageProps) {
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowAnotherLoginPageOpenedMessage = Visibility.isVisible() && !isClientTheLeader;
 
-    useEffect(() => Performance.measureTTI(), []);
+    useEffect(() => {
+        Performance.measureTTI();
+    }, []);
 
     useEffect(() => {
         if (credentials?.login) {
@@ -311,7 +314,7 @@ function SignInPage({ref}: SignInPageProps) {
                     <LoginForm
                         ref={loginFormRef}
                         isVisible={shouldShowLoginForm}
-                        blurOnSubmit={isAccountValidated === false}
+                        submitBehavior={isAccountValidated === false ? 'blurAndSubmit' : 'submit'}
                         // eslint-disable-next-line react-compiler/react-compiler
                         scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
                     />
@@ -351,21 +354,21 @@ function SignInPageWrapper({ref}: SignInPageProps) {
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight
             style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
-            testID={SignInPageWrapper.displayName}
+            testID="SignInPageWrapper"
         >
             <SignInPage ref={ref} />
         </ScreenWrapper>
     );
 }
 
-SignInPageWrapper.displayName = 'SignInPageWrapper';
-
 // WithTheme is a HOC that provides theme-related contexts (e.g. to the SignInPageWrapper component since these contexts are required for variable declarations).
 function WithTheme(Component: React.ComponentType<SignInPageProps>) {
     return ({ref}: SignInPageProps) => (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
-                <Component ref={ref} />
+                <HTMLEngineProvider>
+                    <Component ref={ref} />
+                </HTMLEngineProvider>
             </ThemeStylesProvider>
         </ThemeProvider>
     );

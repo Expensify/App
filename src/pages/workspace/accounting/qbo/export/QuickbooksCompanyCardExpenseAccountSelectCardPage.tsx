@@ -1,7 +1,7 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -100,7 +100,7 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksCompanyCardExpenseAccountSelectCardPage.displayName}
+            displayName="QuickbooksCompanyCardExpenseAccountSelectCardPage"
             title="workspace.accounting.exportAs"
             sections={sections}
             listItem={RadioListItem}
@@ -119,7 +119,5 @@ function QuickbooksCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyC
         />
     );
 }
-
-QuickbooksCompanyCardExpenseAccountSelectCardPage.displayName = 'QuickbooksCompanyCardExpenseAccountSelectCardPage';
 
 export default withPolicyConnections(QuickbooksCompanyCardExpenseAccountSelectCardPage);

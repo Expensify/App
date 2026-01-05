@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -62,7 +62,7 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspacePerDiemSettingsPage.displayName}
+                testID="WorkspacePerDiemSettingsPage"
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <FullPageBlockingView
@@ -99,7 +99,5 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspacePerDiemSettingsPage.displayName = 'WorkspacePerDiemSettingsPage';
 
 export default WorkspacePerDiemSettingsPage;

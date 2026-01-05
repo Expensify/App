@@ -1,10 +1,12 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -29,20 +31,23 @@ type WorkspacesListRowProps = {
 
     /** Type of card */
     isVirtual: boolean;
+
+    /** Whether the list item is hovered */
+    isHovered?: boolean;
 };
 
-function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, isVirtual}: WorkspacesListRowProps) {
+function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, isVirtual, isHovered}: WorkspacesListRowProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
+    const theme = useTheme();
     const cardholderName = useMemo(() => getDisplayNameOrDefault(cardholder), [cardholder]);
     const cardType = isVirtual ? translate('workspace.expensifyCard.virtual') : translate('workspace.expensifyCard.physical');
     return (
         <View style={[styles.flexRow, styles.gap3, styles.br3, styles.p4]}>
             <View style={[styles.flexRow, styles.flex4, styles.gap3, styles.alignItemsCenter]}>
                 <Avatar
-                    source={cardholder?.avatar ?? FallbackAvatar}
+                    source={cardholder?.avatar ?? Expensicons.FallbackAvatar}
                     avatarID={cardholder?.accountID}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -112,10 +117,17 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
                     </Text>
                 )}
             </View>
+            <View style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <Icon
+                    src={Expensicons.ArrowRight}
+                    fill={theme.icon}
+                    additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
+                    medium
+                    isButtonIcon
+                />
+            </View>
         </View>
     );
 }
-
-WorkspaceCardListRow.displayName = 'WorkspaceCardListRow';
 
 export default WorkspaceCardListRow;

@@ -1,10 +1,13 @@
-import {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import {createPoliciesSelector} from '@selectors/Policy';
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import {areAllGroupPoliciesExpenseChatDisabled} from '@libs/PolicyUtils';
 import {createTypeMenuSections} from '@libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
-import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
+import type {Policy, Session} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
+import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
+import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 
@@ -15,6 +18,7 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         type: policy.type,
         role: policy.role,
         owner: policy.owner,
+        connections: policy.connections,
         outputCurrency: policy.outputCurrency,
         isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         reimburser: policy.reimburser,
@@ -28,24 +32,97 @@ const policySelector = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
         achAccount: policy.achAccount,
     };
 
+const policiesSelector = (policies: OnyxCollection<Policy>) => createPoliciesSelector(policies, policySelector);
+
+const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
+    email: session?.email,
+    accountID: session?.accountID,
+});
 /**
  * Get a list of all search groupings, along with their search items. Also returns the
  * currently focused search, based on the hash
  */
 const useSearchTypeMenuSections = () => {
-    const {defaultCardFeed, cardFeedsByPolicy} = useCardFeedsForDisplay();
+    const {defaultCardFeed, cardFeedsByPolicy, defaultExpensifyCard} = useCardFeedsForDisplay();
 
+    const icons = useMemoizedLazyExpensifyIcons(['Document', 'Pencil', 'ThumbsUp']);
     const {isOffline} = useNetwork();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (policies) => mapOnyxCollectionItems(policies, policySelector), canBeMissing: true});
-    const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => ({email: session?.email, accountID: session?.accountID}), canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesSelector, canBeMissing: true});
+    const [currentUserLoginAndAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: currentUserLoginAndAccountIDSelector, canBeMissing: false});
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
-
-    const typeMenuSections = useMemo(
-        () => createTypeMenuSections(currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies, savedSearches, isOffline),
-        [currentUserLoginAndAccountID?.email, currentUserLoginAndAccountID?.accountID, cardFeedsByPolicy, defaultCardFeed, allPolicies, savedSearches, isOffline],
+    const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {canBeMissing: true});
+    const shouldRedirectToExpensifyClassic = useMemo(() => areAllGroupPoliciesExpenseChatDisabled(allPolicies ?? {}), [allPolicies]);
+    const [pendingReportCreation, setPendingReportCreation] = useState<{policyID: string; policyName?: string; onConfirm: (shouldDismissEmptyReportsConfirmation: boolean) => void} | null>(
+        null,
     );
 
-    return {typeMenuSections};
+    const handlePendingConfirm = useCallback(
+        (shouldDismissEmptyReportsConfirmation: boolean) => {
+            pendingReportCreation?.onConfirm(shouldDismissEmptyReportsConfirmation);
+            setPendingReportCreation(null);
+        },
+        [pendingReportCreation, setPendingReportCreation],
+    );
+
+    const handlePendingCancel = useCallback(() => {
+        setPendingReportCreation(null);
+    }, [setPendingReportCreation]);
+
+    const {openCreateReportConfirmation, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
+        policyID: pendingReportCreation?.policyID,
+        policyName: pendingReportCreation?.policyName ?? '',
+        onConfirm: handlePendingConfirm,
+        onCancel: handlePendingCancel,
+    });
+
+    useEffect(() => {
+        if (!pendingReportCreation) {
+            return;
+        }
+        openCreateReportConfirmation();
+    }, [pendingReportCreation, openCreateReportConfirmation]);
+
+    const isSuggestedSearchDataReady = useMemo(() => {
+        const policiesList = Object.values(allPolicies ?? {}).filter((policy): policy is NonNullable<typeof policy> => policy !== null && policy !== undefined);
+
+        return policiesList.some((policy) => policy.employeeList !== undefined && policy.exporter !== undefined);
+    }, [allPolicies]);
+
+    const typeMenuSections = useMemo(
+        () =>
+            createTypeMenuSections(
+                icons,
+                currentUserLoginAndAccountID?.email,
+                currentUserLoginAndAccountID?.accountID,
+                cardFeedsByPolicy,
+                defaultCardFeed ?? defaultExpensifyCard,
+                allPolicies,
+                savedSearches,
+                isOffline,
+                defaultExpensifyCard,
+                shouldRedirectToExpensifyClassic,
+                allTransactionDrafts,
+            ),
+        [
+            currentUserLoginAndAccountID?.email,
+            currentUserLoginAndAccountID?.accountID,
+            cardFeedsByPolicy,
+            defaultCardFeed,
+            defaultExpensifyCard,
+            allPolicies,
+            savedSearches,
+            isOffline,
+            shouldRedirectToExpensifyClassic,
+            allTransactionDrafts,
+            icons,
+        ],
+    );
+
+    return {
+        typeMenuSections,
+        CreateReportConfirmationModal,
+        shouldShowSuggestedSearchSkeleton: !isSuggestedSearchDataReady && !isOffline,
+    };
 };
 
 export default useSearchTypeMenuSections;

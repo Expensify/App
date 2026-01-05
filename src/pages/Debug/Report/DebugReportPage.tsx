@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -28,6 +29,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import DebugReportActions from './DebugReportActions';
 
 type DebugReportPageProps = PlatformStackScreenProps<DebugParamList, typeof SCREENS.DEBUG.REPORT>;
@@ -56,10 +58,16 @@ function DebugReportPage({
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {canBeMissing: true});
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
-        selector: (attributes) => attributes?.reports?.[reportID],
-        canBeMissing: true,
-    });
+    const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => attributes?.reports?.[reportID], [reportID]);
+    const [reportAttributes] = useOnyx(
+        ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+        {
+            selector: reportAttributesSelector,
+            canBeMissing: true,
+        },
+        [reportAttributesSelector],
+    );
+    const [draftComment] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`, {canBeMissing: true});
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {canBeMissing: true});
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
@@ -95,6 +103,7 @@ function DebugReportPage({
             hasRBR,
             isReportArchived,
             isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
+            draftComment,
         });
 
         return [
@@ -140,7 +149,7 @@ function DebugReportPage({
                         : undefined,
             },
         ];
-    }, [report, transactionViolations, reportID, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, translate]);
+    }, [report, transactionViolations, reportID, isReportArchived, chatReport, reportActions, transactions, reportAttributes?.reportErrors, betas, priorityMode, draftComment, translate]);
 
     const DebugDetailsTab = useCallback(
         () => (
@@ -245,7 +254,7 @@ function DebugReportPage({
             includeSafeAreaPaddingBottom={false}
             shouldEnableKeyboardAvoidingView={false}
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={DebugReportPage.displayName}
+            testID="DebugReportPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
                 <View style={[styles.flex1, safeAreaPaddingBottomStyle]}>
@@ -262,7 +271,5 @@ function DebugReportPage({
         </ScreenWrapper>
     );
 }
-
-DebugReportPage.displayName = 'DebugReportPage';
 
 export default DebugReportPage;

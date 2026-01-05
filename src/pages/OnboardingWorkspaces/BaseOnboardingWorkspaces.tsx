@@ -6,7 +6,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import UserListItem from '@components/SelectionList/UserListItem';
+import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -69,6 +69,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 onboardingMessage: onboardingMessages[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
                 firstName: onboardingPersonalDetails?.firstName ?? '',
                 lastName: onboardingPersonalDetails?.lastName ?? '',
+                shouldSkipTestDriveModal: !!(policy.automaticJoiningEnabled ? policy.policyID : undefined),
             });
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID(policy.policyID);
@@ -125,6 +126,19 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         Navigation.goBack();
     }, []);
 
+    const skipJoiningWorkspaces = () => {
+        if (isVsb) {
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
+            return;
+        }
+
+        if (isSmb) {
+            Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
+            return;
+        }
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
@@ -137,16 +151,17 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 shouldShowBackButton
                 progressBarPercentage={60}
                 onBackButtonPress={handleBackButtonPress}
+                shouldDisplayHelpButton={false}
             />
             <SelectionList
-                sections={[{data: policyIDItems}]}
+                data={policyIDItems}
                 onSelectRow={() => {}}
                 ListItem={UserListItem}
-                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}
+                style={{listItemWrapperStyle: onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8, styles.cursorDefault] : []}}
                 showLoadingPlaceholder={joinablePoliciesLoading}
                 shouldStopPropagation
                 showScrollIndicator
-                headerContent={
+                customListHeader={
                     <View style={[wrapperPadding, onboardingIsMediumOrLargerScreenWidth && styles.mt5, styles.mb5]}>
                         <Text style={styles.textHeadlineH1}>{translate('onboarding.joinAWorkspace')}</Text>
                         <Text style={[styles.textSupporting, styles.mt3]}>{translate('onboarding.listOfWorkspaces')}</Text>
@@ -158,18 +173,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                         large
                         text={translate('common.skip')}
                         testID="onboardingWorkSpaceSkipButton"
-                        onPress={() => {
-                            if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(route.params?.backTo));
-                                return;
-                            }
-
-                            if (isSmb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
-                                return;
-                            }
-                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
-                        }}
+                        onPress={skipJoiningWorkspaces}
                         style={[styles.mt5]}
                     />
                 }
@@ -177,7 +181,5 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingWorkspaces.displayName = 'BaseOnboardingWorkspaces';
 
 export default BaseOnboardingWorkspaces;

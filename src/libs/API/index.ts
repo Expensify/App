@@ -4,11 +4,12 @@ import type {SetRequired} from 'type-fest';
 import {resolveDuplicationConflictAction, resolveEnableFeatureConflicts} from '@libs/actions/RequestConflictUtils';
 import type {EnablePolicyFeatureCommand, RequestMatcher} from '@libs/actions/RequestConflictUtils';
 import Log from '@libs/Log';
-import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx} from '@libs/Middleware';
+import {handleDeletedAccount, HandleUnusedOptimisticID, Logging, Pagination, Reauthentication, RecheckConnection, SaveResponseInOnyx, SupportalPermission} from '@libs/Middleware';
+import FraudMonitoring from '@libs/Middleware/FraudMonitoring';
 import {isOffline} from '@libs/Network/NetworkStore';
 import {push as pushToSequentialQueue, waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
 import Pusher from '@libs/Pusher';
-import {processWithMiddleware, use} from '@libs/Request';
+import {addMiddleware, processWithMiddleware} from '@libs/Request';
 import {getAll, getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
 import CONST from '@src/CONST';
 import type OnyxRequest from '@src/types/onyx/Request';
@@ -22,25 +23,31 @@ import {READ_COMMANDS} from './types';
 // e.g. an error thrown in Logging or Reauthenticate logic will be caught by the next middleware or the SequentialQueue which retries failing requests.
 
 // Logging - Logs request details and errors.
-use(Logging);
+addMiddleware(Logging);
 
 // RecheckConnection - Sets a timer for a request that will "recheck" if we are connected to the internet if time runs out. Also triggers the connection recheck when we encounter any error.
-use(RecheckConnection);
+addMiddleware(RecheckConnection);
 
 // Reauthentication - Handles jsonCode 407 which indicates an expired authToken. We need to reauthenticate and get a new authToken with our stored credentials.
-use(Reauthentication);
+addMiddleware(Reauthentication);
 
 // Handles the case when the copilot has been deleted. The response contains jsonCode 408 and a message indicating account deletion
-use(handleDeletedAccount);
+addMiddleware(handleDeletedAccount);
+
+// Handle supportal permission denial centrally
+addMiddleware(SupportalPermission);
 
 // If an optimistic ID is not used by the server, this will update the remaining serialized requests using that optimistic ID to use the correct ID instead.
-use(HandleUnusedOptimisticID);
+addMiddleware(HandleUnusedOptimisticID);
 
-use(Pagination);
+addMiddleware(Pagination);
 
 // SaveResponseInOnyx - Merges either the successData or failureData (or finallyData, if included in place of the former two values) into Onyx depending on if the call was successful or not. This needs to be the LAST middleware we use, don't add any
 // middlewares after this, because the SequentialQueue depends on the result of this middleware to pause the queue (if needed) to bring the app to an up-to-date state.
-use(SaveResponseInOnyx);
+addMiddleware(SaveResponseInOnyx);
+
+// FraudMonitoring - Tags the request with the appropriate Fraud Protection event.
+addMiddleware(FraudMonitoring);
 
 let requestIndex = 0;
 
@@ -71,7 +78,8 @@ function prepareRequest<TCommand extends ApiCommand>(
         shouldApplyOptimisticData = conflictAction.type !== 'noAction';
     }
 
-    const {optimisticData, ...onyxDataWithoutOptimisticData} = onyxData;
+    const {optimisticData, successData, failureData, ...onyxDataWithoutOptimisticData} = onyxData;
+
     if (optimisticData && shouldApplyOptimisticData) {
         Log.info('[API] Applying optimistic data', false, {command, type});
         Onyx.update(optimisticData);
@@ -101,6 +109,8 @@ function prepareRequest<TCommand extends ApiCommand>(
         initiatedOffline: isOffline(),
         requestID: requestIndex++,
         ...onyxDataWithoutOptimisticData,
+        successData,
+        failureData,
         ...conflictResolver,
     };
 
@@ -117,19 +127,23 @@ function prepareRequest<TCommand extends ApiCommand>(
  * Process a prepared request according to its type.
  */
 function processRequest(request: OnyxRequest, type: ApiRequestType): Promise<void | Response> {
+    Log.info('[API] Processing request', false, {command: request.command, type});
     // Write commands can be saved and retried, so push it to the SequentialQueue
     if (type === CONST.API_REQUEST_TYPE.WRITE) {
+        Log.info('[API] Write command. Pushing to SequentialQueue', false, {command: request.command});
         pushToSequentialQueue(request);
         return Promise.resolve();
     }
 
     // Read requests are processed right away, but don't return the response to the caller
     if (type === CONST.API_REQUEST_TYPE.READ) {
+        Log.info('[API] Read command. Processing request with middleware', false, {command: request.command});
         processWithMiddleware(request);
         return Promise.resolve();
     }
 
     // Requests with side effects process right away, and return the response to the caller
+    Log.info('[API] Side effect command. Processing request with middleware', false, {command: request.command});
     return processWithMiddleware(request);
 }
 
@@ -285,4 +299,4 @@ function paginate<TRequestType extends ApiRequestType, TCommand extends CommandO
     }
 }
 
-export {write, makeRequestWithSideEffects, read, paginate, writeWithNoDuplicatesConflictAction, writeWithNoDuplicatesEnableFeatureConflicts};
+export {write, makeRequestWithSideEffects, read, paginate, writeWithNoDuplicatesConflictAction, writeWithNoDuplicatesEnableFeatureConflicts, waitForWrites};

@@ -5,7 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SearchFilterPageFooterButtons from '@components/Search/SearchFilterPageFooterButtons';
 import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/SingleSelectListItem';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -27,12 +27,12 @@ function SearchFiltersTypePage() {
     const [selectedItem, setSelectedItem] = useState(searchAdvancedFiltersForm?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
 
     const listData: Array<ListItem<SearchDataTypes>> = useMemo(() => {
-        return getTypeOptions(allPolicies, session?.email).map((typeOption) => ({
+        return getTypeOptions(translate, allPolicies, session?.email).map((typeOption) => ({
             text: typeOption.text,
             keyForList: typeOption.value,
             isSelected: selectedItem === typeOption.value,
         }));
-    }, [allPolicies, selectedItem, session?.email]);
+    }, [translate, allPolicies, selectedItem, session?.email]);
 
     const updateSelectedItem = useCallback((type: ListItem<SearchDataTypes>) => {
         setSelectedItem(type?.keyForList ?? CONST.SEARCH.DATA_TYPES.EXPENSE);
@@ -57,7 +57,7 @@ function SearchFiltersTypePage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersTypePage.displayName}
+            testID="SearchFiltersTypePage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -71,7 +71,7 @@ function SearchFiltersTypePage() {
             <View style={[styles.flex1]}>
                 <SelectionList
                     shouldSingleExecuteRowSelect
-                    sections={[{data: listData}]}
+                    data={listData}
                     ListItem={SingleSelectListItem}
                     onSelectRow={updateSelectedItem}
                 />
@@ -85,7 +85,5 @@ function SearchFiltersTypePage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersTypePage.displayName = 'SearchFiltersTypePage';
 
 export default SearchFiltersTypePage;

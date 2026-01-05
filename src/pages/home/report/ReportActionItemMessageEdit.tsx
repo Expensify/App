@@ -1,8 +1,8 @@
 import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {MeasureInWindowOnSuccessCallback, NativeSyntheticEvent, TextInput, TextInputFocusEventData, TextInputKeyPressEventData, TextInputScrollEventData} from 'react-native';
+import type {BlurEvent, MeasureInWindowOnSuccessCallback, TextInput, TextInputKeyPressEvent, TextInputScrollEvent} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import {useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
@@ -15,13 +15,17 @@ import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
+import useAncestors from '@hooks/useAncestors';
 import useHandleExceedMaxCommentLength from '@hooks/useHandleExceedMaxCommentLength';
+import useIsScrollLikelyLayoutTriggered from '@hooks/useIsScrollLikelyLayoutTriggered';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScrollBlocker from '@hooks/useScrollBlocker';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,10 +33,10 @@ import {setShouldShowComposeInput} from '@libs/actions/Composer';
 import {clearActive, isActive as isEmojiPickerActive, isEmojiPickerVisible} from '@libs/actions/EmojiPickerAction';
 import {composerFocusKeepFocusOn} from '@libs/actions/InputFocus';
 import {deleteReportActionDraft, editReportComment, saveReportActionDraft} from '@libs/actions/Report';
-import {isMobileChrome} from '@libs/Browser/index.website';
+import {isMobileChrome} from '@libs/Browser';
 import {canSkipTriggerHotkeys, insertText} from '@libs/ComposerUtils';
 import DomUtils from '@libs/DomUtils';
-import {extractEmojis, replaceAndExtractEmojis} from '@libs/EmojiUtils';
+import {extractEmojis, getZWNJCursorOffset, insertZWNJBetweenDigitAndEmoji, replaceAndExtractEmojis} from '@libs/EmojiUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import type {Selection} from '@libs/focusComposerWithDelay/types';
 import focusEditAfterCancelDelete from '@libs/focusEditAfterCancelDelete';
@@ -40,7 +44,7 @@ import Parser from '@libs/Parser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import reportActionItemEventHandler from '@libs/ReportActionItemEventHandler';
 import {getReportActionHtml, isDeletedAction} from '@libs/ReportActionsUtils';
-import {getCommentLength} from '@libs/ReportUtils';
+import {getOriginalReportID} from '@libs/ReportUtils';
 import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeInputKeyboardAware';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,6 +69,9 @@ type ReportActionItemMessageEditProps = {
     /** ReportID that holds the comment we're editing */
     reportID: string | undefined;
 
+    /** ID of the original report from which the given reportAction is first created */
+    originalReportID: string;
+
     /** PolicyID of the policy the report belongs to */
     policyID?: string;
 
@@ -76,6 +83,9 @@ type ReportActionItemMessageEditProps = {
 
     /** Whether report is from group policy */
     isGroupPolicyReport: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>;
 };
 
 const shouldUseForcedSelectionRange = shouldUseEmojiPickerSelection();
@@ -88,10 +98,17 @@ const DEFAULT_MODAL_VALUE = {
     isVisible: false,
 };
 
-function ReportActionItemMessageEdit(
-    {action, draftMessage, reportID, policyID, index, isGroupPolicyReport, shouldDisableEmojiPicker = false}: ReportActionItemMessageEditProps,
-    forwardedRef: ForwardedRef<TextInput | HTMLTextAreaElement | undefined>,
-) {
+function ReportActionItemMessageEdit({
+    action,
+    draftMessage,
+    reportID,
+    originalReportID,
+    policyID,
+    index,
+    isGroupPolicyReport,
+    shouldDisableEmojiPicker = false,
+    ref,
+}: ReportActionItemMessageEditProps) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -118,8 +135,12 @@ function ReportActionItemMessageEdit(
     const {hasExceededMaxCommentLength, validateCommentMaxLength} = useHandleExceedMaxCommentLength();
     const debouncedValidateCommentMaxLength = useMemo(() => lodashDebounce(validateCommentMaxLength, CONST.TIMING.COMMENT_LENGTH_DEBOUNCE_TIME), [validateCommentMaxLength]);
 
+    const {isScrollLayoutTriggered, raiseIsScrollLayoutTriggered} = useIsScrollLikelyLayoutTriggered();
+
     const [modal = DEFAULT_MODAL_VALUE] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
     const [onyxInputFocused = false] = useOnyx(ONYXKEYS.INPUT_FOCUSED, {canBeMissing: true});
+
+    const {isScrolling, startScrollBlock, endScrollBlock} = useScrollBlocker();
 
     const textInputRef = useRef<(HTMLTextAreaElement & TextInput) | null>(null);
     const isFocusedRef = useRef<boolean>(false);
@@ -127,6 +148,11 @@ function ReportActionItemMessageEdit(
     const emojiPickerSelectionRef = useRef<Selection | undefined>(undefined);
     // The ref to check whether the comment saving is in progress
     const isCommentPendingSaved = useRef(false);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`, {canBeMissing: true});
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const originalParentReportID = getOriginalReportID(originalReportID, action);
+    const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
+    const ancestors = useAncestors(originalReport);
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();
@@ -215,14 +241,18 @@ function ReportActionItemMessageEdit(
      */
     const updateDraft = useCallback(
         (newDraftInput: string) => {
-            const {text: newDraft, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
+            raiseIsScrollLayoutTriggered();
+            const {text: emojiConvertedText, emojis, cursorPosition} = replaceAndExtractEmojis(newDraftInput, preferredSkinTone, preferredLocale);
+            const newDraft = insertZWNJBetweenDigitAndEmoji(emojiConvertedText);
+            const zwnjOffset = getZWNJCursorOffset(emojiConvertedText, cursorPosition);
 
             emojisPresentBefore.current = emojis;
 
             setDraft(newDraft);
 
             if (newDraftInput !== newDraft) {
-                const position = Math.max((selection?.end ?? 0) + (newDraft.length - draftRef.current.length), cursorPosition ?? 0);
+                const adjustedCursorPosition = cursorPosition !== undefined && cursorPosition !== null ? cursorPosition + zwnjOffset : undefined;
+                const position = Math.max((selection?.end ?? 0) + (newDraft.length - draftRef.current.length), adjustedCursorPosition ?? 0);
                 setSelection({
                     start: position,
                     end: position,
@@ -237,7 +267,7 @@ function ReportActionItemMessageEdit(
             debouncedSaveDraft(newDraft);
             isCommentPendingSaved.current = true;
         },
-        [debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
+        [raiseIsScrollLayoutTriggered, debouncedSaveDraft, preferredSkinTone, preferredLocale, selection.end],
     );
 
     useEffect(() => {
@@ -254,6 +284,7 @@ function ReportActionItemMessageEdit(
         if (isActive()) {
             ReportActionComposeFocusManager.clear(true);
             // Wait for report action compose re-mounting on mWeb
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => ReportActionComposeFocusManager.focus());
         }
 
@@ -271,7 +302,7 @@ function ReportActionItemMessageEdit(
      */
     const publishDraft = useCallback(() => {
         // Do nothing if draft exceed the character limit
-        if (getCommentLength(draft, {reportID}) > CONST.MAX_COMMENT_LENGTH) {
+        if (!debouncedValidateCommentMaxLength.flush()) {
             return;
         }
 
@@ -280,12 +311,12 @@ function ReportActionItemMessageEdit(
         // When user tries to save the empty message, it will delete it. Prompt the user to confirm deleting.
         if (!trimmedNewDraft) {
             textInputRef.current?.blur();
-            ReportActionContextMenu.showDeleteModal(reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
+            ReportActionContextMenu.showDeleteModal(originalReportID ?? reportID, action, true, deleteDraft, () => focusEditAfterCancelDelete(textInputRef.current));
             return;
         }
-        editReportComment(reportID, action, trimmedNewDraft, Object.fromEntries(draftMessageVideoAttributeCache));
+        editReportComment(originalReport, action, ancestors, trimmedNewDraft, isOriginalReportArchived, isOriginalParentReportArchived, Object.fromEntries(draftMessageVideoAttributeCache));
         deleteDraft();
-    }, [action, deleteDraft, draft, reportID]);
+    }, [reportID, action, ancestors, deleteDraft, draft, originalReportID, isOriginalReportArchived, originalReport, isOriginalParentReportArchived, debouncedValidateCommentMaxLength]);
 
     /**
      * @param emoji
@@ -314,12 +345,15 @@ function ReportActionItemMessageEdit(
         suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
     }, [suggestionsRef]);
     const onSaveScrollAndHideSuggestionMenu = useCallback(
-        (e: NativeSyntheticEvent<TextInputScrollEventData>) => {
+        (e: TextInputScrollEvent) => {
+            if (isScrollLayoutTriggered.current) {
+                return;
+            }
             mobileInputScrollPosition.current = e?.nativeEvent?.contentOffset?.y ?? 0;
 
             hideSuggestionMenu();
         },
-        [hideSuggestionMenu],
+        [isScrollLayoutTriggered, hideSuggestionMenu],
     );
 
     /**
@@ -328,7 +362,7 @@ function ReportActionItemMessageEdit(
      * @param {Event} e
      */
     const triggerSaveOrCancel = useCallback(
-        (e: NativeSyntheticEvent<TextInputKeyPressEventData> | KeyboardEvent) => {
+        (e: TextInputKeyPressEvent | KeyboardEvent) => {
             if (!e || canSkipTriggerHotkeys(shouldUseNarrowLayout, isKeyboardShown)) {
                 return;
             }
@@ -364,20 +398,28 @@ function ReportActionItemMessageEdit(
 
     const measureParentContainerAndReportCursor = useCallback(
         (callback: MeasureParentContainerAndCursorCallback) => {
-            const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
-            const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
-            measureContainer((x, y, width, height) => {
-                callback({
-                    x,
-                    y,
-                    width,
-                    height,
-                    scrollValue,
-                    cursorCoordinates: {x: xPosition, y: yPosition},
+            const performMeasurement = () => {
+                const {scrollValue} = getScrollPosition({mobileInputScrollPosition, textInputRef});
+                const {x: xPosition, y: yPosition} = getCursorPosition({positionOnMobile: cursorPositionValue.get(), positionOnWeb: selection});
+                measureContainer((x, y, width, height) => {
+                    callback({
+                        x,
+                        y,
+                        width,
+                        height,
+                        scrollValue,
+                        cursorCoordinates: {x: xPosition, y: yPosition},
+                    });
                 });
-            });
+            };
+
+            if (isScrolling) {
+                return;
+            }
+
+            performMeasurement();
         },
-        [cursorPositionValue, measureContainer, selection],
+        [cursorPositionValue, measureContainer, selection, isScrolling],
     );
 
     useEffect(() => {
@@ -442,6 +484,7 @@ function ReportActionItemMessageEdit(
                                 pressDimmingValue={1}
                                 // Keep focus on the composer when cancel button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON}
                             >
                                 <Icon
                                     fill={theme.icon}
@@ -455,11 +498,11 @@ function ReportActionItemMessageEdit(
                             multiline
                             ref={(el: TextInput & HTMLTextAreaElement) => {
                                 textInputRef.current = el;
-                                if (typeof forwardedRef === 'function') {
-                                    forwardedRef(el);
-                                } else if (forwardedRef) {
+                                if (typeof ref === 'function') {
+                                    ref(el);
+                                } else if (ref) {
                                     // eslint-disable-next-line no-param-reassign
-                                    forwardedRef.current = el;
+                                    ref.current = el;
                                 }
                             }}
                             onChangeText={updateDraft} // Debounced saveDraftComment
@@ -472,9 +515,12 @@ function ReportActionItemMessageEdit(
                                 if (textInputRef.current) {
                                     ReportActionComposeFocusManager.editComposerRef.current = textInputRef.current;
                                 }
+                                startScrollBlock();
+                                // eslint-disable-next-line @typescript-eslint/no-deprecated
                                 InteractionManager.runAfterInteractions(() => {
                                     requestAnimationFrame(() => {
                                         reportScrollManager.scrollToIndex(index, true);
+                                        endScrollBlock();
                                     });
                                 });
                                 if (isMobileChrome() && reportScrollManager.ref?.current) {
@@ -492,20 +538,26 @@ function ReportActionItemMessageEdit(
                                     ReportActionContextMenu.clearActiveReportAction();
                                 }
                             }}
-                            onBlur={(event: NativeSyntheticEvent<TextInputFocusEventData>) => {
+                            onBlur={(event: BlurEvent) => {
                                 setIsFocused(false);
-                                const relatedTargetId = event.nativeEvent?.relatedTarget?.id;
-                                if (relatedTargetId === CONST.COMPOSER.NATIVE_ID || relatedTargetId === CONST.EMOJI_PICKER_BUTTON_NATIVE_ID || isEmojiPickerVisible()) {
+                                const relatedTargetId = event.nativeEvent?.target;
+                                if (relatedTargetId === tag.get() || isEmojiPickerVisible()) {
                                     return;
                                 }
                                 setShouldShowComposeInputKeyboardAware(true);
                             }}
-                            onLayout={reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)}
+                            onLayout={(event) => {
+                                if (!isFocused) {
+                                    return;
+                                }
+                                reportActionItemEventHandler.handleComposerLayoutChange(reportScrollManager, index)(event);
+                            }}
                             selection={selection}
                             onSelectionChange={(e) => setSelection(e.nativeEvent.selection)}
                             isGroupPolicyReport={isGroupPolicyReport}
                             shouldCalculateCaretPosition
                             onScroll={onSaveScrollAndHideSuggestionMenu}
+                            testID="composer"
                         />
                     </View>
 
@@ -550,6 +602,7 @@ function ReportActionItemMessageEdit(
                                 pressDimmingValue={0.2}
                                 // Keep focus on the composer when send button is clicked.
                                 onMouseDown={(e) => e.preventDefault()}
+                                sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON}
                             >
                                 <Icon
                                     src={Expensicons.Checkmark}
@@ -565,6 +618,5 @@ function ReportActionItemMessageEdit(
     );
 }
 
-ReportActionItemMessageEdit.displayName = 'ReportActionItemMessageEdit';
-
-export default forwardRef(ReportActionItemMessageEdit);
+export default ReportActionItemMessageEdit;
+export type {ReportActionItemMessageEditProps};

@@ -6,12 +6,14 @@ import type {GestureType} from 'react-native-gesture-handler';
 import type {GestureRef} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
-import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
+import Animated, {cancelAnimation, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+import type {Dimensions} from '@src/types/utils/Layout';
 import {DEFAULT_ZOOM_RANGE, SPRING_CONFIG} from './constants';
-import type {CanvasSize, ContentSize, OnScaleChangedCallback, OnSwipeDownCallback, OnTapCallback, ZoomRange} from './types';
+import type {OnScaleChangedCallback, OnSwipeDownCallback, OnTapCallback, ZoomRange} from './types';
 import usePanGesture from './usePanGesture';
 import usePinchGesture from './usePinchGesture';
 import useTapGestures from './useTapGestures';
@@ -27,12 +29,12 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** The width and height of the canvas.
      *  This is needed in order to properly scale the content in the canvas
      */
-    canvasSize: CanvasSize;
+    canvasSize: Dimensions;
 
     /** The width and height of the content.
      *  This is needed in order to properly scale the content in the canvas
      */
-    contentSize?: ContentSize;
+    contentSize?: Dimensions;
 
     /** Range of zoom that can be applied to the content by pinching or double tapping. */
     zoomRange?: Partial<ZoomRange>;
@@ -242,7 +244,7 @@ function MultiGestureCanvas({
         }
 
         if (!isActive) {
-            runOnUI(reset)(false);
+            scheduleOnUI(reset, false);
         }
     }, [isActive, mounted, reset]);
 
@@ -292,7 +294,6 @@ function MultiGestureCanvas({
         </View>
     );
 }
-MultiGestureCanvas.displayName = 'MultiGestureCanvas';
 
 export default MultiGestureCanvas;
 export {DEFAULT_ZOOM_RANGE};

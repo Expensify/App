@@ -1,13 +1,13 @@
 import React from 'react';
-import ExpensifyCardImage from '@assets/images/expensify-card.svg';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,7 +35,8 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
     const {policyID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
+    const illustrations = useMemoizedLazyIllustrations(['ExpensifyCardImage']);
+    const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`, {canBeMissing: true});
     const defaultFundID = useDefaultFundID(policyID);
     const lastSelectedExpensifyCardFeedID = lastSelectedExpensifyCardFeed ?? defaultFundID;
 
@@ -50,7 +51,7 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
             isSelected: fundID === lastSelectedExpensifyCardFeedID,
             leftElement: (
                 <Icon
-                    src={ExpensifyCardImage}
+                    src={illustrations.ExpensifyCardImage}
                     height={variables.cardIconHeight}
                     width={variables.cardIconWidth}
                     additionalStyles={[styles.mr3, styles.cardIcon]}
@@ -72,7 +73,7 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                testID={WorkspaceExpensifyCardSelectorPage.displayName}
+                testID="WorkspaceExpensifyCardSelectorPage"
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
             >
@@ -83,16 +84,13 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
                 <SelectionList
                     ListItem={RadioListItem}
                     onSelectRow={selectFeed}
-                    sections={[{data: feeds}]}
-                    shouldUpdateFocusedIndex
-                    isAlternateTextMultilineSupported
-                    initiallyFocusedOptionKey={lastSelectedExpensifyCardFeed?.toString()}
+                    data={feeds}
+                    alternateNumberOfSupportedLines={2}
+                    initiallyFocusedItemKey={lastSelectedExpensifyCardFeed?.toString()}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceExpensifyCardSelectorPage.displayName = 'WorkspaceExpensifyCardSelectorPage';
 
 export default WorkspaceExpensifyCardSelectorPage;

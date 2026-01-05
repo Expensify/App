@@ -1,10 +1,10 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import {TeleScope} from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
@@ -30,6 +30,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT>>();
     const backTo = route.params.backTo;
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES.getRoute(policyID)));
@@ -50,7 +51,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.sageIntacct.noAccountsFound')}
@@ -58,14 +59,14 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10],
     );
 
     return (
         <SelectionScreen
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctNonReimbursableCreditCardAccountPage.displayName}
+            displayName="SageIntacctNonReimbursableCreditCardAccountPage"
             sections={creditCardSelectorOptions.length ? [{data: creditCardSelectorOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateCreditCardAccount}
@@ -82,7 +83,5 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
         />
     );
 }
-
-SageIntacctNonReimbursableCreditCardAccountPage.displayName = 'SageIntacctNonReimbursableCreditCardAccountPage';
 
 export default withPolicyConnections(SageIntacctNonReimbursableCreditCardAccountPage);

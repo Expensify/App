@@ -1,6 +1,6 @@
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
-import type {Connection, OnyxEntry} from 'react-native-onyx';
+import type {Connection, OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {formatCurrentUserToAttendee} from '@libs/IOUUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +24,8 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: b
     const newTransaction = {
         ...transaction,
     };
-    const conn = Onyx.connect({
+    // We need to read the old transaction backup first before writing a new one, otherwise we might overwrite an existing backup. It does not update impact UI rendering since this function is called on page mount.
+    const conn = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`,
         callback: (transactionBackup) => {
             Onyx.disconnect(conn);
@@ -56,7 +57,8 @@ function restoreOriginalTransactionFromBackup(transactionID: string | undefined,
         return;
     }
 
-    connection = Onyx.connect({
+    // We need to use connectWithoutView as this action is called during unmount, and we need to read the latest value from Onyx before we can restore it. As it is called during unmount, it does not impact UI rendering.
+    connection = Onyx.connectWithoutView({
         key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
         callback: (backupTransaction) => {
             Onyx.disconnect(connection);
@@ -97,8 +99,8 @@ function removeDraftSplitTransaction(transactionID: string | undefined) {
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
-    const draftTransactions = getDraftTransactions();
+function removeDraftTransactions(shouldExcludeInitialTransaction = false, allTransactionDrafts?: OnyxCollection<Transaction>) {
+    const draftTransactions = getDraftTransactions(allTransactionDrafts);
     const draftTransactionsSet = draftTransactions.reduce(
         (acc, item) => {
             if (shouldExcludeInitialTransaction && item.transactionID === CONST.IOU.OPTIMISTIC_TRANSACTION_ID) {
@@ -109,7 +111,7 @@ function removeDraftTransactions(shouldExcludeInitialTransaction = false) {
         },
         {} as Record<string, null>,
     );
-    return Onyx.multiSet(draftTransactionsSet);
+    Onyx.multiSet(draftTransactionsSet);
 }
 
 function replaceDefaultDraftTransaction(transaction: OnyxEntry<Transaction>) {
@@ -149,7 +151,7 @@ type BuildOptimisticTransactionParams = {
 
 function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUserPersonalDetails, reportID}: BuildOptimisticTransactionParams): Transaction {
     const newTransactionID = generateTransactionID();
-    const {currency, iouRequestType, isFromGlobalCreate, splitPayerAccountIDs} = initialTransaction ?? {};
+    const {currency, iouRequestType, isFromGlobalCreate} = initialTransaction ?? {};
     const newTransaction = {
         amount: 0,
         created: format(new Date(), 'yyyy-MM-dd'),
@@ -160,7 +162,6 @@ function buildOptimisticTransactionAndCreateDraft({initialTransaction, currentUs
         transactionID: newTransactionID,
         isFromGlobalCreate,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-        splitPayerAccountIDs,
     } as Transaction;
     createDraftTransaction(newTransaction);
     return newTransaction;

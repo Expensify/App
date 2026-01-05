@@ -1,42 +1,32 @@
-import type {PropsWithChildren} from 'react';
-import React, {forwardRef, useCallback} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView, ScrollViewProps} from 'react-native';
-import Reanimated, {useAnimatedRef, useScrollViewOffset} from 'react-native-reanimated';
+import React from 'react';
+import Reanimated, {useAnimatedStyle} from 'react-native-reanimated';
 import {Actions, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider} from './ActionSheetAwareScrollViewContext';
-import useActionSheetKeyboardSpace from './useActionSheetKeyboardSpace';
+import type {ActionSheetAwareScrollViewProps, RenderActionSheetAwareScrollViewComponent} from './types';
+import useActionSheetAwareScrollViewRef from './useActionSheetAwareScrollViewRef';
+import useActionSheetKeyboardSpacing from './useActionSheetKeyboardSpacing';
+import usePreventScrollOnKeyboardInteraction from './usePreventScrollOnKeyboardInteraction';
 
-const ActionSheetAwareScrollView = forwardRef<ScrollView, PropsWithChildren<ScrollViewProps>>(({style, children, ...rest}, ref) => {
-    const scrollViewAnimatedRef = useAnimatedRef<Reanimated.ScrollView>();
-    const position = useScrollViewOffset(scrollViewAnimatedRef);
+function ActionSheetAwareScrollView({style, children, ref, ...restProps}: ActionSheetAwareScrollViewProps) {
+    const {onRef, animatedRef} = useActionSheetAwareScrollViewRef(ref);
 
-    const onRef = useCallback(
-        (assignedRef: Reanimated.ScrollView) => {
-            if (typeof ref === 'function') {
-                ref(assignedRef);
-            } else if (ref) {
-                // eslint-disable-next-line no-param-reassign
-                ref.current = assignedRef;
-            }
+    const spacing = useActionSheetKeyboardSpacing(animatedRef);
+    const animatedStyle = useAnimatedStyle(() => ({
+        paddingTop: spacing.get(),
+    }));
 
-            scrollViewAnimatedRef(assignedRef);
-        },
-        [ref, scrollViewAnimatedRef],
-    );
-
-    const {animatedStyle} = useActionSheetKeyboardSpace({position});
+    usePreventScrollOnKeyboardInteraction({scrollViewRef: animatedRef});
 
     return (
         <Reanimated.ScrollView
-            ref={onRef}
             // eslint-disable-next-line react/jsx-props-no-spreading
-            {...rest}
+            {...restProps}
+            ref={onRef}
             style={[style, animatedStyle]}
         >
             {children}
         </Reanimated.ScrollView>
     );
-});
+}
 
 export default ActionSheetAwareScrollView;
 
@@ -45,9 +35,9 @@ export default ActionSheetAwareScrollView;
  * @param props - props that will be passed to the ScrollView from FlatList
  * @returns - ActionSheetAwareScrollView
  */
-function renderScrollComponent(props: ScrollViewProps) {
+const renderScrollComponent: RenderActionSheetAwareScrollViewComponent = (props) => {
     // eslint-disable-next-line react/jsx-props-no-spreading
     return <ActionSheetAwareScrollView {...props} />;
-}
+};
 
 export {renderScrollComponent, ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions};

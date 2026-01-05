@@ -77,6 +77,32 @@ describe('OnyxDerived', () => {
             });
         });
 
+        it('should clear the report attributes when the report is cleared', async () => {
+            renderLocaleContextProvider();
+            await waitForBatchedUpdates();
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+
+            let derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            expect(derivedReportAttributes).toMatchObject({
+                reports: {
+                    [mockReport.reportID]: {
+                        reportName: mockReport.reportName,
+                    },
+                },
+            });
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, null);
+
+            derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            expect(derivedReportAttributes).toMatchObject({
+                reports: {},
+            });
+        });
+
         it('updates when locale changes', async () => {
             renderLocaleContextProvider();
             await waitForBatchedUpdates();
@@ -97,8 +123,8 @@ describe('OnyxDerived', () => {
             const reportID1 = '0';
             const reportID2 = '1';
             const reports: OnyxCollection<Report> = {
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: createRandomReport(Number(reportID1)),
-                [`${ONYXKEYS.COLLECTION.REPORT}${reportID2}`]: createRandomReport(Number(reportID2)),
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID1}`]: createRandomReport(Number(reportID1), undefined),
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID2}`]: createRandomReport(Number(reportID2), undefined),
             };
             const transaction = createRandomTransaction(1);
 
@@ -120,9 +146,92 @@ describe('OnyxDerived', () => {
             expect(Object.keys(reportAttributesComputedValue)).toEqual([reportID1, reportID2]);
         });
 
+        it('should not recompute reportAttributes when personalDetailsList changes without displayName change', async () => {
+            renderLocaleContextProvider();
+            await waitForBatchedUpdates();
+
+            // Set up initial state with report and personalDetailsList
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                '1': {
+                    accountID: 1,
+                    displayName: 'John Doe',
+                    login: 'john.doe@example.com',
+                    firstName: 'John',
+                    lastName: 'Doe',
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Get initial computed value
+            const initialDerivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            // Spy on generateReportAttributes - this function should NOT be called
+            // when the optimization kicks in and skips the computation
+            const generateReportAttributesSpy = jest.spyOn(require('@libs/ReportUtils'), 'generateReportAttributes');
+
+            // Change only the login (not displayName) - this should trigger the optimization
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                '1': {
+                    login: 'john.newemail@example.com',
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // The generateReportAttributes function should not have been called
+            // because the optimization should have returned early
+            expect(generateReportAttributesSpy).not.toHaveBeenCalled();
+
+            // Get the computed value after login change
+            const derivedReportAttributesAfterLoginChange = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            // And the values should be preserved correctly
+            expect(derivedReportAttributesAfterLoginChange).toEqual(initialDerivedReportAttributes);
+
+            generateReportAttributesSpy.mockRestore();
+        });
+
+        it('should recompute reportAttributes when personalDetailsList displayName changes', async () => {
+            renderLocaleContextProvider();
+            await waitForBatchedUpdates();
+
+            // Set up initial state with report and personalDetailsList
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                '1': {
+                    accountID: 1,
+                    displayName: 'John Doe',
+                    login: 'john.doe@example.com',
+                    firstName: 'John',
+                    lastName: 'Doe',
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Get initial computed value reference
+            const initialDerivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            // Change the displayName - this should trigger full recomputation
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                '1': {
+                    displayName: 'Jane Doe',
+                    firstName: 'Jane',
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // Get the computed value after displayName change
+            const derivedReportAttributesAfterDisplayNameChange = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+
+            // The computed value should not be the same object (new computation happened)
+            expect(derivedReportAttributesAfterDisplayNameChange).not.toBe(initialDerivedReportAttributes);
+        });
+
         describe('reportErrors', () => {
             it('returns empty errors when no errors exist', async () => {
-                const report = createRandomReport(1);
+                const report = createRandomReport(1, undefined);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
                 await waitForBatchedUpdates();
 
@@ -132,7 +241,7 @@ describe('OnyxDerived', () => {
 
             it('combines report error fields with report action errors', async () => {
                 const report = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     errorFields: {
                         field1: {
                             '1234567890': 'Error message 1',
@@ -171,7 +280,7 @@ describe('OnyxDerived', () => {
 
             it('handles multiple error sources', async () => {
                 const report = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     errorFields: {
                         field1: {
                             '1234567890': 'Error message 1',
@@ -222,7 +331,7 @@ describe('OnyxDerived', () => {
 
             it('handles empty error objects in sources', async () => {
                 const report = {
-                    ...createRandomReport(1),
+                    ...createRandomReport(1, undefined),
                     errorFields: {
                         field1: {},
                         field2: {
@@ -261,6 +370,49 @@ describe('OnyxDerived', () => {
                     '1234567890': 'Error message 1',
                     '1234567891': 'Error message 2',
                 });
+            });
+        });
+
+        describe('RBR propagation for IOU reports', () => {
+            it('should correctly propagate and resolve RBR for IOU reports', async () => {
+                renderLocaleContextProvider();
+                await waitForBatchedUpdates();
+                await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en');
+                await waitForBatchedUpdates();
+
+                const parentReport = createRandomReport(2, undefined);
+                const iouReport = {
+                    ...createRandomReport(2, undefined),
+                    chatReportID: parentReport.reportID,
+                    ownerAccountID: 1,
+                    type: CONST.REPORT.TYPE.IOU,
+                    errorFields: {
+                        generic: {
+                            '1234567890': 'Generic error',
+                        },
+                    },
+                };
+
+                // --- Setup ---
+                // Set the reports in Onyx.
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await waitForBatchedUpdates();
+
+                // --- Assertion 1: Propagation Works ---
+                // The parent report should have an error RBR because the child IOU report has an error.
+                let derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+
+                // --- Action: Resolve Error ---
+                // Remove the error from the IOU report. This will trigger a partial update.
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, {errorFields: null});
+                await waitForBatchedUpdates();
+
+                // --- Assertion 2: RBR is Cleared ---
+                // The parent report's RBR should be cleared now that the child's error is gone.
+                derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBeUndefined();
             });
         });
     });

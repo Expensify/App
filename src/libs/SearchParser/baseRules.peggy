@@ -38,6 +38,7 @@ cardID
   = "cardID"
   / "card"i { return "cardID"; }
 from = "from"i { return "from"; }
+attendee = "attendee"i {return "attendee"}
 expenseType
   = "expenseType"
   / "expense-type"i { return "expenseType"; }
@@ -73,15 +74,18 @@ assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
 total = "total"i {return "total"; }
+has = "has"i {return "has"; }
+is = "is"i {return "is"; }
+purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
+purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
+columns = "columns"i {return "columns"}
 
 // Value transformation rules
 values
   = perDiem
-  / report
   / draft
 
 perDiem = "perDiem"i / "per-diem"i { return "perDiem"; }
-report = "reports"i / "report"i {return "reports"; }
 draft = "drafts"i / "draft"i {return "drafts"; }
 
 operator "operator"

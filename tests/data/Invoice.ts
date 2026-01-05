@@ -59,8 +59,8 @@ const policy: OnyxEntry<OnyxTypes.Policy> = {
         },
     },
     pendingFields: {},
-    chatReportIDAnnounce: 0,
-    chatReportIDAdmins: 1811331783036078,
+    chatReportIDAnnounce: '0',
+    chatReportIDAdmins: '1811331783036078',
     approver: 'a1@53019.com',
     areCompanyCardsEnabled: false,
     areExpensifyCardsEnabled: false,
@@ -197,7 +197,6 @@ const transaction: OnyxEntry<OnyxTypes.Transaction> = {
     transactionID: '1',
     isFromGlobalCreate: true,
     merchant: '(none)',
-    splitPayerAccountIDs: [32],
     shouldShowOriginalAmount: true,
     participants: [
         {

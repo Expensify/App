@@ -14,7 +14,7 @@ Setting up a workspace in New Expensify is the first step to managing company ex
 Workspaces help manage company expenses, enforce policies, and integrate with accounting software. Each workspace has its own set of rules, settings, company card feeds, and integrations. Once invited to a workspace, members can submit expenses according to its rules.
 
 **To create a workspace:**
-1. In the left-hand menu, select **Workspaces**.
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), select **Workspaces**.
 2. Click **New workspace**.
 3. Click **Name** to give your workspace a name.
 4. Click **Default Currency** to set your preferred currency.

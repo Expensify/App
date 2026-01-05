@@ -2,7 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -48,6 +48,23 @@ function CategoryDefaultTaxRatePage({
             .sort((a, b) => localeCompare(a.text ?? a.keyForList ?? '', b.text ?? b.keyForList ?? ''));
     }, [policy, selectedTaxRate, textForDefault, localeCompare]);
 
+    const handleSelectRow = useCallback(
+        (item: ListItem) => {
+            if (!item.keyForList) {
+                return;
+            }
+
+            if (item.keyForList === selectedTaxRate) {
+                Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName));
+                return;
+            }
+
+            setPolicyCategoryTax(policy, categoryName, item.keyForList);
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
+        },
+        [policyID, policy, categoryName, selectedTaxRate],
+    );
+
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -57,7 +74,7 @@ function CategoryDefaultTaxRatePage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={CategoryDefaultTaxRatePage.displayName}
+                testID="CategoryDefaultTaxRatePage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -65,31 +82,17 @@ function CategoryDefaultTaxRatePage({
                     onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName))}
                 />
                 <SelectionList
-                    sections={[{data: taxesList}]}
+                    data={taxesList}
                     ListItem={RadioListItem}
-                    onSelectRow={(item) => {
-                        if (!item.keyForList) {
-                            return;
-                        }
-
-                        if (item.keyForList === selectedTaxRate) {
-                            Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName));
-                            return;
-                        }
-
-                        setPolicyCategoryTax(policyID, categoryName, item.keyForList);
-                        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
-                    }}
+                    onSelectRow={handleSelectRow}
                     shouldSingleExecuteRowSelect
-                    containerStyle={[styles.pt3]}
-                    initiallyFocusedOptionKey={selectedTaxRate}
                     addBottomSafeAreaPadding
+                    initiallyFocusedItemKey={selectedTaxRate}
+                    style={{containerStyle: styles.pt3}}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-CategoryDefaultTaxRatePage.displayName = 'CategoryDefaultTaxRatePage';
 
 export default CategoryDefaultTaxRatePage;

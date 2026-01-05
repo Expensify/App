@@ -51,7 +51,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
                 errors.tagName = translate('workspace.tags.existingTagError');
             } else if ([...tagName].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                addErrorMessage(errors, 'tagName', translate('common.error.characterLimitExceedCounter', {length: [...tagName].length, limit: CONST.API_TRANSACTION_TAG_MAX_LENGTH}));
+                addErrorMessage(errors, 'tagName', translate('common.error.characterLimitExceedCounter', [...tagName].length, CONST.API_TRANSACTION_TAG_MAX_LENGTH));
             }
 
             return errors;
@@ -61,11 +61,11 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
 
     const createTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            createPolicyTag(policyID, values.tagName.trim());
+            createPolicyTag(policyID, values.tagName.trim(), policyTags);
             Keyboard.dismiss();
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
         },
-        [policyID, isQuickSettingsFlow, backTo],
+        [policyID, policyTags, isQuickSettingsFlow, backTo],
     );
 
     return (
@@ -77,7 +77,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceCreateTagPage.displayName}
+                testID="WorkspaceCreateTagPage"
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
@@ -107,7 +107,5 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCreateTagPage.displayName = 'WorkspaceCreateTagPage';
 
 export default WorkspaceCreateTagPage;

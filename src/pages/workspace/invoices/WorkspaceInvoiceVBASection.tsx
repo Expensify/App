@@ -1,30 +1,36 @@
 import type {RefObject} from 'react';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
-import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
+import type {TupleToUnion} from 'type-fest';
 import ConfirmModal from '@components/ConfirmModal';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import Popover from '@components/Popover';
 import Section from '@components/Section';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
-import type {FormattedSelectedPaymentMethod, FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
+import type {FormattedSelectedPaymentMethod} from '@hooks/usePaymentMethodState/types';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import {isCurrencySupportedForGlobalReimbursement, setIsForcedToChangeCurrency} from '@libs/actions/Policy/Policy';
+import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
+import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getPaymentMethodDescription} from '@libs/PaymentUtils';
+import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
+import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
+import type {PaymentMethodPressHandlerParams} from '@pages/settings/Wallet/WalletPage/types';
 import variables from '@styles/variables';
-import {deletePaymentBankAccount, openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
+import {deletePaymentBankAccount} from '@userActions/BankAccounts';
 import {close as closeModal} from '@userActions/Modal';
 import {setInvoicingTransferBankAccount} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AccountData} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type WorkspaceInvoiceVBASectionProps = {
@@ -32,18 +38,19 @@ type WorkspaceInvoiceVBASectionProps = {
     policyID: string;
 };
 
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
+
+// TODO: can be refactored to use ThreeDotsMenu component instead handling the popover and positioning
 function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Star', 'Trashcan']);
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.validated, canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const {paymentMethod, setPaymentMethod, resetSelectedPaymentMethodData} = usePaymentMethodState();
-    const addPaymentMethodAnchorRef = useRef(null);
     const paymentMethodButtonRef = useRef<HTMLDivElement | null>(null);
-    const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
     const [showConfirmDeleteModal, setShowConfirmDeleteModal] = useState(false);
     const [shouldShowDefaultDeleteMenu, setShouldShowDefaultDeleteMenu] = useState(false);
     const [anchorPosition, setAnchorPosition] = useState({
@@ -58,6 +65,32 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     const isPopoverBottomMount = anchorPosition.anchorPositionTop === 0 || shouldUseNarrowLayout;
     const shouldShowMakeDefaultButton = !paymentMethod.isSelectedPaymentMethodDefault;
     const transferBankAccountID = policy?.invoice?.bankAccount?.transferBankAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const {isBetaEnabled} = usePermissions();
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [isUpdateWorkspaceCurrencyModalOpen, setIsUpdateWorkspaceCurrencyModalOpen] = useState(false);
+
+    const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency).length > 0;
+    const isSupportedGlobalReimbursement = isCurrencySupportedForGlobalReimbursement((policy?.outputCurrency ?? '') as CurrencyType);
+
+    const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
+    const achData = reimbursementAccount?.achData;
+    const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
+
+    const shouldShowContinueModal = useMemo(() => {
+        return hasInProgressVBBA(achData, isNonUSDWorkspace, nonUSDCountryDraftValue);
+    }, [achData, isNonUSDWorkspace, nonUSDCountryDraftValue]);
+
+    const confirmCurrencyChangeAndHideModal = useCallback(() => {
+        if (!policy) {
+            return;
+        }
+
+        setIsUpdateWorkspaceCurrencyModalOpen(false);
+
+        setIsForcedToChangeCurrency(true);
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
+    }, [bankAccountList, isBetaEnabled, policy]);
 
     /**
      * Set position of the payment menu
@@ -81,25 +114,12 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
     /**
      * Display the delete/default menu, or the add payment method menu
      */
-    const paymentMethodPressed = (
-        nativeEvent?: GestureResponderEvent | KeyboardEvent,
-        accountType?: string,
-        account?: AccountData,
-        icon?: FormattedSelectedPaymentMethodIcon,
-        isDefault?: boolean,
-        methodID?: string | number,
-        description?: string,
-    ) => {
-        if (shouldShowAddPaymentMenu) {
-            setShouldShowAddPaymentMenu(false);
-            return;
-        }
-
+    const paymentMethodPressed = ({event, accountData, accountType, methodID, icon, description}: PaymentMethodPressHandlerParams) => {
         if (shouldShowDefaultDeleteMenu) {
             setShouldShowDefaultDeleteMenu(false);
             return;
         }
-        paymentMethodButtonRef.current = nativeEvent?.currentTarget as HTMLDivElement;
+        paymentMethodButtonRef.current = event?.currentTarget as HTMLDivElement;
 
         // The delete/default menu
         if (accountType) {
@@ -108,32 +128,22 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             };
             if (accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
                 formattedSelectedPaymentMethod = {
-                    title: account?.addressName ?? '',
+                    title: accountData?.addressName ?? '',
                     icon,
-                    description: description ?? getPaymentMethodDescription(accountType, account),
+                    description: description ?? getPaymentMethodDescription(accountType, accountData, translate),
                     type: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
                 };
             }
             setPaymentMethod({
                 isSelectedPaymentMethodDefault: transferBankAccountID === methodID,
-                selectedPaymentMethod: account ?? {},
+                selectedPaymentMethod: accountData ?? {},
                 selectedPaymentMethodType: accountType,
                 formattedSelectedPaymentMethod,
                 methodID: methodID ?? CONST.DEFAULT_NUMBER_ID,
             });
             setShouldShowDefaultDeleteMenu(true);
             setMenuPosition();
-            return;
         }
-        setShouldShowAddPaymentMenu(true);
-        setMenuPosition();
-    };
-
-    /**
-     * Hide the add payment modal
-     */
-    const hideAddPaymentMenu = () => {
-        setShouldShowAddPaymentMenu(false);
     };
 
     /**
@@ -153,25 +163,29 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
 
     const makeDefaultPaymentMethod = useCallback(() => {
         // Find the previous default payment method so we can revert if the MakeDefaultPaymentMethod command errors
-        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, {}, styles);
+        const paymentMethods = formatPaymentMethods(bankAccountList ?? {}, {}, styles, translate);
         const previousPaymentMethod = paymentMethods.find((method) => !!method.isDefault);
         const currentPaymentMethod = paymentMethods.find((method) => method.methodID === paymentMethod.methodID);
         if (paymentMethod.selectedPaymentMethodType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
             setInvoicingTransferBankAccount(currentPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID, policyID, previousPaymentMethod?.methodID ?? CONST.DEFAULT_NUMBER_ID);
         }
-    }, [bankAccountList, styles, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID]);
+    }, [bankAccountList, styles, translate, paymentMethod.selectedPaymentMethodType, paymentMethod.methodID, policyID]);
 
-    /**
-     * Navigate to the appropriate payment type addition screen
-     */
-    const addPaymentMethodTypePressed = (paymentType: string) => {
-        hideAddPaymentMenu();
-        if (paymentType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || paymentType === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT) {
-            openPersonalBankAccountSetupView({policyID, source: 'invoice', isUserValidated});
+    const onAddBankAccountPress = () => {
+        if (shouldShowDefaultDeleteMenu) {
+            setShouldShowDefaultDeleteMenu(false);
+            return;
+        }
+        if (!isSupportedGlobalReimbursement) {
+            setIsUpdateWorkspaceCurrencyModalOpen(true);
             return;
         }
 
-        throw new Error('Invalid payment method type selected');
+        if (hasValidExistingAccounts && !shouldShowContinueModal) {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT.getRoute(policyID));
+            return;
+        }
+        navigateToBankAccountRoute(policyID, ROUTES.WORKSPACE_INVOICES.getRoute(policyID));
     };
 
     return (
@@ -183,16 +197,16 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
             subtitleMuted
         >
             <PaymentMethodList
-                shouldShowAddBankAccountButton={!hasBankAccount}
-                shouldShowAddPaymentMethodButton={false}
-                shouldShowEmptyListMessage={false}
                 onPress={paymentMethodPressed}
+                onAddBankAccountPress={onAddBankAccountPress}
+                shouldSkipDefaultAccountValidation={!isSupportedGlobalReimbursement}
                 invoiceTransferBankAccountID={transferBankAccountID}
                 activePaymentMethodID={transferBankAccountID}
                 actionPaymentMethodType={shouldShowDefaultDeleteMenu ? paymentMethod.selectedPaymentMethodType : ''}
-                buttonRef={addPaymentMethodAnchorRef}
-                style={[styles.mt5, hasBankAccount && [shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]]}
+                style={[styles.mt5, shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8]}
                 listItemStyle={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
+                policyID={policyID}
+                filterType={CONST.BANK_ACCOUNT.TYPE.BUSINESS}
             />
             <Popover
                 isVisible={shouldShowDefaultDeleteMenu}
@@ -230,7 +244,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                         {shouldShowMakeDefaultButton && (
                             <MenuItem
                                 title={translate('walletPage.setDefaultConfirmation')}
-                                icon={Expensicons.Star}
+                                icon={icons.Star}
                                 onPress={() => {
                                     makeDefaultPaymentMethod();
                                     setShouldShowDefaultDeleteMenu(false);
@@ -240,7 +254,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                         )}
                         <MenuItem
                             title={translate('common.delete')}
-                            icon={Expensicons.Trashcan}
+                            icon={icons.Trashcan}
                             onPress={() => closeModal(() => setShowConfirmDeleteModal(true))}
                             wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
                         />
@@ -262,21 +276,18 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                 danger
                 onModalHide={resetSelectedPaymentMethodData}
             />
-            <AddPaymentMethodMenu
-                isVisible={shouldShowAddPaymentMenu}
-                onClose={hideAddPaymentMenu}
-                anchorPosition={{
-                    horizontal: anchorPosition.anchorPositionHorizontal,
-                    vertical: anchorPosition.anchorPositionVertical - CONST.MODAL.POPOVER_MENU_PADDING,
-                }}
-                onItemSelected={(method: string) => addPaymentMethodTypePressed(method)}
-                anchorRef={addPaymentMethodAnchorRef}
-                shouldShowPersonalBankAccountOption
+            <ConfirmModal
+                title={translate('workspace.bankAccount.workspaceCurrency')}
+                isVisible={isUpdateWorkspaceCurrencyModalOpen}
+                onConfirm={confirmCurrencyChangeAndHideModal}
+                onCancel={() => setIsUpdateWorkspaceCurrencyModalOpen(false)}
+                prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                confirmText={translate('workspace.bankAccount.updateToUSD')}
+                cancelText={translate('common.cancel')}
+                danger
             />
         </Section>
     );
 }
-
-WorkspaceInvoiceVBASection.displayName = 'WorkspaceInvoiceVBASection';
 
 export default WorkspaceInvoiceVBASection;

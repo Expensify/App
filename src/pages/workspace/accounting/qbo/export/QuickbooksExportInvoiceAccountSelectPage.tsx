@@ -1,11 +1,11 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksOnlineReceivableAccount} from '@libs/actions/connections/QuickbooksOnline';
@@ -30,6 +30,7 @@ type CardListItem = ListItem & {
 function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {accountsReceivable} = policy?.connections?.quickbooksOnline?.data ?? {};
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_EXPORT_INVOICE_ACCOUNT_SELECT>>();
@@ -64,7 +65,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.qbo.noAccountsFound')}
@@ -72,7 +73,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [illustrations.Telescope, translate, styles.pb10],
     );
 
     return (
@@ -80,7 +81,7 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksExportInvoiceAccountSelectPage.displayName}
+            displayName="QuickbooksExportInvoiceAccountSelectPage"
             sections={data.length ? [{data}] : []}
             listItem={RadioListItem}
             headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>}
@@ -98,7 +99,5 @@ function QuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnection
         />
     );
 }
-
-QuickbooksExportInvoiceAccountSelectPage.displayName = 'QuickbooksExportInvoiceAccountSelectPage';
 
 export default withPolicyConnections(QuickbooksExportInvoiceAccountSelectPage);

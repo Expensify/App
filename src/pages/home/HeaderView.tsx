@@ -8,6 +8,7 @@ import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
+// eslint-disable-next-line no-restricted-imports
 import {BackArrow, DotIndicator} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -17,10 +18,13 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
@@ -57,6 +61,7 @@ import {
     isExpenseRequest,
     isGroupChat as isGroupChatReportUtils,
     isInvoiceRoom,
+    isOneTransactionThread,
     isOpenTaskReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
     isSelfDM as isSelfDMReportUtils,
@@ -92,9 +97,12 @@ type HeaderViewProps = {
 
     /** Whether we should display the header as in narrow layout */
     shouldUseNarrowLayout?: boolean;
+
+    /** Whether the header view is being displayed in the side panel */
+    isInSidePanel?: boolean;
 };
 
-function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false}: HeaderViewProps) {
+function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false, isInSidePanel}: HeaderViewProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
@@ -102,17 +110,22 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const invoiceReceiverPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
+    const [grandParentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`, {canBeMissing: true});
+    const [grandParentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(parentReport?.parentReportID)}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID, {canBeMissing: true});
     const shouldShowLoadingBar = useLoadingBarVisibility();
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const isReportArchived = isArchivedReport(reportNameValuePairs);
+    const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
@@ -124,25 +137,31 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isMultipleParticipant = participants.length > 1;
 
     const participantPersonalDetails = getPersonalDetailsForAccountIDs(participants, personalDetails);
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, localeCompare, undefined, isSelfDM);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, localeCompare, formatPhoneNumber, isSelfDM);
 
     const isChatThread = isChatThreadReportUtils(report);
     const isChatRoom = isChatRoomReportUtils(report);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
     const isTaskReport = isTaskReportReportUtils(report);
     const reportHeaderData = !isTaskReport && !isChatThread && report?.parentReportID ? parentReport : report;
-    // Use sorted display names for the title for group chats on native small screen widths
-    const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy);
+    const isParentOneTransactionThread = isOneTransactionThread(parentReport, grandParentReport, grandParentReportActions?.[`${parentReport?.parentReportActionID}`]);
+    const parentNavigationReport = isParentOneTransactionThread ? parentReport : reportHeaderData;
     const isReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.reportID);
+    // Use sorted display names for the title for group chats on native small screen widths
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const title = getReportName(reportHeaderData, policy, parentReportAction, personalDetails, invoiceReceiverPolicy, undefined, undefined, isReportHeaderDataArchived);
     const subtitle = getChatRoomSubtitle(reportHeaderData, false, isReportHeaderDataArchived);
     const isParentReportHeaderDataArchived = useReportIsArchived(reportHeaderData?.parentReportID);
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(reportHeaderData, isParentReportHeaderDataArchived);
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(parentNavigationReport, isParentReportHeaderDataArchived);
     const reportDescription = Parser.htmlToText(getReportDescription(report));
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report);
     const hasTeam2025Pricing = useHasTeam2025Pricing();
+    // This is used to ensure that we display the text exactly as the user entered it when displaying thread header text, instead of parsing their text to HTML.
+    const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
     const subscriptionPlan = useSubscriptionPlan();
+    const ancestors = useAncestors(report);
 
     const shouldShowSubtitle = () => {
         if (!subtitle) {
@@ -171,7 +190,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
-    const canJoin = canJoinChat(report, parentReportAction, policy, isReportArchived);
+    const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 
     const joinButton = (
         <Button
@@ -196,10 +215,10 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     // If the onboarding report is directly loaded, shouldShowDiscountBanner can return wrong value as it is not
     // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
     const shouldShowDiscount = useMemo(
-        () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan) && !isReportArchived,
+        () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan, firstDayFreeTrial, lastDayFreeTrial, userBillingFundID) && !isReportArchived,
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
-        [firstDayFreeTrial, lastDayFreeTrial, hasTeam2025Pricing, reportNameValuePairs, subscriptionPlan],
+        [firstDayFreeTrial, lastDayFreeTrial, hasTeam2025Pricing, reportNameValuePairs, subscriptionPlan, userBillingFundID],
     );
 
     const shouldShowSubscript = shouldReportShowSubscript(report, isReportArchived);
@@ -210,15 +229,17 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isLoading = !report?.reportID || !title;
     const isParentReportLoading = !!report?.parentReportID && !parentReport;
 
-    const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
-    const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
+    const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const shouldDisplaySearchRouter = !isInSidePanel && (!isReportInRHP || isSmallScreenWidth);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
-    const shouldShowRegisterForWebinar = introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || (isAdminRoom(report) && !isChatThread));
-    const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived;
-    const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
+    const shouldShowRegisterForWebinar =
+        introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || (isAdminRoom(report) && !isChatThread)) && !isInSidePanel;
+    const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived && !isInSidePanel;
+    const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !isInSidePanel;
     const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
     const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
+    const shouldShowBackButton = shouldUseNarrowLayout || !!isInSidePanel;
 
     const onboardingHelpDropdownButton = (
         <OnboardingHelpDropdownButton
@@ -249,13 +270,14 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
                         <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && !isLoading && styles.pl5]}>
-                            {shouldUseNarrowLayout && (
+                            {shouldShowBackButton && (
                                 <PressableWithoutFeedback
                                     onPress={onNavigationMenuButtonClicked}
-                                    style={styles.LHNToggle}
+                                    style={[styles.LHNToggle, shouldUseNarrowLayout && styles.pl5]}
                                     accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
                                     accessibilityLabel={translate('common.back')}
                                     role={CONST.ROLE.BUTTON}
+                                    sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.BACK_BUTTON}
                                 >
                                     <Tooltip
                                         text={translate('common.back')}
@@ -277,6 +299,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     disabled={shouldDisableDetailPage}
                                     accessibilityLabel={title}
                                     role={CONST.ROLE.BUTTON}
+                                    sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.DETAILS_BUTTON}
                                 >
                                     {shouldShowSubscript ? multipleAvatars : <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>{multipleAvatars}</OfflineWithFeedback>}
                                     <View
@@ -287,6 +310,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                             <DisplayNames
                                                 fullTitle={title}
                                                 displayNamesWithTooltips={displayNamesWithTooltips}
+                                                shouldParseFullTitle={shouldParseFullTitle && !isGroupChat}
                                                 tooltipEnabled
                                                 numberOfLines={1}
                                                 textStyles={[styles.headerText, styles.pre]}
@@ -298,8 +322,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                         {!isEmptyObject(parentNavigationSubtitleData) && (
                                             <ParentNavigationSubtitle
                                                 parentNavigationSubtitleData={parentNavigationSubtitleData}
-                                                parentReportID={reportHeaderData?.parentReportID}
-                                                parentReportActionID={reportHeaderData?.parentReportActionID}
+                                                reportID={parentNavigationReport?.reportID}
+                                                parentReportID={parentNavigationReport?.parentReportID}
+                                                parentReportActionID={isParentOneTransactionThread ? undefined : parentNavigationReport?.parentReportActionID}
                                                 pressableStyles={[styles.alignSelfStart, styles.mw100]}
                                             />
                                         )}
@@ -352,14 +377,22 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
-                                <HelpButton style={styles.ml2} />
+                                {!isInSidePanel && <SidePanelButton style={styles.ml2} />}
                                 {shouldDisplaySearchRouter && <SearchButton />}
                             </View>
                             <ConfirmModal
                                 isVisible={isDeleteTaskConfirmModalVisible}
                                 onConfirm={() => {
                                     setIsDeleteTaskConfirmModalVisible(false);
-                                    deleteTask(report, isReportArchived);
+                                    deleteTask(
+                                        report,
+                                        parentReport,
+                                        isReportArchived,
+                                        currentUserPersonalDetails.accountID,
+                                        hasOutstandingChildTask,
+                                        parentReportAction ?? undefined,
+                                        ancestors,
+                                    );
                                 }}
                                 onCancel={() => setIsDeleteTaskConfirmModalVisible(false)}
                                 title={translate('task.deleteTask')}
@@ -405,7 +438,5 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         </>
     );
 }
-
-HeaderView.displayName = 'HeaderView';
 
 export default memo(HeaderView);
