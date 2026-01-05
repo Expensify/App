@@ -426,7 +426,7 @@ ___
 
 ## 5. Pattern Detection & Prevention
 *Can we prevent this from happening again?*
-- [ ] **ESLint Rule:** I have proposed a rule to prevent this anti-pattern.
+- [ ] **App-wide Audit:** I have checked for other places in the app that have this same performance problem and fixed them.
 - [ ] **Shared Refactor:** This fixes a shared utility/component (e.g., `Avatar.ts`) used across the app.
 - [ ] **Localized Fix:** This only affects this specific view.
 
