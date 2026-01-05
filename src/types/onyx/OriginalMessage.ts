@@ -467,6 +467,12 @@ type OriginalMessagePolicyChangeLog = {
     /** New default reimbursable value */
     newDefaultReimbursable?: string;
 
+    /** Old default report title formula */
+    oldDefaultTitle?: string;
+
+    /** New default report title formula */
+    newDefaultTitle?: string;
+
     /** value -- returned when updating "Auto-approve compliant reports" */
     value?: boolean;
 

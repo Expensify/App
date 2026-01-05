@@ -2005,8 +2005,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'Om veiligheidsredenen vereist Xero tweefactorauthenticatie om de integratie te verbinden.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Authenticatie in twee stappen vereist',
         twoFactorAuthIsRequiredForAdminsTitle: 'Schakel twee-factor-authenticatie in',
-        twoFactorAuthIsRequiredXero: 'Je Xero-boekhoudkoppeling vereist het gebruik van tweeledige verificatie. Schakel dit in om Expensify te blijven gebruiken.',
-        twoFactorAuthIsRequiredCompany: 'Uw bedrijf vereist het gebruik van twee-factor-authenticatie. Schakel dit in om Expensify te kunnen blijven gebruiken.',
+        twoFactorAuthIsRequiredXero: 'Uw Xero-accountingverbinding vereist tweeledige verificatie.',
+        twoFactorAuthIsRequiredCompany: 'Je bedrijf vereist tweefactorauthenticatie.',
         twoFactorAuthCannotDisable: 'Kan 2FA niet uitschakelen',
         twoFactorAuthRequired: 'Tweefactorauthenticatie (2FA) is vereist voor je Xero-verbinding en kan niet worden uitgeschakeld.',
     },
@@ -3860,9 +3860,10 @@ ${
             viewTransactions: 'Transacties weergeven',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Declaraties van ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card-transacties worden automatisch geëxporteerd naar een “Expensify Card Liability Account” dat is aangemaakt met <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">onze integratie</a>.</muted-text-label>`,
+            youCantDowngradeInvoicing:
+                'Je kunt je abonnement niet downgraden bij een gefactureerd abonnement. Neem contact op met je accountmanager of Concierge om je abonnement te bespreken of wijzigingen aan te brengen.',
         },
         receiptPartners: {
-            connect: 'Nu verbinden',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Verbonden met ${organizationName}` : 'Automatiseer reis- en maaltijdbezorgingskosten in uw hele organisatie.',
@@ -3889,8 +3890,6 @@ ${
                 invitationFailure: 'Uitnodigen van lid voor Uber for Business mislukt',
                 autoInvite: 'Nieuwe werkruimteleden uitnodigen voor Uber for Business',
                 autoRemove: 'Deactiveer verwijderde werkruimteleden in Uber for Business',
-                bannerTitle: 'Expensify + Uber for Business',
-                bannerDescription: 'Verbind Uber for Business om reis- en maaltijdbezorgingskosten in je hele organisatie te automatiseren.',
                 emptyContent: {
                     title: 'Geen openstaande uitnodigingen',
                     subtitle: 'Hoera! We hebben hoog en laag gezocht en konden geen openstaande uitnodigingen vinden.',
@@ -5249,7 +5248,7 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                 title: 'Je hebt nog geen tags aangemaakt',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Voeg een tag toe om projecten, locaties, afdelingen en meer bij te houden.',
-                subtitleHTML: `<muted-text><centered-text>Importeer een spreadsheet om tags toe te voegen voor het bijhouden van projecten, locaties, afdelingen en meer. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Meer informatie</a> over het formatteren van tagbestanden.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Voeg tags toe om projecten, locaties, afdelingen en meer bij te houden. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Meer informatie</a> over het opmaken van tagbestanden voor import.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>Je tags worden momenteel geïmporteerd vanuit een boekhoudkoppeling. Ga naar <a href="${accountingPageURL}">Boekhouding</a> om wijzigingen aan te brengen.</centered-text></muted-text>`,
             },
@@ -6514,6 +6513,8 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `heeft de formule voor de aangepaste rapportnaam gewijzigd in "${newValue}" (voorheen "${oldValue}")`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `standaardgoedkeurder gewijzigd in ${newApprover} (voorheen ${previousApprover})` : `heeft de standaardgoedkeurder gewijzigd naar ${newApprover}`,
         changedSubmitsToApprover: ({
@@ -7956,6 +7957,28 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             invite: 'Uitnodigen',
             addAdminError: 'Kan dit lid niet als beheerder toevoegen. Probeer het opnieuw.',
         },
+    },
+    gps: {
+        tooltip: 'GPS-tracking bezig! Als je klaar bent, stop dan hieronder met tracken.',
+        disclaimer: 'Gebruik GPS om een uitgave van je reis te maken. Tik hieronder op Start om het volgen te beginnen.',
+        error: {failedToStart: 'Locatiebijhouding starten is mislukt.', failedToGetPermissions: 'Verkrijgen van vereiste locatierechten mislukt.'},
+        trackingDistance: 'Afstand bijhouden...',
+        stopped: 'Gestopt',
+        start: 'Start',
+        stop: 'Stoppen',
+        discard: 'Verwerpen',
+        stopGpsTrackingModal: {
+            title: 'GPS-tracking stoppen',
+            prompt: 'Weet je het zeker? Hiermee beëindig je je huidige flow.',
+            cancel: 'Hervatten met volgen',
+            confirm: 'GPS-tracking stoppen',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Afstandstracking negeren',
+            prompt: 'Weet je het zeker? Dit verwijdert je huidige traject en kan niet ongedaan worden gemaakt.',
+            confirm: 'Afstandstracking negeren',
+        },
+        zeroDistanceTripModal: {title: 'Kan geen uitgave aanmaken', prompt: 'Je kunt geen uitgave aanmaken met dezelfde begin- en eindlocatie.'},
     },
     desktopAppRetiredPage: {
         title: 'Desktop-app is buiten gebruik gesteld',
