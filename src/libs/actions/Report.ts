@@ -2996,8 +2996,7 @@ function buildNewReportOptimisticData(
                 data: {[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: optimisticReportData},
             },
         });
-    }
-    if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.CHAT) {
+    } else if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.CHAT) {
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
