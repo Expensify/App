@@ -160,6 +160,7 @@ function filterOutRangesWithCorrectValue(
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
     const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
+    const columnList = Object.values(CONST.SEARCH.TABLE_COLUMNS);
 
     if (range.key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         return range.value.length > 0;
