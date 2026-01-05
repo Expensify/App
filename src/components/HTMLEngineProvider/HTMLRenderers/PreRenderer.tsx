@@ -82,6 +82,4 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     );
 }
 
-PreRenderer.displayName = 'PreRenderer';
-
 export default PreRenderer;

@@ -9,9 +9,10 @@ import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {isReceiptError} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
-import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {shouldShowViolation} from '@libs/TransactionUtils';
+import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
@@ -37,7 +38,9 @@ function getTagViolationsForSingleLevelTags(
 
     // Add 'tagOutOfPolicy' violation if tag is not in policy
     if (!hasTagOutOfPolicyViolation && updatedTransaction.tag && !isTagInPolicy) {
-        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
+        const tagName = policyTagList[policyTagListName]?.name;
+        const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
+        newTransactionViolations.push({name: CONST.VIOLATIONS.TAG_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}});
     }
 
     // Remove 'tagOutOfPolicy' violation if tag is in policy
@@ -52,7 +55,9 @@ function getTagViolationsForSingleLevelTags(
 
     // Add 'missingTag violation' if tag is required and not set
     if (!hasMissingTagViolation && !updatedTransaction.tag && policyRequiresTags) {
-        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION});
+        const tagName = policyTagList[policyTagListName]?.name;
+        const tagNameToShow = isDefaultTagName(tagName) ? undefined : tagName;
+        newTransactionViolations.push({name: CONST.VIOLATIONS.MISSING_TAG, type: CONST.VIOLATION_TYPES.VIOLATION, data: {tagName: tagNameToShow}});
     }
     return newTransactionViolations;
 }
@@ -228,6 +233,8 @@ const ViolationsUtils = {
         hasDependentTags: boolean,
         isInvoiceTransaction: boolean,
         isSelfDM?: boolean,
+        iouReport?: OnyxEntry<Report> | null,
+        isFromExpenseReport?: boolean,
     ): OnyxUpdate {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -242,14 +249,24 @@ const ViolationsUtils = {
 
         let newTransactionViolations = [...transactionViolations];
 
-        const shouldShowSmartScanFailedError = isScanRequest && updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED;
+        // Remove AUTO_REPORTED_REJECTED_EXPENSE violation when the submitter edits the expense
+        if (iouReport && isFromExpenseReport && isCurrentUserSubmitter(iouReport)) {
+            const hasRejectedExpenseViolation = newTransactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+            if (hasRejectedExpenseViolation) {
+                newTransactionViolations = newTransactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE);
+            }
+        }
+
+        // Only show SmartScan failed when scan failed AND the user hasn't filled required fields yet
+        const hasUserStartedFixingSmartscan = !TransactionUtils.isAmountMissing(updatedTransaction) || !TransactionUtils.isMerchantMissing(updatedTransaction);
+        const shouldShowSmartScanFailedError =
+            isScanRequest &&
+            updatedTransaction.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED &&
+            TransactionUtils.hasMissingSmartscanFields(updatedTransaction, iouReport ?? undefined) &&
+            !hasUserStartedFixingSmartscan;
         const hasSmartScanFailedError = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.SMARTSCAN_FAILED);
         if (shouldShowSmartScanFailedError && !hasSmartScanFailedError) {
-            return {
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,
-                value: [{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}],
-            };
+            newTransactionViolations.push({name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true});
         }
         if (!shouldShowSmartScanFailedError && hasSmartScanFailedError) {
             newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.SMARTSCAN_FAILED});
@@ -567,6 +584,8 @@ const ViolationsUtils = {
                 return translate('violations.taxRequired');
             case 'hold':
                 return translate('violations.hold');
+            case 'companyCardRequired':
+                return translate('violations.companyCardRequired');
             case CONST.VIOLATIONS.PROHIBITED_EXPENSE:
                 return translate('violations.prohibitedExpense', {
                     prohibitedExpenseTypes: violation.data?.prohibitedExpenseRule ?? [],
@@ -619,13 +638,15 @@ const ViolationsUtils = {
     /**
      * Checks if any transactions in the report have violations that should be visible to the current user.
      * Filters violations based on user role (submitter, admin, policy member) and report state.
+     * Also filters out dismissed violations.
      */
     hasVisibleViolationsForUser(
         report: OnyxEntry<Report>,
         violations: OnyxCollection<TransactionViolation[]>,
         currentUserEmail: string,
-        policy?: OnyxEntry<Policy>,
-        transactions?: Transaction[],
+        currentUserAccountID: number,
+        policy: OnyxEntry<Policy>,
+        transactions: Transaction[],
     ): boolean {
         if (!report || !violations || !transactions) {
             return false;
@@ -638,9 +659,12 @@ const ViolationsUtils = {
                 return false;
             }
 
-            // Check if any violation should be shown based on user role and violation type
+            // Check if any violation is not dismissed and should be shown based on user role and violation type
             return transactionViolations.some((violation: TransactionViolation) => {
-                return shouldShowViolation(report, policy, violation.name, currentUserEmail);
+                return (
+                    !isViolationDismissed(transaction, violation, currentUserEmail, currentUserAccountID, report, policy) &&
+                    shouldShowViolation(report, policy, violation.name, currentUserEmail, true, transaction)
+                );
             });
         });
     },

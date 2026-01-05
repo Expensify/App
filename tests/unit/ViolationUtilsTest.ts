@@ -365,7 +365,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).toEqual(expect.arrayContaining([missingCategoryViolation, ...transactionViolations]));
         });
 
-        it('should only return smartscanFailed violation for smart scan failed transactions', () => {
+        it('should keep other violations while adding smartscanFailed for smart scan failed transactions', () => {
             const partialTransaction = {
                 ...transaction,
                 amount: 0,
@@ -375,7 +375,43 @@ describe('getViolationsOnyxData', () => {
                 receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
             };
             const result = ViolationsUtils.getViolationsOnyxData(partialTransaction, transactionViolations, policy, policyTags, policyCategories, false, false);
-            expect(result.value).toEqual([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}]);
+            expect(result.value).toEqual(
+                expect.arrayContaining([{name: CONST.VIOLATIONS.SMARTSCAN_FAILED, type: CONST.VIOLATION_TYPES.WARNING, showInReview: true}, missingCategoryViolation]),
+            );
+        });
+
+        it('should not add smartscanFailed when scan failed but required fields are filled', () => {
+            const transactionWithEnteredDetails = {
+                ...transaction,
+                amount: 10000,
+                merchant: 'Coffee Shop',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(transactionWithEnteredDetails, transactionViolations, policy, policyTags, policyCategories, false, false);
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.SMARTSCAN_FAILED}));
+        });
+
+        it('should not add smartscanFailed when scan failed but modified fields are filled (amount and merchant)', () => {
+            const transactionWithModifiedDetails = {
+                ...transaction,
+                amount: 0,
+                modifiedAmount: 12345,
+                merchant: '',
+                modifiedMerchant: 'Manual Merchant',
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+            };
+            const result = ViolationsUtils.getViolationsOnyxData(
+                transactionWithModifiedDetails as unknown as Transaction,
+                transactionViolations,
+                policy,
+                policyTags,
+                policyCategories,
+                false,
+                false,
+            );
+            expect(result.value).not.toContainEqual(expect.objectContaining({name: CONST.VIOLATIONS.SMARTSCAN_FAILED}));
         });
     });
 
@@ -420,7 +456,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation}]));
+            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, data: {tagName: 'Meals'}}]));
         });
 
         it('should add a tagOutOfPolicy violation when policy requires tags and tag is not in the policy', () => {
@@ -449,7 +485,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...tagOutOfPolicyViolation}, ...transactionViolations]));
+            expect(result.value).toEqual(expect.arrayContaining([{...tagOutOfPolicyViolation, data: {tagName: 'Meals'}}, ...transactionViolations]));
         });
 
         it('should add missingTag violation to existing violations if transaction does not have a tag', () => {
@@ -458,7 +494,7 @@ describe('getViolationsOnyxData', () => {
 
             const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false);
 
-            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation}, ...transactionViolations]));
+            expect(result.value).toEqual(expect.arrayContaining([{...missingTagViolation, data: {tagName: 'Meals'}}, ...transactionViolations]));
         });
     });
 
@@ -602,8 +638,47 @@ describe('getViolations', () => {
 
         await Onyx.multiSet({...transactionCollectionDataSet});
 
-        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation);
-        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation);
+        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+
+        expect(isSmartScanDismissed).toBeTruthy();
+        expect(isDuplicateViolationDismissed).toBeFalsy();
+    });
+
+    it('should check if violation is dismissed or not (with report and policy params)', async () => {
+        const policy: Policy = {
+            id: 'test-policy-id',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: CARLOS_EMAIL,
+            isPolicyExpenseChatEnabled: false,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+            outputCurrency: CONST.CURRENCY.USD,
+        };
+
+        const report: Report = {
+            reportID: 'test-report-id',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CARLOS_ACCOUNT_ID,
+            policyID: policy.id,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+
+        const isSmartScanDismissed = isViolationDismissed(transaction, smartScanFailedViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
+        const isDuplicateViolationDismissed = isViolationDismissed(transaction, duplicatedTransactionViolation, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
 
         expect(isSmartScanDismissed).toBeTruthy();
         expect(isDuplicateViolationDismissed).toBeFalsy();
@@ -625,7 +700,48 @@ describe('getViolations', () => {
         await Onyx.multiSet({...transactionCollectionDataSet});
 
         // Should filter out the smartScanFailedViolation
-        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection);
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, undefined);
+        expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
+    });
+
+    it('should return filtered out dismissed violations (with report and policy params)', async () => {
+        const policy: Policy = {
+            id: 'test-policy-id',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: CARLOS_EMAIL,
+            isPolicyExpenseChatEnabled: false,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT,
+            outputCurrency: CONST.CURRENCY.USD,
+        };
+
+        const report: Report = {
+            reportID: 'test-report-id',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CARLOS_ACCOUNT_ID,
+            policyID: policy.id,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        const transactionViolationsCollection = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+
+        // Should filter out the smartScanFailedViolation
+        const filteredViolations = getTransactionViolations(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
         expect(filteredViolations).toEqual([duplicatedTransactionViolation, tagOutOfPolicyViolation]);
     });
 
@@ -643,7 +759,47 @@ describe('getViolations', () => {
         };
 
         await Onyx.multiSet({...transactionCollectionDataSet});
-        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection);
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, '', CONST.DEFAULT_NUMBER_ID, undefined, undefined);
+        expect(hasWarningTypeViolationRes).toBeTruthy();
+    });
+
+    it('checks if transaction has warning type violation after filtering dismissed violations (with report and policy params)', async () => {
+        const policy: Policy = {
+            id: 'test-policy-id',
+            name: 'Test Policy',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            owner: CARLOS_EMAIL,
+            isPolicyExpenseChatEnabled: false,
+            autoReporting: true,
+            autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY,
+            outputCurrency: CONST.CURRENCY.USD,
+            pendingAction: undefined,
+        };
+
+        const report: Report = {
+            reportID: 'test-report-id',
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: CARLOS_ACCOUNT_ID,
+            policyID: policy.id,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const transaction = getFakeTransaction('123', {
+            dismissedViolations: {smartscanFailed: {[CARLOS_EMAIL]: CARLOS_ACCOUNT_ID.toString()}},
+        });
+
+        const transactionCollectionDataSet: TransactionCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+        };
+
+        const transactionViolationsCollection = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicatedTransactionViolation, smartScanFailedViolation, tagOutOfPolicyViolation],
+        };
+
+        await Onyx.multiSet({...transactionCollectionDataSet});
+        const hasWarningTypeViolationRes = hasWarningTypeViolation(transaction, transactionViolationsCollection, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, report, policy);
         expect(hasWarningTypeViolationRes).toBeTruthy();
     });
 });
@@ -767,28 +923,28 @@ describe('hasVisibleViolationsForUser', () => {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
         };
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(undefined, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(undefined, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
     it('should return false when violations is null', () => {
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, undefined, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, undefined, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
-    it('should return false when transactions is null', () => {
+    it('should return false when transactions is empty', () => {
         const violations = {
             [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${testTransactionID}`]: [missingCategoryViolation],
         };
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, []);
         expect(result).toBe(false);
     });
 
     it('should return false when no violations exist for transactions', () => {
         const violations = {};
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
@@ -800,7 +956,7 @@ describe('hasVisibleViolationsForUser', () => {
         // Mock shouldShowViolation to return true for missing category
         jest.spyOn(require('@src/libs/TransactionUtils'), 'shouldShowViolation').mockReturnValue(true);
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(true);
     });
 
@@ -822,7 +978,7 @@ describe('hasVisibleViolationsForUser', () => {
             return true;
         });
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(false);
     });
 
@@ -847,7 +1003,7 @@ describe('hasVisibleViolationsForUser', () => {
             return true;
         });
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction]);
         expect(result).toBe(true);
     });
 
@@ -883,7 +1039,7 @@ describe('hasVisibleViolationsForUser', () => {
             return true;
         });
 
-        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', mockPolicy, [mockTransaction, secondTransaction]);
+        const result = ViolationsUtils.hasVisibleViolationsForUser(mockReport, violations, '', CONST.DEFAULT_NUMBER_ID, mockPolicy, [mockTransaction, secondTransaction]);
         expect(result).toBe(true);
     });
 });

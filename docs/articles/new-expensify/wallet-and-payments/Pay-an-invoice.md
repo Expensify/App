@@ -1,63 +1,73 @@
 ---
-title: Pay an Invoice
-description: process to pay an invoice
+title: How to Pay an Invoice in Expensify
+description: Learn how to securely pay an invoice in Expensify—even if you don’t have an account. Instructions for web and mobile.
+keywords: pay invoice, Expensify invoice, invoice payment, pay as business, mark as paid, add bank account, pay vendor, invoice steps, desktop, mobile
 ---
 
+<div id="new-expensify" markdown="1">
+
 {% include info.html %}
-Anyone who receives an Expensify invoice can pay it using Expensify—even if they don’t have an Expensify account.
+Anyone who receives an invoice from a client or vendor in Expensify can pay it—even if they don’t have an Expensify account.
 {% include end-info.html %}
 
-You'll receive an automated email or text notification when an invoice is sent to you for payment.
+When someone sends you an invoice through Expensify, you’ll get an automated email or text notification with a secure link to make a payment.
 
-# Pay an invoice
+# How to pay an invoice in Expensify
 
 {% include selector.html values="desktop, mobile" %}
 
 {% include option.html value="desktop" %}
 1. Click the link in the email or text notification you receive from Expensify.
 2. Click **Pay**.
-3. Choose **Pay as an individual** or **Pay as a business**.
-4. Click **Add Bank Account** or **Add debit or credit card** to issue payment.
+3. Choose whether to pay **as an individual** or **as a business**.
+4. Click **Add Bank Account** to connect your payment method, or click **Mark as paid** if you’ve paid outside Expensify.
 {% include end-option.html %}
 
 {% include option.html value="mobile" %}
-1. Tap the link in the email or text notification they receive from Expensify.
+1. Tap the link in the email or text notification you receive from Expensify.
 2. Tap **Pay**.
-3. Choose **Pay as an individual** or **Pay as a business**.
-4. Tap **Add Bank Account** or **Add debit or credit card** to issue payment.
+3. Choose whether to pay **as an individual** or **as a business**.
+4. Tap **Add Bank Account** to connect your payment method, or tap **Mark as paid** if you’ve paid outside Expensify.
 {% include end-option.html %}
 
 {% include end-selector.html %}
 
-You can also view all unpaid invoices by searching for the sender’s email or phone number on the left-hand side of the app. The invoices waiting for your payment will have a green dot.
+## Where to find unpaid invoices
+
+You can view any unpaid invoices by searching for the sender’s email or phone number using the **Search** bar in the navigation tabs.
+
+- **Web:** Use the search bar at the top of the navigation tabs on the left.
+- **Mobile:** Use the search bar at the top of the navigation tabs on the bottom.
+
+Invoices awaiting your payment are marked with a green dot.
 
 ![Click Pay Button on the Invoice]({{site.url}}/assets/images/ExpensifyHelp-Invoice-1.png){:width="100%"}
 
-{% include faq-begin.md %}
+---
 
-**Why can't I add a debit or credit card to pay an invoice?**
+# FAQ
 
-If the **Add a debit or credit card** option is missing, it means that the invoice sender has not added a verified bank account to receive payment.
+## Can someone else pay an invoice besides the person who received it?
 
-**Can someone else pay an invoice besides the person who received it?**
+**No.** Only the person who received the invoice can view and pay it in Expensify.
 
-No, only the person who received the invoice will see the option to pay it.
+## Who can send an invoice in Expensify?
 
-**Who can send an invoice?**
+Only Expensify members can send invoices. Anyone—regardless of whether they have an Expensify account—can pay an invoice they’ve received.
 
-Anyone can pay an invoice they’ve received, but only Expensify customers can send an invoice. This feature ensures that businesses using Expensify can seamlessly manage their invoice billing processes while providing flexibility for their customers to make payments.
+Expensify Invoicing works for both business-to-customer (B2C) and business-to-business (B2B) payments.
 
-Expensify invoicing is designed to cater to both business-to-customer (B2C) and business-to-business (B2B) needs, making it a versatile tool for businesses of all sizes.
+## Can I pay an invoice outside of Expensify?
 
-**Can I pay an invoice outside of Expensify?**
+Yes, but you’ll need to coordinate directly with the vendor. You can message them through the invoice room at [expensify.com](https://www.expensify.com) to discuss alternative payment methods.
 
-You will need to work with the vendor to discuss alternative payment options. You can chat with your vendor directly at expensify.com in the designated invoice room.
+## Can I add multiple payment methods?
 
-**Can I add additional payment methods?**
+Yes. To add another payment method:
 
-You can add additional payment methods to your [Wallet](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Set-up-your-wallet). Click **Account Settings** > **Wallet** > click **Add Bank Account**.
+1. Go to **Account** > **Wallet**.
+2. Click **Add Bank Account**.
 
-You will be prompted to choose a payment method when paying future invoices.
+The next time you pay an invoice, you’ll be prompted to choose a payment method from your Wallet.
 
-{% include faq-end.md %}
-
+</div>

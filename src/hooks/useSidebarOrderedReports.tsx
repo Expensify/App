@@ -78,7 +78,7 @@ function SidebarOrderedReportsContextProvider({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {accountID} = useCurrentUserPersonalDetails();
     const currentReportIDValue = useCurrentReportID();
-    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportIDFromPath ?? currentReportIDValue?.currentReportID;
+    const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
@@ -94,25 +94,43 @@ function SidebarOrderedReportsContextProvider({
      * Find the reports that need to be updated in the LHN
      */
     const getUpdatedReports = useCallback(() => {
-        let reportsToUpdate: string[] = [];
+        const reportsToUpdate = new Set<string>();
 
         if (betas !== prevBetas || priorityMode !== prevPriorityMode) {
-            reportsToUpdate = Object.keys(chatReports ?? {});
-        } else if (reportUpdates) {
-            reportsToUpdate = Object.keys(reportUpdates ?? {});
-        } else if (reportNameValuePairsUpdates) {
-            reportsToUpdate = Object.keys(reportNameValuePairsUpdates ?? {}).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT));
-        } else if (transactionsUpdates) {
-            reportsToUpdate = Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
-        } else if (transactionViolationsUpdates) {
-            reportsToUpdate = Object.keys(transactionViolationsUpdates ?? {})
-                .map((key) => key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION))
-                .map((key) => `${ONYXKEYS.COLLECTION.REPORT}${transactions?.[key]?.reportID}`);
-        } else if (reportsDraftsUpdates) {
-            reportsToUpdate = Object.keys(reportsDraftsUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ONYXKEYS.COLLECTION.REPORT));
-        } else if (policiesUpdates) {
-            const updatedPolicies = new Set(Object.keys(policiesUpdates).map((key) => key.replace(ONYXKEYS.COLLECTION.POLICY, '')));
-            reportsToUpdate = Object.entries(chatReports ?? {})
+            for (const key of Object.keys(chatReports ?? {})) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (reportUpdates) {
+            for (const key of Object.keys(reportUpdates ?? {})) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (reportNameValuePairsUpdates) {
+            for (const key of Object.keys(reportNameValuePairsUpdates ?? {}).map((reportKey) => reportKey.replace(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, ONYXKEYS.COLLECTION.REPORT))) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (transactionsUpdates) {
+            for (const key of Object.values(transactionsUpdates ?? {}).map((transaction) => `${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`)) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (transactionViolationsUpdates) {
+            for (const key of Object.keys(transactionViolationsUpdates ?? {})
+                .map((violationKey) => violationKey.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, ONYXKEYS.COLLECTION.TRANSACTION))
+                .map((transactionKey) => `${ONYXKEYS.COLLECTION.REPORT}${transactions?.[transactionKey]?.reportID}`)) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (reportsDraftsUpdates) {
+            for (const key of Object.keys(reportsDraftsUpdates).map((draftKey) => draftKey.replace(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, ONYXKEYS.COLLECTION.REPORT))) {
+                reportsToUpdate.add(key);
+            }
+        }
+        if (policiesUpdates) {
+            const updatedPolicies = new Set(Object.keys(policiesUpdates).map((policyKey) => policyKey.replace(ONYXKEYS.COLLECTION.POLICY, '')));
+            for (const key of Object.entries(chatReports ?? {})
                 .filter(([, value]) => {
                     if (!value?.policyID) {
                         return;
@@ -120,15 +138,18 @@ function SidebarOrderedReportsContextProvider({
 
                     return updatedPolicies.has(value.policyID);
                 })
-                .map(([key]) => key);
+                .map(([reportKey]) => reportKey)) {
+                reportsToUpdate.add(key);
+            }
         }
 
         // Make sure the previous and current reports are always included in the updates when we switch reports.
         if (prevDerivedCurrentReportID !== derivedCurrentReportID) {
-            reportsToUpdate.push(`${ONYXKEYS.COLLECTION.REPORT}${prevDerivedCurrentReportID}`, `${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`);
+            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${prevDerivedCurrentReportID}`);
+            reportsToUpdate.add(`${ONYXKEYS.COLLECTION.REPORT}${derivedCurrentReportID}`);
         }
 
-        return reportsToUpdate;
+        return Array.from(reportsToUpdate);
     }, [
         reportUpdates,
         reportNameValuePairsUpdates,

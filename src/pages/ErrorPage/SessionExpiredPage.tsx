@@ -1,11 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -16,7 +14,8 @@ function SessionExpiredPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const illustrations = useMemoizedLazyIllustrations(['RocketBlue'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
+    const illustrations = useMemoizedLazyIllustrations(['RocketBlue']);
 
     return (
         <View style={styles.deeplinkWrapperContainer}>
@@ -48,13 +47,11 @@ function SessionExpiredPage() {
                     width={154}
                     height={34}
                     fill={theme.success}
-                    src={Expensicons.ExpensifyWordmark}
+                    src={icons.ExpensifyWordmark}
                 />
             </View>
         </View>
     );
 }
-
-SessionExpiredPage.displayName = 'SessionExpiredPage';
 
 export default SessionExpiredPage;

@@ -4,7 +4,6 @@ import {InteractionManager, View} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -43,17 +42,17 @@ function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars', 'ReceiptUpload', 'PiggyBank', 'SplitBill']);
 
     const menuIcons = useMemo(
         () => ({
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: Illustrations.ReceiptUpload,
+            [CONST.ONBOARDING_CHOICES.EMPLOYER]: illustrations.ReceiptUpload,
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: illustrations.Abacus,
-            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: Illustrations.PiggyBank,
-            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: Illustrations.SplitBill,
+            [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: illustrations.PiggyBank,
+            [CONST.ONBOARDING_CHOICES.CHAT_SPLIT]: illustrations.SplitBill,
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: illustrations.Binoculars,
         }),
-        [illustrations.Abacus, illustrations.Binoculars],
+        [illustrations.Abacus, illustrations.Binoculars, illustrations.ReceiptUpload, illustrations.PiggyBank, illustrations.SplitBill],
     );
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
@@ -143,6 +142,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     shouldShowBackButton={false}
                     iconFill={theme.iconColorfulBackground}
                     progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 60 : 20}
+                    shouldDisplayHelpButton={false}
                 />
             </View>
             <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
@@ -162,7 +162,5 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
 
 export default BaseOnboardingPurpose;
