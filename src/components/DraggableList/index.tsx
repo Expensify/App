@@ -82,9 +82,7 @@ function DraggableList<T>({
         });
 
         // Clone the rendered item and inject isFocused prop for hover styling
-        const itemWithFocus = React.isValidElement(renderedItem)
-            ? React.cloneElement(renderedItem, {isFocused} as React.Attributes)
-            : renderedItem;
+        const itemWithFocus = React.isValidElement(renderedItem) ? React.cloneElement(renderedItem, {isFocused} as React.Attributes) : renderedItem;
 
         return (
             <SortableItem
