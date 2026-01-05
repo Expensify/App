@@ -31,6 +31,8 @@ type SortableItemProps = {
     children: React.ReactNode | React.ReactNode[];
     /** Whether dragging is disabled for this item */
     disabled?: boolean;
+    /** Whether this item is currently focused for keyboard navigation */
+    isFocused?: boolean;
 };
 
 export default DraggableListProps;

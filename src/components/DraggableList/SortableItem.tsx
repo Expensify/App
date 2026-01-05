@@ -1,21 +1,33 @@
 import {useSortable} from '@dnd-kit/sortable';
 import {CSS} from '@dnd-kit/utilities';
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {SortableItemProps} from './types';
 
-function SortableItem({id, children, disabled = false}: SortableItemProps) {
+function SortableItem({id, children, disabled = false, isFocused = false}: SortableItemProps) {
     const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id, disabled});
+    const itemRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (isFocused && itemRef.current) {
+            itemRef.current.focus();
+        }
+    }, [isFocused]);
 
     const style = {
         touchAction: 'none',
         transform: CSS.Transform.toString(transform),
         transition,
+        outline: 'none',
     };
 
     return (
         <div
-            ref={setNodeRef}
+            ref={(node) => {
+                setNodeRef(node);
+                itemRef.current = node;
+            }}
             style={style}
+            tabIndex={isFocused ? 0 : -1}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...attributes}
             // eslint-disable-next-line react/jsx-props-no-spreading
