@@ -90,7 +90,6 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
-    getPolicy,
     isInstantSubmitEnabled,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
@@ -307,13 +306,6 @@ Onyx.connect({
         const reportID = CollectionUtils.extractCollectionItemID(key);
         allReportActions[reportID] = actions;
     },
-});
-
-let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => (allTransactionViolations = value),
 });
 
 let allReports: OnyxCollection<Report>;
@@ -766,7 +758,7 @@ function reportActionsExist(reportID: string): boolean {
     return allReportActions?.[reportID] !== undefined;
 }
 
-function updateChatName(reportID: string, reportName: string, type: typeof CONST.REPORT.CHAT_TYPE.GROUP | typeof CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
+function updateChatName(reportID: string, oldReportName: string | undefined, reportName: string, type: typeof CONST.REPORT.CHAT_TYPE.GROUP | typeof CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -799,7 +791,7 @@ function updateChatName(reportID: string, reportName: string, type: typeof CONST
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                reportName: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? null,
+                reportName: oldReportName ?? null,
                 pendingFields: {
                     reportName: null,
                 },
@@ -968,6 +960,7 @@ function openReport(
     transaction?: Transaction,
     transactionViolations?: TransactionViolations,
     parentReportID?: string,
+    shouldAddPendingFields = true,
     optimisticSelfDMReport?: Report,
 ) {
     if (!reportID) {
@@ -1050,6 +1043,7 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
         transactionID: transaction?.transactionID,
+        includePartiallySetupBankAccounts: isConciergeChatReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]),
     };
 
     if (optimisticSelfDMReport) {
@@ -1233,10 +1227,12 @@ function openReport(
                 ...optimisticReport,
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 ...newReportObject,
-                pendingFields: {
-                    createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    ...(isGroupChat && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
-                },
+                pendingFields: shouldAddPendingFields
+                    ? {
+                          createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                          ...(isGroupChat && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+                      }
+                    : undefined,
             };
         }
 
@@ -1249,7 +1245,7 @@ function openReport(
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+                value: {[optimisticCreatedAction.reportActionID]: {...optimisticCreatedAction, pendingAction: shouldAddPendingFields ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null}},
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -1438,6 +1434,7 @@ function createTransactionThreadReport(
 
     const optimisticTransactionThreadReportID = generateReportID();
     const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
+    const shouldAddPendingFields = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || iouReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     openReport(
         optimisticTransactionThreadReportID,
         undefined,
@@ -1451,6 +1448,7 @@ function createTransactionThreadReport(
         transaction,
         transactionViolations,
         selfDMReportID,
+        shouldAddPendingFields,
         optimisticSelfDMReport,
     );
     return optimisticTransactionThread;
@@ -3065,18 +3063,15 @@ function createNewReport(
     creatorPersonalDetails: CurrentUserPersonalDetails,
     hasViolationsParam: boolean,
     isASAPSubmitBetaEnabled: boolean,
-    policyID?: string,
+    policy: OnyxEntry<Policy>,
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
 ) {
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const policy = getPolicy(policyID);
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
 
-    const {optimisticReportName, parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData(
+    const {parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData(
         policy,
         optimisticReportID,
         reportActionID,
@@ -3093,9 +3088,8 @@ function createNewReport(
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
         {
-            reportName: optimisticReportName,
             type: CONST.REPORT.TYPE.EXPENSE,
-            policyID,
+            policyID: policy?.id,
             reportID: optimisticReportID,
             reportActionID,
             reportPreviewReportActionID,
@@ -3739,7 +3733,7 @@ function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
+function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false, skipNavigation = false) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!report) {
@@ -3855,6 +3849,9 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     // If this is the leave action from a workspace room, simply dismiss the modal, i.e., allow the user to view the room and join again immediately.
     // If this is the leave action from a chat thread (even if the chat thread is in a room), do not allow the user to stay in the thread after leaving.
     if (isWorkspaceMemberLeavingWorkspaceRoom && !isChatThread) {
+        return;
+    }
+    if (skipNavigation) {
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
@@ -4941,7 +4938,12 @@ function clearDeleteTransactionNavigateBackUrl() {
 }
 
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
-function deleteAppReport(reportID: string | undefined, currentUserEmailParam: string, reportAllTransactions: Transaction[]) {
+function deleteAppReport(
+    reportID: string | undefined,
+    currentUserEmailParam: string,
+    reportTransactions: Record<string, Transaction>,
+    transactionsViolations: Record<string, TransactionViolations>,
+) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
         return;
@@ -5053,8 +5055,8 @@ function deleteAppReport(reportID: string | undefined, currentUserEmailParam: st
 
         // 1. Update the transaction and its violations
         if (transactionID) {
-            const transaction = reportAllTransactions.find((t) => t.transactionID === transactionID);
-            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+            const transaction = reportTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const transactionViolations = transactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
             optimisticData.push(
                 {
@@ -5075,7 +5077,6 @@ function deleteAppReport(reportID: string | undefined, currentUserEmailParam: st
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {reportID: transaction?.reportID, comment: {hold: transaction?.comment?.hold}},
                 },
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
