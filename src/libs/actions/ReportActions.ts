@@ -1,5 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import {getLinkedTransactionID, getReportAction, getReportActionMessage, isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -105,8 +107,48 @@ function clearAllRelatedReportActionErrors(reportID: string | undefined, reportA
     }
 }
 
+/**
+ * Dismiss an export error action (INTEGRATIONS_MESSAGE) from the chat.
+ * This removes the action from the UI and marks it as dismissed in the database.
+ *
+ * @param reportID - The report ID containing the action
+ * @param reportActionID - The report action ID to dismiss
+ */
+function dismissExportError(reportID: string, reportActionID: string) {
+    // Optimistically remove the action from the UI
+    const optimisticData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: null,
+            },
+        },
+    ];
+
+    // If the request fails, restore the action (we'd need the original action data here)
+    // For now, we'll rely on the server to push the correct state
+    const failureData = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [reportActionID]: {
+                    errors: {
+                        [Date.now()]: 'Failed to dismiss export error. Please try again.',
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters = {
+        reportID,
+        reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.DISMISS_EXPORT_ERROR, parameters, {optimisticData, failureData});
+}
+
 export type {IgnoreDirection};
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    clearAllRelatedReportActionErrors,
-};
+export {clearAllRelatedReportActionErrors, dismissExportError};
