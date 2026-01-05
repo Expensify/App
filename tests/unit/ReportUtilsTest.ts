@@ -10127,6 +10127,22 @@ describe('ReportUtils', () => {
             // Then it should return the message from the report action (not the childReportName)
             expect(result).toBe('payer owes $100');
         });
+        it('should return expense report name when isCopyAction is true', async () => {
+            const report = LHNTestUtils.getFakeReport();
+            report.reportName = 'Expense Report 2025-01-15';
+            const reportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportName: report.reportName,
+                childMoneyRequestCount: 0,
+            };
+
+            // When we call getReportPreviewMessage with isCopyAction = true
+            const result = getReportPreviewMessage(report, reportAction, false, false, undefined, false, reportAction, true);
+
+            // Then it should return the childReportName instead of "payer owes $0"
+            expect(result).toBe('Expense Report 2025-01-15');
+        });
     });
 
     describe('getAvailableReportFields', () => {
