@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GpsPoint} from '@libs/actions/IOU';
@@ -53,6 +54,7 @@ function SubmitDetailsPage({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: false});
+    const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const [validFilesToUpload] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
@@ -61,8 +63,10 @@ function SubmitDetailsPage({
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
     const isLinkedTrackedExpenseReportArchived = useReportIsArchived(transaction?.linkedTrackedExpenseReportID);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
@@ -88,6 +92,7 @@ function SubmitDetailsPage({
         initMoneyRequest({
             reportID: reportOrAccountID,
             policy,
+            personalPolicy,
             currentIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             report,
@@ -96,7 +101,7 @@ function SubmitDetailsPage({
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
         });
-    }, [reportOrAccountID, policy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
+    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const participants = selectedParticipants.map((participant) =>
@@ -140,6 +145,7 @@ function SubmitDetailsPage({
                     isLinkedTrackedExpenseReportArchived,
                 },
                 isASAPSubmitBetaEnabled,
+                quickAction,
             });
         } else {
             requestMoney({
@@ -172,6 +178,7 @@ function SubmitDetailsPage({
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 transactionViolations,
+                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             });
         }
     };

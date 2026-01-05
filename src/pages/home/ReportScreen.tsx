@@ -593,7 +593,12 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
 
     const prevTransactionThreadReportID = usePrevious(transactionThreadReportID);
     useEffect(() => {
-        if (!!prevTransactionThreadReportID || !transactionThreadReportID) {
+        // If transactionThreadReportID is undefined or CONST.FAKE_REPORT_ID, we do not call fetchReport.
+        // Only when transactionThreadReportID changes to a valid value, the fetchReport will be called to fetch the data again for the current report.
+        // Since fetchReport is always called once when opening a report,
+        // if that initial call is used to create a transactionThreadReport,
+        // then fetchReport needs to be called again after the transactionThreadReport has been fully created.
+        if ((!!prevTransactionThreadReportID && prevTransactionThreadReportID !== CONST.FAKE_REPORT_ID) || !transactionThreadReportID || transactionThreadReportID === CONST.FAKE_REPORT_ID) {
             return;
         }
 
@@ -1047,6 +1052,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
                                                 reportTransactions={reportTransactions}
                                                 // If the report is from the 'Send Money' flow, we add the comment to the `iou` report because for these we don't combine reportActions even if there is a single transaction (they always have a single transaction)
                                                 transactionThreadReportID={isSentMoneyReport ? undefined : transactionThreadReportID}
+                                                isInSidePanel={isInSidePanel}
                                             />
                                         ) : null}
                                     </View>
