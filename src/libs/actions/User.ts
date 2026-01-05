@@ -71,18 +71,6 @@ Onyx.connect({
     },
 });
 
-let myPersonalDetails: OnyxEntry<OnyxPersonalDetails>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        if (!value || currentUserAccountID === -1) {
-            return;
-        }
-
-        myPersonalDetails = value[currentUserAccountID] ?? undefined;
-    },
-});
-
 let allPolicies: OnyxCollection<Policy>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.POLICY,
@@ -481,6 +469,7 @@ function requestValidateCodeAction() {
  * Validates a secondary login / contact method
  */
 function validateSecondaryLogin(
+    currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
     loginList: OnyxEntry<LoginList>,
     contactMethod: string,
     validateCode: string,
@@ -561,7 +550,7 @@ function validateSecondaryLogin(
                     value: {
                         [currentUserAccountID]: {
                             login: contactMethod,
-                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, myPersonalDetails, formatPhoneNumber),
+                            displayName: PersonalDetailsUtils.createDisplayName(contactMethod, currentUserPersonalDetails, formatPhoneNumber),
                         },
                     },
                 },
@@ -662,7 +651,8 @@ function isBlockedFromConcierge(blockedFromConciergeNVP: OnyxEntry<BlockedFromCo
 
 const isChannelMuted = (reportId: string) =>
     new Promise((resolve) => {
-        const connection = Onyx.connect({
+        // We use `connectWithoutView` here since this connection is non-reactive in nature.
+        const connection = Onyx.connectWithoutView({
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportId}`,
             callback: (report) => {
                 Onyx.disconnect(connection);
@@ -1102,7 +1092,12 @@ function generateStatementPDF(period: string) {
 /**
  * Sets a contact method / secondary login as the user's "Default" contact method.
  */
-function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], backTo?: string) {
+function setContactMethodAsDefault(
+    currentUserPersonalDetails: OnyxEntry<OnyxPersonalDetails>,
+    newDefaultContactMethod: string,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    backTo?: string,
+) {
     const oldDefaultContactMethod = currentEmail;
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION | typeof ONYXKEYS.LOGIN_LIST | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.POLICY>
@@ -1141,7 +1136,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
             value: {
                 [currentUserAccountID]: {
                     login: newDefaultContactMethod,
-                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, myPersonalDetails, formatPhoneNumber),
+                    displayName: PersonalDetailsUtils.createDisplayName(newDefaultContactMethod, currentUserPersonalDetails, formatPhoneNumber),
                 },
             },
         },
@@ -1194,7 +1189,7 @@ function setContactMethodAsDefault(newDefaultContactMethod: string, formatPhoneN
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
             value: {
-                [currentUserAccountID]: {...myPersonalDetails},
+                [currentUserAccountID]: {...currentUserPersonalDetails},
             },
         },
     ];

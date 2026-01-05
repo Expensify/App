@@ -84,10 +84,7 @@ function ExitSurveyReasonPage() {
                     if (!response.trim()) {
                         errors[INPUT_IDS.RESPONSE] = translate('common.error.fieldRequired');
                     } else if (response.length > CONST.MAX_COMMENT_LENGTH) {
-                        errors[INPUT_IDS.RESPONSE] = translate('common.error.characterLimitExceedCounter', {
-                            length: response.length,
-                            limit: CONST.MAX_COMMENT_LENGTH,
-                        });
+                        errors[INPUT_IDS.RESPONSE] = translate('common.error.characterLimitExceedCounter', response.length, CONST.MAX_COMMENT_LENGTH);
                     }
                     return errors;
                 }}
