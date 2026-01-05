@@ -1239,10 +1239,11 @@ function setOptimisticDataForTransactionThreadPreview(item: TransactionListItemT
 
     // Set optimistic transaction
     if (!hasTransaction) {
+        const {formattedFrom, formattedMerchant, formattedTo, formattedTotal, date, ...restItem} = item;
         onyxUpdates.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: item,
+            value: restItem,
         });
     }
 

@@ -3852,9 +3852,10 @@ ${
             viewTransactions: 'Ver transações',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Despesas de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>As transações do Cartão Expensify serão exportadas automaticamente para uma “Conta de Responsabilidade do Cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
+            youCantDowngradeInvoicing:
+                'Você não pode fazer downgrade do seu plano em uma assinatura faturada. Para discutir ou fazer alterações na sua assinatura, entre em contato com o gerente da sua conta ou com o Concierge para obter ajuda.',
         },
         receiptPartners: {
-            connect: 'Conectar agora',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Conectado a ${organizationName}` : 'Automatize despesas de viagem e entrega de refeições em toda a sua organização.',
@@ -3881,8 +3882,6 @@ ${
                 invitationFailure: 'Falha ao convidar membro para Uber for Business',
                 autoInvite: 'Convidar novos membros do espaço de trabalho para o Uber for Business',
                 autoRemove: 'Desativar membros removidos do workspace no Uber for Business',
-                bannerTitle: 'Expensify + Uber for Business',
-                bannerDescription: 'Conecte o Uber for Business para automatizar despesas de viagens e entrega de refeições em toda a sua organização.',
                 emptyContent: {
                     title: 'Nenhum convite pendente',
                     subtitle: 'Uhul! Procuramos em todos os lugares e não conseguimos encontrar nenhum convite pendente.',
@@ -5238,7 +5237,7 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                 title: 'Você não criou nenhuma tag',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Adicione uma tag para acompanhar projetos, locais, departamentos e muito mais.',
-                subtitleHTML: `<muted-text><centered-text>Importe uma planilha para adicionar tags para rastrear projetos, locais, departamentos e muito mais. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Saiba mais</a> sobre a formatação de arquivos de tags.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Adicione tags para acompanhar projetos, localizações, departamentos e muito mais. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Saiba mais</a> sobre como formatar arquivos de tags para importação.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>Suas tags estão sendo importadas de uma conexão contábil. Vá até <a href="${accountingPageURL}">contabilidade</a> para fazer qualquer alteração.</centered-text></muted-text>`,
             },
@@ -6558,6 +6557,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `alterou a fórmula do nome do relatório personalizado para "${newValue}" (anteriormente "${oldValue}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
