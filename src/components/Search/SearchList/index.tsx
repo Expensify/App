@@ -129,8 +129,8 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
 
-    /** Whether there are transactions not yet loaded from snapshots in group-by views */
-    hasUnloadedTransactions?: boolean;
+    /** Whether all transactions have been loaded from snapshots in group-by views */
+    hasLoadedAllTransactions?: boolean;
 
     /** Reference to the outer element */
     ref?: ForwardedRef<SearchListHandle>;
@@ -184,7 +184,7 @@ function SearchList({
     customCardNames,
     onDEWModalOpen,
     selectedTransactions,
-    hasUnloadedTransactions,
+    hasLoadedAllTransactions,
     ref,
 }: SearchListProps) {
     const styles = useThemeStyles();
@@ -456,7 +456,7 @@ function SearchList({
 
     const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
     const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
-    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length && !hasUnloadedTransactions;
+    const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === flattenedItemsWithoutPendingDelete.length && hasLoadedAllTransactions;
 
     const content = (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
@@ -466,7 +466,7 @@ function SearchList({
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={isSelectAllChecked}
-                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== flattenedItemsWithoutPendingDelete.length || hasUnloadedTransactions)}
+                            isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== flattenedItemsWithoutPendingDelete.length || !hasLoadedAllTransactions)}
                             onPress={() => {
                                 onAllCheckboxPress();
                             }}
