@@ -35,7 +35,7 @@ function SearchEditMultiplePage() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
 
-    const hasCustomUnitExpense = selectedTransactionIDs.some((transactionID) => {
+    const hasCustomUnitTransaction = selectedTransactionIDs.some((transactionID) => {
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         return isDistanceRequest(transaction) || isPerDiemRequest(transaction);
     });
@@ -200,7 +200,7 @@ function SearchEditMultiplePage() {
             description: translate('iou.amount'),
             title: draftTransaction?.amount ? convertToDisplayString(Math.abs(draftTransaction.amount), displayCurrency) : '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_AMOUNT_RHP,
-            disabled: hasCustomUnitExpense,
+            disabled: hasCustomUnitTransaction,
         },
         {
             description: translate('common.description'),
@@ -211,7 +211,7 @@ function SearchEditMultiplePage() {
             description: translate('common.merchant'),
             title: draftTransaction?.merchant ?? '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_MERCHANT_RHP,
-            disabled: hasCustomUnitExpense,
+            disabled: hasCustomUnitTransaction,
         },
         {
             description: translate('common.date'),
@@ -232,7 +232,7 @@ function SearchEditMultiplePage() {
             description: translate('iou.taxRate'),
             title: draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : '',
             route: ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP,
-            disabled: hasCustomUnitExpense,
+            disabled: hasCustomUnitTransaction,
         },
     ];
 
