@@ -323,7 +323,15 @@ function Search({
     }, []);
 
     const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
+    const prevValidGroupBy = usePrevious(validGroupBy);
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
+
+    useEffect(() => {
+        if (prevValidGroupBy === validGroupBy) {
+            return;
+        }
+        clearSelectedTransactions();
+    }, [validGroupBy, prevValidGroupBy, clearSelectedTransactions]);
 
     useEffect(() => {
         if (!isFocused) {
