@@ -88,6 +88,7 @@ import Alert from '@assets/images/simple-illustrations/simple-illustration__aler
 import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
 import ShareBank from '@assets/images/simple-illustrations/simple-illustration__bank-share.svg';
+import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
@@ -158,6 +159,7 @@ import TravelAlerts from '@assets/images/simple-illustrations/simple-illustratio
 import TreasureChest from '@assets/images/simple-illustrations/simple-illustration__treasurechest.svg';
 import CompanyCard from '@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg';
 import VirtualCard from '@assets/images/simple-illustrations/simple-illustration__virtualcard.svg';
+import WalletAlt2 from '@assets/images/simple-illustrations/simple-illustration__wallet-alt2.svg';
 import Workflows from '@assets/images/simple-illustrations/simple-illustration__workflows.svg';
 import ExpensifyApprovedLogo from '@assets/images/subscription-details__approvedlogo.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
@@ -254,6 +256,7 @@ const Illustrations = {
     // Simple Illustrations
     Accounting,
     Building,
+    BankCoin,
     Coins,
     CreditCardsNew,
     FolderOpen,
@@ -331,6 +334,7 @@ const Illustrations = {
     LaptopOnDeskDeprecated,
     Clock,
     Members,
+    WalletAlt2,
 };
 
 /**
