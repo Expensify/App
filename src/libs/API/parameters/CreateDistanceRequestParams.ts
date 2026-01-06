@@ -27,8 +27,8 @@ type CreateDistanceRequestParams = {
     description?: string;
     attendees?: string;
     distance?: number;
-    odometerStart?: number | null;
-    odometerEnd?: number | null;
+    odometerStart?: number;
+    odometerEnd?: number;
 };
 
 export default CreateDistanceRequestParams;
