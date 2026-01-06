@@ -51,7 +51,6 @@ type ApprovalDropdownOptionProps = {
     onFullApprove: () => void;
     translate: LocaleContextProps['translate'];
     illustrations: Record<'ThumbsUp' | 'DocumentCheck', IconAsset>;
-    onOptionSelected?: () => void;
 };
 
 /**
