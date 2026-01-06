@@ -12,7 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
-import {clearIssueNewCardError, clearIssueNewCardFlow, clearIssueNewCardFormData, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {clearIssueNewCardError, clearIssueNewCardFlow, issueExpensifyCard, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import {resetValidateActionCodeSent} from '@libs/actions/User';
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
@@ -94,7 +94,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
             // Navigate to magic code page
             Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, backTo));
         }
-    }, [policyID, data, account, defaultFundID, isBetaEnabled]);
+    }, [policyID, data, account, defaultFundID, isBetaEnabled, backTo]);
 
     const errorMessage = getLatestErrorMessage(issueNewCard) || (shouldDisableSubmitButton ? translate('workspace.card.issueNewCard.disabledApprovalForSmartLimitError') : '');
 
