@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -151,10 +151,9 @@ function NumberWithSymbolForm({
     onSubmitEditing,
     ...props
 }: NumberWithSymbolFormProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus']);
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus'] as const);
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
@@ -184,9 +183,9 @@ function NumberWithSymbolForm({
         setMouseUp();
     };
 
-    const clearSelection = () => {
+    const clearSelection = useCallback(() => {
         setSelection({start: selection.end, end: selection.end});
-    };
+    }, [selection.end]);
 
     /**
      * Event occurs when a user presses a mouse button over an DOM element.
