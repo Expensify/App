@@ -1139,6 +1139,13 @@ function openReport(
                 },
             },
         });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParentReportID}`,
+            value: {
+                [iouReportActionID]: null,
+            },
+        });
 
         parameters.moneyRequestPreviewReportActionID = iouReportActionID;
 
