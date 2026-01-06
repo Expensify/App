@@ -6733,6 +6733,7 @@ function buildOptimisticExpenseReport(
     parentReportActionID?: string,
     optimisticIOUReportID?: string,
     reportTransactions?: Record<string, Transaction>,
+    createdTimestamp?: string,
 ): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
     const storedTotal = total * -1;
