@@ -19,6 +19,7 @@ const mockReportItemWithHold = {
     submitted: '2024-12-04',
     approved: undefined,
     posted: undefined,
+    exported: undefined,
     currency: 'USD',
     isOneTransactionReport: false,
     isPolicyExpenseChat: false,
@@ -70,6 +71,7 @@ const mockReportItemWithHold = {
     shouldShowYearSubmitted: false,
     shouldShowYearApproved: false,
     shouldShowYearPosted: false,
+    shouldShowYearExported: false,
     transactions: [
         {
             report: {
@@ -98,7 +100,6 @@ const mockReportItemWithHold = {
             action: 'view',
             allActions: ['view'],
             amount: -1200,
-            canDelete: true,
             category: '',
             comment: {
                 comment: '',
@@ -117,6 +118,7 @@ const mockReportItemWithHold = {
             submitted: '2024-12-04',
             approved: undefined,
             posted: undefined,
+            exported: undefined,
             policyID: '48D7178DE42EE9F9',
             reportID: '1350959062018695',
             reportType: 'expense',
@@ -163,6 +165,7 @@ const mockReportItemWithHold = {
             shouldShowYearSubmitted: false,
             shouldShowYearApproved: false,
             shouldShowYearPosted: false,
+            shouldShowYearExported: false,
             keyForList: '1049531721038862176',
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,
@@ -193,7 +196,6 @@ const mockReportItemWithHold = {
             action: 'view',
             allActions: ['view'],
             amount: -12300,
-            canDelete: true,
             category: '',
             comment: {
                 comment: '',
@@ -202,6 +204,7 @@ const mockReportItemWithHold = {
             submitted: '2024-12-04',
             approved: undefined,
             posted: undefined,
+            exported: undefined,
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Forbes',
@@ -235,6 +238,7 @@ const mockReportItemWithHold = {
             shouldShowYearSubmitted: false,
             shouldShowYearApproved: false,
             shouldShowYearPosted: false,
+            shouldShowYearExported: false,
             keyForList: '5345995386715609966',
             isAmountColumnWide: false,
             isTaxAmountColumnWide: false,

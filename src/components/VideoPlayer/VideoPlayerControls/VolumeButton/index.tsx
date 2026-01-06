@@ -12,6 +12,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clamp, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type VolumeButtonProps = {
@@ -105,6 +106,7 @@ function VolumeButton({style, small = false}: VolumeButtonProps) {
                         src={volumeIcon.icon}
                         small={small}
                         shouldForceRenderingTooltipBelow
+                        sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.MUTE_BUTTON}
                     />
                 </Animated.View>
             )}

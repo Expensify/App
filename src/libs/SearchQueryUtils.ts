@@ -1208,6 +1208,10 @@ function buildUserReadableQueryString(
                 continue;
             }
 
+            if (rawFilter.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS) {
+                continue;
+            }
+
             if (rawFilter.isDefault) {
                 const defaultSegment = formatDefaultRawFilterSegment(rawFilter, policies, reports);
                 if (defaultSegment) {
@@ -1321,7 +1325,7 @@ function buildCannedSearchQuery({
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
     const selectedColumns = queryJSON.columns ?? [];
-    const defaultColumns = Object.values(CONST.SEARCH.DEFAULT_COLUMNS.EXPENSE_REPORT);
+    const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
     const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
     return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !hasCustomColumns;
 }
@@ -1454,6 +1458,21 @@ function shouldHighlight(referenceText: string, searchText: string) {
     return pattern.test(StringUtils.normalizeAccents(referenceText).toLowerCase());
 }
 
+function shouldSkipSuggestedSearchNavigation(queryJSON?: SearchQueryJSON) {
+    if (!queryJSON) {
+        return false;
+    }
+
+    const hasKeywordFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+    const hasContextFilter = queryJSON.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN);
+    const inputQuery = queryJSON.inputQuery?.toLowerCase() ?? '';
+    const hasInlineKeywordFilter = inputQuery.includes(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD.toLowerCase()}:`);
+    const hasInlineContextFilter = inputQuery.includes(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.IN.toLowerCase()}:`);
+    const isChatSearch = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+
+    return !!queryJSON.rawFilterList || hasKeywordFilter || hasContextFilter || hasInlineKeywordFilter || hasInlineContextFilter || isChatSearch;
+}
+
 export {
     isSearchDatePreset,
     isFilterSupported,
@@ -1477,4 +1496,5 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
+    shouldSkipSuggestedSearchNavigation,
 };
