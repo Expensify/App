@@ -83,10 +83,86 @@ columns = "columns"i {return "columns"}
 // Value transformation rules
 values
   = perDiem
-  / draft
+  / drafts
+  / receipt
+  / date
+  / submitted
+  / approved
+  / posted
+  / exported
+  / merchant
+  / description
+  / from
+  / to
+  / category
+  / tag
+  / originalAmount
+  / reimbursable
+  / billable
+  / taxRate
+  / amount
+  / total
+  / type
+  / action
+  / taxAmount
+  / title
+  / assignee
+  / inValue
+  / comments
+  / card
+  / policyName
+  / withdrawalId
+  / avatar
+  / status
+  / expenses
+  / feed
+  / withdrawn
+  / bankAccount
+  / reportId
+  / base62ReportId
+  / tax
+  / exportedTo
+  / exchangeRate
+  / reimbursableTotal
+  / nonReimbursableTotal
+  / groupFrom
+  / groupExpenses
+  / groupTotal
+  / groupCard
+  / groupFeed
+  / groupBankAccount
+  / groupWithdrawn
+  / groupWithdrawalId
 
-perDiem = "perDiem"i / "per-diem"i { return "perDiem"; }
-draft = "drafts"i / "draft"i {return "drafts"; }
+perDiem                 = "per-diem"i                  { return "perDiem"; }
+drafts                  = "draft"i / "drafts"i         { return "drafts"; }
+receipt                 = "receipt"i                   { return "receipt"; }
+originalAmount          = "original-amount"i           { return "originalAmount"; }
+taxAmount               = "tax-amount"i                { return "taxAmount"; }
+inValue                 = "in"i                        { return "in"; }
+comments                = "comments"i                  { return "comments"; }
+card                    = "card"i                      { return "card"; }
+policyName              = "policy-name"i               { return "policyName"; }
+withdrawalId            = "withdrawal-id"i             { return "withdrawalId"; }
+avatar                  = "avatar"i                    { return "avatar"; }
+expenses                = "expenses"i                  { return "expenses"; }
+bankAccount             = "bank-account"i              { return "bankAccount"; }
+reportId                = "report-id"i                 { return "reportId"; }
+base62ReportId           = "base62-report-id"i          { return "base62ReportId"; }
+tax                     = "tax"i                       { return "tax"; }
+exportedTo               = "exported-to"i              { return "exportedTo"; }
+exchangeRate            = "exchange-rate"i             { return "exchangeRate"; }
+reimbursableTotal       = "reimbursable-total"i        { return "reimbursableTotal"; }
+nonReimbursableTotal    = "non-reimbursable-total"i    { return "nonReimbursableTotal"; }
+groupFrom               = "group-from"i                { return "groupFrom"; }
+groupExpenses           = "group-expenses"i            { return "groupExpenses"; }
+groupTotal              = "group-total"i               { return "groupTotal"; }
+groupCard               = "group-card"i                { return "groupCard"; }
+groupFeed               = "group-feed"i                { return "groupFeed"; }
+groupBankAccount        = "group-bank-account"i        { return "groupBankAccount"; }
+groupWithdrawn          = "group-withdrawn"i           { return "groupWithdrawn"; }
+groupWithdrawalId       = "group-withdrawal-id"i       { return "groupWithdrawalId"; }
+
 
 operator "operator"
   = (":" / "=") { return "eq"; }
