@@ -27,7 +27,6 @@ import {
     isIOUReport,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
-    isSettled,
     isWorkspaceEligibleForReportChange,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -133,14 +132,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         selectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
-        additionalFilter: (newPolicy) => {
-            const isReportSettled = isSettled(report);
-            const isEligible = isWorkspaceEligibleForReportChange(submitterEmail, newPolicy);
-            if (isReportSettled) {
-                return isEligible && isPolicyAdmin(newPolicy, session?.email);
-            }
-            return isEligible;
-        },
+        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy),
     });
 
     const textInputOptions = useMemo(
