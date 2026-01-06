@@ -5774,9 +5774,7 @@ function buildOptimisticChangePolicyData(
         });
     }
 
-    const isInstantSubmitEnabledLocal = isInstantSubmitEnabled(policy);
     const isSubmitAndCloseLocal = isSubmitAndClose(policy);
-    const arePaymentsDisabled = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
     if ((isProcessingReport(report) || isOpenExpenseReport(report)) && isSubmitAndCloseLocal) {
         newStatusNum = CONST.REPORT.STATUS_NUM.CLOSED;
         optimisticData.push({
