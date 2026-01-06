@@ -2,11 +2,10 @@ import React, {useRef} from 'react';
 import {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import useHover from '@hooks/useHover';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import {useMouseContext} from '@hooks/useMouseContext';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
@@ -51,6 +50,7 @@ function BaseListItem<TItem extends ListItem>({
     const StyleUtils = useStyleUtils();
     const {hovered, bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'DotIndicator'] as const);
 
     const pressableRef = useRef<View>(null);
 
@@ -146,7 +146,7 @@ function BaseListItem<TItem extends ListItem>({
                         <View style={[styles.alignItemsCenter, styles.justifyContentCenter, styles.ml3]}>
                             <Icon
                                 testID={CONST.DOT_INDICATOR_TEST_ID}
-                                src={Expensicons.DotIndicator}
+                                src={icons.DotIndicator}
                                 fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger}
                             />
                         </View>
@@ -159,10 +159,19 @@ function BaseListItem<TItem extends ListItem>({
                         >
                             <View>
                                 <Icon
-                                    src={Expensicons.Checkmark}
+                                    src={icons.Checkmark}
                                     fill={theme.success}
                                 />
                             </View>
+                        </View>
+                    )}
+                    {(!item.isSelected || !!item.canShowSeveralIndicators) && !!item.brickRoadIndicator && shouldDisplayRBR && (
+                        <View style={[styles.alignItemsCenter, styles.justifyContentCenter]}>
+                            <Icon
+                                testID={CONST.DOT_INDICATOR_TEST_ID}
+                                src={icons.DotIndicator}
+                                fill={item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger}
+                            />
                         </View>
                     )}
 

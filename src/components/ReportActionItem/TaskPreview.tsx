@@ -14,6 +14,7 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useParentReport from '@hooks/useParentReport';
 import useParentReportAction from '@hooks/useParentReportAction';
@@ -83,6 +84,7 @@ function TaskPreview({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator'] as const);
     const theme = useTheme();
     const taskReportID = taskReport?.reportID ?? action?.childReportID;
     const taskTitle = action?.childReportName ?? taskReport?.reportName ?? '';
@@ -178,7 +180,7 @@ function TaskPreview({
                 {shouldShowGreenDotIndicator && (
                     <View style={iconWrapperStyle}>
                         <Icon
-                            src={Expensicons.DotIndicator}
+                            src={icons.DotIndicator}
                             fill={theme.success}
                         />
                     </View>

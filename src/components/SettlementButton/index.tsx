@@ -93,7 +93,7 @@ function SettlementButton({
     hasOnlyHeldExpenses = false,
     sentryLabel,
 }: SettlementButtonProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['CheckCircle', 'ThumbsUp', 'Bank', 'Cash', 'Wallet', 'Building', 'User'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'ThumbsUp', 'CheckCircle', 'Wallet', 'Bank', 'Cash'] as const);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();

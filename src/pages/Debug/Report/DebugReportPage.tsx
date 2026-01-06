@@ -3,9 +3,9 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -49,6 +49,7 @@ function DebugReportPage({
         params: {reportID},
     },
 }: DebugReportPageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Eye'] as const);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -188,7 +189,7 @@ function DebugReportPage({
                         onPress={() => {
                             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
                         }}
-                        icon={Expensicons.Eye}
+                        icon={icons.Eye}
                     />
                     {!!transactionID && (
                         <Button
@@ -220,6 +221,7 @@ function DebugReportPage({
             theme.cardBG,
             transactionID,
             translate,
+            icons.Eye,
         ],
     );
 

@@ -144,13 +144,13 @@ function AttachmentPickerWithMenuItems({
         'Expand',
         'Location',
         'Paperclip',
+        'Plus',
         'Task',
         'Coins',
         'Receipt',
         'Cash',
         'InvoiceGeneric',
         'Transfer',
-        'Receipt',
         'MoneyCircle',
     ] as const);
     const isFocused = useIsFocused();
@@ -462,7 +462,7 @@ function AttachmentPickerWithMenuItems({
                                         >
                                             <Icon
                                                 fill={theme.icon}
-                                                src={Expensicons.Plus}
+                                                src={icons.Plus}
                                             />
                                         </PressableWithFeedback>
                                     </Tooltip>

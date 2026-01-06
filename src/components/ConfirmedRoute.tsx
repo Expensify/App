@@ -15,7 +15,6 @@ import type {Transaction} from '@src/types/onyx';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type IconAsset from '@src/types/utils/IconAsset';
 import DistanceMapView from './DistanceMapView';
-import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
 import type {WayPoint} from './MapView/MapViewTypes';
 import PendingMapView from './MapView/PendingMapView';
@@ -46,7 +45,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Location']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'DotIndicatorUnfilled', 'Location'] as const);
 
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN, {canBeMissing: true});
 
@@ -76,11 +75,11 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
                     const index = getWaypointIndex(key);
                     let MarkerComponent: IconAsset;
                     if (index === 0) {
-                        MarkerComponent = Expensicons.DotIndicatorUnfilled;
+                        MarkerComponent = icons.DotIndicatorUnfilled;
                     } else if (index === lastWaypointIndex) {
-                        MarkerComponent = expensifyIcons.Location;
+                        MarkerComponent = icons.Location;
                     } else {
-                        MarkerComponent = Expensicons.DotIndicator;
+                        MarkerComponent = icons.DotIndicator;
                     }
 
                     return {
@@ -91,7 +90,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
                 })
                 .filter((waypoint): waypoint is WayPoint => !!waypoint);
         },
-        [getMarkerComponent, expensifyIcons.Location],
+        [getMarkerComponent, icons.DotIndicator, icons.DotIndicatorUnfilled, icons.Location],
     );
 
     const waypointMarkers = getWaypointMarkers(waypoints);

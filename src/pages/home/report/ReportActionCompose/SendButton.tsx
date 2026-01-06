@@ -2,9 +2,9 @@ import React, {memo} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -20,6 +20,7 @@ type SendButtonProps = {
 };
 
 function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Send'] as const);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -58,7 +59,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                         >
                             {({pressed}) => (
                                 <Icon
-                                    src={Expensicons.Send}
+                                    src={icons.Send}
                                     fill={isDisabledProp || pressed ? theme.icon : theme.textLight}
                                 />
                             )}

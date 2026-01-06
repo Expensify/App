@@ -8,6 +8,7 @@ import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -44,6 +45,7 @@ function UserListItem<TItem extends ListItem>({
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark'] as const);
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const subscriptAvatarBorderColor = isFocused ? focusedBackgroundColor : theme.sidebar;
@@ -111,7 +113,7 @@ function UserListItem<TItem extends ListItem>({
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
                                 {!!item.isSelected && (
                                     <Icon
-                                        src={Expensicons.Checkmark}
+                                        src={icons.Checkmark}
                                         fill={theme.textLight}
                                         height={14}
                                         width={14}
@@ -179,7 +181,7 @@ function UserListItem<TItem extends ListItem>({
                             <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}>
                                 {!!item.isSelected && (
                                     <Icon
-                                        src={Expensicons.Checkmark}
+                                        src={icons.Checkmark}
                                         fill={theme.textLight}
                                         height={14}
                                         width={14}
