@@ -90,6 +90,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
+    isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
@@ -271,6 +272,7 @@ function MoneyRequestView({
     const isEmptyMerchant = transactionMerchant === '' || transactionMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction, !!mergeTransactionID);
+    const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const isMapDistanceRequest = isDistanceRequest && !isManualDistanceRequest;
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
@@ -547,6 +549,19 @@ function MoneyRequestView({
 
                         if (isExpenseSplit && isSplitAvailable) {
                             initSplitExpense(allTransactions, allReports, transaction);
+                            return;
+                        }
+
+                        if (isOdometerDistanceRequest) {
+                            Navigation.navigate(
+                                ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(
+                                    CONST.IOU.ACTION.EDIT,
+                                    iouType,
+                                    transaction.transactionID,
+                                    transactionThreadReport.reportID,
+                                    getReportRHPActiveRoute(),
+                                ),
+                            );
                             return;
                         }
 
