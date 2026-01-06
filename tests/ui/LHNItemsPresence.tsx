@@ -127,7 +127,13 @@ describe('SidebarLinksData', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                ONYXKEYS.COLLECTION.SNAPSHOT,
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
+            ],
         });
         initOnyxDerivedValues();
     });

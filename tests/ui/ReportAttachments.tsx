@@ -142,7 +142,13 @@ describe('ReportAttachments', () => {
                 [ONYXKEYS.SESSION]: {accountID: TEST_USER_ACCOUNT_ID, email: TEST_USER_LOGIN},
                 [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[TEST_USER_ACCOUNT_ID]: {accountID: TEST_USER_ACCOUNT_ID, login: TEST_USER_LOGIN}},
             },
-            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                ONYXKEYS.COLLECTION.SNAPSHOT,
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
+            ],
         });
     });
     beforeEach(async () => {

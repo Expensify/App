@@ -9,8 +9,7 @@ import {
     getDisplayNamesWithTooltips,
     getIcons,
     getIconsForParticipants,
-    getIOUReportActionDisplayMessage,
-    // Will be fixed in https://github.com/Expensify/App/issues/76852
+    getIOUReportActionDisplayMessage, // Will be fixed in https://github.com/Expensify/App/issues/76852
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     getReportName,
     getReportPreviewMessage,
@@ -66,7 +65,13 @@ describe('ReportUtils', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
-            evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS],
+            evictableKeys: [
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                ONYXKEYS.COLLECTION.SNAPSHOT,
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES,
+                ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS,
+            ],
         });
     });
 
