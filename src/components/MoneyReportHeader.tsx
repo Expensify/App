@@ -611,20 +611,22 @@ function MoneyReportHeader({
             const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
 
             for (const item of transactionList) {
-                duplicateTransactionAction(
-                    item,
+                duplicateTransactionAction({
+                    transaction: item,
                     optimisticChatReportID,
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
+                    introSelected,
+                    activePolicyID,
                     quickAction,
-                    policyRecentlyUsedCurrencies ?? [],
-                    defaultExpensePolicy ?? undefined,
-                    activePolicyCategories,
-                    activePolicyExpenseChat,
-                );
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    targetPolicy: defaultExpensePolicy ?? undefined,
+                    targetPolicyCategories: activePolicyCategories,
+                    targetReport: activePolicyExpenseChat,
+                });
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction, policyRecentlyUsedCurrencies],
+        [activePolicyExpenseChat, activePolicyID, allPolicyCategories, defaultExpensePolicy, introSelected, isASAPSubmitBetaEnabled, quickAction, policyRecentlyUsedCurrencies],
     );
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
@@ -1377,7 +1379,7 @@ function MoneyReportHeader({
                 Navigation.goBack(backToRoute);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
-                    deleteAppReport(moneyRequestReport?.reportID, email ?? '', transactions);
+                    deleteAppReport(moneyRequestReport?.reportID, email ?? '', reportTransactions, violations);
                 });
             },
         },

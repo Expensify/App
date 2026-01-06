@@ -105,7 +105,6 @@ function mapTransactionItemToSelectedEntry(
         item.keyForList,
         {
             isSelected: true,
-            canDelete: item.canDelete,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
@@ -132,6 +131,7 @@ function mapTransactionItemToSelectedEntry(
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
+            reportAction: item.reportAction,
         },
     ];
 }
@@ -157,7 +157,6 @@ function prepareTransactionsList(
         ...selectedTransactions,
         [item.keyForList]: {
             isSelected: true,
-            canDelete: item.canDelete,
             canReject: canRejectRequest,
             canHold: canHoldRequest,
             isHeld: isOnHold(item),
@@ -184,6 +183,7 @@ function prepareTransactionsList(
             currency: item.currency,
             isFromOneTransactionReport: isOneTransactionReport(item.report),
             ownerAccountID: item.reportAction?.actorAccountID,
+            reportAction: item.reportAction,
         },
     };
 }
@@ -323,7 +323,15 @@ function Search({
     }, []);
 
     const validGroupBy = groupBy && Object.values(CONST.SEARCH.GROUP_BY).includes(groupBy) ? groupBy : undefined;
+    const prevValidGroupBy = usePrevious(validGroupBy);
     const isSearchResultsEmpty = !searchResults?.data || isSearchResultsEmptyUtil(searchResults, validGroupBy);
+
+    useEffect(() => {
+        if (prevValidGroupBy === validGroupBy) {
+            return;
+        }
+        clearSelectedTransactions();
+    }, [validGroupBy, prevValidGroupBy, clearSelectedTransactions]);
 
     useEffect(() => {
         if (!isFocused) {
@@ -524,7 +532,6 @@ function Search({
                         ),
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID]?.isSelected || isExpenseReportType,
-                        canDelete: transactionItem.canDelete,
                         canReject: canRejectRequest,
                         reportID: transactionItem.reportID,
                         policyID: transactionItem.report?.policyID,
@@ -534,6 +541,7 @@ function Search({
                         groupExchangeRate: transactionItem.groupExchangeRate,
                         currency: transactionItem.currency,
                         ownerAccountID: transactionItem.reportAction?.actorAccountID,
+                        reportAction: transactionItem.reportAction,
                     };
                 }
             }
@@ -577,7 +585,6 @@ function Search({
                     ),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     isSelected: areAllMatchingItemsSelected || selectedTransactions[transactionItem.transactionID].isSelected,
-                    canDelete: transactionItem.canDelete,
                     canReject: canRejectRequest,
                     reportID: transactionItem.reportID,
                     policyID: transactionItem.report?.policyID,
@@ -587,6 +594,7 @@ function Search({
                     groupExchangeRate: transactionItem.groupExchangeRate,
                     currency: transactionItem.currency,
                     ownerAccountID: transactionItem.reportAction?.actorAccountID,
+                    reportAction: transactionItem.reportAction,
                 };
             }
         }
