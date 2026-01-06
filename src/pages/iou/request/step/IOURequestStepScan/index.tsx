@@ -503,6 +503,8 @@ function IOURequestStepScan({
                             taxAmount: transactionTaxAmount,
                             quickAction,
                             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                            // No need to update recently used tags because no tags are used when the confirmation step is skipped
+                            policyRecentlyUsedTags: undefined,
                         });
                         return;
                     }
@@ -796,10 +798,8 @@ function IOURequestStepScan({
         if (!dismissedProductTraining?.[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL]) {
             setShouldShowMultiScanEducationalPopup(true);
         }
-        if (isMultiScanEnabled) {
-            removeDraftTransactions(true);
-        }
         removeTransactionReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
+        removeDraftTransactions(true);
         setIsMultiScanEnabled?.(!isMultiScanEnabled);
     };
 

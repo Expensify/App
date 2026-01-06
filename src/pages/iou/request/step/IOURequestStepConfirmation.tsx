@@ -74,9 +74,7 @@ import type {GpsPoint} from '@userActions/IOU';
 import {
     createDistanceRequest as createDistanceRequestIOUActions,
     getIOURequestPolicyID,
-    getReceiverType,
     requestMoney as requestMoneyIOUActions,
-    sendInvoice,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestParticipantsFromReport,
@@ -90,6 +88,7 @@ import {
     trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
+import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
 import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import {removeDraftTransaction, removeDraftTransactions, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
@@ -196,6 +195,7 @@ function IOURequestStepConfirmation({
     const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${draftPolicyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${realPolicyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${realPolicyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${realPolicyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
 
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION, {canBeMissing: true});
@@ -577,6 +577,7 @@ function IOURequestStepConfirmation({
                         policyTagList: policyTags,
                         policyCategories,
                         policyRecentlyUsedCategories,
+                        policyRecentlyUsedTags,
                     },
                     gpsPoint,
                     action,
@@ -626,6 +627,7 @@ function IOURequestStepConfirmation({
             currentUserPersonalDetails.accountID,
             policy,
             policyTags,
+            policyRecentlyUsedTags,
             policyCategories,
             policyRecentlyUsedCategories,
             action,
@@ -666,6 +668,7 @@ function IOURequestStepConfirmation({
                 policyParams: {
                     policy,
                     policyTagList: policyTags,
+                    policyRecentlyUsedTags,
                     policyCategories,
                     policyRecentlyUsedCategories: policyRecentlyUsedCategoriesParam,
                 },
@@ -702,6 +705,7 @@ function IOURequestStepConfirmation({
             isASAPSubmitBetaEnabled,
             hasViolations,
             policyRecentlyUsedCurrencies,
+            policyRecentlyUsedTags,
         ],
     );
 
@@ -802,6 +806,7 @@ function IOURequestStepConfirmation({
                     policyCategories,
                     policyTagList: policyTags,
                     policyRecentlyUsedCategories,
+                    policyRecentlyUsedTags,
                 },
                 transactionParams: {
                     amount: transaction.amount,
@@ -839,6 +844,7 @@ function IOURequestStepConfirmation({
             policyCategories,
             policyTags,
             policyRecentlyUsedCategories,
+            policyRecentlyUsedTags,
             isManualDistanceRequest,
             transactionTaxCode,
             transactionTaxAmount,
@@ -913,6 +919,7 @@ function IOURequestStepConfirmation({
                             taxAmount: transactionTaxAmount,
                             shouldPlaySound: index === transactions.length - 1,
                             policyRecentlyUsedCategories,
+                            policyRecentlyUsedTags,
                             quickAction,
                             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                         });
@@ -944,6 +951,7 @@ function IOURequestStepConfirmation({
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         policyRecentlyUsedCategories,
+                        policyRecentlyUsedTags,
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
                         quickAction,
@@ -974,6 +982,7 @@ function IOURequestStepConfirmation({
                         taxCode: transactionTaxCode,
                         taxAmount: transactionTaxAmount,
                         policyRecentlyUsedCategories,
+                        policyRecentlyUsedTags,
                         isASAPSubmitBetaEnabled,
                         transactionViolations,
                         quickAction,
@@ -999,6 +1008,7 @@ function IOURequestStepConfirmation({
                     policyTagList: policyTags,
                     policyCategories,
                     policyRecentlyUsedCategories,
+                    policyRecentlyUsedTags,
                 });
                 return;
             }
@@ -1103,6 +1113,7 @@ function IOURequestStepConfirmation({
             transactionTaxCode,
             transactionTaxAmount,
             policyRecentlyUsedCategories,
+            policyRecentlyUsedTags,
             quickAction,
             isASAPSubmitBetaEnabled,
             transactionViolations,
