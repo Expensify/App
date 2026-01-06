@@ -134,7 +134,7 @@ function TransactionListItem<TItem extends ListItem>({
         const attendeeOnyxViolations = syncMissingAttendeesViolation(
             onyxViolations,
             policyCategories,
-            transactionItem.category,
+            transactionItem.category ?? '',
             transactionItem.attendees,
             currentUserDetails,
             snapshotPolicy?.isAttendeeTrackingEnabled ?? false,
