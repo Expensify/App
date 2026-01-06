@@ -4,11 +4,11 @@ import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem, TransactionReportGroupListItemType} from '@components/SelectionListWithSections/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -108,6 +108,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     onDownArrowClick,
     isExpanded,
 }: FirstRowReportHeaderProps<TItem>) {
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -163,7 +164,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         >
                             {({hovered}) => (
                                 <Icon
-                                    src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
+                                    src={isExpanded ? icons.UpArrow : icons.DownArrow}
                                     fill={theme.icon}
                                     additionalStyles={!hovered && styles.opacitySemiTransparent}
                                     small
