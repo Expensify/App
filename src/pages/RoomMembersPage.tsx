@@ -6,10 +6,7 @@ import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import {FallbackAvatar, Plus} from '@components/Icon/Expensicons';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
-import {Plus} from '@components/Icon/Expensicons';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -55,7 +52,7 @@ type RoomMembersPageProps = WithReportOrNotFoundProps & WithCurrentUserPersonalD
 
 function RoomMembersPage({report, policy}: RoomMembersPageProps) {
     const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'FallbackAvatar']);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'FallbackAvatar', 'Plus']);
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
@@ -365,14 +362,14 @@ function RoomMembersPage({report, policy}: RoomMembersPageProps) {
                         success
                         onPress={inviteUser}
                         text={translate('workspace.invite.member')}
-                        icon={Plus}
+                        icon={icons.Plus}
                         innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                         style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     />
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout]);
+    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
 
     /** Opens the room member details page */
     const openRoomMemberDetails = useCallback(
