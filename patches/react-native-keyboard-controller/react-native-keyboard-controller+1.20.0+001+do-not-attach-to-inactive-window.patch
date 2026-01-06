@@ -23,35 +23,27 @@ index 7120bdb..7dd38bd 100644
      var controlPoints: ContiguousArray<Float> = ContiguousArray([0, 0, 0, 0])
      timingFunction?.getControlPoint(at: 1, values: &controlPoints[0])
 diff --git a/node_modules/react-native-keyboard-controller/ios/observers/movement/KeyboardTrackingView.swift b/node_modules/react-native-keyboard-controller/ios/observers/movement/KeyboardTrackingView.swift
-index dc07c23..813b377 100644
+index dc07c23..b853808 100644
 --- a/node_modules/react-native-keyboard-controller/ios/observers/movement/KeyboardTrackingView.swift
 +++ b/node_modules/react-native-keyboard-controller/ios/observers/movement/KeyboardTrackingView.swift
-@@ -40,9 +40,11 @@ public final class KeyboardTrackingView: UIView {
+@@ -66,7 +66,14 @@ public final class KeyboardTrackingView: UIView {
+   }
  
-   private func setup() {
-     // for debug purposes
--    // self.backgroundColor = .red
--    isUserInteractionEnabled = false
--    isHidden = true
-+    self.backgroundColor = .red
-+      // 10 px height
-+    self.frame = CGRect(x: 0, y: 0, width: 1, height: 2)
-+    // isUserInteractionEnabled = false
-+    // isHidden = true
+   @objc public func attachToTopmostView(toWindow window: UIWindow? = nil) {
+-    guard let topView = (window?.rootViewController ?? UIApplication.topViewController())?.view else { return }
++    var topViewController = window?.rootViewController
++    if let rootVC = topViewController, let topView = rootVC.view, topView.window != nil {
++        // ok, attach
++    } else {
++        topViewController = UIApplication.topViewController()
++    }
++
++    guard let topView = topViewController?.view else { return }
  
-     NotificationCenter.default.addObserver(
-       self,
-@@ -87,7 +89,7 @@ public final class KeyboardTrackingView: UIView {
-         leadingAnchor.constraint(equalTo: topView.leadingAnchor, constant: 0),
-         trailingAnchor.constraint(equalTo: topView.trailingAnchor, constant: 0),
-         bottomAnchor.constraint(equalTo: topView.keyboardLayoutGuide.topAnchor, constant: 0),
--        heightAnchor.constraint(equalToConstant: 0),
-+        heightAnchor.constraint(equalToConstant: 2),
-       ])
-     }
-     isAttaching = false
+     if currentAttachedView === topView { return }
+ 
 diff --git a/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Watcher.swift b/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Watcher.swift
-index 53148a6..4001123 100644
+index 53148a6..9a6f078 100644
 --- a/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Watcher.swift
 +++ b/node_modules/react-native-keyboard-controller/ios/observers/movement/observer/KeyboardMovementObserver+Watcher.swift
 @@ -22,6 +22,8 @@ extension KeyboardMovementObserver {
@@ -72,7 +64,7 @@ index 53148a6..4001123 100644
      if keyboardPosition == prevKeyboardPosition || keyboardFrameY == 0 {
        return
      }
-       
+ 
 +    print("kav 3")
 +
      if animation == nil {
@@ -83,7 +75,7 @@ index 53148a6..4001123 100644
 @@ -61,6 +68,8 @@ extension KeyboardMovementObserver {
        keyboardPosition = race(position, keyboardPosition)
      }
-       
+ 
 +    print("kav 4 \(keyboardPosition)")
 +
      onEvent(
