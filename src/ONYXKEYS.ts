@@ -280,6 +280,9 @@ const ONYXKEYS = {
     /** The NVP containing the user's account level in-app export templates */
     NVP_CSV_EXPORT_LAYOUTS: 'nvp_expensify_csvExportLayouts',
 
+    /** A timestamp of when the user created a GPS expense for the first time */
+    NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT: 'nvp_firstCreatedGpsExpenseDateNewDot',
+
     /** Plaid data (access tokens, bank accounts ...) */
     PLAID_DATA: 'plaidData',
 
@@ -1370,6 +1373,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION]: OnboardingAccounting;
     [ONYXKEYS.HYBRID_APP]: OnyxTypes.HybridApp;
     [ONYXKEYS.NVP_CSV_EXPORT_LAYOUTS]: Record<string, OnyxTypes.ExportTemplate>;
+    [ONYXKEYS.NVP_FIRST_CREATED_GPS_EXPENSE_DATE_NEW_DOT]: string;
     [ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE]: DistanceExpenseType;
     [ONYXKEYS.NVP_REPORT_LAYOUT_GROUP_BY]: string;
     [ONYXKEYS.HAS_DENIED_CONTACT_IMPORT_PROMPT]: boolean | undefined;

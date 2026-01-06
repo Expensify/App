@@ -389,7 +389,6 @@ function useSelectedTransactionsActions({
         session?.accountID,
         showDeleteModal,
         allTransactionViolations,
-        session?.email,
         expensifyIcons.Stopwatch,
         expensifyIcons.ThumbsDown,
         expensifyIcons.Table,

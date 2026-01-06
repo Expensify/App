@@ -189,9 +189,7 @@ import type {
     UpdatedPolicyCategoryMaxExpenseAmountParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCurrencyParams,
-    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
@@ -200,7 +198,6 @@ import type {
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -3882,6 +3879,8 @@ ${
             viewTransactions: 'Afficher les transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Notes de frais de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions de la carte Expensify seront automatiquement exportées vers un « Compte de passif de carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
+            youCantDowngradeInvoicing:
+                'Vous ne pouvez pas rétrograder votre forfait sur un abonnement facturé. Pour discuter ou apporter des modifications à votre abonnement, contactez votre gestionnaire de compte ou Concierge pour obtenir de l’aide.',
         },
         receiptPartners: {
             uber: {
@@ -6551,6 +6550,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `a modifié la formule du nom du rapport personnalisé en « ${newValue} » (auparavant « ${oldValue} »)`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `a modifié l'approbateur par défaut pour ${newApprover} (précédemment ${previousApprover})` : `a remplacé l'approbateur par défaut par ${newApprover}`,
         changedSubmitsToApprover: ({
@@ -6605,11 +6606,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             previousForwardsTo
                 ? `a modifié le flux d’approbation pour ${approver} afin de ne plus transférer les rapports approuvés (auparavant transférés à ${previousForwardsTo})`
                 : `a modifié le flux d'approbation pour ${approver} afin de ne plus transférer les rapports approuvés`,
-        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `a modifié le nom de taxe personnalisé en « ${newName} » (auparavant « ${oldName} »)`,
-        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
-            `a modifié le taux de taxe par défaut de la devise de l’espace de travail en « ${newName} » (auparavant « ${oldName} »)`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
-            `a modifié le taux de taxe par défaut en devise étrangère en « ${newName} » (auparavant « ${oldName} »)`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -7995,6 +7991,28 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             invite: 'Inviter',
             addAdminError: 'Impossible d’ajouter ce membre en tant qu’administrateur. Veuillez réessayer.',
         },
+    },
+    gps: {
+        tooltip: 'Suivi GPS en cours ! Quand vous avez terminé, arrêtez le suivi ci-dessous.',
+        disclaimer: 'Utilisez le GPS pour créer une dépense à partir de votre trajet. Touchez Démarrer ci-dessous pour commencer le suivi.',
+        error: {failedToStart: 'Impossible de démarrer le suivi de la localisation.', failedToGetPermissions: 'Échec de l’obtention des autorisations de localisation requises.'},
+        trackingDistance: 'Suivi de la distance...',
+        stopped: 'Arrêté',
+        start: 'Commencer',
+        stop: 'Arrêter',
+        discard: 'Ignorer',
+        stopGpsTrackingModal: {
+            title: 'Arrêter le suivi GPS',
+            prompt: 'Êtes-vous sûr(e) ? Cela mettra fin à votre trajet actuel.',
+            cancel: 'Reprendre le suivi',
+            confirm: 'Arrêter le suivi GPS',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Ignorer le suivi de la distance',
+            prompt: 'Êtes-vous sûr(e) ? Cela annulera votre parcours en cours et ne pourra pas être annulé.',
+            confirm: 'Ignorer le suivi de la distance',
+        },
+        zeroDistanceTripModal: {title: 'Impossible de créer la dépense', prompt: 'Vous ne pouvez pas créer une dépense avec le même lieu de départ et d’arrivée.'},
     },
     desktopAppRetiredPage: {
         title: 'L’application de bureau a été retirée',

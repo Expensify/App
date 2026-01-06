@@ -1427,14 +1427,13 @@ function shouldShowViolation(
     const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
     const isReportOpen = isOpenExpenseReport(iouReport);
-    const isOpenOrProcessingReport = isReportOpen || isProcessingReport(iouReport);
 
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
         return isSubmitter || isPolicyAdmin(policy);
     }
 
     if (violationName === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT) {
-        return isPolicyAdmin(policy) && !isSubmitter && isOpenOrProcessingReport;
+        return isPolicyAdmin(policy) && !isSubmitter && isProcessingReport(iouReport);
     }
 
     if (violationName === CONST.VIOLATIONS.RTER) {
@@ -2373,6 +2372,19 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, reports
 }
 
 /**
+ * Determines whether a report should display the expense breakdown.
+ */
+function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
+    if (!transactions || transactions.length === 0) {
+        return false;
+    }
+
+    // Show breakdown if there is ANY non-reimbursable expense.
+    // If there are no non-reimbursable expenses (i.e., all are reimbursable), do not show the breakdown.
+    return transactions.some((transaction) => !getReimbursable(transaction));
+}
+
+/**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
  */
 function createUnreportedExpenses(transactions: Array<Transaction | undefined>): UnreportedExpenseListItemType[] {
@@ -2557,6 +2569,7 @@ export {
     shouldReuseInitialTransaction,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
+    shouldShowExpenseBreakdown,
 };
 
 export type {TransactionChanges};
