@@ -13814,11 +13814,22 @@ function updateSplitTransactions({
 
     // The split transactions can be in different reports, so we need to calculate the total for each report.
     const reportTotals = new Map<string, number>();
+    const expenseReportID = expenseReport?.reportID;
+
+    if (expenseReportID) {
+        const expenseReportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`;
+        const expenseReportTotal = allReportsList?.[expenseReportKey]?.total ?? expenseReport?.total ?? 0;
+        reportTotals.set(expenseReportID, expenseReportTotal - changesInReportTotal);
+    }
+
     for (const expense of splitExpenses) {
-        if (expense.reportID) {
-            const currentTotal = reportTotals.get(expense.reportID) ?? 0;
-            reportTotals.set(expense.reportID, currentTotal - (expense.amount ?? 0));
+        const splitExpenseReportID = expense.reportID;
+        if (!splitExpenseReportID || reportTotals.has(splitExpenseReportID)) {
+            continue;
         }
+
+        const splitExpenseReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpenseReportID}`];
+        reportTotals.set(splitExpenseReportID, splitExpenseReport?.total ?? 0);
     }
 
     for (const [index, splitExpense] of splitExpenses.entries()) {
