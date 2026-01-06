@@ -106,13 +106,6 @@ describe('Policy', () => {
     });
 });
 
-describe('Report', () => {
-    it('does not export isOneTransactionReport', () => {
-        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(Report.isOneTransactionReport).toBeUndefined();
-    });
-});
-
 describe('TransactionUtils', () => {
     it('does not export getTransaction', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
