@@ -7097,7 +7097,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.TOTAL]: 'total',
                 [this.TABLE_COLUMNS.TYPE]: 'type',
                 [this.TABLE_COLUMNS.ACTION]: 'action',
-                [this.TABLE_COLUMNS.TAX_AMOUNT]: 'tax-amount',
+                [this.TABLE_COLUMNS.TAX_AMOUNT]: 'tax',
                 [this.TABLE_COLUMNS.TITLE]: 'title',
                 [this.TABLE_COLUMNS.ASSIGNEE]: 'assignee',
                 [this.TABLE_COLUMNS.IN]: 'in',
