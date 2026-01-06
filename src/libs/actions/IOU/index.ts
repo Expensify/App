@@ -191,12 +191,12 @@ import {
     isSettled,
     isTestTransactionReport,
     isTrackExpenseReport,
+    populateOptimisticReportFormula,
     prepareOnboardingOnyxData,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     shouldEnableNegative,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import {populateOptimisticReportFormula} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches} from '@libs/SearchUIUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -4081,7 +4081,7 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         }
 
         // Recalculate reportName after all totals are updated
-        const updatedReportName = recalculateOptimisticReportName(updatedMoneyRequestReport as OnyxTypes.Report, policy);
+        const updatedReportName = recalculateOptimisticReportName(updatedMoneyRequestReport, policy);
         if (updatedReportName) {
             updatedMoneyRequestReport.reportName = updatedReportName;
         }
