@@ -318,6 +318,7 @@ type PayInvoiceArgs = {
     chatReport: OnyxTypes.Report;
     invoiceReport: OnyxEntry<OnyxTypes.Report>;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    invoiceReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     payAsBusiness?: boolean;
@@ -9372,6 +9373,7 @@ function getPayMoneyRequestParams({
     lastUsedPaymentMethod,
     existingB2BInvoiceReport,
     activePolicy,
+    iouReportCurrentNextStepDeprecated,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -9388,6 +9390,7 @@ function getPayMoneyRequestParams({
     currentUserAccountIDParam?: number;
     currentUserEmailParam?: string;
     introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
+    iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>;
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -9467,7 +9470,7 @@ function getPayMoneyRequestParams({
     let optimisticNextStepDeprecated = null;
     let optimisticNextStep = null;
     if (!isInvoiceReport) {
-        currentNextStepDeprecated = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? null;
+        currentNextStepDeprecated = iouReportCurrentNextStepDeprecated ?? null;
         // buildOptimisticNextStep is used in parallel
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         optimisticNextStepDeprecated = buildNextStepNew({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED});
@@ -11048,6 +11051,7 @@ function payMoneyRequest(
     chatReport: OnyxTypes.Report,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>,
+    iouReportCurrentNextStepDeprecated: OnyxEntry<OnyxTypes.ReportNextStepDeprecated>,
     paymentPolicyID?: string,
     full = true,
     activePolicy?: OnyxEntry<OnyxTypes.Policy>,
@@ -11071,6 +11075,7 @@ function payMoneyRequest(
         paymentPolicyID,
         activePolicy,
         reportPolicy: policy,
+        iouReportCurrentNextStepDeprecated,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
@@ -11095,6 +11100,7 @@ function payInvoice({
     methodID,
     paymentMethod,
     activePolicy,
+    invoiceReportCurrentNextStepDeprecated,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -11116,6 +11122,7 @@ function payInvoice({
     } = getPayMoneyRequestParams({
         initialChatReport: chatReport,
         iouReport: invoiceReport,
+        iouReportCurrentNextStepDeprecated: invoiceReportCurrentNextStepDeprecated,
         recipient,
         paymentMethodType,
         full: true,

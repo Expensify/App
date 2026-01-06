@@ -513,6 +513,7 @@ function MoneyReportHeader({
                     paymentMethodType: type,
                     chatReport,
                     invoiceReport: moneyRequestReport,
+                    invoiceReportCurrentNextStepDeprecated: nextStep,
                     introSelected,
                     currentUserAccountIDParam: accountID,
                     currentUserEmailParam: email ?? '',
@@ -524,7 +525,7 @@ function MoneyReportHeader({
                 });
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy, policy);
+                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, nextStep, undefined, true, activePolicy, policy);
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
