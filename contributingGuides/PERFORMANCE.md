@@ -367,9 +367,7 @@ Examples:
 
 We are actively looking for contributions that improve the performance of the App, specifically regarding unnecessary re-renders, slow method executions, and user perceived latency.
 
-___
-
-If you haven't already, check out our [Contributing Guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md) and email contributors@expensify.com to request access to our Slack channel!
+If you haven't already, check out our [Contributing Guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md).
 
 👉 **Before posting the proposal, please read through this whole process for important context and instructions.** Proposals that do not follow these guidelines cannot be accepted.
 
