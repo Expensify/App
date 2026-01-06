@@ -6,6 +6,7 @@ import type {GestureResponderEvent} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import type {ContinueActionParams, PaymentMethod} from '@components/KYCWall/types';
@@ -130,6 +131,7 @@ function SettlementButton({
     const activePolicy = usePolicy(activePolicyID);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const reportID = iouReport?.reportID;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const personalPolicy = usePolicy(getPersonalPolicy()?.id);
 
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
@@ -154,6 +156,7 @@ function SettlementButton({
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
 
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const kycWallRef = useContext(KYCWallContext);
     const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
@@ -185,6 +188,11 @@ function SettlementButton({
     }
 
     const checkForNecessaryAction = useCallback(() => {
+        if (isDelegateAccessRestricted) {
+            showDelegateNoAccessModal();
+            return true;
+        }
+
         if (isAccountLocked) {
             showLockedAccountModal();
             return true;
@@ -201,7 +209,7 @@ function SettlementButton({
         }
 
         return false;
-    }, [policy, isAccountLocked, isUserValidated, chatReportID, reportID, showLockedAccountModal]);
+    }, [policy, isAccountLocked, isUserValidated, chatReportID, reportID, showLockedAccountModal, isDelegateAccessRestricted, showDelegateNoAccessModal]);
 
     const getPaymentSubitems = useCallback(
         (payAsBusiness: boolean) => {
@@ -346,8 +354,8 @@ function SettlementButton({
                     }
 
                     return createWorkspace({
-                        introSelectedParam: introSelected,
-                        activePolicyIDParam: activePolicyID,
+                        introSelected,
+                        activePolicyID,
                         currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                         currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                     }).policyID;
