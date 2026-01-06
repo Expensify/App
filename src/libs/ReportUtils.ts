@@ -9386,6 +9386,17 @@ function reasonForReportToBeInOptionList({
     const isEmptyChat = isEmptyReport(report, isReportArchived);
     const canHideReport = shouldHideReport(report, currentReportId, isReportArchived);
 
+    // Drafts already return early above, so no draft check needed here
+    if (isChatThread(report) && isEmptyChat) {
+        const isParentDeleted = !isEmptyObject(parentReportAction) && isDeletedAction(parentReportAction);
+        const isParentPendingDelete = !isEmptyObject(parentReportAction) && parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        const hasReplies = (parentReportAction?.childVisibleActionCount ?? 0) > 0;
+
+        if ((isParentDeleted || isParentPendingDelete) && !hasReplies) {
+            return null;
+        }
+    }
+
     // Include reports if they are pinned
     if (report.isPinned) {
         return CONST.REPORT_IN_LHN_REASONS.PINNED_BY_USER;
