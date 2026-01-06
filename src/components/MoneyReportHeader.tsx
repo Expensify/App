@@ -1377,7 +1377,7 @@ function MoneyReportHeader({
                 Navigation.goBack(backToRoute);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
-                    deleteAppReport(moneyRequestReport?.reportID, email ?? '', transactions);
+                    deleteAppReport(moneyRequestReport?.reportID, email ?? '', reportTransactions, violations);
                 });
             },
         },
