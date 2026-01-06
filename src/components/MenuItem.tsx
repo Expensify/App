@@ -400,6 +400,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
 
         /** Whether the screen containing the item is focused */
         isFocused?: boolean;
+
+        /** Whether to show the badge in a separate row */
+        shouldShowBadgeInSeperateRow?: boolean;
     };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -420,6 +423,7 @@ function MenuItem({
     badgeIcon,
     badgeSuccess,
     onBadgePress,
+    shouldShowBadgeInSeperateRow = false,
     style,
     wrapperStyle,
     titleWrapperStyle,
@@ -924,7 +928,7 @@ function MenuItem({
                                                 </View>
                                             </View>
                                             <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact), !hasPressableRightComponent && styles.pointerEventsNone]}>
-                                                {!!badgeText && (
+                                                {!!badgeText && !shouldShowBadgeInSeperateRow && (
                                                     <Badge
                                                         text={badgeText}
                                                         icon={badgeIcon}
@@ -1013,6 +1017,16 @@ function MenuItem({
                                                 )}
                                             </View>
                                         </View>
+                                        {!!badgeText && shouldShowBadgeInSeperateRow && (
+                                            <Badge
+                                                text={badgeText}
+                                                icon={badgeIcon}
+                                                badgeStyles={[badgeStyle, styles.alignSelfStart, styles.ml13, styles.mt2]}
+                                                success={badgeSuccess}
+                                                onPress={onBadgePress}
+                                                pressable={!!onBadgePress}
+                                            />
+                                        )}
                                         {!!errorText && (
                                             <FormHelpMessage
                                                 isError
