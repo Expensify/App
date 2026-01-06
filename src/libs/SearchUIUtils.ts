@@ -111,7 +111,7 @@ import {
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON} from './SearchQueryUtils';
-import {getHasOptions, getStatusOptions} from './SearchTranslationUtils';
+import {formatTranslatedValue, getHasOptions, getStatusOptions} from './SearchTranslationUtils';
 import StringUtils from './StringUtils';
 import {getIOUPayerAndReceiver} from './TransactionPreviewUtils';
 import {
@@ -241,48 +241,6 @@ function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.S
 
 function isValidActionFilter(action: unknown): action is ValueOf<typeof CONST.SEARCH.ACTION_FILTERS> {
     return typeof action === 'string' && action in actionFilterMapping;
-}
-
-function getExpenseStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
-    return [
-        {text: translate('common.unreported'), value: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED},
-        {text: translate('common.draft'), value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
-        {text: translate('common.outstanding'), value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
-        {text: translate('iou.approved'), value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
-        {text: translate('iou.settledExpensify'), value: CONST.SEARCH.STATUS.EXPENSE.PAID},
-        {text: translate('iou.done'), value: CONST.SEARCH.STATUS.EXPENSE.DONE},
-    ];
-}
-
-function getExpenseReportedStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
-    return [
-        {text: translate('common.draft'), value: CONST.SEARCH.STATUS.EXPENSE.DRAFTS},
-        {text: translate('common.outstanding'), value: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING},
-        {text: translate('iou.approved'), value: CONST.SEARCH.STATUS.EXPENSE.APPROVED},
-        {text: translate('iou.settledExpensify'), value: CONST.SEARCH.STATUS.EXPENSE.PAID},
-        {text: translate('iou.done'), value: CONST.SEARCH.STATUS.EXPENSE.DONE},
-    ];
-}
-
-function getInvoiceStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
-    return [
-        {text: translate('common.outstanding'), value: CONST.SEARCH.STATUS.INVOICE.OUTSTANDING},
-        {text: translate('iou.settledExpensify'), value: CONST.SEARCH.STATUS.INVOICE.PAID},
-    ];
-}
-
-function getTripStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
-    return [
-        {text: translate('search.filters.current'), value: CONST.SEARCH.STATUS.TRIP.CURRENT},
-        {text: translate('search.filters.past'), value: CONST.SEARCH.STATUS.TRIP.PAST},
-    ];
-}
-
-function getTaskStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
-    return [
-        {text: translate('common.outstanding'), value: CONST.SEARCH.STATUS.TASK.OUTSTANDING},
-        {text: translate('search.filters.completed'), value: CONST.SEARCH.STATUS.TASK.COMPLETED},
-    ];
 }
 
 const emptyPersonalDetails = {
@@ -3398,6 +3356,7 @@ export {
     compareValues,
     isSearchDataLoaded,
     getStatusOptions,
+    formatTranslatedValue,
     getTypeOptions,
     getGroupByOptions,
     getGroupCurrencyOptions,

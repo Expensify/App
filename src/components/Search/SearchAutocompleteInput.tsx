@@ -19,8 +19,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setSearchContext} from '@libs/actions/Search';
 import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {formatTranslatedValue, getStatusOptions} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
@@ -122,6 +124,25 @@ function SearchAutocompleteInput({
     const emailList = Object.keys(loginList ?? {});
     const emailListSharedValue = useSharedValue(emailList);
 
+    const translatedStatusMap = useMemo(() => {
+        const allStatusTypes: SearchDataTypes[] = [
+            CONST.SEARCH.DATA_TYPES.EXPENSE,
+            CONST.SEARCH.DATA_TYPES.INVOICE,
+            CONST.SEARCH.DATA_TYPES.TRIP,
+            CONST.SEARCH.DATA_TYPES.TASK,
+            CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+        ];
+        const statusMap: Record<string, boolean> = {};
+        for (const type of allStatusTypes) {
+            const statusOptions = getStatusOptions(translate, type);
+            for (const option of statusOptions) {
+                statusMap[formatTranslatedValue(option.text)] = true;
+            }
+        }
+        return statusMap;
+    }, [translate]);
+    const translatedStatusSharedValue = useSharedValue(translatedStatusMap);
+
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const {borderColor: focusedBorderColor = theme.border, ...restWrapperFocusedStyle} = wrapperFocusedStyle;
@@ -170,13 +191,21 @@ function SearchAutocompleteInput({
         });
     }, [tagSharedValue, tagAutocompleteList]);
 
+    useEffect(() => {
+        scheduleOnLiveMarkdownRuntime(() => {
+            'worklet';
+
+            translatedStatusSharedValue.set(translatedStatusMap);
+        });
+    }, [translatedStatusSharedValue, translatedStatusMap]);
+
     const parser = useCallback(
         (input: string) => {
             'worklet';
 
-            return parseForLiveMarkdown(input, currentUserPersonalDetails.displayName ?? '', substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue);
+            return parseForLiveMarkdown(input, currentUserPersonalDetails.displayName ?? '', substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue, translatedStatusSharedValue);
         },
-        [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue],
+        [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue, translatedStatusSharedValue],
     );
 
     const clearInput = useCallback(() => {

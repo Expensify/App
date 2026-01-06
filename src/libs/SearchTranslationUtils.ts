@@ -81,4 +81,22 @@ function getHasOptions(translate: LocalizedTranslate, type: SearchDataTypes) {
     }
 }
 
-export {getStatusOptions, getHasOptions, getExpenseStatusOptions, getExpenseReportedStatusOptions, getInvoiceStatusOptions, getTripStatusOptions, getTaskStatusOptions};
+/**
+ * Formats translated text for use in search queries.
+ * Converts to lowercase and replaces regular spaces with thin spaces (U+2009)
+ * so the parser treats multi-word translations as single tokens.
+ */
+function formatTranslatedValue(text: string): string {
+    return text.toLowerCase().replaceAll(' ', '\u2009');
+}
+
+export {
+    getStatusOptions,
+    getHasOptions,
+    getExpenseStatusOptions,
+    getExpenseReportedStatusOptions,
+    getInvoiceStatusOptions,
+    getTripStatusOptions,
+    getTaskStatusOptions,
+    formatTranslatedValue,
+};

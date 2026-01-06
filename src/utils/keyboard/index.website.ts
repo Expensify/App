@@ -4,8 +4,6 @@ import CONST from '@src/CONST';
 
 let isVisible = false;
 const initialViewportHeight = window?.visualViewport?.height;
-let previousViewportHeight = initialViewportHeight;
-const EMOJI_PICKER_TOGGLE_THRESHOLD = 100;
 
 const keyboardVisibilityChangeListenersSet = new Set<(isVisible: boolean) => void>();
 
@@ -24,22 +22,7 @@ const handleResize = () => {
         return;
     }
 
-    const newIsVisible = initialViewportHeight - viewportHeight > CONST.SMART_BANNER_HEIGHT;
-
-    // On iOS Safari, ignore small viewport changes when keyboard is already visible
-    // These are likely emoji picker toggles, not keyboard show/hide events
-    if (isMobileSafari() && typeof previousViewportHeight === 'number') {
-        const viewportHeightChange = Math.abs(viewportHeight - previousViewportHeight);
-
-        if (isVisible && viewportHeightChange < EMOJI_PICKER_TOGGLE_THRESHOLD) {
-            previousViewportHeight = viewportHeight;
-            return; // Don't notify subscribers
-        }
-    }
-
-    // Update state and notify subscribers
-    isVisible = newIsVisible;
-    previousViewportHeight = viewportHeight;
+    isVisible = initialViewportHeight - viewportHeight > CONST.SMART_BANNER_HEIGHT;
 
     for (const cb of keyboardVisibilityChangeListenersSet) {
         cb(isVisible);

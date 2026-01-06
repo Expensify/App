@@ -44,7 +44,7 @@ import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetai
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
-import {getHasOptions, getStatusOptions} from './SearchTranslationUtils';
+import {formatTranslatedValue, getStatusOptions} from './SearchTranslationUtils';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
 import {isValidDate} from './ValidationUtils';
@@ -1066,8 +1066,6 @@ type GetDisplayQueryFiltersForKeyParams = {
     cardFeeds: OnyxCollection<OnyxTypes.CardFeeds>;
     policies: OnyxCollection<OnyxTypes.Policy>;
     currentUserAccountID: number;
-    type?: SearchDataTypes;
-    translate?: LocaleContextProps['translate'];
 };
 
 function getDisplayQueryFiltersForKey({
@@ -1080,8 +1078,6 @@ function getDisplayQueryFiltersForKey({
     cardFeeds,
     policies,
     currentUserAccountID,
-    type,
-    translate,
 }: GetDisplayQueryFiltersForKeyParams) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
@@ -1137,29 +1133,6 @@ function getDisplayQueryFiltersForKey({
             }
             return acc;
         }, [] as QueryFilter[]);
-    }
-
-    // Handle HAS filter with translations
-    if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS && translate && type) {
-        const hasOptions = getHasOptions(translate, type);
-        return queryFilter.map((filter) => {
-            const hasValue = filter.value.toString();
-            const hasOption = hasOptions.find((option) => option.value === hasValue);
-            if (hasOption) {
-                const translatedText = hasOption.text.toLowerCase();
-                // Replace regular spaces with thin spaces (U+2009) to keep multi-word values together
-                // The parser excludes only: space, comma, tab, newline, carriage return, and non-breaking space
-                // Thin space is NOT in that exclusion list, so the parser treats it as part of the word
-                return {
-                    operator: filter.operator,
-                    value: translatedText.replaceAll(' ', '\u2009'),
-                };
-            }
-            return {
-                operator: filter.operator,
-                value: getUserFriendlyValue(hasValue),
-            };
-        });
     }
 
     return queryFilter.map((filter) => ({
@@ -1224,9 +1197,7 @@ function formatDefaultRawFilterSegment(
             const statusOptions = getStatusOptions(translate, type);
             const statusOption = statusOptions.find((option) => option.value === val);
             if (statusOption) {
-                const translatedText = statusOption.text.toLowerCase();
-                // Replace regular spaces with thin spaces (U+2009) to keep multi-word values together
-                return sanitizeSearchValue(translatedText.replaceAll(' ', '\u2009'));
+                return sanitizeSearchValue(formatTranslatedValue(statusOption.text));
             }
         }
         return sanitizeSearchValue(getUserFriendlyValue(val));
@@ -1259,7 +1230,6 @@ function buildUserReadableQueryString(
 ) {
     const {type, status, groupBy, policyID, rawFilterList, flatFilters: filters = []} = queryJSON;
 
-    // Helper function to translate status values
     const translateStatusValue = (statusValue: string): string => {
         if (!translate || !type) {
             return getUserFriendlyValue(statusValue);
@@ -1269,11 +1239,7 @@ function buildUserReadableQueryString(
         if (!statusOption) {
             return getUserFriendlyValue(statusValue);
         }
-        const translatedText = statusOption.text.toLowerCase();
-        // Replace regular spaces with thin spaces (U+2009) to keep multi-word values together
-        // The parser excludes only: space, comma, tab, newline, carriage return, and non-breaking space
-        // Thin space is NOT in that exclusion list, so the parser treats it as part of the word
-        return translatedText.replaceAll(' ', '\u2009');
+        return formatTranslatedValue(statusOption.text);
     };
 
     if (rawFilterList && rawFilterList.length > 0) {
@@ -1319,8 +1285,6 @@ function buildUserReadableQueryString(
                 cardFeeds,
                 policies,
                 currentUserAccountID,
-                type,
-                translate,
             });
 
             if (!displayQueryFilters.length) {
@@ -1363,8 +1327,6 @@ function buildUserReadableQueryString(
             cardFeeds,
             policies,
             currentUserAccountID,
-            type,
-            translate,
         });
 
         if (!displayQueryFilters.length) {

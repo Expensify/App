@@ -147,6 +147,7 @@ function filterOutRangesWithCorrectValue(
     categoryList: SharedValue<string[]>,
     tagList: SharedValue<string[]>,
     currentType: string,
+    translatedStatusMap: SharedValue<Record<string, boolean>>,
 ) {
     'worklet';
 
@@ -191,9 +192,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
-            // Accept both English status values and translated values (any non-empty string)
-            // Translated status values come from getStatusOptions which ensures validity
-            return statusList.includes(range.value) || range.value.length > 0;
+            return statusList.includes(range.value) || !!translatedStatusMap.get()[range.value];
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
             return actionList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
@@ -217,9 +216,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
             return datePresetList.includes(range.value) || /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS:
-            // Accept both English has values and translated values (any non-empty string)
-            // Translated has values come from getHasOptions which ensures validity
-            return hasList.includes(range.value) || range.value.length > 0;
+            return hasList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
@@ -253,6 +250,7 @@ function parseForLiveMarkdown(
     currencyList: SharedValue<string[]>,
     categoryList: SharedValue<string[]>,
     tagList: SharedValue<string[]>,
+    translatedStatusMap: SharedValue<Record<string, boolean>>,
 ): MarkdownRange[] {
     'worklet';
 
@@ -262,7 +260,7 @@ function parseForLiveMarkdown(
     const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, currentType))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, currentType, translatedStatusMap))
         .map((range) => {
             const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
