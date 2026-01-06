@@ -11,7 +11,6 @@ import type {
     ReportFieldNegatedKey,
     ReportFieldTextKey,
     SearchAmountFilterKeys,
-    SearchColumnType,
     SearchDateFilterKeys,
     SearchDatePreset,
     SearchFilterKey,
@@ -85,22 +84,8 @@ const createKeyToUserFriendlyMap = () => {
     return map;
 };
 
-const createColumnIdToUserFriendlyMap = () => {
-    const map = new Map<string, string>();
-
-    for (const [keyName, keyValue] of Object.entries(CONST.SEARCH.TABLE_COLUMNS)) {
-        if (!(keyName in CONST.SEARCH.USER_FRIENDLY_TABLE_COLUMNS)) {
-            continue;
-        }
-        map.set(keyValue, CONST.SEARCH.USER_FRIENDLY_TABLE_COLUMNS[keyName as keyof typeof CONST.SEARCH.USER_FRIENDLY_TABLE_COLUMNS]);
-    }
-
-    return map;
-};
-
 // Create the maps once at module initialization for performance
 const keyToUserFriendlyMap = createKeyToUserFriendlyMap();
-const columnIdToUserFriendlyMap = createColumnIdToUserFriendlyMap();
 
 /**
  * Lookup a key in the keyToUserFriendlyMap and return the user-friendly key.
@@ -116,10 +101,6 @@ function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTA
     }
 
     return (keyToUserFriendlyMap.get(keyName) ?? keyName) as UserFriendlyKey;
-}
-
-function getUserFriendlyColumnId(columnId: SearchColumnType) {
-    return (columnIdToUserFriendlyMap.get(columnId) ?? columnId) as UserFriendlyKey;
 }
 
 /**
@@ -1279,7 +1260,7 @@ function buildUserReadableQueryString(
     }
 
     if (columns && columns.length > 0) {
-        title += ` columns:${columns.map(getUserFriendlyColumnId).join(',')}`;
+        title += ` columns:${columns.map(getUserFriendlyValue).join(',')}`;
     }
 
     for (const filterObject of filters) {
@@ -1515,6 +1496,5 @@ export {
     getAllPolicyValues,
     getUserFriendlyValue,
     getUserFriendlyKey,
-    getUserFriendlyColumnId,
     shouldSkipSuggestedSearchNavigation,
 };
