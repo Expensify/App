@@ -407,7 +407,7 @@ const ViolationsUtils = {
             } else {
                 // Can't identify owner at all - if there are attendees, assume owner is one of them
                 // This means we need at least 2 attendees to have a non-owner attendee
-                attendeesMinusOwnerCount = attendees.length > 0 ? Math.max(0, attendees.length - 1) : 0;
+                attendeesMinusOwnerCount = Math.max(0, attendees.length - 1);
             }
         }
 

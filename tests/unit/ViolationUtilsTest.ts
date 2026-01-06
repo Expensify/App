@@ -737,6 +737,67 @@ describe('getViolationsOnyxData', () => {
                 expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
             });
         });
+
+        describe('fallback case (iouReport undefined AND getCurrentUserEmail returns falsy)', () => {
+            // This tests the edge case where we cannot identify the owner at all:
+            // - ownerAccountID is undefined (iouReport unavailable)
+            // - getCurrentUserEmail() returns falsy (no current user email)
+            // In this case, we assume owner is one of the attendees, so we need at least 2 attendees
+            // for there to be a non-owner attendee.
+
+            beforeEach(() => {
+                // Mock getCurrentUserEmail to return empty string
+                jest.spyOn(require('@libs/actions/Report'), 'getCurrentUserEmail').mockReturnValue('');
+            });
+
+            afterEach(() => {
+                jest.restoreAllMocks();
+            });
+
+            it("should add missingAttendees violation when no attendees are present (can't identify owner)", () => {
+                transactionViolations = [];
+                transaction.comment = {attendees: []};
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // With 0 attendees, attendeesMinusOwnerCount = Math.max(0, 0 - 1) = 0, violation should be added
+                expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should add missingAttendees violation when only 1 attendee exists (assumed to be owner)', () => {
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [{email: 'anyone@example.com', displayName: 'Someone', avatarUrl: ''}],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // With 1 attendee, attendeesMinusOwnerCount = Math.max(0, 1 - 1) = 0, violation should be added
+                expect(result.value).toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should not add missingAttendees violation when 2+ attendees exist (assumes owner is one of them)', () => {
+                transactionViolations = [];
+                transaction.comment = {
+                    attendees: [
+                        {email: 'person1@example.com', displayName: 'Person 1', avatarUrl: ''},
+                        {email: 'person2@example.com', displayName: 'Person 2', avatarUrl: ''},
+                    ],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // With 2 attendees, attendeesMinusOwnerCount = Math.max(0, 2 - 1) = 1, no violation
+                expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+
+            it('should remove missingAttendees violation when second attendee is added', () => {
+                transactionViolations = [missingAttendeesViolation];
+                transaction.comment = {
+                    attendees: [
+                        {email: 'person1@example.com', displayName: 'Person 1', avatarUrl: ''},
+                        {email: 'person2@example.com', displayName: 'Person 2', avatarUrl: ''},
+                    ],
+                };
+                const result = ViolationsUtils.getViolationsOnyxData(transaction, transactionViolations, policy, policyTags, policyCategories, false, false, false, undefined);
+                // Violation should be removed since we now have 2 attendees
+                expect(result.value).not.toEqual(expect.arrayContaining([missingAttendeesViolation]));
+            });
+        });
     });
 });
 
