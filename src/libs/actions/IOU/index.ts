@@ -591,8 +591,8 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     splitShares?: SplitShares;
     distance?: number;
     receipt?: Receipt;
-    odometerStart?: number | null;
-    odometerEnd?: number | null;
+    odometerStart?: number;
+    odometerEnd?: number;
 };
 
 type CreateDistanceRequestInformation = {
@@ -653,8 +653,8 @@ type TrackExpenseTransactionParams = {
     customUnitRateID?: string;
     attendees?: Attendee[];
     isLinkedTrackedExpenseReportArchived?: boolean;
-    odometerStart?: number | null;
-    odometerEnd?: number | null;
+    odometerStart?: number;
+    odometerEnd?: number;
 };
 
 type TrackExpenseAccountantParams = {
@@ -696,8 +696,8 @@ type GetTrackExpenseInformationTransactionParams = {
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     attendees?: Attendee[];
     distance?: number;
-    odometerStart?: number | null;
-    odometerEnd?: number | null;
+    odometerStart?: number;
+    odometerEnd?: number;
 };
 
 type GetTrackExpenseInformationParticipantParams = {
