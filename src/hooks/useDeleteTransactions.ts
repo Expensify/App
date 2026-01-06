@@ -33,6 +33,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
 
     const {isBetaEnabled} = usePermissions();
     const archivedReportsIdSet = useArchivedReportsIdSet();
@@ -120,7 +121,9 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                         originalTransactionID: transactionID,
                         splitExpenses: childTransactions.map((childTransaction) => initSplitExpenseItemData(childTransaction)),
                     },
-                    hash: currentSearchHash ?? 0,
+                    searchContext: {
+                        currentSearchHash: currentSearchHash ?? 0,
+                    },
                     policyCategories,
                     policy,
                     policyRecentlyUsedCategories,
@@ -129,6 +132,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
                     isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     currentUserPersonalDetails,
                     transactionViolations,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 });
             }
 
@@ -175,6 +179,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
             isBetaEnabled,
             currentUserPersonalDetails,
             transactionViolations,
+            policyRecentlyUsedCurrencies,
         ],
     );
 

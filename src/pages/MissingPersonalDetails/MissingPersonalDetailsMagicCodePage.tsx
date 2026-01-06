@@ -6,6 +6,7 @@ import useOnyx from '@hooks/useOnyx';
 import {clearDraftValues} from '@libs/actions/FormActions';
 import {clearPersonalDetailsErrors, updatePersonalDetailsAndShipExpensifyCards} from '@libs/actions/PersonalDetails';
 import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {isPersonalCard} from '@libs/CardUtils';
 import {normalizeCountryCode} from '@libs/CountryUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -19,7 +20,8 @@ import type {CardList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getSubstepValues} from './utils';
 
-const areAllCardsShippedSelector = (cardList: OnyxEntry<CardList>) => Object.values(cardList ?? {})?.every((card) => card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
+const areAllCardsShippedSelector = (cardList: OnyxEntry<CardList>) =>
+    Object.values(cardList ?? {})?.every((card) => card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED && isPersonalCard(card));
 
 function MissingPersonalDetailsMagicCodePage() {
     const {translate} = useLocalize();
@@ -78,7 +80,5 @@ function MissingPersonalDetailsMagicCodePage() {
         />
     );
 }
-
-MissingPersonalDetailsMagicCodePage.displayName = 'MissingPersonalDetailsMagicCodePage';
 
 export default MissingPersonalDetailsMagicCodePage;

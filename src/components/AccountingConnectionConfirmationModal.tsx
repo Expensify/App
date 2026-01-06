@@ -26,5 +26,4 @@ function AccountingConnectionConfirmationModal({integrationToConnect, onCancel, 
     );
 }
 
-AccountingConnectionConfirmationModal.displayName = 'AccountingConnectionConfirmationModal';
 export default AccountingConnectionConfirmationModal;

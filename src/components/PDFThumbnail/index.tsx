@@ -4,7 +4,7 @@ import pdfWorkerSource from 'pdfjs-dist/build/pdf.worker.min.mjs';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {Document, pdfjs, Thumbnail} from 'react-pdf';
-import ActivityIndicator from '@components/ActivityIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import PDFThumbnailError from './PDFThumbnailError';
@@ -21,7 +21,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
     const thumbnail = useMemo(
         () => (
             <Document
-                loading={<ActivityIndicator size="large" />}
+                loading={<LoadingIndicator />}
                 file={isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}
                 options={{
                     cMapUrl: 'cmaps/',
@@ -65,4 +65,5 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
 }
 
 PDFThumbnail.displayName = 'PDFThumbnail';
+
 export default React.memo(PDFThumbnail);
