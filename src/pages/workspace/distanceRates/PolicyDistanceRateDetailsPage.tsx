@@ -1,5 +1,6 @@
-import React, {useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -13,6 +14,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTransactionViolation from '@hooks/useTransactionViolation';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -26,6 +28,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {Report, Transaction} from '@src/types/onyx';
 import type {Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
 
 type PolicyDistanceRateDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS>;
@@ -38,14 +41,34 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`, {canBeMissing: true});
     const rateID = route.params.rateID;
-    const customUnit = getDistanceRateCustomUnit(policy);
+    const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
     const rate = customUnit?.rates[rateID];
     const customUnitID = customUnit?.customUnitID;
-    const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (transactions) => {
+
+    const policyReportsSelector = useCallback(
+        (reports: OnyxCollection<Report>) => {
+            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
+                if (report && report.policyID === policyID) {
+                    reportIDs.add(report.reportID);
+                }
+                return reportIDs;
+            }, new Set<string>());
+        },
+        [policyID],
+    );
+
+    const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: policyReportsSelector,
+        canBeMissing: true,
+    });
+
+    const transactionsSelector = useCallback(
+        (transactions: OnyxCollection<Transaction>) => {
             return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
                 if (
                     transaction &&
+                    transaction.reportID &&
+                    policyReports?.has(transaction.reportID) &&
                     customUnitID &&
                     transaction?.comment?.customUnit?.customUnitID === customUnitID &&
                     transaction?.comment?.customUnit?.customUnitRateID &&
@@ -56,23 +79,15 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                 return transactionIDs;
             }, new Set<string>());
         },
+        [customUnitID, rateID, policyReports],
+    );
+
+    const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: transactionsSelector,
         canBeMissing: true,
     });
 
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
-        selector: (violations) => {
-            if (!eligibleTransactionIDs || eligibleTransactionIDs.size === 0) {
-                return undefined;
-            }
-            return Object.fromEntries(
-                Object.entries(violations ?? {}).filter(([key]) => {
-                    const id = key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '');
-                    return eligibleTransactionIDs?.has(id);
-                }),
-            );
-        },
-        canBeMissing: true,
-    });
+    const transactionViolations = useTransactionViolation(eligibleTransactionIDs);
 
     const currency = rate?.currency ?? CONST.CURRENCY.USD;
     const taxClaimablePercentage = rate?.attributes?.taxClaimablePercentage;
@@ -135,7 +150,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                testID={PolicyDistanceRateDetailsPage.displayName}
+                testID="PolicyDistanceRateDetailsPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
             >
@@ -256,7 +271,5 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
         </AccessOrNotFoundWrapper>
     );
 }
-
-PolicyDistanceRateDetailsPage.displayName = 'PolicyDistanceRateDetailsPage';
 
 export default PolicyDistanceRateDetailsPage;

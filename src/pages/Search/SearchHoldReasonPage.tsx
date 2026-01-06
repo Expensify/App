@@ -8,14 +8,18 @@ import {holdMoneyRequestOnSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
-import type {SearchReportParamList} from '@navigation/types';
+import type {SearchReportActionsParamList} from '@navigation/types';
 import HoldReasonFormView from '@pages/iou/HoldReasonFormView';
 import {putTransactionsOnHold} from '@userActions/IOU';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
-function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchReportParamList, typeof SCREENS.SEARCH.REPORT_RHP>>) {
+type SearchHoldReasonPageProps =
+    | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS>
+    | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
+
+function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const {translate} = useLocalize();
     const {backTo = '', reportID} = route.params ?? {};
     const context = useSearchContext();
@@ -55,15 +59,16 @@ function SearchHoldReasonPage({route}: PlatformStackScreenProps<Omit<SearchRepor
         clearErrorFields(ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM);
     }, []);
 
+    const expenseCount = route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS ? context.selectedTransactionIDs.length : Object.keys(context.selectedTransactions).length;
+
     return (
         <HoldReasonFormView
             onSubmit={onSubmit}
             validate={validate}
+            expenseCount={expenseCount}
             backTo={backTo}
         />
     );
 }
-
-SearchHoldReasonPage.displayName = 'SearchHoldReasonPage';
 
 export default SearchHoldReasonPage;

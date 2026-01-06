@@ -36,7 +36,7 @@ Expensify’s report filters help users narrow down results to find specific dat
 - **Contextual filters** - Further refine results based on the selected type. For example:
   - Expenses: Outstanding, Approved, Paid
   - Invoices: Outstanding, Paid
-  - Trips: Drafts, Upcoming, In Progress, Past
+  - Trips: Draft, Upcoming, In Progress, Past
 - **Advanced filters** - Enable precise reports using query syntax (e.g., `type:expenses status:approved`).
 
 ![A photo of common report filter]({{site.url}}/assets/images/ExpensifyHelp-SearchFormat.png){:width="100%"}
@@ -147,5 +147,5 @@ Expensify ensures cross-platform consistency where possible. However, certain fe
 Use the following steps to locate unsubmitted reports:
 1. Go to the **Reports** page.
 2. Select **Expenses** from the Type-based filter.
-3. Apply the **Drafts** contextual filter to view all unsubmitted reports.
+3. Apply the **Draft** contextual filter to view all unsubmitted reports.
 

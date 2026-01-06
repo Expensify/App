@@ -1,7 +1,8 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+
+const NEW_PARTNER_USER_ID_PREFIX = 'expensify.cash-';
 
 /**
  * Determine if the transitioning user is logging in as a new user.
@@ -28,14 +29,12 @@ function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): bo
 }
 
 let loggedInDuringSession: boolean | undefined;
-let currentSession: OnyxEntry<OnyxTypes.Session>;
 
 // To tell if the user logged in during this session we will check the value of session.authToken once when the app's JS inits. When the user logs out
 // we can reset this flag so that it can be updated again.
-Onyx.connect({
+Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (session) => {
-        currentSession = session;
         if (loggedInDuringSession) {
             return;
         }
@@ -57,8 +56,18 @@ function didUserLogInDuringSession() {
     return !!loggedInDuringSession;
 }
 
-function getSession() {
-    return currentSession;
+function checkIfShouldUseNewPartnerName(partnerUserID?: string): boolean {
+    if (!CONFIG.IS_HYBRID_APP) {
+        return true;
+    }
+
+    // On HybridApp, users who logged in on the old SignInPage must use legacy partner name.
+    // Users who logged in on NewDot SignInPage have partnerUserID with "expensify.cash-" prefix and use new partner name.
+    if (partnerUserID?.startsWith(NEW_PARTNER_USER_ID_PREFIX)) {
+        return true;
+    }
+
+    return false;
 }
 
-export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, getSession};
+export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, checkIfShouldUseNewPartnerName};

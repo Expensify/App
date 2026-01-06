@@ -1,4 +1,4 @@
-import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, Onfido as OnfidoSDK, OnfidoTheme} from '@onfido/react-native-sdk';
+import {OnfidoCaptureType, OnfidoCountryCode, OnfidoDocumentType, OnfidoNFCOptions, Onfido as OnfidoSDK, OnfidoTheme} from '@onfido/react-native-sdk';
 import React, {useEffect} from 'react';
 import {Alert, Linking, NativeModules} from 'react-native';
 import {checkMultiple, PERMISSIONS, RESULTS} from 'react-native-permissions';
@@ -19,6 +19,8 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
         OnfidoSDK.start({
             sdkToken,
             theme: OnfidoTheme.AUTOMATIC,
+            // eslint-disable-next-line
+            nfcOption: OnfidoNFCOptions.DISABLED,
             flowSteps: {
                 welcome: true,
                 captureFace: {
@@ -29,7 +31,6 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
                     countryCode: OnfidoCountryCode.USA,
                 },
             },
-            disableNFC: true,
         })
             .then(onSuccess)
             .catch((error: OnfidoError) => {
@@ -103,7 +104,5 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
 
     return <FullscreenLoadingIndicator />;
 }
-
-Onfido.displayName = 'Onfido';
 
 export default Onfido;

@@ -1,9 +1,9 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import type {View} from 'react-native';
 import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import type {ListItem, ListItemProps, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, ListItemProps, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -31,7 +31,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 }: UnreportedExpenseListItemProps<TItem>) {
     const styles = useThemeStyles();
     const transactionItem = item as unknown as TransactionListItemType;
-    const [isSelected, setIsSelected] = useState<boolean>(false);
+    const isSelected = !!item.isSelected;
     const theme = useTheme();
 
     const pressableStyle = [styles.transactionListItemStyle, isSelected && styles.activeComponentBG];
@@ -47,15 +47,16 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
+    const isItemDisabled = !!isDisabled && !isSelected;
+
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
                 onPress={() => {
                     onSelectRow(item);
-                    setIsSelected((val) => !val);
                 }}
-                disabled={isDisabled && !isSelected}
+                disabled={isItemDisabled}
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
@@ -67,27 +68,28 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
             >
-                <TransactionItemRow
-                    transactionItem={transactionItem}
-                    violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`]}
-                    shouldUseNarrowLayout
-                    isSelected={isSelected}
-                    shouldShowTooltip={showTooltip}
-                    dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    onCheckboxPress={() => {
-                        onSelectRow(item);
-                        setIsSelected((val) => !val);
-                    }}
-                    shouldShowCheckbox
-                    style={styles.p3}
-                />
+                {({hovered}) => (
+                    <TransactionItemRow
+                        transactionItem={transactionItem}
+                        violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`]}
+                        shouldUseNarrowLayout
+                        isSelected={isSelected}
+                        shouldShowTooltip={showTooltip}
+                        dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        onCheckboxPress={() => {
+                            onSelectRow(item);
+                        }}
+                        isDisabled={isItemDisabled}
+                        shouldShowCheckbox
+                        style={styles.p3}
+                        isHover={hovered}
+                    />
+                )}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
 }
-
-UnreportedExpenseListItem.displayName = 'UnreportedExpenseListItem';
 
 export default UnreportedExpenseListItem;

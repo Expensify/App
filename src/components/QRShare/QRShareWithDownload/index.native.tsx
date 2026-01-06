@@ -1,15 +1,13 @@
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useImperativeHandle, useRef} from 'react';
+import React, {useImperativeHandle, useRef} from 'react';
 import ViewShot from 'react-native-view-shot';
 import getQrCodeFileName from '@components/QRShare/getQrCodeDownloadFileName';
-import type {QRShareProps} from '@components/QRShare/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import fileDownload from '@libs/fileDownload';
 import QRShare from '..';
-import type QRShareWithDownloadHandle from './types';
+import type {QRShareWithDownloadProps} from './types';
 
-function QRShareWithDownload(props: QRShareProps, ref: ForwardedRef<QRShareWithDownloadHandle>) {
+function QRShareWithDownload({ref, ...props}: QRShareWithDownloadProps) {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
 
@@ -19,7 +17,7 @@ function QRShareWithDownload(props: QRShareProps, ref: ForwardedRef<QRShareWithD
         ref,
         () => ({
             download: () =>
-                qrCodeScreenshotRef.current?.capture?.().then((uri) => fileDownload(uri, getQrCodeFileName(props.title ?? 'QRCode'), translate('fileDownload.success.qrMessage'))),
+                qrCodeScreenshotRef.current?.capture?.().then((uri) => fileDownload(translate, uri, getQrCodeFileName(props.title ?? 'QRCode'), translate('fileDownload.success.qrMessage'))),
         }),
         [props.title, translate],
     );
@@ -35,6 +33,4 @@ function QRShareWithDownload(props: QRShareProps, ref: ForwardedRef<QRShareWithD
     );
 }
 
-QRShareWithDownload.displayName = 'QRShareWithDownload';
-
-export default forwardRef(QRShareWithDownload);
+export default QRShareWithDownload;

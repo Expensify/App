@@ -1,6 +1,5 @@
 /* eslint-disable react-compiler/react-compiler */
-import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {Keyboard} from 'react-native';
 import E2EClient from '@libs/E2E/client';
@@ -19,7 +18,7 @@ function IncrementRenderCount() {
     return null;
 }
 
-function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: ForwardedRef<ComposerRef>) {
+function ComposerWithSuggestionsE2e({ref, ...props}: ComposerWithSuggestionsProps) {
     'use no memo';
 
     // we rely on waterfall rendering in react, so we intentionally disable compiler
@@ -87,7 +86,5 @@ function ComposerWithSuggestionsE2e(props: ComposerWithSuggestionsProps, ref: Fo
     );
 }
 
-ComposerWithSuggestionsE2e.displayName = 'ComposerWithSuggestionsE2e';
-
-export default forwardRef(ComposerWithSuggestionsE2e);
+export default ComposerWithSuggestionsE2e;
 export {getRerenderCount, resetRerenderCount};

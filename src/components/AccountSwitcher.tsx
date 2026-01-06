@@ -1,7 +1,9 @@
+import {accountIDSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -37,6 +39,7 @@ type AccountSwitcherProps = {
 };
 
 function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['CaretUpDown']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -44,8 +47,14 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (onyxSession) => onyxSession?.accountID});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: accountIDSelector});
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
 
@@ -137,7 +146,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             close(() => setShouldShowOfflineModal(true));
                             return;
                         }
-                        disconnect();
+                        disconnect({stashedCredentials, stashedSession});
                     },
                 }),
                 currentUserMenuItem,
@@ -157,7 +166,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                             close(() => setShouldShowOfflineModal(true));
                             return;
                         }
-                        connect(email);
+                        connect({email, delegatedAccess: account?.delegatedAccess, credentials, session, activePolicyID});
                     },
                 });
             });
@@ -167,7 +176,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
 
     const hideDelegatorMenu = () => {
         setShouldShowDelegatorMenu(false);
-        clearDelegatorErrors();
+        clearDelegatorErrors({delegatedAccess: account?.delegatedAccess});
     };
 
     return (
@@ -212,7 +221,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                                     <View style={styles.justifyContentCenter}>
                                         <Icon
                                             fill={theme.icon}
-                                            src={Expensicons.CaretUpDown}
+                                            src={icons.CaretUpDown}
                                             height={variables.iconSizeSmall}
                                             width={variables.iconSizeSmall}
                                         />
@@ -271,7 +280,5 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         </>
     );
 }
-
-AccountSwitcher.displayName = 'AccountSwitcher';
 
 export default AccountSwitcher;

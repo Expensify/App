@@ -7,6 +7,7 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy} from '@libs/PolicyUtils';
 import {updateAdvancedFilters} from '@userActions/Search';
@@ -15,6 +16,17 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PolicyCategories, PolicyCategory} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+const availableNonPersonalPolicyCategoriesSelector = (policyCategories: OnyxCollection<PolicyCategories>) =>
+    Object.fromEntries(
+        Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
+            if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getPersonalPolicy()?.id}`) {
+                return false;
+            }
+            const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            return availableCategories.length > 0;
+        }),
+    );
 
 function SearchFiltersCategoryPage() {
     const styles = useThemeStyles();
@@ -30,16 +42,7 @@ function SearchFiltersCategoryPage() {
     const policyIDs = searchAdvancedFiltersForm?.policyID ?? [];
     const [allPolicyCategories = getEmptyObject<NonNullable<OnyxCollection<PolicyCategories>>>()] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         canBeMissing: false,
-        selector: (policyCategories) =>
-            Object.fromEntries(
-                Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
-                    if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getPersonalPolicy()?.id}`) {
-                        return false;
-                    }
-                    const availableCategories = Object.values(categories ?? {}).filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-                    return availableCategories.length > 0;
-                }),
-            ),
+        selector: availableNonPersonalPolicyCategoriesSelector,
     });
 
     const selectedPoliciesCategories: PolicyCategory[] = Object.keys(allPolicyCategories ?? {})
@@ -52,14 +55,22 @@ function SearchFiltersCategoryPage() {
         const uniqueCategoryNames = new Set<string>();
 
         if (!selectedPoliciesCategories || selectedPoliciesCategories.length === 0) {
-            Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
+            const categories = Object.values(allPolicyCategories ?? {}).flatMap((policyCategories) => Object.values(policyCategories ?? {}));
+            for (const category of categories) {
+                uniqueCategoryNames.add(category.name);
+            }
         } else {
-            selectedPoliciesCategories.forEach((category) => uniqueCategoryNames.add(category.name));
+            for (const category of selectedPoliciesCategories) {
+                uniqueCategoryNames.add(category.name);
+            }
         }
         items.push(
             ...Array.from(uniqueCategoryNames)
                 .filter(Boolean)
-                .map((categoryName) => ({name: categoryName, value: categoryName})),
+                .map((categoryName) => {
+                    const decodedCategoryName = getDecodedCategoryName(categoryName);
+                    return {name: decodedCategoryName, value: categoryName};
+                }),
         );
         return items;
     }, [allPolicyCategories, selectedPoliciesCategories, translate]);
@@ -68,7 +79,7 @@ function SearchFiltersCategoryPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchFiltersCategoryPage.displayName}
+            testID="SearchFiltersCategoryPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
@@ -89,7 +100,5 @@ function SearchFiltersCategoryPage() {
         </ScreenWrapper>
     );
 }
-
-SearchFiltersCategoryPage.displayName = 'SearchFiltersCategoryPage';
 
 export default SearchFiltersCategoryPage;

@@ -14,13 +14,13 @@ namespace margelo::nitro::utils { struct StringHolder; }
 // Forward declaration of `ContactFields` to properly resolve imports.
 namespace margelo::nitro::utils { enum class ContactFields; }
 
-#include <NitroModules/Promise.hpp>
-#include <vector>
 #include "Contact.hpp"
+#include <vector>
+#include <NitroModules/Promise.hpp>
 #include <NitroModules/JPromise.hpp>
 #include "JContact.hpp"
-#include <optional>
 #include <string>
+#include <optional>
 #include "StringHolder.hpp"
 #include "JStringHolder.hpp"
 #include "ContactFields.hpp"
@@ -41,6 +41,11 @@ namespace margelo::nitro::utils {
   size_t JHybridContactsModuleSpec::getExternalMemorySize() noexcept {
     static const auto method = javaClassStatic()->getMethod<jlong()>("getMemorySize");
     return method(_javaPart);
+  }
+
+  void JHybridContactsModuleSpec::dispose() noexcept {
+    static const auto method = javaClassStatic()->getMethod<void()>("dispose");
+    method(_javaPart);
   }
 
   // Properties

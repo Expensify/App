@@ -25,6 +25,7 @@ function ValidateCodeActionContent({
     isLoading,
     threeDotsMenuItems = [],
     onThreeDotsButtonPress = () => {},
+    isPageModal = true,
 }: ValidateCodeActionContentProps) {
     const themeStyles = useThemeStyles();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
@@ -53,8 +54,9 @@ function ValidateCodeActionContent({
             includeSafeAreaPaddingBottom
             includePaddingTop
             shouldEnableMaxHeight
-            testID={ValidateCodeActionContent.displayName}
+            testID="ValidateCodeActionContent"
             offlineIndicatorStyle={themeStyles.mtAuto}
+            shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
                 title={title}
@@ -83,13 +85,12 @@ function ValidateCodeActionContent({
                         clearError={clearError}
                         buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
                         ref={validateCodeFormRef}
+                        isInPageModal={isPageModal}
                     />
                 </View>
             </ScrollView>
         </ScreenWrapper>
     );
 }
-
-ValidateCodeActionContent.displayName = 'ValidateCodeActionContent';
 
 export default ValidateCodeActionContent;

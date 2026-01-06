@@ -1,5 +1,5 @@
 import type {ComponentType, FocusEvent, Key, ReactNode, Ref, RefObject} from 'react';
-import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, TextInputFocusEventData, TextInputSubmitEditingEventData, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, SubmitBehavior, TextInputSubmitEditingEvent, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import type AddressSearch from '@components/AddressSearch';
@@ -26,8 +26,8 @@ import type TextPicker from '@components/TextPicker';
 import type TimeModalPicker from '@components/TimeModalPicker';
 import type UploadFile from '@components/UploadFile';
 import type ValuePicker from '@components/ValuePicker';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type ConstantSelector from '@pages/Debug/ConstantSelector';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import type OnboardingCurrencyPicker from '@pages/OnboardingWorkspaceConfirmation/OnboardingCurrencyPicker';
 import type BusinessTypePicker from '@pages/ReimbursementAccount/USD/BusinessInfo/subSteps/TypeBusiness/BusinessTypePicker';
 import type DimensionTypeSelector from '@pages/workspace/accounting/intacct/import/DimensionTypeSelector';
@@ -38,6 +38,7 @@ import type {Country} from '@src/CONST';
 import type {OnyxFormKey, OnyxValues} from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {BaseForm} from '@src/types/form/Form';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 /**
  * This type specifies all the inputs that can be used with `InputWrapper` component. Make sure to update it
@@ -111,16 +112,16 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
     minDate?: Date;
     maxDate?: Date;
     onTouched?: (event: GestureResponderEvent) => void;
-    onBlur?: (event: FocusEvent | NativeSyntheticEvent<TextInputFocusEventData>) => void;
+    onBlur?: (event: FocusEvent) => void;
     onPressOut?: (event: GestureResponderEvent) => void;
     onPress?: (event: GestureResponderEvent) => void;
     onInputChange?: (value: FormValue, key: string) => void;
-    onSubmitEditing?: (event: NativeSyntheticEvent<TextInputSubmitEditingEventData>) => void;
+    onSubmitEditing?: (event: TextInputSubmitEditingEvent) => void;
     key?: Key;
     ref?: Ref<unknown>;
     multiline?: boolean;
     autoGrowHeight?: boolean;
-    blurOnSubmit?: boolean;
+    submitBehavior?: SubmitBehavior;
     shouldSubmitForm?: boolean;
     uncontrolled?: boolean;
 };
@@ -128,7 +129,7 @@ type InputComponentBaseProps<TValue extends ValueTypeKey = ValueTypeKey> = Input
 type FormOnyxValues<TFormID extends OnyxFormKey = OnyxFormKey> = Omit<OnyxValues[TFormID], keyof BaseForm>;
 type FormOnyxKeys<TFormID extends OnyxFormKey = OnyxFormKey> = keyof FormOnyxValues<TFormID>;
 
-type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
+type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = ForwardedFSClassProps & {
     /** A unique Onyx key identifying the form */
     formID: TFormID;
 
@@ -173,6 +174,7 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
 
     /** Render extra button above submit button */
     shouldRenderFooterAboveSubmit?: boolean;
+
     /**
      * Determines whether the form should automatically scroll to the end upon rendering or when the value changes.
      * If `true`, the form will smoothly scroll to the bottom after interactions have completed.

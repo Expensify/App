@@ -5,15 +5,16 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-type OldTransaction = Transaction & {receiptFilename?: string};
 type TransactionKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
 
-// This migration changes the property name on a transaction from receiptFilename to filename so that it matches what is stored in the database
+type OldTransaction = Transaction & {filename?: string};
+
+// This migration moves filename from the transaction root to transaction.receipt.filename to match the database structure.
 export default function () {
     return new Promise<void>((resolve) => {
         // Connect to the TRANSACTION collection key in Onyx to get all of the stored transactions.
         // Go through each transaction and change the property name
-        const connection = Onyx.connect({
+        const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
             waitForCollectionCallback: true,
             callback: (transactions: OnyxCollection<OldTransaction>) => {
@@ -24,9 +25,9 @@ export default function () {
                     return resolve();
                 }
 
-                const transactionsWithReceipt: Array<OnyxEntry<OldTransaction>> = Object.values(transactions).filter((transaction) => transaction?.receiptFilename);
+                const transactionsWithReceipt: Array<OnyxEntry<OldTransaction>> = Object.values(transactions).filter((transaction) => transaction?.filename);
                 if (!transactionsWithReceipt?.length) {
-                    Log.info('[Migrate Onyx] Skipped migration RenameReceiptFilename because there were no transactions with the receiptFilename property');
+                    Log.info('[Migrate Onyx] Skipped migration RenameReceiptFilename because there were no transactions with the filename property');
                     return resolve();
                 }
                 Log.info('[Migrate Onyx] Running  RenameReceiptFilename migration');
@@ -35,10 +36,12 @@ export default function () {
                         if (!transaction) {
                             return acc;
                         }
-                        Log.info(`[Migrate Onyx] Renaming receiptFilename ${transaction.receiptFilename} to filename`);
+                        Log.info(`[Migrate Onyx] Renaming filename ${transaction.filename} to receipt.filename`);
                         acc[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
-                            filename: transaction.receiptFilename,
-                            receiptFilename: null,
+                            receipt: {
+                                filename: transaction.filename,
+                            },
+                            filename: null,
                         };
                         return acc;
                     },

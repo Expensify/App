@@ -81,9 +81,42 @@ jobs:
         env:
           CF_API_KEY: ${{ secrets.CLOUDFLARE_TOKEN }}
 
+      - name: Check if only articles are updated
+        if: ${{ github.event_name == 'pull_request' }}
+        id: verify_articles_only_updated
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        with:
+          filters: |
+            articles:
+              - 'docs/articles/**'
+              - 'docs/**/*.csv'
+
+      - name: Ensure PR title has [No QA] prefix
+        if: ${{ github.event_name == 'pull_request' && env.IS_PR_FROM_FORK != 'true' && steps.verify_articles_only_updated.outputs.articles == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          current_title=$(gh pr view "$PR_NUMBER" --repo "$REPO" --json title -q '.title')
+          if [[ "$current_title" == "[No QA]"* ]]; then
+            echo "PR title already contains [No QA]; skipping."
+            exit 0
+          fi
+          gh pr edit "$PR_NUMBER" --repo "$REPO" --title "[No QA] $current_title"
+
+      - name: Generate ExpensifyHelp preview comment
+        id: preview_comment
+        if: ${{ github.event_name == 'pull_request' && env.IS_PR_FROM_FORK != 'true' }}
+        uses: ./.github/actions/javascript/generateHelpPreviewComment
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ROOT_URL: ${{ steps.deploy.outputs.alias }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+
       - name: Leave a comment on the PR
         uses: actions-cool/maintain-one-comment@de04bd2a3750d86b324829a3ff34d47e48e16f4b
         if: ${{ github.event_name == 'pull_request' && env.IS_PR_FROM_FORK != 'true' }}
         with:
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          body: ${{ format('A preview of your ExpensifyHelp changes have been deployed to {0} ⚡️', steps.deploy.outputs.alias) }}
+          body: ${{ steps.preview_comment.outputs.BODY }}

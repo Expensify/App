@@ -1,7 +1,6 @@
 import type {ListRenderItem} from '@shopify/flash-list';
 import throttle from 'lodash/throttle';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
@@ -30,7 +29,7 @@ import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 const throttleTime = isMobile() ? 200 : 50;
 
-function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, ref: ForwardedRef<BaseTextInputRef>) {
+function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {windowWidth} = useWindowDimensions();
@@ -175,7 +174,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
             }
             if ('types' in item || 'name' in item) {
                 const emoji = typeof preferredSkinTone === 'number' && preferredSkinTone !== -1 && item?.types?.at(preferredSkinTone) ? item.types.at(preferredSkinTone) : item.code;
-                onEmojiSelected(emoji ?? '', item);
+                onEmojiSelected(emoji ?? '', item, preferredSkinTone);
                 // On web, avoid this Enter default input action; otherwise, it will add a new line in the subsequently focused composer.
                 keyBoardEvent.preventDefault();
                 // On mWeb, avoid propagating this Enter keystroke to Pressable child component; otherwise, it will trigger the onEmojiSelected callback again.
@@ -259,7 +258,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
 
             if ('header' in item && item.header) {
                 return (
-                    <View style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.stickyHeaderEmoji(shouldUseNarrowLayout, windowWidth) : undefined]}>
+                    <View
+                        style={[
+                            styles.emojiHeaderContainer,
+                            styles.emojiHeaderContainerWidth(shouldUseNarrowLayout, windowWidth),
+                            target === 'StickyHeader' ? styles.stickyHeaderEmoji : undefined,
+                        ]}
+                    >
                         <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>
                     </View>
                 );
@@ -277,7 +282,7 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                         if (!('name' in item)) {
                             return;
                         }
-                        onEmojiSelected(emoji, item);
+                        onEmojiSelected(emoji, item, preferredSkinTone);
                     })}
                     onHoverIn={() => {
                         setHighlightEmoji(false);
@@ -336,7 +341,8 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
                     }}
                     onBlur={() => setIsFocused(false)}
                     autoCorrect={false}
-                    blurOnSubmit={filteredEmojis.length > 0}
+                    submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
+                    sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}
                 />
             </View>
             <BaseEmojiPickerMenu
@@ -354,5 +360,4 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji}: EmojiPickerMenuProps, r
     );
 }
 
-EmojiPickerMenu.displayName = 'EmojiPickerMenu';
-export default React.forwardRef(EmojiPickerMenu);
+export default EmojiPickerMenu;

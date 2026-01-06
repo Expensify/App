@@ -9,6 +9,8 @@ import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useAncestors from '@hooks/useAncestors';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -33,6 +35,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, localeCompare} = useLocalize();
     const assignee = useMemo(() => getAssignee(task?.assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, personalDetails), [task?.assigneeAccountID, personalDetails]);
@@ -40,14 +43,15 @@ function NewTaskPage({route}: NewTaskPageProps) {
         getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
         false,
         localeCompare,
+        formatPhoneNumber,
     );
     const shareDestination = useMemo(
         () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined),
         [task?.shareDestination, reports, personalDetails, localeCompare],
     );
     const parentReport = useMemo(() => (task?.shareDestination ? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${task.shareDestination}`] : undefined), [reports, task?.shareDestination]);
+    const ancestors = useAncestors(parentReport);
     const [errorMessage, setErrorMessage] = useState('');
-
     const hasDestinationError = task?.skipConfirmation && !task?.parentReportID;
     const isAllowedToCreateTask = useMemo(() => isEmptyObject(parentReport) || isAllowedToComment(parentReport), [parentReport]);
 
@@ -59,6 +63,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
     useFocusEffect(
         useCallback(() => {
             focusTimeoutRef.current = setTimeout(() => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     blurActiveElement();
                 });
@@ -96,23 +101,26 @@ function NewTaskPage({route}: NewTaskPageProps) {
             return;
         }
 
-        createTaskAndNavigate(
-            parentReport?.reportID,
-            task.title,
-            task?.description ?? '',
-            task?.assignee ?? '',
-            task.assigneeAccountID,
-            task.assigneeChatReport,
-            parentReport?.policyID,
-            false,
+        createTaskAndNavigate({
+            parentReport,
+            title: task.title,
+            description: task?.description ?? '',
+            assigneeEmail: task?.assignee ?? '',
+            currentUserAccountID: currentUserPersonalDetails.accountID,
+            currentUserEmail: currentUserPersonalDetails.email ?? '',
+            assigneeAccountID: task.assigneeAccountID,
+            assigneeChatReport: task.assigneeChatReport,
+            policyID: parentReport?.policyID,
+            isCreatedUsingMarkdown: false,
             quickAction,
-        );
+            ancestors,
+        });
     };
 
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            testID={NewTaskPage.displayName}
+            testID="NewTaskPage"
         >
             <FullPageNotFoundView
                 shouldShow={!isAllowedToCreateTask}
@@ -200,7 +208,5 @@ function NewTaskPage({route}: NewTaskPageProps) {
         </ScreenWrapper>
     );
 }
-
-NewTaskPage.displayName = 'NewTaskPage';
 
 export default NewTaskPage;

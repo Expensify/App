@@ -95,6 +95,7 @@ function FormWrapper({
     shouldSubmitButtonBlendOpacity = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
     onScroll = () => {},
+    forwardedFSClass,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -106,7 +107,7 @@ function FormWrapper({
 
     const onFixTheErrorsLinkPressed = useCallback(() => {
         const errorFields = !isEmptyObject(errors) ? errors : (formState?.errorFields ?? {});
-        const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => Object.keys(errorFields).includes(key));
+        const focusKey = Object.keys(inputRefs.current ?? {}).find((key) => key in errorFields);
 
         if (!focusKey) {
             return;
@@ -227,6 +228,7 @@ function FormWrapper({
                     if (!shouldScrollToEnd) {
                         return;
                     }
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     InteractionManager.runAfterInteractions(() => {
                         requestAnimationFrame(() => {
                             formRef.current?.scrollToEnd({animated: true});
@@ -255,7 +257,10 @@ function FormWrapper({
     }
 
     return (
-        <View style={styles.flex1}>
+        <View
+            style={styles.flex1}
+            fsClass={forwardedFSClass}
+        >
             {scrollContextEnabled ? (
                 <ScrollViewWithContext
                     style={[styles.w100, styles.flex1]}
@@ -284,7 +289,5 @@ function FormWrapper({
         </View>
     );
 }
-
-FormWrapper.displayName = 'FormWrapper';
 
 export default FormWrapper;

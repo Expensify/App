@@ -1,4 +1,4 @@
-import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEventData, TextStyle, ViewStyle} from 'react-native';
+import type {NativeSyntheticEvent, StyleProp, TextInputSelectionChangeEvent, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type {TextSelection} from '@components/Composer/types';
 import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
@@ -33,7 +33,7 @@ type BaseTextInputWithSymbolProps = {
     selection?: TextSelection;
 
     /** Function to call when selection in text input is changed */
-    onSelectionChange?: (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => void;
+    onSelectionChange?: (event: TextInputSelectionChangeEvent) => void;
 
     /** Function to call to handle key presses in the text input */
     onKeyPress?: (event: NativeSyntheticEvent<KeyboardEvent>) => void;
@@ -81,6 +81,12 @@ type BaseTextInputWithSymbolProps = {
     /** Whether to apply padding to the input, some inputs doesn't require any padding, e.g. Amount input in money request flow */
     shouldApplyPaddingToContainer?: boolean;
 
+    /** Whether the amount is negative */
+    isNegative?: boolean;
+
+    /** Function to toggle the amount to negative */
+    toggleNegative?: () => void;
+
     /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
     testID?: string;
 } & Pick<
@@ -95,6 +101,7 @@ type BaseTextInputWithSymbolProps = {
     | 'shouldUseDefaultLineHeightForPrefix'
     | 'onFocus'
     | 'onBlur'
+    | 'disabled'
     | 'ref'
 >;
 

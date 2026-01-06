@@ -1,14 +1,13 @@
 import React from 'react';
+import {View} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openLink} from '@libs/actions/Link';
 import colors from '@styles/theme/colors';
 import ConfirmModal from './ConfirmModal';
-import {ThreeLeggedLaptopWoman} from './Icon/Illustrations';
-import Text from './Text';
-import TextLinkWithRef from './TextLink';
+import RenderHTML from './RenderHTML';
 
 type FocusModeNotificationProps = {
     onClose: () => void;
@@ -17,9 +16,10 @@ type FocusModeNotificationProps = {
 function FocusModeNotification({onClose}: FocusModeNotificationProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const illustrations = useMemoizedLazyIllustrations(['ThreeLeggedLaptopWoman']);
     const {environmentURL} = useEnvironment();
     const {translate} = useLocalize();
-    const href = `${environmentURL}/settings/preferences/priority-mode`;
+    const priorityModePageUrl = `${environmentURL}/settings/preferences/priority-mode`;
 
     return (
         <ConfirmModal
@@ -30,27 +30,16 @@ function FocusModeNotification({onClose}: FocusModeNotificationProps) {
             onBackdropPress={onClose}
             onCancel={onClose}
             prompt={
-                <Text>
-                    {translate('focusModeUpdateModal.prompt')}
-                    <TextLinkWithRef
-                        style={styles.link}
-                        onPress={() => {
-                            onClose();
-                            openLink(href, environmentURL);
-                        }}
-                    >
-                        {translate('focusModeUpdateModal.settings')}
-                    </TextLinkWithRef>
-                    .
-                </Text>
+                <View style={[styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML html={translate('focusModeUpdateModal.prompt', {priorityModePageUrl})} />
+                </View>
             }
             isVisible
-            image={ThreeLeggedLaptopWoman}
+            image={illustrations.ThreeLeggedLaptopWoman}
             imageStyles={StyleUtils.getBackgroundColorStyle(colors.pink800)}
             titleStyles={[styles.textHeadline, styles.mbn3]}
         />
     );
 }
 
-FocusModeNotification.displayName = 'FocusModeNotification';
 export default FocusModeNotification;

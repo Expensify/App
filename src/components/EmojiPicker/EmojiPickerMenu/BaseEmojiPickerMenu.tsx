@@ -1,17 +1,15 @@
 import {FlashList} from '@shopify/flash-list';
-import type {ListRenderItem} from '@shopify/flash-list';
-import React, {useMemo} from 'react';
+import type {FlashListRef, ListRenderItem} from '@shopify/flash-list';
+import React from 'react';
 import type {ForwardedRef} from 'react';
-import {StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import CategoryShortcutBar from '@components/EmojiPicker/CategoryShortcutBar';
 import EmojiSkinToneList from '@components/EmojiPicker/EmojiSkinToneList';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {EmojiPickerList, EmojiPickerListItem, HeaderIndices} from '@libs/EmojiUtils';
 import CONST from '@src/CONST';
 
@@ -42,6 +40,9 @@ type BaseEmojiPickerMenuProps = {
 
     /** Whether the list should always bounce vertically */
     alwaysBounceVertical?: boolean;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<FlashListRef<EmojiPickerListItem>>;
 };
 
 /**
@@ -79,20 +80,19 @@ function ListEmptyComponent() {
     return <Text style={[styles.textLabel, styles.colorMuted]}>{translate('common.noResultsFound')}</Text>;
 }
 
-function BaseEmojiPickerMenu(
-    {headerEmojis, scrollToHeader, isFiltered, listWrapperStyle = [], data, renderItem, stickyHeaderIndices = [], extraData = [], alwaysBounceVertical = false}: BaseEmojiPickerMenuProps,
-    ref: ForwardedRef<FlashList<EmojiPickerListItem>>,
-) {
+function BaseEmojiPickerMenu({
+    headerEmojis,
+    scrollToHeader,
+    isFiltered,
+    listWrapperStyle = [],
+    data,
+    renderItem,
+    stickyHeaderIndices = [],
+    extraData = [],
+    alwaysBounceVertical = false,
+    ref,
+}: BaseEmojiPickerMenuProps) {
     const styles = useThemeStyles();
-    const {windowWidth} = useWindowDimensions();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-
-    // Estimated list size should be a whole integer to avoid floating point precision errors
-    // More info: https://github.com/Expensify/App/issues/34522
-    const listWidth = shouldUseNarrowLayout ? Math.floor(windowWidth) : CONST.EMOJI_PICKER_SIZE.WIDTH;
-
-    const flattenListWrapperStyle = useMemo(() => StyleSheet.flatten(listWrapperStyle), [listWrapperStyle]);
-
     return (
         <>
             {!isFiltered && (
@@ -113,8 +113,6 @@ function BaseEmojiPickerMenu(
                     stickyHeaderIndices={stickyHeaderIndices}
                     ListEmptyComponent={ListEmptyComponent}
                     alwaysBounceVertical={alwaysBounceVertical}
-                    estimatedItemSize={CONST.EMOJI_PICKER_ITEM_HEIGHT}
-                    estimatedListSize={{height: flattenListWrapperStyle.height as number, width: listWidth}}
                     contentContainerStyle={styles.ph4}
                     extraData={extraData}
                     getItemType={getItemType}
@@ -134,6 +132,4 @@ function BaseEmojiPickerMenu(
     );
 }
 
-BaseEmojiPickerMenu.displayName = 'BaseEmojiPickerMenu';
-
-export default React.forwardRef(BaseEmojiPickerMenu);
+export default BaseEmojiPickerMenu;

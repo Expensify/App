@@ -1,10 +1,11 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
 import {createExpenseReport, createInvoiceRoom} from '../utils/collections/reports';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const accountID = 12345;
 const mockPolicyID = '123';
@@ -49,12 +50,17 @@ describe('useParticipantsInvoiceReport', () => {
             Onyx.init({keys: ONYXKEYS});
         });
 
-        afterEach(() => {
-            Onyx.clear();
+        afterEach(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+            await waitForBatchedUpdatesWithAct();
         });
 
         it('should return the invoice report when there is an active individual invoice report', async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockActiveIndividualInvoiceReport?.reportID}`, mockActiveIndividualInvoiceReport);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockActiveIndividualInvoiceReport?.reportID}`, mockActiveIndividualInvoiceReport);
+            });
 
             const {result, rerender} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: accountID, receiverType: activeIndividualInvoiceReceiver.type, policyID: mockPolicyID},
@@ -75,8 +81,10 @@ describe('useParticipantsInvoiceReport', () => {
         });
 
         it('should return undefined when the invoice report is archived', async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockArchivedIndividualInvoiceReport?.reportID}`, mockArchivedIndividualInvoiceReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockArchivedIndividualInvoiceReport?.reportID}`, archivedReportNameValuePairs);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockArchivedIndividualInvoiceReport?.reportID}`, mockArchivedIndividualInvoiceReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockArchivedIndividualInvoiceReport?.reportID}`, archivedReportNameValuePairs);
+            });
 
             const {result} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: archivedIndividualReportInvoiceReceiver.accountID, receiverType: archivedIndividualReportInvoiceReceiver.type, policyID: mockPolicyID},
@@ -88,7 +96,9 @@ describe('useParticipantsInvoiceReport', () => {
 
         it('should return undefined when the report is not an invoice report', async () => {
             const expenseReport = {...createExpenseReport(5645), invoiceReceiver: activeIndividualInvoiceReceiver, policyID: mockPolicyID};
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            });
 
             const {result} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: accountID, receiverType: activeIndividualInvoiceReceiver.type, policyID: mockPolicyID},
@@ -103,12 +113,17 @@ describe('useParticipantsInvoiceReport', () => {
             Onyx.init({keys: ONYXKEYS});
         });
 
-        afterAll(() => {
-            Onyx.clear();
+        afterAll(async () => {
+            await act(async () => {
+                await Onyx.clear();
+            });
+            await waitForBatchedUpdatesWithAct();
         });
 
         it('should return the invoice report when there is an active business invoice report', async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockActiveBusinessInvoiceReport?.reportID}`, mockActiveBusinessInvoiceReport);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockActiveBusinessInvoiceReport?.reportID}`, mockActiveBusinessInvoiceReport);
+            });
 
             const {result, rerender} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: activeBusinessInvoiceReceiver.policyID, receiverType: activeBusinessInvoiceReceiver.type, policyID: activeBusinessPolicyID},
@@ -124,8 +139,10 @@ describe('useParticipantsInvoiceReport', () => {
         });
 
         it('should return undefined when the invoice report is archived', async () => {
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockArchivedBusinessInvoiceReport?.reportID}`, mockArchivedBusinessInvoiceReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockArchivedBusinessInvoiceReport?.reportID}`, archivedReportNameValuePairs);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockArchivedBusinessInvoiceReport?.reportID}`, mockArchivedBusinessInvoiceReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockArchivedBusinessInvoiceReport?.reportID}`, archivedReportNameValuePairs);
+            });
 
             const {result} = renderHook(({receiverID, receiverType, policyID}) => useParticipantsInvoiceReport(receiverID, receiverType, policyID), {
                 initialProps: {receiverID: archivedBusinessInvoiceReceiver.policyID, receiverType: archivedBusinessInvoiceReceiver.type, policyID: archivedBusinessPolicyID},

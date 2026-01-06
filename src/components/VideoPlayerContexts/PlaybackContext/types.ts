@@ -1,5 +1,5 @@
 import type {AVPlaybackStatus} from 'expo-av';
-import type {MutableRefObject} from 'react';
+import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 
@@ -7,7 +7,7 @@ type StatusCallback = (isPlaying: boolean) => void;
 type OriginalParent = View | HTMLDivElement | null;
 type UnloadVideo = () => void;
 type StopVideo = () => void;
-type PlayVideoPromiseRef = MutableRefObject<Promise<AVPlaybackStatus> | undefined>;
+type PlayVideoPromiseRef = RefObject<Promise<AVPlaybackStatus> | undefined>;
 
 type VideoElementData = {
     shouldUseSharedVideoElement: boolean;
@@ -35,9 +35,10 @@ type PlaybackContextVideoRefs = {
     resetPlayerData: () => void;
     play: () => void;
     pause: () => void;
+    stop: () => void;
     isPlaying: (statusCallback: StatusCallback) => void;
-    resumeTryNumberRef: MutableRefObject<number>;
-    ref: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
+    resumeTryNumberRef: RefObject<number>;
+    ref: RefObject<VideoWithOnFullScreenUpdate | null>;
     updateRef: (ref: VideoWithOnFullScreenUpdate | null) => void;
 };
 
@@ -45,6 +46,7 @@ type PlaybackContext = PlaybackContextValues & {
     resetVideoPlayerData: PlaybackContextVideoRefs['resetPlayerData'];
     playVideo: PlaybackContextVideoRefs['play'];
     pauseVideo: PlaybackContextVideoRefs['pause'];
+    stopVideo: PlaybackContextVideoRefs['stop'];
     checkIfVideoIsPlaying: PlaybackContextVideoRefs['isPlaying'];
     videoResumeTryNumberRef: PlaybackContextVideoRefs['resumeTryNumberRef'];
     currentVideoPlayerRef: PlaybackContextVideoRefs['ref'];

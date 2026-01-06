@@ -1,6 +1,7 @@
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
+import type {ValueOf} from 'type-fest';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchAutocompleteQueryRange, SearchAutocompleteResult} from '@components/Search/types';
 import CONST from '@src/CONST';
@@ -27,11 +28,15 @@ function parseForAutocomplete(text: string) {
  */
 function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists>) {
     const uniqueTagNames = new Set<string>();
-    const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item);
-    tagListsUnpacked
-        .map(getTagNamesFromTagsLists)
-        .flat()
-        .forEach((tag) => uniqueTagNames.add(tag));
+    for (const tagList of Object.values(allPoliciesTagsLists ?? {})) {
+        if (!tagList) {
+            continue;
+        }
+        const tagNamesFromTagsLists = getTagNamesFromTagsLists(tagList);
+        for (const tag of tagNamesFromTagsLists) {
+            uniqueTagNames.add(tag);
+        }
+    }
     return Array.from(uniqueTagNames);
 }
 
@@ -40,10 +45,13 @@ function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
  */
 function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTags>) {
     const uniqueTagNames = new Set<string>();
-    Object.values(allRecentTags ?? {})
-        .map((recentTag) => Object.values(recentTag ?? {}))
-        .flat(2)
-        .forEach((tag) => uniqueTagNames.add(tag));
+    for (const recentTagsForPolicy of Object.values(allRecentTags ?? {})) {
+        for (const recentTags of Object.values(recentTagsForPolicy ?? {})) {
+            for (const tag of recentTags) {
+                uniqueTagNames.add(tag);
+            }
+        }
+    }
     return Array.from(uniqueTagNames);
 }
 
@@ -52,7 +60,11 @@ function getAutocompleteRecentTags(allRecentTags: OnyxCollection<RecentlyUsedTag
  */
 function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCategories>) {
     const uniqueCategoryNames = new Set<string>();
-    Object.values(allPolicyCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category.name)));
+    for (const policyCategories of Object.values(allPolicyCategories ?? {})) {
+        for (const category of Object.values(policyCategories ?? {})) {
+            uniqueCategoryNames.add(category.name);
+        }
+    }
     return Array.from(uniqueCategoryNames);
 }
 
@@ -61,7 +73,11 @@ function getAutocompleteCategories(allPolicyCategories: OnyxCollection<PolicyCat
  */
 function getAutocompleteRecentCategories(allRecentCategories: OnyxCollection<RecentlyUsedCategories>) {
     const uniqueCategoryNames = new Set<string>();
-    Object.values(allRecentCategories ?? {}).map((policyCategories) => Object.values(policyCategories ?? {}).forEach((category) => uniqueCategoryNames.add(category)));
+    for (const recentCategories of Object.values(allRecentCategories ?? {})) {
+        for (const category of Object.values(recentCategories ?? {})) {
+            uniqueCategoryNames.add(category);
+        }
+    }
     return Array.from(uniqueCategoryNames);
 }
 
@@ -115,13 +131,13 @@ const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value)
 const userFriendlyStatusList = Object.values({
     ...CONST.SEARCH.STATUS.EXPENSE,
     ...CONST.SEARCH.STATUS.INVOICE,
-    ...CONST.SEARCH.STATUS.CHAT,
     ...CONST.SEARCH.STATUS.TRIP,
     ...CONST.SEARCH.STATUS.TASK,
 }).map((value) => getUserFriendlyValue(value));
 
 /**
  * @private
+ * Determines if a specific value in the search syntax can/should be highlighted as valid or not
  */
 function filterOutRangesWithCorrectValue(
     range: SearchAutocompleteQueryRange,
@@ -130,6 +146,7 @@ function filterOutRangesWithCorrectValue(
     currencyList: SharedValue<string[]>,
     categoryList: SharedValue<string[]>,
     tagList: SharedValue<string[]>,
+    currentType: string,
 ) {
     'worklet';
 
@@ -142,6 +159,11 @@ function filterOutRangesWithCorrectValue(
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
+    const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
+
+    if (range.key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
+        return range.value.length > 0;
+    }
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
@@ -156,8 +178,8 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value);
-
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY:
@@ -173,10 +195,13 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
             return actionList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY:
-            return categoryList.get().includes(range.value);
+            return categoryList.get().includes(range.value) || range.value === CONST.SEARCH.CATEGORY_EMPTY_VALUE;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
             return tagList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
+            if (currentType !== CONST.SEARCH.DATA_TYPES.EXPENSE && currentType !== CONST.SEARCH.DATA_TYPES.INVOICE && currentType !== CONST.SEARCH.DATA_TYPES.TRIP) {
+                return false;
+            }
             return groupByList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
@@ -188,9 +213,25 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED:
-            return datePresetList.includes(range.value);
+            return datePresetList.includes(range.value) || /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS:
             return hasList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
+            return range.value.length > 0;
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID:
+            return !['', 'null', 'undefined', '0', '-1'].includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
+            // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
+            return /^-?(?!.*[.,].*[.,])\d{0,8}(?:[.,]\d{0,2})?$/.test(range.value);
+        case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
+            return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS).includes(range.value as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS>);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
+            return isList.includes(range.value);
         default:
             return false;
     }
@@ -213,10 +254,13 @@ function parseForLiveMarkdown(
 
     const parsedAutocomplete = parse(input) as SearchAutocompleteResult;
     const ranges = parsedAutocomplete.ranges;
+    const typeRange = ranges.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+    const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, currentType))
         .map((range) => {
-            const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName;
+            const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
 
             return {start: range.start, type, length: range.length};

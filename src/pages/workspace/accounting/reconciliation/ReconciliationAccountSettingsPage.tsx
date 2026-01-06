@@ -1,10 +1,12 @@
 import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
+import RenderHTML from '@components/RenderHTML';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import Text from '@components/Text';
-import TextLink from '@components/TextLink';
 import useDefaultFundID from '@hooks/useDefaultFundID';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,25 +46,27 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
 
     const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID?.toString() ?? ''], [paymentBankAccountID, bankAccountList]);
-    const bankAccountNumber = useMemo(() => selectedBankAccount?.accountData?.accountNumber ?? '', [selectedBankAccount]);
+    const bankAccountNumber = useMemo(() => selectedBankAccount?.accountData?.accountNumber ?? '', [selectedBankAccount?.accountData?.accountNumber]);
     const settlementAccountEnding = getLastFourDigits(bankAccountNumber);
-
     const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
+    const {environmentURL} = useEnvironment();
 
-    const sections = useMemo(() => {
+    const options = useMemo(() => {
         if (!bankAccountList || isEmptyObject(bankAccountList)) {
             return [];
         }
         const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountList);
 
-        const data = eligibleBankAccounts.map((bankAccount) => ({
+        return eligibleBankAccounts.map((bankAccount, index) => ({
             text: bankAccount.title,
             value: bankAccount.accountData?.bankAccountID,
-            keyForList: bankAccount.accountData?.bankAccountID?.toString(),
+            keyForList: bankAccount.accountData?.bankAccountID?.toString() ?? `${bankAccount.title}-${index}`,
             isSelected: bankAccount.accountData?.bankAccountID === paymentBankAccountID,
+            alternateText:
+                bankAccount.description ??
+                (bankAccount.accountData?.accountNumber ? `${translate('bankAccount.accountEnding')} ${getLastFourDigits(bankAccount.accountData.accountNumber)}` : ''),
         }));
-        return [{data}];
-    }, [bankAccountList, paymentBankAccountID]);
+    }, [bankAccountList, paymentBankAccountID, translate]);
 
     const goBack = useCallback(() => {
         Navigation.goBack(backTo ?? ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection));
@@ -75,7 +79,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
 
     return (
         <ConnectionLayout
-            displayName={ReconciliationAccountSettingsPage.displayName}
+            displayName="ReconciliationAccountSettingsPage"
             headerTitle="workspace.accounting.reconciliationAccount"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -86,24 +90,23 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
             onBackButtonPress={goBack}
         >
             <Text style={[styles.textNormal, styles.mb5, styles.ph5]}>{translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}</Text>
-            <Text style={[styles.textNormal, styles.mb6, styles.ph5]}>
-                {translate('workspace.accounting.chooseReconciliationAccount.accountMatches')}
-                <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute()))}>
-                    {translate('workspace.accounting.chooseReconciliationAccount.settlementAccount')}
-                </TextLink>
-                {translate('workspace.accounting.chooseReconciliationAccount.reconciliationWorks', {lastFourPAN: settlementAccountEnding})}
-            </Text>
+            <View style={[styles.textNormal, styles.mb6, styles.ph5, styles.renderHTML, styles.flexRow]}>
+                <RenderHTML
+                    html={translate('workspace.accounting.chooseReconciliationAccount.settlementAccountReconciliation', {
+                        settlementAccountUrl: `${environmentURL}/${ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.getRoute(policyID, Navigation.getActiveRoute())}`,
+                        lastFourPAN: settlementAccountEnding,
+                    })}
+                />
+            </View>
 
             <SelectionList
-                sections={sections}
+                data={options}
                 onSelectRow={({value}) => selectBankAccount(value)}
                 ListItem={RadioListItem}
-                initiallyFocusedOptionKey={paymentBankAccountID?.toString()}
+                initiallyFocusedItemKey={paymentBankAccountID?.toString()}
             />
         </ConnectionLayout>
     );
 }
-
-ReconciliationAccountSettingsPage.displayName = 'ReconciliationAccountSettingsPage';
 
 export default ReconciliationAccountSettingsPage;

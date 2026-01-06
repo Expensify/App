@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react-native';
+import {act, render, screen} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
@@ -7,7 +7,7 @@ import HeaderView from '@pages/home/HeaderView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {createRandomReport} from '../../utils/collections/reports';
-import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
@@ -34,17 +34,18 @@ describe('HeaderView', () => {
         const accountID = 2;
         let displayName = 'test';
         const report = {
-            ...createRandomReport(Number(chatReportID)),
-            chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            ...createRandomReport(Number(chatReportID), CONST.REPORT.CHAT_TYPE.INVOICE),
             invoiceReceiver: {
                 accountID,
                 type: CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL,
             },
         };
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [accountID]: {
-                displayName,
-            },
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [accountID]: {
+                    displayName,
+                },
+            });
         });
 
         render(
@@ -58,16 +59,18 @@ describe('HeaderView', () => {
             </OnyxListItemProvider>,
         );
 
-        await waitForBatchedUpdates();
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('DisplayNames')).toHaveTextContent(displayName);
 
         // When the invoice receiver display name is updated
         displayName = 'test edit';
-        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-            [accountID]: {
-                displayName,
-            },
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [accountID]: {
+                    displayName,
+                },
+            });
         });
 
         // Then the header title should be updated using the new display name

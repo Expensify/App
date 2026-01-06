@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -128,7 +128,7 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksOutOfPocketExpenseEntitySelectPage.displayName}
+            displayName="QuickbooksOutOfPocketExpenseEntitySelectPage"
             sections={sections}
             listItem={RadioListItem}
             onBackButtonPress={goBack}
@@ -151,7 +151,5 @@ function QuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnec
         />
     );
 }
-
-QuickbooksOutOfPocketExpenseEntitySelectPage.displayName = 'QuickbooksOutOfPocketExpenseEntitySelectPage';
 
 export default withPolicyConnections(QuickbooksOutOfPocketExpenseEntitySelectPage);

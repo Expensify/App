@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
-import type {SectionListData} from 'react-native';
 import useDebouncedState from '@hooks/useDebouncedState';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -13,11 +13,9 @@ import MemberRightIcon from '@pages/workspace/MemberRightIcon';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
-import {FallbackAvatar} from './Icon/Expensicons';
 import {usePersonalDetails} from './OnyxListItemProvider';
 import SelectionList from './SelectionList';
-import InviteMemberListItem from './SelectionList/InviteMemberListItem';
-import type {Section} from './SelectionList/types';
+import InviteMemberListItem from './SelectionList/ListItem/InviteMemberListItem';
 
 type SelectionListApprover = {
     text: string;
@@ -29,7 +27,6 @@ type SelectionListApprover = {
     icons: Icon[];
     value?: number;
 };
-type ApproverSection = SectionListData<SelectionListApprover, Section<SelectionListApprover>>;
 
 type WorkspaceMembersSelectionListProps = {
     policyID: string;
@@ -38,14 +35,15 @@ type WorkspaceMembersSelectionListProps = {
 };
 
 function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}: WorkspaceMembersSelectionListProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {translate, localeCompare} = useLocalize();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const personalDetails = usePersonalDetails();
     const policy = usePolicy(policyID);
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
-    const sections: ApproverSection[] = useMemo(() => {
+    const orderedApprovers = useMemo(() => {
         const approvers: SelectionListApprover[] = [];
 
         if (policy?.employeeList) {
@@ -67,7 +65,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
                         keyForList: email,
                         isSelected: selectedApprover === email,
                         login: email,
-                        icons: [{source: avatar ?? FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
+                        icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                         rightElement: (
                             <MemberRightIcon
                                 role={employee.role}
@@ -84,34 +82,34 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
 
         const filteredApprovers = tokenizedSearch(approvers, getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode), (approver) => [approver.text ?? '', approver.login ?? '']);
 
-        return [
-            {
-                title: undefined,
-                data: sortAlphabetically(filteredApprovers, 'text', localeCompare),
-                shouldShow: true,
-            },
-        ];
-    }, [policy?.employeeList, policy?.owner, debouncedSearchTerm, countryCode, localeCompare, personalDetails, selectedApprover]);
+        return sortAlphabetically(filteredApprovers, 'text', localeCompare);
+    }, [policy?.employeeList, policy?.owner, debouncedSearchTerm, countryCode, localeCompare, personalDetails, selectedApprover, icons.FallbackAvatar]);
 
     const handleOnSelectRow = (approver: SelectionListApprover) => {
         setApprover(approver.login);
     };
 
-    const headerMessage = useMemo(() => (searchTerm && !sections.at(0)?.data.length ? translate('common.noResultsFound') : ''), [searchTerm, sections, translate]);
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('selectionList.nameEmailOrPhoneNumber'),
+            value: searchTerm,
+            headerMessage: searchTerm && !orderedApprovers.length ? translate('common.noResultsFound') : '',
+            onChangeText: setSearchTerm,
+        }),
+        [searchTerm, orderedApprovers.length, setSearchTerm, translate],
+    );
 
     return (
         <SelectionList
-            sections={sections}
+            data={orderedApprovers}
             ListItem={InviteMemberListItem}
-            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-            textInputValue={searchTerm}
-            onChangeText={setSearchTerm}
-            headerMessage={headerMessage}
             onSelectRow={handleOnSelectRow}
-            showScrollIndicator
+            textInputOptions={textInputOptions}
             showLoadingPlaceholder={!didScreenTransitionEnd}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            disableMaintainingScrollPosition
             addBottomSafeAreaPadding
+            showScrollIndicator
         />
     );
 }

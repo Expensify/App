@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import * as NativeNavigation from '@react-navigation/native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -12,8 +12,7 @@ import type {MoneyRequestReportPreviewProps} from '@components/ReportActionItem/
 import ScreenWrapper from '@components/ScreenWrapper';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {translateLocal} from '@libs/Localize';
-import {getFormattedCreated, isCardTransaction} from '@libs/TransactionUtils';
+import {getFormattedCreated, isManagedCardTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import * as ReportActionUtils from '@src/libs/ReportActionsUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
@@ -24,7 +23,6 @@ import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} fr
 import {transactionR14932 as mockTransaction} from '../../__mocks__/reportData/transactions';
 import {violationsR14932 as mockViolations} from '../../__mocks__/reportData/violations';
 import * as TestHelper from '../utils/TestHelper';
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const mockSecondTransactionID = `${mockTransaction.transactionID}2`;
@@ -39,10 +37,6 @@ jest.mock('@rnmapbox/maps', () => {
     };
 });
 
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
-
 jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () =>
     jest.fn((): [OnyxEntry<Report>, Transaction[], OnyxCollection<TransactionViolation[]>] => {
         return [mockChatReport, [mockTransaction, {...mockTransaction, transactionID: mockSecondTransactionID}], {violations: mockViolations}];
@@ -56,8 +50,13 @@ const getIOUActionForReportID = (reportID: string | undefined, transactionID: st
     return {...mockAction, originalMessage: {...mockAction, IOUTransactionID: transactionID}};
 };
 
-const hasViolations = (reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean) =>
-    (shouldShowInReview === undefined || shouldShowInReview) && Object.values(transactionViolations ?? {}).length > 0;
+const hasViolations = (
+    reportID: string | undefined,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+    _currentUserAccountID: number,
+    _currentUserEmailParam: string,
+    shouldShowInReview?: boolean,
+) => (shouldShowInReview === undefined || shouldShowInReview) && Object.values(transactionViolations ?? {}).length > 0;
 
 const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = null}: Partial<MoneyRequestReportPreviewProps>) => {
     return render(
@@ -91,8 +90,8 @@ const renderPage = ({isWhisper = false, isHovered = false, contextMenuAnchor = n
 const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
     const created = getFormattedCreated(transaction);
     const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-    const isTransactionMadeWithCard = isCardTransaction(transaction);
-    const cashOrCard = isTransactionMadeWithCard ? translateLocal('iou.card') : translateLocal('iou.cash');
+    const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
+    const cashOrCard = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
     const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
     const transactionDisplayAmount = convertToDisplayString(transaction.amount, transaction.currency);
     return {transactionHeaderText, transactionDisplayAmount};
@@ -141,14 +140,20 @@ describe('MoneyRequestReportPreview', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        return Onyx.clear().then(waitForBatchedUpdates);
+        return act(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     it('renders transaction details and associated report name correctly', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
-        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions).then(waitForBatchedUpdates);
+        await act(async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, mockOnyxTransactions);
+            await waitForBatchedUpdatesWithAct();
+        });
         await waitForBatchedUpdatesWithAct();
         const {reportName: moneyRequestReportPreviewName = ''} = mockChatReport;
         for (const transaction of arrayOfTransactions) {
@@ -165,9 +170,11 @@ describe('MoneyRequestReportPreview', () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
-        await Onyx.multiSet({...mockOnyxTransactions, ...mockOnyxViolations});
+        await act(async () => {
+            await Onyx.multiSet({...mockOnyxTransactions, ...mockOnyxViolations});
+        });
         await waitForBatchedUpdatesWithAct();
-        expect(screen.getAllByText(translateLocal('violations.reviewRequired'))).toHaveLength(2);
+        expect(screen.getAllByText(TestHelper.translateLocal('violations.reviewRequired'))).toHaveLength(2);
     });
 
     it('renders a skeleton if the transaction is empty', async () => {
@@ -175,8 +182,10 @@ describe('MoneyRequestReportPreview', () => {
         await waitForBatchedUpdatesWithAct();
         setCurrentWidth();
 
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {} as OnyxMergeInput<`transactions_${string}`>);
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockSecondTransactionID}`, {} as OnyxMergeInput<`transactions_${string}`>);
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockTransaction.transactionID}`, {} as OnyxMergeInput<`transactions_${string}`>);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${mockSecondTransactionID}`, {} as OnyxMergeInput<`transactions_${string}`>);
+        });
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getAllByTestId('TransactionPreviewSkeletonView')).toHaveLength(2);

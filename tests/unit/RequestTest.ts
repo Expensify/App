@@ -17,9 +17,9 @@ const request: OnyxTypes.Request = {
     data: {authToken: 'testToken'},
 };
 
-test('Request.use() can register a middleware and it will run', () => {
+test('Request.addMiddleware() can register a middleware and it will run', () => {
     const testMiddleware = jest.fn<Middleware, Parameters<Middleware>>();
-    Request.use(testMiddleware as unknown as Middleware);
+    Request.addMiddleware(testMiddleware as unknown as Middleware);
 
     Request.processWithMiddleware(request, true);
     return waitForBatchedUpdates().then(() => {
@@ -35,27 +35,25 @@ test('Request.use() can register a middleware and it will run', () => {
     });
 });
 
-test('Request.use() can register two middlewares. They can pass a response to the next and throw errors', () => {
+test('Request.addMiddleware() can register two middlewares. They can pass a response to the next and throw errors', () => {
     // Given an initial middleware that returns a promise with a resolved value
     const testMiddleware = jest.fn().mockResolvedValue({
         jsonCode: 404,
     });
 
     // And another middleware that will throw when it sees this jsonCode
-    const errorThrowingMiddleware: Middleware = (promise: Promise<void | OnyxTypes.Response>) =>
-        promise.then(
-            (response: void | OnyxTypes.Response) =>
-                new Promise((resolve, reject) => {
-                    if (typeof response === 'object' && response.jsonCode !== 404) {
-                        return;
-                    }
+    const errorThrowingMiddleware: Middleware = (promise) =>
+        promise.then((response) => {
+            if (typeof response === 'object' && response.jsonCode !== 404) {
+                // Pass the response through to the next middleware
+                return response;
+            }
+            // Reject so the chain receives an error
+            throw new Error('Oops');
+        });
 
-                    reject(new Error('Oops'));
-                }),
-        );
-
-    Request.use(testMiddleware);
-    Request.use(errorThrowingMiddleware);
+    Request.addMiddleware(testMiddleware);
+    Request.addMiddleware(errorThrowingMiddleware);
 
     const catchHandler = jest.fn();
     Request.processWithMiddleware(request).catch(catchHandler);

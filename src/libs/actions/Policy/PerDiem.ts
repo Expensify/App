@@ -1,17 +1,19 @@
 import lodashDeepClone from 'lodash/cloneDeep';
 import type {NullishDeep} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import * as API from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import {translateLocal} from '@libs/Localize';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {generateHexadecimalValue} from '@libs/NumberUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
+import {findPolicyExpenseChatByPolicyID} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {QuickAction} from '@src/types/onyx';
 import type {ErrorFields, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -34,7 +36,7 @@ function generateCustomUnitID(): string {
     return generateHexadecimalValue(13);
 }
 
-function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string, shouldGoBack?: boolean) {
+function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string, shouldGoBack?: boolean, quickAction?: QuickAction) {
     const doesCustomUnitExists = !!customUnitID;
     const finalCustomUnitID = doesCustomUnitExists ? customUnitID : generateCustomUnitID();
     const optimisticCustomUnit = {
@@ -44,6 +46,9 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
         defaultCategory: '',
         rates: {},
     };
+    const workspaceChatReportID = findPolicyExpenseChatByPolicyID(policyID)?.reportID;
+
+    const shouldClearQuickAction = quickAction?.action === CONST.QUICK_ACTIONS.PER_DIEM && !enabled && workspaceChatReportID === quickAction?.chatReportID;
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -57,6 +62,15 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
                     ...(doesCustomUnitExists ? {} : {customUnits: {[finalCustomUnitID]: optimisticCustomUnit}}),
                 },
             },
+            ...(shouldClearQuickAction
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.SET,
+                          key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                          value: null,
+                      },
+                  ]
+                : []),
         ],
         successData: [
             {
@@ -80,6 +94,15 @@ function enablePerDiem(policyID: string, enabled: boolean, customUnitID?: string
                     },
                 },
             },
+            ...(shouldClearQuickAction
+                ? [
+                      {
+                          onyxMethod: Onyx.METHOD.SET,
+                          key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                          value: quickAction,
+                      },
+                  ]
+                : []),
         ],
     };
 
@@ -111,8 +134,11 @@ function updateImportSpreadsheetData(ratesLength: number) {
                 value: {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
-                        title: translateLocal('spreadsheet.importSuccessfulTitle'),
-                        prompt: translateLocal('spreadsheet.importPerDiemRatesSuccessfulDescription', {rates: ratesLength}),
+                        titleKey: 'spreadsheet.importSuccessfulTitle',
+                        promptKey: 'spreadsheet.importPerDiemRatesSuccessfulDescription',
+                        promptKeyParams: {
+                            rates: ratesLength,
+                        },
                     },
                 },
             },
@@ -124,7 +150,10 @@ function updateImportSpreadsheetData(ratesLength: number) {
                 key: ONYXKEYS.IMPORTED_SPREADSHEET,
                 value: {
                     shouldFinalModalBeOpened: true,
-                    importFinalModal: {title: translateLocal('spreadsheet.importFailedTitle'), prompt: translateLocal('spreadsheet.importFailedDescription')},
+                    importFinalModal: {
+                        titleKey: 'spreadsheet.importFailedTitle',
+                        promptKey: 'spreadsheet.importFailedDescription',
+                    },
                 },
             },
         ],
@@ -145,7 +174,7 @@ function importPerDiemRates(policyID: string, customUnitID: string, rates: Rate[
     API.write(WRITE_COMMANDS.IMPORT_PER_DIEM_RATES, parameters, onyxData);
 }
 
-function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void) {
+function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_PER_DIEM_CSV, {
         policyID,
     });
@@ -153,11 +182,11 @@ function downloadPerDiemCSV(policyID: string, onDownloadFailed: () => void) {
     const fileName = 'PerDiem.csv';
 
     const formData = new FormData();
-    Object.entries(finalParameters).forEach(([key, value]) => {
+    for (const [key, value] of Object.entries(finalParameters)) {
         formData.append(key, String(value));
-    });
+    }
 
-    fileDownload(getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
+    fileDownload(translate, getCommandURL({command: WRITE_COMMANDS.EXPORT_PER_DIEM_CSV}), fileName, '', false, formData, CONST.NETWORK.METHOD.POST, onDownloadFailed);
 }
 
 function clearPolicyPerDiemRatesErrorFields(policyID: string, customUnitID: string, updatedErrorFields: ErrorFields) {
@@ -364,6 +393,16 @@ function editPerDiemRateCurrency(policyID: string, rateID: string, customUnit: C
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
 }
 
+function fetchPerDiemRates(policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+    const parameters = {
+        policyID,
+    };
+    API.read(READ_COMMANDS.OPEN_DRAFT_PER_DIEM_EXPENSE, parameters);
+}
+
 export {
     generateCustomUnitID,
     enablePerDiem,
@@ -376,4 +415,5 @@ export {
     editPerDiemRateSubrate,
     editPerDiemRateAmount,
     editPerDiemRateCurrency,
+    fetchPerDiemRates,
 };

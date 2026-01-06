@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -79,7 +79,7 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctMappingsTypePage.displayName}
+            displayName="SageIntacctMappingsTypePage"
             sections={[{data: selectionOptions}]}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
@@ -94,7 +94,5 @@ function SageIntacctMappingsTypePage({route}: SageIntacctMappingsTypePageProps) 
         />
     );
 }
-
-SageIntacctMappingsTypePage.displayName = 'SageIntacctMappingsTypePage';
 
 export default SageIntacctMappingsTypePage;

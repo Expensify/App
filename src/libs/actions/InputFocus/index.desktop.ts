@@ -19,6 +19,7 @@ function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: M
     }
     if (!isFocused && !onyxFocused && !modal.willAlertModalBecomeVisible && !modal.isVisible && refSave) {
         if (!ReportActionComposeFocusManager.isFocused()) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
                 refSave?.focus();
             });

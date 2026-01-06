@@ -1,17 +1,27 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import DateUtils from '@libs/DateUtils';
 import {
     getActivePolicies,
+    getCustomUnitsForDuplication,
+    getEligibleBankAccountShareRecipients,
     getManagerAccountID,
     getPolicyEmployeeAccountIDs,
     getPolicyNameByID,
     getRateDisplayValue,
     getSubmitToAccountID,
+    getTagApproverRule,
     getTagList,
     getTagListByOrderWeight,
+    getUberConnectionErrorDirectlyFromPolicy,
     getUnitRateValue,
+    hasDynamicExternalWorkflow,
+    hasOnlyPersonalPolicies,
+    hasOtherControlWorkspaces,
+    hasPolicyWithXeroConnection,
     isCurrentUserMemberOfAnyPolicy,
     isPolicyMemberWithoutPendingDelete,
     shouldShowPolicy,
@@ -19,8 +29,10 @@ import {
 } from '@libs/PolicyUtils';
 import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import {getPolicyBrickRoadIndicatorStatus} from '@src/libs/PolicyUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
@@ -193,6 +205,71 @@ const policyTags = {
 };
 
 describe('PolicyUtils', () => {
+    describe('useDefaultFundID', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return domainID for given policyID when workspaceID is not set', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                workspaceAccountID: 0,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}`, {
+                [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}18441278`]: {
+                    currentBalance: 0,
+                    domainName: 'expensify-policy8fe6324c4897.exfy',
+                    earnedCashback: 0,
+                    isLoading: false,
+                    isMonthlySettlementAllowed: false,
+                    limit: 0,
+                    marqetaBusinessToken: 18441278,
+                    ownerEmail: 'user@gmail.com',
+                    paymentBankAccountAddressName: 'Alberta Bobbeth Charleson',
+                    paymentBankAccountID: 3288123,
+                    paymentBankAccountNumber: 'XXXXXXXXXXXX1111',
+                    preferredPolicy: '2',
+                    remainingLimit: 0,
+                },
+            });
+            const {result} = renderHook(() => useDefaultFundID(policy.id));
+
+            expect(result?.current).toBe(18441278);
+        });
+
+        it('should return lastSelectedExpensifyCardFeed for given policyID when lastSelectedExpensifyCardFeed is set', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM),
+                workspaceAccountID: 0,
+            };
+            const lastSelectedExpensifyCardFeed = 11111;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}2`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}2`, lastSelectedExpensifyCardFeed);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${lastSelectedExpensifyCardFeed}`, {
+                paymentBankAccountID: 1234,
+            });
+            const {result} = renderHook(() => useDefaultFundID(policy.id));
+
+            expect(result?.current).toBe(lastSelectedExpensifyCardFeed);
+        });
+
+        it('should return workspaceAccountID for given policyID', async () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                workspaceAccountID: 123234,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+            const {result} = renderHook(() => useDefaultFundID(policy.id));
+
+            expect(result?.current).toBe(123234);
+        });
+    });
+
     describe('getActivePolicies', () => {
         it("getActivePolicies should filter out policies that the current user doesn't belong to", () => {
             const policies = createCollection<Policy>(
@@ -201,6 +278,53 @@ describe('PolicyUtils', () => {
                 2,
             );
             expect(getActivePolicies(policies, undefined)).toHaveLength(1);
+        });
+    });
+    describe('getCustomUnitsForDuplication', () => {
+        const perDiemUnit = {
+            customUnitID: '123',
+            name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+            enabled: true,
+            rates: {},
+        };
+        const otherUnit = {
+            customUnitID: '456',
+            name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+            enabled: true,
+            rates: {},
+        };
+        const policy: Policy = {
+            ...createRandomPolicy(0),
+            customUnits: {
+                [perDiemUnit.customUnitID]: perDiemUnit,
+                [otherUnit.customUnitID]: otherUnit,
+            },
+        };
+
+        const policyWithoutCustomUnits: Policy = {
+            ...createRandomPolicy(0),
+        };
+
+        it('returns undefined if neither option is selected', () => {
+            expect(getCustomUnitsForDuplication(policy, false, false)).toBeUndefined();
+        });
+
+        it('returns all custom units if both options are selected', () => {
+            const result = getCustomUnitsForDuplication(policy, true, true);
+            expect(result).toEqual(policy.customUnits);
+        });
+        it('returns only non-per-diem units if only custom units option is selected', () => {
+            const result = getCustomUnitsForDuplication(policy, true, false);
+            expect(result).toEqual({[otherUnit.customUnitID]: otherUnit});
+        });
+
+        it('returns only per diem unit if only per diem option is selected', () => {
+            const result = getCustomUnitsForDuplication(policy, false, true);
+            expect(result).toEqual({[perDiemUnit.customUnitID]: perDiemUnit});
+        });
+
+        it('returns undefined if customUnits is empty', () => {
+            expect(getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true)).toBeUndefined();
         });
     });
     describe('getRateDisplayValue', () => {
@@ -246,6 +370,50 @@ describe('PolicyUtils', () => {
                 const rate = getRateDisplayValue(10.53135, toLocaleDigitMock, true);
                 expect(rate).toEqual('10.5313');
             });
+        });
+    });
+
+    describe('getUberConnectionErrorDirectlyFromPolicy', () => {
+        it('should return true if Uber connection is enabled and has an error', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                receiptPartners: {
+                    uber: {
+                        enabled: true,
+                        error: 'Some error',
+                        connectFormData: 'Some data',
+                    },
+                },
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(true);
+        });
+
+        it('should return false if Uber connection is enabled but has no error', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                receiptPartners: {
+                    uber: {
+                        enabled: true,
+                        error: undefined,
+                        connectFormData: 'Some data',
+                    },
+                },
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+        });
+
+        it('should return false if Uber connection does not exist', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            };
+
+            expect(getUberConnectionErrorDirectlyFromPolicy(policy)).toBe(false);
+        });
+
+        it('should return false if policy is undefined', () => {
+            expect(getUberConnectionErrorDirectlyFromPolicy(undefined)).toBe(false);
         });
     });
 
@@ -299,7 +467,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -314,7 +482,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -330,7 +498,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -349,7 +517,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -381,7 +549,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: categoryApprover1AccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -408,7 +576,7 @@ describe('PolicyUtils', () => {
                     approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                 };
                 const expenseReport: Report = {
-                    ...createRandomReport(0),
+                    ...createRandomReport(0, undefined),
                     ownerAccountID: employeeAccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
@@ -442,7 +610,7 @@ describe('PolicyUtils', () => {
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
                     const expenseReport: Report = {
-                        ...createRandomReport(0),
+                        ...createRandomReport(0, undefined),
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -477,7 +645,7 @@ describe('PolicyUtils', () => {
                         approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
                     };
                     const expenseReport: Report = {
-                        ...createRandomReport(0),
+                        ...createRandomReport(0, undefined),
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
@@ -589,7 +757,7 @@ describe('PolicyUtils', () => {
                 approver: categoryApprover1Email,
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
             };
             const result = getManagerAccountID(policy, report);
 
@@ -605,7 +773,7 @@ describe('PolicyUtils', () => {
                 owner: '',
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
             };
 
             const result = getManagerAccountID(policy, report);
@@ -626,7 +794,7 @@ describe('PolicyUtils', () => {
                 },
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 ownerAccountID: employeeAccountID,
             };
 
@@ -643,7 +811,7 @@ describe('PolicyUtils', () => {
                 approver: categoryApprover1Email,
             };
             const report: Report = {
-                ...createRandomReport(0),
+                ...createRandomReport(0, undefined),
                 ownerAccountID: employeeAccountID,
             };
 
@@ -665,7 +833,6 @@ describe('PolicyUtils', () => {
 
         it('returns false if policy is not paid group policy', async () => {
             const currentUserLogin = employeeEmail;
-            const currentUserAccountID = employeeAccountID;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL),
@@ -674,23 +841,14 @@ describe('PolicyUtils', () => {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
                 },
             };
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
-            const report = {
-                ...createRandomReport(0),
-                type: CONST.REPORT.TYPE.IOU,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                ownerAccountID: currentUserAccountID,
-                managerID: approverAccountID,
-            };
 
-            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(false);
         });
 
-        it('returns true if policy is paid group policy and the manger is the payer', async () => {
+        it('returns true if policy is paid group policy and the manager is the payer', async () => {
             const currentUserLogin = employeeEmail;
-            const currentUserAccountID = employeeAccountID;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -700,21 +858,15 @@ describe('PolicyUtils', () => {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
             };
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
-            const report = {
-                ...createRandomReport(0),
-                type: CONST.REPORT.TYPE.IOU,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                ownerAccountID: approverAccountID,
-                managerID: currentUserAccountID,
-            };
 
-            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(true);
         });
 
-        it('returns false if the manager is not the payer of the new policy', async () => {
+        it('returns true if the manager is not the payer of the new policy', async () => {
+            const currentUserLogin = employeeEmail;
+
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 isPolicyExpenseChatEnabled: true,
@@ -723,23 +875,14 @@ describe('PolicyUtils', () => {
                     [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.USER},
                 },
             };
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
-            const report = {
-                ...createRandomReport(0),
-                type: CONST.REPORT.TYPE.IOU,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                ownerAccountID: employeeAccountID,
-                managerID: approverAccountID,
-            };
 
-            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
-            expect(result).toBe(false);
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
+            expect(result).toBe(true);
         });
 
         it('returns false if policies are not policyExpenseChatEnabled', async () => {
             const currentUserLogin = employeeEmail;
-            const currentUserAccountID = employeeAccountID;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
@@ -749,17 +892,9 @@ describe('PolicyUtils', () => {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
             };
-            const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`]: newPolicy};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
-            const report = {
-                ...createRandomReport(0),
-                type: CONST.REPORT.TYPE.IOU,
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                ownerAccountID: approverAccountID,
-                managerID: currentUserAccountID,
-            };
 
-            const result = isWorkspaceEligibleForReportChange(newPolicy, report, policies);
+            const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
             expect(result).toBe(false);
         });
     });
@@ -963,6 +1098,631 @@ describe('PolicyUtils', () => {
             };
             const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy as unknown as Policy);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getPolicyBrickRoadIndicatorStatus', () => {
+        const baseAdminPolicy: OnyxEntry<Policy> = {
+            id: 'ABC123',
+            name: 'Test Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
+            employeeList: {},
+            connections: {},
+            errors: {},
+            errorFields: {},
+        } as OnyxEntry<Policy>;
+
+        const baseUserPolicy: OnyxEntry<Policy> = {
+            id: 'DEF456',
+            name: 'User Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.USER,
+            employeeList: {},
+            connections: {},
+            errors: {},
+            errorFields: {},
+        } as OnyxEntry<Policy>;
+
+        it('does return an ERROR RBR when a sync error exists for an admin', () => {
+            const policyWithConnectionFailures = {
+                ...baseAdminPolicy,
+                // Failed sync
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: false,
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Error',
+                            isAuthenticationError: true,
+                            isConnected: false,
+                            isSuccessful: false,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
+            expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        });
+
+        it('does not return an ERROR RBR when a sync error exists for a user', () => {
+            const policyWithConnectionFailures = {
+                ...baseUserPolicy,
+                // Failed sync
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: false,
+                        lastSync: {
+                            errorDate: new Date().toISOString(),
+                            errorMessage: 'Error',
+                            isAuthenticationError: true,
+                            isConnected: false,
+                            isSuccessful: false,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithConnectionFailures, false);
+            expect(result).toBeUndefined();
+        });
+
+        it('does not return an ERROR RBR when no sync errors exist for an admin', () => {
+            const policyWithoutConnections = {
+                ...baseAdminPolicy,
+                connections: {} as Connections,
+            } as OnyxEntry<Policy>;
+
+            const policyWithoutConnectionFailures = {
+                ...baseAdminPolicy,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: true,
+                        lastSync: {
+                            errorDate: '',
+                            errorMessage: '',
+                            isAuthenticationError: false,
+                            isConnected: true,
+                            isSuccessful: true,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
+            expect(result).toBeUndefined();
+
+            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
+            expect(result2).toBeUndefined();
+        });
+
+        it('does not return an ERROR RBR when no sync error exists for a user', () => {
+            const policyWithoutConnections = {
+                ...baseUserPolicy,
+                connections: {} as Connections,
+            } as OnyxEntry<Policy>;
+
+            const policyWithoutConnectionFailures = {
+                ...baseUserPolicy,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                        verified: true,
+                        lastSync: {
+                            errorDate: '',
+                            errorMessage: '',
+                            isAuthenticationError: false,
+                            isConnected: true,
+                            isSuccessful: true,
+                            source: 'NEWEXPENSIFY',
+                            successfulDate: '',
+                        },
+                    },
+                } as Connections,
+            } as OnyxEntry<Policy>;
+
+            const result = getPolicyBrickRoadIndicatorStatus(policyWithoutConnections, false);
+            expect(result).toBeUndefined();
+
+            const result2 = getPolicyBrickRoadIndicatorStatus(policyWithoutConnectionFailures, false);
+            expect(result2).toBeUndefined();
+        });
+
+        describe('QBO Export Errors', () => {
+            it('does return an ERROR RBR when a QBO sync error exists for an admin', () => {
+                const policyWithQBOSyncError = {
+                    ...baseAdminPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            verified: false,
+                            lastSync: {
+                                errorDate: new Date().toISOString(),
+                                errorMessage: 'QBO sync failed',
+                                isAuthenticationError: true,
+                                isConnected: false,
+                                isSuccessful: false,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
+                expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            });
+
+            it('does not return an ERROR RBR when a QBO sync error exists for a user', () => {
+                const policyWithQBOSyncError = {
+                    ...baseUserPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            verified: false,
+                            lastSync: {
+                                errorDate: new Date().toISOString(),
+                                errorMessage: 'QBO sync failed',
+                                isAuthenticationError: true,
+                                isConnected: false,
+                                isSuccessful: false,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, false);
+                expect(result).toBeUndefined();
+            });
+
+            it('does not return an ERROR RBR when no QBO sync errors exist for an admin', () => {
+                const policyWithSuccessfulQBOSync = {
+                    ...baseAdminPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            verified: true,
+                            lastSync: {
+                                errorDate: '',
+                                errorMessage: '',
+                                isAuthenticationError: false,
+                                isConnected: true,
+                                isSuccessful: true,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: new Date().toISOString(),
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithSuccessfulQBOSync, false);
+                expect(result).toBeUndefined();
+            });
+
+            it('does not return an ERROR RBR when QBO sync is in progress for an admin', () => {
+                const policyWithQBOSyncError = {
+                    ...baseAdminPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            verified: false,
+                            lastSync: {
+                                errorDate: new Date().toISOString(),
+                                errorMessage: 'QBO sync failed',
+                                isAuthenticationError: true,
+                                isConnected: false,
+                                isSuccessful: false,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                // When sync is in progress (second parameter is true), should not show error
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOSyncError, true);
+                expect(result).toBeUndefined();
+            });
+
+            it('does return an ERROR RBR when QBO reimbursable export destination account is missing for an admin', () => {
+                const policyWithMissingQBOAccount = {
+                    ...baseAdminPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {
+                                reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+                                reimbursableExpensesAccount: undefined,
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
+                expect(result).toEqual(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            });
+
+            it('does not return an ERROR RBR when QBO reimbursable export destination account is missing for a user', () => {
+                const policyWithMissingQBOAccount = {
+                    ...baseUserPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {
+                                reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+                                reimbursableExpensesAccount: undefined,
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithMissingQBOAccount, false);
+                expect(result).toBeUndefined();
+            });
+
+            it('does not return an ERROR RBR when QBO reimbursable export destination account is configured for an admin', () => {
+                const policyWithQBOConfigured = {
+                    ...baseAdminPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {
+                                reimbursableExpensesExportDestination: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+                                reimbursableExpensesAccount: {id: '123', name: 'Test Account'},
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBOConfigured, false);
+                expect(result).toBeUndefined();
+            });
+
+            it('does not return an ERROR RBR when QBO connection does not exist for an admin', () => {
+                const policyWithoutQBOConnection = {
+                    ...baseAdminPolicy,
+                    connections: {},
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithoutQBOConnection, false);
+                expect(result).toBeUndefined();
+            });
+
+            it('does not return an ERROR RBR when QBO reimbursable export destination is not set for an admin', () => {
+                const policyWithQBONoExportDestination = {
+                    ...baseAdminPolicy,
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                            config: {
+                                reimbursableExpensesExportDestination: undefined,
+                                reimbursableExpensesAccount: undefined,
+                            },
+                        },
+                    } as unknown as Connections,
+                } as OnyxEntry<Policy>;
+
+                const result = getPolicyBrickRoadIndicatorStatus(policyWithQBONoExportDestination, false);
+                expect(result).toBeUndefined();
+            });
+        });
+    });
+
+    describe('hasDynamicExternalWorkflow', () => {
+        it('should return true when policy has DYNAMICEXTERNAL approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(true);
+        });
+
+        it('should return false when policy has BASIC approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy has ADVANCED approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy has OPTIONAL approval mode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy is undefined', () => {
+            const result = hasDynamicExternalWorkflow(undefined);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when policy has no approvalMode', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                approvalMode: undefined,
+            };
+            const result = hasDynamicExternalWorkflow(policy);
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('hasOnlyPersonalPolicies', () => {
+        it('should return true when policies is empty', () => {
+            const result = hasOnlyPersonalPolicies({});
+            expect(result).toBe(true);
+        });
+
+        it('should return false when there are policies other than personal policies', () => {
+            const policies = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            };
+            const result = hasOnlyPersonalPolicies(policies);
+            expect(result).toBe(false);
+        });
+
+        it('should return true when there are no policies other than personal policies', () => {
+            const policies = {
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            };
+            const result = hasOnlyPersonalPolicies(policies);
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('getEligibleBankAccountShareRecipients', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+        it('should return empty array if no admins in policies', () => {
+            const policies = {
+                '1': {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
+            expect(result).toHaveLength(0);
+        });
+        it('should return array with admins', () => {
+            const currentUserLogin = adminEmail;
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, '1');
+            expect(result).toHaveLength(1);
+        });
+        it('should not return user with already shared bank account', async () => {
+            const bankAccountID = '1';
+            const currentUserLogin = adminEmail;
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                1: {
+                    methodID: 12345,
+                    accountData: {
+                        sharees: [adminEmail],
+                    },
+                },
+            });
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                '2': {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, approverEmail, bankAccountID);
+            expect(result).toHaveLength(0);
+        });
+        it('should not return current user for sharing account', async () => {
+            const bankAccountID = '1';
+
+            const policies = {
+                '1': {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [adminEmail]: {email: adminEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+                '2': {
+                    ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                    pendingAction: undefined,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    employeeList: {
+                        [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.ADMIN},
+                    },
+                },
+            };
+            const result = getEligibleBankAccountShareRecipients(policies, adminEmail, bankAccountID);
+            expect(result).toHaveLength(1);
+        });
+    });
+
+    describe('hasOtherControlWorkspaces', () => {
+        it('should return false when policies is empty', () => {
+            const result = hasOtherControlWorkspaces([], '1');
+            expect(result).toBe(false);
+        });
+
+        it('should return false when there are no control workspaces other than the current one', () => {
+            const policies = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+                {...createRandomPolicy(3, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            ];
+            const result = hasOtherControlWorkspaces(policies, '1');
+            expect(result).toBe(false);
+        });
+
+        it('should return true when there are other control workspaces', () => {
+            const policies = [
+                {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), pendingAction: undefined},
+                {...createRandomPolicy(3, CONST.POLICY.TYPE.PERSONAL), pendingAction: undefined},
+            ];
+            const result = hasOtherControlWorkspaces(policies, '1');
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('hasPolicyWithXeroConnection', () => {
+        it('should return false when no admin policies are provided', () => {
+            const result = hasPolicyWithXeroConnection(undefined);
+            expect(result).toBe(false);
+        });
+
+        it('should return false when no admin policies have Xero connection', () => {
+            const adminPolicies: Policy[] = [
+                {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                            verified: true,
+                            lastSync: {
+                                errorDate: '',
+                                errorMessage: '',
+                                isAuthenticationError: false,
+                                isConnected: true,
+                                isSuccessful: true,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                        },
+                    } as Connections,
+                },
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            ];
+            const result = hasPolicyWithXeroConnection(adminPolicies);
+            expect(result).toBe(false);
+        });
+
+        it('should return true when at least one admin policy has Xero connection', () => {
+            const adminPolicies: Policy[] = [
+                {
+                    ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                    connections: {
+                        [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                            lastSync: {
+                                errorDate: '',
+                                errorMessage: '',
+                                isAuthenticationError: false,
+                                isConnected: true,
+                                isSuccessful: true,
+                                source: 'NEWEXPENSIFY',
+                                successfulDate: '',
+                            },
+                            config: {} as unknown as Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['config'],
+                            data: {} as unknown as Connections[typeof CONST.POLICY.CONNECTIONS.NAME.XERO]['data'],
+                        },
+                    } as Connections,
+                },
+                {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: undefined},
+            ];
+            const result = hasPolicyWithXeroConnection(adminPolicies);
+            expect(result).toBe(true);
+        });
+    });
+
+    describe('getTagApproverRule', () => {
+        it('should return undefined when no approval rules are present', () => {
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                rules: {
+                    approvalRules: [],
+                },
+            };
+            const result = getTagApproverRule(policy, '');
+            expect(result).toBeUndefined();
+        });
+    });
+
+    it('should return undefined when no tag approver rule is present', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            rules: {
+                approvalRules: [
+                    {
+                        id: 'rule-1',
+                        applyWhen: [
+                            {
+                                field: CONST.POLICY.FIELDS.TAG,
+                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                value: 'Fake tag',
+                            },
+                        ],
+                        approver: 'lol@hhh.com',
+                    },
+                ],
+            },
+        };
+        const result = getTagApproverRule(policy, 'NonExistentTag');
+        expect(result).toBeUndefined();
+    });
+
+    it('should return the tag approver rule when present', () => {
+        const tagName = 'ImportantTag';
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            rules: {
+                approvalRules: [
+                    {
+                        id: 'rule-1',
+                        applyWhen: [
+                            {
+                                field: CONST.POLICY.FIELDS.TAG,
+                                condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                                value: tagName,
+                            },
+                        ],
+                        approver: 'approver@example.com',
+                    },
+                ],
+            },
+        };
+        const result = getTagApproverRule(policy, tagName);
+        expect(result).toEqual({
+            id: 'rule-1',
+            applyWhen: [
+                {
+                    field: CONST.POLICY.FIELDS.TAG,
+                    condition: CONST.POLICY.RULE_CONDITIONS.MATCHES,
+                    value: tagName,
+                },
+            ],
+            approver: 'approver@example.com',
         });
     });
 });

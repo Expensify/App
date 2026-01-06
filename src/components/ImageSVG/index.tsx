@@ -3,6 +3,10 @@ import type {SvgProps} from 'react-native-svg';
 import type ImageSVGProps from './types';
 
 function ImageSVG({src, width = '100%', height = '100%', fill, hovered = false, pressed = false, style, pointerEvents, preserveAspectRatio}: ImageSVGProps) {
+    if (!src) {
+        return null;
+    }
+
     const ImageSvgComponent = src as React.FC<SvgProps>;
     const additionalProps: Pick<ImageSVGProps, 'fill' | 'pointerEvents' | 'preserveAspectRatio'> = {};
 
@@ -31,5 +35,4 @@ function ImageSVG({src, width = '100%', height = '100%', fill, hovered = false, 
     );
 }
 
-ImageSVG.displayName = 'ImageSVG';
 export default ImageSVG;

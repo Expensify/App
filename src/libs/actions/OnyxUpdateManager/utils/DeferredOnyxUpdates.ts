@@ -94,14 +94,14 @@ function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, opt
         deferredUpdates[lastUpdateID] = updates;
     } else {
         // If the "updates" param is an object, we need to insert multiple updates into the deferred updates queue.
-        Object.entries(updates).forEach(([lastUpdateIDString, update]) => {
+        for (const [lastUpdateIDString, update] of Object.entries(updates)) {
             const lastUpdateID = Number(lastUpdateIDString);
             if (deferredUpdates[lastUpdateID]) {
-                return;
+                continue;
             }
 
             deferredUpdates[lastUpdateID] = update;
-        });
+        }
     }
 }
 

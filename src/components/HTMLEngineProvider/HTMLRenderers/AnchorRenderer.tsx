@@ -70,14 +70,27 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             ];
         }
 
+        if (HTMLEngineUtils.isChildOfLabelText(tnode)) {
+            linkStyle = [styles.textLabel, styles.textLineHeightNormal, styles.link];
+        }
+
         // Special handling for links in label font to maintain consistent font size
         if (HTMLEngineUtils.isChildOfMutedTextLabel(tnode)) {
             linkStyle = [styles.mutedNormalTextLabel, styles.link];
         }
 
+        // Special handling for links in extra small font to maintain consistent font size
+        if (HTMLEngineUtils.isChildOfMutedTextXS(tnode)) {
+            linkStyle = [styles.textExtraSmallSupporting, styles.link];
+        }
+
         // Special handling for links in micro font to maintain consistent font size
         if (HTMLEngineUtils.isChildOfMutedTextMicro(tnode)) {
             linkStyle = [styles.textMicroSupporting, styles.link];
+        }
+
+        if (HTMLEngineUtils.isChildOfAlertText(tnode)) {
+            linkStyle = [styles.formError, styles.mb0, styles.link];
         }
 
         if (tnode.classes.includes('no-style-link')) {
@@ -169,7 +182,5 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         </AnchorForCommentsOnly>
     );
 }
-
-AnchorRenderer.displayName = 'AnchorRenderer';
 
 export default AnchorRenderer;

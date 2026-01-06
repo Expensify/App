@@ -2,17 +2,19 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
-import {Close, Paperclip} from './Icon/Expensicons';
+// eslint-disable-next-line no-restricted-imports
+import {Close} from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
 import TextWithMiddleEllipsis from './TextWithMiddleEllipsis';
 
@@ -64,6 +66,7 @@ function UploadFile({
     totalFilesSizeLimit = 0,
     fileLimit = 0,
 }: UploadFileProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Paperclip']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -85,17 +88,17 @@ function UploadFile({
         }
 
         if (acceptedFileTypes.length > 0) {
-            const filesExtensions = files.map((file) => splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase());
+            const filesExtensions = new Set(files.map((file) => splitExtensionFromFileName(file?.name ?? '').fileExtension.toLowerCase()));
 
-            if (acceptedFileTypes.every((element) => !filesExtensions.includes(element as string))) {
+            if (acceptedFileTypes.every((element) => !filesExtensions.has(element as string))) {
                 setError(translate('attachmentPicker.notAllowedExtension'));
                 return;
             }
         }
 
-        const uploadedFilesNames = uploadedFiles.map((uploadedFile) => uploadedFile.name);
+        const uploadedFilesNames = new Set(uploadedFiles.map((uploadedFile) => uploadedFile.name));
 
-        const newFilesToUpload = files.filter((file) => !uploadedFilesNames.includes(file.name));
+        const newFilesToUpload = files.filter((file) => !uploadedFilesNames.has(file.name));
 
         onInputChange(newFilesToUpload);
         onUpload(newFilesToUpload);
@@ -128,7 +131,7 @@ function UploadFile({
                     key={file.name}
                 >
                     <Icon
-                        src={Paperclip}
+                        src={icons.Paperclip}
                         fill={theme.icon}
                         medium
                     />
@@ -160,7 +163,5 @@ function UploadFile({
         </View>
     );
 }
-
-UploadFile.displayName = 'UploadFile';
 
 export default UploadFile;

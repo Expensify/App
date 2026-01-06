@@ -105,6 +105,7 @@ function PressableWithDelayToggle({
     // of a Pressable
     const PressableView = inline ? Text : PressableWithoutFeedback;
     const tooltipTexts = !isActive ? tooltipTextChecked : tooltipText;
+    const shouldShowIcon = !!icon || (!isActive && !!iconChecked);
     const labelText =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
         text || textChecked ? (
@@ -113,9 +114,13 @@ function PressableWithDelayToggle({
                 style={textStyles}
             >
                 {!isActive && textChecked ? textChecked : text}
-                &nbsp;
+                {shouldShowIcon && <>&nbsp;</>}
             </Text>
         ) : null;
+
+    // Hide text when showing iconChecked and no icon prop is provided
+    const shouldShowText = !(iconChecked && !icon && !isActive);
+    const displayLabelText = shouldShowText ? labelText : null;
 
     return (
         <PressableView
@@ -128,7 +133,7 @@ function PressableWithDelayToggle({
             accessibilityRole={accessibilityRole}
         >
             <>
-                {inline && labelText}
+                {inline && displayLabelText}
                 <Tooltip
                     text={tooltipTexts}
                     shouldRender
@@ -150,10 +155,10 @@ function PressableWithDelayToggle({
                     >
                         {({hovered, pressed}) => (
                             <>
-                                {!inline && labelText}
-                                {!!icon && (
+                                {!inline && displayLabelText}
+                                {shouldShowIcon && (
                                     <Icon
-                                        src={!isActive ? iconChecked : icon}
+                                        src={!isActive ? iconChecked : (icon ?? iconChecked)}
                                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, !isActive))}
                                         additionalStyles={iconStyles}
                                         width={iconWidth}
@@ -169,8 +174,6 @@ function PressableWithDelayToggle({
         </PressableView>
     );
 }
-
-PressableWithDelayToggle.displayName = 'PressableWithDelayToggle';
 
 export default PressableWithDelayToggle;
 export type {PressableWithDelayToggleProps};

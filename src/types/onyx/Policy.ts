@@ -59,6 +59,9 @@ type Rate = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Subrates of the given rate */
         subRates?: Subrate[];
+
+        /** Sort order index for displaying rates */
+        index?: number;
     },
     keyof TaxRateAttributes
 >;
@@ -144,19 +147,33 @@ type UberReceiptPartner = {
      * organization id for connected uber
      */
     organizationID?: string;
+    /**
+     * name of the organization in uber
+     */
+    organizationName?: string;
+    /**
+     * account to import the receipts to
+     */
+    centralBillingAccountEmail?: string;
 
     /**
      * Mapping of workspace member email to Uber employee status
      */
     employees?: Record<
         string,
-        {
+        OnyxCommon.OnyxValueWithOfflineFeedback<{
             /**
              * status of the employee
              */
             status?: string;
-        }
+            /** A list of errors keyed by microtime */
+            errors?: OnyxCommon.Errors | null;
+        }>
     >;
+    /**
+     * Whether credentials are invalid
+     */
+    error?: string;
     /**
      * Collection of errors coming from BE
      */
@@ -168,7 +185,12 @@ type UberReceiptPartner = {
 };
 
 /** Policy Receipt partners */
-type ReceiptPartners = Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>;
+type ReceiptPartners = OnyxCommon.OnyxValueWithOfflineFeedback<
+    {
+        /** Whether receipt partners are enabled */
+        enabled?: boolean;
+    } & Record<string, OnyxCommon.OnyxValueWithOfflineFeedback<UberReceiptPartner>>
+>;
 
 /** Policy disabled fields */
 type DisabledFields = {
@@ -518,7 +540,7 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Configuration of the export */
     export: {
         /** E-mail of the exporter */
-        exporter: string;
+        exporter?: string;
     };
 
     /** Collections of form field errors */
@@ -619,9 +641,7 @@ type XeroConnectionData = {
 type XeroMappingType = {
     /** TODO: Will be handled in another issue */
     customer: string;
-} & {
-    [key in `trackingCategory_${string}`]: string;
-};
+} & Record<`trackingCategory_${string}`, string>;
 
 /** Xero auto synchronization configs */
 type XeroAutoSyncConfig = {
@@ -650,7 +670,7 @@ type XeroExportConfig = {
     billable: ExpenseTypesValues;
 
     /** The e-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** TODO: Will be handled in another issue */
     nonReimbursable: ExpenseTypesValues;
@@ -1021,7 +1041,7 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
         autoCreateEntities: boolean;
 
         /** The account to run auto export */
-        exporter: string;
+        exporter?: string;
 
         /** The transaction date to set upon export */
         exportDate?: NetSuiteExportDateOptions;
@@ -1231,7 +1251,7 @@ type SageIntacctExportConfig = {
     exportDate: ValueOf<typeof CONST.SAGE_INTACCT_EXPORT_DATE>;
 
     /** The e-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** Defines how non-reimbursable expenses are exported */
     nonReimbursable: ValueOf<typeof CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE>;
@@ -1344,7 +1364,7 @@ type QBDConnectionData = {
  */
 type QBDExportConfig = {
     /** E-mail of the exporter */
-    exporter: string;
+    exporter?: string;
 
     /** Defines how reimbursable expenses are exported */
     reimbursable: QBDReimbursableExportAccountType;
@@ -1363,6 +1383,9 @@ type QBDExportConfig = {
 
     /** Default vendor of non reimbursable bill */
     nonReimbursableBillDefaultVendor: string;
+
+    /** Accounting method for QBD */
+    accountingMethod: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
 };
 
 /**
@@ -1704,6 +1727,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** When this policy was last modified */
         lastModified?: string;
 
+        /** When this policy was created */
+        created?: string;
+
         /** The custom units data for this policy */
         customUnits?: Record<string, CustomUnit>;
 
@@ -1847,6 +1873,18 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Collection of tax rates attached to a policy */
         taxRates?: TaxRatesWithDefault;
 
+        /** Units configuration */
+        units?: {
+            /** Time tracking configuration */
+            time?: {
+                /** Whether time tracking is enabled */
+                enabled?: boolean;
+
+                /** Default hourly rate */
+                rate?: number;
+            };
+        };
+
         /** A set of rules related to the workspace */
         rules?: {
             /** A set of rules related to the workspace approvals */
@@ -1859,11 +1897,11 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** A set of custom rules defined with natural language */
         customRules?: string;
 
-        /** ReportID of the admins room for this workspace */
-        chatReportIDAdmins?: number;
+        /** ReportID of the admins room for this workspace - This should be a string, we are keeping the number for backward compatibility */
+        chatReportIDAdmins?: string | number;
 
-        /** ReportID of the announce room for this workspace */
-        chatReportIDAnnounce?: number;
+        /** ReportID of the announce room for this workspace - This should be a string, we are keeping the number for backward compatibility */
+        chatReportIDAnnounce?: string | number;
 
         /** All the integration connections attached to the policy */
         connections?: Connections;
@@ -1883,6 +1921,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the Distance Rates feature is enabled */
         areDistanceRatesEnabled?: boolean;
 
+        /** Whether the Travel feature is enabled */
+        isTravelEnabled?: boolean;
+
         /** Whether the Per diem rates feature is enabled */
         arePerDiemRatesEnabled?: boolean;
 
@@ -1897,9 +1938,6 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Report Fields feature is enabled */
         areReportFieldsEnabled?: boolean;
-
-        /** Whether the Receipt Partners feature is enabled */
-        areReceiptPartnersEnabled?: boolean;
 
         /** Whether the Connections feature is enabled */
         areConnectionsEnabled?: boolean;
@@ -1967,6 +2005,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
             email: string;
         };
 
+        /** Email address of the technical contact */
+        technicalContact?: string;
+
         /** Indicate whether the Workspace plan can be downgraded */
         canDowngrade?: boolean;
 
@@ -1975,6 +2016,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether Attendee Tracking is enabled */
         isAttendeeTrackingEnabled?: boolean;
+
+        /** Whether the policy requires purchases to be on a company card */
+        requireCompanyCardsEnabled?: boolean;
     } & Partial<PendingJoinRequestPolicy>,
     'addWorkspaceRoom' | keyof ACHAccount | keyof Attributes
 >;
@@ -2020,6 +2064,7 @@ export type {
     Connections,
     SageIntacctOfflineStateKeys,
     ConnectionName,
+    ReceiptPartners,
     UberReceiptPartner,
     AllConnectionName,
     Tenant,

@@ -1,12 +1,13 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {easing} from '@components/Modal/ReanimatedModal/utils';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -20,6 +21,9 @@ type AnimatedCollapsibleProps = {
 
     /** Header content to display above the collapsible content */
     header: ReactNode;
+
+    /** Description content to display below the header */
+    description?: ReactNode;
 
     /** Duration of expansion animation */
     duration?: number;
@@ -41,67 +45,86 @@ type AnimatedCollapsibleProps = {
 
     /** Callback for when the toggle button is pressed */
     onPress: () => void;
+
+    /** Whether to show the toggle button */
+    shouldShowToggleButton?: boolean;
+
+    /** Style for the border bottom */
+    borderBottomStyle?: StyleProp<ViewStyle>;
 };
 
-function AnimatedCollapsible({isExpanded, children, header, duration = 300, style, headerStyle, contentStyle, expandButtonStyle, onPress, disabled = false}: AnimatedCollapsibleProps) {
+function AnimatedCollapsible({
+    isExpanded,
+    children,
+    header,
+    description,
+    duration = 300,
+    style,
+    headerStyle,
+    contentStyle,
+    expandButtonStyle,
+    onPress,
+    disabled = false,
+    shouldShowToggleButton = true,
+    borderBottomStyle,
+}: AnimatedCollapsibleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const contentHeight = useSharedValue(0);
-    const isAnimating = useSharedValue(false);
-    const hasExpanded = useSharedValue(false);
-    const isExpandedFirstTime = useRef(false);
-
+    const descriptionHeight = useSharedValue(0);
+    const hasExpanded = useSharedValue(isExpanded);
+    const [isRendered, setIsRendered] = React.useState(isExpanded);
     useEffect(() => {
-        if (!isExpanded && !isExpandedFirstTime.current) {
-            return;
+        hasExpanded.set(isExpanded);
+        if (isExpanded) {
+            setIsRendered(true);
         }
-        if (isExpandedFirstTime.current) {
-            hasExpanded.set(true);
-        } else {
-            isExpandedFirstTime.current = true;
+    }, [isExpanded, hasExpanded]);
+
+    const animatedHeight = useDerivedValue(() => {
+        if (!contentHeight.get()) {
+            return 0;
         }
-    }, [hasExpanded, isExpanded]);
 
-    // Animation for content height and opacity
-    const derivedHeight = useDerivedValue(() => {
-        const targetHeight = isExpanded ? contentHeight.get() : 0;
-        return withTiming(
-            targetHeight,
-            {
-                duration,
-                easing,
-            },
-            (finished) => {
-                if (!finished) {
-                    return;
-                }
-                isAnimating.set(false);
-            },
-        );
-    });
+        const target = hasExpanded.get() ? contentHeight.get() : 0;
 
-    const derivedOpacity = useDerivedValue(() => {
-        const targetOpacity = isExpanded ? 1 : 0;
-        isAnimating.set(true);
-        return withTiming(targetOpacity, {
-            duration,
-            easing,
+        return withTiming(target, {duration, easing}, (finished) => {
+            if (!finished || target) {
+                return;
+            }
+            scheduleOnRN(setIsRendered, false);
         });
+    }, []);
+
+    const animatedOpacity = useDerivedValue(() => {
+        if (!contentHeight.get()) {
+            return 0;
+        }
+
+        return withTiming(hasExpanded.get() ? 1 : 0, {duration, easing});
     });
+
+    const descriptionOpacity = useDerivedValue(() => {
+        return withTiming(!hasExpanded.get() ? 1 : 0, {duration, easing});
+    });
+
+    const descriptionAnimatedHeight = useDerivedValue(() => {
+        return withTiming(!isExpanded ? descriptionHeight.get() : 0, {duration, easing});
+    });
+
+    const descriptionAnimatedStyle = useAnimatedStyle(() => {
+        return {
+            opacity: descriptionOpacity.get(),
+            // The row is collapsed by default, so we don't need to animate the height when it's not expanded
+            height: isRendered ? descriptionAnimatedHeight.get() : undefined,
+        };
+    }, [isRendered]);
 
     const contentAnimatedStyle = useAnimatedStyle(() => {
-        if (!isExpanded && !hasExpanded.get()) {
-            return {
-                height: 0,
-                opacity: 0,
-                overflow: 'hidden',
-            };
-        }
-
         return {
-            height: !hasExpanded.get() ? undefined : derivedHeight.get(),
-            opacity: derivedOpacity.get(),
-            overflow: isAnimating.get() ? 'hidden' : 'visible',
+            height: animatedHeight.get(),
+            opacity: animatedOpacity.get(),
         };
     });
 
@@ -109,44 +132,61 @@ function AnimatedCollapsible({isExpanded, children, header, duration = 300, styl
         <View style={style}>
             <View style={[headerStyle, styles.flexRow, styles.alignItemsCenter]}>
                 <View style={[styles.flex1]}>{header}</View>
-                <PressableWithFeedback
-                    onPress={onPress}
-                    disabled={disabled}
-                    style={[styles.p3, styles.justifyContentCenter, styles.alignItemsCenter, styles.pl0, expandButtonStyle]}
-                    accessibilityRole={CONST.ROLE.BUTTON}
-                    accessibilityLabel={isExpanded ? 'Collapse' : 'Expand'}
-                >
-                    {({hovered}) => (
-                        <Icon
-                            src={isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow}
-                            fill={hovered ? theme.textSupporting : theme.icon}
-                            small
-                        />
-                    )}
-                </PressableWithFeedback>
+                {shouldShowToggleButton && (
+                    <PressableWithFeedback
+                        onPress={onPress}
+                        disabled={disabled}
+                        style={[styles.p3Half, styles.justifyContentCenter, styles.alignItemsCenter, expandButtonStyle]}
+                        accessibilityRole={CONST.ROLE.BUTTON}
+                        accessibilityLabel={isExpanded ? CONST.ACCESSIBILITY_LABELS.COLLAPSE : CONST.ACCESSIBILITY_LABELS.EXPAND}
+                    >
+                        {({hovered}) => (
+                            <Icon
+                                src={isExpanded ? expensifyIcons.UpArrow : expensifyIcons.DownArrow}
+                                fill={theme.icon}
+                                additionalStyles={!hovered && styles.opacitySemiTransparent}
+                                small
+                            />
+                        )}
+                    </PressableWithFeedback>
+                )}
             </View>
+            <Animated.View style={descriptionAnimatedStyle}>
+                {!!description && !isExpanded && (
+                    <Animated.View
+                        style={isRendered && styles.stickToTop}
+                        onLayout={(e) => {
+                            const height = e.nativeEvent.layout.height;
+                            if (height) {
+                                descriptionHeight.set(height);
+                            }
+                        }}
+                    >
+                        {description}
+                    </Animated.View>
+                )}
+            </Animated.View>
             <Animated.View style={[contentAnimatedStyle, contentStyle]}>
-                <View
-                    onLayout={(e) => {
-                        if (!e.nativeEvent.layout.height) {
-                            return;
-                        }
-                        if (!isExpanded) {
-                            hasExpanded.set(true);
-                        }
-                        contentHeight.set(e.nativeEvent.layout.height);
-                    }}
-                >
-                    <View style={[styles.pv2, styles.ph3]}>
-                        <View style={[styles.borderBottom]} />
-                    </View>
-                    {children}
-                </View>
+                {isExpanded || isRendered ? (
+                    <Animated.View
+                        testID={CONST.ANIMATED_COLLAPSIBLE_CONTENT_TEST_ID}
+                        style={styles.stickToTop}
+                        onLayout={(e) => {
+                            const height = e.nativeEvent.layout.height;
+                            if (height) {
+                                contentHeight.set(height);
+                            }
+                        }}
+                    >
+                        <View style={[styles.pv2, styles.ph3, styles.pb1]}>
+                            <View style={[styles.borderBottom, borderBottomStyle]} />
+                        </View>
+                        {children}
+                    </Animated.View>
+                ) : null}
             </Animated.View>
         </View>
     );
 }
-
-AnimatedCollapsible.displayName = 'AnimatedCollapsible';
 
 export default AnimatedCollapsible;

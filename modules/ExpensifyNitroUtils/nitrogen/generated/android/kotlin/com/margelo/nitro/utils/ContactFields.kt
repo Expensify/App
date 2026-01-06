@@ -15,14 +15,10 @@ import com.facebook.proguard.annotations.DoNotStrip
  */
 @DoNotStrip
 @Keep
-enum class ContactFields {
-  FIRST_NAME,
-  LAST_NAME,
-  PHONE_NUMBERS,
-  EMAIL_ADDRESSES,
-  IMAGE_DATA;
-
-  @DoNotStrip
-  @Keep
-  private val _ordinal = ordinal
+enum class ContactFields(@DoNotStrip @Keep val value: Int) {
+  FIRST_NAME(0),
+  LAST_NAME(1),
+  PHONE_NUMBERS(2),
+  EMAIL_ADDRESSES(3),
+  IMAGE_DATA(4);
 }

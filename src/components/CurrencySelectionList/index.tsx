@@ -1,8 +1,9 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useMemo, useState} from 'react';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import SelectableListItem from '@components/SelectionList/SelectableListItem';
+// eslint-disable-next-line no-restricted-imports
+import SelectionList from '@components/SelectionListWithSections';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import SelectableListItem from '@components/SelectionListWithSections/SelectableListItem';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {getCurrencySymbol} from '@libs/CurrencyUtils';
@@ -114,7 +115,5 @@ function CurrencySelectionList({
         />
     );
 }
-
-CurrencySelectionList.displayName = 'CurrencySelectionList';
 
 export default CurrencySelectionList;

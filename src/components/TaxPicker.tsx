@@ -12,8 +12,9 @@ import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SelectionList from './SelectionList';
-import RadioListItem from './SelectionList/RadioListItem';
+// eslint-disable-next-line no-restricted-imports
+import SelectionList from './SelectionListWithSections';
+import RadioListItem from './SelectionListWithSections/RadioListItem';
 
 type TaxPickerProps = {
     /** The selected tax rate of an expense */
@@ -119,12 +120,9 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
             onSelectRow={handleSelectRow}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
-            isRowMultilineSupported
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />
     );
 }
-
-TaxPicker.displayName = 'TaxPicker';
 
 export default TaxPicker;

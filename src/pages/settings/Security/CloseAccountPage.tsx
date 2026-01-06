@@ -27,6 +27,7 @@ function CloseAccountPage() {
     const [session] = useOnyx(ONYXKEYS.SESSION, {
         canBeMissing: false,
     });
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
@@ -61,7 +62,7 @@ function CloseAccountPage() {
      * @param phoneOrEmail - The input string to be sanitized.
      * @returns The sanitized string
      */
-    const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replace(/\s+/g, '').toLowerCase();
+    const sanitizePhoneOrEmail = (phoneOrEmail: string): string => phoneOrEmail.replaceAll(/\s+/g, '').toLowerCase();
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM> => {
         const errors = getFieldRequiredErrors(values, ['phoneOrEmail']);
@@ -74,8 +75,8 @@ function CloseAccountPage() {
                 isValid = sanitizePhoneOrEmail(userEmailOrPhone) === sanitizePhoneOrEmail(values.phoneOrEmail);
             } else {
                 // Phone number comparison - normalize to E.164
-                const storedE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone));
-                const inputE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail));
+                const storedE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(userEmailOrPhone), countryCode);
+                const inputE164Phone = formatE164PhoneNumber(getPhoneNumberWithoutSpecialChars(values.phoneOrEmail), countryCode);
 
                 // Only compare if both numbers could be formatted to E.164
                 if (storedE164Phone && inputE164Phone) {
@@ -94,7 +95,7 @@ function CloseAccountPage() {
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={CloseAccountPage.displayName}
+            testID="CloseAccountPage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}>
                 <HeaderWithBackButton
@@ -123,7 +124,7 @@ function CloseAccountPage() {
                             aria-label={translate('closeAccountPage.enterMessageHere')}
                             role={CONST.ROLE.PRESENTATION}
                             containerStyles={[styles.mt5]}
-                            fsClass={CONST.FULLSTORY.CLASS.UNMASK}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
                         />
                         <Text style={[styles.mt5]}>
                             {translate('closeAccountPage.enterDefaultContactToConfirm')} <Text style={[styles.textStrong]}>{userEmailOrPhone}</Text>
@@ -138,8 +139,7 @@ function CloseAccountPage() {
                             containerStyles={[styles.mt5]}
                             autoCorrect={false}
                             inputMode={userEmailOrPhone && Str.isValidEmail(userEmailOrPhone) ? CONST.INPUT_MODE.EMAIL : CONST.INPUT_MODE.TEXT}
-                            fsClass={CONST.FULLSTORY.CLASS.UNMASK}
-                            testID={CONST.FULLSTORY.CLASS.UNMASK}
+                            forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}
                         />
                         <ConfirmModal
                             danger
@@ -159,7 +159,5 @@ function CloseAccountPage() {
         </ScreenWrapper>
     );
 }
-
-CloseAccountPage.displayName = 'CloseAccountPage';
 
 export default CloseAccountPage;

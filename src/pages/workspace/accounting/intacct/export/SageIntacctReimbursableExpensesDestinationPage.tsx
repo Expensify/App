@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -59,7 +59,7 @@ function SageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConn
 
     return (
         <SelectionScreen
-            displayName={SageIntacctReimbursableExpensesDestinationPage.displayName}
+            displayName="SageIntacctReimbursableExpensesDestinationPage"
             title="workspace.accounting.exportAs"
             sections={[{data}]}
             listItem={RadioListItem}
@@ -77,7 +77,5 @@ function SageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConn
         />
     );
 }
-
-SageIntacctReimbursableExpensesDestinationPage.displayName = 'SageIntacctReimbursableExpensesDestinationPage';
 
 export default withPolicyConnections(SageIntacctReimbursableExpensesDestinationPage);

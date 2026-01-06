@@ -1,13 +1,13 @@
 import delay from 'lodash/delay';
 import React, {useEffect, useRef, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
-import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
 import type {ImageObjectPosition, ImageOnLoadEvent, ImageProps} from './Image/types';
+import LoadingIndicator from './LoadingIndicator';
 
 type ImageWithSizeLoadingProps = {
     /** Any additional styles to apply */
@@ -21,9 +21,12 @@ type ImageWithSizeLoadingProps = {
 
     /** Whether to show offline indicator */
     shouldShowOfflineIndicator?: boolean;
+
+    /** Invoked on mount and layout changes */
+    onLayout?: (event: LayoutChangeEvent) => void;
 } & ImageProps;
 
-function ImageWithSizeCalculation({
+function ImageWithLoading({
     onError,
     containerStyles,
     shouldShowOfflineIndicator = true,
@@ -32,6 +35,7 @@ function ImageWithSizeCalculation({
     loadingIndicatorStyles,
     resizeMode,
     onLoad,
+    onLayout,
     ...rest
 }: ImageWithSizeLoadingProps) {
     const styles = useThemeStyles();
@@ -74,7 +78,10 @@ function ImageWithSizeCalculation({
     }, [isLoading]);
 
     return (
-        <View style={[styles.w100, styles.h100, containerStyles]}>
+        <View
+            style={[styles.w100, styles.h100, containerStyles]}
+            onLayout={onLayout}
+        >
             <Image
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
@@ -101,7 +108,7 @@ function ImageWithSizeCalculation({
                 loadingIndicatorStyles={loadingIndicatorStyles}
             />
             {isLoading && !isImageCached && !isOffline && (
-                <FullscreenLoadingIndicator
+                <LoadingIndicator
                     iconSize={loadingIconSize}
                     style={[styles.opacity1, styles.bgTransparent, loadingIndicatorStyles]}
                 />
@@ -111,5 +118,6 @@ function ImageWithSizeCalculation({
     );
 }
 
-ImageWithSizeCalculation.displayName = 'ImageWithSizeCalculation';
-export default React.memo(ImageWithSizeCalculation);
+ImageWithLoading.displayName = 'ImageWithLoading';
+
+export default React.memo(ImageWithLoading);

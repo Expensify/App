@@ -2,8 +2,8 @@ import {useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -73,7 +73,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
             });
             return options;
         }, []);
-    }, [exportConfiguration, exporters, policyOwner, currentUserLogin]);
+    }, [exportConfiguration?.exporter, exporters, policyOwner, currentUserLogin]);
 
     const selectExporter = useCallback(
         (row: CardListItem) => {
@@ -82,7 +82,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
             }
             goBack();
         },
-        [policyID, exportConfiguration, goBack],
+        [policyID, exportConfiguration?.exporter, goBack],
     );
 
     const headerContent = useMemo(
@@ -100,7 +100,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctPreferredExporterPage.displayName}
+            displayName="SageIntacctPreferredExporterPage"
             sections={[{data}]}
             listItem={RadioListItem}
             headerContent={headerContent}
@@ -116,7 +116,5 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
         />
     );
 }
-
-SageIntacctPreferredExporterPage.displayName = 'SageIntacctPreferredExporterPage';
 
 export default withPolicyConnections(SageIntacctPreferredExporterPage);

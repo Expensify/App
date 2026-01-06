@@ -26,15 +26,15 @@ if [ -z "${RESET+x}" ]; then
 fi
 
 function success {
-  echo "🎉 $GREEN$1$RESET"
+  echo -e "🎉 $GREEN$1$RESET"
 }
 
 function error {
-  echo "💥 $RED$1$RESET"
+  echo -e "💥 $RED$1$RESET"
 }
 
 function info {
-  echo "$BLUE$1$RESET"
+  echo -e "$BLUE$1$RESET"
 }
 
 function title {
@@ -44,6 +44,23 @@ function title {
 # Function to clear the last printed line
 clear_last_line() {
   echo -ne "\033[1A\033[K"
+}
+
+# Function to check if Cloudflare WARP is installed and running
+# Returns 0 if WARP is active, 1 otherwise
+is_warp_active() {
+  if ! command -v warp-cli &>/dev/null; then
+    return 1
+  fi
+
+  local WARP_STATUS
+  WARP_STATUS=$(warp-cli status 2>/dev/null | grep -i "status update" || echo "")
+
+  if [[ "${WARP_STATUS}" == *"Connected"* ]]; then
+    return 0
+  else
+    return 1
+  fi
 }
 
 function assert_equal {

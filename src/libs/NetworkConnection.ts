@@ -9,8 +9,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Network from '@src/types/onyx/Network';
 import type {ConnectionChanges} from '@src/types/onyx/Network';
-import {setConnectionChanges, setIsOffline, setNetWorkStatus, setPoorConnectionTimeoutID} from './actions/Network';
+import {setConnectionChanges, setIsOffline, setNetworkLastOffline, setNetWorkStatus, setPoorConnectionTimeoutID} from './actions/Network';
 import AppStateMonitor from './AppStateMonitor';
+import DateUtils from './DateUtils';
 import Log from './Log';
 
 let isOffline = false;
@@ -40,14 +41,50 @@ const triggerReconnectionCallbacks = throttle(
         }
         setTimeout(() => {
             Log.info(`[NetworkConnection] Firing reconnection callbacks because ${reason}`);
-            Object.values(reconnectionCallbacks).forEach((callback) => {
+            for (const callback of Object.values(reconnectionCallbacks)) {
                 callback();
-            });
+            }
         }, delay);
     },
     5000,
     {trailing: false},
 );
+
+// Only allow one NetInfo.refresh at a time, and respect the interval
+// Exported state object to allow unit tests to inspect and control internal state
+const recheckNetworkState = {
+    isCheckPending: false,
+    lastCheckTimestamp: 0,
+};
+
+/**
+ * Refresh NetInfo state.
+ */
+function recheckNetworkConnection() {
+    const now = Date.now();
+
+    if (recheckNetworkState.isCheckPending) {
+        Log.info('[NetworkConnection] NetInfo.refresh already in progress, skipping new check.');
+        return;
+    }
+
+    if (now - recheckNetworkState.lastCheckTimestamp < CONST.NETWORK.MAX_PENDING_TIME_MS) {
+        Log.info('[NetworkConnection] NetInfo.refresh called too soon, skipping to respect interval.');
+        return;
+    }
+
+    recheckNetworkState.isCheckPending = true;
+    recheckNetworkState.lastCheckTimestamp = now;
+    Log.info('[NetworkConnection] refresh NetInfo.');
+    Promise.resolve(NetInfo.refresh())
+        .catch((err: unknown) => {
+            Log.info('[NetworkConnection] NetInfo.refresh failed.', false, String(err));
+        })
+        .finally(() => {
+            recheckNetworkState.isCheckPending = false;
+            Log.info('[NetworkConnection] NetInfo.refresh finished.');
+        });
+}
 
 /**
  * Called when the offline status of the app changes and if the network is "reconnecting" (going from offline to online)
@@ -70,7 +107,10 @@ function setOfflineStatus(isCurrentlyOffline: boolean, reason = ''): void {
 let shouldForceOffline = false;
 let isPoorConnectionSimulated: boolean | undefined;
 let connectionChanges: ConnectionChanges | undefined;
+let isOfflineFlag: boolean | undefined;
+let networkTimeSkew = 0;
 let isNetworkStatusInitialized = false;
+
 // We do not depend on updates on the UI to determine the network status
 // or the offline status, so we can use `connectWithoutView` here.
 Onyx.connectWithoutView({
@@ -80,6 +120,16 @@ Onyx.connectWithoutView({
             return;
         }
 
+        networkTimeSkew = network?.timeSkew ?? 0;
+        if (!network?.lastOfflineAt) {
+            setNetworkLastOffline(new Date().toISOString());
+        }
+
+        const newIsOffline = network?.isOffline ?? network?.shouldForceOffline;
+        if (newIsOffline && isOfflineFlag === false) {
+            setNetworkLastOffline(new Date().toISOString());
+        }
+        isOfflineFlag = newIsOffline;
         isNetworkStatusInitialized = true;
 
         simulatePoorConnection(network);
@@ -109,6 +159,17 @@ Onyx.connectWithoutView({
         }
     },
 });
+
+/**
+ * Returns the current time plus skew in milliseconds in the format expected by the database
+ */
+function getDBTimeWithSkew(timestamp: string | number = ''): string {
+    if (networkTimeSkew > 0) {
+        const datetime = timestamp ? new Date(timestamp) : new Date();
+        return DateUtils.getDBTime(datetime.valueOf() + networkTimeSkew);
+    }
+    return DateUtils.getDBTime(timestamp);
+}
 
 function simulatePoorConnection(network: Network) {
     // Starts random network status change when shouldSimulatePoorConnection is turned into true
@@ -281,15 +342,9 @@ function onReconnect(callback: () => void): () => void {
  * Delete all queued reconnection callbacks
  */
 function clearReconnectionCallbacks() {
-    Object.keys(reconnectionCallbacks).forEach((key) => delete reconnectionCallbacks[key]);
-}
-
-/**
- * Refresh NetInfo state.
- */
-function recheckNetworkConnection() {
-    Log.info('[NetworkConnection] recheck NetInfo');
-    NetInfo.refresh();
+    for (const key of Object.keys(reconnectionCallbacks)) {
+        delete reconnectionCallbacks[key];
+    }
 }
 
 export default {
@@ -300,5 +355,7 @@ export default {
     triggerReconnectionCallbacks,
     recheckNetworkConnection,
     subscribeToNetInfo,
+    getDBTimeWithSkew,
+    recheckNetworkState,
 };
 export type {NetworkStatus};

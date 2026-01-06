@@ -1,21 +1,21 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateNetSuiteSubsidiary} from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {NetSuiteSubsidiary} from '@src/types/onyx/Policy';
 
@@ -25,8 +25,10 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
     const subsidiaryList = policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? [];
     const netsuiteConfig = policy?.connections?.netsuite?.options?.config;
     const currentSubsidiaryName = netsuiteConfig?.subsidiary ?? '';
-    const currentSubsidiaryID = netsuiteConfig?.subsidiaryID ?? '';
-    const policyID = policy?.id ?? '-1';
+    const currentSubsidiaryID = netsuiteConfig?.subsidiaryID ?? CONST.DEFAULT_NUMBER_ID.toString();
+    const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
+
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const subsidiaryListSections =
         subsidiaryList.map((subsidiary: NetSuiteSubsidiary) => ({
@@ -58,7 +60,7 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.netsuite.noSubsidiariesFound')}
@@ -66,7 +68,7 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [translate, styles.pb10, illustrations.Telescope],
     );
 
     const listHeaderComponent = useMemo(
@@ -83,7 +85,7 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteSubsidiarySelector.displayName}
+            displayName="NetSuiteSubsidiarySelector"
             sections={subsidiaryListSections.length > 0 ? [{data: subsidiaryListSections}] : []}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
@@ -94,13 +96,11 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             title="workspace.netsuite.subsidiary"
             listEmptyContent={listEmptyContent}
             pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.SUBSIDIARY], netsuiteConfig?.pendingFields)}
-            errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
+            errors={getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
+            onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
         />
     );
 }
-
-NetSuiteSubsidiarySelector.displayName = 'NetSuiteSubsidiarySelector';
 
 export default withPolicyConnections(NetSuiteSubsidiarySelector);

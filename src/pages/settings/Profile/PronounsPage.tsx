@@ -3,7 +3,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
@@ -30,6 +30,7 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
     const currentPronounsKey = currentPronouns.substring(CONST.PRONOUNS.PREFIX.length);
     const [searchValue, setSearchValue] = useState('');
     const isOptionSelected = useRef(false);
+    const currentUserAccountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
     useEffect(() => {
         if (isLoadingApp && !currentUserPersonalDetails.pronouns) {
@@ -64,21 +65,30 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
         return pronouns.filter((pronoun) => pronoun.text.toLowerCase().indexOf(trimmedSearch.toLowerCase()) >= 0);
     }, [searchValue, currentPronouns, translate, localeCompare]);
 
-    const headerMessage = searchValue.trim() && filteredPronounsList?.length === 0 ? translate('common.noResultsFound') : '';
-
     const updatePronouns = (selectedPronouns: PronounEntry) => {
         if (isOptionSelected.current) {
             return;
         }
         isOptionSelected.current = true;
-        updatePronounsPersonalDetails(selectedPronouns.keyForList === currentPronounsKey ? '' : (selectedPronouns?.value ?? ''));
+        updatePronounsPersonalDetails(selectedPronouns.keyForList === currentPronounsKey ? '' : (selectedPronouns?.value ?? ''), currentUserAccountID);
         Navigation.goBack();
     };
+
+    const textInputOptions = useMemo(
+        () => ({
+            label: translate('pronounsPage.pronouns'),
+            value: searchValue,
+            onChangeText: setSearchValue,
+            placeholder: translate('pronounsPage.placeholderText'),
+            headerMessage: searchValue.trim() && filteredPronounsList?.length === 0 ? translate('common.noResultsFound') : '',
+        }),
+        [translate, searchValue, filteredPronounsList?.length],
+    );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID={PronounsPage.displayName}
+            testID="PronounsPage"
         >
             {isLoadingApp && !currentUserPersonalDetails.pronouns ? (
                 <FullScreenLoadingIndicator />
@@ -90,23 +100,17 @@ function PronounsPage({currentUserPersonalDetails}: PronounsPageProps) {
                     />
                     <Text style={[styles.ph5, styles.mb3]}>{translate('pronounsPage.isShownOnProfile')}</Text>
                     <SelectionList
-                        headerMessage={headerMessage}
-                        textInputLabel={translate('pronounsPage.pronouns')}
-                        textInputPlaceholder={translate('pronounsPage.placeholderText')}
-                        textInputValue={searchValue}
-                        sections={[{data: filteredPronounsList}]}
+                        data={filteredPronounsList}
                         ListItem={RadioListItem}
                         onSelectRow={updatePronouns}
+                        textInputOptions={textInputOptions}
+                        initiallyFocusedItemKey={currentPronounsKey}
                         shouldSingleExecuteRowSelect
-                        onChangeText={setSearchValue}
-                        initiallyFocusedOptionKey={currentPronounsKey}
                     />
                 </>
             )}
         </ScreenWrapper>
     );
 }
-
-PronounsPage.displayName = 'PronounsPage';
 
 export default withCurrentUserPersonalDetails(PronounsPage);

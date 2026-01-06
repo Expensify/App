@@ -3,8 +3,6 @@ import type {ParamListBase, PartialState, Router, RouterConfigOptions, StackActi
 import type {PlatformStackNavigationState, PlatformStackRouterFactory, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SetParamsAction} from '@libs/Navigation/types';
 import CONST from '@src/CONST';
-import SCREEN_TO_HISTORY_PARAM from '@src/libs/Navigation/linkingConfig/RELATIONS/SCREEN_TO_HISTORY_PARAM';
-import type {Screen} from '@src/SCREENS';
 import type {HistoryStackNavigatorAction, SetHistoryParamActionType} from './types';
 
 const CUSTOM_HISTORY_PREFIX = 'CUSTOM_HISTORY';
@@ -66,28 +64,6 @@ function addCustomHistoryRouterExtension<RouterOptions extends PlatformStackRout
             if (state.history?.at(-1) === CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL) {
                 stateWithInitialHistory.history = [...stateWithInitialHistory.history, CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_SIDE_PANEL];
                 return stateWithInitialHistory;
-            }
-
-            // @ts-expect-error focusedRoute.key is always defined because it is a route from a rehydrated state. Find focused route isn't correctly typed in this case.
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-            const customHistoryEntry = getCustomHistoryEntry(focusedRoute.key);
-
-            const customHistoryParamName = SCREEN_TO_HISTORY_PARAM[focusedRoute.name as Screen];
-
-            if (
-                // The custom history param name should be defined
-                typeof customHistoryParamName === 'string' &&
-                // Params for the focused route should be defined
-                focusedRoute.params &&
-                // The custom history param with given name should be defined in the params
-                customHistoryParamName in focusedRoute.params &&
-                // The custom history param should be set to true
-                (focusedRoute.params as Record<string, unknown>)[customHistoryParamName] &&
-                // The last history entry should not be the custom history entry for the focused route to avoid duplication
-                stateWithInitialHistory.history.at(-1) !== customHistoryEntry
-            ) {
-                // Add the custom history entry to the initial history
-                stateWithInitialHistory.history = [...stateWithInitialHistory.history, customHistoryEntry];
             }
 
             return stateWithInitialHistory;

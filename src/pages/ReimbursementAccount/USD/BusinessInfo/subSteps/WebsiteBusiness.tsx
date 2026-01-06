@@ -25,7 +25,7 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
-    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
+    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account, true), [session, account]);
     const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
     const validate = useCallback(
@@ -72,7 +72,5 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
         />
     );
 }
-
-WebsiteBusiness.displayName = 'WebsiteBusiness';
 
 export default WebsiteBusiness;

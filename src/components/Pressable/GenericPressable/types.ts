@@ -2,8 +2,10 @@ import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, HostComponent, PressableStateCallbackType, PressableProps as RNPressableProps, Text as RNText, StyleProp, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import type {Shortcut} from '@libs/KeyboardShortcut';
 import type CONST from '@src/CONST';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 type StylePropWithFunction = StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
 
@@ -37,7 +39,9 @@ type RequiredAccessibilityLabel =
       };
 
 type PressableProps = RNPressableProps &
-    RequiredAccessibilityLabel & {
+    RequiredAccessibilityLabel &
+    ForwardedFSClassProps &
+    WithSentryLabel & {
         /**
          * onPress callback
          */

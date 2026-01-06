@@ -12144,18 +12144,18 @@ function getNAICSMappingWithId(item: NAICSItem) {
         };
     });
 
-    item.options.forEach((option) => {
+    for (const option of item.options) {
         if (option.options.length === 0) {
-            return;
+            continue;
         }
         getNAICSMappingWithId(option);
-    });
+    }
 }
 
 function buildNAICS() {
-    NAICS.forEach((item) => {
+    for (const item of NAICS) {
         getNAICSMappingWithId(item);
-    });
+    }
 }
 
 buildNAICS();

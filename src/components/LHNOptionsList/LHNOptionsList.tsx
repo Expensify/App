@@ -1,54 +1,65 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import type {FlashListProps} from '@shopify/flash-list';
+import reportsSelector from '@selectors/Attributes';
+import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import {FlashList} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
 import {StyleSheet, View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {BlockingViewProps} from '@components/BlockingViews/BlockingView';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import LottieAnimations from '@components/LottieAnimations';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import TextBlock from '@components/TextBlock';
-import useLHNEstimatedListSize from '@hooks/useLHNEstimatedListSize';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {getOneTransactionThreadReportID, getOriginalMessage, getSortedReportActionsForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction} from '@libs/ReportUtils';
-import isProductTrainingElementDismissed from '@libs/TooltipUtils';
+import {
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getSortedReportActions,
+    getSortedReportActionsForDisplay,
+    isInviteOrRemovedAction,
+    isMoneyRequestAction,
+    shouldReportActionBeVisibleAsLastAction,
+} from '@libs/ReportActionsUtils';
+import {canUserPerformWriteAction as canUserPerformWriteActionUtil} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Report} from '@src/types/onyx';
+import type {PersonalDetails, Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import OptionRowLHNData from './OptionRowLHNData';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
 import type {LHNOptionsListProps, RenderItemProps} from './types';
+import useEmptyLHNIllustration from './useEmptyLHNIllustration';
 
 const keyExtractor = (item: Report) => `report_${item.reportID}`;
 
 function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
-    const flashListRef = useRef<FlashList<Report>>(null);
+    const flashListRef = useRef<FlashListRef<Report>>(null);
     const route = useRoute();
     const isScreenFocused = useIsFocused();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportsSelector, canBeMissing: true});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: true});
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -56,27 +67,22 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: false});
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
-    const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const [isFullscreenVisible] = useOnyx(ONYXKEYS.FULLSCREEN_VISIBILITY, {canBeMissing: true});
+    const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
 
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, preferredLocale, localeCompare} = useLocalize();
-    const estimatedListSize = useLHNEstimatedListSize();
     const isReportsSplitNavigatorLast = useRootNavigationState((state) => state?.routes?.at(-1)?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
     const shouldShowEmptyLHN = data.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
-    const isGBRorRBRTooltipDismissed =
-        !isLoadingOnyxValue(dismissedProductTrainingMetadata) && isProductTrainingElementDismissed(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GBR_RBR_CHAT, dismissedProductTraining);
+    const emptyLHNIllustration = useEmptyLHNIllustration();
 
     const firstReportIDWithGBRorRBR = useMemo(() => {
-        if (isGBRorRBRTooltipDismissed) {
-            return undefined;
-        }
         const firstReportWithGBRorRBR = data.find((report) => {
             const itemReportErrors = reportAttributes?.[report.reportID]?.reportErrors;
             if (!report) {
@@ -90,7 +96,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         });
 
         return firstReportWithGBRorRBR?.reportID;
-    }, [isGBRorRBRTooltipDismissed, data, reportAttributes]);
+    }, [data, reportAttributes]);
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -117,7 +123,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     text={translate('common.emptyLHN.subtitleText1')}
                 />
                 <Icon
-                    src={Expensicons.MagnifyingGlass}
+                    src={expensifyIcons.MagnifyingGlass}
                     width={variables.emptyLHNIconWidth}
                     height={variables.emptyLHNIconHeight}
                     fill={theme.icon}
@@ -155,6 +161,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             theme.textSupporting,
             styles.textNormal,
             translate,
+            expensifyIcons.MagnifyingGlass,
         ],
     );
 
@@ -162,7 +169,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
      * Function which renders a row in the list
      */
     const renderItem = useCallback(
-        ({item}: RenderItemProps): ReactElement => {
+        ({item, index}: RenderItemProps): ReactElement => {
             const reportID = item.reportID;
             const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.parentReportID}`];
             const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
@@ -190,10 +197,12 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 ? (getOriginalMessage(itemParentReportAction)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID)
                 : CONST.DEFAULT_NUMBER_ID;
             const itemTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-            const hasDraftComment = isValidDraftComment(draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]);
+            const hasDraftComment =
+                !!draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`] &&
+                !draftComments?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${reportID}`]?.match(CONST.REGEX.EMPTY_COMMENT);
 
             const isReportArchived = !!itemReportNameValuePairs?.private_isArchived;
-            const canUserPerformWrite = canUserPerformWriteAction(item, isReportArchived);
+            const canUserPerformWrite = canUserPerformWriteActionUtil(item, isReportArchived);
             const sortedReportActions = getSortedReportActionsForDisplay(itemReportActions, canUserPerformWrite);
             const lastReportAction = sortedReportActions.at(0);
 
@@ -223,9 +232,28 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 movedToReport,
                 policy: itemPolicy,
                 isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
+                policyForMovingExpensesID,
             });
 
             const shouldShowRBRorGBRTooltip = firstReportIDWithGBRorRBR === reportID;
+
+            let lastAction: ReportAction | undefined;
+            if (!itemReportActions || !item) {
+                lastAction = undefined;
+            } else {
+                const canUserPerformWriteAction = canUserPerformWriteActionUtil(item, isReportArchived);
+                const actionsArray = getSortedReportActions(Object.values(itemReportActions));
+                const reportActionsForDisplay = actionsArray.filter(
+                    (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+                );
+                lastAction = reportActionsForDisplay.at(-1);
+            }
+
+            let lastActionReport: OnyxEntry<Report> | undefined;
+            if (isInviteOrRemovedAction(lastAction)) {
+                const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
+                lastActionReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`];
+            }
 
             return (
                 <OptionRowLHNData
@@ -258,33 +286,39 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     isReportsSplitNavigatorLast={isReportsSplitNavigatorLast}
                     isScreenFocused={isScreenFocused}
                     localeCompare={localeCompare}
+                    translate={translate}
+                    testID={index}
                     isReportArchived={isReportArchived}
+                    lastAction={lastAction}
+                    lastActionReport={lastActionReport}
                 />
             );
         },
         [
-            draftComments,
-            onSelectRow,
-            optionMode,
-            personalDetails,
-            policy,
-            preferredLocale,
-            reportActions,
             reports,
-            reportAttributes,
             reportNameValuePairs,
-            shouldDisableFocusOptions,
+            reportActions,
+            isOffline,
+            reportAttributes,
+            policy,
             transactions,
+            draftComments,
+            personalDetails,
+            policyForMovingExpensesID,
+            firstReportIDWithGBRorRBR,
+            optionMode,
+            shouldDisableFocusOptions,
+            onSelectRow,
+            preferredLocale,
             transactionViolations,
             onLayoutItem,
-            isOffline,
-            firstReportIDWithGBRorRBR,
             activePolicyID,
             introSelected?.choice,
             isFullscreenVisible,
             isReportsSplitNavigatorLast,
             isScreenFocused,
             localeCompare,
+            translate,
         ],
     );
 
@@ -384,15 +418,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 reportsIDsFromUseReportsCount: data.length,
             });
         }
-    }, [data, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
+    }, [data.length, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
             {shouldShowEmptyLHN ? (
                 <BlockingView
-                    animation={LottieAnimations.Fireworks}
-                    animationStyles={styles.emptyLHNAnimation}
-                    animationWebStyle={styles.emptyLHNAnimation}
+                    // eslint-disable-next-line react/jsx-props-no-spreading
+                    {...(emptyLHNIllustration as BlockingViewProps)}
                     title={translate('common.emptyLHN.title')}
                     CustomSubtitle={emptyLHNSubtitle}
                     accessibilityLabel={translate('common.emptyLHN.title')}
@@ -408,20 +441,18 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
-                    estimatedItemSize={estimatedItemSize}
-                    overrideProps={{estimatedHeightSize: estimatedItemSize * CONST.LHN_VIEWPORT_ITEM_COUNT}}
                     extraData={extraData}
                     showsVerticalScrollIndicator={false}
                     onLayout={onLayout}
                     onScroll={onScroll}
-                    estimatedListSize={estimatedListSize}
                     initialScrollIndex={isWebOrDesktop ? getScrollIndex(route) : undefined}
+                    maintainVisibleContentPosition={{disabled: true}}
+                    drawDistance={1000}
+                    removeClippedSubviews
                 />
             )}
         </View>
     );
 }
-
-LHNOptionsList.displayName = 'LHNOptionsList';
 
 export default memo(LHNOptionsList);

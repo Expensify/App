@@ -2,8 +2,8 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
@@ -61,7 +61,7 @@ function SageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <SelectionScreen
-            displayName={SageIntacctAccountingMethodPage.displayName}
+            displayName="SageIntacctAccountingMethodPage"
             headerTitleAlreadyTranslated={translate('workspace.sageIntacct.accountingMethods.label')}
             headerContent={headerContent}
             sections={[{data}]}
@@ -78,7 +78,5 @@ function SageIntacctAccountingMethodPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-SageIntacctAccountingMethodPage.displayName = 'SageIntacctAccountingMethodPage';
 
 export default withPolicyConnections(SageIntacctAccountingMethodPage);

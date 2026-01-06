@@ -1,6 +1,6 @@
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import useLocalize from './useLocalize';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
+import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnyx from './useOnyx';
 import useResponsiveLayout from './useResponsiveLayout';
 
@@ -9,32 +9,25 @@ import useResponsiveLayout from './useResponsiveLayout';
  */
 function useSidePanelDisplayStatus() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const {preferredLocale} = useLocalize();
     const [sidePanelNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL, {canBeMissing: true});
-    const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
+    const [isOnboardingCompleted = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasCompletedGuidedSetupFlowSelector,
         canBeMissing: true,
-        selector: (modal) =>
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT ||
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SMALL ||
-            modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED,
     });
-
-    const isLanguageUnsupported = preferredLocale !== CONST.LOCALES.EN;
+    const isAnonymousUser = useIsAnonymousUser();
     const isSidePanelVisible = isExtraLargeScreenWidth ? sidePanelNVP?.open : sidePanelNVP?.openNarrowScreen;
 
     // The Side Panel is hidden when:
     // - NVP is not set or it is false
-    // - language is unsupported
-    // - modal centered is visible
-    const shouldHideSidePanel = !isSidePanelVisible || isLanguageUnsupported || isModalCenteredVisible || !sidePanelNVP;
-    const isSidePanelHiddenOrLargeScreen = !isSidePanelVisible || isLanguageUnsupported || isExtraLargeScreenWidth || !sidePanelNVP;
+    // - Onboarding is not completed
+    const shouldHideSidePanel = !isSidePanelVisible || !sidePanelNVP || !isOnboardingCompleted;
+    const isSidePanelHiddenOrLargeScreen = !isSidePanelVisible || isExtraLargeScreenWidth || !sidePanelNVP;
 
     // The help button is hidden when:
-    // - side pane nvp is not set
     // - Side Panel is displayed currently
-    // - language is unsupported
-    const shouldHideHelpButton = !sidePanelNVP || !shouldHideSidePanel || isLanguageUnsupported;
+    // - Onboarding is not completed
+    // - User is anonymous (not signed in)
+    const shouldHideHelpButton = !shouldHideSidePanel || !isOnboardingCompleted || isAnonymousUser;
     const shouldHideSidePanelBackdrop = shouldHideSidePanel || isExtraLargeScreenWidth || shouldUseNarrowLayout;
 
     return {

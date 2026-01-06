@@ -18,6 +18,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasURL} from '@libs/Url';
 import {isCurrentUserValidated} from '@libs/UserUtils';
 import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils';
 import {clearPersonalDetailsDraft, setPersonalDetails} from '@userActions/Onboarding';
@@ -42,6 +43,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const [conciergeChatReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID, {canBeMissing: true});
     const {onboardingMessages} = useOnboardingMessages();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [onboardingPersonalDetailsForm] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {canBeMissing: true});
 
     // When we merge public email with work email, we now want to navigate to the
     // concierge chat report of the new work email and not the last accessed report.
@@ -60,7 +62,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
 
     useEffect(() => {
-        setOnboardingErrorMessage('');
+        setOnboardingErrorMessage(null);
     }, []);
 
     const completeOnboarding = useCallback(
@@ -75,6 +77,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                 lastName,
                 adminsChatReportID: onboardingAdminsChatReportID,
                 onboardingPolicyID,
+                shouldSkipTestDriveModal: !!onboardingPolicyID && !mergedAccountConciergeReportID,
             });
 
             setOnboardingAdminsChatReportID();
@@ -90,7 +93,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             const firstName = values.firstName.trim();
             const lastName = values.lastName.trim();
 
-            setDisplayName(firstName, lastName, formatPhoneNumber);
+            setDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
             clearPersonalDetailsDraft();
             setPersonalDetails(firstName, lastName);
 
@@ -101,14 +104,25 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             }
 
             if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND || onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-                updateDisplayName(firstName, lastName, formatPhoneNumber);
+                updateDisplayName(firstName, lastName, formatPhoneNumber, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
                 Navigation.navigate(ROUTES.ONBOARDING_WORKSPACE.getRoute(route.params?.backTo));
                 return;
             }
 
             completeOnboarding(firstName, lastName);
         },
-        [isPrivateDomainAndHasAccessiblePolicies, onboardingPurposeSelected, isValidated, route.params?.backTo, completeOnboarding, isVsb, isSmb, formatPhoneNumber],
+        [
+            formatPhoneNumber,
+            session?.accountID,
+            session?.email,
+            isPrivateDomainAndHasAccessiblePolicies,
+            onboardingPurposeSelected,
+            isVsb,
+            isSmb,
+            completeOnboarding,
+            isValidated,
+            route.params?.backTo,
+        ],
     );
 
     const validate = (values: FormOnyxValues<'onboardingPersonalDetailsForm'>) => {
@@ -119,23 +133,27 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         const errors = {};
 
         // First we validate the first name field
-        if (values.firstName.replace(CONST.REGEX.ANY_SPACE, '').length === 0) {
+        if (values.firstName.replaceAll(CONST.REGEX.ANY_SPACE, '').length === 0) {
             addErrorMessage(errors, 'firstName', translate('onboarding.error.requiredFirstName'));
         }
-        if (!isValidDisplayName(values.firstName)) {
+        if (hasURL(values.firstName)) {
+            addErrorMessage(errors, 'firstName', translate('personalDetails.error.cannotContainSpecialCharacters'));
+        } else if (!isValidDisplayName(values.firstName)) {
             addErrorMessage(errors, 'firstName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.firstName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', {length: values.firstName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}));
+            addErrorMessage(errors, 'firstName', translate('common.error.characterLimitExceedCounter', values.firstName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
         }
         if (doesContainReservedWord(values.firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             addErrorMessage(errors, 'firstName', translate('personalDetails.error.containsReservedWord'));
         }
 
         // Then we validate the last name field
-        if (!isValidDisplayName(values.lastName)) {
+        if (hasURL(values.lastName)) {
+            addErrorMessage(errors, 'lastName', translate('personalDetails.error.cannotContainSpecialCharacters'));
+        } else if (!isValidDisplayName(values.lastName)) {
             addErrorMessage(errors, 'lastName', translate('personalDetails.error.hasInvalidCharacter'));
         } else if (values.lastName.length > CONST.DISPLAY_NAME.MAX_LENGTH) {
-            addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', {length: values.lastName.length, limit: CONST.DISPLAY_NAME.MAX_LENGTH}));
+            addErrorMessage(errors, 'lastName', translate('common.error.characterLimitExceedCounter', values.lastName.length, CONST.DISPLAY_NAME.MAX_LENGTH));
         }
         if (doesContainReservedWord(values.lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
             addErrorMessage(errors, 'lastName', translate('personalDetails.error.containsReservedWord'));
@@ -154,7 +172,16 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             <HeaderWithBackButton
                 shouldShowBackButton={!isPrivateDomainAndHasAccessiblePolicies}
                 progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 20 : 80}
-                onBackButtonPress={Navigation.goBack}
+                onBackButtonPress={() => {
+                    // Based on the `handleSubmit` function to reverse where to return
+                    if (isPrivateDomainAndHasAccessiblePolicies) {
+                        Navigation.goBack();
+                        return;
+                    }
+
+                    Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+                }}
+                shouldDisplayHelpButton={false}
             />
             <FormProvider
                 style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
@@ -180,6 +207,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         label={translate('common.firstName')}
                         aria-label={translate('common.firstName')}
                         role={CONST.ROLE.PRESENTATION}
+                        defaultValue={onboardingPersonalDetailsForm?.firstName ?? currentUserPersonalDetails?.firstName ?? ''}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.firstName && {defaultValue: currentUserPersonalDetails.firstName})}
                         shouldSaveDraft
@@ -194,6 +222,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         label={translate('common.lastName')}
                         aria-label={translate('common.lastName')}
                         role={CONST.ROLE.PRESENTATION}
+                        defaultValue={onboardingPersonalDetailsForm?.lastName ?? currentUserPersonalDetails?.lastName ?? ''}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...(currentUserPersonalDetails?.lastName && {defaultValue: currentUserPersonalDetails.lastName})}
                         shouldSaveDraft
@@ -204,7 +233,5 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingPersonalDetails.displayName = 'BaseOnboardingPersonalDetails';
 
 export default withCurrentUserPersonalDetails(BaseOnboardingPersonalDetails);

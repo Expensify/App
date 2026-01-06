@@ -1,5 +1,6 @@
 import {useIsFocused} from '@react-navigation/core';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {Ref} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -7,13 +8,13 @@ import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import * as Illustrations from '@components/Icon/Illustrations';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -35,11 +36,12 @@ function EmptyWorkspaceView() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, additionalPaddingBottom: styles.mb5.marginBottom, styleProperty: 'marginBottom'});
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     return (
         <>
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.emptyWorkspace.notFound')}
@@ -61,7 +63,12 @@ type WorkspaceNewRoomPageRef = {
     focus?: () => void;
 };
 
-function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef>) {
+type WorkspaceNewRoomPageProps = {
+    /** Forwarded ref to pass to the room name input */
+    ref?: Ref<WorkspaceNewRoomPageRef>;
+};
+
+function WorkspaceNewRoomPage({ref}: WorkspaceNewRoomPageProps) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate, localeCompare} = useLocalize();
@@ -125,6 +132,7 @@ function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef
             description: parsedDescription,
         });
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
                 addPolicyReport(policyReport);
@@ -188,12 +196,12 @@ function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef
                 // Certain names are reserved for default rooms and should not be used for policy rooms.
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
             } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', {length: values.roomName.length, limit: CONST.TITLE_CHARACTER_LIMIT}));
+                addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', values.roomName.length, CONST.TITLE_CHARACTER_LIMIT));
             }
 
             const descriptionLength = getCommentLength(values.reportDescription, {policyID});
             if (descriptionLength > CONST.REPORT_DESCRIPTION.MAX_LENGTH) {
-                addErrorMessage(errors, 'reportDescription', translate('common.error.characterLimitExceedCounter', {length: descriptionLength, limit: CONST.REPORT_DESCRIPTION.MAX_LENGTH}));
+                addErrorMessage(errors, 'reportDescription', translate('common.error.characterLimitExceedCounter', descriptionLength, CONST.REPORT_DESCRIPTION.MAX_LENGTH));
             }
 
             if (!values.policyID) {
@@ -236,7 +244,7 @@ function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef
             keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top}
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
-            testID={WorkspaceNewRoomPage.displayName}
+            testID="WorkspaceNewRoomPage"
         >
             {workspaceOptions.length === 0 ? (
                 <EmptyWorkspaceView />
@@ -312,6 +320,4 @@ function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageRef
     );
 }
 
-WorkspaceNewRoomPage.displayName = 'WorkspaceNewRoomPage';
-
-export default forwardRef(WorkspaceNewRoomPage);
+export default WorkspaceNewRoomPage;

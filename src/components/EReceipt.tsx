@@ -1,12 +1,13 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import useEReceipt from '@hooks/useEReceipt';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
+import {filterPersonalCards, getCardDescription, getCompanyCardDescription} from '@libs/CardUtils';
 import {convertToDisplayString, getCurrencySymbol} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails} from '@libs/ReportUtils';
@@ -15,9 +16,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
-import type {TransactionListItemType} from './SelectionList/types';
+import type {TransactionListItemType} from './SelectionListWithSections/types';
 import Text from './Text';
 
 type EReceiptProps = {
@@ -29,19 +29,25 @@ type EReceiptProps = {
 
     /** Where it is the preview */
     isThumbnail?: boolean;
+
+    /** Callback to be called when the image loads */
+    onLoad?: () => void;
 };
 
 const receiptMCCSize: number = variables.eReceiptMCCHeightWidthMedium;
 const backgroundImageMinWidth: number = variables.eReceiptBackgroundImageMinWidth;
-function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceiptProps) {
+function EReceipt({transactionID, transactionItem, onLoad, isThumbnail = false}: EReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const theme = useTheme();
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptBody', 'ExpensifyWordmark']);
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`, {canBeMissing: true});
 
     const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
+
+    const isLoadedRef = useRef(false);
 
     const {
         amount: transactionAmount,
@@ -59,6 +65,14 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
     const primaryTextColorStyle = primaryColor ? StyleUtils.getColorStyle(primaryColor) : undefined;
     const titleTextColorStyle = titleColor ? StyleUtils.getColorStyle(titleColor) : undefined;
 
+    useEffect(() => {
+        if (isLoadedRef.current) {
+            return;
+        }
+        isLoadedRef.current = true;
+        onLoad?.();
+    }, [onLoad]);
+
     return (
         <View
             style={[
@@ -74,7 +88,7 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
                 <View style={styles.eReceiptContentContainer}>
                     <View>
                         <ImageSVG
-                            src={Expensicons.ReceiptBody}
+                            src={icons.ReceiptBody}
                             fill={theme.textColorfulBackground}
                             contentFit="fill"
                         />
@@ -144,7 +158,7 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
                                                 width={variables.eReceiptWordmarkWidth}
                                                 height={variables.eReceiptWordmarkHeight}
                                                 fill={secondaryColor}
-                                                src={Expensicons.ExpensifyWordmark}
+                                                src={icons.ExpensifyWordmark}
                                             />
                                         </View>
                                     </View>
@@ -157,8 +171,6 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
         </View>
     );
 }
-
-EReceipt.displayName = 'EReceipt';
 
 export default EReceipt;
 export type {EReceiptProps};

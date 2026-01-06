@@ -1,9 +1,11 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {setIsOpenAppFailureModalOpen} from '@libs/actions/isOpenAppFailureModalOpen';
 import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
     getAll as getAllPersistedRequests,
+    onInitialization as onPersistedRequestsInitialization,
     processNextRequest as processNextPersistedRequest,
     rollbackOngoingRequest as rollbackOngoingPersistedRequest,
     save as savePersistedRequest,
@@ -11,6 +13,7 @@ import {
 } from '@libs/actions/PersistedRequests';
 import {flushQueue, isEmpty} from '@libs/actions/QueuedOnyxUpdates';
 import {isClientTheLeader} from '@libs/ActiveClientManager';
+import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
@@ -91,6 +94,7 @@ Onyx.connectWithoutView({
 });
 
 function saveQueueFlushedData(...onyxUpdates: OnyxUpdate[]) {
+    // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
     const newValue = [...queueFlushedDataToStore, ...onyxUpdates];
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
     return Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, newValue).then(() => {
@@ -166,9 +170,17 @@ function process(): Promise<void> {
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD || shouldFailAllRequests) {
                 if (shouldFailAllRequests) {
-                    Onyx.update(requestToProcess.failureData ?? []);
+                    const onyxUpdates = [...(requestToProcess.failureData ?? []), ...(requestToProcess.finallyData ?? [])] as OnyxUpdate[];
+                    Onyx.update(onyxUpdates);
                 }
                 Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
+                endPersistedRequestAndRemoveFromQueue(requestToProcess);
+                sequentialQueueRequestThrottle.clear();
+                return process();
+            }
+            // For rate limiting errors (429) on ResendValidateCode, don't retry to prevent spam
+            if (error.message === CONST.ERROR.THROTTLED && requestToProcess.command === WRITE_COMMANDS.RESEND_VALIDATE_CODE) {
+                Onyx.update(requestToProcess.failureData ?? []);
                 endPersistedRequestAndRemoveFromQueue(requestToProcess);
                 sequentialQueueRequestThrottle.clear();
                 return process();
@@ -182,6 +194,9 @@ function process(): Promise<void> {
                     Log.info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error, request: requestToProcess});
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();
+                    if (requestToProcess.command === WRITE_COMMANDS.OPEN_APP) {
+                        setIsOpenAppFailureModalOpen(true);
+                    }
                     return process();
                 });
         });
@@ -297,8 +312,15 @@ function isPaused(): boolean {
     return isQueuePaused;
 }
 
+function getShouldFailAllRequests(): boolean {
+    return shouldFailAllRequests;
+}
+
 // Flush the queue when the connection resumes
 onReconnection(flush);
+
+// Flush the queue when the persisted requests are initialized
+onPersistedRequestsInitialization(flush);
 
 function handleConflictActions(conflictAction: ConflictData, newRequest: OnyxRequest) {
     if (conflictAction.type === 'push') {
@@ -331,21 +353,25 @@ function push(newRequest: OnyxRequest) {
         delete newRequest.checkAndFixConflictingRequest;
         handleConflictActions(conflictAction, newRequest);
     } else {
+        Log.info('[SequentialQueue] No conflict action. Adding request to Persisted Requests', false, {command: newRequest.command});
         // Add request to Persisted Requests so that it can be retried if it fails
         savePersistedRequest(newRequest);
     }
 
     // If we are offline we don't need to trigger the queue to empty as it will happen when we come back online
     if (isOffline()) {
+        Log.info('[SequentialQueue] Unable to push request due to offline status');
         return;
     }
 
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
+        Log.info('[SequentialQueue] Queue is running. Will flush when the current request is finished.');
         isReadyPromise.then(() => flush(true));
         return;
     }
 
+    Log.info('[SequentialQueue] Queue is not running. Flushing the queue.');
     flush(true);
 }
 
@@ -380,6 +406,7 @@ function resetQueue(): void {
 export {
     flush,
     getCurrentRequest,
+    getShouldFailAllRequests,
     isPaused,
     isRunning,
     pause,

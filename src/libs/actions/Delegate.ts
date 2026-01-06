@@ -2,10 +2,11 @@ import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddDelegateParams, RemoveDelegateParams, UpdateDelegateRoleParams} from '@libs/API/parameters';
+import type {AddDelegateParams as APIAddDelegateParams, RemoveDelegateParams as APIRemoveDelegateParams, UpdateDelegateRoleParams as APIUpdateDelegateRoleParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
+import {clearPreservedSearchNavigatorStates} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import CONFIG from '@src/CONFIG';
@@ -19,46 +20,6 @@ import {confirmReadyToOpenApp, openApp} from './App';
 import {getCurrentUserAccountID} from './Report';
 import updateSessionAuthTokens from './Session/updateSessionAuthTokens';
 import updateSessionUser from './Session/updateSessionUser';
-
-let delegatedAccess: DelegatedAccess;
-Onyx.connect({
-    key: ONYXKEYS.ACCOUNT,
-    callback: (val) => {
-        delegatedAccess = val?.delegatedAccess ?? {};
-    },
-});
-
-let credentials: Credentials = {};
-Onyx.connect({
-    key: ONYXKEYS.CREDENTIALS,
-    callback: (value) => (credentials = value ?? {}),
-});
-
-let stashedCredentials: Credentials = {};
-Onyx.connect({
-    key: ONYXKEYS.STASHED_CREDENTIALS,
-    callback: (value) => (stashedCredentials = value ?? {}),
-});
-
-let session: Session = {};
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (value) => (session = value ?? {}),
-});
-
-let stashedSession: Session = {};
-Onyx.connect({
-    key: ONYXKEYS.STASHED_SESSION,
-    callback: (value) => (stashedSession = value ?? {}),
-});
-
-let activePolicyID: OnyxEntry<string>;
-Onyx.connect({
-    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
-    callback: (newActivePolicyID) => {
-        activePolicyID = newActivePolicyID;
-    },
-});
 
 const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
@@ -79,21 +40,93 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.IS_DEBUG_MODE_ENABLED,
 ];
 
+type WithDelegatedAccess = {
+    // Optional keeps call sites clean, but still encourages passing `account?.delegatedAccess`.
+    delegatedAccess: DelegatedAccess | undefined;
+};
+
+type WithCredentials = {
+    credentials: Credentials | undefined;
+};
+
+type WithEmail = {
+    email: string;
+};
+
+type WithRole = {
+    role: DelegateRole;
+};
+
+type WithValidateCode = {
+    validateCode: string;
+};
+
+type WithFieldName = {
+    // Constrain to known keys to avoid misspells at call sites
+    fieldName: 'addDelegate' | 'updateDelegateRole'; // but string could work as well
+};
+
+type WithOldDotFlag = {
+    isFromOldDot?: boolean;
+};
+
+type WithStashedCredentials = {
+    stashedCredentials: Credentials | undefined;
+};
+
+type WithSession = {
+    session: Session | undefined;
+};
+
+type WithStashedSession = {
+    stashedSession: Session | undefined;
+};
+
+type WithActivePolicyID = {
+    activePolicyID: OnyxEntry<string>;
+};
+
+type DisconnectParams = WithStashedCredentials & WithStashedSession;
+
+// Clear delegator-level errors
+type ClearDelegatorErrorsParams = WithDelegatedAccess;
+
+// Add a delegate (requires code)
+type AddDelegateParams = WithEmail & WithRole & WithValidateCode & WithDelegatedAccess;
+
+// Remove a delegate
+type RemoveDelegateParams = WithEmail & WithDelegatedAccess;
+
+// Clear delegate errors scoped by field
+type ClearDelegateErrorsByFieldParams = WithEmail & WithFieldName & WithDelegatedAccess;
+
+// Update existing delegate role (requires code)
+type UpdateDelegateRoleParams = WithEmail & WithRole & WithValidateCode & WithDelegatedAccess;
+
+// Is connected as delegate?
+type IsConnectedAsDelegateParams = WithDelegatedAccess;
+
+// Connect as delegate
+type ConnectParams = WithEmail & WithDelegatedAccess & WithOldDotFlag & WithCredentials & WithSession & WithActivePolicyID;
+
+// Clear pending action for role update
+type ClearDelegateRolePendingActionParams = WithEmail & WithDelegatedAccess;
+
 /**
  * Connects the user as a delegate to another account.
  * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
  */
-function connect(email: string, isFromOldDot = false) {
+function connect({email, delegatedAccess, credentials, session, activePolicyID, isFromOldDot = false}: ConnectParams) {
     if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
 
-    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials);
-    Onyx.set(ONYXKEYS.STASHED_SESSION, session);
+    Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, credentials ?? {});
+    Onyx.set(ONYXKEYS.STASHED_SESSION, session ?? {});
 
     const previousAccountID = getCurrentUserAccountID();
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -109,7 +142,7 @@ function connect(email: string, isFromOldDot = false) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -125,7 +158,7 @@ function connect(email: string, isFromOldDot = false) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -155,6 +188,7 @@ function connect(email: string, isFromOldDot = false) {
                 Onyx.update(failureData);
                 return;
             }
+            clearPreservedSearchNavigatorStates();
             const restrictedToken = response.restrictedToken;
             const policyID = activePolicyID;
 
@@ -187,8 +221,8 @@ function connect(email: string, isFromOldDot = false) {
         });
 }
 
-function disconnect() {
-    const optimisticData: OnyxUpdate[] = [
+function disconnect({stashedCredentials, stashedSession}: DisconnectParams) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -200,7 +234,7 @@ function disconnect() {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -212,7 +246,7 @@ function disconnect() {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -230,15 +264,17 @@ function disconnect() {
         .then((response) => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while disconnecting as a delegate');
-                restoreDelegateSession(stashedSession);
+                restoreDelegateSession(stashedSession ?? {});
                 return;
             }
 
             if (!response?.requesterID || !response?.requesterEmail) {
                 Log.alert('[Delegate] No requester data returned while disconnecting as a delegate');
-                restoreDelegateSession(stashedSession);
+                restoreDelegateSession(stashedSession ?? {});
                 return;
             }
+
+            clearPreservedSearchNavigatorStates();
 
             const requesterEmail = response.requesterEmail;
             const authToken = response.authToken;
@@ -255,6 +291,9 @@ function disconnect() {
                         email: requesterEmail,
                         authToken,
                         encryptedAuthToken: response.encryptedAuthToken,
+                    });
+                    Onyx.merge(ONYXKEYS.ACCOUNT, {
+                        primaryLogin: requesterEmail,
                     });
                     Onyx.set(ONYXKEYS.STASHED_CREDENTIALS, {});
                     Onyx.set(ONYXKEYS.STASHED_SESSION, {});
@@ -280,7 +319,7 @@ function disconnect() {
         });
 }
 
-function clearDelegatorErrors() {
+function clearDelegatorErrors({delegatedAccess}: ClearDelegatorErrorsParams) {
     if (!delegatedAccess?.delegators) {
         return;
     }
@@ -291,7 +330,11 @@ function requestValidationCode() {
     API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null);
 }
 
-function addDelegate(email: string, role: DelegateRole, validateCode: string) {
+function addDelegate({email, role, validateCode, delegatedAccess}: AddDelegateParams) {
+    if (!delegatedAccess?.delegates) {
+        return;
+    }
+
     const existingDelegate = delegatedAccess?.delegates?.find((delegate) => delegate.email === email);
 
     const optimisticDelegateData = (): Delegate[] => {
@@ -370,7 +413,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
         ];
     };
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -414,7 +457,7 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
         ];
     };
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -436,17 +479,17 @@ function addDelegate(email: string, role: DelegateRole, validateCode: string) {
     };
     optimisticData.push(optimisticResetActionCode);
 
-    const parameters: AddDelegateParams = {delegateEmail: email, validateCode, role};
+    const parameters: APIAddDelegateParams = {delegateEmail: email, validateCode, role};
 
     API.write(WRITE_COMMANDS.ADD_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
-function removeDelegate(email: string) {
-    if (!email) {
+function removeDelegate({email, delegatedAccess}: RemoveDelegateParams) {
+    if (!email || !delegatedAccess?.delegates) {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -471,7 +514,7 @@ function removeDelegate(email: string) {
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -483,7 +526,7 @@ function removeDelegate(email: string) {
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -508,12 +551,12 @@ function removeDelegate(email: string) {
         },
     ];
 
-    const parameters: RemoveDelegateParams = {delegateEmail: email};
+    const parameters: APIRemoveDelegateParams = {delegateEmail: email};
 
     API.write(WRITE_COMMANDS.REMOVE_DELEGATE, parameters, {optimisticData, successData, failureData});
 }
 
-function clearDelegateErrorsByField(email: string, fieldName: string) {
+function clearDelegateErrorsByField({email, fieldName, delegatedAccess}: ClearDelegateErrorsByFieldParams) {
     if (!delegatedAccess?.delegates) {
         return;
     }
@@ -529,20 +572,21 @@ function clearDelegateErrorsByField(email: string, fieldName: string) {
     });
 }
 
-function isConnectedAsDelegate() {
+function isConnectedAsDelegate({delegatedAccess}: IsConnectedAsDelegateParams) {
     return !!delegatedAccess?.delegate;
 }
 
-function updateDelegateRole(email: string, role: DelegateRole, validateCode: string) {
+function updateDelegateRole({email, role, validateCode, delegatedAccess}: UpdateDelegateRoleParams) {
     if (!delegatedAccess?.delegates) {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
+                isLoading: true,
                 delegatedAccess: {
                     errorFields: {
                         updateDelegateRole: {
@@ -564,11 +608,12 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
         },
     ];
 
-    const successData: OnyxUpdate[] = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
+                isLoading: false,
                 delegatedAccess: {
                     errorFields: {
                         updateDelegateRole: {
@@ -591,19 +636,20 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
         },
     ];
 
-    const failureData: OnyxUpdate[] = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {
+                isLoading: false,
                 delegatedAccess: {
                     delegates: delegatedAccess.delegates.map((delegate) =>
                         delegate.email === email
                             ? {
                                   ...delegate,
                                   isLoading: false,
-                                  pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                  pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                  pendingAction: null,
+                                  pendingFields: {role: null},
                               }
                             : delegate,
                     ),
@@ -612,51 +658,17 @@ function updateDelegateRole(email: string, role: DelegateRole, validateCode: str
         },
     ];
 
-    const parameters: UpdateDelegateRoleParams = {delegateEmail: email, validateCode, role};
+    const parameters: APIUpdateDelegateRoleParams = {delegateEmail: email, validateCode, role};
 
     API.write(WRITE_COMMANDS.UPDATE_DELEGATE_ROLE, parameters, {optimisticData, successData, failureData});
 }
 
-function updateDelegateRoleOptimistically(email: string, role: DelegateRole) {
+function clearDelegateRolePendingAction({email, delegatedAccess}: ClearDelegateRolePendingActionParams) {
     if (!delegatedAccess?.delegates) {
         return;
     }
 
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                delegatedAccess: {
-                    errorFields: {
-                        updateDelegateRole: {
-                            [email]: null,
-                        },
-                    },
-                    delegates: delegatedAccess.delegates.map((delegate) =>
-                        delegate.email === email
-                            ? {
-                                  ...delegate,
-                                  role,
-                                  pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                  pendingFields: {role: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                              }
-                            : delegate,
-                    ),
-                },
-            },
-        },
-    ];
-
-    Onyx.update(optimisticData);
-}
-
-function clearDelegateRolePendingAction(email: string) {
-    if (!delegatedAccess?.delegates) {
-        return;
-    }
-
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
@@ -705,7 +717,6 @@ export {
     clearDelegateErrorsByField,
     restoreDelegateSession,
     isConnectedAsDelegate,
-    updateDelegateRoleOptimistically,
     clearDelegateRolePendingAction,
     updateDelegateRole,
     removeDelegate,

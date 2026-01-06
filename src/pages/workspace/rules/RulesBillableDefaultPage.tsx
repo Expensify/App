@@ -4,7 +4,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
@@ -67,31 +67,29 @@ function RulesBillableDefaultPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesBillableDefaultPage.displayName}
+                testID="RulesBillableDefaultPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.individualExpenseRules.billableDefault')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flexRow, styles.renderHTML, styles.mt3, styles.mh5, styles.mb5]}>
-                    <RenderHTML html={translate('workspace.rules.individualExpenseRules.billableDefaultDescription', {tagsPageLink})} />
+                    <RenderHTML html={translate('workspace.rules.individualExpenseRules.billableDefaultDescription', tagsPageLink)} />
                 </View>
                 <SelectionList
-                    sections={[{data: billableModes}]}
+                    data={billableModes}
                     ListItem={RadioListItem}
                     onSelectRow={(item) => {
                         setPolicyBillableMode(policyID, item.value);
                         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
                     }}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedOptionKey={initiallyFocusedOptionKey}
+                    initiallyFocusedItemKey={initiallyFocusedOptionKey}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesBillableDefaultPage.displayName = 'RulesBillableDefaultPage';
 
 export default RulesBillableDefaultPage;

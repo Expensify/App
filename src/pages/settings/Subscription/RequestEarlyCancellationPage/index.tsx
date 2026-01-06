@@ -109,10 +109,11 @@ function RequestEarlyCancellationPage() {
 
     return (
         <ScreenWrapper
-            testID={RequestEarlyCancellationPage.displayName}
+            testID="RequestEarlyCancellationPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            shouldShowOfflineIndicatorInWideScreen={!cancellationType}
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -124,7 +125,5 @@ function RequestEarlyCancellationPage() {
         </ScreenWrapper>
     );
 }
-
-RequestEarlyCancellationPage.displayName = 'RequestEarlyCancellationPage';
 
 export default RequestEarlyCancellationPage;

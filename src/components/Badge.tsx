@@ -43,6 +43,9 @@ type BadgeProps = {
 
     /** Additional styles from OfflineWithFeedback applied to the row */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether to use XXSmall icon size */
+    shouldUseXXSmallIcon?: boolean;
 };
 
 function Badge({
@@ -57,12 +60,13 @@ function Badge({
     icon,
     iconStyles = [],
     style,
+    shouldUseXXSmallIcon = false,
 }: BadgeProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const Wrapper = pressable ? PressableWithoutFeedback : View;
 
-    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedback.deleted) : false;
+    const isDeleted = style && Array.isArray(style) ? style.includes(styles.offlineFeedbackDeleted) : false;
 
     const iconColor = StyleUtils.getIconColorStyle(success, error);
 
@@ -89,15 +93,15 @@ function Badge({
             {!!icon && (
                 <View style={[styles.mr2, iconStyles]}>
                     <Icon
-                        width={variables.iconSizeExtraSmall}
-                        height={variables.iconSizeExtraSmall}
+                        width={shouldUseXXSmallIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall}
+                        height={shouldUseXXSmallIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall}
                         src={icon}
                         fill={iconColor}
                     />
                 </View>
             )}
             <Text
-                style={[styles.badgeText, styles.textStrong, textStyles, isDeleted ? styles.offlineFeedback.deleted : {}]}
+                style={[styles.badgeText, styles.textStrong, textStyles, isDeleted ? styles.offlineFeedbackDeleted : {}]}
                 numberOfLines={1}
             >
                 {text}
@@ -105,7 +109,5 @@ function Badge({
         </Wrapper>
     );
 }
-
-Badge.displayName = 'Badge';
 
 export default Badge;

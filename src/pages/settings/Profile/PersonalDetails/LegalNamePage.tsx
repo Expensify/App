@@ -15,18 +15,19 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {doesContainReservedWord, isValidLegalName} from '@libs/ValidationUtils';
+import {doesContainReservedWord} from '@libs/ValidationUtils';
 import {updateLegalName as updateLegalNamePersonalDetails} from '@userActions/PersonalDetails';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/LegalNameForm';
-import type {PersonalDetails, PrivatePersonalDetails} from '@src/types/onyx';
+import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 const updateLegalName = (
     values: PrivatePersonalDetails,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    currentUserPersonalDetail: Pick<PersonalDetails, 'firstName' | 'lastName'>,
+    currentUserPersonalDetail: Pick<CurrentUserPersonalDetails, 'firstName' | 'lastName' | 'accountID' | 'email'>,
 ) => {
     updateLegalNamePersonalDetails(values.legalFirstName?.trim() ?? '', values.legalLastName?.trim() ?? '', formatPhoneNumber, currentUserPersonalDetail);
 };
@@ -48,14 +49,8 @@ function LegalNamePage() {
             if (typeof values.legalFirstName === 'string') {
                 if (!values.legalFirstName) {
                     errors.legalFirstName = translate('common.error.fieldRequired');
-                } else if (!isValidLegalName(values.legalFirstName)) {
-                    addErrorMessage(errors, 'legalFirstName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
                 } else if (values.legalFirstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                    addErrorMessage(
-                        errors,
-                        'legalFirstName',
-                        translate('common.error.characterLimitExceedCounter', {length: values.legalFirstName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}),
-                    );
+                    addErrorMessage(errors, 'legalFirstName', translate('common.error.characterLimitExceedCounter', values.legalFirstName.length, CONST.LEGAL_NAME.MAX_LENGTH));
                 }
                 if (doesContainReservedWord(values.legalFirstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
                     addErrorMessage(errors, 'legalFirstName', translate('personalDetails.error.containsReservedWord'));
@@ -65,14 +60,8 @@ function LegalNamePage() {
             if (typeof values.legalLastName === 'string') {
                 if (!values.legalLastName) {
                     errors.legalLastName = translate('common.error.fieldRequired');
-                } else if (!isValidLegalName(values.legalLastName)) {
-                    addErrorMessage(errors, 'legalLastName', translate('privatePersonalDetails.error.hasInvalidCharacter'));
                 } else if (values.legalLastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
-                    addErrorMessage(
-                        errors,
-                        'legalLastName',
-                        translate('common.error.characterLimitExceedCounter', {length: values.legalLastName.length, limit: CONST.LEGAL_NAME.MAX_LENGTH}),
-                    );
+                    addErrorMessage(errors, 'legalLastName', translate('common.error.characterLimitExceedCounter', values.legalLastName.length, CONST.LEGAL_NAME.MAX_LENGTH));
                 }
                 if (doesContainReservedWord(values.legalLastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
                     addErrorMessage(errors, 'legalLastName', translate('personalDetails.error.containsReservedWord'));
@@ -88,7 +77,7 @@ function LegalNamePage() {
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={LegalNamePage.displayName}
+            testID="LegalNamePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
@@ -102,7 +91,14 @@ function LegalNamePage() {
                         style={[styles.flexGrow1, styles.ph5]}
                         formID={ONYXKEYS.FORMS.LEGAL_NAME_FORM}
                         validate={validate}
-                        onSubmit={(values) => updateLegalName(values, formatPhoneNumber, {firstName: currentUserPersonalDetails.firstName, lastName: currentUserPersonalDetails.lastName})}
+                        onSubmit={(values) =>
+                            updateLegalName(values, formatPhoneNumber, {
+                                firstName: currentUserPersonalDetails.firstName,
+                                lastName: currentUserPersonalDetails.lastName,
+                                accountID: currentUserPersonalDetails.accountID,
+                                email: currentUserPersonalDetails.email,
+                            })
+                        }
                         submitButtonText={translate('common.save')}
                         enabledWhenOffline
                     >
@@ -138,7 +134,5 @@ function LegalNamePage() {
         </ScreenWrapper>
     );
 }
-
-LegalNamePage.displayName = 'LegalNamePage';
 
 export default LegalNamePage;

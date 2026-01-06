@@ -3,10 +3,11 @@ import {View} from 'react-native';
 import type {StyleProp} from 'react-native';
 import type {ViewStyle} from 'react-native/Libraries/StyleSheet/StyleSheetTypes';
 import Avatar from '@components/Avatar';
+import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as UserUtils from '@libs/UserUtils';
+import {getSmallSizeAvatar} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
@@ -23,13 +24,14 @@ type AvatarWithDelegateAvatarProps = {
 };
 
 function AvatarWithDelegateAvatar({delegateEmail, isSelected = false, containerStyle}: AvatarWithDelegateAvatarProps) {
+    const defaultAvatars = useDefaultAvatars();
     const styles = useThemeStyles();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use correct avatar size
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const personalDetails = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const delegatePersonalDetail = Object.values(personalDetails[0] ?? {}).find((personalDetail) => personalDetail?.login?.toLowerCase() === delegateEmail);
+    const personalDetails = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const delegatePersonalDetail = Object.values(personalDetails?.[0] ?? {}).find((personalDetail) => personalDetail?.login?.toLowerCase() === delegateEmail);
 
     return (
         <View style={[styles.sidebarStatusAvatarContainer, containerStyle]}>
@@ -38,7 +40,7 @@ function AvatarWithDelegateAvatar({delegateEmail, isSelected = false, containerS
                 <View style={styles.emojiStatusLHN}>
                     <Avatar
                         size={isSmallScreenWidth ? CONST.AVATAR_SIZE.MID_SUBSCRIPT : CONST.AVATAR_SIZE.SMALL}
-                        source={UserUtils.getSmallSizeAvatar(delegatePersonalDetail?.avatar, delegatePersonalDetail?.accountID)}
+                        source={getSmallSizeAvatar({avatarSource: delegatePersonalDetail?.avatar, accountID: delegatePersonalDetail?.accountID, defaultAvatars})}
                         fallbackIcon={delegatePersonalDetail?.fallbackIcon}
                         type={CONST.ICON_TYPE_AVATAR}
                     />
@@ -47,7 +49,5 @@ function AvatarWithDelegateAvatar({delegateEmail, isSelected = false, containerS
         </View>
     );
 }
-
-AvatarWithDelegateAvatar.displayName = 'AvatarWithDelegateAvatar';
 
 export default AvatarWithDelegateAvatar;

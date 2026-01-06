@@ -10,6 +10,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {connectPolicyToNetSuite} from '@libs/actions/connections/NetSuiteCommands';
+import {isMobileSafari} from '@libs/Browser';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Parser from '@libs/Parser';
 import type {SubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
@@ -28,12 +29,12 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM>) => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM> = {};
 
-            formInputs.forEach((formInput) => {
+            for (const formInput of formInputs) {
                 if (formValues[formInput]) {
-                    return;
+                    continue;
                 }
                 addErrorMessage(errors, formInput, translate('common.error.fieldRequired'));
-            });
+            }
             return errors;
         },
         [formInputs, translate],
@@ -52,18 +53,17 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
     );
 
     return (
-        <View style={[styles.flexGrow1, styles.ph5]}>
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.title`)}</Text>
-
+        <>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6, styles.ph5]}>{translate(`workspace.netsuite.tokenInput.formSteps.enterCredentials.title`)}</Text>
             <FormProvider
                 formID={ONYXKEYS.FORMS.NETSUITE_TOKEN_INPUT_FORM}
-                style={styles.flexGrow1}
+                style={[styles.flexGrow1, styles.ph5]}
                 validate={validate}
                 onSubmit={connectPolicy}
                 submitButtonText={translate('common.confirm')}
                 shouldValidateOnBlur
                 shouldValidateOnChange
-                addBottomSafeAreaPadding={false}
+                addBottomSafeAreaPadding={!isMobileSafari()}
             >
                 {formInputs.map((formInput, index) => (
                     <View
@@ -91,9 +91,8 @@ function NetSuiteTokenInputForm({onNext, policyID}: SubStepWithPolicy) {
                     </View>
                 ))}
             </FormProvider>
-        </View>
+        </>
     );
 }
 
-NetSuiteTokenInputForm.displayName = 'NetSuiteTokenInputForm';
 export default NetSuiteTokenInputForm;

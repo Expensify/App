@@ -1,7 +1,6 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import * as Localize from '@libs/Localize';
 import {isFullScreenName, isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
 import * as Welcome from '@userActions/Welcome';
@@ -10,6 +9,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import {
     handleDismissModalAction,
     handleNavigatingToModalFromModal,
+    handleOpenDomainSplitAction,
     handleOpenWorkspaceSplitAction,
     handlePushFullscreenAction,
     handleReplaceReportsSplitNavigatorAction,
@@ -18,6 +18,7 @@ import {
 import syncBrowserHistory from './syncBrowserHistory';
 import type {
     DismissModalActionType,
+    OpenDomainSplitActionType,
     OpenWorkspaceSplitActionType,
     PreloadActionType,
     PushActionType,
@@ -29,6 +30,10 @@ import type {
 
 function isOpenWorkspaceSplitAction(action: RootStackNavigatorAction): action is OpenWorkspaceSplitActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
+}
+
+function isOpenDomainSplitAction(action: RootStackNavigatorAction): action is OpenDomainSplitActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_DOMAIN_SPLIT;
 }
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
@@ -60,7 +65,7 @@ function shouldPreventReset(state: StackNavigationState<ParamListBase>, action: 
 
     // We want to prevent the user from navigating back to a non-onboarding screen if they are currently on an onboarding screen
     if (isOnboardingFlowName(currentFocusedRoute?.name) && !isOnboardingFlowName(targetFocusedRoute?.name)) {
-        Welcome.setOnboardingErrorMessage(Localize.translateLocal('onboarding.purpose.errorBackButton'));
+        Welcome.setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
         return true;
     }
 
@@ -95,6 +100,10 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
             if (isOpenWorkspaceSplitAction(action)) {
                 return handleOpenWorkspaceSplitAction(state, action, configOptions, stackRouter);
+            }
+
+            if (isOpenDomainSplitAction(action)) {
+                return handleOpenDomainSplitAction(state, action, configOptions, stackRouter);
             }
 
             if (isDismissModalAction(action)) {

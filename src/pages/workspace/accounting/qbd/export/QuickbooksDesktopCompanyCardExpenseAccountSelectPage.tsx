@@ -1,11 +1,11 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateQuickbooksDesktopNonReimbursableExpensesAccount} from '@libs/actions/connections/QuickbooksDesktop';
@@ -38,7 +38,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
     const nonReimbursableAccount = qbdConfig?.export?.nonReimbursableAccount;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT>>();
     const backTo = route.params?.backTo;
-
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const data: CardListItem[] = useMemo(() => {
         const accounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable);
         return accounts.map((card) => ({
@@ -68,7 +68,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
     const listEmptyContent = useMemo(
         () => (
             <BlockingView
-                icon={Illustrations.TeleScope}
+                icon={illustrations.Telescope}
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={translate('workspace.qbd.noAccountsFound')}
@@ -76,15 +76,15 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
                 containerStyle={styles.pb10}
             />
         ),
-        [translate, styles.pb10],
+        [translate, styles.pb10, illustrations.Telescope],
     );
     return (
         <SelectionScreen
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksDesktopCompanyCardExpenseAccountSelectPage.displayName}
-            headerTitleAlreadyTranslated={getQBDNonReimbursableExportAccountType(nonReimbursable)}
+            displayName="QuickbooksDesktopCompanyCardExpenseAccountSelectPage"
+            headerTitleAlreadyTranslated={getQBDNonReimbursableExportAccountType(translate, nonReimbursable)}
             headerContent={nonReimbursable ? <Text style={[styles.ph5, styles.pb5]}>{translate(`workspace.qbd.accounts.${nonReimbursable}AccountDescription`)}</Text> : null}
             sections={data.length ? [{data}] : []}
             listItem={RadioListItem}
@@ -101,7 +101,5 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectPage({policy}: WithPoli
         />
     );
 }
-
-QuickbooksDesktopCompanyCardExpenseAccountSelectPage.displayName = 'QuickbooksDesktopCompanyCardExpenseAccountSelectPage';
 
 export default withPolicyConnections(QuickbooksDesktopCompanyCardExpenseAccountSelectPage);

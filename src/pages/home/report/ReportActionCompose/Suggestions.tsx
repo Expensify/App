@@ -1,6 +1,6 @@
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useContext, useEffect, useImperativeHandle, useRef} from 'react';
-import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
+import React, {useCallback, useContext, useEffect, useImperativeHandle, useRef} from 'react';
+import type {TextInputSelectionChangeEvent} from 'react-native';
 import {View} from 'react-native';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import type {TextSelection} from '@components/Composer/types';
@@ -43,6 +43,9 @@ type SuggestionProps = {
 
     /** The policyID of the report connected to current composer */
     policyID?: string;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<SuggestionsRef>;
 };
 
 /**
@@ -50,21 +53,19 @@ type SuggestionProps = {
  * If you want to add a new suggestion type, add it here.
  *
  */
-function Suggestions(
-    {
-        value,
-        selection,
-        setSelection,
-        updateComment,
-        resetKeyboardInput,
-        measureParentContainerAndReportCursor,
-        isAutoSuggestionPickerLarge = true,
-        isComposerFocused,
-        isGroupPolicyReport,
-        policyID,
-    }: SuggestionProps,
-    ref: ForwardedRef<SuggestionsRef>,
-) {
+function Suggestions({
+    value,
+    selection,
+    setSelection,
+    updateComment,
+    resetKeyboardInput,
+    measureParentContainerAndReportCursor,
+    isAutoSuggestionPickerLarge = true,
+    isComposerFocused,
+    isGroupPolicyReport,
+    policyID,
+    ref,
+}: SuggestionProps) {
     const suggestionEmojiRef = useRef<SuggestionsRef>(null);
     const suggestionMentionRef = useRef<SuggestionsRef>(null);
     const {isDraggingOver} = useContext(DragAndDropContext);
@@ -105,7 +106,7 @@ function Suggestions(
         return emojiHandler ?? mentionHandler;
     }, []);
 
-    const onSelectionChange = useCallback((e: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+    const onSelectionChange = useCallback((e: TextInputSelectionChangeEvent) => {
         const emojiHandler = suggestionEmojiRef.current?.onSelectionChange?.(e);
         suggestionMentionRef.current?.onSelectionChange?.(e);
         return emojiHandler;
@@ -176,8 +177,6 @@ function Suggestions(
     );
 }
 
-Suggestions.displayName = 'Suggestions';
-
-export default forwardRef(Suggestions);
+export default Suggestions;
 
 export type {SuggestionProps};

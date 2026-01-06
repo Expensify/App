@@ -3,24 +3,22 @@ import type {VideoReadyForDisplayEvent} from 'expo-av';
 import React, {useEffect, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
-import * as Expensicons from '@components/Icon/Expensicons';
-import {useSearchContext} from '@components/Search/SearchContext';
+import {useIsOnSearch} from '@components/Search/SearchScopeProvider';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useCheckIfRouteHasRemainedUnchanged from '@hooks/useCheckIfRouteHasRemainedUnchanged';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@navigation/Navigation';
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Dimensions} from '@src/types/utils/Layout';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
-
-type VideoDimensions = {
-    width: number;
-    height: number;
-};
 
 type VideoPlayerPreviewProps = {
     /** Url to a video. */
@@ -30,7 +28,7 @@ type VideoPlayerPreviewProps = {
     reportID: string | undefined;
 
     /** Dimension of a video. */
-    videoDimensions: VideoDimensions;
+    videoDimensions: Dimensions;
 
     /** Duration of a video. */
     videoDuration: number;
@@ -48,9 +46,10 @@ type VideoPlayerPreviewProps = {
     isDeleted?: boolean;
 };
 
-const isOnAttachmentRoute = () => Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}`;
+const isOnAttachmentRoute = () => Navigation.getActiveRouteWithoutParams() === `/${ROUTES.REPORT_ATTACHMENTS.route}`;
 
 function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress, isDeleted}: VideoPlayerPreviewProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Expand']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID} = usePlaybackContext();
@@ -62,8 +61,34 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
-    const {isOnSearch} = useSearchContext();
+    const isOnSearch = useIsOnSearch();
     const navigation = useNavigation();
+
+    useEffect(() => {
+        const platform = getPlatform();
+        // On web and desktop platforms, we can use the DOM video element to get accurate video dimensions
+        // by loading the video metadata. On mobile platforms, we rely on the provided videoDimensions
+        // since document.createElement is not available in React Native environments.
+        if (videoUrl && (platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP)) {
+            const video = document.createElement('video');
+            video.onloadedmetadata = () => {
+                if (video.videoWidth === measuredDimensions.width && video.videoHeight === measuredDimensions.height) {
+                    return;
+                }
+                setMeasuredDimensions({
+                    width: video.videoWidth,
+                    height: video.videoHeight,
+                });
+            };
+            video.src = videoUrl;
+            video.load();
+
+            return () => {
+                video.src = '';
+            };
+        }
+        setMeasuredDimensions(videoDimensions);
+    }, [videoUrl, measuredDimensions.width, measuredDimensions.height, videoDimensions]);
 
     // We want to play the video only when the user is on the page where it was initially rendered
     const doesUserRemainOnFirstRenderRoute = useCheckIfRouteHasRemainedUnchanged(videoUrl);
@@ -116,11 +141,12 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
                     />
                     <View style={[styles.pAbsolute, styles.w100]}>
                         <IconButton
-                            src={Expensicons.Expand}
+                            src={icons.Expand}
                             style={[styles.videoExpandButton]}
                             tooltipText={translate('videoPlayer.expand')}
                             onPress={onShowModalPress}
                             small
+                            sentryLabel={CONST.SENTRY_LABEL.VIDEO_PLAYER.EXPAND_BUTTON}
                         />
                     </View>
                 </View>
@@ -128,7 +154,5 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
         </View>
     );
 }
-
-VideoPlayerPreview.displayName = 'VideoPlayerPreview';
 
 export default VideoPlayerPreview;

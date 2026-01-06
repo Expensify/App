@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
@@ -66,7 +66,7 @@ function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnecti
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteImportCustomersOrProjectSelectPage.displayName}
+            displayName="NetSuiteImportCustomersOrProjectSelectPage"
             sections={[{data: inputSectionData}]}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
@@ -91,7 +91,5 @@ function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnecti
         />
     );
 }
-
-NetSuiteImportCustomersOrProjectSelectPage.displayName = 'NetSuiteImportCustomersOrProjectSelectPage';
 
 export default withPolicyConnections(NetSuiteImportCustomersOrProjectSelectPage);

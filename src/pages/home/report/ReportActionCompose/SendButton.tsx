@@ -26,9 +26,11 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to manage GestureDetector correctly
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    const Tap = Gesture.Tap().onEnd(() => {
-        handleSendMessage();
-    });
+    const Tap = Gesture.Tap()
+        .onEnd(() => {
+            handleSendMessage();
+        })
+        .runOnJS(true);
 
     return (
         <View
@@ -52,6 +54,7 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
                             ]}
                             role={CONST.ROLE.BUTTON}
                             accessibilityLabel={translate('common.send')}
+                            sentryLabel={CONST.SENTRY_LABEL.REPORT.SEND_BUTTON}
                         >
                             {({pressed}) => (
                                 <Icon
@@ -66,7 +69,5 @@ function SendButton({isDisabled: isDisabledProp, handleSendMessage}: SendButtonP
         </View>
     );
 }
-
-SendButton.displayName = 'SendButton';
 
 export default memo(SendButton);

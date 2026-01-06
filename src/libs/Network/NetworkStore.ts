@@ -1,8 +1,5 @@
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import Log from '@libs/Log';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
@@ -14,7 +11,6 @@ let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
 let currentUserEmail: string | null = null;
 let offline = false;
 let authenticating = false;
-let shouldUseNewPartnerName: boolean | undefined;
 
 // Allow code that is outside of the network listen for when a reconnection happens so that it can execute any side-effects (like flushing the sequential network queue)
 let reconnectCallback: () => void;
@@ -32,15 +28,6 @@ function onReconnection(callbackFunction: () => void) {
 let resolveIsReadyPromise: (args?: unknown[]) => void;
 let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
-});
-
-let resolveShouldUseNewPartnerNamePromise: (args?: unknown[]) => void;
-const shouldUseNewPartnerNamePromise = new Promise((resolve) => {
-    resolveShouldUseNewPartnerNamePromise = resolve;
-    // On non-hybrid app variants we can resolve immediately.
-    if (!CONFIG.IS_HYBRID_APP) {
-        resolveShouldUseNewPartnerNamePromise();
-    }
 });
 
 /**
@@ -82,18 +69,6 @@ Onyx.connectWithoutView({
     },
 });
 
-if (CONFIG.IS_HYBRID_APP) {
-    Onyx.connectWithoutView({
-        key: ONYXKEYS.HYBRID_APP,
-        callback: (val) => {
-            // If this value is not set, we can assume that we are using old partner name.
-            shouldUseNewPartnerName = val?.shouldUseNewPartnerName ?? false;
-            Log.info(`[HybridApp] User requests should use ${val?.shouldUseNewPartnerName ? 'new' : 'old'} partner name`);
-            resolveShouldUseNewPartnerNamePromise();
-        },
-    });
-}
-
 // We subscribe to the online/offline status of the network to determine when we should fire off API calls
 // vs queueing them for later.
 // Use connectWithoutView since this doesn't affect to any UI
@@ -133,41 +108,6 @@ function setLastShortAuthToken(newLastAuthToken: string | null) {
     lastShortAuthToken = newLastAuthToken;
 }
 
-function isSupportRequest(command: string): boolean {
-    return [
-        WRITE_COMMANDS.OPEN_APP,
-        READ_COMMANDS.SEARCH,
-        WRITE_COMMANDS.UPDATE_NEWSLETTER_SUBSCRIPTION,
-        WRITE_COMMANDS.OPEN_REPORT,
-        WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL,
-        WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL,
-        WRITE_COMMANDS.REMOVE_WORKSPACE_APPROVAL,
-        SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,
-        READ_COMMANDS.OPEN_CARD_DETAILS_PAGE,
-        READ_COMMANDS.GET_POLICY_CATEGORIES,
-        READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE,
-        READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE,
-        READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED,
-        READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE,
-        READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE,
-        READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE,
-        READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE,
-        READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE,
-        READ_COMMANDS.OPEN_POLICY_REPORT_FIELDS_PAGE,
-        READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE,
-        READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE,
-        READ_COMMANDS.OPEN_POLICY_TAGS_PAGE,
-        READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE,
-        READ_COMMANDS.OPEN_POLICY_TAXES_PAGE,
-        READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE,
-        READ_COMMANDS.OPEN_WORKSPACE_VIEW,
-        READ_COMMANDS.OPEN_PAYMENTS_PAGE,
-        READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE,
-        READ_COMMANDS.SEARCH_FOR_REPORTS,
-        READ_COMMANDS.OPEN_SEARCH_PAGE,
-    ].some((cmd) => cmd === command);
-}
-
 function isSupportAuthToken(): boolean {
     return authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 }
@@ -192,26 +132,12 @@ function setIsAuthenticating(val: boolean) {
     authenticating = val;
 }
 
-function getShouldUseNewPartnerName(): boolean | undefined {
-    if (!CONFIG.IS_HYBRID_APP) {
-        return true;
-    }
-
-    return shouldUseNewPartnerName;
-}
-
-function hasReadShouldUseNewPartnerNameFromStorage(): Promise<unknown> {
-    return shouldUseNewPartnerNamePromise;
-}
-
 export {
-    getShouldUseNewPartnerName,
     getAuthToken,
     setAuthToken,
     getCurrentUserEmail,
     hasReadRequiredDataFromStorage,
     resetHasReadRequiredDataFromStorage,
-    hasReadShouldUseNewPartnerNameFromStorage,
     isOffline,
     onReconnection,
     isAuthenticating,
@@ -219,7 +145,6 @@ export {
     getCredentials,
     checkRequiredData,
     isSupportAuthToken,
-    isSupportRequest,
     getLastShortAuthToken,
     setLastShortAuthToken,
 };

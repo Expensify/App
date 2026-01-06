@@ -1,5 +1,4 @@
 // this file is for testing which methods should not be exported so it is not possible to use named imports - that's why we need to disable the no-restricted-syntax rule
-
 /* eslint-disable no-restricted-syntax */
 import * as IOU from '@libs/actions/IOU';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
@@ -9,7 +8,7 @@ import * as Policy from '@userActions/Policy/Policy';
 import * as Task from '@userActions/Task';
 
 // There are some methods that are OK to use inside an action file, but should not be exported. These are typically methods that look up and return Onyx data.
-// The correct pattern to use is that every file will use it's own withOnyx or Onyx.connect() to access the Onyx data it needs. This prevents data from becoming stale
+// The correct pattern to use is that every file will use it's own useOnyx to access the Onyx data it needs. This prevents data from becoming stale
 // and prevents side-effects that you may not be aware of. It also allows each file to access Onyx data in the most performant way. More context can be found in
 // https://github.com/Expensify/App/issues/27262
 describe('ReportUtils', () => {
@@ -18,9 +17,9 @@ describe('ReportUtils', () => {
         expect(ReportUtils.getReport).toBeUndefined();
     });
 
-    it('does not export isOneTransactionReport', () => {
+    it('does not export isOneTransactionReportDeprecated', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.isOneTransactionReport).toBeUndefined();
+        expect(ReportUtils.isOneTransactionReportDeprecated).toBeUndefined();
     });
 
     it('does not export getPolicy', () => {
@@ -86,6 +85,11 @@ describe('ReportUtils', () => {
     it('does not export getIconsForGroupChat', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getIconsForGroupChat).toBeUndefined();
+    });
+
+    it('does not export getIconsForUserCreatedPolicyRoom', () => {
+        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
+        expect(ReportUtils.getIconsForUserCreatedPolicyRoom).toBeUndefined();
     });
 
     it('does not export getAllReportActions', () => {

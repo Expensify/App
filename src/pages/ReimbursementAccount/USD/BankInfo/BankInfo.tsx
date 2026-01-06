@@ -69,6 +69,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
                         [BANK_INFO_STEP_KEYS.IS_SAVINGS]: data[BANK_INFO_STEP_KEYS.IS_SAVINGS] ?? false,
                     },
                     policyID,
+                    lastPaymentMethod?.[policyID],
                 );
             } else if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
                 connectBankAccountWithPlaid(
@@ -103,7 +104,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
         if (setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL && values.bankName !== '' && !redirectedFromPlaidToManual) {
             setRedirectedFromPlaidToManual(true);
         }
-    }, [redirectedFromPlaidToManual, setupType, values]);
+    }, [redirectedFromPlaidToManual, setupType, values.bankName]);
 
     const handleBackButtonPress = () => {
         if (screenIndex === 0) {
@@ -116,7 +117,7 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
 
     return (
         <InteractiveStepWrapper
-            wrapperID={BankInfo.displayName}
+            wrapperID="BankInfo"
             shouldEnablePickerAvoiding={false}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('bankAccount.bankInfo')}
@@ -132,7 +133,5 @@ function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfo
         </InteractiveStepWrapper>
     );
 }
-
-BankInfo.displayName = 'BankInfo';
 
 export default BankInfo;

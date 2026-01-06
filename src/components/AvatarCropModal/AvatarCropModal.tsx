@@ -1,10 +1,12 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 import ImageSize from 'react-native-image-size';
-import {interpolate, runOnUI, useSharedValue} from 'react-native-reanimated';
+import {interpolate, useSharedValue} from 'react-native-reanimated';
+import {scheduleOnUI} from 'react-native-worklets';
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -15,6 +17,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -48,13 +51,18 @@ type AvatarCropModalProps = {
 
     /** Image crop vector mask */
     maskImage?: IconAsset;
+
+    /** Custom primary action label text */
+    buttonLabel?: string;
 };
 
 // This component can't be written using class since reanimated API uses hooks.
-function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose, onSave, isVisible, maskImage}: AvatarCropModalProps) {
+function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose, onSave, isVisible, maskImage, buttonLabel}: AvatarCropModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Zoom']);
+
     const originalImageWidth = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const originalImageHeight = useSharedValue<number>(CONST.AVATAR_CROP_MODAL.INITIAL_SIZE);
     const translateY = useSharedValue(0);
@@ -65,6 +73,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     const isPressableEnabled = useSharedValue(true);
 
     const {translate} = useLocalize();
+    const buttonText = buttonLabel ?? translate('common.save');
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // Check if image cropping, saving or uploading is in progress
@@ -270,17 +279,15 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
     // Rotates the image by changing the rotation value by 90 degrees
     // and updating the position so the image remains in the same place after rotation
     const rotateImage = useCallback(() => {
-        runOnUI(() => {
-            rotation.set((value) => value - 90);
+        rotation.set((value) => value - 90);
 
-            const oldTranslateX = translateX.get();
-            translateX.set(translateY.get());
-            translateY.set(oldTranslateX * -1);
+        const oldTranslateX = translateX.get();
+        translateX.set(translateY.get());
+        translateY.set(oldTranslateX * -1);
 
-            const oldOriginalImageHeight = originalImageHeight.get();
-            originalImageHeight.set(originalImageWidth.get());
-            originalImageWidth.set(oldOriginalImageHeight);
-        })();
+        const oldOriginalImageHeight = originalImageHeight.get();
+        originalImageHeight.set(originalImageWidth.get());
+        originalImageWidth.set(oldOriginalImageHeight);
     }, [originalImageHeight, originalImageWidth, rotation, translateX, translateY]);
 
     // Crops an image that was provided in the imageUri prop, using the current position/scale
@@ -316,6 +323,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
 
         cropOrRotateImage(imageUri, [{rotate: rotation.get() % 360}, {crop}], {compress: 1, name, type})
             .then((newImage) => {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
                     onClose?.();
                 });
@@ -360,7 +368,7 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                 includePaddingTop={false}
                 includeSafeAreaPaddingBottom
                 shouldEnableKeyboardAvoidingView={false}
-                testID={AvatarCropModal.displayName}
+                testID="AvatarCropModal"
             >
                 {shouldUseNarrowLayout && <HeaderGap />}
                 <HeaderWithBackButton
@@ -368,78 +376,77 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                     onBackButtonPress={onClose}
                 />
                 <Text style={[styles.mh5]}>{translate('avatarCropModal.description')}</Text>
-                <GestureHandlerRootView
+                <View
+                    style={[styles.flex1, styles.m5, styles.alignSelfStretch]}
                     onLayout={initializeImageContainer}
-                    style={[styles.alignSelfStretch, styles.m5, styles.flex1, styles.alignItemsCenter]}
                 >
-                    {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
-                    {!isImageInitialized || !isImageContainerInitialized ? (
-                        <ActivityIndicator
-                            color={theme.spinner}
-                            style={[styles.flex1]}
-                            size="large"
-                        />
-                    ) : (
-                        <>
-                            <ImageCropView
-                                imageUri={imageUri}
-                                containerSize={imageContainerSize}
-                                panGesture={panGesture}
-                                originalImageHeight={originalImageHeight}
-                                originalImageWidth={originalImageWidth}
-                                scale={scale}
-                                translateY={translateY}
-                                translateX={translateX}
-                                rotation={rotation}
-                                maskImage={maskImage}
+                    <GestureHandlerRootView style={[styles.flex1, styles.alignItemsCenter]}>
+                        {/* To avoid layout shift we should hide this component until the image container & image is initialized */}
+                        {!isImageInitialized || !isImageContainerInitialized ? (
+                            <ActivityIndicator
+                                style={[styles.flex1]}
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             />
-                            <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
-                                <Icon
-                                    src={Expensicons.Zoom}
-                                    fill={theme.icon}
+                        ) : (
+                            <>
+                                <ImageCropView
+                                    imageUri={imageUri}
+                                    containerSize={imageContainerSize}
+                                    panGesture={panGesture}
+                                    originalImageHeight={originalImageHeight}
+                                    originalImageWidth={originalImageWidth}
+                                    scale={scale}
+                                    translateY={translateY}
+                                    translateX={translateX}
+                                    rotation={rotation}
+                                    maskImage={maskImage}
                                 />
-
-                                <PressableWithoutFeedback
-                                    style={[styles.mh5, styles.flex1]}
-                                    onLayout={initializeSliderContainer}
-                                    onPressIn={(e) => runOnUI(sliderOnPress)(e.nativeEvent.locationX)}
-                                    accessibilityLabel="slider"
-                                    role={CONST.ROLE.SLIDER}
-                                >
-                                    <Slider
-                                        sliderValue={translateSlider}
-                                        gestureCallbacks={sliderPanGestureCallbacks}
+                                <View style={[styles.mt5, styles.justifyContentBetween, styles.alignItemsCenter, styles.flexRow, StyleUtils.getWidthStyle(imageContainerSize)]}>
+                                    <Icon
+                                        src={expensifyIcons.Zoom}
+                                        fill={theme.icon}
                                     />
-                                </PressableWithoutFeedback>
-                                <Tooltip
-                                    text={translate('common.rotate')}
-                                    shiftVertical={-2}
-                                >
-                                    <View>
-                                        <Button
-                                            icon={Expensicons.Rotate}
-                                            iconFill={theme.icon}
-                                            onPress={rotateImage}
+
+                                    <PressableWithoutFeedback
+                                        style={[styles.mh5, styles.flex1]}
+                                        onLayout={initializeSliderContainer}
+                                        onPressIn={(e) => scheduleOnUI(sliderOnPress, e.nativeEvent.locationX)}
+                                        accessibilityLabel="slider"
+                                        role={CONST.ROLE.SLIDER}
+                                    >
+                                        <Slider
+                                            sliderValue={translateSlider}
+                                            gestureCallbacks={sliderPanGestureCallbacks}
                                         />
-                                    </View>
-                                </Tooltip>
-                            </View>
-                        </>
-                    )}
-                </GestureHandlerRootView>
+                                    </PressableWithoutFeedback>
+                                    <Tooltip
+                                        text={translate('common.rotate')}
+                                        shiftVertical={-2}
+                                    >
+                                        <View>
+                                            <Button
+                                                icon={Expensicons.Rotate}
+                                                iconFill={theme.icon}
+                                                onPress={rotateImage}
+                                            />
+                                        </View>
+                                    </Tooltip>
+                                </View>
+                            </>
+                        )}
+                    </GestureHandlerRootView>
+                </View>
                 <Button
                     success
                     style={[styles.m5]}
                     onPress={cropAndSaveImage}
                     pressOnEnter
                     large
-                    text={translate('common.save')}
+                    text={buttonText}
                 />
             </ScreenWrapper>
         </Modal>
     );
 }
-
-AvatarCropModal.displayName = 'AvatarCropModal';
 
 export default AvatarCropModal;

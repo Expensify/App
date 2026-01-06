@@ -1,20 +1,23 @@
-import React from 'react';
-import {ActivityIndicator, InteractionManager, View} from 'react-native';
+import React, {useEffect} from 'react';
+import {InteractionManager, View} from 'react-native';
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
-import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {fetchPerDiemRates} from '@libs/actions/Policy/PerDiem';
+import {setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -56,6 +59,7 @@ function IOURequestStepDestination({
     explicitPolicyID,
 }: IOURequestStepDestinationProps) {
     const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${explicitPolicyID ?? getIOURequestPolicyID(transaction, report)}`, {canBeMissing: false});
+    const personalPolicy = usePersonalPolicy();
     const {accountID} = useCurrentUserPersonalDetails();
     const policyExpenseReport = policy?.id ? getPolicyExpenseChat(accountID, policy.id) : undefined;
     const {top} = useSafeAreaInsets();
@@ -63,15 +67,15 @@ function IOURequestStepDestination({
     const selectedDestination = transaction?.comment?.customUnit?.customUnitRateID;
 
     const styles = useThemeStyles();
-    const theme = useTheme();
+    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {translate} = useLocalize();
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = isEmptyObject(policy);
 
     const {isOffline} = useNetwork();
-    const isLoading = !isOffline && isLoadingOnyxValue(policyMetadata);
-    const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline;
+    const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
+    const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline && !isLoading;
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
 
     const navigateBack = () => {
@@ -84,9 +88,14 @@ function IOURequestStepDestination({
         }
         if (selectedDestination !== destination.keyForList) {
             if (openedFromStartPage) {
-                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport);
+                // If we are not coming from the global create menu then this is always reported
+                const shouldAutoReport = !!policy?.autoReporting || !!personalPolicy?.autoReporting || action !== CONST.IOU.ACTION.CREATE || !transaction?.isFromGlobalCreate;
+                const autoReportID = report && !transaction?.isFromGlobalCreate ? report.reportID : policyExpenseReport?.reportID;
+                const transactionReportID = shouldAutoReport ? autoReportID : CONST.REPORT.UNREPORTED_REPORT_ID;
+                setTransactionReport(transactionID, {reportID: transactionReportID}, true);
+                setMoneyRequestParticipantsFromReport(transactionID, policyExpenseReport, accountID);
                 setCustomUnitID(transactionID, customUnit.customUnitID);
-                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '');
+                setMoneyRequestCategory(transactionID, customUnit?.defaultCategory ?? '', undefined);
             }
             setCustomUnitRateID(transactionID, destination.keyForList ?? '');
             setMoneyRequestCurrency(transactionID, destination.currency);
@@ -114,24 +123,46 @@ function IOURequestStepDestination({
         [CONST.IOU.TYPE.CREATE]: translate('iou.createExpense'),
     };
 
+    useEffect(() => {
+        if (!isEmptyObject(customUnit?.rates) || isOffline) {
+            return;
+        }
+        fetchPerDiemRates(policy?.id);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isOffline]);
+
+    useEffect(() => {
+        // When the rates are not available for the policy, the transaction does not have valid customUnitID and moneyRequestCategory
+        // So, we set these in the transaction when the rates are fetched in fetchPerDiemRates
+        const perDiemUnit = getPerDiemCustomUnit(policy);
+        if (!perDiemUnit || transaction?.comment?.customUnit?.customUnitID === perDiemUnit.customUnitID || !!transaction?.category) {
+            return;
+        }
+        setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
+        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [transactionID, policy?.customUnits]);
+
+    const keyboardVerticalOffset = openedFromStartPage ? variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding : 0;
+
     return (
         <ScreenWrapper
             includePaddingTop={false}
-            keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
-            testID={`${IOURequestStepDestination.displayName}-container`}
+            keyboardVerticalOffset={keyboardVerticalOffset}
+            testID="IOURequestStepDestination-container"
+            shouldShowOfflineIndicator={false}
         >
             <StepScreenWrapper
                 headerTitle={backTo ? translate('common.destination') : tabTitles[iouType]}
                 onBackButtonPress={navigateBack}
                 shouldShowWrapper={!openedFromStartPage}
                 shouldShowNotFoundPage={shouldShowNotFoundPage}
-                testID={IOURequestStepDestination.displayName}
+                testID="IOURequestStepDestination"
             >
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        color={theme.spinner}
                     />
                 )}
                 {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
@@ -139,7 +170,7 @@ function IOURequestStepDestination({
                     <View style={[styles.flex1]}>
                         <WorkspaceEmptyStateSection
                             shouldStyleAsCard={false}
-                            icon={Illustrations.EmptyStateExpenses}
+                            icon={illustrations.EmptyStateExpenses}
                             title={translate('workspace.perDiem.emptyList.title')}
                             subtitle={translate('workspace.perDiem.emptyList.subtitle')}
                             containerStyle={[styles.flex1, styles.justifyContentCenter]}
@@ -151,6 +182,7 @@ function IOURequestStepDestination({
                                     success
                                     style={[styles.w100]}
                                     onPress={() => {
+                                        // eslint-disable-next-line @typescript-eslint/no-deprecated
                                         InteractionManager.runAfterInteractions(() => {
                                             Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, Navigation.getActiveRoute()));
                                         });
@@ -173,8 +205,6 @@ function IOURequestStepDestination({
         </ScreenWrapper>
     );
 }
-
-IOURequestStepDestination.displayName = 'IOURequestStepDestination';
 
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepDestinationWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDestination);

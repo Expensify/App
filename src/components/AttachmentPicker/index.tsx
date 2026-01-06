@@ -2,8 +2,8 @@ import React, {useRef} from 'react';
 import type {ValueOf} from 'type-fest';
 import {isMobileChrome} from '@libs/Browser';
 import Visibility from '@libs/Visibility';
-import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import CONST from '@src/CONST';
+import type {FileObject} from '@src/types/utils/Attachment';
 import type AttachmentPickerProps from './types';
 
 /**
@@ -123,6 +123,5 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
         </>
     );
 }
-AttachmentPicker.displayName = 'AttachmentPicker';
 
 export default AttachmentPicker;

@@ -4,16 +4,18 @@ import type {ImageSourcePropType} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+// eslint-disable-next-line no-restricted-imports
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import {useSession} from '@components/OnyxListItemProvider';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
-import type QRShareWithDownloadHandle from '@components/QRShare/QRShareWithDownload/types';
+import type {QRShareWithDownloadHandle} from '@components/QRShare/QRShareWithDownload/types';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -30,6 +32,7 @@ import withPolicy from './withPolicy';
 import type {WithPolicyProps} from './withPolicy';
 
 function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'FallbackAvatar']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -48,21 +51,21 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const hasAvatar = !!policy?.avatarURL;
     const logo = hasAvatar ? (policy?.avatarURL as ImageSourcePropType) : undefined;
 
-    const defaultWorkspaceAvatar = getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
+    const defaultWorkspaceAvatar = getDefaultWorkspaceAvatar(policyName) || icons.FallbackAvatar;
     const defaultWorkspaceAvatarColors = policyID ? StyleUtils.getDefaultWorkspaceAvatarColor(policyID) : StyleUtils.getDefaultWorkspaceAvatarColor('');
 
     const svgLogo = !hasAvatar ? defaultWorkspaceAvatar : undefined;
     const logoBackgroundColor = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
     const svgLogoFillColor = !hasAvatar ? defaultWorkspaceAvatarColors.fill : undefined;
 
-    const adminRoom = useMemo(() => {
+    const adminRoomReportID = useMemo(() => {
         if (!policy?.id) {
             return undefined;
         }
-        return getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id);
-    }, [policy?.id]);
+        return getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id)?.reportID ?? String(policy?.chatReportIDAdmins);
+    }, [policy?.chatReportIDAdmins, policy?.id]);
 
-    const adminsRoomLink = adminRoom ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(adminRoom.reportID)}` : '';
+    const adminsRoomLink = adminRoomReportID ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(adminRoomReportID)}` : '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -70,7 +73,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
         >
             <ScreenWrapper
-                testID={WorkspaceOverviewSharePage.displayName}
+                testID="WorkspaceOverviewSharePage"
                 shouldShowOfflineIndicatorInWideScreen
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
@@ -121,7 +124,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                                 <MenuItem
                                     isAnonymousAction
                                     title={translate('common.download')}
-                                    icon={Expensicons.Download}
+                                    icon={icons.Download}
                                     onPress={() => qrCodeRef.current?.download?.()}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                 />
@@ -133,7 +136,5 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceOverviewSharePage.displayName = 'WorkspaceOverviewSharePage';
 
 export default withPolicy(WorkspaceOverviewSharePage);

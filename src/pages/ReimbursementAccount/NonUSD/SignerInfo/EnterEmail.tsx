@@ -5,6 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -32,28 +33,38 @@ const {COMPANY_NAME, SIGNER_EMAIL, SECOND_SIGNER_EMAIL} = INPUT_IDS.ADDITIONAL_D
 function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {inputCallbackRef} = useAutoFocusInput();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const policyID = reimbursementAccount?.achData?.policyID;
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? '';
     const shouldGatherBothEmails = currency === CONST.CURRENCY.AUD && !isUserDirector;
+    const shouldGatherOnlySecondSignerEmail = currency === CONST.CURRENCY.AUD && isUserDirector;
     const companyName = reimbursementAccount?.achData?.corpay?.[COMPANY_NAME] ?? '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
             const errors = getFieldRequiredErrors(values, shouldGatherBothEmails ? [SIGNER_EMAIL, SECOND_SIGNER_EMAIL] : [SIGNER_EMAIL]);
-            if (values[SIGNER_EMAIL] && !Str.isValidEmail(values[SIGNER_EMAIL])) {
+            if (!shouldGatherOnlySecondSignerEmail && values[SIGNER_EMAIL] && !Str.isValidEmail(values[SIGNER_EMAIL])) {
                 errors[SIGNER_EMAIL] = translate('bankAccount.error.email');
+            }
+
+            if (shouldGatherOnlySecondSignerEmail && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(String(values[SECOND_SIGNER_EMAIL]))) {
+                errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
 
             if (shouldGatherBothEmails && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(String(values[SECOND_SIGNER_EMAIL]))) {
                 errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
 
+            if (shouldGatherBothEmails && values[SIGNER_EMAIL] === values[SECOND_SIGNER_EMAIL]) {
+                errors[SECOND_SIGNER_EMAIL] = translate('signerInfoStep.error.emailsMustBeDifferent');
+            }
+
             return errors;
         },
-        [shouldGatherBothEmails, translate],
+        [shouldGatherBothEmails, shouldGatherOnlySecondSignerEmail, translate],
     );
 
     return (
@@ -66,16 +77,17 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
             style={[styles.mh5, styles.flexGrow1]}
             shouldHideFixErrorsAlert={!shouldGatherBothEmails}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(shouldGatherBothEmails ? 'signerInfoStep.enterTwoEmails' : 'signerInfoStep.enterOneEmail', {companyName})}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(shouldGatherBothEmails ? 'signerInfoStep.enterTwoEmails' : 'signerInfoStep.enterOneEmail', companyName)}</Text>
             {!shouldGatherBothEmails && <Text style={[styles.pv3, styles.textSupporting]}>{translate('signerInfoStep.regulationRequiresOneMoreDirector')}</Text>}
             <InputWrapper
                 InputComponent={TextInput}
                 label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}
                 aria-label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}
                 role={CONST.ROLE.PRESENTATION}
-                inputID={SIGNER_EMAIL}
+                inputID={shouldGatherOnlySecondSignerEmail ? SECOND_SIGNER_EMAIL : SIGNER_EMAIL}
                 inputMode={CONST.INPUT_MODE.EMAIL}
                 containerStyles={[styles.mt6]}
+                ref={!shouldGatherBothEmails ? inputCallbackRef : undefined}
             />
             {shouldGatherBothEmails && (
                 <InputWrapper
@@ -91,8 +103,6 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
         </FormProvider>
     );
 }
-
-EnterEmail.displayName = 'EnterEmail';
 
 export type {EmailSubmitParams};
 export default EnterEmail;

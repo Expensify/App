@@ -10,9 +10,9 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import useEnvironment from '@hooks/useEnvironment';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -34,7 +34,6 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {clearPolicyTagErrors, deletePolicyTags, setWorkspaceTagEnabled} from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -43,20 +42,23 @@ type TagSettingsPageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS>;
 
 function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${route.params.policyID}`, {canBeMissing: true});
     const {orderWeight, policyID, tagName, backTo, parentTagsFilter} = route.params;
     const styles = useThemeStyles();
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Lock']);
     const {translate} = useLocalize();
+    const policyData = usePolicyData(policyID);
+    const {policy, tags: policyTags} = policyData;
     const policyTag = useMemo(() => getTagListByOrderWeight(policyTags, orderWeight), [policyTags, orderWeight]);
-    const policy = usePolicy(policyID);
     const {environmentURL} = useEnvironment();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
     const [isCannotDeleteOrDisableLastTagModalVisible, setIsCannotDeleteOrDisableLastTagModalVisible] = useState(false);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAG_SETTINGS;
-    const tagApprover = getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
-    const approver = getPersonalDetailByEmail(tagApprover);
-    const approverText = approver?.displayName ?? tagApprover;
+    const approverText = useMemo(() => {
+        const tagApprover = getTagApproverRule(policy, route.params?.tagName)?.approver ?? '';
+        const approver = getPersonalDetailByEmail(tagApprover);
+        return approver?.displayName ?? tagApprover;
+    }, [route.params?.tagName, policy]);
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
     const currentPolicyTag = useMemo(() => {
         if (hasDependentTags) {
@@ -79,7 +81,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     }
 
     const deleteTagAndHideModal = () => {
-        deletePolicyTags(policyID, [currentPolicyTag.name]);
+        deletePolicyTags(policyData, [currentPolicyTag.name]);
         setIsDeleteTagModalOpen(false);
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
     };
@@ -89,7 +91,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             setIsCannotDeleteOrDisableLastTagModalVisible(true);
             return;
         }
-        setWorkspaceTagEnabled(policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
+        setWorkspaceTagEnabled(policyData, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
     };
 
     const navigateToEditTag = () => {
@@ -144,7 +146,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={TagSettingsPage.displayName}
+                testID="TagSettingsPage"
             >
                 <HeaderWithBackButton
                     title={getCleanedTagName(tagName)}
@@ -178,7 +180,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             errors={getLatestErrorMessageField(currentPolicyTag)}
                             pendingAction={currentPolicyTag.pendingFields?.enabled}
                             errorRowStyles={styles.mh5}
-                            onClose={() => clearPolicyTagErrors(policyID, tagName, orderWeight)}
+                            onClose={() => clearPolicyTagErrors({policyID, tagName, tagListIndex: orderWeight, policyTags})}
                         >
                             <View style={[styles.mt2, styles.mh5]}>
                                 <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
@@ -208,7 +210,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                 description={translate(`workspace.tags.glCode`)}
                                 title={currentPolicyTag?.['GL Code']}
                                 onPress={navigateToEditGlCode}
-                                iconRight={hasAccountingConnections ? Expensicons.Lock : undefined}
+                                iconRight={hasAccountingConnections ? expensifyIcons.Lock : undefined}
                                 interactive={!hasAccountingConnections && !hasDependentTags}
                                 shouldShowRightIcon={!hasDependentTags}
                             />
@@ -256,7 +258,5 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-TagSettingsPage.displayName = 'TagSettingsPage';
 
 export default TagSettingsPage;

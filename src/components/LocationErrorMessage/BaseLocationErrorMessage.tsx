@@ -33,13 +33,13 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
 
     return (
         <View style={[styles.dotIndicatorMessage, styles.mt4]}>
-            <View style={styles.offlineFeedback.errorDot}>
+            <View style={styles.offlineFeedbackErrorDot}>
                 <Icon
                     src={Expensicons.DotIndicator}
                     fill={colors.red}
                 />
             </View>
-            <View style={styles.offlineFeedback.textContainer}>
+            <View style={styles.offlineFeedbackTextContainer}>
                 {isPermissionDenied ? (
                     <Text>
                         <Text style={[StyleUtils.getDotIndicatorTextStyles()]}>{`${translate('location.permissionDenied')} ${translate('location.please')}`}</Text>
@@ -52,7 +52,7 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
                         <Text style={[StyleUtils.getDotIndicatorTextStyles()]}>{translate('location.tryAgain')}</Text>
                     </Text>
                 ) : (
-                    <Text style={styles.offlineFeedback.text}>{translate('location.notFound')}</Text>
+                    <Text style={styles.offlineFeedbackText}>{translate('location.notFound')}</Text>
                 )}
             </View>
             <View>
@@ -74,7 +74,5 @@ function BaseLocationErrorMessage({onClose, onAllowLocationLinkPress, locationEr
         </View>
     );
 }
-
-BaseLocationErrorMessage.displayName = 'BaseLocationErrorMessage';
 
 export default BaseLocationErrorMessage;

@@ -16,6 +16,7 @@ type MileageRate = {
     unit: Unit;
     name?: string;
     enabled?: boolean;
+    index?: number;
 };
 
 const METERS_TO_KM = 0.001; // 1 kilometer is 1000 meters
@@ -33,13 +34,13 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
         return mileageRates;
     }
 
-    Object.entries(distanceUnit.rates).forEach(([rateID, rate]) => {
+    for (const [rateID, rate] of Object.entries(distanceUnit.rates)) {
         if (!includeDisabledRates && rate.enabled === false && (!selectedRateID || rateID !== selectedRateID)) {
-            return;
+            continue;
         }
 
         if (!distanceUnit.attributes) {
-            return;
+            continue;
         }
 
         mileageRates[rateID] = {
@@ -49,8 +50,9 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
             name: rate.name,
             customUnitRateID: rate.customUnitRateID,
             enabled: rate.enabled,
+            index: rate.index,
         };
-    });
+    }
 
     return mileageRates;
 }
@@ -76,7 +78,11 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
     if (!distanceUnit?.rates || !distanceUnit.attributes) {
         return;
     }
-    const mileageRates = Object.values(getMileageRates(policy));
+    const mileageRates = Object.values(getMileageRates(policy)).sort((a, b) => {
+        const aIndex = a.index ?? CONST.DEFAULT_NUMBER_ID;
+        const bIndex = b.index ?? CONST.DEFAULT_NUMBER_ID;
+        return aIndex - bIndex;
+    });
 
     const distanceRate = mileageRates.at(0) ?? ({} as MileageRate);
 
@@ -86,6 +92,7 @@ function getDefaultMileageRate(policy: OnyxInputOrEntry<Policy>): MileageRate | 
         currency: distanceRate.currency,
         unit: distanceUnit.attributes.unit,
         name: distanceRate.name,
+        index: distanceRate.index,
     };
 }
 
@@ -215,7 +222,7 @@ function getDistanceMerchant(
     const distanceInUnits = getDistanceForDisplay(hasRoute, distanceInMeters, unit, rate, translate, true);
     const ratePerUnit = getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, undefined, true);
 
-    return `${distanceInUnits} @ ${ratePerUnit}`;
+    return `${distanceInUnits} ${CONST.DISTANCE_MERCHANT_SEPARATOR} ${ratePerUnit}`;
 }
 
 function ensureRateDefined(rate: number | undefined): asserts rate is number {
@@ -295,6 +302,10 @@ function getCustomUnitRateID({
         return customUnitRateID;
     }
 
+    if (reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+        return customUnitRateID;
+    }
+
     if (isEmptyObject(policy)) {
         return customUnitRateID;
     }
@@ -329,7 +340,7 @@ function getTaxableAmount(policy: OnyxEntry<Policy>, customUnitRateID: string, d
     const unit = distanceUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
     const rate = customUnitRate?.rate ?? CONST.DEFAULT_NUMBER_ID;
     const amount = getDistanceRequestAmount(distance, unit, rate);
-    const taxClaimablePercentage = customUnitRate.attributes?.taxClaimablePercentage ?? CONST.DEFAULT_NUMBER_ID;
+    const taxClaimablePercentage = customUnitRate.attributes?.taxClaimablePercentage ?? 1;
     return amount * taxClaimablePercentage;
 }
 

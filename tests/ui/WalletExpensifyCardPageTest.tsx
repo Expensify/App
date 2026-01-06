@@ -9,13 +9,13 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
-import {translateLocal} from '@libs/Localize';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import ExpensifyCardPage from '@pages/settings/Wallet/ExpensifyCardPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import currencyList from '../unit/currencyList.json';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -51,6 +51,9 @@ describe('ExpensifyCardPage', () => {
         // Initialize Onyx with required keys before running any test.
         Onyx.init({
             keys: ONYXKEYS,
+            initialKeyStates: {
+                [ONYXKEYS.CURRENCY_LIST]: currencyList,
+            },
         });
     });
 
@@ -80,6 +83,7 @@ describe('ExpensifyCardPage', () => {
                 [userCardID]: {
                     cardID: 1234,
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    fundID: '12345',
                     domainName: 'xyz',
                     nameValuePairs: {
                         isVirtual: true,
@@ -98,12 +102,12 @@ describe('ExpensifyCardPage', () => {
 
         // Verify that the "Report Fraud" option is displayed on the screen.
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('cardPage.reportFraud'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.reportFraud'))).toBeOnTheScreen();
         });
 
         // Verify that the "Reveal Details" option is displayed on the screen.
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('cardPage.cardDetails.revealDetails'))).toBeOnTheScreen();
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.cardDetails.revealDetails'))).toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.
@@ -121,6 +125,7 @@ describe('ExpensifyCardPage', () => {
                 [userCardID]: {
                     cardID: 1234,
                     state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    fundID: '12345',
                     domainName: 'xyz',
                     nameValuePairs: {
                         isVirtual: true,
@@ -146,12 +151,88 @@ describe('ExpensifyCardPage', () => {
 
         // Verify that the "Report Fraud" option is NOT displayed on the screen.
         await waitFor(() => {
-            expect(screen.queryByText(translateLocal('cardPage.reportFraud'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('cardPage.reportFraud'))).not.toBeOnTheScreen();
         });
 
         // Verify that the "Reveal Details" option is NOT displayed on the screen.
         await waitFor(() => {
-            expect(screen.queryByText(translateLocal('cardPage.cardDetails.revealDetails'))).not.toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('cardPage.cardDetails.revealDetails'))).not.toBeOnTheScreen();
+        });
+
+        // Unmount the component after assertions to clean up.
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should not show the PIN option on screen', async () => {
+        // Sign in as a test user before running the test.
+        await TestHelper.signInWithTestUser();
+
+        // Add a mock card to Onyx storage to simulate a valid card being loaded.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                [userCardID]: {
+                    cardID: 1234,
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    domainName: 'xyz',
+                    fundID: '12345',
+                    nameValuePairs: {
+                        isVirtual: false,
+                        cardTitle: 'Test Card',
+                        feedCountry: CONST.COUNTRY.US,
+                    },
+                    availableSpend: 50000,
+                    fraud: null,
+                },
+            });
+        });
+
+        // Render the page with the specified card ID.
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '1234'});
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Verify that the "PIN" option is not displayed on the screen.
+        await waitFor(() => {
+            expect(screen.queryByText(TestHelper.translateLocal('cardPage.physicalCardPin'))).not.toBeOnTheScreen();
+        });
+
+        // Unmount the component after assertions to clean up.
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('should show the PIN option on screen', async () => {
+        // Sign in as a test user before running the test.
+        await TestHelper.signInWithTestUser();
+
+        // Add a mock card to Onyx storage to simulate a valid card being loaded.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                [userCardID]: {
+                    cardID: 1234,
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    domainName: 'xyz',
+                    fundID: '12345',
+                    nameValuePairs: {
+                        isVirtual: false,
+                        cardTitle: 'Test Card',
+                        feedCountry: CONST.COUNTRY.GB,
+                    },
+                    availableSpend: 50000,
+                    fraud: null,
+                },
+            });
+        });
+
+        // Render the page with the specified card ID.
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DOMAIN_CARD, {cardID: '1234'});
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Verify that the "PIN" option is displayed on the screen.
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.physicalCardPin'))).toBeOnTheScreen();
         });
 
         // Unmount the component after assertions to clean up.

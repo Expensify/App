@@ -1,25 +1,45 @@
+import {findFocusedRoute} from '@react-navigation/native';
+import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {GenerateSpotnanaTokenParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import asyncOpenURL from '@libs/asyncOpenURL';
 import * as Environment from '@libs/Environment/Environment';
+import isPublicScreenRoute from '@libs/isPublicScreenRoute';
+import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
+import normalizePath from '@libs/Navigation/helpers/normalizePath';
+import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from '@libs/Navigation/Navigation';
+import navigationRef from '@libs/Navigation/navigationRef';
+import type {NetworkStatus} from '@libs/NetworkConnection';
+import {findLastAccessedReport, getReportIDFromLink, getRouteFromLink} from '@libs/ReportUtils';
+import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import * as Url from '@libs/Url';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn} from './Session';
+import type {Account, Report} from '@src/types/onyx';
+import {doneCheckingPublicRoom, navigateToConciergeChat, openReport} from './Report';
+import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from './Session';
+import {isOnboardingFlowCompleted, setOnboardingErrorMessage} from './Welcome';
+import {startOnboardingFlow} from './Welcome/OnboardingFlow';
+import type {OnboardingCompanySize, OnboardingPurpose} from './Welcome/OnboardingFlow';
 
 let isNetworkOffline = false;
+let networkStatus: NetworkStatus;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
-    callback: (value) => (isNetworkOffline = value?.isOffline ?? false),
+    callback: (value) => {
+        isNetworkOffline = value?.isOffline ?? false;
+        networkStatus = value?.networkStatus ?? CONST.NETWORK.NETWORK_STATUS.UNKNOWN;
+    },
 });
 
 let currentUserEmail = '';
@@ -30,6 +50,15 @@ Onyx.connectWithoutView({
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
         currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+    },
+});
+
+let account: OnyxEntry<Account>;
+// Use connectWithoutView to subscribe to account data without affecting UI
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value;
     },
 });
 
@@ -88,7 +117,7 @@ function buildTravelDotURL(spotnanaToken: string, isTestAccount: boolean, postLo
 
     const authCode = `authCode=${spotnanaToken}`;
     const tmcIDParam = `tmcId=${tmcID}`;
-    const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
+    const redirectURL = postLoginPath ? `redirectUrl=${encodeURIComponent(Url.addLeadingForwardSlash(postLoginPath))}` : '';
 
     const paramsArray = [authCode, tmcIDParam, redirectURL];
     const params = paramsArray.filter(Boolean).join('&');
@@ -196,6 +225,161 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     openExternalLink(href);
 }
 
+function openReportFromDeepLink(
+    url: string,
+    currentOnboardingPurposeSelected: OnyxEntry<OnboardingPurpose>,
+    currentOnboardingCompanySize: OnyxEntry<OnboardingCompanySize>,
+    onboardingInitialPath: OnyxEntry<string>,
+    reports: OnyxCollection<Report>,
+    isAuthenticated: boolean,
+) {
+    const reportID = getReportIDFromLink(url);
+
+    if (reportID && !isAuthenticated) {
+        // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
+        openReport(reportID, '', [], undefined, '0', true);
+
+        // Show the sign-in page if the app is offline
+        if (networkStatus === CONST.NETWORK.NETWORK_STATUS.OFFLINE) {
+            doneCheckingPublicRoom();
+        }
+    } else {
+        // If we're not opening a public room (no reportID) or the user is authenticated, we unblock the UI (hide splash screen)
+        doneCheckingPublicRoom();
+    }
+
+    let route = getRouteFromLink(url);
+
+    // Bing search results still link to /signin when searching for “Expensify”, but the /signin route no longer exists in our repo, so we redirect it to the home page to avoid showing a Not Found page.
+    if (normalizePath(route) === CONST.SIGNIN_ROUTE) {
+        route = '';
+    }
+
+    // If we are not authenticated and are navigating to a public screen, we don't want to navigate again to the screen after sign-in/sign-up
+    if (!isAuthenticated && isPublicScreenRoute(route)) {
+        return;
+    }
+
+    // If the route is the transition route, we don't want to navigate and start the onboarding flow
+    if (route?.includes(ROUTES.TRANSITION_BETWEEN_APPS)) {
+        return;
+    }
+
+    // Navigate to the report after sign-in/sign-up.
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    InteractionManager.runAfterInteractions(() => {
+        waitForUserSignIn().then(() => {
+            // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
+            const connection = Onyx.connectWithoutView({
+                key: ONYXKEYS.NVP_ONBOARDING,
+                callback: (val) => {
+                    if (!val && !isAnonymousUser()) {
+                        return;
+                    }
+
+                    Navigation.waitForProtectedRoutes().then(() => {
+                        if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
+                            signOutAndRedirectToSignIn(true);
+                            return;
+                        }
+
+                        // We don't want to navigate to the exitTo route when creating a new workspace from a deep link,
+                        // because we already handle creating the optimistic policy and navigating to it in App.setUpPoliciesAndNavigate,
+                        // which is already called when AuthScreens mounts.
+                        if (!CONFIG.IS_HYBRID_APP && url && new URL(url).searchParams.get('exitTo') === ROUTES.WORKSPACE_NEW) {
+                            return;
+                        }
+
+                        const handleDeeplinkNavigation = () => {
+                            // We want to disconnect the connection so it won't trigger the deeplink again
+                            // every time the data is changed, for example, when re-login.
+                            Onyx.disconnect(connection);
+
+                            const state = navigationRef.getRootState();
+                            const currentFocusedRoute = findFocusedRoute(state);
+
+                            if (isOnboardingFlowName(currentFocusedRoute?.name)) {
+                                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+                                return;
+                            }
+
+                            if (shouldSkipDeepLinkNavigation(route)) {
+                                return;
+                            }
+
+                            // Navigation for signed users is handled by react-navigation.
+                            if (isAuthenticated) {
+                                return;
+                            }
+
+                            const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
+                                // Check if the report exists in the collection
+                                const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                                // If the report does not exist, navigate to the last accessed report or Concierge chat
+                                if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
+                                    const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
+                                    if (lastAccessedReportID) {
+                                        const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
+                                        Navigation.navigate(lastAccessedReportRoute);
+                                        return;
+                                    }
+                                    navigateToConciergeChat(false, () => true);
+                                    return;
+                                }
+
+                                // If the last route is an RHP, we want to replace it so it won't be covered by the full-screen navigator.
+                                const forceReplace = navigationRef.getRootState().routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+                                Navigation.navigate(route as Route, {forceReplace});
+                            };
+                            // If we log with deeplink with reportID and data for this report is not available yet,
+                            // then we will wait for Onyx to completely merge data from OpenReport API with OpenApp API in AuthScreens
+                            if (
+                                reportID &&
+                                !isAuthenticated &&
+                                (!reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] || !reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID)
+                            ) {
+                                const reportConnection = Onyx.connectWithoutView({
+                                    key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                                    // eslint-disable-next-line rulesdir/prefer-early-return
+                                    callback: (report) => {
+                                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                        if (report?.errorFields?.notFound || report?.reportID) {
+                                            Onyx.disconnect(reportConnection);
+                                            navigateHandler(report);
+                                        }
+                                    },
+                                });
+                            } else {
+                                navigateHandler();
+                            }
+                        };
+
+                        if (isAnonymousUser()) {
+                            handleDeeplinkNavigation();
+                            return;
+                        }
+                        // We need skip deeplinking if the user hasn't completed the guided setup flow.
+                        isOnboardingFlowCompleted({
+                            onNotCompleted: () =>
+                                startOnboardingFlow({
+                                    onboardingValuesParam: val,
+                                    hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                                    isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                                    currentOnboardingPurposeSelected,
+                                    currentOnboardingCompanySize,
+                                    onboardingInitialPath,
+                                    onboardingValues: val,
+                                }),
+                            onCompleted: handleDeeplinkNavigation,
+                            onCanceled: handleDeeplinkNavigation,
+                        });
+                    });
+                },
+            });
+        });
+    });
+}
+
 function buildURLWithAuthToken(url: string, shortLivedAuthToken?: string) {
     const authTokenParam = shortLivedAuthToken ? `shortLivedAuthToken=${shortLivedAuthToken}` : '';
     const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
@@ -240,4 +424,16 @@ function getTravelDotLink(policyID: OnyxEntry<string>) {
     });
 }
 
-export {openOldDotLink, openExternalLink, openLink, getInternalNewExpensifyPath, getInternalExpensifyPath, openTravelDotLink, buildTravelDotURL, openExternalLinkWithToken, getTravelDotLink};
+export {
+    openOldDotLink,
+    openExternalLink,
+    openLink,
+    getInternalNewExpensifyPath,
+    getInternalExpensifyPath,
+    openTravelDotLink,
+    buildTravelDotURL,
+    openExternalLinkWithToken,
+    getTravelDotLink,
+    buildOldDotURL,
+    openReportFromDeepLink,
+};

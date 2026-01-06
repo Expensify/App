@@ -1,10 +1,13 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {View} from 'react-native';
-import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import Animated, {clamp, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {PaymentMethodType} from '@components/KYCWall/types';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
@@ -16,7 +19,7 @@ import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchFiltersBar from '@components/Search/SearchPageHeader/SearchFiltersBar';
 import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
-import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
+import type {BankAccountMenuItem, SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -54,15 +57,30 @@ type SearchPageNarrowProps = {
         total: number | undefined;
         currency: string | undefined;
     };
+    currentSelectedPolicyID?: string | undefined;
+    currentSelectedReportID?: string | undefined;
+    confirmPayment?: (paymentType: PaymentMethodType | undefined) => void;
+    latestBankItems?: BankAccountMenuItem[] | undefined;
 };
 
-function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMobileSelectionModeEnabled, metadata, footerData}: SearchPageNarrowProps) {
+function SearchPageNarrow({
+    queryJSON,
+    headerButtonsOptions,
+    searchResults,
+    isMobileSelectionModeEnabled,
+    metadata,
+    footerData,
+    currentSelectedPolicyID,
+    currentSelectedReportID,
+    latestBankItems,
+    confirmPayment,
+}: SearchPageNarrowProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {clearSelectedTransactions} = useSearchContext();
+    const {clearSelectedTransactions, selectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {isOffline} = useNetwork();
     const currentSearchResultsKey = queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
@@ -72,6 +90,8 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
     const triggerScrollEvent = useScrollEventEmitter();
     const route = useRoute();
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
+
+    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
 
     const scrollOffset = useSharedValue(0);
     const topBarOffset = useSharedValue<number>(StyleUtils.searchHeaderDefaultOffset);
@@ -95,7 +115,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
     const scrollHandler = useAnimatedScrollHandler(
         {
             onScroll: (event) => {
-                runOnJS(triggerScrollEvent)();
+                scheduleOnRN(triggerScrollEvent);
                 const {contentOffset, layoutMeasurement, contentSize} = event;
                 if (windowHeight > contentSize.height) {
                     topBarOffset.set(StyleUtils.searchHeaderDefaultOffset);
@@ -105,7 +125,7 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                 const isScrollingDown = currentOffset > scrollOffset.get();
                 const distanceScrolled = currentOffset - scrollOffset.get();
 
-                runOnJS(saveScrollOffset)(route, currentOffset);
+                scheduleOnRN(saveScrollOffset, route, currentOffset);
 
                 if (isScrollingDown && contentOffset.y > TOO_CLOSE_TO_TOP_DISTANCE) {
                     topBarOffset.set(clamp(topBarOffset.get() - distanceScrolled, variables.minimalTopBarOffset, StyleUtils.searchHeaderDefaultOffset));
@@ -129,14 +149,25 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            search(value);
+            search(value)?.then((jsonCode) => setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)));
         }
     }, []);
+
+    const {addRouteKey, removeRouteKey} = useContext(FullScreenBlockingViewContext);
+    useEffect(() => {
+        if (!searchRouterListVisible) {
+            return;
+        }
+
+        addRouteKey(route.key);
+
+        return () => removeRouteKey(route.key);
+    }, [addRouteKey, removeRouteKey, route.key, searchRouterListVisible]);
 
     if (!queryJSON) {
         return (
             <ScreenWrapper
-                testID={SearchPageNarrow.displayName}
+                testID="SearchPageNarrow"
                 style={styles.pv0}
                 offlineIndicatorStyle={styles.mtAuto}
                 shouldShowOfflineIndicator={!!searchResults}
@@ -150,16 +181,16 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
         );
     }
 
-    const shouldShowFooter = !!metadata?.count;
+    const shouldShowFooter = !!metadata?.count || Object.keys(selectedTransactions).length > 0;
     const isDataLoaded = isSearchDataLoaded(searchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && (!isDataLoaded || !!currentSearchResults?.search?.isLoading);
 
     return (
         <ScreenWrapper
-            testID={SearchPageNarrow.displayName}
+            testID="SearchPageNarrow"
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
-            bottomContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
+            bottomContent={!searchRouterListVisible && <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
             shouldShowOfflineIndicator={!!searchResults}
         >
@@ -175,7 +206,15 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                             />
                         </View>
                         <View style={[styles.flex1]}>
-                            <Animated.View style={[topBarAnimatedStyle, !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle, styles.flex1, styles.bgTransparent]}>
+                            <Animated.View
+                                style={[
+                                    topBarAnimatedStyle,
+                                    !searchRouterListVisible && styles.narrowSearchRouterInactiveStyle,
+                                    styles.flex1,
+                                    styles.bgTransparent,
+                                    styles.searchTopBarZIndexStyle,
+                                ]}
+                            >
                                 <View style={[styles.flex1, styles.pt2, styles.appBG]}>
                                     <SearchPageHeader
                                         queryJSON={queryJSON}
@@ -219,6 +258,10 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                             headerButtonsOptions={headerButtonsOptions}
                             handleSearch={handleSearchAction}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            currentSelectedPolicyID={currentSelectedPolicyID}
+                            currentSelectedReportID={currentSelectedReportID}
+                            latestBankItems={latestBankItems}
+                            confirmPayment={confirmPayment}
                         />
                     </>
                 )}
@@ -232,10 +275,11 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
                             contentContainerStyle={!isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles : undefined}
                             handleSearch={handleSearchAction}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                         />
                     </View>
                 )}
-                {shouldShowFooter && (
+                {shouldShowFooter && !searchRouterListVisible && (
                     <SearchPageFooter
                         count={footerData.count}
                         total={footerData.total}
@@ -246,7 +290,5 @@ function SearchPageNarrow({queryJSON, headerButtonsOptions, searchResults, isMob
         </ScreenWrapper>
     );
 }
-
-SearchPageNarrow.displayName = 'SearchPageNarrow';
 
 export default SearchPageNarrow;

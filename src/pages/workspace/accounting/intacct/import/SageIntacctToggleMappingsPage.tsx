@@ -5,12 +5,13 @@ import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearSageIntacctErrorField, updateSageIntacctMappingValue} from '@libs/actions/connections/SageIntacct';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -52,7 +53,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
 
     const policy = usePolicy(route.params.policyID);
     const mappingName: SageIntacctMappingName = route.params.mapping;
-    const policyID: string = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const config = policy?.connections?.intacct?.config;
     const isImportMappingEnable = config?.mappings?.[mappingName] !== CONST.SAGE_INTACCT_MAPPING_VALUE.NONE;
     const isAccordionExpanded = useSharedValue(isImportMappingEnable);
@@ -72,7 +73,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
 
     return (
         <ConnectionLayout
-            displayName={SageIntacctToggleMappingsPage.displayName}
+            displayName="SageIntacctToggleMappingsPage"
             headerTitleAlreadyTranslated={Str.recapitalize(translate('workspace.intacct.mappingTitle', {mappingName}))}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -83,9 +84,11 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.getRoute(policyID))}
         >
             <Text style={[styles.flexRow, styles.alignItemsCenter, styles.w100, styles.mb5, styles.ph5]}>
-                <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleFirstPart')}</Text>
-                <Text style={[styles.textStrong]}>{translate('workspace.intacct.mappingTitle', {mappingName})}</Text>
-                <Text style={[styles.textNormal]}>{translate('workspace.intacct.toggleImportTitleSecondPart')}</Text>
+                <RenderHTML
+                    html={translate('workspace.intacct.toggleImportTitle', {
+                        mappingTitle: translate('workspace.intacct.mappingTitle', {mappingName}),
+                    })}
+                />
             </Text>
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}
@@ -100,7 +103,7 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                     shouldAnimateAccordionSection.set(true);
                 }}
                 pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}
-                errors={ErrorUtils.getLatestErrorField(config ?? {}, mappingName)}
+                errors={getLatestErrorField(config ?? {}, mappingName)}
                 onCloseError={() => clearSageIntacctErrorField(policyID, mappingName)}
             />
             <Accordion
@@ -121,7 +124,5 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
         </ConnectionLayout>
     );
 }
-
-SageIntacctToggleMappingsPage.displayName = 'SageIntacctToggleMappingsPage';
 
 export default SageIntacctToggleMappingsPage;

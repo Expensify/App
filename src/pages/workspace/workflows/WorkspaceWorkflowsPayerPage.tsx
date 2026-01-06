@@ -4,11 +4,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Badge from '@components/Badge';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import type {ListItem, Section} from '@components/SelectionList/types';
-import UserListItem from '@components/SelectionList/UserListItem';
+// eslint-disable-next-line no-restricted-imports
+import SelectionList from '@components/SelectionListWithSections';
+import type {ListItem, Section} from '@components/SelectionListWithSections/types';
+import UserListItem from '@components/SelectionListWithSections/UserListItem';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -45,8 +46,8 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
     const {translate, formatPhoneNumber} = useLocalize();
     const policyName = policy?.name ?? '';
     const {isOffline} = useNetwork();
-    const [countryCode] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
-
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar'] as const);
     const [searchTerm, setSearchTerm] = useState('');
 
     const isDeletedPolicyEmployee = useCallback(
@@ -60,12 +61,12 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
 
         const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList);
 
-        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+        for (const [email, policyEmployee] of Object.entries(policy?.employeeList ?? {})) {
             const accountID = policyMemberEmailsToAccountIDs?.[email] ?? '';
             const details = personalDetails?.[accountID];
             if (!details) {
                 Log.hmmm(`[WorkspaceMembersPage] no personal details found for policy member with accountID: ${accountID}`);
-                return;
+                continue;
             }
 
             const isOwner = policy?.owner === details?.login;
@@ -73,7 +74,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             const shouldSkipMember = isDeletedPolicyEmployee(policyEmployee) || isExpensifyTeam(details?.login) || (!isOwner && !isAdmin);
 
             if (shouldSkipMember) {
-                return;
+                continue;
             }
 
             const roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
@@ -90,7 +91,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 rightElement: roleBadge,
                 icons: [
                     {
-                        source: details.avatar ?? FallbackAvatar,
+                        source: details.avatar ?? icons.FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
@@ -105,9 +106,19 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             } else {
                 policyAdminDetails.push(formattedMember);
             }
-        });
+        }
         return [policyAdminDetails, authorizedPayerDetails];
-    }, [personalDetails, policy?.employeeList, translate, policy?.achAccount?.reimburser, isDeletedPolicyEmployee, policy?.owner, policy?.pendingFields?.reimburser, formatPhoneNumber]);
+    }, [
+        policy?.employeeList,
+        policy?.owner,
+        policy?.achAccount?.reimburser,
+        policy?.pendingFields?.reimburser,
+        personalDetails,
+        isDeletedPolicyEmployee,
+        translate,
+        formatPhoneNumber,
+        icons.FallbackAvatar,
+    ]);
 
     const sections: MembersSection[] = useMemo(() => {
         const sectionsArray: MembersSection[] = [];
@@ -187,7 +198,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             >
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding
-                    testID={WorkspaceWorkflowsPayerPage.displayName}
+                    testID="WorkspaceWorkflowsPayerPage"
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsPayerPage.title')}
@@ -211,7 +222,5 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceWorkflowsPayerPage.displayName = 'WorkspaceWorkflowsPayerPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceWorkflowsPayerPage);

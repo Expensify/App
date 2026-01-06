@@ -145,7 +145,8 @@ web-build/
 # Jeykll
 docs/.bundle
 
-# Output of react compiler healthcheck dev script
+# React Compiler Compliance Check output
+react-compiler-report.json
 react-compiler-output.txt
 
 # Rock Framework
@@ -156,3 +157,6 @@ modules/*/lib/
 
 # Claude local settings
 .claude/settings.local.json
+
+# cspell cache
+.cspellcache

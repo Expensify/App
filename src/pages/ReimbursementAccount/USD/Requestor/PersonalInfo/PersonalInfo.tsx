@@ -1,4 +1,5 @@
-import React, {forwardRef, useCallback, useMemo} from 'react';
+import type {ForwardedRef} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {View} from 'react-native';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
@@ -20,12 +21,15 @@ import SocialSecurityNumber from './subSteps/SocialSecurityNumber';
 type PersonalInfoProps = {
     /** Goes to the previous step */
     onBackButtonPress: () => void;
+
+    /** Reference to the outer element */
+    ref?: ForwardedRef<View>;
 };
 
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfBirth, SocialSecurityNumber, Address, Confirmation];
 
-function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.ForwardedRef<View>) {
+function PersonalInfo({onBackButtonPress, ref}: PersonalInfoProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
@@ -69,7 +73,7 @@ function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.Forward
     return (
         <InteractiveStepWrapper
             ref={ref}
-            wrapperID={PersonalInfo.displayName}
+            wrapperID="PersonalInfo"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('personalInfoStep.personalInfo')}
@@ -86,6 +90,4 @@ function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.Forward
     );
 }
 
-PersonalInfo.displayName = 'PersonalInfo';
-
-export default forwardRef(PersonalInfo);
+export default PersonalInfo;

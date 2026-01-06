@@ -1,7 +1,7 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeEventSubscription, ViewStyle} from 'react-native';
-import {BackHandler, InteractionManager, Modal, View} from 'react-native';
+import {BackHandler, InteractionManager, Modal, StyleSheet, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
@@ -14,7 +14,6 @@ import CONST from '@src/CONST';
 import Backdrop from './Backdrop';
 import Container from './Container';
 import type ReanimatedModalProps from './types';
-import type {AnimationInType, AnimationOutType} from './types';
 
 function ReanimatedModal({
     testID,
@@ -47,6 +46,7 @@ function ReanimatedModal({
     shouldPreventScrollOnFocus,
     initialFocus,
     shouldIgnoreBackHandlerDuringTransition = false,
+    shouldEnableNewFocusManagement,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -99,6 +99,7 @@ function ReanimatedModal({
     useEffect(
         () => () => {
             if (handleRef.current) {
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.clearInteractionHandle(handleRef.current);
             }
 
@@ -111,12 +112,14 @@ function ReanimatedModal({
 
     useEffect(() => {
         if (isVisible && !isContainerOpen && !isTransitioning) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillShow();
 
             setIsVisibleState(true);
             setIsTransitioning(true);
         } else if (!isVisible && isContainerOpen && !isTransitioning) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             handleRef.current = InteractionManager.createInteractionHandle();
             onModalWillHide();
 
@@ -135,6 +138,7 @@ function ReanimatedModal({
         setIsTransitioning(false);
         setIsContainerOpen(true);
         if (handleRef.current) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
         onModalShow();
@@ -144,8 +148,10 @@ function ReanimatedModal({
         setIsTransitioning(false);
         setIsContainerOpen(false);
         if (handleRef.current) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.clearInteractionHandle(handleRef.current);
         }
+
         // Because on Android, the Modal's onDismiss callback does not work reliably. There's a reported issue at:
         // https://stackoverflow.com/questions/58937956/react-native-modal-ondismiss-not-invoked
         // Therefore, we manually call onModalHide() here for Android.
@@ -153,6 +159,10 @@ function ReanimatedModal({
             onModalHide();
         }
     }, [onModalHide]);
+
+    const modalStyle = useMemo(() => {
+        return {zIndex: StyleSheet.flatten(style)?.zIndex};
+    }, [style]);
 
     const containerView = (
         <Container
@@ -162,8 +172,8 @@ function ReanimatedModal({
             animationInDelay={animationInDelay}
             onOpenCallBack={onOpenCallBack}
             onCloseCallBack={onCloseCallBack}
-            animationIn={animationIn as AnimationInType}
-            animationOut={animationOut as AnimationOutType}
+            animationIn={animationIn}
+            animationOut={animationOut}
             style={style}
             type={type}
             onSwipeComplete={onSwipeComplete}
@@ -215,6 +225,7 @@ function ReanimatedModal({
                         onModalHide();
                     }
                 }}
+                style={modalStyle}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...props}
             >
@@ -231,6 +242,7 @@ function ReanimatedModal({
                     <FocusTrapForModal
                         active={modalVisibility}
                         initialFocus={initialFocus}
+                        shouldReturnFocus={!shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
                     >
                         {isVisibleState && containerView}
@@ -240,7 +252,5 @@ function ReanimatedModal({
         </LayoutAnimationConfig>
     );
 }
-
-ReanimatedModal.displayName = 'ReanimatedModal';
 
 export default ReanimatedModal;

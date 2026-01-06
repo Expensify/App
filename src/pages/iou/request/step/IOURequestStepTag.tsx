@@ -2,13 +2,16 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
-import {EmptyStateExpenses} from '@components/Icon/Illustrations';
 import {useSearchContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
-import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
+import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftSplitTransaction, setMoneyRequestTag, updateMoneyRequestTag} from '@libs/actions/IOU';
@@ -17,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getTagList, getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {getTag, getTagArrayFromName} from '@libs/TransactionUtils';
+import {getTag, getTagArrayFromName, isExpenseUnreported} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -34,18 +37,32 @@ type IOURequestStepTagProps = WithWritableReportOrNotFoundProps<typeof SCREENS.M
 function IOURequestStepTag({
     report,
     route: {
-        params: {action, orderWeight: rawTagIndex, transactionID, backTo, iouType, reportActionID},
+        params: {action, orderWeight: rawTagIndex, transactionID, backTo, iouType, reportActionID, reportID: reportIDFromRoute},
     },
     transaction,
 }: IOURequestStepTagProps) {
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`, {canBeMissing: false});
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`, {canBeMissing: false});
+    const isUnreportedExpense = isExpenseUnreported(transaction);
+    const {policyForMovingExpenses, policyForMovingExpensesID} = usePolicyForMovingExpenses();
+    const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
+
+    const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: false});
+    const policyID = isUnreportedExpense || isCreatingTrackExpense ? policyForMovingExpensesID : report?.policyID;
+    const policy = isUnreportedExpense || isCreatingTrackExpense ? policyForMovingExpenses : reportPolicy;
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: false});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
+    const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
+    const {isBetaEnabled} = usePermissions();
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const styles = useThemeStyles();
+    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {currentSearchHash} = useSearchContext();
     const {translate} = useLocalize();
+    useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
 
     const tagListIndex = Number(rawTagIndex);
     const policyTagListName = getTagListName(policyTags, tagListIndex);
@@ -110,13 +127,25 @@ function IOURequestStepTag({
         }
 
         if (isEditingSplit) {
-            setDraftSplitTransaction(transactionID, {tag: updatedTag});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {tag: updatedTag});
             navigateBack();
             return;
         }
 
         if (isEditing) {
-            updateMoneyRequestTag(transactionID, report?.reportID, updatedTag, policy, policyTags, policyCategories, currentSearchHash);
+            updateMoneyRequestTag({
+                transactionID,
+                transactionThreadReportID: report?.reportID,
+                tag: updatedTag,
+                policy,
+                policyTagList: policyTags,
+                policyRecentlyUsedTags,
+                policyCategories,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                isASAPSubmitBetaEnabled,
+                hash: currentSearchHash,
+            });
             navigateBack();
             return;
         }
@@ -130,14 +159,14 @@ function IOURequestStepTag({
             headerTitle={policyTagListName}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID={IOURequestStepTag.displayName}
+            testID="IOURequestStepTag"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             {!shouldShowTag && (
                 <View style={[styles.flex1]}>
                     <WorkspaceEmptyStateSection
                         shouldStyleAsCard={false}
-                        icon={EmptyStateExpenses}
+                        icon={illustrations.EmptyStateExpenses}
                         title={translate('workspace.tags.emptyTags.title')}
                         subtitle={translate('workspace.tags.emptyTags.subtitle')}
                         containerStyle={[styles.flex1, styles.justifyContentCenter]}
@@ -151,7 +180,7 @@ function IOURequestStepTag({
                                 onPress={() =>
                                     Navigation.navigate(
                                         ROUTES.SETTINGS_TAGS_ROOT.getRoute(
-                                            policy?.id,
+                                            policyID,
                                             ROUTES.MONEY_REQUEST_STEP_TAG.getRoute(action, iouType, tagListIndex, transactionID, report?.reportID, backTo, reportActionID),
                                         ),
                                     )
@@ -164,23 +193,18 @@ function IOURequestStepTag({
                 </View>
             )}
             {!!shouldShowTag && (
-                <>
-                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.tagSelection')}</Text>
-                    <TagPicker
-                        policyID={report?.policyID}
-                        tagListName={policyTagListName}
-                        tagListIndex={tagListIndex}
-                        selectedTag={tag}
-                        transactionTag={transactionTag}
-                        hasDependentTags={hasDependentTags}
-                        onSubmit={updateTag}
-                    />
-                </>
+                <TagPicker
+                    policyID={policyID}
+                    tagListName={policyTagListName}
+                    tagListIndex={tagListIndex}
+                    selectedTag={tag}
+                    transactionTag={transactionTag}
+                    hasDependentTags={hasDependentTags}
+                    onSubmit={updateTag}
+                />
             )}
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepTag.displayName = 'IOURequestStepTag';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepTag));

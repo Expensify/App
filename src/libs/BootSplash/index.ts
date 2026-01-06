@@ -18,6 +18,7 @@ function hide(): Promise<void> {
             splash.style.opacity = '0';
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         InteractionManager.runAfterInteractions(() => {
             Timing.end(CONST.TIMING.SPLASH_SCREEN);
         });

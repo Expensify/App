@@ -1,12 +1,12 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 type ReceiptEmptyStateProps = {
@@ -26,13 +26,18 @@ type ReceiptEmptyStateProps = {
     shouldUseFullHeight?: boolean;
 
     style?: StyleProp<ViewStyle>;
+
+    /** Callback to be called when the image loads */
+    onLoad?: () => void;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false, style}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false, style, onLoad}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
+    const isLoadedRef = useRef(false);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlaceholderPlus', 'Receipt']);
 
     const Wrapper = onPress ? PressableWithoutFeedback : View;
     const containerStyle = [
@@ -43,6 +48,14 @@ function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isIn
         shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
         style,
     ];
+
+    useEffect(() => {
+        if (isLoadedRef.current) {
+            return;
+        }
+        isLoadedRef.current = true;
+        onLoad?.();
+    }, [onLoad]);
 
     return (
         <Wrapper
@@ -56,13 +69,13 @@ function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isIn
             <View>
                 <Icon
                     fill={theme.border}
-                    src={Expensicons.Receipt}
+                    src={icons.Receipt}
                     width={variables.eReceiptEmptyIconWidth}
                     height={variables.eReceiptEmptyIconWidth}
                 />
                 {!isThumbnail && (
                     <Icon
-                        src={Expensicons.ReceiptPlaceholderPlus}
+                        src={icons.ReceiptPlaceholderPlus}
                         width={variables.avatarSizeSmall}
                         height={variables.avatarSizeSmall}
                         additionalStyles={styles.moneyRequestAttachReceiptThumbnailIcon}
@@ -72,7 +85,5 @@ function ReceiptEmptyState({onPress, disabled = false, isThumbnail = false, isIn
         </Wrapper>
     );
 }
-
-ReceiptEmptyState.displayName = 'ReceiptEmptyState';
 
 export default ReceiptEmptyState;

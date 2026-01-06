@@ -524,6 +524,132 @@ const tests = [
             },
         },
     },
+    {
+        query: 'type:chat is:read',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: CONST.SEARCH.IS_VALUES.READ,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:unread',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: CONST.SEARCH.IS_VALUES.UNREAD,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:pinned',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: CONST.SEARCH.IS_VALUES.PINNED,
+            },
+        },
+    },
+    {
+        query: 'type:chat is:pinned,read,unread',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: [CONST.SEARCH.IS_VALUES.PINNED, CONST.SEARCH.IS_VALUES.READ, CONST.SEARCH.IS_VALUES.UNREAD],
+            },
+        },
+    },
+    {
+        query: 'type:chat has:attachment',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: CONST.SEARCH.HAS_VALUES.ATTACHMENT,
+            },
+        },
+    },
+    {
+        query: 'type:chat has:link',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: CONST.SEARCH.HAS_VALUES.LINK,
+            },
+        },
+    },
+    {
+        query: 'type:chat has:link,attachment',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
+                right: [CONST.SEARCH.HAS_VALUES.LINK, CONST.SEARCH.HAS_VALUES.ATTACHMENT],
+            },
+        },
+    },
+    {
+        query: 'type:chat is:READ',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: 'READ', // Case is preserved as-is
+            },
+        },
+    },
+    {
+        query: 'type:chat is:PINNED',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.CHAT,
+            status: '',
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.IS,
+                right: 'PINNED', // Case is preserved as-is
+            },
+        },
+    },
 ];
 
 /*
@@ -657,14 +783,14 @@ const keywordTests = [
 
 describe('search parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
-        const result = parse(query) as SearchQueryJSON;
-        expect(result).toEqual(expected);
+        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
+        expect(resultWithoutRawFilters).toEqual(expected);
     });
 });
 
 describe('Testing search parser with special characters and wrapped in quotes.', () => {
     test.each(keywordTests)(`parsing: $query`, ({query, expected}) => {
-        const result = parse(query) as SearchQueryJSON;
-        expect(result).toEqual(expected);
+        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
+        expect(resultWithoutRawFilters).toEqual(expected);
     });
 });

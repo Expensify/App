@@ -12,7 +12,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
-import {getGroupChatDraft, getGroupChatName} from '@libs/ReportUtils';
+import {getGroupChatName} from '@libs/ReportNameUtils';
+import {getGroupChatDraft} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {setGroupDraft, updateChatName} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,10 +36,13 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     const [groupChatDraft = getGroupChatDraft()] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
 
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const existingReportName = useMemo(() => (report ? getGroupChatName(undefined, false, report) : getGroupChatName(groupChatDraft?.participants)), [groupChatDraft?.participants, report]);
+    const existingReportName = useMemo(
+        () => (report ? getGroupChatName(formatPhoneNumber, undefined, false, report) : getGroupChatName(formatPhoneNumber, groupChatDraft?.participants)),
+        [formatPhoneNumber, groupChatDraft?.participants, report],
+    );
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentChatName = reportID ? existingReportName : groupChatDraft?.reportName || existingReportName;
 
@@ -45,10 +50,9 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
             const errors: Errors = {};
             const name = values[INPUT_IDS.NEW_CHAT_NAME] ?? '';
-            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-            const nameLength = [...name.trim()].length;
+            const nameLength = StringUtils.getUTF8ByteLength(name.trim());
             if (nameLength > CONST.REPORT_NAME_LIMIT) {
-                errors.newChatName = translate('common.error.characterLimitExceedCounter', {length: nameLength, limit: CONST.REPORT_NAME_LIMIT});
+                errors.newChatName = translate('common.error.characterLimitExceedCounter', nameLength, CONST.REPORT_NAME_LIMIT);
             }
 
             return errors;
@@ -60,7 +64,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
             if (isUpdatingExistingReport) {
                 if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
-                    updateChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.GROUP);
+                    updateChatName(reportID, report.reportName, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.GROUP);
                 }
                 Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)));
                 return;
@@ -70,14 +74,14 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
             }
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.NEW_CHAT_CONFIRM));
         },
-        [isUpdatingExistingReport, reportID, currentChatName],
+        [isUpdatingExistingReport, currentChatName, reportID, report?.reportName],
     );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             style={[styles.defaultModalContainer]}
-            testID={GroupChatNameEditPage.displayName}
+            testID="GroupChatNameEditPage"
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -106,7 +110,5 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
         </ScreenWrapper>
     );
 }
-
-GroupChatNameEditPage.displayName = 'GroupChatNameEditPage';
 
 export default GroupChatNameEditPage;

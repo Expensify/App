@@ -109,12 +109,16 @@ jobs:
             cd Mobile-Expensify
             npm run grunt:build:shared
 
+      - name: Get Java version
+        id: get-java-version
+        uses: ./.github/actions/composite/getJavaVersion
+
       - name: Setup Java
         # v4
         uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
         with:
-          distribution: 'oracle'
-          java-version: '17'
+          distribution: oracle
+          java-version: ${{ steps.get-java-version.outputs.version }}
 
       - name: Setup Ruby
         # v1.229.0
@@ -125,9 +129,11 @@ jobs:
       - name: Install New Expensify Gems
         run: bundle install
 
-      - name: Install 1Password CLI
-        # v1
-        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
+      - name: Setup 1Password CLI and certificates
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
 
       - name: Load files from 1Password
         env:
@@ -165,6 +171,9 @@ jobs:
           ANDROID_UPLOAD_KEYSTORE_ALIAS: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEYSTORE_ALIAS }}
           ANDROID_UPLOAD_KEY_PASSWORD: ${{ steps.load-credentials.outputs.ANDROID_UPLOAD_KEY_PASSWORD }}
           ANDROID_BUILD_TYPE: ${{ vars.ANDROID_BUILD_TYPE }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload Android app to Google Play
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
@@ -298,6 +307,18 @@ jobs:
         with:
           IS_DESKTOP_BUILD: true
 
+        # v6.0.0
+      - name: Setup Python for node-gyp
+        id: setup-python
+        uses: actions/setup-python@18566f86b301499665bd3eb1a2247e0849c64fa5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: desktop/requirements.txt
+
+      - name: Ensure setuptools for node-gyp
+        run: pip install --upgrade -r desktop/requirements.txt
+
       - name: Load Desktop credentials from 1Password
         id: load-credentials
         # v2
@@ -341,7 +362,7 @@ jobs:
     needs: prep
     runs-on: macos-15-xlarge
     env:
-      DEVELOPER_DIR: /Applications/Xcode_16.4.0.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.0.app/Contents/Developer
       SHOULD_BUILD_APP: ${{ github.ref == 'refs/heads/staging' || fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     steps:
       - name: Checkout
@@ -389,9 +410,11 @@ jobs:
           max_attempts: 5
           command: npm run pod-install
 
-      - name: Install 1Password CLI
-        # v1
-        uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f
+      - name: Setup 1Password CLI and certificates
+        uses: Expensify/GitHub-Actions/setup-certificate-1p@main
+        with:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          SHOULD_LOAD_SSL_CERTIFICATES: 'false'
 
       - name: Load files from 1Password
         env:
@@ -432,6 +455,7 @@ jobs:
           APPLE_SHARE_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_SHARE_PROVISIONING_PROFILE_NAME }}
           APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_FILE }}
           APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME: ${{ vars.APPLE_NOTIFICATION_PROVISIONING_PROFILE_NAME }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Upload release build to TestFlight
         if: ${{ fromJSON(env.SHOULD_BUILD_APP) }}
@@ -538,6 +562,8 @@ jobs:
           else
             npm run build-staging
           fi
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Build storybook docs
         continue-on-error: true

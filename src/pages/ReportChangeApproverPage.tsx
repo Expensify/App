@@ -6,21 +6,23 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {assignReportToMe} from '@libs/actions/IOU';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportChangeApproverParamList} from '@libs/Navigation/types';
-import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {isControlPolicy, isMemberPolicyAdmin, isPolicyAdmin} from '@libs/PolicyUtils';
-import {isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import {isControlPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {hasViolations as hasViolationsReportUtils, isAllowedToApproveExpenseReport, isMoneyRequestReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -45,6 +47,11 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [selectedApproverType, setSelectedApproverType] = useState<ApproverType>();
     const [hasError, setHasError] = useState(false);
+    const {isBetaEnabled} = usePermissions();
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
+    const [reportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`, {canBeMissing: true});
 
     const changeApprover = useCallback(() => {
         if (!selectedApproverType) {
@@ -65,11 +72,11 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             Navigation.navigate(ROUTES.REPORT_CHANGE_APPROVER_ADD_APPROVER.getRoute(report.reportID));
             return;
         }
-        assignReportToMe(report, currentUserDetails.accountID);
+        assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep);
         Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(reportID));
-    }, [selectedApproverType, report, currentUserDetails.accountID, reportID, policy]);
+    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, reportNextStep, reportID]);
 
-    const sections = useMemo(() => {
+    const approverTypes = useMemo(() => {
         const data: Array<ListItem<ApproverType>> = [
             {
                 text: translate('iou.changeApprover.actions.addApprover'),
@@ -79,8 +86,8 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             },
         ];
 
-        // Only show the bypass option if current approver is not a policy admin and prevent self-approval is not enabled
-        if (!isMemberPolicyAdmin(policy, getLoginByAccountID(report.managerID ?? CONST.DEFAULT_NUMBER_ID)) && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
+        const isCurrentUserManager = report.managerID === currentUserDetails.accountID;
+        if (!isCurrentUserManager && isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
             data.push({
                 text: translate('iou.changeApprover.actions.bypassApprovers'),
                 keyForList: APPROVER_TYPE.BYPASS_APPROVER,
@@ -89,11 +96,32 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
             });
         }
 
-        return [{data}];
+        return data;
     }, [translate, selectedApproverType, policy, report, currentUserDetails.accountID]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isPolicyAdmin(policy) || !isMoneyRequestReport(report) || isMoneyRequestReportPendingDeletion(report);
+
+    const confirmButtonOptions = useMemo(
+        () => ({
+            showButton: true,
+            text: translate('iou.changeApprover.title'),
+            onConfirm: changeApprover,
+        }),
+        [changeApprover, translate],
+    );
+
+    const listHeader = useMemo(
+        () => (
+            <>
+                <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.subtitle')}</Text>
+                <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
+                    <RenderHTML html={translate('iou.changeApprover.description', {workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}`})} />
+                </View>
+            </>
+        ),
+        [environmentURL, policy?.id, styles.flexRow, styles.mb5, styles.ph5, styles.renderHTML, translate],
+    );
 
     if (shouldShowNotFoundView) {
         return <NotFoundPage />;
@@ -101,7 +129,7 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
 
     return (
         <ScreenWrapper
-            testID={ReportChangeApproverPage.displayName}
+            testID="ReportChangeApproverPage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -110,9 +138,9 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                 onBackButtonPress={Navigation.goBack}
             />
             <SelectionList
+                data={approverTypes}
                 ListItem={RadioListItem}
-                sections={sections}
-                isAlternateTextMultilineSupported
+                alternateNumberOfSupportedLines={2}
                 onSelectRow={(option) => {
                     if (!option.keyForList) {
                         return;
@@ -120,17 +148,9 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
                     setSelectedApproverType(option.keyForList);
                     setHasError(false);
                 }}
-                showConfirmButton
-                confirmButtonText={translate('iou.changeApprover.title')}
-                onConfirm={changeApprover}
-                customListHeader={
-                    <>
-                        <Text style={[styles.ph5, styles.mb5]}>{translate('iou.changeApprover.subtitle')}</Text>
-                        <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                            <RenderHTML html={translate('iou.changeApprover.description', {workflowSettingLink: `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}`})} />
-                        </View>
-                    </>
-                }
+                confirmButtonOptions={confirmButtonOptions}
+                shouldUpdateFocusedIndex
+                customListHeader={listHeader}
             >
                 {hasError && (
                     <FormHelpMessage
@@ -143,7 +163,5 @@ function ReportChangeApproverPage({report, policy, isLoadingReportData}: ReportC
         </ScreenWrapper>
     );
 }
-
-ReportChangeApproverPage.displayName = 'ReportChangeApproverPage';
 
 export default withReportOrNotFound()(ReportChangeApproverPage);

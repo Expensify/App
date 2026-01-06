@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import proxyConfig from '../../config/proxyConfig';
-import {getEnvironment} from './Environment/Environment';
+import getEnvironment from './Environment/getEnvironment';
 
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms

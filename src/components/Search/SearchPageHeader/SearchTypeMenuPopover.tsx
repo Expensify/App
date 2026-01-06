@@ -2,10 +2,10 @@ import React, {useRef} from 'react';
 import Button from '@components/Button';
 import PopoverMenu from '@components/PopoverMenu';
 import type {SearchQueryJSON} from '@components/Search/types';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useSearchTypeMenu from '@hooks/useSearchTypeMenu';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Expensicons from '@src/components/Icon/Expensicons';
 
 type SearchTypeMenuNarrowProps = {
     queryJSON: SearchQueryJSON;
@@ -18,17 +18,19 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
     const buttonRef = useRef<HTMLDivElement>(null);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
 
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Menu']);
+
     return (
         <>
             <Button
-                icon={Expensicons.Menu}
+                icon={expensifyIcons.Menu}
                 onPress={openMenu}
             />
             {!delayPopoverMenuFirstRender && (
                 <PopoverMenu
                     menuItems={allMenuItems}
                     isVisible={isPopoverVisible}
-                    anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
+                    anchorPosition={styles.createMenuPositionSearchBar(windowHeight)}
                     onClose={closeMenu}
                     onItemSelected={closeMenu}
                     anchorRef={buttonRef}
@@ -46,7 +48,5 @@ function SearchTypeMenuPopover({queryJSON}: SearchTypeMenuNarrowProps) {
         </>
     );
 }
-
-SearchTypeMenuPopover.displayName = 'SearchTypeMenuPopover';
 
 export default SearchTypeMenuPopover;

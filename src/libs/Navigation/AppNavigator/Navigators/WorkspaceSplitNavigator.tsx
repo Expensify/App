@@ -1,11 +1,11 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
-import {workspaceSplitsWithoutEnteringAnimation} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
+import useThemeStyles from '@hooks/useThemeStyles';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import usePreloadFullScreenNavigators from '@libs/Navigation/AppNavigator/usePreloadFullScreenNavigators';
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
-import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
+import useEnableBackAnimationWhenOpenedFromTabBar from '@libs/Navigation/helpers/useEnableBackAnimationWhenOpenedFromTabBar';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import type NAVIGATORS from '@src/NAVIGATORS';
@@ -32,6 +32,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.PER_DIEM]: () => require<ReactComponentModule>('../../../../pages/workspace/perDiem/WorkspacePerDiemPage').default,
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/WorkspaceReceiptPartnersPage').default,
     [SCREENS.WORKSPACE.DISTANCE_RATES]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/PolicyDistanceRatesPage').default,
+    [SCREENS.WORKSPACE.TRAVEL]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/PolicyTravelPage').default,
     [SCREENS.WORKSPACE.RULES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/PolicyRulesPage').default,
 } satisfies Screens;
 
@@ -39,30 +40,16 @@ const Split = createSplitNavigator<WorkspaceSplitNavigatorParamList>();
 
 function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<AuthScreensParamList, typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR>) {
     const splitNavigatorScreenOptions = useSplitNavigatorScreenOptions();
+    const styles = useThemeStyles();
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
 
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('transitionEnd', () => {
-            // We want to call this function only once.
-            unsubscribe();
-
-            // If we open this screen from a different tab, then it won't have animation.
-            if (!workspaceSplitsWithoutEnteringAnimation.has(route.key)) {
-                return;
-            }
-
-            // We want to set animation after mounting so it will animate on going UP to the settings split.
-            navigation.setOptions({animation: Animations.SLIDE_FROM_RIGHT});
-        });
-
-        return unsubscribe;
-    }, [navigation, route.key]);
+    useEnableBackAnimationWhenOpenedFromTabBar(navigation, route.key);
 
     return (
         <FocusTrapForScreens>
-            <View style={{flex: 1}}>
+            <View style={styles.flex1}>
                 <Split.Navigator
                     persistentScreens={[SCREENS.WORKSPACE.INITIAL]}
                     sidebarScreen={SCREENS.WORKSPACE.INITIAL}
@@ -87,8 +74,6 @@ function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<A
         </FocusTrapForScreens>
     );
 }
-
-WorkspaceSplitNavigator.displayName = 'WorkspaceSplitNavigator';
 
 export {CENTRAL_PANE_WORKSPACE_SCREENS};
 export default WorkspaceSplitNavigator;

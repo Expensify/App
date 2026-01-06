@@ -45,7 +45,7 @@ function TestToolsModalNavigator() {
             <PressableWithoutFeedback
                 ref={outerViewRef}
                 onPress={handleOuterClick}
-                style={[styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout)]}
+                style={[styles.flex1, styles.alignItemsCenter, styles.getTestToolsNavigatorOuterView(shouldUseNarrowLayout)]}
                 accessible={false}
             >
                 <FocusTrapForScreens>
@@ -66,7 +66,5 @@ function TestToolsModalNavigator() {
         </NoDropZone>
     );
 }
-
-TestToolsModalNavigator.displayName = 'TestToolsModalNavigator';
 
 export default TestToolsModalNavigator;

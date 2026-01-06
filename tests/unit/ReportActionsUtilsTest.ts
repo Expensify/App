@@ -1,16 +1,28 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {getEnvironmentURL} from '@libs/Environment/Environment';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
+import ROUTES from '@src/ROUTES';
 import {actionR14932 as mockIOUAction, originalMessageR14932 as mockOriginalMessage} from '../../__mocks__/reportData/actions';
 import {chatReportR14932 as mockChatReport, iouReportR14932 as mockIOUReport} from '../../__mocks__/reportData/reports';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
-import {getOneTransactionThreadReportID, getOriginalMessage, getSendMoneyFlowAction, isIOUActionMatchingTransactionList} from '../../src/libs/ReportActionsUtils';
+import {
+    getCardIssuedMessage,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getReportActionActorAccountID,
+    getSendMoneyFlowAction,
+    isIOUActionMatchingTransactionList,
+} from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import type {OriginalMessageIOU, Report, ReportAction} from '../../src/types/onyx';
+import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
@@ -375,6 +387,13 @@ describe('ReportActionsUtils', () => {
             childReportID: 'existingChildReportID',
         };
 
+        const deletedLinkedActionWithChildReportID: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+            ...mockIOUAction,
+            message: [{deleted: '2025-11-27 09:06:16.568', type: 'COMMENT', text: ''}],
+            originalMessage: {...originalMessage, IOUTransactionID: '123'},
+            childReportID: 'existingChildReportID',
+        };
+
         const linkedActionWithoutChildReportID = {
             ...mockIOUAction,
             originalMessage: {...originalMessage, IOUTransactionID},
@@ -432,6 +451,16 @@ describe('ReportActionsUtils', () => {
         it('should return undefined when only PAY actions exist', () => {
             const result = ReportActionsUtils.getOneTransactionThreadReportAction(mockedReports[IOUReportID], mockedReports[mockChatReportID], [payAction], false, [IOUTransactionID]);
             expect(result).toBeUndefined();
+        });
+
+        it('should return action when single IOU action and deleted IOU action exist', () => {
+            const result = ReportActionsUtils.getOneTransactionThreadReportAction(
+                mockedReports[IOUReportID],
+                mockedReports[mockChatReportID],
+                [linkedActionWithChildReportID, deletedLinkedActionWithChildReportID],
+                false,
+            );
+            expect(result).toEqual(linkedActionWithChildReportID);
         });
     });
 
@@ -1018,7 +1047,27 @@ describe('ReportActionsUtils', () => {
                 ],
             };
             const expectedMessage = ReportActionsUtils.getReportActionMessageText(action);
-            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(action);
+            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+            expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
+        });
+
+        it('should return the correct fragment for the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
+            // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+                reportActionID: '1',
+                created: '1',
+                message: [],
+                originalMessage: {
+                    to: 'example@gmail.com',
+                },
+            };
+
+            // When getting the message fragments of the action
+            const expectedMessage = ReportActionsUtils.getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
+            const expectedFragments = ReportActionsUtils.getReportActionMessageFragments(translateLocal, action);
+
+            // Then it should return the correct message fragments
             expect(expectedFragments).toEqual([{text: expectedMessage, html: `<muted-text>${expectedMessage}</muted-text>`, type: 'COMMENT'}]);
         });
     });
@@ -1085,15 +1134,7 @@ describe('ReportActionsUtils', () => {
     });
 
     describe('shouldShowAddMissingDetails', () => {
-        it('should return true if personal detail is not completed', async () => {
-            const card = {
-                cardID: 1,
-                state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED,
-                bank: 'vcf',
-                domainName: 'expensify',
-                lastUpdated: '2022-11-09 22:27:01.825',
-                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
-            };
+        it('should return true if personal detail is not completed', () => {
             const mockPersonalDetail = {
                 address: {
                     street: '123 Main St',
@@ -1102,19 +1143,10 @@ describe('ReportActionsUtils', () => {
                     postalCode: '10001',
                 },
             };
-            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
-            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
             expect(res).toEqual(true);
         });
-        it('should return true if card state is STATE_NOT_ISSUED', async () => {
-            const card = {
-                cardID: 1,
-                state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
-                bank: 'vcf',
-                domainName: 'expensify',
-                lastUpdated: '2022-11-09 22:27:01.825',
-                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
-            };
+        it('should return false if personal detail is completed', () => {
             const mockPersonalDetail = {
                 addresses: [
                     {
@@ -1129,35 +1161,7 @@ describe('ReportActionsUtils', () => {
                 phoneNumber: '+162992973',
                 dob: '9-9-2000',
             };
-            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
-            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
-            expect(res).toEqual(true);
-        });
-        it('should return false if no condition is matched', async () => {
-            const card = {
-                cardID: 1,
-                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-                bank: 'vcf',
-                domainName: 'expensify',
-                lastUpdated: '2022-11-09 22:27:01.825',
-                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN,
-            };
-            const mockPersonalDetail = {
-                addresses: [
-                    {
-                        street: '123 Main St',
-                        city: 'New York',
-                        state: 'NY',
-                        postalCode: '10001',
-                    },
-                ],
-                legalFirstName: 'John',
-                legalLastName: 'David',
-                phoneNumber: '+162992973',
-                dob: '9-9-2000',
-            };
-            await Onyx.set(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, mockPersonalDetail);
-            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, card);
+            const res = ReportActionsUtils.shouldShowAddMissingDetails(CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS, mockPersonalDetail);
             expect(res).toEqual(false);
         });
     });
@@ -1306,8 +1310,8 @@ describe('ReportActionsUtils', () => {
                 reportActionID: '1',
                 created: '1',
             };
-            const report = {...createRandomReport(2), type: CONST.REPORT.TYPE.CHAT};
-            expect(ReportActionsUtils.getRenamedAction(reportAction, isExpenseReport(report), 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
+            const report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.CHAT};
+            expect(ReportActionsUtils.getRenamedAction(translateLocal, reportAction, isExpenseReport(report), 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
         });
 
         it('should return the correct translated message for a renamed action in expense report', () => {
@@ -1323,9 +1327,736 @@ describe('ReportActionsUtils', () => {
                 reportActionID: '1',
                 created: '1',
             };
-            const report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE};
+            const report = {...createRandomReport(2, undefined), type: CONST.REPORT.TYPE.EXPENSE};
 
-            expect(ReportActionsUtils.getRenamedAction(reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
+            expect(ReportActionsUtils.getRenamedAction(translateLocal, reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
+        });
+    });
+    describe('getCardIssuedMessage', () => {
+        const mockVirtualCardIssuedAction: ReportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
+            reportActionID: 'virtual-card-action-123',
+            actorAccountID: 123,
+            created: '2024-01-01',
+            message: [],
+            originalMessage: {
+                assigneeAccountID: 456,
+                cardID: 789,
+            },
+        } as ReportAction;
+
+        const activeExpensifyCard: Card = {
+            cardID: 789,
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+            bank: '',
+            availableSpend: 0,
+            domainName: '',
+            lastFourPAN: '',
+            lastUpdated: '2024-01-01',
+            fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+        } as Card;
+
+        const testPolicyID = 'test-policy-123';
+
+        describe('render virtual card issued messages', () => {
+            it('should render a plain text message without card link when no card data is available', () => {
+                const messageResult = getCardIssuedMessage({
+                    reportAction: mockVirtualCardIssuedAction,
+                    shouldRenderHTML: true,
+                    policyID: testPolicyID,
+                    expensifyCard: undefined,
+                    translate: translateLocal,
+                });
+
+                expect(messageResult).toBe('issued <mention-user accountID="456"/> a virtual Expensify Card! The card can be used right away.');
+            });
+
+            it('should render a message with clickable card link when the card is active', () => {
+                const messageResult = getCardIssuedMessage({
+                    reportAction: mockVirtualCardIssuedAction,
+                    shouldRenderHTML: true,
+                    policyID: testPolicyID,
+                    expensifyCard: activeExpensifyCard,
+                    translate: translateLocal,
+                });
+
+                expect(messageResult).toBe(
+                    `issued <mention-user accountID="456"/> a virtual Expensify Card! The <a href='https://dev.new.expensify.com:8082/settings/card/789'>card</a> can be used right away.`,
+                );
+            });
+        });
+    });
+
+    describe('shouldReportActionBeVisible', () => {
+        it('should return false for moved transaction if the report destination is unavailable', () => {
+            // Given a moved transaction action but the report destination is not available
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    fromReportID: '2',
+                },
+            };
+
+            // Then the action should not be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(false);
+        });
+
+        it('should return false for actionable card fraud alert if the resolution is recognized', () => {
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT,
+                reportActionID: '1',
+                originalMessage: {
+                    resolution: CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED,
+                    cardID: 123,
+                    maskedCardNumber: '1234',
+                    triggerAmount: 0,
+                    triggerMerchant: 'Merchant',
+                },
+                created: '2025-09-29',
+            };
+
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, false);
+            expect(actual).toBe(false);
+        });
+
+        it('should return true for moved transaction if the report destination is available', async () => {
+            // Given a moved transaction action but the report destination is available
+            const report: Report = createRandomReport(2, undefined);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+                reportActionID: '1',
+                created: '2025-09-29',
+                originalMessage: {
+                    toReportID: report.reportID,
+                    fromReportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                },
+            };
+
+            // Then the action should be visible
+            const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true);
+            expect(actual).toBe(true);
+        });
+    });
+
+    describe('getPolicyChangeLogUpdateEmployee', () => {
+        it('should remove SMS domain when the email is a phone number', () => {
+            const email = '+919383833920@expensify.sms';
+            const newValue = 'test';
+            const previousValue = '';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    field: CONST.CUSTOM_FIELD_KEYS.customField1,
+                    newValue,
+                    oldValue: previousValue,
+                },
+            };
+
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
+            const expected = translateLocal('report.actions.type.updatedCustomField1', {email: formatPhoneNumber(email), newValue, previousValue});
+            expect(actual).toBe(expected);
+        });
+
+        it('should concatenate multiple field changes when fields array is present', () => {
+            const email = 'employee@example.com';
+            const newRole = CONST.POLICY.ROLE.ADMIN;
+            const previousRole = CONST.POLICY.ROLE.USER;
+            const customFieldNewValue = '12';
+            const customFieldOldValue = '10';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    fields: [
+                        {
+                            field: CONST.CUSTOM_FIELD_KEYS.customField1,
+                            newValue: customFieldNewValue,
+                            oldValue: customFieldOldValue,
+                        },
+                        {
+                            field: 'role',
+                            newValue: newRole,
+                            oldValue: previousRole,
+                        },
+                    ],
+                },
+            };
+
+            const formattedEmail = formatPhoneNumber(email);
+            const expectedCustomFieldMessage = translateLocal('report.actions.type.updatedCustomField1', {
+                email: formattedEmail,
+                newValue: customFieldNewValue,
+                previousValue: customFieldOldValue,
+            });
+            const expectedRoleMessage = translateLocal('report.actions.type.updateRole', {
+                email: formattedEmail,
+                newRole: translateLocal('workspace.common.roleName', {role: newRole}).toLowerCase(),
+                currentRole: translateLocal('workspace.common.roleName', {role: previousRole}).toLowerCase(),
+            });
+
+            const actual = ReportActionsUtils.getPolicyChangeLogUpdateEmployee(translateLocal, action);
+            expect(actual).toBe(`${expectedCustomFieldMessage}, ${expectedRoleMessage}`);
+        });
+    });
+
+    describe('getPolicyChangeLogDeleteMemberMessage', () => {
+        it('should remove SMS domain when the email is a phone number', () => {
+            const email = '+919383833920@expensify.sms';
+            const role = CONST.POLICY.ROLE.USER;
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE,
+                message: [],
+                previousMessage: [],
+                originalMessage: {
+                    email,
+                    role,
+                },
+            };
+
+            const actual = ReportActionsUtils.getPolicyChangeLogDeleteMemberMessage(translateLocal, action);
+            const expected = translateLocal('report.actions.type.removeMember', formatPhoneNumber(email), translateLocal('workspace.common.roleName', {role}).toLowerCase());
+            expect(actual).toBe(expected);
+        });
+    });
+    describe('isDeletedAction', () => {
+        it('should return false if the action is a hold or unhold action', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.HOLD | typeof CONST.REPORT.ACTIONS.TYPE.UNHOLD> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+                created: '2025-09-29',
+                reportActionID: '1',
+                originalMessage: undefined,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'Hold',
+                    },
+                ],
+                previousMessage: [],
+            };
+            expect(ReportActionsUtils.isDeletedAction(action)).toBe(false);
+        });
+    });
+
+    describe('getHarvestCreatedExpenseReportMessage', () => {
+        let environmentURL: string;
+        beforeAll(async () => {
+            environmentURL = await getEnvironmentURL();
+        });
+
+        it('should return the correct message with a valid report ID and report name', () => {
+            const reportID = '12345';
+            const reportName = 'Test Expense Report';
+            const expectedMessage = translateLocal('reportAction.harvestCreatedExpenseReport', {
+                reportUrl: `${environmentURL}/${ROUTES.REPORT_WITH_ID.getRoute(reportID)}`,
+                reportName,
+            });
+
+            const result = ReportActionsUtils.getHarvestCreatedExpenseReportMessage(reportID, reportName, translateLocal);
+
+            expect(result).toBe(expectedMessage);
+        });
+    });
+
+    describe('isDynamicExternalWorkflowSubmitAction', () => {
+        it('should return true for SUBMITTED action if workflow is DYNAMICEXTERNAL', () => {
+            // Given a report action with SUBMITTED action type and workflow is DYNAMICEXTERNAL
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21',
+                previousMessage: [],
+                message: [],
+                originalMessage: {
+                    workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                    amount: 1,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            // When checking if the action is a DEW submit action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowSubmitAction(action);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return false for SUBMITTED action if workflow is not DYNAMICEXTERNAL', () => {
+            // Given a report action with SUBMITTED action type and workflow is not DYNAMICEXTERNAL
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21',
+                previousMessage: [],
+                message: [],
+                originalMessage: {
+                    workflow: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    amount: 1,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            // When checking if the action is a DEW submit action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowSubmitAction(action);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+
+        it('should return false for non SUBMITTED action', () => {
+            // Given a report action with non SUBMITTED action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                created: '2025-11-21',
+                previousMessage: [],
+                message: [],
+                originalMessage: {
+                    expenseReportID: '1',
+                    amount: 1,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            // When checking if the action is a DEW submit action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowSubmitAction(action);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('isDynamicExternalWorkflowForwardedAction', () => {
+        it('should return true for FORWARDED action if workflow is DYNAMICEXTERNAL', () => {
+            // Given a report action with FORWARDED action type and workflow is DYNAMICEXTERNAL
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                created: '2025-11-21',
+                previousMessage: [],
+                message: [],
+                originalMessage: {
+                    workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                    expenseReportID: '1',
+                    amount: 1,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            // When checking if the action is a DEW forwarded action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowForwardedAction(action);
+
+            // Then it should return true
+            expect(result).toBe(true);
+        });
+
+        it('should return false for FORWARDED action if workflow is not DYNAMICEXTERNAL', () => {
+            // Given a report action with FORWARDED action type and workflow is not DYNAMICEXTERNAL
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                created: '2025-11-21',
+                previousMessage: [],
+                message: [],
+                originalMessage: {
+                    workflow: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    expenseReportID: '1',
+                    amount: 1,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            // When checking if the action is a DEW forwarded action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowForwardedAction(action);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+
+        it('should return false for non FORWARDED action', () => {
+            // Given a report action with non FORWARDED action type
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED> = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                created: '2025-11-21',
+                previousMessage: [],
+                message: [],
+                originalMessage: {
+                    expenseReportID: '1',
+                    amount: 1,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            // When checking if the action is a DEW forwarded action
+            const result = ReportActionsUtils.isDynamicExternalWorkflowForwardedAction(action);
+
+            // Then it should return false
+            expect(result).toBe(false);
+        });
+    });
+
+    describe('withDEWRoutedActionsArray', () => {
+        it('should add a DEW routed action for each DEW SUBMITTED and FORWARDED action', () => {
+            // Given a report actions array with DEW SUBMITTED and FORWARDED actions
+            const reportActions: ReportAction[] = [
+                {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '1'},
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '',
+                    reportActionID: '2',
+                    originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example@gmail.com'},
+                },
+                {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'},
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                    created: '',
+                    reportActionID: '4',
+                    originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example2@gmail.com'},
+                },
+            ];
+
+            // When extending the array with DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
+            const expected: Array<Partial<ReportAction>> = [
+                {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '1'},
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    created: '',
+                    reportActionID: '2',
+                    originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example@gmail.com'},
+                },
+                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '2DEW', originalMessage: {to: 'example@gmail.com'}},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'},
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                    created: '',
+                    reportActionID: '4',
+                    originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example2@gmail.com'},
+                },
+                {actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED, reportActionID: '4DEW', originalMessage: {to: 'example2@gmail.com'}},
+            ];
+            const actual = ReportActionsUtils.withDEWRoutedActionsArray(reportActions);
+
+            // Then DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action should be added for each SUBMITTED and FORWARDED actions to the array
+            for (let i = 0; i < expected.length; i++) {
+                expect(actual.at(i)).toEqual(expect.objectContaining(expected.at(i)));
+            }
+        });
+
+        it(`should not add a DEW routed action if we don't have DEW SUBMITTED or FORWARDED action`, () => {
+            // Given a report actions array with no DEW SUBMITTED or FORWARDED actions
+            const reportActions: ReportAction[] = [
+                {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '1'},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '', reportActionID: '2'},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '', reportActionID: '4'},
+            ];
+
+            // When extending the array with DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
+            const expected: ReportAction[] = [
+                {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '1'},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '', reportActionID: '2'},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'},
+                {actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '', reportActionID: '4'},
+            ];
+            const actual = ReportActionsUtils.withDEWRoutedActionsArray(reportActions);
+
+            // Then no DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action should be added to the array
+            expect(actual).toEqual(expected);
+        });
+    });
+
+    describe('withDEWRoutedActionsObject', () => {
+        it('should add a DEW routed action for each DEW SUBMITTED and FORWARDED action', () => {
+            // Given a report actions collection with DEW SUBMITTED and FORWARDED actions
+            const firstAction = {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '1'};
+            const secondAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '',
+                reportActionID: '2',
+                originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example@gmail.com'},
+            };
+            const thirdAction = {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'};
+            const fourthAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                created: '',
+                reportActionID: '4',
+                originalMessage: {workflow: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL, to: 'example2@gmail.com'},
+            };
+            const reportActions: ReportActions = {
+                [firstAction.reportActionID]: firstAction,
+                [secondAction.reportActionID]: secondAction,
+                [thirdAction.reportActionID]: thirdAction,
+                [fourthAction.reportActionID]: fourthAction,
+            };
+
+            // When extending the collection with DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
+            const secondDEWAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+                reportActionID: '2DEW',
+                originalMessage: {to: 'example@gmail.com'},
+            } as ReportAction;
+            const fourthDEWAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+                reportActionID: '4DEW',
+                originalMessage: {to: 'example2@gmail.com'},
+            } as ReportAction;
+            const expected: ReportActions = {
+                [firstAction.reportActionID]: firstAction,
+                [secondAction.reportActionID]: secondAction,
+                [secondDEWAction.reportActionID]: secondDEWAction,
+                [thirdAction.reportActionID]: thirdAction,
+                [fourthAction.reportActionID]: fourthAction,
+                [fourthDEWAction.reportActionID]: fourthDEWAction,
+            };
+            const actual = ReportActionsUtils.withDEWRoutedActionsObject(reportActions);
+
+            // Then DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action should be added for each SUBMITTED and FORWARDED actions to the collection
+            expect(actual).toMatchObject(expected);
+        });
+
+        it(`should not add a DEW routed action if we don't have DEW SUBMITTED or FORWARDED action`, () => {
+            // Given a report actions collection with no DEW SUBMITTED or FORWARDED actions
+            const firstAction = {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '1'};
+            const secondAction = {actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '', reportActionID: '2'};
+            const thirdAction = {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '', reportActionID: '3'};
+            const fourthAction = {actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '', reportActionID: '4'};
+            const reportActions: ReportActions = {
+                [firstAction.reportActionID]: firstAction,
+                [secondAction.reportActionID]: secondAction,
+                [thirdAction.reportActionID]: thirdAction,
+                [fourthAction.reportActionID]: fourthAction,
+            };
+
+            // When extending the collection with DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
+            const expected: ReportActions = {
+                [firstAction.reportActionID]: firstAction,
+                [secondAction.reportActionID]: secondAction,
+                [thirdAction.reportActionID]: thirdAction,
+                [fourthAction.reportActionID]: fourthAction,
+            };
+            const actual = ReportActionsUtils.withDEWRoutedActionsObject(reportActions);
+
+            // Then no DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action should be added to the collection
+            expect(actual).toEqual(expected);
+        });
+    });
+
+    describe('getDynamicExternalWorkflowRoutedMessage', () => {
+        it('should return the routed message', () => {
+            // Given a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action
+            const to = 'example@gmail.com';
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+                created: '',
+                originalMessage: {to},
+            };
+
+            // When getting the DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action message
+            const actual = ReportActionsUtils.getDynamicExternalWorkflowRoutedMessage(action, translateLocal);
+
+            // Then it should return the routed due to DEW message with the correct "to" value
+            const expected = translateLocal('iou.routedDueToDEW', {to});
+            expect(actual).toBe(expected);
+        });
+    });
+
+    describe('getReportActionActorAccountID', () => {
+        it('should return report owner account id if action is REPORTPREVIEW and report is a policy expense chat', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return report manager account id if action is REPORTPREVIEW and report is not a policy expense chat', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: undefined,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(20);
+        });
+
+        it('should return admin account id if action is SUBMITTED taken by an admin on behalf the submitter', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                adminAccountID: 30,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(30);
+        });
+
+        it('should return report owner account id if action is SUBMITTED taken by the submitter himself', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return admin account id if action is SUBMITTED_AND_CLOSED taken by an admin on behalf the submitter', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                adminAccountID: 30,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(30);
+        });
+
+        it('should return report owner account id if action is SUBMITTED_AND_CLOSED taken by the submitter himself', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
+                actorAccountID: 10,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(10);
+        });
+
+        it('should return original actor account id if action is ADDCOMMENT', () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID: 123,
+            };
+            const iouReport: Report = {
+                ...createRandomReport(0, undefined),
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: 10,
+                managerID: 20,
+            };
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toEqual(123);
+        });
+
+        it('returns CONCIERGE for CREATED action when report is harvest-created', async () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                actorAccountID: 9999,
+            };
+
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: 'harvest-report-1',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {
+                origin: 'harvest',
+                originalID: 'orig-123',
+            });
+            await waitForBatchedUpdates();
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
+        it('returns reportAction.actorAccountID for CREATED action when not harvest-created', async () => {
+            const reportAction: ReportAction = {
+                ...createRandomReportAction(0),
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                actorAccountID: 9999,
+            };
+
+            const iouReport: Report = {...createRandomReport(0, undefined)};
+            const report: Report = {
+                ...createRandomReport(2, undefined),
+                reportID: 'normal-report-2',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {});
+            await waitForBatchedUpdates();
+
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
+            expect(actorAccountID).toBe(9999);
         });
     });
 });

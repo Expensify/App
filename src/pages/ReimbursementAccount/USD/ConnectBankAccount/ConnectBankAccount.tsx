@@ -30,7 +30,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
     const {translate} = useLocalize();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${reimbursementAccount?.achData?.policyID}`, {canBeMissing: true});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const handleNavigateToConciergeChat = () => navigateToConciergeChat(true);
@@ -56,7 +56,7 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
 
     return (
         <ScreenWrapper
-            testID={ConnectBankAccount.displayName}
+            testID="ConnectBankAccount"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -90,7 +90,5 @@ function ConnectBankAccount({onBackButtonPress, setShouldShowConnectedVerifiedBa
         </ScreenWrapper>
     );
 }
-
-ConnectBankAccount.displayName = 'ConnectBankAccount';
 
 export default ConnectBankAccount;
