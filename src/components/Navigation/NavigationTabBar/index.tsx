@@ -180,7 +180,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
         }
 
         Navigation.navigate(ROUTES.HOME);
-    }, [selectedTab]);
+    }, [selectedTab, shouldUseNarrowLayout]);
 
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY, {canBeMissing: true});
 
