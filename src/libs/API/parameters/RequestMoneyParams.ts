@@ -33,6 +33,18 @@ type RequestMoneyParams = {
     isTestDrive?: boolean;
     guidedSetupData?: string;
     testDriveCommentReportActionID?: string;
+
+    /** Transaction type (e.g., 'time' for time tracking expenses) */
+    type?: string;
+
+    /** Number of hours for time tracking expenses */
+    count?: number;
+
+    /** Hourly rate in cents. Use convertToBackendAmount() to convert from policy rate (which is stored as a float) */
+    rate?: number;
+
+    /** Unit for time tracking (e.g., 'h' for hours) */
+    unit?: string;
 };
 
 export default RequestMoneyParams;
