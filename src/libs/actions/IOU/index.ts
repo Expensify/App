@@ -5406,7 +5406,7 @@ function convertBulkTrackedExpensesToIOU(
     currentUserEmailParam: string,
     transactionViolations: OnyxCollection<OnyxTypes.TransactionViolation[]>,
     policyRecentlyUsedCurrencies: string[],
-        quickAction: OnyxEntry<OnyxTypes.QuickAction>,
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
 ) {
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`];
 

@@ -92,7 +92,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
         completeSplitBill(reportID, reportAction, draftTransaction, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, isASAPSubmitBetaEnabled, quickAction, transactionViolations, session?.email);
-    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, transactionViolations]);
+    }, [reportID, reportAction, draftTransaction, session?.accountID, session?.email, isASAPSubmitBetaEnabled, quickAction, transactionViolations]);
 
     return (
         <ScreenWrapper testID="SplitBillDetailsPage">
