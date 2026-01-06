@@ -396,7 +396,7 @@ ___
 *I have verified these metrics using (check all that apply):*
 - [ ] React DevTools Profiler
 - [ ] Chrome Performance Tab
-- [ ] JS Flamecharts
+- [ ] JS Flame charts
 - [ ] Hermes / Release Profiler traces
 - [ ] Sentry (If you have access)
 
