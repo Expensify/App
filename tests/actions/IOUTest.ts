@@ -11729,7 +11729,7 @@ describe('actions/IOU', () => {
                 activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
-                customUnitPolicyID: ''
+                customUnitPolicyID: '',
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
@@ -11762,7 +11762,7 @@ describe('actions/IOU', () => {
                 amount: randomDistanceTransaction.amount * -1,
             };
 
-            duplicateExpenseTransaction(
+            duplicateExpenseTransaction({
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -11775,7 +11775,7 @@ describe('actions/IOU', () => {
                 targetPolicy: mockPolicy,
                 targetPolicyCategories: fakePolicyCategories,
                 targetReport: policyExpenseChat,
-            );
+            });
 
             await waitForBatchedUpdates();
 
