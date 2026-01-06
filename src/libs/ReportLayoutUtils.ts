@@ -3,12 +3,12 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {GroupedTransactions} from '@src/types/onyx';
 import type Report from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
-import {isCategoryMissing} from './CategoryUtils';
+import {getDecodedCategoryName, isCategoryMissing} from './CategoryUtils';
 import isTagMissing from './TagUtils';
-import {getCategory, getTag} from './TransactionUtils';
+import {getAmount, getCategory, getCurrency, getTag, isTransactionPendingDelete} from './TransactionUtils';
 
 /**
- * Sorts grouped transactions alphabetically (A→Z) with empty keys at the end
+ * Sorts groups alphabetically (A→Z) with empty keys at the end
  */
 function sortGroupedTransactions(groups: GroupedTransactions[], localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
     return groups.sort((a, b) => {
@@ -23,14 +23,43 @@ function sortGroupedTransactions(groups: GroupedTransactions[], localeCompare: L
 }
 
 /**
+ * Returns convertedAmount with sign flipped for display (stored negative, displayed positive)
+ */
+function getConvertedAmount(transaction: Transaction): number {
+    const convertedAmount = transaction.convertedAmount ?? 0;
+    return convertedAmount ? -convertedAmount : 0;
+}
+
+/**
+ * Calculates group total using amount for same-currency transactions, falls back to convertedAmount for multi-currency
+ * Excludes transactions that are pending delete
+ */
+function calculateGroupTotal(transactionList: Transaction[], reportCurrency: string): number {
+    let total = 0;
+    for (const transaction of transactionList) {
+        if (isTransactionPendingDelete(transaction)) {
+            continue;
+        }
+
+        const transactionCurrency = getCurrency(transaction);
+        if (transactionCurrency === reportCurrency) {
+            total += getAmount(transaction, true, false, true);
+        } else if (transaction.convertedAmount) {
+            total += getConvertedAmount(transaction);
+        }
+    }
+    return total;
+}
+
+/**
  * Groups transactions by category
- * @returns Array of grouped transactions sorted alphabetically (A→Z)
  */
 function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
     if (!report) {
         return [];
     }
 
+    const reportCurrency = report.currency ?? '';
     const groups = new Map<string, Transaction[]>();
 
     for (const transaction of transactions) {
@@ -46,9 +75,10 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
     const result: GroupedTransactions[] = [];
     for (const [categoryKey, transactionList] of groups) {
         result.push({
-            groupName: categoryKey,
+            groupName: categoryKey ? getDecodedCategoryName(categoryKey) : categoryKey,
             groupKey: categoryKey,
             transactions: transactionList,
+            subTotalAmount: calculateGroupTotal(transactionList, reportCurrency),
             isExpanded: true,
         });
     }
@@ -58,13 +88,13 @@ function groupTransactionsByCategory(transactions: Transaction[], report: OnyxEn
 
 /**
  * Groups transactions by tag
- * @returns Array of grouped transactions sorted alphabetically (A→Z)
  */
 function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<Report>, localeCompare: LocaleContextProps['localeCompare']): GroupedTransactions[] {
     if (!report) {
         return [];
     }
 
+    const reportCurrency = report.currency ?? '';
     const groups = new Map<string, Transaction[]>();
 
     for (const transaction of transactions) {
@@ -83,6 +113,7 @@ function groupTransactionsByTag(transactions: Transaction[], report: OnyxEntry<R
             groupName: tagKey,
             groupKey: tagKey,
             transactions: transactionList,
+            subTotalAmount: calculateGroupTotal(transactionList, reportCurrency),
             isExpanded: true,
         });
     }

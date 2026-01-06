@@ -5,9 +5,9 @@ import {View} from 'react-native';
 import Button from '@components/Button';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
-import SelectionList from '@components/SelectionListWithSections';
-import UserSelectionListItem from '@components/SelectionListWithSections/Search/UserSelectionListItem';
-import type {SelectionListHandle} from '@components/SelectionListWithSections/types';
+import SelectionList from '@components/SelectionList';
+import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
+import type {SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,7 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import memoize from '@libs/memoize';
-import type {Option, Section} from '@libs/OptionsListUtils';
+import type {Option} from '@libs/OptionsListUtils';
 import {filterAndOrderOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -42,9 +42,16 @@ type UserSelectPopupProps = {
 
     /** Function to call when changes are applied */
     onChange: (value: string[]) => void;
+
+    /**
+     * Whether the search input should be displayed.
+     * When undefined, defaults to showing search when user count >= CONST.STANDARD_LIST_ITEM_LIMIT (12 users).
+     * Set to true to always show search, or false to never show search regardless of user count.
+     */
+    isSearchable?: boolean;
 };
 
-function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) {
+function UserSelectPopup({value, closeOverlay, onChange, isSearchable}: UserSelectPopupProps) {
     const selectionListRef = useRef<SelectionListHandle | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -55,6 +62,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true, selector: accountIDSelector});
     const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [searchTerm, setSearchTerm] = useState('');
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
@@ -91,31 +99,34 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             },
             draftComments,
             nvpDismissedProductTraining,
+            loginList,
             {
                 excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
                 includeCurrentUser: true,
             },
             countryCode,
         );
-    }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, countryCode]);
+    }, [options.reports, options.personalDetails, draftComments, nvpDismissedProductTraining, loginList, countryCode]);
 
     const filteredOptions = useMemo(() => {
-        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, {
+        return filterAndOrderOptions(optionsList, cleanSearchTerm, countryCode, loginList, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             canInviteUser: false,
         });
-    }, [optionsList, cleanSearchTerm, countryCode]);
+    }, [optionsList, cleanSearchTerm, countryCode, loginList]);
 
     const listData = useMemo(() => {
         const personalDetailList = filteredOptions.personalDetails.map((participant) => ({
             ...participant,
             isSelected: selectedAccountIDs.has(participant.accountID),
+            keyForList: String(participant.accountID),
         }));
 
         const recentReportsList = filteredOptions.recentReports.map((report) => ({
             ...report,
             isSelected: selectedAccountIDs.has(report.accountID),
+            keyForList: String(report.reportID),
         }));
 
         const combined = [...personalDetailList, ...recentReportsList];
@@ -142,22 +153,9 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
         return combined;
     }, [filteredOptions, accountID, selectedAccountIDs]);
 
-    const {sections, headerMessage} = useMemo(() => {
-        const newSections: Section[] = [
-            {
-                title: '',
-                data: listData,
-                shouldShow: !isEmpty(listData),
-            },
-        ];
-
+    const headerMessage = useMemo(() => {
         const noResultsFound = isEmpty(listData);
-        const message = noResultsFound ? translate('common.noResultsFound') : undefined;
-
-        return {
-            sections: newSections,
-            headerMessage: message,
-        };
+        return noResultsFound ? translate('common.noResultsFound') : undefined;
     }, [listData, translate]);
 
     const selectUser = useCallback(
@@ -165,7 +163,7 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
             const isSelected = selectedOptions.some((selected) => optionsMatch(selected, option));
 
             setSelectedOptions((prev) => (isSelected ? prev.filter((selected) => !optionsMatch(selected, option)) : [...prev, getSelectedOptionData(option)]));
-            selectionListRef?.current?.scrollToIndex(0, true);
+            selectionListRef?.current?.scrollToIndex(0);
         },
         [selectedOptions],
     );
@@ -182,23 +180,33 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     }, [closeOverlay, onChange]);
 
     const isLoadingNewOptions = !!isSearchingForReports;
-    const dataLength = sections.flatMap((section) => section.data).length;
+    const totalOptionsCount = optionsList.personalDetails.length + optionsList.recentReports.length;
+    const shouldShowSearchInput = isSearchable ?? totalOptionsCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+
+    const textInputOptions = useMemo(
+        () =>
+            shouldShowSearchInput
+                ? {
+                      value: searchTerm,
+                      label: translate('selectionList.searchForSomeone'),
+                      onChangeText: setSearchTerm,
+                      headerMessage,
+                      disableAutoFocus: !shouldFocusInputOnScreenFocus,
+                  }
+                : undefined,
+        [searchTerm, translate, headerMessage, shouldFocusInputOnScreenFocus, shouldShowSearchInput],
+    );
 
     return (
-        <View style={[styles.getUserSelectionListPopoverHeight(dataLength || 1, windowHeight, shouldUseNarrowLayout)]}>
+        <View style={[styles.getUserSelectionListPopoverHeight(listData.length || 1, windowHeight, shouldUseNarrowLayout, shouldShowSearchInput)]}>
             <SelectionList
+                data={listData}
                 ref={selectionListRef}
+                textInputOptions={textInputOptions}
                 canSelectMultiple
-                textInputAutoFocus={shouldFocusInputOnScreenFocus}
-                headerMessage={headerMessage}
-                sections={sections}
                 ListItem={UserSelectionListItem}
-                containerStyle={[!shouldUseNarrowLayout && styles.pt4]}
-                contentContainerStyle={[styles.pb2]}
-                textInputLabel={translate('selectionList.searchForSomeone')}
-                textInputValue={searchTerm}
+                style={{containerStyle: [!shouldUseNarrowLayout && styles.pt4], listStyle: styles.pb2}}
                 onSelectRow={selectUser}
-                onChangeText={setSearchTerm}
                 isLoadingNewOptions={isLoadingNewOptions}
             />
 
@@ -221,5 +229,4 @@ function UserSelectPopup({value, closeOverlay, onChange}: UserSelectPopupProps) 
     );
 }
 
-UserSelectPopup.displayName = 'UserSelectPopup';
 export default memo(UserSelectPopup);

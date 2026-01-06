@@ -7,8 +7,6 @@ import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -17,6 +15,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,6 +45,7 @@ type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SC
 function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const {reportOrAccountID} = route.params;
 
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
@@ -64,8 +64,17 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     const ancestors = useAncestors(report);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails, reportAttributesDerived), [report, unknownUserDetails, reportAttributesDerived]);
 
+    const shouldShowAttachment = !isTextShared;
     const fileSource = shouldUsePreValidatedFile ? (validatedFile?.uri ?? '') : (currentAttachment?.content ?? '');
-    const validateFileName = shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
+
+    // Only get file name for actual files to avoid URI decoding errors on text content
+    const validateFileName = useMemo(() => {
+        if (!shouldShowAttachment) {
+            return '';
+        }
+        return shouldUsePreValidatedFile ? getFileName(validatedFile?.uri ?? CONST.ATTACHMENT_IMAGE_DEFAULT_NAME) : getFileName(currentAttachment?.content ?? '');
+    }, [shouldShowAttachment, shouldUsePreValidatedFile, validatedFile?.uri, currentAttachment?.content]);
+
     const fileType = shouldUsePreValidatedFile ? (validatedFile?.type ?? CONST.SHARE_FILE_MIMETYPE.JPEG) : (currentAttachment?.mimeType ?? '');
 
     const reportAttachmentsContext = useContext(AttachmentModalContext);
@@ -74,13 +83,13 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             source: fileSource,
             headerTitle: validateFileName,
             originalFileName: validateFileName,
-            fallbackSource: FallbackAvatar,
+            fallbackSource: icons.FallbackAvatar,
         });
         Navigation.navigate(ROUTES.SHARE_DETAILS_ATTACHMENT);
-    }, [reportAttachmentsContext, fileSource, validateFileName]);
+    }, [reportAttachmentsContext, fileSource, validateFileName, icons.FallbackAvatar]);
 
     useEffect(() => {
-        if (!currentAttachment?.content || errorTitle) {
+        if (!currentAttachment?.content || errorTitle || !shouldShowAttachment) {
             return;
         }
         getFileSize(currentAttachment?.content).then((size) => {
@@ -94,7 +103,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                 setErrorMessage(translate('attachmentPicker.sizeNotMet'));
             }
         });
-    }, [currentAttachment?.content, errorTitle, translate]);
+    }, [currentAttachment?.content, errorTitle, translate, shouldShowAttachment]);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -110,14 +119,14 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
 
     const isDraft = isDraftReport(reportOrAccountID);
     const currentUserID = getCurrentUserAccountID();
-    const shouldShowAttachment = !isTextShared;
+
     const handleShare = () => {
         if (!currentAttachment || (shouldUsePreValidatedFile && !validatedFile)) {
             return;
         }
 
         if (isTextShared) {
-            addComment(report.reportID, report.reportID, ancestors, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+            addComment(report, report.reportID, ancestors, message, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
             const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
             Navigation.navigate(routeToNavigate, {forceReplace: true});
             return;
@@ -139,7 +148,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
                     );
                 }
                 if (report.reportID) {
-                    addAttachmentWithComment(report.reportID, report.reportID, ancestors, file, message, personalDetail.timezone);
+                    addAttachmentWithComment(report, report.reportID, ancestors, file, message, personalDetail.timezone);
                 }
 
                 const routeToNavigate = ROUTES.REPORT_WITH_ID.getRoute(reportOrAccountID);
@@ -155,7 +164,7 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
             includeSafeAreaPaddingBottom
             keyboardAvoidingViewBehavior="padding"
             shouldEnableMinHeight={canUseTouchScreen()}
-            testID={ShareDetailsPage.displayName}
+            testID="ShareDetailsPage"
         >
             <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
                 <PressableWithoutFeedback
@@ -240,5 +249,4 @@ function ShareDetailsPage({route}: ShareDetailsPageProps) {
     );
 }
 
-ShareDetailsPage.displayName = 'ShareDetailsPage';
 export default ShareDetailsPage;

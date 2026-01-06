@@ -177,6 +177,4 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     );
 }
 
-BaseEducationalTooltip.displayName = 'BaseEducationalTooltip';
-
 export default memo(BaseEducationalTooltip);

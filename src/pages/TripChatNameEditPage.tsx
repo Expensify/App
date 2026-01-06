@@ -41,7 +41,7 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
             // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
             const nameLength = [...name.trim()].length;
             if (nameLength > CONST.REPORT_NAME_LIMIT) {
-                errors.newChatName = translate('common.error.characterLimitExceedCounter', {length: nameLength, limit: CONST.REPORT_NAME_LIMIT});
+                errors.newChatName = translate('common.error.characterLimitExceedCounter', nameLength, CONST.REPORT_NAME_LIMIT);
             }
 
             if (StringUtils.isEmptyString(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
@@ -56,19 +56,19 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
     const editName = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>) => {
             if (values[INPUT_IDS.NEW_CHAT_NAME] !== currentChatName) {
-                updateChatName(reportID, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.TRIP_ROOM);
+                updateChatName(reportID, report.reportName, values[INPUT_IDS.NEW_CHAT_NAME] ?? '', CONST.REPORT.CHAT_TYPE.TRIP_ROOM);
             }
 
             return Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(reportID)));
         },
-        [reportID, currentChatName],
+        [reportID, currentChatName, report?.reportName],
     );
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             style={[styles.defaultModalContainer]}
-            testID={TripChatNameEditPage.displayName}
+            testID="TripChatNameEditPage"
             shouldEnableMaxHeight
         >
             <HeaderWithBackButton
@@ -97,7 +97,5 @@ function TripChatNameEditPage({report}: TripChatNameEditPageProps) {
         </ScreenWrapper>
     );
 }
-
-TripChatNameEditPage.displayName = 'TripChatNameEditPage';
 
 export default TripChatNameEditPage;

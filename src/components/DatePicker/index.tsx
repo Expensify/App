@@ -31,9 +31,10 @@ function DatePicker({
     formID,
     autoFocus = false,
     shouldHideClearButton = false,
+    forwardedFSClass,
     ref,
 }: DateInputWithPickerProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Calendar'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
     const {translate} = useLocalize();
@@ -143,6 +144,7 @@ function DatePicker({
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
+                    forwardedFSClass={forwardedFSClass}
                 />
             </View>
 
@@ -156,11 +158,10 @@ function DatePicker({
                 onClose={closeDatePicker}
                 anchorPosition={popoverPosition}
                 shouldPositionFromTop={!isInverted}
+                forwardedFSClass={forwardedFSClass}
             />
         </>
     );
 }
-
-DatePicker.displayName = 'DatePicker';
 
 export default DatePicker;

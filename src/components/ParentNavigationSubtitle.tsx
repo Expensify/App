@@ -27,6 +27,9 @@ import TextLink from './TextLink';
 type ParentNavigationSubtitleProps = {
     parentNavigationSubtitleData: ParentNavigationSummaryParams;
 
+    /** Current Report ID (to check hasParentAccess) */
+    reportID?: string;
+
     /** parent Report ID */
     parentReportID?: string;
 
@@ -60,6 +63,7 @@ type ParentNavigationSubtitleProps = {
 
 function ParentNavigationSubtitle({
     parentNavigationSubtitleData,
+    reportID = '',
     parentReportActionID,
     parentReportID = '',
     pressableStyles,
@@ -82,11 +86,13 @@ function ParentNavigationSubtitle({
 
     const {workspaceName, reportName} = parentNavigationSubtitleData;
     const {translate} = useLocalize();
+    const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {canBeMissing: false});
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const isReportInRHP = currentRoute.name === SCREENS.SEARCH.REPORT_RHP;
+    const isReportInRHP = currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const currentFullScreenRoute = useRootNavigationState((state) => state?.routes?.findLast((route) => isFullScreenName(route.name)));
+    const hasAccessToParentReport = currentReport?.hasParentAccess !== false;
 
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
     if (!reportName) {
@@ -161,16 +167,26 @@ function ParentNavigationSubtitle({
                 {!!reportName && (
                     <>
                         <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{`${translate('threads.from')} `}</Text>
-                        <TextLink
-                            onMouseEnter={onMouseEnter}
-                            onMouseLeave={onMouseLeave}
-                            onPress={onPress}
-                            accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
-                            style={[pressableStyles, styles.optionAlternateText, styles.textLabelSupporting, hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link, textStyles]}
-                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                        >
-                            {reportName}
-                        </TextLink>
+                        {hasAccessToParentReport ? (
+                            <TextLink
+                                onMouseEnter={onMouseEnter}
+                                onMouseLeave={onMouseLeave}
+                                onPress={onPress}
+                                accessibilityLabel={translate('threads.parentNavigationSummary', {reportName, workspaceName})}
+                                style={[
+                                    pressableStyles,
+                                    styles.optionAlternateText,
+                                    styles.textLabelSupporting,
+                                    hovered ? StyleUtils.getColorStyle(theme.linkHover) : styles.link,
+                                    textStyles,
+                                ]}
+                                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                            >
+                                {reportName}
+                            </TextLink>
+                        ) : (
+                            <Text style={[styles.optionAlternateText, styles.textLabelSupporting, textStyles]}>{reportName}</Text>
+                        )}
                     </>
                 )}
                 {!!workspaceName && workspaceName !== reportName && (
@@ -181,5 +197,4 @@ function ParentNavigationSubtitle({
     );
 }
 
-ParentNavigationSubtitle.displayName = 'ParentNavigationSubtitle';
 export default ParentNavigationSubtitle;
