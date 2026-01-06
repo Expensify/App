@@ -41,7 +41,12 @@ jobs:
             ${{ runner.os }}-eslint-
 
       - name: Lint JavaScript and Typescript with ESLint
-        run: npm run lint
+        run: |
+          if ! npm run lint; then
+            echo "Lint failed, clearing cache and retrying..."
+            rm -rf node_modules/.cache/eslint
+            npm run lint
+          fi
         env:
           CI: true
 
