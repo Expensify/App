@@ -471,7 +471,7 @@ describe('actions/User', () => {
             const [, , onyxData] = calls.at(0) as [unknown, unknown, {failureData?: Array<{key: string; value: unknown}>}];
             const failureData = onyxData.failureData ?? [];
 
-            expect(failureData).toHaveLength(3);
+            expect(failureData).toHaveLength(4);
 
             // Verify ACCOUNT failure update
             const accountUpdate = failureData.find((update) => update.key === ONYXKEYS.ACCOUNT);
