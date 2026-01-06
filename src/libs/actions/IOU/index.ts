@@ -6498,6 +6498,7 @@ function duplicateExpenseTransaction({
         currentUserEmailParam: currentUserEmail,
         transactionViolations: {},
         policyRecentlyUsedCurrencies,
+        quickAction,
     };
 
     // If no workspace is provided the expense should be unreported
