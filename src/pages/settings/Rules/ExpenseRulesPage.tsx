@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import EmptyStateComponent from '@components/EmptyStateComponent';
@@ -9,7 +9,6 @@ import ScrollView from '@components/ScrollView';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -18,44 +17,41 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {formatExpenseRuleChanges} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function ExpenseRulesPage() {
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses', 'Flash']);
-    const [expenseRules, {status}] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES, {canBeMissing: true});
+    const illustrations = useMemoizedLazyIllustrations(['Flash']);
+    const [expenseRules, expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
     const hasRules = expenseRules ? expenseRules.length > 0 : false;
-    const isLoading = !hasRules && status === 'loading';
+    const isLoading = !hasRules && isLoadingOnyxValue(expenseRulesResult);
 
-    const rulesList = useMemo<ListItem[]>(() => {
-        if (!expenseRules || !hasRules) {
-            return [];
-        }
-        return expenseRules.map((rule, index) => ({
-            text: rule.merchantToMatch,
-            keyForList: `${rule.merchantToMatch}${index}`,
-            isDisabledCheckbox: true,
-            isDisabled: true,
-            rightElement: (
-                <View style={[styles.flex1]}>
-                    <Text
-                        numberOfLines={1}
-                        style={[styles.alignSelfStart]}
-                    >
-                        {translate('expenseRulesPage.updateTo', {rule})}
-                    </Text>
-                </View>
-            ),
-        }));
-    }, [expenseRules, hasRules, styles, translate]);
+    const rulesList = (expenseRules ?? []).map((rule, index) => ({
+        text: rule.merchantToMatch,
+        keyForList: `${rule.merchantToMatch}${index}`,
+        isDisabledCheckbox: true,
+        isDisabled: true,
+        rightElement: (
+            <View style={[styles.flex1]}>
+                <Text
+                    numberOfLines={1}
+                    style={[styles.alignSelfStart]}
+                >
+                    {formatExpenseRuleChanges(rule, translate)}
+                </Text>
+            </View>
+        ),
+    }));
 
     const headerContent = (
-        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : {}]}>
+        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
             <Text style={[styles.textNormal, styles.colorMuted]}>{translate('expenseRulesPage.subtitle')}</Text>
         </View>
     );
@@ -87,13 +83,7 @@ function ExpenseRulesPage() {
                     Navigation.popToSidebar();
                 }}
             />
-            {(!hasRules || isLoading) && headerContent}
-            {isLoading && (
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    style={[styles.flex1]}
-                />
-            )}
+            {!hasRules && !isLoading && headerContent}
             {!hasRules && !isLoading && (
                 <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                     <EmptyStateComponent
@@ -108,7 +98,13 @@ function ExpenseRulesPage() {
                     />
                 </ScrollView>
             )}
-            {hasRules && !isLoading && (
+            {!hasRules && isLoading && (
+                <ActivityIndicator
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                    style={[styles.flex1]}
+                />
+            )}
+            {hasRules && (
                 <SelectionListWithModal
                     addBottomSafeAreaPadding
                     canSelectMultiple={false}

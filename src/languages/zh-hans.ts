@@ -39,7 +39,6 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
-    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -2336,38 +2335,16 @@ ${amount}，商户：${merchant} - ${date}`,
         title: '报销规则',
         subtitle: '这些规则将适用于你的报销。如果你提交到工作区，则该工作区的规则可能会覆盖这些规则。',
         emptyRules: {title: '你还没有创建任何规则', subtitle: '添加一条规则以自动化报销报告。'},
-        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
-            Object.entries(rule)
-                .map(([key, value]) => {
-                    if (!value) {
-                        return '';
-                    }
-                    switch (key) {
-                        case 'billable':
-                            return `更新报销 ${rule.billable === 'true' ? '可计费' : '不可计费'}`;
-                        case 'category':
-                            return `将类别更新为“${rule.category}”`;
-                        case 'comment':
-                            return `将描述更改为 “${rule.comment}”`;
-                        case 'merchant':
-                            return `将商户更新为“${rule.merchant}”`;
-                        case 'reimbursable':
-                            return `更新报销 ${rule.reimbursable === 'true' ? '可报销' : '不予报销'}`;
-                        case 'report':
-                            return `添加一个名为“${rule.report}”的报告`;
-                        case 'tag':
-                            return `将标签更新为“${rule.tag}”`;
-                        case 'tax':
-                            if ('field_id_TAX' in rule.tax) {
-                                return `将税率更新为 ${rule.tax.field_id_TAX.value}`;
-                            }
-                            return '';
-                        default:
-                            return '';
-                    }
-                })
-                .filter(Boolean)
-                .join(', '),
+        changes: {
+            billable: (value: boolean) => `更新报销 ${value ? '可计费' : '不可计费'}`,
+            category: (value: string) => `将类别更新为“${value}”`,
+            comment: (value: string) => `将描述更改为 “${value}”`,
+            merchant: (value: string) => `将商户更新为“${value}”`,
+            reimbursable: (value: boolean) => `更新报销 ${value ? '可报销' : '不予报销'}`,
+            report: (value: string) => `添加一个名为“${value}”的报告`,
+            tag: (value: string) => `将标签更新为“${value}”`,
+            tax: (value: string) => `将税率更新为 ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {

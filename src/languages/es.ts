@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import dedent from '@libs/StringUtils/dedent';
 import CONST from '@src/CONST';
 import type en from './en';
-import type {ExpenseRuleUpdateToParams, HarvestCreatedExpenseReportParams, RoutedDueToDEWParams, SplitDateRangeParams, ViolationsRterParams} from './params';
+import type {HarvestCreatedExpenseReportParams, RoutedDueToDEWParams, SplitDateRangeParams, ViolationsRterParams} from './params';
 import type {TranslationDeepObject} from './types';
 
 /* eslint-disable max-len */
@@ -2029,38 +2029,16 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Aún no has creado ninguna regla',
             subtitle: 'Añade una regla para automatizar los informes de gastos.',
         },
-        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
-            Object.entries(rule)
-                .map(([key, value]) => {
-                    if (!value) {
-                        return '';
-                    }
-                    switch (key) {
-                        case 'billable':
-                            return `Actualiza el gasto a ${rule.billable === 'true' ? 'facturable' : 'no facturable'}`;
-                        case 'category':
-                            return `Actualiza la categoría a "${rule.category}"`;
-                        case 'comment':
-                            return `Cambia la descripción a "${rule.comment}"`;
-                        case 'merchant':
-                            return `Actualiza el comercio a "${rule.merchant}"`;
-                        case 'reimbursable':
-                            return `Actualiza el gasto a ${rule.reimbursable === 'true' ? 'reembolsable' : 'no reembolsable'}`;
-                        case 'report':
-                            return `Añade un informe llamado "${rule.report}"`;
-                        case 'tag':
-                            return `Actualiza la etiqueta a "${rule.tag}"`;
-                        case 'tax':
-                            if ('field_id_TAX' in rule.tax) {
-                                return `Actualiza la tasa de impuesto a ${rule.tax.field_id_TAX.value}`;
-                            }
-                            return '';
-                        default:
-                            return '';
-                    }
-                })
-                .filter(Boolean)
-                .join(', '),
+        changes: {
+            billable: (value: boolean) => `Actualiza el gasto a ${value ? 'facturable' : 'no facturable'}`,
+            category: (value: string) => `Actualiza la categoría a "${value}"`,
+            comment: (value: string) => `Cambia la descripción a "${value}"`,
+            merchant: (value: string) => `Actualiza el comercio a "${value}"`,
+            reimbursable: (value: boolean) => `Actualiza el gasto a ${value ? 'reembolsable' : 'no reembolsable'}`,
+            report: (value: string) => `Añade un informe llamado "${value}"`,
+            tag: (value: string) => `Actualiza la etiqueta a "${value}"`,
+            tax: (value: string) => `Actualiza la tasa de impuesto a ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {

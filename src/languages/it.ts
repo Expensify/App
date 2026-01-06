@@ -39,7 +39,6 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
-    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -2376,38 +2375,16 @@ ${amount} per ${merchant} - ${date}`,
         title: 'Regole spesa',
         subtitle: 'Queste regole si applicheranno alle tue spese. Se le invii a uno spazio di lavoro, le regole dello spazio di lavoro potrebbero sostituirle.',
         emptyRules: {title: 'Non hai creato alcuna regola', subtitle: 'Aggiungi una regola per automatizzare la rendicontazione delle spese.'},
-        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
-            Object.entries(rule)
-                .map(([key, value]) => {
-                    if (!value) {
-                        return '';
-                    }
-                    switch (key) {
-                        case 'billable':
-                            return `Aggiorna spesa ${rule.billable === 'true' ? 'fatturabile' : 'non fatturabile'}`;
-                        case 'category':
-                            return `Aggiorna categoria in "${rule.category}"`;
-                        case 'comment':
-                            return `Modifica la descrizione in "${rule.comment}"`;
-                        case 'merchant':
-                            return `Aggiorna esercente in "${rule.merchant}"`;
-                        case 'reimbursable':
-                            return `Aggiorna la spesa ${rule.reimbursable === 'true' ? 'rimborsabile' : 'non rimborsabile'}`;
-                        case 'report':
-                            return `Aggiungi un report chiamato "${rule.report}"`;
-                        case 'tag':
-                            return `Aggiorna etichetta in "${rule.tag}"`;
-                        case 'tax':
-                            if ('field_id_TAX' in rule.tax) {
-                                return `Aggiorna l’aliquota fiscale a ${rule.tax.field_id_TAX.value}`;
-                            }
-                            return '';
-                        default:
-                            return '';
-                    }
-                })
-                .filter(Boolean)
-                .join(', '),
+        changes: {
+            billable: (value: boolean) => `Aggiorna spesa ${value ? 'fatturabile' : 'non fatturabile'}`,
+            category: (value: string) => `Aggiorna categoria in "${value}"`,
+            comment: (value: string) => `Modifica la descrizione in "${value}"`,
+            merchant: (value: string) => `Aggiorna esercente in "${value}"`,
+            reimbursable: (value: boolean) => `Aggiorna la spesa ${value ? 'rimborsabile' : 'non rimborsabile'}`,
+            report: (value: string) => `Aggiungi un report chiamato "${value}"`,
+            tag: (value: string) => `Aggiorna etichetta in "${value}"`,
+            tax: (value: string) => `Aggiorna l’aliquota fiscale a ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {

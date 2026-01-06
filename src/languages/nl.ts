@@ -39,7 +39,6 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
-    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -2373,38 +2372,16 @@ ${amount} voor ${merchant} - ${date}`,
         title: 'Kostenregels',
         subtitle: 'Deze regels zijn van toepassing op je uitgaven. Als je ze indient bij een werkruimte, kunnen de regels van de werkruimte deze overschrijven.', //_/\__/_/  \_,_/\__/\__/\_,_/
         emptyRules: {title: 'Je hebt nog geen regels aangemaakt', subtitle: 'Voeg een regel toe om onkostendeclaraties te automatiseren.'},
-        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
-            Object.entries(rule)
-                .map(([key, value]) => {
-                    if (!value) {
-                        return '';
-                    }
-                    switch (key) {
-                        case 'billable':
-                            return `Uitgave ${rule.billable === 'true' ? 'factureerbaar' : 'niet-declarabel'} bijwerken`;
-                        case 'category':
-                            return `Categorie bijwerken naar "${rule.category}"`;
-                        case 'comment':
-                            return `Beschrijving wijzigen in "${rule.comment}"`;
-                        case 'merchant':
-                            return `Handelaar bijwerken naar "${rule.merchant}"`;
-                        case 'reimbursable':
-                            return `Uitgave ${rule.reimbursable === 'true' ? 'terugbetaalbaar' : 'niet-vergoedbaar'} bijwerken`;
-                        case 'report':
-                            return `Een rapport met de naam "${rule.report}" toevoegen`;
-                        case 'tag':
-                            return `Tag bijwerken naar "${rule.tag}"`;
-                        case 'tax':
-                            if ('field_id_TAX' in rule.tax) {
-                                return `Belastingtarief bijwerken naar ${rule.tax.field_id_TAX.value}`;
-                            }
-                            return '';
-                        default:
-                            return '';
-                    }
-                })
-                .filter(Boolean)
-                .join(', '),
+        changes: {
+            billable: (value: boolean) => `Uitgave ${value ? 'factureerbaar' : 'niet-declarabel'} bijwerken`,
+            category: (value: string) => `Categorie bijwerken naar "${value}"`,
+            comment: (value: string) => `Beschrijving wijzigen in "${value}"`,
+            merchant: (value: string) => `Handelaar bijwerken naar "${value}"`,
+            reimbursable: (value: boolean) => `Uitgave ${value ? 'terugbetaalbaar' : 'niet-vergoedbaar'} bijwerken`,
+            report: (value: string) => `Een rapport met de naam "${value}" toevoegen`,
+            tag: (value: string) => `Tag bijwerken naar "${value}"`,
+            tax: (value: string) => `Belastingtarief bijwerken naar ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {

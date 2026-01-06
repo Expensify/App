@@ -39,7 +39,6 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
-    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -2369,38 +2368,16 @@ ${amount} dla ${merchant} - ${date}`,
         title: 'Zasady wydatków',
         subtitle: 'Te zasady będą miały zastosowanie do Twoich wydatków. Jeśli wysyłasz je do przestrzeni roboczej, zasady tej przestrzeni roboczej mogą je zastąpić.',
         emptyRules: {title: 'Nie utworzyłeś żadnych reguł', subtitle: 'Dodaj regułę, aby zautomatyzować raportowanie wydatków.'},
-        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
-            Object.entries(rule)
-                .map(([key, value]) => {
-                    if (!value) {
-                        return '';
-                    }
-                    switch (key) {
-                        case 'billable':
-                            return `Zaktualizuj wydatek ${rule.billable === 'true' ? 'Fakturowalne' : 'niefakturowalne'}`;
-                        case 'category':
-                            return `Zaktualizuj kategorię na „${rule.category}”`;
-                        case 'comment':
-                            return `Zmień opis na „${rule.comment}”`;
-                        case 'merchant':
-                            return `Zaktualizuj sprzedawcę na „${rule.merchant}”`;
-                        case 'reimbursable':
-                            return `Zaktualizuj wydatek ${rule.reimbursable === 'true' ? 'podlegający zwrotowi' : 'niepodlegający zwrotowi'}`;
-                        case 'report':
-                            return `Dodaj raport o nazwie „${rule.report}”`;
-                        case 'tag':
-                            return `Zaktualizuj znacznik na „${rule.tag}”`;
-                        case 'tax':
-                            if ('field_id_TAX' in rule.tax) {
-                                return `Zaktualizuj stawkę podatku na ${rule.tax.field_id_TAX.value}`;
-                            }
-                            return '';
-                        default:
-                            return '';
-                    }
-                })
-                .filter(Boolean)
-                .join(', '),
+        changes: {
+            billable: (value: boolean) => `Zaktualizuj wydatek ${value ? 'Fakturowalne' : 'niefakturowalne'}`,
+            category: (value: string) => `Zaktualizuj kategorię na „${value}”`,
+            comment: (value: string) => `Zmień opis na „${value}”`,
+            merchant: (value: string) => `Zaktualizuj sprzedawcę na „${value}”`,
+            reimbursable: (value: boolean) => `Zaktualizuj wydatek ${value ? 'podlegający zwrotowi' : 'niepodlegający zwrotowi'}`,
+            report: (value: string) => `Dodaj raport o nazwie „${value}”`,
+            tag: (value: string) => `Zaktualizuj znacznik na „${value}”`,
+            tax: (value: string) => `Zaktualizuj stawkę podatku na ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {

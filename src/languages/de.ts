@@ -39,7 +39,6 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
-    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -2382,39 +2381,17 @@ ${amount} für ${merchant} – ${date}`,
     expenseRulesPage: {
         title: 'Ausgabenregeln',
         subtitle: 'Diese Regeln gelten für deine Ausgaben. Wenn du in einen Workspace einreichst, können die Workspace-Regeln diese gegebenenfalls außer Kraft setzen.',
-        emptyRules: {title: 'Du hast noch keine Regeln erstellt', subtitle: 'Fügen Sie eine Regel hinzu, um Spesenberichte zu automatisieren.'},
-        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
-            Object.entries(rule)
-                .map(([key, value]) => {
-                    if (!value) {
-                        return '';
-                    }
-                    switch (key) {
-                        case 'billable':
-                            return `Ausgabe ${rule.billable === 'true' ? 'verrechenbar' : 'nicht abrechenbar'} aktualisieren`;
-                        case 'category':
-                            return `Kategorie auf „${rule.category}“ aktualisieren`;
-                        case 'comment':
-                            return `Beschreibung in „${rule.comment}“ ändern`;
-                        case 'merchant':
-                            return `Händler aktualisieren auf „${rule.merchant}“`;
-                        case 'reimbursable':
-                            return `Ausgabe ${rule.reimbursable === 'true' ? 'erstattungsfähig' : 'nicht erstattungsfähig'} aktualisieren`;
-                        case 'report':
-                            return `Einen Bericht mit dem Namen „${rule.report}“ hinzufügen`;
-                        case 'tag':
-                            return `Tag auf „${rule.tag}“ aktualisieren`;
-                        case 'tax':
-                            if ('field_id_TAX' in rule.tax) {
-                                return `Steuersatz auf ${rule.tax.field_id_TAX.value} aktualisieren`;
-                            }
-                            return '';
-                        default:
-                            return '';
-                    }
-                })
-                .filter(Boolean)
-                .join(', '),
+        emptyRules: {title: 'Du hast noch keine Regeln erstellt', subtitle: 'Füge eine Regel hinzu, um Spesenberichte zu automatisieren.'},
+        changes: {
+            billable: (value: boolean) => `Ausgabe ${value ? 'verrechenbar' : 'nicht abrechenbar'} aktualisieren`,
+            category: (value: string) => `Kategorie auf „${value}“ aktualisieren`,
+            comment: (value: string) => `Beschreibung in „${value}“ ändern`,
+            merchant: (value: string) => `Händler aktualisieren auf „${value}“`,
+            reimbursable: (value: boolean) => `Ausgabe ${value ? 'erstattungsfähig' : 'nicht erstattungsfähig'} aktualisieren`,
+            report: (value: string) => `Einen Bericht mit dem Namen „${value}“ hinzufügen`,
+            tag: (value: string) => `Tag auf „${value}“ aktualisieren`,
+            tax: (value: string) => `Steuersatz auf ${value} aktualisieren`,
+        },
     },
     preferencesPage: {
         appSection: {

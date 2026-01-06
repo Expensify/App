@@ -27,7 +27,6 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
-    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -2338,38 +2337,16 @@ const translations = {
             title: "You haven't created any rules",
             subtitle: 'Add a rule to automate expense reporting.',
         },
-        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
-            Object.entries(rule)
-                .map(([key, value]) => {
-                    if (!value) {
-                        return '';
-                    }
-                    switch (key) {
-                        case 'billable':
-                            return `Update expense ${rule.billable === 'true' ? 'billable' : 'non-billable'}`;
-                        case 'category':
-                            return `Update category to "${rule.category}"`;
-                        case 'comment':
-                            return `Change description to "${rule.comment}"`;
-                        case 'merchant':
-                            return `Update merchant to "${rule.merchant}"`;
-                        case 'reimbursable':
-                            return `Update expense ${rule.reimbursable === 'true' ? 'reimbursable' : 'non-reimbursable'}`;
-                        case 'report':
-                            return `Add a report named "${rule.report}"`;
-                        case 'tag':
-                            return `Update tag to "${rule.tag}"`;
-                        case 'tax':
-                            if ('field_id_TAX' in rule.tax) {
-                                return `Update tax rate to ${rule.tax.field_id_TAX.value}`;
-                            }
-                            return '';
-                        default:
-                            return '';
-                    }
-                })
-                .filter(Boolean)
-                .join(', '),
+        changes: {
+            billable: (value: boolean) => `Update expense ${value ? 'billable' : 'non-billable'}`,
+            category: (value: string) => `Update category to "${value}"`,
+            comment: (value: string) => `Change description to "${value}"`,
+            merchant: (value: string) => `Update merchant to "${value}"`,
+            reimbursable: (value: boolean) => `Update expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
+            report: (value: string) => `Add a report named "${value}"`,
+            tag: (value: string) => `Update tag to "${value}"`,
+            tax: (value: string) => `Update tax rate to "${value}"`,
+        },
     },
     preferencesPage: {
         appSection: {

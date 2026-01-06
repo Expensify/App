@@ -39,7 +39,6 @@ import type {
     EnableContinuousReconciliationParams,
     EnterMagicCodeParams,
     ErrorODIntegrationParams,
-    ExpenseRuleUpdateToParams,
     ExportAgainModalDescriptionParams,
     ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
@@ -2369,38 +2368,16 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Regras de despesas',
         subtitle: 'Essas regras serão aplicadas às suas despesas. Se você enviar para um workspace, as regras do workspace poderão substituí-las.',
         emptyRules: {title: 'Você não criou nenhuma regra', subtitle: 'Adicione uma regra para automatizar o relatório de despesas.'},
-        updateTo: ({rule}: ExpenseRuleUpdateToParams) =>
-            Object.entries(rule)
-                .map(([key, value]) => {
-                    if (!value) {
-                        return '';
-                    }
-                    switch (key) {
-                        case 'billable':
-                            return `Atualizar despesa ${rule.billable === 'true' ? 'cobrável' : 'não faturável'}`;
-                        case 'category':
-                            return `Atualizar categoria para "${rule.category}"`;
-                        case 'comment':
-                            return `Alterar descrição para "${rule.comment}"`;
-                        case 'merchant':
-                            return `Atualizar comerciante para "${rule.merchant}"`;
-                        case 'reimbursable':
-                            return `Atualizar despesa ${rule.reimbursable === 'true' ? 'reembolsável' : 'não reembolsável'}`;
-                        case 'report':
-                            return `Adicione um relatório chamado "${rule.report}"`;
-                        case 'tag':
-                            return `Atualizar etiqueta para "${rule.tag}"`;
-                        case 'tax':
-                            if ('field_id_TAX' in rule.tax) {
-                                return `Atualizar taxa de imposto para ${rule.tax.field_id_TAX.value}`;
-                            }
-                            return '';
-                        default:
-                            return '';
-                    }
-                })
-                .filter(Boolean)
-                .join(', '),
+        changes: {
+            billable: (value: boolean) => `Atualizar despesa ${value ? 'cobrável' : 'não faturável'}`,
+            category: (value: string) => `Atualizar categoria para "${value}"`,
+            comment: (value: string) => `Alterar descrição para "${value}"`,
+            merchant: (value: string) => `Atualizar comerciante para "${value}"`,
+            reimbursable: (value: boolean) => `Atualizar despesa ${value ? 'reembolsável' : 'não reembolsável'}`,
+            report: (value: string) => `Adicione um relatório chamado "${value}"`,
+            tag: (value: string) => `Atualizar etiqueta para "${value}"`,
+            tax: (value: string) => `Atualizar taxa de imposto para ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {

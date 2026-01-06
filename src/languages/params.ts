@@ -755,10 +755,6 @@ type RoutedDueToDEWParams = {
     to: string;
 };
 
-type ExpenseRuleUpdateToParams = {
-    rule: ExpenseRule;
-};
-
 export type {
     SettlementAccountReconciliationParams,
     ToggleImportTitleParams,
@@ -1006,5 +1002,4 @@ export type {
     RoutedDueToDEWParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    ExpenseRuleUpdateToParams,
 };
