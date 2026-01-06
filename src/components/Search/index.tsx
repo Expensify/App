@@ -1,5 +1,6 @@
 import {findFocusedRoute, useFocusEffect, useIsFocused, useNavigation} from '@react-navigation/native';
 import * as Sentry from '@sentry/react-native';
+import isNumber from 'lodash/isNumber';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
@@ -176,7 +177,7 @@ function prepareTransactionsList(
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
-            amount: Math.abs(item.modifiedAmount || item.amount),
+            amount: Math.abs(isNumber(item.modifiedAmount) ? item.modifiedAmount : item.amount),
             groupAmount: item.groupAmount,
             groupCurrency: item.groupCurrency,
             groupExchangeRate: item.groupExchangeRate,

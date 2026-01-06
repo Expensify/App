@@ -87,7 +87,7 @@ type SearchTransaction = {
     amount: number;
 
     /** The edited transaction amount */
-    modifiedAmount: number;
+    modifiedAmount?: number;
 
     /** The transaction currency */
     currency: string;

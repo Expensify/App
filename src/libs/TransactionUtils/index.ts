@@ -2,6 +2,7 @@ import {format, isValid, parse} from 'date-fns';
 import {deepEqual} from 'fast-equals';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashHas from 'lodash/has';
+import isNumber from 'lodash/isNumber';
 import lodashSet from 'lodash/set';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -752,9 +753,8 @@ function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
 function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
-        const amount = transaction?.modifiedAmount ?? 0;
-        if (amount) {
-            return Math.abs(amount);
+        if (isNumber(transaction?.modifiedAmount)) {
+            return Math.abs(transaction.modifiedAmount);
         }
         return Math.abs(transaction?.amount ?? 0);
     }
@@ -766,12 +766,11 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
     // Expense report case:
     // The amounts are stored using an opposite sign and negative values can be set,
     // we need to return an opposite sign than is saved in the transaction object
-    let amount = transaction?.modifiedAmount ?? 0;
-    if (amount) {
-        return -amount;
+    if (isNumber(transaction?.modifiedAmount)) {
+        return -transaction.modifiedAmount;
     }
 
-    amount = transaction?.amount ?? 0;
+    const amount = transaction?.amount ?? 0;
 
     // To avoid -0 being shown, lets only change the sign if the value is other than 0.
     return amount ? -amount : 0;

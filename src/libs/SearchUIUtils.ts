@@ -1,3 +1,4 @@
+import isNumber from 'lodash/isNumber';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -856,8 +857,7 @@ function isAmountTooLong(amount: number, maxLength = 8): boolean {
 
 // eslint-disable-next-line @typescript-eslint/no-deprecated
 function isTransactionAmountTooLong(transactionItem: TransactionListItemType | SearchTransaction | OnyxTypes.Transaction) {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const amount = Math.abs(transactionItem.modifiedAmount || transactionItem.amount);
+    const amount = Math.abs(isNumber(transactionItem.modifiedAmount) ? transactionItem.modifiedAmount : transactionItem.amount);
     return isAmountTooLong(amount);
 }
 

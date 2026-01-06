@@ -12230,8 +12230,7 @@ function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[]
 
 function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>): boolean {
     const transactions = getReportTransactions(iouReport?.reportID);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return isIOUReport(iouReport) && transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
+    return isIOUReport(iouReport) && transactions.some((transaction) => (isNumber(transaction?.modifiedAmount) ? transaction.modifiedAmount : transaction?.amount) < 0);
 }
 
 /**
