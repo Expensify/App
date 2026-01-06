@@ -229,8 +229,19 @@ const expenseStatusActionMapping = {
     [CONST.SEARCH.STATUS.EXPENSE.ALL]: () => true,
 };
 
+const actionFilterMapping = {
+    [CONST.SEARCH.ACTION_FILTERS.SUBMIT]: expenseStatusActionMapping[CONST.SEARCH.STATUS.EXPENSE.DRAFTS],
+    [CONST.SEARCH.ACTION_FILTERS.APPROVE]: expenseStatusActionMapping[CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
+    [CONST.SEARCH.ACTION_FILTERS.PAY]: expenseStatusActionMapping[CONST.SEARCH.STATUS.EXPENSE.APPROVED],
+    [CONST.SEARCH.ACTION_FILTERS.EXPORT]: () => true,
+};
+
 function isValidExpenseStatus(status: unknown): status is ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE> {
     return typeof status === 'string' && status in expenseStatusActionMapping;
+}
+
+function isValidActionFilter(action: unknown): action is ValueOf<typeof CONST.SEARCH.ACTION_FILTERS> {
+    return typeof action === 'string' && action in actionFilterMapping;
 }
 
 function getExpenseStatusOptions(translate: LocalizedTranslate): Array<MultiSelectItem<SingularSearchStatus>> {
@@ -1734,6 +1745,11 @@ function getReportSections(
                         shouldShow = isValidExpenseStatus(status) ? expenseStatusActionMapping[status](reportItem) : false;
                     }
                 }
+                const actionFromQuery = queryJSON?.flatFilters?.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION)?.filters?.at(0)?.value;
+
+                if (actionFromQuery && isValidActionFilter(actionFromQuery)) {
+                    shouldShow = shouldShow && actionFilterMapping[actionFromQuery](reportItem);
+                }
             }
 
             if (shouldShow) {
@@ -1872,7 +1888,7 @@ function getMemberSections(
     for (const key in data) {
         if (isGroupEntry(key)) {
             const memberGroup = data[key] as SearchMemberGroup;
-            const personalDetails = data.personalDetailsList[memberGroup.accountID];
+            const personalDetails = data.personalDetailsList?.[memberGroup.accountID] ?? emptyPersonalDetails;
             let transactionsQueryJSON: SearchQueryJSON | undefined;
             if (queryJSON && memberGroup.accountID) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
@@ -1913,8 +1929,7 @@ function getCardSections(
     for (const key in data) {
         if (isGroupEntry(key)) {
             const cardGroup = data[key] as SearchCardGroup;
-            const personalDetails = data.personalDetailsList[cardGroup.accountID];
-
+            const personalDetails = data.personalDetailsList?.[cardGroup.accountID] ?? emptyPersonalDetails;
             let transactionsQueryJSON: SearchQueryJSON | undefined;
             if (queryJSON && cardGroup.cardID) {
                 const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID);
@@ -3356,7 +3371,6 @@ function getTransactionFromTransactionListItem(item: TransactionListItemType): O
         isTaxAmountColumnWide,
         violations,
         hash,
-        canDelete,
         accountID,
         policyID,
         ...transaction
