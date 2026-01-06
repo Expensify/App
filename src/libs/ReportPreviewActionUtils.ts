@@ -19,7 +19,6 @@ import {
     isReportApproved,
     isSettled,
 } from './ReportUtils';
-import {getSession} from './SessionUtils';
 import {hasSmartScanFailedViolation, isPending, isScanning} from './TransactionUtils';
 
 function canSubmit(
@@ -87,12 +86,12 @@ function canApprove(report: Report, currentUserAccountID: number, policy?: Polic
     return isExpense && isProcessing && !!isApprovalEnabled && reportTransactions.length > 0 && isCurrentUserManager;
 }
 
-function canPay(report: Report, isReportArchived: boolean, currentUserAccountID: number, policy?: Policy, invoiceReceiverPolicy?: Policy) {
+function canPay(report: Report, isReportArchived: boolean, currentUserAccountID: number, currentUserEmail: string, policy?: Policy, invoiceReceiverPolicy?: Policy) {
     if (isReportArchived) {
         return false;
     }
 
-    const isReportPayer = isPayer(getSession(), report, false, policy);
+    const isReportPayer = isPayer(currentUserAccountID, currentUserEmail, report, false, policy);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
@@ -166,18 +165,31 @@ function canExport(report: Report, policy?: Policy) {
     return isApproved || isReimbursed || isClosed;
 }
 
-function getReportPreviewAction(
-    isReportArchived: boolean,
-    currentUserAccountID: number,
-    report: Report | undefined,
-    policy: Policy | undefined,
-    transactions: Transaction[],
-    invoiceReceiverPolicy?: Policy,
-    isPaidAnimationRunning?: boolean,
-    isApprovedAnimationRunning?: boolean,
-    isSubmittingAnimationRunning?: boolean,
-    violationsData?: {currentUserEmail?: string; violations?: OnyxCollection<TransactionViolation[]>},
-): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
+function getReportPreviewAction({
+    isReportArchived,
+    currentUserAccountID,
+    currentUserEmail,
+    report,
+    policy,
+    transactions,
+    invoiceReceiverPolicy,
+    isPaidAnimationRunning,
+    isApprovedAnimationRunning,
+    isSubmittingAnimationRunning,
+    violationsData,
+}: {
+    isReportArchived: boolean;
+    currentUserAccountID: number;
+    currentUserEmail: string;
+    report: Report | undefined;
+    policy: Policy | undefined;
+    transactions: Transaction[];
+    invoiceReceiverPolicy?: Policy;
+    isPaidAnimationRunning?: boolean;
+    isApprovedAnimationRunning?: boolean;
+    isSubmittingAnimationRunning?: boolean;
+    violationsData?: OnyxCollection<TransactionViolation[]>;
+}): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
@@ -195,13 +207,13 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
-    if (canSubmit(report, isReportArchived, currentUserAccountID, violationsData?.currentUserEmail ?? '', violationsData?.violations, policy, transactions)) {
+    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserEmail, violationsData, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, isReportArchived, currentUserAccountID, policy, invoiceReceiverPolicy)) {
+    if (canPay(report, isReportArchived, currentUserAccountID, currentUserEmail, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
     if (canExport(report, policy)) {

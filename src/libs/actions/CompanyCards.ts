@@ -11,6 +11,7 @@ import type {
     RequestFeedSetupParams,
     SetCompanyCardExportAccountParams,
     SetFeedStatementPeriodEndDayParams,
+    UpdateCardTransactionStartDateParams,
     UpdateCompanyCardNameParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -19,7 +20,6 @@ import {getCompanyCardFeedWithDomainID} from '@libs/CardUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -73,6 +73,7 @@ function clearAddNewCardFlow() {
 
 function addNewCompanyCardsFeed(
     policyID: string | undefined,
+    workspaceAccountID: number,
     cardFeed: CompanyCardFeed,
     feedDetails: CardFeedDetails,
     cardFeeds: OnyxEntry<CombinedCardFeeds>,
@@ -81,7 +82,6 @@ function addNewCompanyCardsFeed(
     lastSelectedFeed?: CompanyCardFeedWithDomainID,
 ) {
     const authToken = NetworkStore.getAuthToken();
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     if (!authToken || !policyID) {
         return;
@@ -675,6 +675,68 @@ function updateCompanyCardName(domainOrWorkspaceAccountID: number, cardID: strin
     API.write(WRITE_COMMANDS.UPDATE_COMPANY_CARD_NAME, parameters, {optimisticData, finallyData, failureData});
 }
 
+function updateCardTransactionStartDate(domainOrWorkspaceAccountID: number, cardID: string, newStartDate: string, bankName: CompanyCardFeed, oldStartDate?: string) {
+    const authToken = NetworkStore.getAuthToken();
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
+            value: {
+                [cardID]: {
+                    scrapeMinDate: newStartDate,
+                    pendingFields: {
+                        scrapeMinDate: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                    errorFields: {
+                        scrapeMinDate: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const finallyData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
+            value: {
+                [cardID]: {
+                    pendingFields: {
+                        scrapeMinDate: null,
+                    },
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${domainOrWorkspaceAccountID}_${bankName}`,
+            value: {
+                [cardID]: {
+                    scrapeMinDate: oldStartDate,
+                    pendingFields: {
+                        scrapeMinDate: null,
+                    },
+                    errorFields: {
+                        scrapeMinDate: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                    },
+                },
+            },
+        },
+    ];
+
+    const parameters: UpdateCardTransactionStartDateParams = {
+        authToken,
+        cardID: Number(cardID),
+        startDate: newStartDate,
+    };
+
+    API.write(WRITE_COMMANDS.UPDATE_CARD_TRANSACTION_START_DATE, parameters, {optimisticData, finallyData, failureData});
+}
+
 function setCompanyCardExportAccount(policyID: string, domainOrWorkspaceAccountID: number, cardID: string, accountKey: string, newAccount: string, bank: CompanyCardFeed) {
     const authToken = NetworkStore.getAuthToken();
 
@@ -980,6 +1042,7 @@ export {
     resetFailedWorkspaceCompanyCardAssignment,
     updateWorkspaceCompanyCard,
     updateCompanyCardName,
+    updateCardTransactionStartDate,
     setCompanyCardExportAccount,
     clearCompanyCardErrorField,
     setAddNewCompanyCardStepAndData,
