@@ -1,5 +1,4 @@
 /* eslint-disable max-lines */
-
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LineLayerStyleProps} from '@rnmapbox/maps/src/utils/MapboxStyles';
 import lodashClamp from 'lodash/clamp';
@@ -1250,6 +1249,12 @@ const staticStyles = (theme: ThemeColors) =>
             paddingBottom: 0,
             borderRadius: 8,
             borderColor: theme.border,
+        },
+
+        hiddenTextInputContainer: {
+            paddingLeft: 8,
+            paddingRight: 8,
+            borderWidth: 1,
         },
 
         cannotBeEditedSplitInputContainer: {
@@ -5107,6 +5112,12 @@ const staticStyles = (theme: ThemeColors) =>
         travelCardIllustration: {
             width: 191,
             height: 170,
+        },
+
+        successBankSharedCardIllustration: {
+            width: 164,
+            height: 164,
+            marginBottom: 12,
         },
 
         emptyStateMoneyRequestReport: {

@@ -780,7 +780,7 @@ describe('actions/Policy', () => {
             expect(draft?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
             expect(draft?.outputCurrency).toBe(CONST.CURRENCY.USD);
             expect(draft?.employeeList?.[ESH_EMAIL]?.role).toBe(CONST.POLICY.ROLE.ADMIN);
-            expect(draft?.chatReportIDAdmins).toBe(Number(params.adminsChatReportID));
+            expect(draft?.chatReportIDAdmins).toBe(params.adminsChatReportID);
 
             // Report draft should be set for the expense chat
             const expenseReportDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${params.expenseChatReportID}`);
@@ -1060,6 +1060,7 @@ describe('actions/Policy', () => {
             mockFetch?.fail?.();
             Policy.deleteWorkspace({
                 policyID: fakePolicy.id,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
@@ -1151,6 +1152,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: 'test',
                 lastAccessedWorkspacePolicyID: undefined,
@@ -1207,6 +1209,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID: randomGroupPolicy.id,
+                personalPolicyID: personalPolicy.id,
                 activePolicyID: randomGroupPolicy.id,
                 policyName: randomGroupPolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
@@ -1243,6 +1246,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID: policyToDelete.id,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
@@ -1281,6 +1285,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID: policyToDelete.id,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
