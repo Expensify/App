@@ -14129,17 +14129,113 @@ function updateSplitTransactions({
                 splitApiParams[`splits[${i}][${key}]`] = value !== null && typeof value === 'object' ? JSON.stringify(value) : value;
             }
         }
-        const parameters: SplitTransactionParams = {
+
+        if (isCreationOfSplits) {
+            const isTransactionOnHold = isOnHold(originalTransaction);
+
+            if (isTransactionOnHold) {
+                const holdReportActionIDs: string[] = [];
+                const holdReportActionCommentIDs: string[] = [];
+                const transactionReportActions = getAllReportActions(firstIOU?.childReportID);
+                const holdReportAction = getReportAction(firstIOU?.childReportID, `${originalTransaction?.comment?.hold ?? ''}`);
+
+                const holdReportActionComment = holdReportAction
+                    ? Object.values(transactionReportActions ?? {}).find(
+                          (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && action?.timestamp === holdReportAction.timestamp,
+                      )
+                    : undefined;
+
+                if (holdReportAction && holdReportActionComment) {
+                    // Loop through all split expenses and add optimistic hold report actions for each split
+                    for (const [index, splitExpense] of splits.entries()) {
+                        const splitReportID = splitExpense?.transactionThreadReportID;
+                        if (!splitReportID) {
+                            continue;
+                        }
+
+                        // Generate new IDs and timestamps for each split
+                        const newHoldReportActionID = NumberUtils.rand64();
+                        const newHoldReportActionCommentID = NumberUtils.rand64();
+                        const timestamp = DateUtils.getDBTime();
+                        const reportActionTimestamp = DateUtils.addMillisecondsFromDateTime(timestamp, 1);
+
+                        // Store IDs for API parameters
+                        holdReportActionIDs[index] = newHoldReportActionID;
+                        holdReportActionCommentIDs[index] = newHoldReportActionCommentID;
+
+                        // Create new optimistic hold report action with new ID and timestamp, keeping other information
+                        const newHoldReportAction = {
+                            ...holdReportAction,
+                            reportActionID: newHoldReportActionID,
+                            created: timestamp,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        };
+
+                        // Create new optimistic hold report action comment with new ID and timestamp, keeping other information
+                        const newHoldReportActionComment = {
+                            ...holdReportActionComment,
+                            reportActionID: newHoldReportActionCommentID,
+                            created: reportActionTimestamp,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        };
+
+                        // Add to optimisticData for this split's reportActions
+                        optimisticData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
+                            value: {
+                                [newHoldReportActionID]: newHoldReportAction,
+                                [newHoldReportActionCommentID]: newHoldReportActionComment,
+                            },
+                        });
+
+                        // Add successData to clear pendingAction after API call succeeds
+                        successData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
+                            value: {
+                                [newHoldReportActionID]: {pendingAction: null},
+                                [newHoldReportActionCommentID]: {pendingAction: null},
+                            },
+                        });
+
+                        // Add failureData to remove optimistic hold report actions if the request fails
+                        failureData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
+                            value: {
+                                [newHoldReportActionID]: null,
+                                [newHoldReportActionCommentID]: null,
+                            },
+                        });
+                    }
+
+                    // Add hold report action IDs to API parameters
+                    for (const [i, holdReportActionID] of holdReportActionIDs.entries()) {
+                        if (holdReportActionID) {
+                            splitApiParams[`splits[${i}][holdReportActionID]`] = holdReportActionID;
+                        }
+                    }
+                    for (const [i, holdReportActionCommentID] of holdReportActionCommentIDs.entries()) {
+                        if (holdReportActionCommentID) {
+                            splitApiParams[`splits[${i}][holdReportActionCommentID]`] = holdReportActionCommentID;
+                        }
+                    }
+                }
+            }
+        }
+
+        const splitParameters: SplitTransactionParams = {
             ...splitApiParams,
             transactionID: originalTransactionID,
         };
 
         if (isCreationOfSplits) {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+            API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, splitParameters, {optimisticData, successData, failureData});
         } else {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+            API.write(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters, {optimisticData, successData, failureData});
         }
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
