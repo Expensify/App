@@ -24,7 +24,7 @@ import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {getLastPolicyBankAccountID, getLastPolicyPaymentMethod} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getActivePaymentType} from '@libs/PaymentUtils';
-import {getActiveAdminWorkspaces, getPersonalPolicy, getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getActiveAdminWorkspaces, getPolicyEmployeeAccountIDs, isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -113,14 +113,15 @@ function SettlementButton({
     const hasActivatedWallet = ([CONST.WALLET.TIER_NAME.GOLD, CONST.WALLET.TIER_NAME.PLATINUM] as string[]).includes(userWallet?.tierName ?? '');
     const paymentMethods = useSettlementButtonPaymentMethods(hasActivatedWallet, translate);
     const [lastPaymentMethods, lastPaymentMethodResult] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
     const lastPaymentMethod = useMemo(() => {
         if (!iouReport?.type) {
             return;
         }
 
-        return getLastPolicyPaymentMethod(policyIDKey, lastPaymentMethods, iouReport?.type as keyof LastPaymentMethodType, isIOUReport(iouReport));
-    }, [policyIDKey, iouReport, lastPaymentMethods]);
+        return getLastPolicyPaymentMethod(policyIDKey, personalPolicyID, lastPaymentMethods, iouReport?.type as keyof LastPaymentMethodType, isIOUReport(iouReport));
+    }, [policyIDKey, iouReport, lastPaymentMethods, personalPolicyID]);
 
     const lastBankAccountID = getLastPolicyBankAccountID(policyIDKey, lastPaymentMethods, iouReport?.type as keyof LastPaymentMethodType);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -131,8 +132,7 @@ function SettlementButton({
     const activePolicy = usePolicy(activePolicyID);
     const activeAdminPolicies = getActiveAdminWorkspaces(policies, accountID.toString()).sort((a, b) => localeCompare(a.name || '', b.name || ''));
     const reportID = iouReport?.reportID;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const personalPolicy = usePolicy(getPersonalPolicy()?.id);
+    const personalPolicy = usePolicy(personalPolicyID);
 
     const hasPreferredPaymentMethod = !!lastPaymentMethod;
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
