@@ -971,7 +971,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     /** Selects row when pressing Enter */
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
-        shouldBubble: !flattenedSections.allOptions.at(focusedIndex) || focusedIndex === -1,
+        shouldBubble: (flattenedSections.allOptions.length > 0 && !flattenedSections.allOptions.at(focusedIndex)) || focusedIndex === -1,
         shouldStopPropagation,
         shouldPreventDefault,
         isActive: !disableKeyboardShortcuts && !disableEnterShortcut && isFocused && focusedIndex >= 0,
