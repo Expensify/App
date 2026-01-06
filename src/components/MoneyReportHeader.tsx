@@ -611,21 +611,23 @@ function MoneyReportHeader({
             const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
 
             for (const item of transactionList) {
-                duplicateTransactionAction(
-                    item,
+                duplicateTransactionAction({
+                    transaction: item,
                     optimisticChatReportID,
                     optimisticIOUReportID,
                     isASAPSubmitBetaEnabled,
+                    introSelected,
+                    activePolicyID,
                     quickAction,
-                    policyRecentlyUsedCurrencies ?? [],
-                    policy.id,
-                    defaultExpensePolicy ?? undefined,
-                    activePolicyCategories,
-                    activePolicyExpenseChat,
-                );
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    customUnitPolicyID: policy.id,
+                    targetPolicy: defaultExpensePolicy ?? undefined,
+                    targetPolicyCategories: activePolicyCategories,
+                    targetReport: activePolicyExpenseChat,
+                });
             }
         },
-        [activePolicyExpenseChat, allPolicyCategories, defaultExpensePolicy, isASAPSubmitBetaEnabled, quickAction, policyRecentlyUsedCurrencies, policy?.id],
+        [activePolicyExpenseChat, activePolicyID, allPolicyCategories, defaultExpensePolicy, introSelected, isASAPSubmitBetaEnabled, quickAction, policyRecentlyUsedCurrencies, policy?.id],
     );
 
     const getStatusIcon: (src: IconAsset) => React.ReactNode = (src) => (
@@ -1378,7 +1380,7 @@ function MoneyReportHeader({
                 Navigation.goBack(backToRoute);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
                 InteractionManager.runAfterInteractions(() => {
-                    deleteAppReport(moneyRequestReport?.reportID, email ?? '', transactions);
+                    deleteAppReport(moneyRequestReport?.reportID, email ?? '', reportTransactions, violations);
                 });
             },
         },
