@@ -1061,6 +1061,41 @@ describe('actions/Report', () => {
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
     });
 
+    it('should remove AddComment and UpdateComment without sending any request when DeleteComment is set with currentUserEmail', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        const TEST_USER_ACCOUNT_ID = 1;
+        const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        const created = format(addSeconds(subMinutes(new Date(), 10), 10), CONST.DATE.FNS_DB_FORMAT_STRING);
+
+        Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+
+        const reportActionID = PersistedRequests.getAll().at(0)?.data?.reportActionID as string | undefined;
+        const newReportAction = TestHelper.buildTestReportComment(created, TEST_USER_ACCOUNT_ID, reportActionID);
+        const originalReport = {reportID: REPORT_ID};
+        const {result: ancestors, rerender} = renderHook(() => useAncestors(originalReport));
+
+        const currentUserEmail = 'test@test.com';
+        Report.editReportComment(originalReport, newReportAction, ancestors.current, 'Testing an edited comment', undefined, undefined, currentUserEmail);
+        await waitForBatchedUpdates();
+
+        const persistedRequests = await getOnyxValue(ONYXKEYS.PERSISTED_REQUESTS);
+        expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
+
+        rerender(originalReport);
+        Report.deleteReportComment(REPORT_ID, newReportAction, ancestors.current, undefined, undefined, currentUserEmail);
+        await waitForBatchedUpdates();
+
+        expect(PersistedRequests.getAll().length).toBe(0);
+        Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
+        await waitForBatchedUpdates();
+
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_COMMENT, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 0);
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.DELETE_COMMENT, 0);
+    });
+
     it('should send DeleteComment request and remove UpdateComment accordingly', async () => {
         global.fetch = TestHelper.getGlobalFetchMock();
 
@@ -1708,6 +1743,33 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
+        TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
+    });
+
+    it('it should only send the last sequential UpdateComment request to BE with currentUserEmail', async () => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
+
+        const action: OnyxEntry<OnyxTypes.ReportAction> = {
+            reportID: '123',
+            reportActionID: '722',
+            actionName: 'ADDCOMMENT',
+            created: '2024-10-21 10:37:59.881',
+        };
+        const originalReport = {reportID: '123'};
+        const {result: ancestors} = renderHook(() => useAncestors(originalReport));
+        const currentUserEmail = 'user@test.com';
+
+        Report.editReportComment(originalReport, action, ancestors.current, 'value1', undefined, undefined, currentUserEmail);
+        Report.editReportComment(originalReport, action, ancestors.current, 'value2', undefined, undefined, currentUserEmail);
+        Report.editReportComment(originalReport, action, ancestors.current, 'value3', undefined, undefined, currentUserEmail);
+
+        const requests = PersistedRequests?.getAll();
+        expect(requests.length).toBe(1);
+        expect(requests?.at(0)?.command).toBe(WRITE_COMMANDS.UPDATE_COMMENT);
+        expect(requests?.at(0)?.data?.reportComment).toBe('value3');
+
+        await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.UPDATE_COMMENT, 1);
     });
 
