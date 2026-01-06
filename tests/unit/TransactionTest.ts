@@ -545,6 +545,112 @@ describe('Transaction', () => {
             expect(report?.nonReimbursableTotal).toBe(expenseReport.nonReimbursableTotal);
         });
 
+        it('should update target report total using convertedAmount when moving within same workspace currency', async () => {
+            const oldExpenseReport = {
+                ...createRandomReport(1, undefined),
+                total: -3673,
+                nonReimbursableTotal: 0,
+                currency: 'AED',
+            };
+            const transaction = {
+                ...generateTransaction({reportID: oldExpenseReport.reportID}),
+                currency: 'USD',
+                amount: -1000,
+                convertedAmount: -3673,
+                reimbursable: true,
+            };
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: oldExpenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const newExpenseReport = {
+                ...createRandomReport(2, undefined),
+                total: 0,
+                nonReimbursableTotal: 0,
+                currency: 'AED',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`, oldExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReport.reportID}`, newExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', newExpenseReport);
+            await waitForBatchedUpdates();
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${newExpenseReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(report?.total).toBe(transaction.convertedAmount);
+        });
+
+        it('should not update target report total when switching to workspace with different currency', async () => {
+            const oldExpenseReport = {
+                ...createRandomReport(1, undefined),
+                total: -1503,
+                nonReimbursableTotal: 0,
+                currency: 'AUD',
+            };
+            const transaction = {
+                ...generateTransaction({reportID: oldExpenseReport.reportID}),
+                currency: 'USD',
+                amount: -1000,
+                convertedAmount: -1503,
+                reimbursable: true,
+            };
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: oldExpenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const newExpenseReport = {
+                ...createRandomReport(2, undefined),
+                total: 0,
+                nonReimbursableTotal: 0,
+                currency: 'AED',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`, oldExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReport.reportID}`, newExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', newExpenseReport);
+            await waitForBatchedUpdates();
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${newExpenseReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(report?.total).toBe(0);
+        });
+
         it('should update the old report total when the currency is the same', async () => {
             const oldExpenseReport = {
                 ...createRandomReport(1, undefined),
