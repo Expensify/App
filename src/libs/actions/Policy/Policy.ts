@@ -1,7 +1,6 @@
 /* eslint-disable max-lines */
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import escapeRegExp from 'lodash/escapeRegExp';
-import lodashUnion from 'lodash/union';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -249,12 +248,6 @@ Onyx.connect({
     callback: (val) => (deprecatedAllPersonalDetails = val),
 });
 
-let deprecatedAllRecentlyUsedCurrencies: string[];
-Onyx.connect({
-    key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
-    callback: (val) => (deprecatedAllRecentlyUsedCurrencies = val ?? []),
-});
-
 let deprecatedActivePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
@@ -346,6 +339,7 @@ function hasActiveChatEnabledPolicies(policies: Array<OnyxEntry<PolicySelector>>
 
 type DeleteWorkspaceActionParams = {
     policyID: string;
+    personalPolicyID: string | undefined;
     activePolicyID: string | undefined;
     policyName: string;
     lastAccessedWorkspacePolicyID: string | undefined;
@@ -378,6 +372,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
         lastUsedPaymentMethods,
         bankAccountList,
         localeCompare,
+        personalPolicyID,
     } = params;
 
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
@@ -470,7 +465,7 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             .filter((p) => p && p.id !== activePolicyID && p.type !== CONST.POLICY.TYPE.PERSONAL && p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
             .sort((policyA, policyB) => localeCompare(policyB?.created ?? '', policyA?.created ?? ''))
             .at(0);
-        const newActivePolicyID = mostRecentlyCreatedGroupPolicy?.id ?? PolicyUtils.getPersonalPolicy()?.id;
+        const newActivePolicyID = mostRecentlyCreatedGroupPolicy?.id ?? personalPolicyID;
 
         // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
         optimisticData.push({
@@ -3466,18 +3461,6 @@ function clearErrors(policyID: string) {
  */
 function dismissAddedWithPrimaryLoginMessages(policyID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {primaryLoginsInvited: null});
-}
-
-/**
- * Returns the policy of the report
- * @deprecated Get the data straight from Onyx - This will be fixed as part of https://github.com/Expensify/App/issues/66582
- */
-function buildOptimisticRecentlyUsedCurrencies(currency?: string) {
-    if (!currency) {
-        return [];
-    }
-
-    return lodashUnion([currency], deprecatedAllRecentlyUsedCurrencies).slice(0, CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW);
 }
 
 /**
@@ -6567,8 +6550,6 @@ export {
     dismissAddedWithPrimaryLoginMessages,
     openDraftWorkspaceRequest,
     createDraftInitialWorkspace,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    buildOptimisticRecentlyUsedCurrencies,
     setWorkspaceInviteMessageDraft,
     setWorkspaceApprovalMode,
     setWorkspaceAutoHarvesting,
