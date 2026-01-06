@@ -296,7 +296,7 @@ function BasePopoverMenu({
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({initialFocusedIndex: currentMenuItemsFocusedIndex, maxIndex: currentMenuItems.length - 1, isActive: isVisible});
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
 
     const selectItem = (index: number, event?: GestureResponderEvent | KeyboardEvent) => {
@@ -368,7 +368,7 @@ function BasePopoverMenu({
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
         const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, shouldShowLoadingSpinnerIcon, ...menuItemProps} = item;
-
+        const icon = typeof item.icon === 'string' ? expensifyIcons[item.icon as keyof typeof expensifyIcons] : item.icon;
         return (
             <OfflineWithFeedback
                 // eslint-disable-next-line react/no-array-index-key
@@ -398,6 +398,7 @@ function BasePopoverMenu({
                     ]}
                     shouldRemoveHoverBackground={item.isSelected}
                     titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
+                    icon={icon}
                     // Spread other props dynamically
                     {...menuItemProps}
                     hasSubMenuItems={!!subMenuItems?.length}
@@ -582,6 +583,8 @@ function BasePopoverMenu({
         </PopoverWithMeasuredContent>
     );
 }
+
+PopoverMenu.displayName = 'PopoverMenu';
 
 export default React.memo(
     PopoverMenu,

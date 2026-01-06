@@ -24,14 +24,16 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getBase62ReportID from '@libs/getBase62ReportID';
+import {computeReportName} from '@libs/ReportNameUtils';
 import {isExpenseReport, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {
     getDescription,
     getExchangeRate,
     getMerchant,
-    getOriginalAmount,
-    getOriginalCurrency,
+    getOriginalAmountForDisplay,
+    getOriginalCurrencyForDisplay,
+    getTaxName,
     getCreated as getTransactionCreated,
     hasMissingSmartscanFields,
     isAmountMissing,
@@ -98,6 +100,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 };
 
 type TransactionItemRowProps = {
+    hash?: number;
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
     shouldUseNarrowLayout: boolean;
@@ -123,11 +126,12 @@ type TransactionItemRowProps = {
     shouldShowErrors?: boolean;
     shouldHighlightItemWhenSelected?: boolean;
     isDisabled?: boolean;
-    areAllOptionalColumnsHidden?: boolean;
     violations?: TransactionViolation[];
     shouldShowBottomBorder?: boolean;
     onArrowRightPress?: () => void;
+    isHover?: boolean;
     shouldShowArrowRightOnNarrowLayout?: boolean;
+    customCardNames?: Record<number, string>;
 };
 
 function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, translate: (key: TranslationPaths) => string) {
@@ -144,6 +148,7 @@ function getMerchantName(transactionItem: TransactionWithOptionalSearchFields, t
 }
 
 function TransactionItemRow({
+    hash,
     transactionItem,
     report,
     shouldUseNarrowLayout,
@@ -169,11 +174,12 @@ function TransactionItemRow({
     shouldShowErrors = true,
     shouldHighlightItemWhenSelected = true,
     isDisabled = false,
-    areAllOptionalColumnsHidden = false,
     violations,
     shouldShowBottomBorder,
     onArrowRightPress,
+    isHover = false,
     shouldShowArrowRightOnNarrowLayout,
+    customCardNames,
 }: TransactionItemRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -201,21 +207,6 @@ function TransactionItemRow({
 
     const merchant = useMemo(() => getMerchantName(transactionItem, translate), [transactionItem, translate]);
     const description = getDescription(transactionItem);
-
-    const formattedTaxRate = useMemo(() => {
-        const taxRateName = transactionItem?.policy?.taxRates?.taxes?.[transactionItem.taxCode ?? '']?.name ?? '';
-        const taxRateValue = transactionItem?.policy?.taxRates?.taxes?.[transactionItem.taxCode ?? '']?.value ?? '';
-
-        if (!taxRateName && !taxRateValue) {
-            return '';
-        }
-
-        if (!taxRateValue) {
-            return taxRateName;
-        }
-
-        return `${taxRateName} (${taxRateValue})`;
-    }, [transactionItem?.policy?.taxRates?.taxes, transactionItem.taxCode]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const merchantOrDescription = merchant || description;
@@ -246,6 +237,17 @@ function TransactionItemRow({
     }, [transactionItem, translate, report]);
 
     const exchangeRateMessage = getExchangeRate(transactionItem);
+
+    const cardName = useMemo(() => {
+        if (transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
+            return '';
+        }
+        const cardID = transactionItem.cardID;
+        if (cardID && customCardNames?.[cardID]) {
+            return customCardNames[cardID];
+        }
+        return transactionItem.cardName;
+    }, [transactionItem.cardID, transactionItem.cardName, customCardNames]);
 
     const columnComponent = useMemo(
         () => ({
@@ -288,7 +290,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.DATE]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.DATE}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false, areAllOptionalColumnsHidden)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, isDateColumnWide, false, false)]}
                 >
                     <DateCell
                         date={createdAt}
@@ -300,7 +302,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.SUBMITTED]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.SUBMITTED}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, isDateColumnWide, false, false, areAllOptionalColumnsHidden, isSubmittedColumnWide)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, isDateColumnWide, false, false, isSubmittedColumnWide)]}
                 >
                     <DateCell
                         date={report?.submitted ?? ''}
@@ -312,7 +314,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.APPROVED]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.APPROVED}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, areAllOptionalColumnsHidden, false, isApprovedColumnWide)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, false, false, false, false, isApprovedColumnWide)]}
                 >
                     <DateCell
                         date={report?.approved ?? ''}
@@ -324,7 +326,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.POSTED]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.POSTED}
-                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, false, false, false, areAllOptionalColumnsHidden, false, false, isPostedColumnWide)]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.POSTED, false, false, false, false, false, isPostedColumnWide)]}
                 >
                     <DateCell
                         date={transactionItem.posted ?? ''}
@@ -336,19 +338,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.EXPORTED]: (
                 <View
                     key={CONST.SEARCH.TABLE_COLUMNS.EXPORTED}
-                    style={[
-                        StyleUtils.getReportTableColumnStyles(
-                            CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
-                            false,
-                            false,
-                            false,
-                            areAllOptionalColumnsHidden,
-                            false,
-                            false,
-                            false,
-                            isExportedColumnWide,
-                        ),
-                    ]}
+                    style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED, false, false, false, false, false, false, isExportedColumnWide)]}
                 >
                     <DateCell
                         date={transactionItem.exported ?? ''}
@@ -468,7 +458,7 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.CARD}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CARD)]}
                 >
-                    <TextCell text={transactionItem.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME ? '' : (transactionItem.cardName ?? '')} />
+                    <TextCell text={cardName} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.COMMENTS]: (
@@ -505,8 +495,8 @@ function TransactionItemRow({
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORIGINAL_AMOUNT, undefined, isAmountColumnWide)]}
                 >
                     <AmountCell
-                        total={isExpenseReport(transactionItem.report) ? -(transactionItem.originalAmount ?? 0) : getOriginalAmount(transactionItem)}
-                        currency={getOriginalCurrency(transactionItem)}
+                        total={getOriginalAmountForDisplay(transactionItem, isExpenseReport(transactionItem.report))}
+                        currency={getOriginalCurrencyForDisplay(transactionItem)}
                     />
                 </View>
             ),
@@ -525,7 +515,7 @@ function TransactionItemRow({
                     key={CONST.SEARCH.TABLE_COLUMNS.TAX_RATE}
                     style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TAX_RATE)]}
                 >
-                    <TextCell text={formattedTaxRate} />
+                    <TextCell text={getTaxName(transactionItem.policy, transactionItem) ?? transactionItem.taxValue ?? ''} />
                 </View>
             ),
             [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (
@@ -550,7 +540,7 @@ function TransactionItemRow({
             [CONST.SEARCH.TABLE_COLUMNS.TITLE]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
                     <TextCell
-                        text={transactionItem.report?.reportName ?? ''}
+                        text={computeReportName(transactionItem.report) ?? transactionItem.report?.reportName ?? ''}
                         isLargeScreenWidth={isLargeScreenWidth}
                     />
                 </View>
@@ -565,7 +555,10 @@ function TransactionItemRow({
             ),
             [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
-                    <ExportedIconCell reportID={transactionItem.reportID} />
+                    <ExportedIconCell
+                        hash={hash}
+                        reportID={transactionItem.reportID}
+                    />
                 </View>
             ),
         }),
@@ -576,7 +569,6 @@ function TransactionItemRow({
             shouldUseNarrowLayout,
             isSelected,
             isDateColumnWide,
-            areAllOptionalColumnsHidden,
             createdAt,
             isSubmittedColumnWide,
             report?.submitted,
@@ -585,19 +577,20 @@ function TransactionItemRow({
             report?.total,
             isApprovedColumnWide,
             isPostedColumnWide,
-            translate,
             isExportedColumnWide,
+            translate,
             isReportItemChild,
             onButtonPress,
             isActionLoading,
             merchant,
             description,
+            cardName,
             isInSingleTransactionReport,
             exchangeRateMessage,
             isAmountColumnWide,
-            formattedTaxRate,
             isTaxAmountColumnWide,
             isLargeScreenWidth,
+            hash,
         ],
     );
     const shouldRenderChatBubbleCell = useMemo(() => {
@@ -771,16 +764,12 @@ function TransactionItemRow({
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={CONST.ROLE.BUTTON}
                         >
-                            {({hovered}) => {
-                                return (
-                                    <Icon
-                                        src={expensicons.ArrowRight}
-                                        fill={theme.icon}
-                                        additionalStyles={!hovered && styles.opacitySemiTransparent}
-                                        small
-                                    />
-                                );
-                            }}
+                            <Icon
+                                src={expensicons.ArrowRight}
+                                fill={theme.icon}
+                                additionalStyles={!isHover && styles.opacitySemiTransparent}
+                                small
+                            />
                         </PressableWithFeedback>
                     )}
                 </View>
