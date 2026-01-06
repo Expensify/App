@@ -21,7 +21,7 @@ function capturePageHTML(): string {
         const simplifiedHTML = extractSimplifiedHTML(mainContent);
 
         // Wrap with page URL
-        return `<page url="${pageURL}">\n${simplifiedHTML}\n</page>`;
+        return `<page url="${escapeHtml(pageURL)}">${simplifiedHTML}</page>`;
     } catch (error) {
         console.error('[PageHTMLCapture] Error capturing page HTML:', error);
         return '';
@@ -49,10 +49,10 @@ function extractSimplifiedHTML(element: HTMLElement): string {
     const childNodes = Array.from(element.childNodes);
     for (const node of childNodes) {
         if (node.nodeType === Node.TEXT_NODE) {
-            // Include visible text content
+            // Include visible text content, but skip if it's just whitespace or single character icons
             const text = node.textContent?.trim();
-            if (text) {
-                result.push(text);
+            if (text && text.length > 1 && !isIconText(text)) {
+                result.push(escapeHtml(text));
             }
         } else if (node.nodeType === Node.ELEMENT_NODE) {
             const childElement = node as HTMLElement;
@@ -65,78 +65,71 @@ function extractSimplifiedHTML(element: HTMLElement): string {
 
             const tagName = childElement.tagName.toLowerCase();
 
-            // Check if this is a semantic element we want to capture
-            const semanticElements = [
-                'button',
-                'a',
-                'input',
-                'textarea',
-                'select',
-                'h1',
-                'h2',
-                'h3',
-                'h4',
-                'h5',
-                'h6',
-                'nav',
-                'header',
-                'footer',
-                'article',
-                'section',
-                'aside',
-                'main',
-                'form',
-                'label',
-                'img',
-            ];
+            // SKIP SVGs, images, and icon elements completely
+            if (tagName === 'svg' || tagName === 'img' || tagName === 'picture' || childElement.classList.contains('icon')) {
+                continue;
+            }
+
+            // List of semantic elements we want to capture
+            const semanticElements = ['button', 'a', 'input', 'textarea', 'select', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'nav', 'header', 'footer', 'main', 'form', 'label'];
 
             if (semanticElements.includes(tagName)) {
-                // Build simplified element representation
+                // Build simplified element with ONLY essential attributes
                 const attrs: string[] = [];
 
-                // Include useful attributes
-                const ariaLabel = childElement.getAttribute('aria-label');
-                if (ariaLabel) {
-                    attrs.push(`aria-label="${ariaLabel}"`);
+                // ONLY include these essential attributes (NOTHING else):
+
+                // For links: only href (if it's not just an icon link)
+                if (tagName === 'a') {
+                    const href = childElement.getAttribute('href');
+                    if (href && !href.startsWith('javascript:')) {
+                        attrs.push(`href="${escapeHtml(href)}"`);
+                    }
                 }
 
-                const href = childElement.getAttribute('href');
-                if (href && tagName === 'a') {
-                    attrs.push(`href="${href}"`);
+                // For inputs: only type and placeholder (NO values for security)
+                if (tagName === 'input') {
+                    const type = childElement.getAttribute('type');
+                    if (type && type !== 'hidden') {
+                        attrs.push(`type="${escapeHtml(type)}"`);
+                    }
+                    const placeholder = childElement.getAttribute('placeholder');
+                    if (placeholder) {
+                        attrs.push(`placeholder="${escapeHtml(placeholder)}"`);
+                    }
                 }
 
-                const alt = childElement.getAttribute('alt');
-                if (alt && tagName === 'img') {
-                    attrs.push(`alt="${alt}"`);
+                // For textareas: only placeholder
+                if (tagName === 'textarea') {
+                    const placeholder = childElement.getAttribute('placeholder');
+                    if (placeholder) {
+                        attrs.push(`placeholder="${escapeHtml(placeholder)}"`);
+                    }
                 }
 
-                const placeholder = childElement.getAttribute('placeholder');
-                if (placeholder && (tagName === 'input' || tagName === 'textarea')) {
-                    attrs.push(`placeholder="${placeholder}"`);
+                // For buttons and interactive elements: only aria-label if meaningful
+                if (['button', 'a'].includes(tagName)) {
+                    const ariaLabel = childElement.getAttribute('aria-label');
+                    if (ariaLabel && !isIconText(ariaLabel)) {
+                        attrs.push(`aria-label="${escapeHtml(ariaLabel)}"`);
+                    }
                 }
 
-                const type = childElement.getAttribute('type');
-                if (type && tagName === 'input') {
-                    attrs.push(`type="${type}"`);
-                }
-
-                const value = (childElement as HTMLInputElement).value;
-                if (value && (tagName === 'input' || tagName === 'textarea')) {
-                    attrs.push(`value="${value}"`);
-                }
-
-                // Get inner content
+                // Get inner content recursively
                 const innerContent = extractSimplifiedHTML(childElement);
 
-                // Build element string
-                const attrString = attrs.length > 0 ? ` ${attrs.join(' ')}` : '';
-                if (innerContent) {
-                    result.push(`<${tagName}${attrString}>${innerContent}</${tagName}>`);
-                } else {
-                    result.push(`<${tagName}${attrString} />`);
+                // Only include elements that have meaningful content or attributes
+                if (innerContent || attrs.length > 0) {
+                    const attrString = attrs.length > 0 ? ` ${attrs.join(' ')}` : '';
+                    if (innerContent) {
+                        result.push(`<${tagName}${attrString}>${innerContent}</${tagName}>`);
+                    } else if (attrs.length > 0) {
+                        // Only create empty elements if they have useful attributes (like inputs with placeholders)
+                        result.push(`<${tagName}${attrString}></${tagName}>`);
+                    }
                 }
             } else {
-                // For non-semantic elements, just extract their content
+                // For non-semantic elements (div, span, etc.), just extract their content
                 const innerContent = extractSimplifiedHTML(childElement);
                 if (innerContent) {
                     result.push(innerContent);
@@ -145,7 +138,43 @@ function extractSimplifiedHTML(element: HTMLElement): string {
         }
     }
 
-    return result.join(' ');
+    // Normalize whitespace: collapse multiple spaces into one and trim
+    return result.join(' ').replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Check if text is likely icon/emoji text that should be filtered out
+ */
+function isIconText(text: string): boolean {
+    // Filter out single character text (often icons/emojis)
+    if (text.length === 1) {
+        return true;
+    }
+
+    // Filter out common icon unicode ranges
+    const iconPatterns = [
+        /[\u2000-\u2BFF]/, // General punctuation, arrows, mathematical operators
+        /[\u2600-\u27BF]/, // Miscellaneous symbols (includes many icons)
+        /[\uE000-\uF8FF]/, // Private use area (custom icons)
+        /[\uD800-\uDFFF]/, // Surrogate pairs (emoji)
+        /^[\u00A0\s]+$/, // Only whitespace/nbsp
+    ];
+
+    return iconPatterns.some((pattern) => pattern.test(text));
+}
+
+/**
+ * Escape HTML special characters to prevent injection
+ */
+function escapeHtml(text: string): string {
+    const map: Record<string, string> = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;',
+    };
+    return text.replace(/[&<>"']/g, (char) => map[char] ?? char);
 }
 
 export default capturePageHTML;
