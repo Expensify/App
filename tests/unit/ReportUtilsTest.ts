@@ -36,8 +36,10 @@ import {
     canDeleteMoneyRequestReport,
     canDeleteReportAction,
     canDeleteTransaction,
+    canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canEditReportDescription,
+    canEditReportPolicy,
     canEditRoomVisibility,
     canEditWriteCapability,
     canFlagReportAction,
@@ -69,7 +71,6 @@ import {
     getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
     getReasonAndReportActionThatRequiresAttention,
-    getReportActionActorAccountID,
     getReportIDFromLink,
     getReportName as getReportNameDeprecated,
     getReportOrDraftReport,
@@ -665,7 +666,7 @@ describe('ReportUtils', () => {
 
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
-            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false, localeCompare);
+            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false, localeCompare, formatPhoneNumber);
             expect(participants).toHaveLength(5);
 
             expect(participants.at(0)?.displayName).toBe('(833) 240-3627');
@@ -5583,11 +5584,11 @@ describe('ReportUtils', () => {
         afterAll(() => Onyx.clear());
 
         it('should return false for admin of a group policy with reimbursement enabled and report not approved', () => {
-            expect(isPayer({email: currentUserEmail, accountID: currentUserAccountID}, unapprovedReport, false)).toBe(false);
+            expect(isPayer(currentUserAccountID, currentUserEmail, unapprovedReport, false)).toBe(false);
         });
 
         it('should return false for non-admin of a group policy', () => {
-            expect(isPayer({email: currentUserEmail, accountID: currentUserAccountID}, approvedReport, false)).toBe(false);
+            expect(isPayer(currentUserAccountID, currentUserEmail, approvedReport, false)).toBe(false);
         });
 
         it('should return true for a reimburser of a group policy on a closed report', async () => {
@@ -5602,7 +5603,7 @@ describe('ReportUtils', () => {
                 policyID: policyTest.id,
             };
 
-            expect(isPayer({email: currentUserEmail, accountID: currentUserAccountID}, closedReport, false)).toBe(true);
+            expect(isPayer(currentUserAccountID, currentUserEmail, closedReport, false)).toBe(true);
         });
     });
     describe('buildReportNameFromParticipantNames', () => {
@@ -8676,192 +8677,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getReportActionActorAccountID', () => {
-        it('should return report owner account id if action is REPORTPREVIEW and report is a policy expense chat', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(10);
-        });
-
-        it('should return report manager account id if action is REPORTPREVIEW and report is not a policy expense chat', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, undefined),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: undefined,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(20);
-        });
-
-        it('should return admin account id if action is SUBMITTED taken by an admin on behalf the submitter', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                adminAccountID: 30,
-                actorAccountID: 10,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(30);
-        });
-
-        it('should return report owner account id if action is SUBMITTED taken by the submitter himself', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                actorAccountID: 10,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(10);
-        });
-
-        it('should return admin account id if action is SUBMITTED_AND_CLOSED taken by an admin on behalf the submitter', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-                adminAccountID: 30,
-                actorAccountID: 10,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(30);
-        });
-
-        it('should return report owner account id if action is SUBMITTED_AND_CLOSED taken by the submitter himself', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-                actorAccountID: 10,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(10);
-        });
-
-        it('should return original actor account id if action is ADDCOMMENT', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                actorAccountID: 123,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(123);
-        });
-
-        it('returns CONCIERGE for CREATED action when report is harvest-created', async () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                actorAccountID: 9999,
-            };
-
-            const iouReport: Report = {...createRandomReport(0, undefined)};
-            const report: Report = {
-                ...createRandomReport(1, undefined),
-                reportID: 'harvest-report-1',
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {
-                origin: 'harvest',
-                originalID: 'orig-123',
-            });
-            await waitForBatchedUpdates();
-
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
-        });
-
-        it('returns reportAction.actorAccountID for CREATED action when not harvest-created', async () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                actorAccountID: 9999,
-            };
-
-            const iouReport: Report = {...createRandomReport(0, undefined)};
-            const report: Report = {
-                ...createRandomReport(2, undefined),
-                reportID: 'normal-report-2',
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {});
-            await waitForBatchedUpdates();
-
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toBe(9999);
-        });
-    });
-
     describe('shouldBlockSubmitDueToStrictPolicyRules', () => {
         const reportID = 'report123';
 
@@ -10273,6 +10088,396 @@ describe('ReportUtils', () => {
 
         expect(reasonAfterRemoval).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
         await Onyx.clear();
+    });
+
+    describe('approver permissions on OPEN reports', () => {
+        const submitterAccountID = 1001;
+        const approverAccountID = 1002;
+        const ownerAccountID = 1003;
+        const approverEmail = 'approver@test.com';
+        const submitterEmail = 'submitter@test.com';
+
+        const policyID = 'approverTestPolicy';
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+
+            // Set up the policy with workflow: submitter -> approver
+            const policyWithWorkflow = {
+                id: policyID,
+                name: 'Test Workspace',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.USER,
+                owner: `owner${ownerAccountID}@test.com`,
+                outputCurrency: 'USD',
+                isPolicyExpenseChatEnabled: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approver: approverEmail,
+                employeeList: {
+                    [submitterEmail]: {
+                        email: submitterEmail,
+                        submitsTo: approverEmail,
+                    },
+                },
+            };
+
+            // Set up personal details for login/accountID resolution
+            const testPersonalDetails = {
+                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
+                [approverAccountID]: {accountID: approverAccountID, login: approverEmail},
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {email: approverEmail, accountID: approverAccountID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithWorkflow);
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
+
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+        });
+
+        it('should allow workflow approver to edit expense report policy on OPEN report', async () => {
+            // Given an OPEN expense report where current user is the workflow approver
+            const openExpenseReport = {
+                reportID: '12345',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: ownerAccountID, // managerID is stale (set at creation before workflow was configured)
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
+            await waitForBatchedUpdates();
+
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            // When the workflow approver tries to edit the report policy
+            const canEdit = canEditReportPolicy(openExpenseReport, testPolicy);
+
+            // Then they should be able to edit it
+            expect(canEdit).toBe(true);
+        });
+
+        it('should NOT allow non-workflow user to edit expense report policy on OPEN report', async () => {
+            // Given an OPEN expense report where current user is NOT the workflow approver, submitter, or admin
+            const randomUserAccountID = 9999;
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'randomuser@test.com', accountID: randomUserAccountID});
+            await waitForBatchedUpdates();
+
+            const openExpenseReport = {
+                reportID: '12346',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
+            await waitForBatchedUpdates();
+
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            // When a random user tries to edit the report policy
+            const canEdit = canEditReportPolicy(openExpenseReport, testPolicy);
+
+            // Then they should NOT be able to edit it
+            expect(canEdit).toBe(false);
+        });
+
+        it('should allow submitter to edit expense report policy on OPEN report', async () => {
+            // Given an OPEN expense report where current user is the submitter (owner)
+            // Make the current user (approver from beforeEach) also the owner of this report
+            const openExpenseReport = {
+                reportID: '12347',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: approverAccountID, // Current user (approverAccountID) is the owner/submitter
+                managerID: ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
+            await waitForBatchedUpdates();
+
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            // When the submitter (current user who owns the report) tries to edit the report policy
+            const canEdit = canEditReportPolicy(openExpenseReport, testPolicy);
+
+            // Then they should be able to edit it
+            expect(canEdit).toBe(true);
+        });
+
+        it('should allow workflow approver to edit money request on OPEN expense report', async () => {
+            // Given an OPEN expense report where current user is the workflow approver
+            const openExpenseReport: Report = {
+                reportID: '12348',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: ownerAccountID, // managerID is stale
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const transaction: Transaction = {
+                transactionID: 'txn12348',
+                reportID: openExpenseReport.reportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: 'Test expense'},
+                created: '2025-01-01',
+                merchant: 'Test Merchant',
+            };
+
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'action12348',
+                actorAccountID: submitterAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: openExpenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
+                created: '2025-01-01 12:00:00',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            // When the workflow approver tries to edit the money request
+            const canEdit = canEditMoneyRequest(moneyRequestAction, false, openExpenseReport, testPolicy, transaction);
+
+            // Then they should be able to edit it
+            expect(canEdit).toBe(true);
+        });
+
+        it('should NOT allow workflow approver to edit money request on SUBMITTED expense report (isManager handles this)', async () => {
+            // Given a SUBMITTED expense report where current user is the workflow approver but managerID is stale
+            const submittedExpenseReport: Report = {
+                reportID: '12349',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: ownerAccountID, // managerID is stale, doesn't match approver
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            const transaction: Transaction = {
+                transactionID: 'txn12349',
+                reportID: submittedExpenseReport.reportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: 'Test expense'},
+                created: '2025-01-01',
+                merchant: 'Test Merchant',
+            };
+
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'action12349',
+                actorAccountID: submitterAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: submittedExpenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
+                created: '2025-01-01 12:00:00',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${submittedExpenseReport.reportID}`, submittedExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            // When the workflow approver tries to edit the money request on a SUBMITTED report
+            // Our fix should NOT apply since the report is not OPEN
+            const canEdit = canEditMoneyRequest(moneyRequestAction, false, submittedExpenseReport, testPolicy, transaction);
+
+            // Then they should NOT be able to edit it (because managerID is stale and our fix only applies to OPEN reports)
+            // Note: In real usage, managerID would be updated when report is submitted, so this case is rare
+            expect(canEdit).toBe(false);
+        });
+
+        it('should allow workflow approver to edit REIMBURSABLE field on OPEN expense report', async () => {
+            // Given an OPEN expense report where current user is the workflow approver
+            const openExpenseReport: Report = {
+                reportID: '12350',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: ownerAccountID, // managerID is stale
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const transaction: Transaction = {
+                transactionID: 'txn12350',
+                reportID: openExpenseReport.reportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: 'Test expense'},
+                created: '2025-01-01',
+                merchant: 'Test Merchant',
+            };
+
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'action12350',
+                actorAccountID: submitterAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: openExpenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
+                created: '2025-01-01 12:00:00',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            // When the workflow approver tries to edit the REIMBURSABLE field
+            const canEdit = canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, false, false, undefined, transaction, openExpenseReport, testPolicy);
+
+            // Then they should be able to edit it
+            expect(canEdit).toBe(true);
+        });
+
+        it('should NOT allow non-workflow user to edit REIMBURSABLE field on OPEN expense report', async () => {
+            // Given an OPEN expense report where current user is NOT the workflow approver, submitter, or admin
+            const randomUserAccountID = 9999;
+            await Onyx.merge(ONYXKEYS.SESSION, {email: 'randomuser@test.com', accountID: randomUserAccountID});
+            await waitForBatchedUpdates();
+
+            const openExpenseReport: Report = {
+                reportID: '12351',
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: submitterAccountID,
+                managerID: ownerAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const transaction: Transaction = {
+                transactionID: 'txn12351',
+                reportID: openExpenseReport.reportID,
+                amount: 1000,
+                currency: CONST.CURRENCY.USD,
+                comment: {comment: 'Test expense'},
+                created: '2025-01-01',
+                merchant: 'Test Merchant',
+            };
+
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                reportActionID: 'action12351',
+                actorAccountID: submitterAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                originalMessage: {
+                    IOUReportID: openExpenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: 1000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
+                created: '2025-01-01 12:00:00',
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (val) => {
+                        Onyx.disconnect(connection);
+                        resolve(val);
+                    },
+                });
+            });
+
+            // When a random user tries to edit the REIMBURSABLE field
+            const canEdit = canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, false, false, undefined, transaction, openExpenseReport, testPolicy);
+
+            // Then they should NOT be able to edit it
+            expect(canEdit).toBe(false);
+        });
     });
 
     describe('getReportPreviewMessage', () => {
