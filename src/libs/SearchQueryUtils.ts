@@ -1068,17 +1068,7 @@ type GetDisplayQueryFiltersForKeyParams = {
     currentUserAccountID: number;
 };
 
-function getDisplayQueryFiltersForKey({
-    key,
-    queryFilter,
-    personalDetails,
-    reports,
-    taxRates,
-    cardList,
-    cardFeeds,
-    policies,
-    currentUserAccountID,
-}: GetDisplayQueryFiltersForKeyParams) {
+function getDisplayQueryFiltersForKey({key, queryFilter, personalDetails, reports, taxRates, cardList, cardFeeds, policies, currentUserAccountID}: GetDisplayQueryFiltersForKeyParams) {
     if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
         const taxRateIDs = queryFilter.map((filter) => filter.value.toString());
         const taxRateNames = taxRateIDs

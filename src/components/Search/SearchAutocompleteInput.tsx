@@ -22,8 +22,8 @@ import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} fr
 import {formatTranslatedValue, getStatusOptions} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
 type SearchAutocompleteInputProps = {
@@ -203,7 +203,16 @@ function SearchAutocompleteInput({
         (input: string) => {
             'worklet';
 
-            return parseForLiveMarkdown(input, currentUserPersonalDetails.displayName ?? '', substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue, translatedStatusSharedValue);
+            return parseForLiveMarkdown(
+                input,
+                currentUserPersonalDetails.displayName ?? '',
+                substitutionMap,
+                emailListSharedValue,
+                currencySharedValue,
+                categorySharedValue,
+                tagSharedValue,
+                translatedStatusSharedValue,
+            );
         },
         [currentUserPersonalDetails.displayName, substitutionMap, currencySharedValue, categorySharedValue, tagSharedValue, emailListSharedValue, translatedStatusSharedValue],
     );
