@@ -63,6 +63,9 @@ function TextInputMeasurement({
                     style={[
                         inputStyle,
                         autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
+                        // Since the hidden input is absolutely positioned, container styles don't automatically apply.
+                        // We pass the container styles directly to match the visible input's dimensions.
+                        styles.hiddenTextInputContainer,
                         styles.hiddenElementOutsideOfWindow,
                         styles.visibilityHidden,
                     ]}
@@ -85,7 +88,5 @@ function TextInputMeasurement({
         </>
     );
 }
-
-TextInputMeasurement.displayName = 'TextInputMeasurement';
 
 export default TextInputMeasurement;

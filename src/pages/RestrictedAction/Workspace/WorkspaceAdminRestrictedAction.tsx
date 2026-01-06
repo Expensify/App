@@ -19,21 +19,21 @@ type WorkspaceAdminRestrictedActionProps = {
 };
 
 function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActionProps) {
-    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const styles = useThemeStyles();
 
     const openAdminsReport = useCallback(() => {
-        const reportID = policy?.chatReportIDAdmins;
+        const reportID = policy?.chatReportIDAdmins?.toString();
         Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID ? String(reportID) : undefined));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
     }, [policy?.chatReportIDAdmins]);
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={WorkspaceAdminRestrictedAction.displayName}
+            testID="WorkspaceAdminRestrictedAction"
         >
             <HeaderWithBackButton
                 title={translate('workspace.restrictedAction.restricted')}
@@ -64,7 +64,5 @@ function WorkspaceAdminRestrictedAction({policyID}: WorkspaceAdminRestrictedActi
         </ScreenWrapper>
     );
 }
-
-WorkspaceAdminRestrictedAction.displayName = 'WorkspaceAdminRestrictedAction';
 
 export default WorkspaceAdminRestrictedAction;

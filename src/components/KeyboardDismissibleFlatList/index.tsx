@@ -27,6 +27,6 @@ function KeyboardDismissibleFlatList<T>({onScroll: onScrollProp, inverted, ...re
         />
     );
 }
-KeyboardDismissibleFlatList.displayName = 'KeyboardDismissibleFlatList';
 
+// eslint-disable-next-line no-restricted-syntax
 export default React.forwardRef(KeyboardDismissibleFlatList);

@@ -62,7 +62,7 @@ function NetSuiteExportExpensesJournalPostingPreferenceSelectPage({policy}: With
 
     return (
         <SelectionScreen
-            displayName={NetSuiteExportExpensesJournalPostingPreferenceSelectPage.displayName}
+            displayName="NetSuiteExportExpensesJournalPostingPreferenceSelectPage"
             title="workspace.netsuite.journalPostingPreference.label"
             sections={[{data}]}
             listItem={RadioListItem}
@@ -85,7 +85,5 @@ function NetSuiteExportExpensesJournalPostingPreferenceSelectPage({policy}: With
         />
     );
 }
-
-NetSuiteExportExpensesJournalPostingPreferenceSelectPage.displayName = 'NetSuiteExportExpensesJournalPostingPreferenceSelectPage';
 
 export default withPolicyConnections(NetSuiteExportExpensesJournalPostingPreferenceSelectPage);
