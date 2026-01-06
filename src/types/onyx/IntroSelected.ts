@@ -30,6 +30,9 @@ type IntroSelected = {
     /** Task reportID for 'addExpenseApprovals' type */
     addExpenseApprovals?: string;
 
+    /** Task reportID for 'setupTags' type */
+    setupTags?: string;
+
     /** The previous onboarding choices of the user */
     previousChoices?: OnboardingPurpose[];
 };

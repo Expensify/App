@@ -31,6 +31,9 @@ type WorkspaceCreateTagPageProps =
 function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
     const policyID = route.params.policyID;
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const setupTagsTaskReportID = introSelected?.setupTags;
+    const [setupTagsTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${setupTagsTaskReportID}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -61,11 +64,11 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
 
     const createTag = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            createPolicyTag(policyID, values.tagName.trim(), policyTags);
+            createPolicyTag(policyID, values.tagName.trim(), policyTags, setupTagsTaskReport);
             Keyboard.dismiss();
             Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo) : undefined);
         },
-        [policyID, policyTags, isQuickSettingsFlow, backTo],
+        [policyID, policyTags, isQuickSettingsFlow, backTo, setupTagsTaskReport],
     );
 
     return (
