@@ -975,6 +975,7 @@ function openReport(
     transaction?: Transaction,
     transactionViolations?: TransactionViolations,
     parentReportID?: string,
+    shouldAddPendingFields = true,
     optimisticSelfDMReport?: Report,
 ) {
     if (!reportID) {
@@ -1057,6 +1058,7 @@ function openReport(
         accountIDList: participantAccountIDList ? participantAccountIDList.join(',') : '',
         parentReportActionID,
         transactionID: transaction?.transactionID,
+        includePartiallySetupBankAccounts: isConciergeChatReport(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]),
     };
 
     if (optimisticSelfDMReport) {
@@ -1240,10 +1242,12 @@ function openReport(
                 ...optimisticReport,
                 reportName: CONST.REPORT.DEFAULT_REPORT_NAME,
                 ...newReportObject,
-                pendingFields: {
-                    createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    ...(isGroupChat && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
-                },
+                pendingFields: shouldAddPendingFields
+                    ? {
+                          createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                          ...(isGroupChat && {reportName: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}),
+                      }
+                    : undefined,
             };
         }
 
@@ -1256,7 +1260,7 @@ function openReport(
             {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-                value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
+                value: {[optimisticCreatedAction.reportActionID]: {...optimisticCreatedAction, pendingAction: shouldAddPendingFields ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : null}},
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -1445,6 +1449,7 @@ function createTransactionThreadReport(
 
     const optimisticTransactionThreadReportID = generateReportID();
     const optimisticTransactionThread = buildTransactionThread(iouReportAction, reportToUse, undefined, optimisticTransactionThreadReportID);
+    const shouldAddPendingFields = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || iouReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
     openReport(
         optimisticTransactionThreadReportID,
         undefined,
@@ -1458,6 +1463,7 @@ function createTransactionThreadReport(
         transaction,
         transactionViolations,
         selfDMReportID,
+        shouldAddPendingFields,
         optimisticSelfDMReport,
     );
     return optimisticTransactionThread;
@@ -3080,7 +3086,7 @@ function createNewReport(
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
 
-    const {optimisticReportName, parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData(
+    const {parentReportID, reportPreviewAction, optimisticData, successData, failureData, optimisticReportData} = buildNewReportOptimisticData(
         policy,
         optimisticReportID,
         reportActionID,
