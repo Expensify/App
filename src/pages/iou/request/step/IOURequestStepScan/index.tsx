@@ -503,6 +503,8 @@ function IOURequestStepScan({
                             taxAmount: transactionTaxAmount,
                             quickAction,
                             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                            // No need to update recently used tags because no tags are used when the confirmation step is skipped
+                            policyRecentlyUsedTags: undefined,
                         });
                         return;
                     }
