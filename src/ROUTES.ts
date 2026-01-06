@@ -1176,13 +1176,14 @@ const ROUTES = {
         },
     },
     MONEY_REQUEST_STEP_DISTANCE_ODOMETER: {
-        route: ':action/:iouType/distance-odometer/:transactionID/:reportID/:isEditingFromConfirmation(editing)?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, isEditingFromConfirmation = false) => {
+        route: ':action/:iouType/distance-odometer/:transactionID/:reportID',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
             if (!transactionID || !reportID) {
                 Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_ODOMETER route');
             }
 
-            return `${action as string}/${iouType as string}/distance-odometer/${transactionID}/${reportID}${isEditingFromConfirmation ? '/editing' : ''}` as const;
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance-odometer/${transactionID}/${reportID}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_DISTANCE_RATE: {
