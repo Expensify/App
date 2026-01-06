@@ -526,12 +526,12 @@ function MoneyRequestReportPreviewContent({
             report: iouReport,
             policy,
             transactions,
+            bankAccountList,
             invoiceReceiverPolicy,
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
             violationsData: transactionViolations,
-            bankAccountList,
         });
     }, [
         bankAccountList,

@@ -91,9 +91,9 @@ function canPay(
     isReportArchived: boolean,
     currentUserAccountID: number,
     currentUserEmail: string,
+    bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
     invoiceReceiverPolicy?: Policy,
-    bankAccountList?: OnyxEntry<BankAccountList>,
 ) {
     if (isReportArchived) {
         return false;
@@ -180,12 +180,12 @@ function getReportPreviewAction({
     report,
     policy,
     transactions,
+    bankAccountList,
     invoiceReceiverPolicy,
     isPaidAnimationRunning,
     isApprovedAnimationRunning,
     isSubmittingAnimationRunning,
     violationsData,
-    bankAccountList,
 }: {
     isReportArchived: boolean;
     currentUserAccountID: number;
@@ -193,12 +193,12 @@ function getReportPreviewAction({
     report: Report | undefined;
     policy: Policy | undefined;
     transactions: Transaction[];
+    bankAccountList: OnyxEntry<BankAccountList>;
     invoiceReceiverPolicy?: Policy;
     isPaidAnimationRunning?: boolean;
     isApprovedAnimationRunning?: boolean;
     isSubmittingAnimationRunning?: boolean;
     violationsData?: OnyxCollection<TransactionViolation[]>;
-    bankAccountList?: OnyxEntry<BankAccountList>;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -223,7 +223,7 @@ function getReportPreviewAction({
     if (canApprove(report, currentUserAccountID, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE;
     }
-    if (canPay(report, isReportArchived, currentUserAccountID, currentUserEmail, policy, invoiceReceiverPolicy, bankAccountList)) {
+    if (canPay(report, isReportArchived, currentUserAccountID, currentUserEmail, bankAccountList, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
     if (canExport(report, policy)) {

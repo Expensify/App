@@ -124,6 +124,7 @@ function ReportActionItem({
             report={report}
             policy={policy}
             currentUserAccountID={currentUserAccountID}
+            bankAccountList={bankAccountList}
             draftMessage={draftMessage}
             iouReport={iouReport}
             taskReport={taskReport}

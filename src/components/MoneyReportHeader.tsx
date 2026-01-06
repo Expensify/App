@@ -1077,7 +1077,7 @@ function MoneyReportHeader({
         if (!moneyRequestReport) {
             return [];
         }
-        return getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, policy, exportTemplates, bankAccountList);
+        return getSecondaryExportReportActions(accountID, email ?? '', moneyRequestReport, bankAccountList, policy, exportTemplates);
     }, [moneyRequestReport, accountID, email, policy, exportTemplates, bankAccountList]);
 
     const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';

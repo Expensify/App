@@ -152,13 +152,13 @@ function isPrimaryPayAction(
     report: Report,
     currentUserAccountID: number,
     currentUserEmail: string,
+    bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
     reportNameValuePairs?: ReportNameValuePairs,
     isChatReportArchived?: boolean,
     invoiceReceiverPolicy?: Policy,
     reportActions?: ReportAction[],
     isSecondaryAction?: boolean,
-    bankAccountList?: OnyxEntry<BankAccountList>,
 ) {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -427,13 +427,12 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             report,
             currentUserAccountID,
             currentUserEmail,
+            bankAccountList,
             policy,
             reportNameValuePairs,
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
-            undefined,
-            bankAccountList,
         ) && hasOnlyHeldExpenses(report?.reportID);
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy);
 
@@ -465,13 +464,12 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
             report,
             currentUserAccountID,
             currentUserEmail,
+            bankAccountList,
             policy,
             reportNameValuePairs,
             isChatReportArchived,
             invoiceReceiverPolicy,
             reportActions,
-            undefined,
-            bankAccountList,
         )
     ) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;

@@ -51,7 +51,7 @@ export default function useTodos() {
             if (isApproveAction(report, reportTransactions, policy)) {
                 reportsToApprove.push(report);
             }
-            if (isPrimaryPayAction(report, accountID, email, policy, reportNameValuePair, undefined, undefined, undefined, undefined, bankAccountList)) {
+            if (isPrimaryPayAction(report, accountID, email, bankAccountList, policy, reportNameValuePair)) {
                 reportsToPay.push(report);
             }
             if (isExportAction(report, policy, reportActions)) {

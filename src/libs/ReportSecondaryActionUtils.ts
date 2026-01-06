@@ -304,8 +304,8 @@ function isCancelPaymentAction(
     currentUserEmail: string,
     report: Report,
     reportTransactions: Transaction[],
+    bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
-    bankAccountList?: OnyxEntry<BankAccountList>,
 ): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
 
@@ -361,7 +361,7 @@ function isCancelPaymentAction(
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
-function isExportAction(currentAccountID: number, currentUserEmail: string, report: Report, policy?: Policy, bankAccountList?: OnyxEntry<BankAccountList>): boolean {
+function isExportAction(currentAccountID: number, currentUserEmail: string, report: Report, bankAccountList: OnyxEntry<BankAccountList>, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -403,7 +403,7 @@ function isExportAction(currentAccountID: number, currentUserEmail: string, repo
     return isAdmin && isReportFinished && syncEnabled;
 }
 
-function isMarkAsExportedAction(currentAccountID: number, currentUserEmail: string, report: Report, policy?: Policy, bankAccountList?: OnyxEntry<BankAccountList>): boolean {
+function isMarkAsExportedAction(currentAccountID: number, currentUserEmail: string, report: Report, bankAccountList: OnyxEntry<BankAccountList>, policy?: Policy): boolean {
     if (!policy) {
         return false;
     }
@@ -775,7 +775,7 @@ function getSecondaryReportActions({
     const didExportFail = !isExported && hasExportError;
 
     if (
-        isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions, true, bankAccountList) &&
+        isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, bankAccountList, policy, reportNameValuePairs, isChatReportArchived, undefined, reportActions, true) &&
         (hasOnlyHeldExpenses(report?.reportID) || didExportFail)
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.PAY);
@@ -811,7 +811,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE);
     }
 
-    if (isCancelPaymentAction(currentUserAccountID, currentUserEmail, report, reportTransactions, policy, bankAccountList)) {
+    if (isCancelPaymentAction(currentUserAccountID, currentUserEmail, report, reportTransactions, bankAccountList, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT);
     }
 
@@ -877,16 +877,16 @@ function getSecondaryExportReportActions(
     currentUserAccountID: number,
     currentUserEmail: string,
     report: Report,
+    bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
     exportTemplates: ExportTemplate[] = [],
-    bankAccountList?: OnyxEntry<BankAccountList>,
 ): Array<ValueOf<string>> {
     const options: Array<ValueOf<string>> = [];
-    if (isExportAction(currentUserAccountID, currentUserEmail, report, policy, bankAccountList)) {
+    if (isExportAction(currentUserAccountID, currentUserEmail, report, bankAccountList, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION);
     }
 
-    if (isMarkAsExportedAction(currentUserAccountID, currentUserEmail, report, policy, bankAccountList)) {
+    if (isMarkAsExportedAction(currentUserAccountID, currentUserEmail, report, bankAccountList, policy)) {
         options.push(CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED);
     }
 

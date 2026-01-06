@@ -414,7 +414,7 @@ type PureReportActionItemProps = {
     currentUserAccountID?: number;
 
     /** The bank account list */
-    bankAccountList?: OnyxTypes.BankAccountList | undefined;
+    bankAccountList: OnyxTypes.BankAccountList;
 
     /** Report name value pairs origin */
     reportNameValuePairsOrigin?: string;
