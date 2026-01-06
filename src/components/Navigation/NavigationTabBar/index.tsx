@@ -62,6 +62,14 @@ type NavigationTabBarProps = {
     shouldShowFloatingCameraButton?: boolean;
 };
 
+function getLastRoute(navigator: string, screen: string) {
+    const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
+    const lastNavigator = rootState.routes.findLast((route) => route.name === navigator);
+    const lastNavigatorState = lastNavigator && lastNavigator.key ? getPreservedNavigatorState(lastNavigator?.key) : undefined;
+    const lastRoute = lastNavigatorState?.routes.findLast((route) => route.name === screen);
+    return lastRoute;
+}
+
 function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatingCameraButton = true}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -175,11 +183,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             return;
         }
 
-        const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-        const lastReportNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR);
-        const lastReportNavigatorState = lastReportNavigator && lastReportNavigator.key ? getPreservedNavigatorState(lastReportNavigator?.key) : undefined;
-        const lastReportRoute = lastReportNavigatorState?.routes.findLast((route) => route.name === SCREENS.REPORT);
-
+        const lastReportRoute = getLastRoute(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.REPORT);
         if (lastReportRoute) {
             const {reportID} = lastReportRoute.params as ReportsSplitNavigatorParamList[typeof SCREENS.REPORT];
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID));
@@ -207,11 +211,7 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 op: CONST.TELEMETRY.SPAN_ON_LAYOUT_SKELETON_REPORTS,
             });
 
-            const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-            const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-            const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
-            const lastSearchRoute = lastSearchNavigatorState?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
-
+            const lastSearchRoute = getLastRoute(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT);
             if (lastSearchRoute) {
                 const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
                 const queryJSON = buildSearchQueryJSON(q);
