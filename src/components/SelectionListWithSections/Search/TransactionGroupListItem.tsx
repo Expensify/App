@@ -199,9 +199,12 @@ function TransactionGroupListItem<TItem extends ListItem>({
             onSelectRow(item, transactionPreviewData);
         }
         if (!isExpenseReportType) {
+            if (groupItem.transactionsQueryJSON && !isExpanded) {
+                searchTransactions();
+            }
             handleToggle();
         }
-    }, [isExpenseReportType, transactions.length, onSelectRow, transactionPreviewData, item, handleToggle]);
+    }, [isExpenseReportType, transactions.length, onSelectRow, transactionPreviewData, item, handleToggle, groupItem.transactionsQueryJSON, isExpanded, searchTransactions]);
 
     const onLongPress = useCallback(() => {
         if (isEmpty) {
