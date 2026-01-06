@@ -66,6 +66,8 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
+// eslint-disable-next-line no-restricted-syntax
+import * as PolicyUtils from '@libs/PolicyUtils';
 import {
     getOriginalMessage,
     getReportActionHtml,
@@ -172,6 +174,11 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
         buildCannedSearchQuery: jest.fn(),
     };
 });
+
+jest.mock('@libs/PolicyUtils', () => ({
+    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    isPaidGroupPolicy: jest.fn().mockReturnValue(true),
+}));
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
