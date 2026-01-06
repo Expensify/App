@@ -817,6 +817,25 @@ function dismissToSuperWideRHP() {
     return dismissToModalStack(SUPER_WIDE_RIGHT_MODALS);
 }
 
+function getTopmostReportIDInSearchRHP(state = navigationRef.getRootState()): string | undefined {
+    if (!state) {
+        return undefined;
+    }
+
+    const lastRoute = state.routes?.at(-1);
+    if (lastRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        return undefined;
+    }
+
+    const nestedRoutes = lastRoute.state?.routes ?? [];
+    const lastSearchReport = [...nestedRoutes].reverse().find((route) => route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT);
+
+    const params = lastSearchReport?.params;
+    const reportID = params && 'reportID' in params ? params.reportID : undefined;
+
+    return typeof reportID === 'string' ? reportID : undefined;
+}
+
 export default {
     setShouldPopToSidebar,
     getShouldPopToSidebar,
@@ -854,6 +873,7 @@ export default {
     isValidateLoginFlow,
     dismissToPreviousRHP,
     dismissToSuperWideRHP,
+    getTopmostReportIDInSearchRHP,
 };
 
 export {navigationRef, getDeepestFocusedScreenName, isTwoFactorSetupScreen, shouldShowRequire2FAPage};

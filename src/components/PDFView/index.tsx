@@ -4,7 +4,7 @@ import type {CSSProperties} from 'react';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {PDFPreviewer} from 'react-fast-pdf';
 import {View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -106,7 +106,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
                     maxCanvasHeight={maxCanvasHeight}
                     maxCanvasArea={maxCanvasArea}
                     LoadingComponent={
-                        <View
+                        <LoadingIndicator
                             style={
                                 isUsedAsChatAttachment && [
                                     styles.chatItemPDFAttachmentLoading,
@@ -114,9 +114,7 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
                                     styles.pRelative,
                                 ]
                             }
-                        >
-                            <ActivityIndicator size="large" />
-                        </View>
+                        />
                     }
                     shouldShowErrorComponent={false}
                     onLoadError={onLoadError}
