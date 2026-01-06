@@ -20,11 +20,6 @@ function ProactiveAppReviewModalManager() {
         (response: AppReviewResponse, message?: string) => {
             // Call the action which will create an optimistic comment (if the message is provided) and call the API
             respondToProactiveAppReview(response, proactiveAppReview, message, conciergeReportID);
-
-            // Navigate to Concierge DM if we have a report ID and this wasn't a skip
-            if (conciergeReportID && response !== 'skip') {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
-            }
         },
         [conciergeReportID, proactiveAppReview],
     );
