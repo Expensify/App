@@ -11,6 +11,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report, ReportAction} from '@src/types/onyx';
 import {getFakeReport} from '../../utils/LHNTestUtils';
 
 // Mock the context menu
@@ -173,6 +174,111 @@ describe('LHNOptionsList', () => {
                     }),
                 }),
             );
+        });
+    });
+
+    describe('DEW (Dynamic External Workflow) pending submit message', () => {
+        it('shows queued message when offline with pending DEW submit', async () => {
+            // Given a report is submitted while offline on a DEW policy, which creates an optimistic SUBMITTED action
+            const policyID = 'dewTestPolicy';
+            const reportID = 'dewTestReport';
+            const accountID1 = 1;
+            const accountID2 = 2;
+            const policy: Policy = {
+                id: policyID,
+                name: 'DEW Test Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            } as Policy;
+            const report: Report = {
+                reportID,
+                reportName: 'DEW Test Report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                participants: {[accountID1]: {notificationPreference: 'always'}, [accountID2]: {notificationPreference: 'always'}},
+            };
+            const submittedAction: ReportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2024-01-01 00:00:00',
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                message: [{type: 'COMMENT', text: 'submitted'}],
+                originalMessage: {},
+            };
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: true});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [submittedAction.reportActionID]: submittedAction,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
+                    pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+                });
+            });
+
+            // When the LHNOptionsList is rendered
+            render(getLHNOptionsListElement({data: [report]}));
+
+            // Then the queued message should be displayed because DEW submissions are processed async and the user needs feedback
+            const reportItem = await waitFor(() => getReportItem(reportID));
+            expect(reportItem).toBeTruthy();
+            await waitFor(() => {
+                expect(screen.getByText('queued to submit via custom approval workflow')).toBeTruthy();
+            });
+        });
+
+        it('does not show queued message when user submits online with DEW policy', async () => {
+            // Given a report is submitted while online on a DEW policy, which does NOT create an optimistic SUBMITTED action
+            const policyID = 'dewTestPolicyOnline';
+            const reportID = 'dewTestReportOnline';
+            const accountID1 = 1;
+            const accountID2 = 2;
+            const expectedLastMessage = 'Expense for lunch meeting';
+            const policy: Policy = {
+                id: policyID,
+                name: 'DEW Test Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            } as Policy;
+            const report: Report = {
+                reportID,
+                reportName: 'DEW Test Report',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID,
+                lastMessageText: expectedLastMessage,
+                participants: {[accountID1]: {notificationPreference: 'always'}, [accountID2]: {notificationPreference: 'always'}},
+            };
+            const commentAction: ReportAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2024-01-01 00:00:00',
+                message: [{type: 'COMMENT', text: expectedLastMessage, html: expectedLastMessage}],
+            };
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NETWORK, {isOffline: false});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [commentAction.reportActionID]: commentAction,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
+                    pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.SUBMIT,
+                });
+            });
+
+            // When the LHNOptionsList is rendered
+            render(getLHNOptionsListElement({data: [report]}));
+
+            // Then the queued message should NOT appear because the server processes DEW submissions immediately when online
+            const reportItem = await waitFor(() => getReportItem(reportID));
+            expect(reportItem).toBeTruthy();
+            await waitFor(() => {
+                expect(screen.queryByText('queued to submit via custom approval workflow')).toBeNull();
+                expect(screen.getByText(expectedLastMessage)).toBeTruthy();
+            });
         });
     });
 });
