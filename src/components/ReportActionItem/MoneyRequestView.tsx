@@ -557,7 +557,7 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit) {
+                        if (isExpenseSplit && isSplitAvailable) {
                             initSplitExpense(allTransactions, allReports, transaction);
                             return;
                         }
@@ -601,7 +601,7 @@ function MoneyRequestView({
                             return;
                         }
 
-                        if (isExpenseSplit) {
+                        if (isExpenseSplit && isSplitAvailable) {
                             initSplitExpense(allTransactions, allReports, transaction);
                             return;
                         }
@@ -734,7 +734,7 @@ function MoneyRequestView({
 
     const reportNameToDisplay = isFromMergeTransaction
         ? (updatedTransaction?.reportName ?? translate('common.none'))
-        : computeReportName(parentReport, allReports, allPolicies, allTransactions) || parentReport?.reportName;
+        : (parentReport?.reportName ?? computeReportName(parentReport, allReports, allPolicies, allTransactions));
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
     const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);
@@ -792,7 +792,7 @@ function MoneyRequestView({
                                 return;
                             }
 
-                            if (isExpenseSplit) {
+                            if (isExpenseSplit && isSplitAvailable) {
                                 initSplitExpense(allTransactions, allReports, transaction);
                                 return;
                             }

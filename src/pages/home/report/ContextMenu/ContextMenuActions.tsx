@@ -656,7 +656,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 const content = selection || messageHtml;
                 if (isReportPreviewAction) {
                     const iouReportID = getIOUReportIDFromReportActionPreview(reportAction);
-                    const displayMessage = getReportPreviewMessage(iouReportID, reportAction);
+                    const displayMessage = getReportPreviewMessage(iouReportID, reportAction, undefined, undefined, undefined, undefined, undefined, true);
                     Clipboard.setString(displayMessage);
                 } else if (isTaskActionReportActionsUtils(reportAction)) {
                     const {text, html} = getTaskReportActionMessage(reportAction);
@@ -1084,7 +1084,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: true,
         textTranslateKey: 'reportActionContextMenu.menu',
-        icon: Expensicons.ThreeDots,
+        icon: 'ThreeDots',
         shouldShow: ({isMini}) => isMini,
         onPress: (closePopover, {openOverflowMenu, event, openContextMenu, anchorRef}) => {
             openOverflowMenu(event as GestureResponderEvent | MouseEvent, anchorRef ?? {current: null});

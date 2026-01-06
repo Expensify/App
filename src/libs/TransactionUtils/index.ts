@@ -71,8 +71,6 @@ import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {
     Comment,
     Receipt,
@@ -830,6 +828,25 @@ function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
 }
 
 /**
+ * Determines if a transaction's convertedAmount should be cleared when moving to a different currency workspace.
+ * The convertedAmount is calculated for the source workspace's currency, so it becomes stale when:
+ * 1. Source and destination workspace currencies differ, AND
+ * 2. The transaction's currency doesn't match the destination currency
+ *
+ * Transactions that match the destination currency can keep their convertedAmount since no conversion is needed.
+ */
+function shouldClearConvertedAmount(transaction: OnyxInputOrEntry<Transaction>, sourceCurrency: string | undefined, destinationCurrency: string | undefined): boolean {
+    if (!sourceCurrency || !destinationCurrency || sourceCurrency === destinationCurrency) {
+        return false;
+    }
+
+    const transactionCurrency = getCurrency(transaction);
+    const transactionMatchesDestination = transactionCurrency === destinationCurrency;
+
+    return !transactionMatchesDestination;
+}
+
+/**
  * Return the original currency field from the transaction.
  */
 function getOriginalCurrency(transaction: Transaction): string {
@@ -1268,8 +1285,7 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>, r
  * Get all transaction violations of the transaction with given transactionID.
  */
 function getTransactionViolations(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transaction: OnyxEntry<Transaction | SearchTransaction>,
+    transaction: OnyxEntry<Transaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -1314,8 +1330,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
  * Check if there is broken connection violation.
  */
 function hasBrokenConnectionViolation(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transaction: Transaction | SearchTransaction,
+    transaction: Transaction,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -1461,8 +1476,7 @@ function shouldShowViolation(
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
 function allHavePendingRTERViolation(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transactions: OnyxEntry<Transaction[] | SearchTransaction[]>,
+    transactions: OnyxEntry<Transaction[]>,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -1496,8 +1510,7 @@ function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, sho
  * Check if there is any transaction without RTER violation within the given transactionIDs.
  */
 function hasAnyTransactionWithoutRTERViolation(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transactions: Transaction[] | SearchTransaction[],
+    transactions: Transaction[],
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -2380,6 +2393,19 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, reports
 }
 
 /**
+ * Determines whether a report should display the expense breakdown.
+ */
+function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
+    if (!transactions || transactions.length === 0) {
+        return false;
+    }
+
+    // Show breakdown if there is ANY non-reimbursable expense.
+    // If there are no non-reimbursable expenses (i.e., all are reimbursable), do not show the breakdown.
+    return transactions.some((transaction) => !getReimbursable(transaction));
+}
+
+/**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
  */
 function createUnreportedExpenses(transactions: Array<Transaction | undefined>): UnreportedExpenseListItemType[] {
@@ -2461,6 +2487,7 @@ export {
     getTaxAmount,
     getTaxCode,
     getCurrency,
+    shouldClearConvertedAmount,
     getDistanceInMeters,
     getCardID,
     getOriginalCurrency,
@@ -2564,6 +2591,7 @@ export {
     shouldReuseInitialTransaction,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
+    shouldShowExpenseBreakdown,
 };
 
 export type {TransactionChanges};

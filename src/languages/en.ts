@@ -493,6 +493,7 @@ const translations = {
         showMore: 'Show more',
         showLess: 'Show less',
         merchant: 'Merchant',
+        change: 'Change',
         category: 'Category',
         report: 'Report',
         billable: 'Billable',
@@ -1240,6 +1241,7 @@ const translations = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `submitted${memo ? `, saying ${memo}` : ''}`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
+        queuedToSubmitViaDEW: 'queued to submit via custom approval workflow',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -2328,6 +2330,24 @@ const translations = {
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
         defaultPaymentMethod: 'Default',
         bankAccountLastFour: (lastFour: string) => `Bank Account • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Expense rules',
+        subtitle: 'These rules will apply to your expenses. If you submit to a workspace, then the workspace rules may override them.',
+        emptyRules: {
+            title: "You haven't created any rules",
+            subtitle: 'Add a rule to automate expense reporting.',
+        },
+        changes: {
+            billable: (value: boolean) => `Update expense ${value ? 'billable' : 'non-billable'}`,
+            category: (value: string) => `Update category to "${value}"`,
+            comment: (value: string) => `Change description to "${value}"`,
+            merchant: (value: string) => `Update merchant to "${value}"`,
+            reimbursable: (value: boolean) => `Update expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
+            report: (value: string) => `Add a report named "${value}"`,
+            tag: (value: string) => `Update tag to "${value}"`,
+            tax: (value: string) => `Update tax rate to "${value}"`,
+        },
     },
     preferencesPage: {
         appSection: {

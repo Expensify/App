@@ -221,7 +221,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: undefined;
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: undefined;
     [SCREENS.SETTINGS.PROFILE.VACATION_DELEGATE]: undefined;
-    [SCREENS.WORKSPACE.CURRENCY]: undefined;
+    [SCREENS.WORKSPACE.CURRENCY]: {
+        isForcedToChangeCurrency?: boolean;
+    };
     [SCREENS.WORKSPACE.ADDRESS]: {
         policyID: string;
         country?: Country | '';
@@ -2319,6 +2321,7 @@ type SettingsSplitNavigatorParamList = {
         backTo?: Routes;
     };
     [SCREENS.SETTINGS.WALLET.ROOT]: undefined;
+    [SCREENS.SETTINGS.RULES.ROOT]: undefined;
     [SCREENS.SETTINGS.ABOUT]: undefined;
     [SCREENS.SETTINGS.TROUBLESHOOT]: undefined;
     [SCREENS.SETTINGS.SAVE_THE_WORLD]: undefined;
