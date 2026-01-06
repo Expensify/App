@@ -19,17 +19,8 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportTransactions from '@hooks/useReportTransactions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
-import {
-    canAddTransaction,
-    getOutstandingReportsForUser,
-    getPolicyName,
-    getReportName,
-    isIOUReport,
-    isOpenReport,
-    isReportOwner,
-    isSelfDM,
-    sortOutstandingReportsBySelected,
-} from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportNameUtils';
+import {canAddTransaction, getOutstandingReportsForUser, getPolicyName, isIOUReport, isOpenReport, isReportOwner, isSelfDM, sortOutstandingReportsBySelected} from '@libs/ReportUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -186,7 +177,6 @@ function IOURequestEditReportCommon({
                     // We set it to null here to prevent showing RBR for reports https://github.com/Expensify/App/issues/65960.
                     brickRoadIndicator: null,
                     alternateText: getPolicyName({report}) ?? matchingOption?.alternateText,
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     text: getReportName(report),
                     value: report.reportID,
                     keyForList: report.reportID,

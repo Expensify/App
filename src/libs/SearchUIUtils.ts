@@ -88,6 +88,7 @@ import {
     shouldReportActionBeVisible,
 } from './ReportActionsUtils';
 import {isExportAction} from './ReportPrimaryActionUtils';
+import {computeReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction,
     findSelfDMReportID,
@@ -95,7 +96,6 @@ import {
     getIcons,
     getPersonalDetailsForAccountID,
     getPolicyName,
-    getReportName,
     getReportOrDraftReport,
     getReportStatusTranslation,
     getSearchReportName,
@@ -1378,6 +1378,81 @@ function getReportNameValuePairsFromKey(data: OnyxTypes.SearchResults['data'], r
 }
 
 /**
+ * @private
+ * Extracts all reports from the search data.
+ */
+function getReportsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.Report> {
+    const reports: Record<string, OnyxTypes.Report> = {};
+    for (const key of Object.keys(data)) {
+        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT)) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            reports[key] = (data as any)[key] as OnyxTypes.Report;
+        }
+    }
+    return reports;
+}
+
+/**
+ * @private
+ * Extracts all policies from the search data.
+ */
+function getPoliciesFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.Policy> {
+    const policies: Record<string, OnyxTypes.Policy> = {};
+    for (const key of Object.keys(data)) {
+        if (key.startsWith(ONYXKEYS.COLLECTION.POLICY)) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            policies[key] = (data as any)[key] as OnyxTypes.Policy;
+        }
+    }
+    return policies;
+}
+
+/**
+ * @private
+ * Extracts all transactions from the search data.
+ */
+function getTransactionsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.Transaction> {
+    const transactions: Record<string, OnyxTypes.Transaction> = {};
+    for (const key of Object.keys(data)) {
+        if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            transactions[key] = (data as any)[key] as OnyxTypes.Transaction;
+        }
+    }
+    return transactions;
+}
+
+/**
+ * @private
+ * Extracts all report name value pairs from the search data.
+ */
+function getReportNameValuePairsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.ReportNameValuePairs> {
+    const reportNameValuePairs: Record<string, OnyxTypes.ReportNameValuePairs> = {};
+    for (const key of Object.keys(data)) {
+        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS)) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            reportNameValuePairs[key] = (data as any)[key] as OnyxTypes.ReportNameValuePairs;
+        }
+    }
+    return reportNameValuePairs;
+}
+
+/**
+ * @private
+ * Extracts all report actions from the search data.
+ */
+function getReportActionsFromData(data: OnyxTypes.SearchResults['data']): OnyxCollection<OnyxTypes.ReportActions> {
+    const reportActions: Record<string, OnyxTypes.ReportActions> = {};
+    for (const key of Object.keys(data)) {
+        if (key.startsWith(ONYXKEYS.COLLECTION.REPORT_ACTIONS)) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+            reportActions[key] = (data as any)[key] as OnyxTypes.ReportActions;
+        }
+    }
+    return reportActions;
+}
+
+/**
  * Returns the action that can be taken on a given transaction or report
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -1506,6 +1581,12 @@ function getTaskSections(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     archivedReportsIDList?: ArchivedReportsIDSet,
 ): [TaskListItemType[], number] {
+    const reports = getReportsFromData(data);
+    const policies = getPoliciesFromData(data);
+    const transactions = getTransactionsFromData(data);
+    const reportNameValuePairs = getReportNameValuePairsFromData(data);
+    const reportActions = getReportActionsFromData(data);
+
     const tasks = Object.keys(data)
         .filter(isReportEntry)
         // Ensure that the reports that were passed are tasks, and not some other
@@ -1540,12 +1621,9 @@ function getTaskSections(
             };
 
             if (parentReport && personalDetails) {
-                // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const policy = getPolicy(parentReport.policyID);
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const parentReportName = getReportName(parentReport, policy, undefined, undefined, undefined, undefined, undefined, isParentReportArchived);
+                const parentReportName = computeReportName(parentReport, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions);
+                const policy = getPolicy(parentReport.policyID);
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);
 

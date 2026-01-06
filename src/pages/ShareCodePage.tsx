@@ -30,10 +30,10 @@ import {
     getParentNavigationSubtitle,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
-    getReportName,
     isExpenseReport,
     isMoneyRequestReport,
 } from '@libs/ReportUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import {getAvatarURL} from '@libs/UserAvatarUtils';
@@ -99,7 +99,6 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         return currentUserPersonalDetails.login;
     }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber]);
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title = isReport ? getReportName(report) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
