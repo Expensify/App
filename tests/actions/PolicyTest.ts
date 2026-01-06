@@ -74,6 +74,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -463,6 +466,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -489,6 +495,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -519,6 +528,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID: undefined,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -545,6 +557,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -568,6 +583,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: undefined,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -592,6 +610,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -614,6 +635,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -636,6 +660,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -658,6 +685,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.EMPLOYER,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.EMPLOYER},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -680,6 +710,9 @@ describe('actions/Policy', () => {
                 policyName: WORKSPACE_NAME,
                 policyID,
                 engagementChoice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT,
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -714,6 +747,9 @@ describe('actions/Policy', () => {
                         enabled: true,
                     },
                 ],
+                introSelected: {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE},
+                currentUserAccountIDParam: ESH_ACCOUNT_ID,
+                currentUserEmailParam: ESH_EMAIL,
             });
             await waitForBatchedUpdates();
 
@@ -1060,6 +1096,7 @@ describe('actions/Policy', () => {
             mockFetch?.fail?.();
             Policy.deleteWorkspace({
                 policyID: fakePolicy.id,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: fakePolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
@@ -1151,6 +1188,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: 'test',
                 lastAccessedWorkspacePolicyID: undefined,
@@ -1207,6 +1245,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID: randomGroupPolicy.id,
+                personalPolicyID: personalPolicy.id,
                 activePolicyID: randomGroupPolicy.id,
                 policyName: randomGroupPolicy.name,
                 lastAccessedWorkspacePolicyID: undefined,
@@ -1243,6 +1282,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID: policyToDelete.id,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,
@@ -1281,6 +1321,7 @@ describe('actions/Policy', () => {
 
             Policy.deleteWorkspace({
                 policyID: policyToDelete.id,
+                personalPolicyID: undefined,
                 activePolicyID: undefined,
                 policyName: policyToDelete.name,
                 lastAccessedWorkspacePolicyID,

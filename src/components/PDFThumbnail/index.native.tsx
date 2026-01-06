@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import Pdf from 'react-native-pdf';
-import ActivityIndicator from '@components/ActivityIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import PDFThumbnailError from './PDFThumbnailError';
@@ -19,7 +19,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
                     <Pdf
                         fitPolicy={fitPolicy}
                         trustAllCerts={false}
-                        renderActivityIndicator={() => <ActivityIndicator size="large" />}
+                        renderActivityIndicator={() => <LoadingIndicator />}
                         source={{uri: isAuthTokenRequired ? addEncryptedAuthTokenToURL(previewSourceURL) : previewSourceURL}}
                         singlePage
                         style={sizeStyles}

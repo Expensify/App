@@ -151,6 +151,7 @@ function NumberWithSymbolForm({
     onSubmitEditing,
     ...props
 }: NumberWithSymbolFormProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'PlusMinus'] as const);
