@@ -1260,7 +1260,8 @@ function buildUserReadableQueryString(
     }
 
     if (columns && columns.length > 0) {
-        title += ` columns:${columns.map(getUserFriendlyValue).join(',')}`;
+        const columnValue = Array.isArray(columns) ? columns.map((column) => getUserFriendlyValue(column)).join(',') : getUserFriendlyValue(columns);
+        title += ` columns:${columnValue}`;
     }
 
     for (const filterObject of filters) {
@@ -1324,7 +1325,7 @@ function buildCannedSearchQuery({
  * For example: "type:trip" is a canned query.
  */
 function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
-    const selectedColumns = queryJSON.columns ?? [];
+    const selectedColumns = [queryJSON.columns ?? []].flat();
     const defaultColumns = Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE_REPORT);
     const hasCustomColumns = !arraysEqual(defaultColumns, selectedColumns) && selectedColumns.length > 0;
     return !queryJSON.filters && !queryJSON.policyID && !queryJSON.status && !hasCustomColumns;
