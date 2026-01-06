@@ -64,8 +64,6 @@ To customize columns:
 5. Drag and drop columns to rearrange their order.
 6. Click **Save** to save your column layout.
 
-Your column settings will be saved automatically and stay in place when you share reports via link.
-
 You can choose from a wide range of columns, including:
 
 - **Date** – When the report or expense was created
@@ -186,9 +184,6 @@ Absolutely. Just drag and drop the columns in the order you prefer within the **
 
 ## Can I save different column views?
 Yes. Each saved search stores your column layout, filters, and sorting preferences. You can save multiple versions for different workflows.
-
-## What happens if I hide all columns?
-You must keep at least one column visible. If you try to hide all columns, the app will keep one selected to avoid rendering an empty table.
 
 ## Are custom columns available on mobile?
 No. The mobile experience uses a simplified card layout and does not support customizable columns.
