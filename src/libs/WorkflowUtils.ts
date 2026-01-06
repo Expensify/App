@@ -425,15 +425,28 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
             const updateApproversHasOwner = updateApprovers.some((approver) => approver.email === ownerEmail);
 
             // If the owner is already in the approvers list, return the workflow with the updated approvers
+            // but still clear overLimitForwardsTo if it points to the removed member
             if (updateApproversHasOwner) {
+                const approversWithClearedOverLimit = updateApprovers.map((item) =>
+                    item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+                );
                 return {
                     ...workflow,
-                    approvers: updateApprovers,
+                    approvers: approversWithClearedOverLimit,
                 };
             }
 
-            // Update forwardsTo if necessary and prepare the new approver object
-            const updatedApprovers = updateApprovers.flatMap((item) => (item.forwardsTo === removedApproverEmail ? {...item, forwardsTo: ownerEmail} : item));
+            // Update forwardsTo and overLimitForwardsTo if necessary and prepare the new approver object
+            const updatedApprovers = updateApprovers.flatMap((item) => {
+                let updatedItem = item;
+                if (item.forwardsTo === removedApproverEmail) {
+                    updatedItem = {...updatedItem, forwardsTo: ownerEmail};
+                }
+                if (item.overLimitForwardsTo === removedApproverEmail) {
+                    updatedItem = {...updatedItem, overLimitForwardsTo: '', approvalLimit: null};
+                }
+                return updatedItem;
+            });
 
             const newApprover = {
                 email: ownerEmail ?? '',
@@ -446,6 +459,18 @@ function updateWorkflowDataOnApproverRemoval({approvalWorkflows, removedApprover
             return {
                 ...workflow,
                 approvers: [...updatedApprovers, newApprover],
+            };
+        }
+
+        // For any other workflow, check if any approver has overLimitForwardsTo pointing to the removed member
+        const hasOverLimitToRemovedApprover = workflow.approvers.some((item) => item.overLimitForwardsTo === removedApproverEmail);
+        if (hasOverLimitToRemovedApprover) {
+            const approversWithClearedOverLimit = workflow.approvers.map((item) =>
+                item.overLimitForwardsTo === removedApproverEmail ? {...item, overLimitForwardsTo: '', approvalLimit: null} : item,
+            );
+            return {
+                ...workflow,
+                approvers: approversWithClearedOverLimit,
             };
         }
 
