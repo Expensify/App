@@ -1,10 +1,9 @@
 import {useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+import useOnyx from './useOnyx';
 
 type SnapshotMap = Record<string, SearchResults>;
 

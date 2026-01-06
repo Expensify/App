@@ -448,14 +448,16 @@ function Search({
         if (!validGroupBy) {
             return [];
         }
-        return (baseFilteredData as TransactionGroupListItemType[]).flatMap((item) => (item.transactionsQueryJSON?.hash ? [String(item.transactionsQueryJSON.hash)] : []));
+        return (baseFilteredData as TransactionGroupListItemType[])
+            .map((item) => (item.transactionsQueryJSON?.hash ? String(item.transactionsQueryJSON.hash) : undefined))
+            .filter((hashValue): hashValue is string => !!hashValue);
     }, [validGroupBy, baseFilteredData]);
 
     const groupByTransactionSnapshots = useMultipleSnapshots(groupByTransactionHashes);
 
-    const [filteredData] = useMemo(() => {
+    const filteredData = useMemo(() => {
         if (!validGroupBy || isExpenseReportType) {
-            return [baseFilteredData];
+            return baseFilteredData;
         }
 
         const enriched = (baseFilteredData as TransactionGroupListItemType[]).map((item) => {
@@ -475,7 +477,8 @@ function Search({
             });
             return {...item, transactions: transactions1 as TransactionListItemType[]};
         });
-        return [enriched];
+
+        return enriched;
     }, [validGroupBy, isExpenseReportType, baseFilteredData, groupByTransactionSnapshots, accountID, email, translate, formatPhoneNumber, isActionLoadingSet]);
 
     const hasLoadedAllTransactions = useMemo(() => {
@@ -487,7 +490,7 @@ function Search({
             const snapshot = item.transactionsQueryJSON?.hash ? groupByTransactionSnapshots[String(item.transactionsQueryJSON.hash)] : undefined;
             // If snapshot doesn't exist, the group hasn't been expanded yet (transactions not loaded)
             // If snapshot exists and has hasMoreResults: true, not all transactions are loaded
-            return !!snapshot && snapshot?.search?.hasMoreResults !== true;
+            return !!snapshot && !snapshot?.search?.hasMoreResults;
         });
     }, [validGroupBy, baseFilteredData, groupByTransactionSnapshots]);
 
