@@ -42,7 +42,7 @@ To share an existing account with other admins:
 
 ---
 
-## What happens after you share the account
+## What happens after sharing a business bank account
 
 - The shared-to admins will receive a Concierge message letting them know the account was shared.
 - They’ll now see the account in their **Wallet**.
