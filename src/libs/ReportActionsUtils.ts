@@ -36,7 +36,7 @@ import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {toLocaleOrdinal} from './LocaleDigitUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
-import {formatMessageElementList} from './Localize';
+import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForCurrentContext';
