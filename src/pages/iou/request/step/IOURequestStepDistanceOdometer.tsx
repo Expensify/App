@@ -505,7 +505,7 @@ function IOURequestStepDistanceOdometer({
     const handleNext = () => {
         // Validation: Start and end readings must not be empty
         if (!startReading || !endReading) {
-            setFormError(translate('distance.odometer.readingRequired'));
+            setFormError(translate('common.error.odometerReadingRequired'));
             return;
         }
 
@@ -513,14 +513,14 @@ function IOURequestStepDistanceOdometer({
         const end = parseFloat(endReading);
 
         if (Number.isNaN(start) || Number.isNaN(end)) {
-            setFormError(translate('distance.odometer.readingRequired'));
+            setFormError(translate('common.error.odometerReadingRequired'));
             return;
         }
 
         // Validation: Calculated distance (end - start) must be > 0
         const distance = end - start;
         if (distance <= 0) {
-            setFormError(translate('distance.odometer.negativeDistanceNotAllowed'));
+            setFormError(translate('common.error.negativeDistanceNotAllowed'));
             return;
         }
 

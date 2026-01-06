@@ -7078,8 +7078,6 @@ const translations = {
             endReading: 'End reading',
             saveForLater: 'Save for later',
             totalDistance: 'Total distance',
-            readingRequired: 'Start and end readings are required',
-            negativeDistanceNotAllowed: 'End reading must be greater than start reading',
         },
     },
     gps: {

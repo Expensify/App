@@ -1334,7 +1334,6 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateBeforeStartDate: '終了日は開始日より前にはできません',
             endDateSameAsStartDate: '終了日は開始日と同じにはできません',
             odometerReadingRequired: '開始時刻と終了時刻の両方を入力してください',
-            negativeDistanceNotAllowed: '終了値は開始値より大きくなければなりません',
         },
         dismissReceiptError: 'エラーを閉じる',
         dismissReceiptErrorConfirmation: '注意！このエラーを無視すると、アップロードした領収書が完全に削除されます。本当に実行しますか？',
@@ -7133,8 +7132,6 @@ ${reportName}
             endReading: '読み終える',
             saveForLater: '後で保存',
             totalDistance: '合計距離',
-            readingRequired: '開始値と終了値の入力が必要です',
-            negativeDistanceNotAllowed: '終了値は開始値より大きくなければなりません',
         },
     },
     reportCardLostOrDamaged: {

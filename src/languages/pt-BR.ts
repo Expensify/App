@@ -1330,7 +1330,6 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateBeforeStartDate: 'A data de término não pode ser anterior à data de início',
             endDateSameAsStartDate: 'A data de término não pode ser igual à data de início',
             odometerReadingRequired: 'Insira as leituras de início e de fim',
-            negativeDistanceNotAllowed: 'A leitura final deve ser maior que a leitura inicial',
         },
         dismissReceiptError: 'Dispensar erro',
         dismissReceiptErrorConfirmation: 'Atenção! Ignorar este erro removerá completamente o seu recibo enviado. Tem certeza?',
@@ -7168,8 +7167,6 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
             endReading: 'Finalizar leitura',
             saveForLater: 'Salvar para depois',
             totalDistance: 'Distância total',
-            readingRequired: 'Leituras inicial e final são obrigatórias',
-            negativeDistanceNotAllowed: 'A leitura final deve ser maior que a leitura inicial',
         },
     },
     reportCardLostOrDamaged: {

@@ -1340,7 +1340,6 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateBeforeStartDate: 'La date de fin ne peut pas être antérieure à la date de début',
             endDateSameAsStartDate: 'La date de fin ne peut pas être identique à la date de début',
             odometerReadingRequired: 'Veuillez saisir les relevés de début et de fin',
-            negativeDistanceNotAllowed: 'Le relevé de fin doit être supérieur au relevé de début',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera entièrement votre reçu téléchargé. Êtes-vous sûr ?',
@@ -7215,8 +7214,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             endReading: 'Terminer la lecture',
             saveForLater: 'Enregistrer pour plus tard',
             totalDistance: 'Distance totale',
-            readingRequired: 'Les relevés de début et de fin sont requis',
-            negativeDistanceNotAllowed: 'Le relevé de fin doit être supérieur au relevé de début',
         },
     },
     reportCardLostOrDamaged: {

@@ -1333,7 +1333,6 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateBeforeStartDate: 'De einddatum kan niet vóór de startdatum liggen',
             endDateSameAsStartDate: 'De einddatum mag niet hetzelfde zijn als de startdatum',
             odometerReadingRequired: 'Voer zowel de begin- als eindstand in',
-            negativeDistanceNotAllowed: 'Eindstand moet groter zijn dan beginstand',
         },
         dismissReceiptError: 'Foutmelding sluiten',
         dismissReceiptErrorConfirmation: 'Let op! Als je deze foutmelding negeert, wordt je geüploade bon volledig verwijderd. Weet je het zeker?',
@@ -7176,8 +7175,6 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             endReading: 'Lezen beëindigen',
             saveForLater: 'Later opslaan',
             totalDistance: 'Totale afstand',
-            readingRequired: 'Begin- en eindstanden zijn vereist',
-            negativeDistanceNotAllowed: 'Eindstand moet groter zijn dan beginstand',
         },
     },
     reportCardLostOrDamaged: {

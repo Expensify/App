@@ -1339,7 +1339,6 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateBeforeStartDate: 'Das Enddatum darf nicht vor dem Startdatum liegen',
             endDateSameAsStartDate: 'Das Enddatum darf nicht mit dem Startdatum identisch sein',
             odometerReadingRequired: 'Bitte geben Sie sowohl Start- als auch Endstand ein',
-            negativeDistanceNotAllowed: 'Endstand muss größer als Startstand sein',
         },
         dismissReceiptError: 'Fehler ausblenden',
         dismissReceiptErrorConfirmation: 'Achtung! Wenn du diesen Fehler verwirfst, wird dein hochgeladener Beleg vollständig entfernt. Bist du sicher?',
@@ -7205,8 +7204,6 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             endReading: 'Lesen beenden',
             saveForLater: 'Für später speichern',
             totalDistance: 'Gesamtstrecke',
-            readingRequired: 'Start- und Endzählerstände sind erforderlich',
-            negativeDistanceNotAllowed: 'Endstand muss größer als Startstand sein',
         },
     },
     reportCardLostOrDamaged: {
