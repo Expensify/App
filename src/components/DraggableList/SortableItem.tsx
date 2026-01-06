@@ -32,6 +32,7 @@ function SortableItem({id, children, disabled = false, isFocused = false}: Sorta
             {...attributes}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...(disabled ? {} : listeners)}
+            // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
             tabIndex={isFocused ? 0 : -1}
         >
             {children}
