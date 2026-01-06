@@ -405,7 +405,7 @@ function isCustomFeed(feed: CompanyCardFeedWithNumber | undefined): boolean {
  * @param feedKey - The feed key to check
  * @returns true if the feed is a CSV feed or Expensify Card, false otherwise
  */
-function isCSVFeed(feedKey: string): boolean {
+function isCSVFeedOrExpensifyCard(feedKey: string): boolean {
     const lowerFeedKey = feedKey.toLowerCase();
     // Exclude CSV feeds (feed types starting with "csv" or "ccupload", or containing "ccupload")
     // Also exclude Expensify Cards which don't count toward the limit
@@ -937,7 +937,7 @@ export {
     isSelectedFeedExpired,
     getCompanyFeeds,
     isCustomFeed,
-    isCSVFeed,
+    isCSVFeedOrExpensifyCard,
     getBankCardDetailsImage,
     getSelectedFeed,
     getPlaidCountry,

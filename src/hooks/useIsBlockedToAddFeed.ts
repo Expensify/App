@@ -1,5 +1,5 @@
 import {useMemo} from 'react';
-import {getCompanyFeeds, isCSVFeed} from '@libs/CardUtils';
+import {getCompanyFeeds, isCSVFeedOrExpensifyCard} from '@libs/CardUtils';
 import {isCollectPolicy} from '@libs/PolicyUtils';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import useCardFeeds from './useCardFeeds';
@@ -35,7 +35,7 @@ function useIsBlockedToAddFeed(policyID?: string) {
             return 0;
         }
         const feeds = companyFeeds ?? {};
-        const nonCSVFeeds = Object.keys(feeds).filter((feedKey) => !isCSVFeed(feedKey));
+        const nonCSVFeeds = Object.keys(feeds).filter((feedKey) => !isCSVFeedOrExpensifyCard(feedKey));
         return nonCSVFeeds.length;
     }, [isLoading, companyFeeds]);
 
