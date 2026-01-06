@@ -207,6 +207,15 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     return (
         <View style={styles.flex1}>
             <OfflineWithFeedback
+                pendingAction={reportPendingAction ?? report?.pendingFields?.reimbursed}
+                errors={reportErrors}
+                needsOffscreenAlphaCompositing
+                shouldShowErrorMessages={false}
+            >
+                <HeaderGap />
+                {reportHeaderView}
+            </OfflineWithFeedback>
+            <OfflineWithFeedback
                 pendingAction={reportPendingAction}
                 errors={reportErrors}
                 onClose={dismissReportCreationError}
@@ -215,8 +224,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 contentContainerStyle={styles.flex1}
                 errorRowStyles={[styles.ph5, styles.mv2]}
             >
-                <HeaderGap />
-                {reportHeaderView}
                 <View style={[styles.overflowHidden, styles.justifyContentEnd, styles.flex1]}>
                     {shouldDisplayMoneyRequestActionsList ? (
                         <MoneyRequestReportActionsList
@@ -230,6 +237,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             hasOlderActions={hasOlderActions}
                             hasNewerActions={hasNewerActions}
                             showReportActionsLoadingState={isLoadingInitialReportActions && !reportMetadata?.hasOnceLoadedReportActions}
+                            reportPendingAction={reportPendingAction}
                         />
                     ) : (
                         <ReportActionsView
@@ -263,7 +271,5 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         </View>
     );
 }
-
-MoneyRequestReportView.displayName = 'MoneyRequestReportView';
 
 export default MoneyRequestReportView;

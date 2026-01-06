@@ -1,11 +1,11 @@
 import {useMemo} from 'react';
 import type {OnyxCollection} from 'react-native-onyx';
 import {getCardFeedsForDisplay, getCardFeedsForDisplayPerPolicy} from '@libs/CardFeedUtils';
-import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
+import {filterPersonalCards, isCustomFeed, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {CompanyCardFeed, Policy} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
@@ -49,9 +49,16 @@ const useCardFeedsForDisplay = () => {
                 return policyCardFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
             }
         }
+
+        // Commercial feeds don't have preferred policies, so we need to include these in the list
+        const commercialFeeds = Object.values(cardFeedsByPolicy)
+            .flat()
+            .filter((feed) => !isCustomFeed(feed.name as CompanyCardFeed));
+
+        return commercialFeeds.sort((a, b) => localeCompare(a.name, b.name)).at(0);
     }, [eligiblePoliciesIDs, activePolicyID, cardFeedsByPolicy, localeCompare]);
 
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const expensifyCards = getCardFeedsForDisplay({}, allCards);

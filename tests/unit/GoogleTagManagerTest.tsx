@@ -156,16 +156,16 @@ describe('GoogleTagManagerTest', () => {
 
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
-        createWorkspace({});
+        createWorkspace({introSelected: undefined, currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com'});
         await waitForBatchedUpdatesWithAct();
-        createWorkspace({});
+        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined});
         await waitForBatchedUpdatesWithAct();
-        createWorkspace({});
+        createWorkspace({currentUserAccountIDParam: 123456, activePolicyID: undefined, currentUserEmailParam: 'test@test.com', introSelected: undefined});
         await waitForBatchedUpdatesWithAct();
 
         // Then we publish a workspace_created event only once
         expect(GoogleTagManager.publishEvent).toHaveBeenCalledTimes(1);
-        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, accountID);
+        expect(GoogleTagManager.publishEvent).toHaveBeenCalledWith(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, 123456);
     });
 
     test('workspace_created - categorizeTrackedExpense', async () => {
@@ -192,6 +192,11 @@ describe('GoogleTagManagerTest', () => {
                 linkedTrackedExpenseReportID: 'linkedTrackedExpenseReportID',
             },
             isASAPSubmitBetaEnabled: false,
+            currentUserAccountIDParam: accountID,
+            currentUserEmailParam: 'test@test.com',
+            introSelected: undefined,
+            activePolicyID: undefined,
+            quickAction: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();

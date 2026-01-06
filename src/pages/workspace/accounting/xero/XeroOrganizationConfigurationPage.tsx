@@ -36,7 +36,7 @@ function XeroOrganizationConfigurationPage({
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, xeroConfig?.tenantID);
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const sections =
         policy?.connections?.xero?.data?.tenants.map((tenant) => ({
@@ -83,7 +83,7 @@ function XeroOrganizationConfigurationPage({
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={XeroOrganizationConfigurationPage.displayName}
+            displayName="XeroOrganizationConfigurationPage"
             sections={sections.length ? [{data: sections}] : []}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
@@ -101,7 +101,5 @@ function XeroOrganizationConfigurationPage({
         />
     );
 }
-
-XeroOrganizationConfigurationPage.displayName = 'PolicyXeroOrganizationConfigurationPage';
 
 export default withPolicy(XeroOrganizationConfigurationPage);

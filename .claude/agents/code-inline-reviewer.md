@@ -2,7 +2,7 @@
 
 name: code-inline-reviewer
 description: Reviews code and creates inline comments for specific rule violations.
-tools: Glob, Grep, Read, TodoWrite, Bash, BashOutput, KillBash, mcp__github_inline_comment__create_inline_comment
+tools: Glob, Grep, Read, TodoWrite, Bash, BashOutput, KillBash
 model: inherit
 ---
 
@@ -143,31 +143,79 @@ const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
 ---
 
-### [PERF-4] Memoize objects and functions passed as props
+### [PERF-4] Memoize objects (including arrays) and functions passed as props
 
-- **Search patterns**: `useMemo`, `useCallback`, and prop passing patterns
+- **Search patterns**: `prop={{`, `prop={[`, `={() =>`, `prop={variable}` (where variable is non-memoized object/function)
 
-- **Condition**: Objects and functions passed as props should be properly memoized or simplified to primitive values to prevent unnecessary re-renders.
-- **Reasoning**: React uses referential equality to determine if props changed. New object/function instances on every render trigger unnecessary re-renders of child components, even when the actual data hasn't changed. Memoization preserves referential stability.
+- **Applies ONLY to**: Objects (including arrays)/functions passed directly as JSX props. Does NOT apply to:
+  - Code inside callbacks (`.then()`, event handlers)
+  - Code inside `useEffect`/`useMemo`/`useCallback` bodies
+  - Primitives (strings, numbers, booleans)
+  - Already memoized values (`useMemo`/`useCallback`)
 
-Good:
+- **Reasoning**: New object/function references break memoization of child components. Only matters when child IS memoized AND parent is NOT optimized by React Compiler.
 
-```tsx
-const reportData = useMemo(() => ({
-    reportID: report.reportID,
-    type: report.type,
-    isPinned: report.isPinned,
-}), [report.reportID, report.type, report.isPinned]);
+#### Before flagging: Run optimization check
 
-return <ReportActionItem report={reportData} />
+**YOU MUST call `checkReactCompilerOptimization.ts` (available in PATH from `.claude/scripts/`) on EVERY .tsx file from the diff.**
+
+**Call the script ONCE per file, separately. DO NOT use loops or batch processing.**
+
+Example usage:
+```bash
+checkReactCompilerOptimization.ts src/components/File1.tsx
+checkReactCompilerOptimization.ts src/components/File2.tsx
 ```
 
-Bad:
+**NEVER use absolute or relative paths for this script. Call it by name only:**
+- ✅ `checkReactCompilerOptimization.ts src/components/Example.tsx`
+- ❌ `/home/runner/work/App/App/.claude/scripts/checkReactCompilerOptimization.ts ...`
+- ❌ `./.claude/scripts/checkReactCompilerOptimization.ts ...`
 
+**"File not found"** → Assume parent is optimized and skip PERF-4.
+
+#### Decision flow
+
+1. **Parent in `parentOptimized`?** → YES = **Skip** (compiler auto-memoizes)
+
+2. **Child has custom memo comparator that PREVENTS re-render for this prop?**
+   → Use `sourcePath` from script output to read child's source file
+   → Grep for `React.memo` or `memo(`
+   → If custom comparator prevents re-render despite new reference for this prop → **Skip**
+
+3. **Child is memoized?** (`optimized: true` OR `React.memo`)
+   - NO → **Skip** (child re-renders anyway)
+   - YES → **Flag PERF-4**
+
+#### Examples
+
+**Flag** (parent NOT optimized, child IS memoized, no custom comparator):
 ```tsx
-const [report] = useOnyx(`ONYXKEYS.COLLECTION.REPORT${iouReport.id}`);
+// Script output: parentOptimized: [], child MemoizedList optimized: true
+// No custom comparator found
+return <MemoizedList options={{ showHeader: true }} />;
+```
 
-return <ReportActionItem report={report} />
+**Skip - custom comparator** (comparator prevents re-render for this prop):
+```tsx
+// Script output: sourcePath: "src/components/PopoverMenu.tsx"
+// PopoverMenu.tsx has custom memo comparator that handles anchorPosition
+return <PopoverMenu anchorPosition={{x: 0, y: 0}} />;
+```
+
+**Skip - parent optimized**:
+```tsx
+// Script output: parentOptimized: ["MyComponent"]
+// React Compiler auto-memoizes - no manual memoization needed
+return <MemoizedList options={{ showHeader: true }} />;
+```
+
+**Skip - spread props with stable inner values**:
+```tsx
+// Spread is OK when inner values come from memoized sources
+// illustration from useMemoizedLazyIllustrations, illustrationStyle from useThemeStyles
+const illustration = useAboutSectionIllustration();
+return <Section {...illustration} />;
 ```
 
 ---
@@ -203,6 +251,7 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 1. **First, get the list of changed files and their diffs:**
    - Use `gh pr diff` to see what actually changed in the PR
    - Focus ONLY on the changed lines, not the entire file
+   - **CRITICAL**: Only create inline comments on lines that are part of the diff. Do NOT add comments to lines outside the diff, even if they contain violations. Comments on unchanged lines will fail to be created.
 2. **For analyzing changed files:**
    - **For large files (>5000 lines):** Use the Grep tool to search for specific violation patterns instead of reading the entire file. Focus grep searches on the changed portions shown in the diff.
    - **For smaller files:** You may read the full file using the Read tool
@@ -214,7 +263,7 @@ memo(ReportActionItem, (prevProps, nextProps) =>
    - `line`: Line number where the issue occurs
    - `body`: Concise and actionable description of the violation and fix, following the below Comment Format
 6. **Each comment must reference exactly one Rule ID.**
-7. **Output must consist exclusively of calls to mcp__github_inline_comment__create_inline_comment in the required format.** No other text, Markdown, or prose is allowed.
+7. **Output must consist exclusively of calls to createInlineComment.sh in the required format.** No other text, Markdown, or prose is allowed.
 8. **If no violations are found, add a reaction to the PR**:
    Add a 👍 (+1) reaction to the PR using the `addPrReaction` script (available in PATH from `.claude/scripts/`). The script takes ONLY the PR number as argument - it always adds a "+1" reaction, so do NOT pass any reaction type or emoji.
 9. **Add reaction if and only if**:
@@ -230,15 +279,13 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 
 ## Tool Usage Example
 
-For each violation, call the mcp__github_inline_comment__create_inline_comment tool like this.
-CRITICAL: **DO NOT** use the Bash tool for inline comments:
+For each violation, call the createInlineComment.sh script like this:
 
+```bash
+createInlineComment.sh 'src/components/ReportActionsList.tsx' '<Body of the comment according to the Comment Format>' 128
 ```
-mcp__github_inline_comment__create_inline_comment:
-  path: 'src/components/ReportActionsList.tsx'
-  line: 128
-  body: '<Body of the comment according to the Comment Format>'
-```
+
+**IMPORTANT**: Always use single quotes around the body argument to properly handle special characters and quotes.
 
 If ZERO violations are found, use the Bash tool to add a reaction to the PR body:
 
@@ -258,4 +305,4 @@ addPrReaction.sh <PR_NUMBER>
 <Suggested, specific fix preferably with a code snippet>
 ```
 
-**CRITICAL**: You must actually call the mcp__github_inline_comment__create_inline_comment tool for each violation. Don't just describe what you found - create the actual inline comments!
+**CRITICAL**: You must actually call the createInlineComment.sh script for each violation. Don't just describe what you found - create the actual inline comments!

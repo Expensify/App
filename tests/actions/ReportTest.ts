@@ -126,6 +126,7 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         let reportActionID: string | undefined;
         const REPORT_ACTION = {
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -153,7 +154,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -269,6 +270,7 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const LOGGER_MAX_LOG_LINES = 50;
 
         // GIVEN a test user with initial data
@@ -283,7 +285,7 @@ describe('actions/Report', () => {
                 }
 
                 // And leave a comment on a report
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
                 // Then we should expect that there is on persisted request
                 expect(PersistedRequests.getAll().length).toBe(1);
@@ -406,7 +408,7 @@ describe('actions/Report', () => {
                 // When a new comment is added by the current user
 
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(report, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -418,7 +420,7 @@ describe('actions/Report', () => {
 
                 // When another comment is added by the current user
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Current User Comment 2', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(report, REPORT_ID, [], 'Current User Comment 2', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -429,7 +431,7 @@ describe('actions/Report', () => {
 
                 // When another comment is added by the current user
                 currentTime = DateUtils.getDBTime();
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Current User Comment 3', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(report, REPORT_ID, [], 'Current User Comment 3', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -662,6 +664,7 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const EMOJI_CODE = '👍';
         const EMOJI_SKIN_TONE = 2;
         const EMOJI_NAME = '+1';
@@ -696,7 +699,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -705,7 +708,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Add a reaction to the comment
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0], CONST.EMOJI_DEFAULT_SKIN_TONE);
                 }
                 return waitForBatchedUpdates();
             })
@@ -725,7 +728,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Now we remove the reaction
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, CONST.EMOJI_DEFAULT_SKIN_TONE);
                 }
                 return waitForBatchedUpdates();
             })
@@ -740,7 +743,7 @@ describe('actions/Report', () => {
 
                 if (reportAction) {
                     // Add the same reaction to the same report action with a different skin tone
-                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0]);
+                    Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionsReactions[0], CONST.EMOJI_DEFAULT_SKIN_TONE);
                 }
                 return waitForBatchedUpdates()
                     .then(() => {
@@ -773,7 +776,7 @@ describe('actions/Report', () => {
 
                         if (reportAction) {
                             // Now we remove the reaction, and expect that both variations are removed
-                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction);
+                            Report.toggleEmojiReaction(REPORT_ID, reportAction, EMOJI, reportActionReaction, CONST.EMOJI_DEFAULT_SKIN_TONE);
                         }
                         return waitForBatchedUpdates();
                     })
@@ -792,6 +795,7 @@ describe('actions/Report', () => {
         const TEST_USER_ACCOUNT_ID = 1;
         const TEST_USER_LOGIN = 'test@test.com';
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const EMOJI_CODE = '😄';
         const EMOJI_NAME = 'smile';
         const EMOJI = {
@@ -824,7 +828,7 @@ describe('actions/Report', () => {
             .then(() => {
                 // This is a fire and forget response, but once it completes we should be able to verify that we
                 // have an "optimistic" report action in Onyx.
-                Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+                Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -832,7 +836,7 @@ describe('actions/Report', () => {
 
                 if (resultAction) {
                     // Add a reaction to the comment
-                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {});
+                    Report.toggleEmojiReaction(REPORT_ID, resultAction, EMOJI, {}, CONST.EMOJI_DEFAULT_SKIN_TONE);
                 }
                 return waitForBatchedUpdates();
             })
@@ -982,12 +986,13 @@ describe('actions/Report', () => {
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1061,12 +1066,13 @@ describe('actions/Report', () => {
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: false});
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(1);
@@ -1120,10 +1126,11 @@ describe('actions/Report', () => {
         await waitForBatchedUpdates();
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
         await waitForNetworkPromises();
 
         expect(PersistedRequests.getAll().length).toBe(1);
@@ -1172,7 +1179,8 @@ describe('actions/Report', () => {
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
         const file = new File([''], 'test.txt', {type: 'text/plain'});
-        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [], file);
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], file);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1241,7 +1249,8 @@ describe('actions/Report', () => {
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [], file, 'Attachment with comment');
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], file, 'Attachment with comment');
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1324,7 +1333,8 @@ describe('actions/Report', () => {
         const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
         const fileC = new File(['c'], 'c.txt', {type: 'text/plain'});
 
-        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [], [fileA, fileB, fileC], 'Hello world', CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], [fileA, fileB, fileC], 'Hello world', CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
         const relevant = (await relevantPromise) as OnyxTypes.Request[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(1);
@@ -1357,7 +1367,8 @@ describe('actions/Report', () => {
         const fileA = new File(['a'], 'a.txt', {type: 'text/plain'});
         const fileB = new File(['b'], 'b.txt', {type: 'text/plain'});
 
-        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [], [fileA, fileB], undefined, CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], [fileA, fileB], undefined, CONST.DEFAULT_TIME_ZONE, shouldPlaySound);
         const relevant = (await relevantPromise) as OnyxTypes.Request[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(1);
@@ -1389,7 +1400,8 @@ describe('actions/Report', () => {
         const REPORT_ID = '1';
         const file = new File(['a'], 'a.txt', {type: 'text/plain'});
 
-        Report.addAttachmentWithComment(REPORT_ID, REPORT_ID, [], file);
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        Report.addAttachmentWithComment(REPORT, REPORT_ID, [], file);
         const relevant = (await relevantPromise) as OnyxTypes.Request[];
 
         expect(playSoundMock).toHaveBeenCalledTimes(0);
@@ -1405,13 +1417,14 @@ describe('actions/Report', () => {
         }));
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await Promise.resolve();
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'reactions with comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'reactions with comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1420,7 +1433,7 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        Report.toggleEmojiReaction(REPORT_ID, newReportAction, {name: 'smile', code: '😄'}, {});
+        Report.toggleEmojiReaction(REPORT_ID, newReportAction, {name: 'smile', code: '😄'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE);
         Report.toggleEmojiReaction(
             REPORT_ID,
             newReportAction,
@@ -1440,6 +1453,7 @@ describe('actions/Report', () => {
                     },
                 },
             },
+            CONST.EMOJI_DEFAULT_SKIN_TONE,
         );
 
         await waitForBatchedUpdates();
@@ -1505,10 +1519,11 @@ describe('actions/Report', () => {
         }));
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'Attachment with comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'Attachment with comment', CONST.DEFAULT_TIME_ZONE);
 
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
@@ -1519,7 +1534,7 @@ describe('actions/Report', () => {
         // wait for Onyx.connect execute the callback and start processing the queue
         await Promise.resolve();
 
-        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {});
+        Report.toggleEmojiReaction(REPORT_ID, reportAction, {name: 'smile', code: '😄'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE);
         Report.toggleEmojiReaction(
             REPORT_ID,
             reportAction,
@@ -1539,6 +1554,7 @@ describe('actions/Report', () => {
                     },
                 },
             },
+            CONST.EMOJI_DEFAULT_SKIN_TONE,
         );
 
         await waitForBatchedUpdates();
@@ -1574,13 +1590,14 @@ describe('actions/Report', () => {
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
         await Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
         await waitForBatchedUpdates();
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
 
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1627,12 +1644,13 @@ describe('actions/Report', () => {
 
         const TEST_USER_ACCOUNT_ID = 1;
         const REPORT_ID = '1';
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
         const TEN_MINUTES_AGO = subMinutes(new Date(), 10);
         const created = format(addSeconds(TEN_MINUTES_AGO, 10), CONST.DATE.FNS_DB_FORMAT_STRING);
 
         Onyx.set(ONYXKEYS.NETWORK, {isOffline: true});
 
-        Report.addComment(REPORT_ID, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
+        Report.addComment(REPORT, REPORT_ID, [], 'Testing a comment', CONST.DEFAULT_TIME_ZONE);
         // Need the reportActionID to delete the comments
         const newComment = PersistedRequests.getAll().at(0);
         const reportActionID = newComment?.data?.reportActionID as string | undefined;
@@ -1759,7 +1777,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        const {reportID} = Report.createNewReport({accountID}, true, false, policyID);
+        const {reportID} = Report.createNewReport({accountID}, true, false, policy);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
@@ -1832,7 +1850,7 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
 
         mockFetchData.pause();
-        Report.createNewReport({accountID}, true, false, policyID);
+        Report.createNewReport({accountID}, true, false, policy);
         const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
 
         await new Promise<void>((resolve) => {
@@ -1870,7 +1888,7 @@ describe('actions/Report', () => {
         }
 
         // When create new report
-        Report.createNewReport({accountID}, true, false, policyID);
+        Report.createNewReport({accountID}, true, false, policy);
 
         // Then the parent report's hasOutstandingChildRequest property should remain unchanged
         await new Promise<void>((resolve) => {
@@ -2052,7 +2070,7 @@ describe('actions/Report', () => {
             });
 
             // When deleting the expense report
-            Report.deleteAppReport(reportID, '');
+            Report.deleteAppReport(reportID, '', {}, {});
             await waitForBatchedUpdates();
 
             // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
@@ -2148,7 +2166,14 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
 
             // When deleting the first expense report
-            Report.deleteAppReport(expenseReport1.reportID, '');
+            Report.deleteAppReport(
+                expenseReport1.reportID,
+                '',
+                {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                },
+                {},
+            );
             await waitForBatchedUpdates();
 
             const report = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
@@ -2240,6 +2265,216 @@ describe('actions/Report', () => {
             });
             expect(expenseReport2?.chatReportID).toBe(MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID);
             expect(expenseReport2?.parentReportID).toBe(MOCKED_POLICY_EXPENSE_CHAT_REPORT_ID);
+        });
+
+        it('should update report currency and reset totals when changing to workspace with different currency', async () => {
+            // Given an expense report with AUD currency and a transaction in USD
+            const oldPolicy = {
+                ...createRandomPolicy(1),
+                outputCurrency: 'AUD',
+            };
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: oldPolicy.id,
+                currency: 'AUD',
+                total: -1503,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+            };
+            const transaction: OnyxTypes.Transaction = {
+                transactionID: '1',
+                reportID: expenseReport.reportID,
+                currency: 'USD',
+                amount: -1000,
+                convertedAmount: -1503,
+                reimbursable: true,
+                comment: {},
+                created: '',
+                merchant: '',
+            };
+
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${oldPolicy.id}`, oldPolicy),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
+            ]);
+
+            // When moving to a workspace with AED currency
+            const newPolicy = {
+                ...createRandomPolicy(2),
+                outputCurrency: 'AED',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false, false);
+            await waitForBatchedUpdates();
+
+            const updatedReport = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+
+            // Report currency should update to destination
+            expect(updatedReport?.currency).toBe('AED');
+            // Total should be 0 (USD transaction doesn't match AED)
+            expect(updatedReport?.total).toBe(0);
+
+            // Transaction's convertedAmount should be cleared
+            const updatedTransaction = await new Promise<OnyxEntry<OnyxTypes.Transaction>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    callback: (txn) => {
+                        Onyx.disconnect(connection);
+                        resolve(txn);
+                    },
+                });
+            });
+            expect(updatedTransaction?.convertedAmount).toBeFalsy();
+        });
+
+        it('should correctly calculate totals with refund transactions (positive amounts)', async () => {
+            // Given an expense report with a mix of expense and refund transactions
+            const oldPolicy = {
+                ...createRandomPolicy(1),
+                outputCurrency: 'USD',
+            };
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: oldPolicy.id,
+                currency: 'USD',
+                total: -500, // Net of -1000 expense + 500 refund
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+            };
+            // Regular expense (negative rawAmount)
+            const expenseTransaction: OnyxTypes.Transaction = {
+                transactionID: '1',
+                reportID: expenseReport.reportID,
+                currency: 'AUD',
+                amount: -1000,
+                reimbursable: true,
+                comment: {},
+                created: '',
+                merchant: '',
+            };
+            // Refund transaction (positive rawAmount)
+            const refundTransaction: OnyxTypes.Transaction = {
+                transactionID: '2',
+                reportID: expenseReport.reportID,
+                currency: 'AUD',
+                amount: 500, // Positive = refund
+                reimbursable: true,
+                comment: {},
+                created: '',
+                merchant: '',
+            };
+
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${oldPolicy.id}`, oldPolicy),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${expenseTransaction.transactionID}`, expenseTransaction),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${refundTransaction.transactionID}`, refundTransaction),
+            ]);
+
+            // When moving to a workspace with AUD currency (matching transaction currencies)
+            const newPolicy = {
+                ...createRandomPolicy(2),
+                outputCurrency: 'AUD',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false, false);
+            await waitForBatchedUpdates();
+
+            // Then the report total should correctly include expense (-1000) and refund (+500) = -500
+            const updatedReport = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            // Expense: -1000 → getAmount(true) = 1000 → total -= 1000 = -1000
+            // Refund: +500 → getAmount(true) = -500 → total -= (-500) = -1000 + 500 = -500
+            expect(updatedReport?.total).toBe(-500);
+        });
+
+        it('should only include matching currency transactions in total with mixed currencies', async () => {
+            // Given an expense report with transactions in different currencies
+            const oldPolicy = {
+                ...createRandomPolicy(1),
+                outputCurrency: 'USD',
+            };
+            const expenseReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: oldPolicy.id,
+                currency: 'USD',
+                total: -3000,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+            };
+            // AUD transaction - should be included when moving to AUD workspace
+            const audTransaction: OnyxTypes.Transaction = {
+                transactionID: '1',
+                reportID: expenseReport.reportID,
+                currency: 'AUD',
+                amount: -1000,
+                reimbursable: true,
+                comment: {},
+                created: '',
+                merchant: '',
+            };
+            // USD transaction - should NOT be included when moving to AUD workspace
+            const usdTransaction: OnyxTypes.Transaction = {
+                transactionID: '2',
+                reportID: expenseReport.reportID,
+                currency: 'USD',
+                amount: -2000,
+                convertedAmount: -2000,
+                reimbursable: true,
+                comment: {},
+                created: '',
+                merchant: '',
+            };
+
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${oldPolicy.id}`, oldPolicy),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${audTransaction.transactionID}`, audTransaction),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${usdTransaction.transactionID}`, usdTransaction),
+            ]);
+
+            // When moving to a workspace with AUD currency
+            const newPolicy = {
+                ...createRandomPolicy(2),
+                outputCurrency: 'AUD',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
+
+            Report.changeReportPolicy(expenseReport, newPolicy, 1, '', false, false, false);
+            await waitForBatchedUpdates();
+
+            // Then only AUD transaction should contribute to total (-1000), USD is excluded
+            const updatedReport = await new Promise<OnyxEntry<OnyxTypes.Report>>((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                    callback: (report) => {
+                        Onyx.disconnect(connection);
+                        resolve(report);
+                    },
+                });
+            });
+            expect(updatedReport?.total).toBe(-1000); // Only AUD transaction included
         });
     });
 
@@ -2550,6 +2785,178 @@ describe('actions/Report', () => {
                 isASAPSubmitBetaEnabled: true,
                 predictedNextStatus: CONST.REPORT.STATUS_NUM.SUBMITTED,
             });
+        });
+
+        it('should set pendingAction and clear convertedAmount when moving to workspace with different currency', async () => {
+            const reportID = 'testReport123';
+            const transactionID = 'testTransaction456';
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID,
+                currency: 'AUD',
+                convertedAmount: 15000, // Has a converted amount from old workspace
+            };
+
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: 'AUD', // Source report currency
+            };
+
+            const policy = {
+                ...createRandomPolicy(Number(1)),
+                outputCurrency: CONST.CURRENCY.USD, // Destination currency is different
+            };
+
+            // Set up the transaction in Onyx so getReportTransactions can find it
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            const {optimisticData, successData, failureData} = Report.buildOptimisticChangePolicyData(report, policy, 1, '', false, true, undefined);
+
+            // Find the transaction optimistic data
+            const transactionOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transactionSuccessData = successData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            const transactionFailureData = failureData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+
+            // Should have pendingAction set to UPDATE
+            expect((transactionOptimisticData?.value as OnyxTypes.Transaction)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            // Should have convertedAmount cleared
+            expect((transactionOptimisticData?.value as OnyxTypes.Transaction)?.convertedAmount).toBeNull();
+
+            // Success data should clear pendingAction
+            expect((transactionSuccessData?.value as OnyxTypes.Transaction)?.pendingAction).toBeNull();
+
+            // Failure data should restore original values
+            expect((transactionFailureData?.value as OnyxTypes.Transaction)?.pendingAction).toBe(transaction.pendingAction ?? null);
+            expect((transactionFailureData?.value as OnyxTypes.Transaction)?.convertedAmount).toBe(transaction.convertedAmount);
+        });
+
+        it('should NOT clear convertedAmount when source and destination currencies are the same', async () => {
+            const reportID = 'testReport789';
+            const transactionID = 'testTransaction012';
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID,
+                currency: 'EUR',
+                convertedAmount: 15000,
+            };
+
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: CONST.CURRENCY.USD, // Source report currency
+            };
+
+            const policy = {
+                ...createRandomPolicy(Number(1)),
+                outputCurrency: CONST.CURRENCY.USD, // Same as source
+            };
+
+            // Set up the transaction in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            const {optimisticData} = Report.buildOptimisticChangePolicyData(report, policy, 1, '', false, true, undefined);
+
+            // Should NOT find transaction optimistic data when currencies are the same
+            const transactionOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transactionOptimisticData).toBeUndefined();
+        });
+
+        it('should NOT clear convertedAmount when transaction matches destination currency', async () => {
+            const reportID = 'testReport345';
+            const transactionID = 'testTransaction678';
+            const transaction = {
+                ...createRandomTransaction(1),
+                transactionID,
+                reportID,
+                currency: CONST.CURRENCY.USD, // Transaction is in destination currency
+                convertedAmount: 15000,
+            };
+
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: 'AUD', // Source report currency is different
+            };
+
+            const policy = {
+                ...createRandomPolicy(Number(1)),
+                outputCurrency: CONST.CURRENCY.USD, // Matches transaction currency
+            };
+
+            // Set up the transaction in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            await waitForBatchedUpdates();
+
+            const {optimisticData} = Report.buildOptimisticChangePolicyData(report, policy, 1, '', false, true, undefined);
+
+            // Should NOT find transaction optimistic data when transaction matches destination currency
+            const transactionOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transactionOptimisticData).toBeUndefined();
+        });
+
+        it('should only clear convertedAmount for non-matching transactions in mixed currency scenario', async () => {
+            const reportID = 'testReport999';
+            const matchingTransactionID = 'matchingTransaction';
+            const nonMatchingTransactionID = 'nonMatchingTransaction';
+
+            // Transaction that matches destination currency (USD)
+            const matchingTransaction = {
+                ...createRandomTransaction(1),
+                transactionID: matchingTransactionID,
+                reportID,
+                currency: CONST.CURRENCY.USD,
+                convertedAmount: 10000,
+            };
+
+            // Transaction that doesn't match destination currency (AUD != USD)
+            const nonMatchingTransaction = {
+                ...createRandomTransaction(2),
+                transactionID: nonMatchingTransactionID,
+                reportID,
+                currency: 'AUD',
+                convertedAmount: 15000,
+            };
+
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                reportID,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                currency: 'AUD', // Source report currency
+            };
+
+            const policy = {
+                ...createRandomPolicy(Number(1)),
+                outputCurrency: CONST.CURRENCY.USD, // Destination currency
+            };
+
+            // Set up both transactions in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${matchingTransactionID}`, matchingTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${nonMatchingTransactionID}`, nonMatchingTransaction);
+            await waitForBatchedUpdates();
+
+            const {optimisticData} = Report.buildOptimisticChangePolicyData(report, policy, 1, '', false, true, undefined);
+
+            // Should NOT find optimistic data for the matching transaction (USD matches USD destination)
+            const matchingOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${matchingTransactionID}`);
+            expect(matchingOptimisticData).toBeUndefined();
+
+            // Should find optimistic data for the non-matching transaction (AUD doesn't match USD destination)
+            const nonMatchingOptimisticData = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.TRANSACTION}${nonMatchingTransactionID}`);
+            expect(nonMatchingOptimisticData).toBeDefined();
+            expect((nonMatchingOptimisticData?.value as OnyxTypes.Transaction)?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect((nonMatchingOptimisticData?.value as OnyxTypes.Transaction)?.convertedAmount).toBeNull();
         });
     });
 

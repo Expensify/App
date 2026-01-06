@@ -20,7 +20,14 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {getFilteredReportActionsForReportView, getIOUActionForTransactionID, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {
+    getFilteredReportActionsForReportView,
+    getIOUActionForTransactionID,
+    getOneTransactionThreadReportID,
+    getOriginalMessage,
+    getReportAction,
+    isMoneyRequestAction,
+} from '@libs/ReportActionsUtils';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
@@ -140,6 +147,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             return;
         }
 
+        // Because when switching between reports, reportActions may contain data from the previous report.
+        // So we need to check that reportActions belongs to the current report.
+        const isFirstActionBelongsToCurrentReport = !!getReportAction(reportIDFromRoute, reportActions.at(0)?.reportActionID);
+        if (report?.reportID && reportActions.length === 1 && !isFirstActionBelongsToCurrentReport) {
+            return;
+        }
+
         // Use main collection transaction or fallback to snapshot
         const transaction = Object.values(allReportTransactions).at(0) ?? snapshotTransaction;
         if (!transaction || (transaction && transaction.reportID !== reportIDFromRoute)) {
@@ -157,7 +171,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         }
 
         const iouAction = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        if (iouAction) {
+        if (iouAction || transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || !!transaction.linkedTrackedExpenseReportAction?.childReportID) {
             return;
         }
 
@@ -203,7 +217,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             <ActionListContext.Provider value={actionListValue}>
                 <ReactionListWrapper>
                     <ScreenWrapper
-                        testID={SearchMoneyRequestReportPage.displayName}
+                        testID="SearchMoneyRequestReportPage"
                         shouldEnableMaxHeight
                         offlineIndicatorStyle={styles.mtAuto}
                         headerGapStyles={styles.searchHeaderGap}
@@ -237,7 +251,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListWrapper>
                 <ScreenWrapper
-                    testID={SearchMoneyRequestReportPage.displayName}
+                    testID="SearchMoneyRequestReportPage"
                     shouldEnableMaxHeight
                     offlineIndicatorStyle={styles.mtAuto}
                     headerGapStyles={[styles.searchHeaderGap, styles.h0]}
@@ -271,7 +285,5 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         </ActionListContext.Provider>
     );
 }
-
-SearchMoneyRequestReportPage.displayName = 'SearchMoneyRequestReportPage';
 
 export default SearchMoneyRequestReportPage;

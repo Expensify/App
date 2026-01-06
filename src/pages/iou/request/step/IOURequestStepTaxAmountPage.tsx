@@ -145,7 +145,7 @@ function IOURequestStepTaxAmountPage({
         <StepScreenWrapper
             headerTitle={translate('iou.taxAmount')}
             onBackButtonPress={navigateBack}
-            testID={IOURequestStepTaxAmountPage.displayName}
+            testID="IOURequestStepTaxAmountPage"
             shouldShowWrapper={!!(backTo || isEditing)}
             includeSafeAreaPaddingBottom
         >
@@ -166,8 +166,6 @@ function IOURequestStepTaxAmountPage({
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepTaxAmountPage.displayName = 'IOURequestStepTaxAmountPage';
 
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepTaxAmountPageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxAmountPage);

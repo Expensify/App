@@ -12699,7 +12699,7 @@ class OpenAIUtils {
     /**
      * Prompt the Chat Completions API.
      */
-    async promptChatCompletions({ userPrompt, systemPrompt = '', model = 'gpt-5' }) {
+    async promptChatCompletions({ userPrompt, systemPrompt = '', model = 'gpt-5.1' }) {
         const messages = [{ role: 'user', content: userPrompt }];
         if (systemPrompt) {
             messages.unshift({ role: 'system', content: systemPrompt });
@@ -20712,26 +20712,11 @@ const SessionsAPI = tslib_1.__importStar(__nccwpck_require__(13223));
 const sessions_1 = __nccwpck_require__(13223);
 const ThreadsAPI = tslib_1.__importStar(__nccwpck_require__(40997));
 const threads_1 = __nccwpck_require__(40997);
-const headers_1 = __nccwpck_require__(63591);
-const uploads_1 = __nccwpck_require__(67620);
 class ChatKit extends resource_1.APIResource {
     constructor() {
         super(...arguments);
         this.sessions = new SessionsAPI.Sessions(this._client);
         this.threads = new ThreadsAPI.Threads(this._client);
-    }
-    /**
-     * Upload a ChatKit file
-     *
-     * @example
-     * ```ts
-     * const response = await client.beta.chatkit.uploadFile({
-     *   file: fs.createReadStream('path/to/file'),
-     * });
-     * ```
-     */
-    uploadFile(body, options) {
-        return this._client.post('/chatkit/files', (0, uploads_1.maybeMultipartFormRequestOptions)({ body, ...options, headers: (0, headers_1.buildHeaders)([{ 'OpenAI-Beta': 'chatkit_beta=v1' }, options?.headers]) }, this._client));
     }
 }
 exports.ChatKit = ChatKit;
@@ -22128,20 +22113,19 @@ class Files extends resource_1.APIResource {
      * up to 512 MB, and the size of all files uploaded by one organization can be up
      * to 1 TB.
      *
-     * The Assistants API supports files up to 2 million tokens and of specific file
-     * types. See the
-     * [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools) for
-     * details.
-     *
-     * The Fine-tuning API only supports `.jsonl` files. The input also has certain
-     * required formats for fine-tuning
-     * [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input) or
-     * [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
-     * models.
-     *
-     * The Batch API only supports `.jsonl` files up to 200 MB in size. The input also
-     * has a specific required
-     * [format](https://platform.openai.com/docs/api-reference/batch/request-input).
+     * - The Assistants API supports files up to 2 million tokens and of specific file
+     *   types. See the
+     *   [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools)
+     *   for details.
+     * - The Fine-tuning API only supports `.jsonl` files. The input also has certain
+     *   required formats for fine-tuning
+     *   [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input)
+     *   or
+     *   [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+     *   models.
+     * - The Batch API only supports `.jsonl` files up to 200 MB in size. The input
+     *   also has a specific required
+     *   [format](https://platform.openai.com/docs/api-reference/batch/request-input).
      *
      * Please [contact us](https://help.openai.com/) if you need to increase these
      * storage limits.
@@ -22966,6 +22950,33 @@ exports.InputItems = InputItems;
 
 /***/ }),
 
+/***/ 37133:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+// File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.InputTokens = void 0;
+const resource_1 = __nccwpck_require__(19318);
+class InputTokens extends resource_1.APIResource {
+    /**
+     * Get input token counts
+     *
+     * @example
+     * ```ts
+     * const response = await client.responses.inputTokens.count();
+     * ```
+     */
+    count(body = {}, options) {
+        return this._client.post('/responses/input_tokens', { body, ...options });
+    }
+}
+exports.InputTokens = InputTokens;
+//# sourceMappingURL=input-tokens.js.map
+
+/***/ }),
+
 /***/ 96214:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -22980,12 +22991,15 @@ const ResponseStream_1 = __nccwpck_require__(66784);
 const resource_1 = __nccwpck_require__(19318);
 const InputItemsAPI = tslib_1.__importStar(__nccwpck_require__(46867));
 const input_items_1 = __nccwpck_require__(46867);
+const InputTokensAPI = tslib_1.__importStar(__nccwpck_require__(37133));
+const input_tokens_1 = __nccwpck_require__(37133);
 const headers_1 = __nccwpck_require__(63591);
 const path_1 = __nccwpck_require__(10706);
 class Responses extends resource_1.APIResource {
     constructor() {
         super(...arguments);
         this.inputItems = new InputItemsAPI.InputItems(this._client);
+        this.inputTokens = new InputTokensAPI.InputTokens(this._client);
     }
     create(body, options) {
         return this._client.post('/responses', { body, ...options, stream: body.stream ?? false })._thenUnwrap((rsp) => {
@@ -23052,6 +23066,7 @@ class Responses extends resource_1.APIResource {
 }
 exports.Responses = Responses;
 Responses.InputItems = input_items_1.InputItems;
+Responses.InputTokens = input_tokens_1.InputTokens;
 //# sourceMappingURL=responses.js.map
 
 /***/ }),
@@ -23743,7 +23758,7 @@ tslib_1.__exportStar(__nccwpck_require__(11364), exports);
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.VERSION = void 0;
-exports.VERSION = '6.3.0'; // x-release-please-version
+exports.VERSION = '6.9.1'; // x-release-please-version
 //# sourceMappingURL=version.js.map
 
 /***/ }),
