@@ -502,6 +502,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Meer weergeven',
         showLess: 'Minder weergeven',
         merchant: 'Handelaar',
+        change: 'Wijzigen',
         category: 'Categorie',
         report: 'Rapport',
         billable: 'Factureerbaar',
@@ -2367,6 +2368,21 @@ ${amount} voor ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Voeg een betaalmethode toe om rechtstreeks in de app betalingen te versturen en te ontvangen.',
         defaultPaymentMethod: 'Standaard',
         bankAccountLastFour: (lastFour: string) => `Bankrekening • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Kostenregels',
+        subtitle: 'Deze regels zijn van toepassing op je uitgaven. Als je ze indient bij een werkruimte, kunnen de regels van de werkruimte deze overschrijven.', //_/\__/_/  \_,_/\__/\__/\_,_/
+        emptyRules: {title: 'Je hebt nog geen regels aangemaakt', subtitle: 'Voeg een regel toe om onkostendeclaraties te automatiseren.'},
+        changes: {
+            billable: (value: boolean) => `Uitgave ${value ? 'factureerbaar' : 'niet-declarabel'} bijwerken`,
+            category: (value: string) => `Categorie bijwerken naar "${value}"`,
+            comment: (value: string) => `Beschrijving wijzigen in "${value}"`,
+            merchant: (value: string) => `Handelaar bijwerken naar "${value}"`,
+            reimbursable: (value: boolean) => `Uitgave ${value ? 'terugbetaalbaar' : 'niet-vergoedbaar'} bijwerken`,
+            report: (value: string) => `Een rapport met de naam "${value}" toevoegen`,
+            tag: (value: string) => `Tag bijwerken naar "${value}"`,
+            tax: (value: string) => `Belastingtarief bijwerken naar ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {
