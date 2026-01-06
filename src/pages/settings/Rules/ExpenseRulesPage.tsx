@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import TableListItem from '@components/SelectionListWithSections/TableListItem';
+import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Text from '@components/Text';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -33,22 +34,26 @@ function ExpenseRulesPage() {
     const hasRules = expenseRules ? expenseRules.length > 0 : false;
     const isLoading = !hasRules && isLoadingOnyxValue(expenseRulesResult);
 
-    const rulesList = (expenseRules ?? []).map((rule, index) => ({
-        text: rule.merchantToMatch,
-        keyForList: `${rule.merchantToMatch}${index}`,
-        isDisabledCheckbox: true,
-        isDisabled: true,
-        rightElement: (
-            <View style={[styles.flex1]}>
-                <Text
-                    numberOfLines={1}
-                    style={[styles.alignSelfStart]}
-                >
-                    {formatExpenseRuleChanges(rule, translate)}
-                </Text>
-            </View>
-        ),
-    }));
+    const rulesList: ListItem[] = (expenseRules ?? []).map((rule, index) => {
+        const changes = formatExpenseRuleChanges(rule, translate);
+        return {
+            text: rule.merchantToMatch,
+            alternateText: shouldUseNarrowLayout ? changes : undefined,
+            keyForList: `${rule.merchantToMatch}${index}`,
+            isDisabledCheckbox: true,
+            isDisabled: true,
+            rightElement: !shouldUseNarrowLayout && (
+                <View style={[styles.flex1]}>
+                    <Text
+                        numberOfLines={1}
+                        style={[styles.alignSelfStart]}
+                    >
+                        {changes}
+                    </Text>
+                </View>
+            ),
+        };
+    });
 
     const headerContent = (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>
@@ -56,15 +61,16 @@ function ExpenseRulesPage() {
         </View>
     );
 
-    const getCustomListHeader = () => (
-        <CustomListHeader
-            canSelectMultiple={false}
-            leftHeaderText={translate('common.merchant')}
-            rightHeaderText={translate('common.change')}
-            shouldDivideEqualWidth
-            shouldShowRightCaret={false}
-        />
-    );
+    const getCustomListHeader = () =>
+        !shouldUseNarrowLayout && (
+            <CustomListHeader
+                canSelectMultiple={false}
+                leftHeaderText={translate('common.merchant')}
+                rightHeaderText={translate('common.change')}
+                shouldDivideEqualWidth
+                shouldShowRightCaret={false}
+            />
+        );
 
     return (
         <ScreenWrapper
