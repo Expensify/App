@@ -84,7 +84,6 @@ columns = "columns"i {return "columns"}
 values
   = perDiem
   / drafts
-  / receipt
   / date
   / submitted
   / approved
@@ -107,20 +106,14 @@ values
   / taxAmount
   / title
   / assignee
-  / inValue
-  / comments
-  / card
   / policyName
   / withdrawalId
-  / avatar
   / status
-  / expenses
   / feed
   / withdrawn
   / bankAccount
   / reportId
   / base62ReportId
-  / tax
   / exportedTo
   / exchangeRate
   / reimbursableTotal
@@ -136,20 +129,13 @@ values
 
 perDiem                 = "per-diem"i                  { return "perDiem"; }
 drafts                  = "draft"i / "drafts"i         { return "drafts"; }
-receipt                 = "receipt"i                   { return "receipt"; }
 originalAmount          = "original-amount"i           { return "originalAmount"; }
 taxAmount               = "tax-amount"i                { return "taxAmount"; }
-inValue                 = "in"i                        { return "in"; }
-comments                = "comments"i                  { return "comments"; }
-card                    = "card"i                      { return "card"; }
 policyName              = "policy-name"i               { return "policyName"; }
 withdrawalId            = "withdrawal-id"i             { return "withdrawalId"; }
-avatar                  = "avatar"i                    { return "avatar"; }
-expenses                = "expenses"i                  { return "expenses"; }
 bankAccount             = "bank-account"i              { return "bankAccount"; }
 reportId                = "report-id"i                 { return "reportId"; }
 base62ReportId           = "base62-report-id"i          { return "base62ReportId"; }
-tax                     = "tax"i                       { return "tax"; }
 exportedTo               = "exported-to"i              { return "exportedTo"; }
 exchangeRate            = "exchange-rate"i             { return "exchangeRate"; }
 reimbursableTotal       = "reimbursable-total"i        { return "reimbursableTotal"; }
