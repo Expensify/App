@@ -520,6 +520,12 @@ function SettlementButton({
                 const isBusinessBankAccount = bankAccountToDisplay?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
                 return translate(isBusinessBankAccount ? 'iou.invoiceBusinessBank' : 'iou.invoicePersonalBank', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4) ?? '');
             }
+
+            // Wallet can only be used for IOUs, never for expense reports
+            if (isExpenseReport) {
+                return;
+            }
+
             if (!personalBankAccountList.length) {
                 return;
             }
