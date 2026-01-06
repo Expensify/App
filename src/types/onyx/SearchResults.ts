@@ -298,7 +298,7 @@ type SearchResults = {
     /** Search results data */
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
-        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails>> &
+        Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails> | undefined> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.POLICY, Policy> &
