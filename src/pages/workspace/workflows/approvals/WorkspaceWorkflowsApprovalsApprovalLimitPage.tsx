@@ -231,14 +231,14 @@ function WorkspaceWorkflowsApprovalsApprovalLimitPage({policy, isLoadingReportDa
                                         shouldShowRightIcon
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                     />
-                                    <View style={[styles.mt3, styles.mb5]}>
+                                    <View style={[styles.mt3, styles.mb5, styles.renderHTML]}>
                                         <RenderHTML html={translate('workflowsApprovalLimitPage.description', {approverName: approverDisplayName})} />
                                     </View>
                                 </>
                             ) : (
                                 <>
                                     <Text style={[styles.textHeadlineH1, styles.mv3]}>{translate('workflowsApprovalLimitPage.header')}</Text>
-                                    <View style={styles.mb5}>
+                                    <View style={[styles.mb5, styles.renderHTML]}>
                                         <RenderHTML html={translate('workflowsApprovalLimitPage.description', {approverName: approverDisplayName})} />
                                     </View>
                                 </>
