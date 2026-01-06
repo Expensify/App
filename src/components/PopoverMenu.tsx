@@ -39,8 +39,8 @@ type PopoverMenuItem = MenuItemProps & {
     /** A callback triggered when this item is selected */
     onSelected?: () => void;
 
-    /** Whether to force calling onSelected even if there are sub items */
-    shouldForceCallSelect?: boolean;
+    /** Whether to call onSelected for items with sub menu */
+    shouldCallOnSelectedForSubMenuItem?: boolean;
 
     /** Sub menu items to be rendered after a menu item is selected */
     subMenuItems?: PopoverMenuItem[];
@@ -320,7 +320,7 @@ function BasePopoverMenu({
             return;
         }
         if (selectedItem?.subMenuItems) {
-            if (selectedItem?.shouldForceCallSelect) {
+            if (selectedItem?.shouldCallOnSelectedForSubMenuItem) {
                 selectedItem.onSelected?.();
             }
             setCurrentMenuItems([...selectedItem.subMenuItems]);
@@ -431,7 +431,14 @@ function BasePopoverMenu({
         if (!headerText || (enteredSubMenuIndexes.length !== 0 && !shouldAlwaysShowHeaderText)) {
             return;
         }
-        return <Text style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}>{headerText}</Text>;
+        return (
+            <Text
+                key={`${headerText}_${shouldPutHeaderTextAfterBackButton}`}
+                style={[styles.createMenuHeaderText, styles.ph5, styles.pv3, headerStyles]}
+            >
+                {headerText}
+            </Text>
+        );
     };
 
     useKeyboardShortcut(

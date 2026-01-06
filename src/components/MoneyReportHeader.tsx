@@ -254,7 +254,7 @@ function MoneyReportHeader({
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {canBeMissing: false});
-    const [isSecondaryApprovalOptionPressed, setIsSecondaryApprovalOptionPressed] = useState(false);
+    const [shouldShowApprovalOptionHeader, setShouldShowApprovalOptionHeader] = useState(false);
 
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
@@ -880,6 +880,7 @@ function MoneyReportHeader({
     const onApprove = (isFullApproval: boolean) => {
         startApprovedAnimation();
         approveMoneyRequest(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, nextStep, isFullApproval);
+        setShouldShowApprovalOptionHeader(false);
         if (currentSearchQueryJSON) {
             search({
                 searchKey: currentSearchKey,
@@ -1124,7 +1125,7 @@ function MoneyReportHeader({
 
     const secondaryActionsImplementation: Record<
         ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>,
-        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'shouldForceCallSelect'>
+        DropdownOption<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> & Pick<PopoverMenuItem, 'backButtonText' | 'rightIcon' | 'shouldCallOnSelectedForSubMenuItem'>
     > = {
         [CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.VIEW_DETAILS,
@@ -1182,13 +1183,13 @@ function MoneyReportHeader({
             subMenuItems: secondaryApprovalActions,
             shouldUpdateSelectedIndex: true,
             onSelected: () => {
-                setIsSecondaryApprovalOptionPressed(true);
+                setShouldShowApprovalOptionHeader(true);
                 if (shouldShowApprovalSecondaryActions) {
                     return;
                 }
                 confirmApproval();
             },
-            shouldForceCallSelect: true,
+            shouldCallOnSelectedForSubMenuItem: true,
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
             text: translate('iou.unapprove'),
@@ -1672,10 +1673,10 @@ function MoneyReportHeader({
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}
-                                headerText={isSecondaryApprovalOptionPressed ? translate('iou.confirmApprovalWithHeldAmount') : ''}
+                                headerText={shouldShowApprovalOptionHeader ? translate('iou.confirmApprovalWithHeldAmount') : ''}
                                 shouldPutHeaderTextAfterBackButton
                                 shouldAlwaysShowHeaderText
-                                onSubmenuBackButtonPress={() => setIsSecondaryApprovalOptionPressed(false)}
+                                onSubmenuBackButtonPress={() => setShouldShowApprovalOptionHeader(false)}
                             />
                         )}
                         {shouldShowSelectedTransactionsButton && (
@@ -1716,10 +1717,10 @@ function MoneyReportHeader({
                                 primaryAction={primaryAction}
                                 applicableSecondaryActions={applicableSecondaryActions}
                                 ref={kycWallRef}
-                                headerText={isSecondaryApprovalOptionPressed ? translate('iou.confirmApprovalWithHeldAmount') : ''}
+                                headerText={shouldShowApprovalOptionHeader ? translate('iou.confirmApprovalWithHeldAmount') : ''}
                                 shouldPutHeaderTextAfterBackButton
                                 shouldAlwaysShowHeaderText
-                                onSubmenuBackButtonPress={() => setIsSecondaryApprovalOptionPressed(false)}
+                                onSubmenuBackButtonPress={() => setShouldShowApprovalOptionHeader(false)}
                             />
                         )}
                     </View>

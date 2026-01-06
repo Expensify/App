@@ -39,6 +39,7 @@ type ApprovalOption = {
     text: string;
     icon: IconAsset;
     onSelected: () => void;
+    keyForList: string;
 };
 
 type ApprovalDropdownOptionProps = {
@@ -50,6 +51,7 @@ type ApprovalDropdownOptionProps = {
     onFullApprove: () => void;
     translate: LocaleContextProps['translate'];
     illustrations: Record<'ThumbsUp' | 'DocumentCheck', IconAsset>;
+    onOptionSelected?: () => void;
 };
 
 /**
@@ -75,6 +77,7 @@ function getApprovalDropdownOptions({
             text: `${translate('iou.approveOnly')} ${nonHeldAmount}`,
             icon: illustrations.ThumbsUp,
             onSelected: onPartialApprove,
+            keyForList: APPROVE_PARTIAL,
         });
     }
 
@@ -83,6 +86,7 @@ function getApprovalDropdownOptions({
         text: `${translate('iou.approve')} ${fullAmount}`,
         icon: illustrations.DocumentCheck,
         onSelected: onFullApprove,
+        keyForList: APPROVE_FULL,
     });
 
     return options;
