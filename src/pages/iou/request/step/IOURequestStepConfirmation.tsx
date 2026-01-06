@@ -726,6 +726,7 @@ function IOURequestStepConfirmation({
             for (const [index, item] of transactions.entries()) {
                 const isLinkedTrackedExpenseReportArchived =
                     !!item.linkedTrackedExpenseReportID && archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${item.linkedTrackedExpenseReportID}`);
+                const itemDistance = isManualDistanceRequest || isOdometerDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined;
 
                 trackExpenseIOUActions({
                     report,
@@ -743,7 +744,7 @@ function IOURequestStepConfirmation({
                     },
                     transactionParams: {
                         amount: item.amount,
-                        distance: isManualDistanceRequest || isOdometerDistanceRequest ? (item.comment?.customUnit?.quantity ?? undefined) : undefined,
+                        distance: itemDistance,
                         currency: item.currency,
                         created: item.created,
                         merchant: item.merchant,
@@ -808,6 +809,8 @@ function IOURequestStepConfirmation({
             if (!transaction) {
                 return;
             }
+            const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest ? (transaction.comment?.customUnit?.quantity ?? undefined) : undefined;
+
             createDistanceRequestIOUActions({
                 report,
                 participants: selectedParticipants,
@@ -825,7 +828,7 @@ function IOURequestStepConfirmation({
                 transactionParams: {
                     amount: transaction.amount,
                     comment: trimmedComment,
-                    distance: isManualDistanceRequest || isOdometerDistanceRequest ? (transaction.comment?.customUnit?.quantity ?? undefined) : undefined,
+                    distance: transactionDistance,
                     created: transaction.created,
                     currency: transaction.currency,
                     merchant: transaction.merchant,
