@@ -452,4 +452,5 @@ ___
 ### Review Process
 1.  **Peer Review:** Wait for **2 Expert Contributors** to approve your proposal.
 2.  **Internal Review:** Once approved by experts, comment `Proposal ready for final review - cc: perf-review` in slack to notify Internal Engineers that the proposal is ready a final review.
+    - Note: Internal Engineers can set up notifications for `perf-review` keyword as mentioned in [this Internal SO](https://stackoverflowteams.com/c/expensify/questions/23081/23082#23082).
 3.  **Approval:** **2 Internal Engineers** must approve before a GH issue is created.
