@@ -156,7 +156,15 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
     const confirmModalPrompt = useMemo(() => {
         const approverEmail = selectedEmployees.find((selectedEmployee) => isApprover(policy, selectedEmployee));
-        let prompt = '';
+
+        if (!!approverEmail) {
+            const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
+            return translate('workspace.people.removeMembersWarningPrompt', {
+                memberName: getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
+                ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+            });
+        }
+
         const exporters = [
             policy?.connections?.intacct?.config?.export?.exporter,
             policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
@@ -168,28 +176,17 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
 
         if (userExporter) {
             const exporterAccountID = policyMemberEmailsToAccountIDs[userExporter];
-            prompt = translate('workspace.people.removeMemberPromptExporter', {
+            return translate('workspace.people.removeMemberPromptExporter', {
                 memberName: getDisplayNameForParticipant({accountID: exporterAccountID, formatPhoneNumber}),
                 workspaceOwner: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
             });
         }
 
-        if (!approverEmail) {
-            const firstSelectedEmployeeAccountID = policyMemberEmailsToAccountIDs[selectedEmployees[0]];
-            prompt += translate('workspace.people.removeMembersPrompt', {
-                count: selectedEmployees.length,
-                memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: [firstSelectedEmployeeAccountID], currentUserAccountID}).at(0)?.displayName ?? ''),
-            });
-        }
-
-        const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail ?? ''];
-        prompt += '\n\n';
-        prompt += translate('workspace.people.removeMembersWarningPrompt', {
-            memberName: getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
-            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID, formatPhoneNumber}),
+        const firstSelectedEmployeeAccountID = policyMemberEmailsToAccountIDs[selectedEmployees[0]];
+        return translate('workspace.people.removeMembersPrompt', {
+            count: selectedEmployees.length,
+            memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: [firstSelectedEmployeeAccountID], currentUserAccountID}).at(0)?.displayName ?? ''),
         });
-
-        return prompt;
     }, [selectedEmployees, policyMemberEmailsToAccountIDs, translate, policy, formatPhoneNumber, currentUserAccountID]);
     /**
      * Get members for the current workspace
