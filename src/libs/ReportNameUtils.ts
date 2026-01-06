@@ -141,7 +141,7 @@ const buildReportNameFromParticipantNames = ({
 }: {
     report: OnyxEntry<Report>;
     personalDetailsList?: Partial<PersonalDetailsList>;
-    currentUserAccountID?: number;
+    currentUserAccountID: number;
 }) =>
     Object.keys(report?.participants ?? {})
         .map(Number)
@@ -655,7 +655,7 @@ function computeReportName(
     allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     personalDetailsList?: PersonalDetailsList,
     reportActions?: OnyxCollection<ReportActions>,
-    currentUserAccountID?: number,
+    currentUserAccountID: number,
 ): string {
     if (!report || !report.reportID) {
         return '';
@@ -749,7 +749,8 @@ function computeReportName(
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID});
+    const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    formattedName = buildReportNameFromParticipantNames({report, personalDetailsList, currentUserAccountID: resolvedCurrentUserAccountID});
 
     const finalName = formattedName ?? report?.reportName ?? '';
 

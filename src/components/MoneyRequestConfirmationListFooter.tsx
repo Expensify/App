@@ -278,6 +278,7 @@ function MoneyRequestConfirmationListFooter({
     const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector, canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
@@ -345,13 +346,14 @@ function MoneyRequestConfirmationListFooter({
         return [reportIDToUse, reportToUse];
     }, [allReports, shouldUseTransactionReport, transaction?.reportID, outstandingReportID]);
 
+    const resolvedCurrentUserAccountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const reportName = useMemo(() => {
-        const name = computeReportName(selectedReport, allReports, allPolicies);
+        const name = computeReportName(selectedReport, allReports, allPolicies, undefined, undefined, undefined, undefined, resolvedCurrentUserAccountID);
         if (!name) {
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
         return name;
-    }, [isUnreported, selectedReport, allReports, allPolicies, translate]);
+    }, [isUnreported, selectedReport, allReports, allPolicies, translate, resolvedCurrentUserAccountID]);
 
     const shouldReportBeEditableFromFAB = isUnreported ? allOutstandingReports.length >= 1 : allOutstandingReports.length > 1;
 

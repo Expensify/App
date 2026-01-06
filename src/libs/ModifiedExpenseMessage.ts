@@ -43,6 +43,7 @@ let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 let currentUserLogin = '';
+let currentUserAccountID: number | undefined;
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -51,6 +52,7 @@ Onyx.connectWithoutView({
             return;
         }
         currentUserLogin = value?.email ?? '';
+        currentUserAccountID = value?.accountID;
     },
 });
 
@@ -168,7 +170,10 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     // - A policy expense chat
     // - A 1:1 DM
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportName = isPolicyExpenseChat(rootParentReport) ? getPolicyExpenseChatName({report: rootParentReport}) : buildReportNameFromParticipantNames({report: rootParentReport});
+    const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const reportName = isPolicyExpenseChat(rootParentReport)
+        ? getPolicyExpenseChatName({report: rootParentReport})
+        : buildReportNameFromParticipantNames({report: rootParentReport, currentUserAccountID: resolvedCurrentUserAccountID});
     const policyName = getPolicyName({report: rootParentReport, returnEmptyIfNotFound: true});
     // If we can't determine either the report name or policy name, return the default message
     if (isEmpty(policyName) && !reportName) {

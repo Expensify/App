@@ -544,7 +544,7 @@ function TransactionItemRow({
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
                     <TextCell
                         text={
-                            computeReportName(transactionItem.report, undefined, undefined, undefined, undefined, undefined, undefined, session?.accountID) ??
+                            computeReportName(transactionItem.report, undefined, undefined, undefined, undefined, undefined, undefined, session?.accountID ?? CONST.DEFAULT_NUMBER_ID) ??
                             transactionItem.report?.reportName ??
                             ''
                         }

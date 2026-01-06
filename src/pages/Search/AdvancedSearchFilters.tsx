@@ -527,7 +527,7 @@ function getFilterExpenseDisplayTitle(filters: Partial<SearchAdvancedFiltersForm
         : undefined;
 }
 
-function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports?: OnyxCollection<Report>, currentUserAccountID?: number) {
+function getFilterInDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, _: LocaleContextProps['translate'], reports: OnyxCollection<Report> | undefined, currentUserAccountID: number) {
     return filters.in
         ?.map((id) => computeReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`], reports, undefined, undefined, undefined, undefined, undefined, currentUserAccountID))
         ?.filter(Boolean)
@@ -609,7 +609,7 @@ function AdvancedSearchFilters() {
             ) {
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails, formatPhoneNumber);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
-                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports, session?.accountID);
+                filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
             } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
                 const workspacesData = workspaces.flatMap((value) => value.data);
                 filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);

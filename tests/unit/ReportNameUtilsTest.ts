@@ -1,8 +1,9 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import {translate} from '@libs/Localize';
 import {
     buildReportNameFromParticipantNames,
-    computeReportName,
+    computeReportName as computeReportNameOriginal,
     getGroupChatName,
     getInvoicePayerName,
     getInvoicesChatName,
@@ -12,7 +13,7 @@ import {
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs} from '@src/types/onyx';
+import type {PersonalDetailsList, Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import {createAdminRoom, createPolicyExpenseChat, createRegularChat, createRegularTaskReport, createSelfDM, createWorkspaceThread} from '../utils/collections/reports';
 import {fakePersonalDetails} from '../utils/LHNTestUtils';
 import {formatPhoneNumber} from '../utils/TestHelper';
@@ -20,6 +21,16 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 describe('ReportNameUtils', () => {
     const currentUserAccountID = 5;
+    const computeReportName = (
+        report?: Report,
+        reports?: OnyxCollection<Report>,
+        policies?: OnyxCollection<Policy>,
+        transactions?: OnyxCollection<Transaction>,
+        allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+        personalDetailsList?: PersonalDetailsList,
+        reportActions?: OnyxCollection<ReportActions>,
+        currentUserID = currentUserAccountID,
+    ) => computeReportNameOriginal(report, reports, policies, transactions, allReportNameValuePairs, personalDetailsList, reportActions, currentUserID);
     const participantsPersonalDetails: PersonalDetailsList = [
         {
             accountID: 1,

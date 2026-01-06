@@ -108,7 +108,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
     const isCategoryRequired = !!currentPolicy?.requiresCategory;
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
-    const reportName = computeReportName(currentReport, undefined, undefined, undefined, undefined, undefined, undefined, session?.accountID);
+    const reportName = computeReportName(currentReport, undefined, undefined, undefined, undefined, undefined, undefined, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, currentPolicy?.areRulesEnabled);
 
     const shouldShowTags = !!currentPolicy?.areTagsEnabled && !!(transactionTag || hasEnabledTags(policyTagLists));
