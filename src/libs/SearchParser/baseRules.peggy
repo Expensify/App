@@ -84,33 +84,11 @@ columns = "columns"i {return "columns"}
 values
   = perDiem
   / drafts
-  / date
-  / submitted
-  / approved
-  / posted
-  / exported
-  / merchant
-  / description
-  / from
-  / to
-  / category
-  / tag
   / originalAmount
-  / reimbursable
-  / billable
   / taxRate
-  / amount
-  / total
-  / type
-  / action
   / taxAmount
-  / title
-  / assignee
   / policyName
   / withdrawalId
-  / status
-  / feed
-  / withdrawn
   / bankAccount
   / reportId
   / base62ReportId
