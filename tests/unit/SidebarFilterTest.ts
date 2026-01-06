@@ -4,6 +4,7 @@ import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import ONYXKEYS from '../../src/ONYXKEYS';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import {getNavigateToChatHintRegex, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -12,21 +13,6 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
-
-const ONYXKEYS = {
-    PERSONAL_DETAILS_LIST: 'personalDetailsList',
-    IS_LOADING_APP: 'isLoadingApp',
-    NVP_PRIORITY_MODE: 'nvp_priorityMode',
-    SESSION: 'session',
-    BETAS: 'betas',
-    COLLECTION: {
-        REPORT: 'report_',
-        REPORT_ACTIONS: 'reportActions_',
-        POLICY: 'policy_',
-        REPORT_DRAFT_COMMENT: 'reportDraftComment_',
-    },
-    NETWORK: 'network',
-} as const;
 
 // We need to fix this test as a follow up. There seems to be some problems with memory after filtering got more complicated.
 xdescribe('Sidebar', () => {
