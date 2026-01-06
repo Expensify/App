@@ -288,7 +288,7 @@ function SearchPage({route}: SearchPageProps) {
                 const isExpenseReport = isExpenseReportUtil(itemReportID);
                 const isIOUReport = isIOUReportUtil(itemReportID);
                 const reportType = getReportType(itemReportID);
-                const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, lastPaymentMethods, reportType) ?? paymentMethod;
+                const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(itemPolicyID, personalPolicy?.id, lastPaymentMethods, reportType, isIOUReport) ?? paymentMethod;
 
                 if (!lastPolicyPaymentMethod) {
                     Navigation.navigate(
@@ -338,7 +338,7 @@ function SearchPage({route}: SearchPageProps) {
                           return {
                               reportID: report.reportID,
                               amount: report.total,
-                              paymentType: getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods) ?? paymentMethod,
+                              paymentType: getLastPolicyPaymentMethod(report.policyID, personalPolicy?.id, lastPaymentMethods, undefined, isIOUReportUtil(report.reportID)) ?? paymentMethod,
                               ...(isInvoiceReport(report.reportID)
                                   ? getPayMoneyOnSearchInvoiceParams(
                                         report.policyID,
@@ -352,7 +352,8 @@ function SearchPage({route}: SearchPageProps) {
                     : Object.values(selectedTransactions).map((transaction) => ({
                           reportID: transaction.reportID,
                           amount: transaction.amount,
-                          paymentType: getLastPolicyPaymentMethod(transaction.policyID, lastPaymentMethods) ?? paymentMethod,
+                          paymentType:
+                              getLastPolicyPaymentMethod(transaction.policyID, personalPolicy?.id, lastPaymentMethods, undefined, isIOUReportUtil(transaction.reportID)) ?? paymentMethod,
                           ...(isInvoiceReport(transaction.reportID)
                               ? getPayMoneyOnSearchInvoiceParams(
                                     transaction.policyID,

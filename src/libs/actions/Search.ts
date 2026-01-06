@@ -84,7 +84,7 @@ type HandleActionButtonPressParams = {
     isDEWBetaEnabled?: boolean;
     isDelegateAccessRestricted?: boolean;
     onDelegateAccessRestricted?: () => void;
-    personalPolicyID?: string;
+    personalPolicyID: string | undefined;
 };
 
 function handleActionButtonPress({
@@ -173,10 +173,10 @@ function getLastPolicyBankAccountID(
 
 function getLastPolicyPaymentMethod(
     policyID: string | undefined,
+    personalPolicyID: string | undefined,
     lastPaymentMethods: OnyxEntry<LastPaymentMethod>,
     reportType: keyof LastPaymentMethodType = 'lastUsed',
     isIOUReport?: boolean,
-    personalPolicyID?: string,
 ): ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined {
     if (!policyID) {
         return undefined;
@@ -211,10 +211,10 @@ function getPayActionCallback(
     snapshotReport: Report,
     snapshotPolicy: Policy,
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
-    currentSearchKey?: SearchKey,
-    personalPolicyID?: string,
+    currentSearchKey: SearchKey | undefined,
+    personalPolicyID: string | undefined,
 ) {
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod, getReportType(item.reportID), undefined, personalPolicyID);
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
@@ -1040,17 +1040,15 @@ function getPayOption(
     selectedTransactions: SelectedTransactions,
     lastPaymentMethods: OnyxEntry<LastPaymentMethod>,
     selectedReportIDs: string[],
-    personalPolicyID?: string,
+    personalPolicyID: string | undefined,
 ) {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
     const firstReport = selectedReports.at(0);
     const hasLastPaymentMethod =
         selectedReports.length > 0
-            ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods, 'lastUsed', undefined, personalPolicyID))
-            : transactionKeys.every(
-                  (transactionIDKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIDKey].policyID, lastPaymentMethods, 'lastUsed', undefined, personalPolicyID),
-              );
+            ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
+            : transactionKeys.every((transactionIDKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIDKey].policyID, personalPolicyID, lastPaymentMethods));
 
     const shouldShowBulkPayOption =
         selectedReports.length > 0

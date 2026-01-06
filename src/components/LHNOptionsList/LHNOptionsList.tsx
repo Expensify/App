@@ -301,6 +301,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             reports,
             reportNameValuePairs,
             reportActions,
+            reportMetadataCollection,
             isOffline,
             reportAttributes,
             policy,
