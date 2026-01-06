@@ -53,6 +53,7 @@ import DateUtils from '@libs/DateUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import type {MinimalTransaction} from '@libs/Formula';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import {
     calculateAmount as calculateIOUAmount,
@@ -1032,7 +1033,7 @@ function buildMinimalTransactionForFormula(
     amount?: number,
     currency?: string,
     merchant?: string,
-): Record<string, OnyxTypes.Transaction> {
+): Record<string, MinimalTransaction> {
     return {
         [transactionID]: {
             transactionID,
@@ -1041,7 +1042,7 @@ function buildMinimalTransactionForFormula(
             amount,
             currency,
             merchant,
-        } as OnyxTypes.Transaction,
+        } as MinimalTransaction,
     };
 }
 
@@ -4371,7 +4372,17 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         if (!iouReport || shouldCreateNewMoneyRequestReport) {
             const reportTransactions = buildMinimalTransactionForFormula(optimisticTransactionID, optimisticExpenseReportID, created, amount, currency, merchant);
 
-            iouReport = buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, amount, undefined, optimisticExpenseReportID, reportTransactions);
+            iouReport = buildOptimisticExpenseReport(
+                chatReport.reportID,
+                chatReport.policyID,
+                payeeAccountID,
+                amount,
+                currency,
+                amount,
+                undefined,
+                optimisticExpenseReportID,
+                reportTransactions,
+            );
         } else {
             iouReport = {...iouReport};
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
@@ -7592,7 +7603,14 @@ function createSplitsAndOnyxData({
 
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             const optimisticExpenseReportID = generateReportID();
-            const reportTransactions = buildMinimalTransactionForFormula(splitTransaction.transactionID, optimisticExpenseReportID, splitTransaction.created, splitAmount, currency, splitTransaction.merchant);
+            const reportTransactions = buildMinimalTransactionForFormula(
+                splitTransaction.transactionID,
+                optimisticExpenseReportID,
+                splitTransaction.created,
+                splitAmount,
+                currency,
+                splitTransaction.merchant,
+            );
 
             oneOnOneIOUReport = isOwnPolicyExpenseChat
                 ? buildOptimisticExpenseReport(

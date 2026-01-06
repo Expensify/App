@@ -34,7 +34,7 @@ type FormulaContext = {
     transaction?: Transaction;
     submitterPersonalDetails?: PersonalDetails;
     managerPersonalDetails?: PersonalDetails;
-    allTransactions?: Record<string, Transaction | MinimalTransaction>;
+    allTransactions?: Record<string, Transaction>;
 };
 
 type FieldList = Record<string, {name: string; defaultValue: string}>;
