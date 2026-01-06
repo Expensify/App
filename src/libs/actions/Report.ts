@@ -3097,7 +3097,6 @@ function createNewReport(
     API.write(
         WRITE_COMMANDS.CREATE_APP_REPORT,
         {
-            reportName: optimisticReportName,
             type: CONST.REPORT.TYPE.EXPENSE,
             policyID: policy?.id,
             reportID: optimisticReportID,
