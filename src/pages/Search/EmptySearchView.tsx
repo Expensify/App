@@ -152,7 +152,8 @@ function EmptySearchViewContent({
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'Alert']);
+
+    const illustrations = useMemoizedLazyIllustrations(['PiggyBank', 'TravelAlerts']);
 
     const tripsFeatures: FeatureListItem[] = useMemo(
         () => [
@@ -161,11 +162,11 @@ function EmptySearchViewContent({
                 translationKey: 'travel.features.saveMoney',
             },
             {
-                icon: illustrations.Alert,
+                icon: illustrations.TravelAlerts,
                 translationKey: 'travel.features.alerts',
             },
         ],
-        [illustrations.PiggyBank, illustrations.Alert],
+        [illustrations.PiggyBank, illustrations.TravelAlerts],
     );
     const [contextMenuAnchor, setContextMenuAnchor] = useState<RNText | null>(null);
     const handleContextMenuAnchorRef = useCallback((node: RNText | null) => {
@@ -212,7 +213,7 @@ function EmptySearchViewContent({
 
     const handleCreateWorkspaceReport = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
-            if (!defaultChatEnabledPolicyID) {
+            if (!defaultChatEnabledPolicy?.id) {
                 return;
             }
 
@@ -220,7 +221,7 @@ function EmptySearchViewContent({
                 currentUserPersonalDetails,
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                defaultChatEnabledPolicyID,
+                defaultChatEnabledPolicy,
                 false,
                 shouldDismissEmptyReportsConfirmation,
             );
@@ -228,7 +229,7 @@ function EmptySearchViewContent({
                 Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicyID, isASAPSubmitBetaEnabled],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled],
     );
 
     const {openCreateReportConfirmation: openCreateReportFromSearch, CreateReportConfirmationModal} = useCreateEmptyReportConfirmation({
@@ -306,11 +307,14 @@ function EmptySearchViewContent({
                     ))}
                 </View>
                 <SearchScopeProvider isOnSearch={false}>
-                    <BookTravelButton text={translate('search.searchResults.emptyTripResults.buttonText')} />
+                    <BookTravelButton
+                        text={translate('search.searchResults.emptyTripResults.buttonText')}
+                        activePolicyID={activePolicy?.id}
+                    />
                 </SearchScopeProvider>
             </>
         );
-    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, tripsFeatures]);
+    }, [contextMenuAnchor, handleContextMenuAnchorRef, styles, translate, activePolicy?.id, tripsFeatures]);
 
     // Default 'Folder' lottie animation, along with its background styles
     const defaultViewItemHeader = useSearchEmptyStateIllustration();
