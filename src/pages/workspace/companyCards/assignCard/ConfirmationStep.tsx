@@ -159,8 +159,8 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
                 </View>
                 <MenuItem
-                    title={cardholderName && cardholderName !== cardholderEmail ? cardholderName : cardholderEmail}
-                    description={cardholderName && cardholderName !== cardholderEmail ? cardholderEmail : undefined}
+                    title={cardholderName}
+                    description={cardholderEmail}
                     icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     shouldShowRightIcon
