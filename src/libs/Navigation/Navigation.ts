@@ -111,7 +111,7 @@ function getDeepestFocusedScreenName(route: NavigationRoute | NavigationState | 
     }
 
     // NavigationState case - has routes array
-    if ('routes' in route && Array.isArray(route.routes)) {       
+    if ('routes' in route && Array.isArray(route.routes)) {
         // When routes array is just one item, the index key is omitted
         let focusedRoute = route.routes[0];
         if ('index' in route && typeof route.index === 'number') {
