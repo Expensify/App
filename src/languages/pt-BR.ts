@@ -1257,6 +1257,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `para ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `enviado${memo ? `, dizendo ${memo}` : ''}`,
         automaticallySubmitted: `enviado via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">atrasar envios</a>`,
+        queuedToSubmitViaDEW: 'enfileirado para envio via fluxo de aprovação personalizado',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `rastreamento de ${formattedAmount}${comment ? `para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividir ${formattedAmount}${comment ? `para ${comment}` : ''}`,

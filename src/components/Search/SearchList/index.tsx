@@ -126,6 +126,9 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
 
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
+
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
 
@@ -180,6 +183,7 @@ function SearchList({
     violations,
     customCardNames,
     onDEWModalOpen,
+    isDEWBetaEnabled,
     selectedTransactions,
     ref,
 }: SearchListProps) {
@@ -404,6 +408,7 @@ function SearchList({
                         groupBy={groupBy}
                         searchType={type}
                         onDEWModalOpen={onDEWModalOpen}
+                        isDEWBetaEnabled={isDEWBetaEnabled}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
@@ -446,6 +451,7 @@ function SearchList({
             isOffline,
             violations,
             onDEWModalOpen,
+            isDEWBetaEnabled,
             customCardNames,
         ],
     );

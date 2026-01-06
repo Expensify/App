@@ -21,7 +21,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import enhanceParameters from '@libs/Network/enhanceParameters';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
-import {getPersonalPolicy, getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
+import {getSubmitToAccountID, getValidConnectedIntegration, hasDynamicExternalWorkflow, isDelayedSubmissionEnabled} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
@@ -71,18 +71,35 @@ type TransactionPreviewData = {
     hasTransactionThreadReport: boolean;
 };
 
-function handleActionButtonPress(
-    hash: number,
-    item: TransactionListItemType | TransactionReportGroupListItemType,
-    goToItem: () => void,
-    snapshotReport: Report,
-    snapshotPolicy: Policy,
-    lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
-    currentSearchKey?: SearchKey,
-    onDEWModalOpen?: () => void,
-    isDelegateAccessRestricted?: boolean,
-    onDelegateAccessRestricted?: () => void,
-) {
+type HandleActionButtonPressParams = {
+    hash: number;
+    item: TransactionListItemType | TransactionReportGroupListItemType;
+    goToItem: () => void;
+    snapshotReport: Report;
+    snapshotPolicy: Policy;
+    lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
+    currentSearchKey?: SearchKey;
+    onDEWModalOpen?: () => void;
+    isDEWBetaEnabled?: boolean;
+    isDelegateAccessRestricted?: boolean;
+    onDelegateAccessRestricted?: () => void;
+    personalPolicyID: string | undefined;
+};
+
+function handleActionButtonPress({
+    hash,
+    item,
+    goToItem,
+    snapshotReport,
+    snapshotPolicy,
+    lastPaymentMethod,
+    currentSearchKey,
+    onDEWModalOpen,
+    isDEWBetaEnabled,
+    isDelegateAccessRestricted,
+    onDelegateAccessRestricted,
+    personalPolicyID,
+}: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
     const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as Transaction[];
@@ -99,7 +116,7 @@ function handleActionButtonPress(
                 onDelegateAccessRestricted?.();
                 return;
             }
-            getPayActionCallback(hash, item, goToItem, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey);
+            getPayActionCallback(hash, item, goToItem, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, personalPolicyID);
             return;
         case CONST.SEARCH.ACTION_TYPES.APPROVE:
             if (isDelegateAccessRestricted) {
@@ -113,7 +130,7 @@ function handleActionButtonPress(
             approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
-            if (hasDynamicExternalWorkflow(snapshotPolicy)) {
+            if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
                 onDEWModalOpen?.();
                 return;
             }
@@ -154,6 +171,7 @@ function getLastPolicyBankAccountID(
 
 function getLastPolicyPaymentMethod(
     policyID: string | undefined,
+    personalPolicyID: string | undefined,
     lastPaymentMethods: OnyxEntry<LastPaymentMethod>,
     reportType: keyof LastPaymentMethodType = 'lastUsed',
     isIOUReport?: boolean,
@@ -162,10 +180,7 @@ function getLastPolicyPaymentMethod(
         return undefined;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const personalPolicy = getPersonalPolicy();
-
-    const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] ?? (isIOUReport && personalPolicy ? lastPaymentMethods?.[personalPolicy.id] : undefined);
+    const lastPolicyPaymentMethod = lastPaymentMethods?.[policyID] ?? (isIOUReport && personalPolicyID ? lastPaymentMethods?.[personalPolicyID] : undefined);
     const result = typeof lastPolicyPaymentMethod === 'string' ? lastPolicyPaymentMethod : (lastPolicyPaymentMethod?.[reportType] as PaymentInformation)?.name;
 
     return result as ValueOf<typeof CONST.IOU.PAYMENT_TYPE> | undefined;
@@ -194,9 +209,10 @@ function getPayActionCallback(
     snapshotReport: Report,
     snapshotPolicy: Policy,
     lastPaymentMethod: OnyxEntry<LastPaymentMethod>,
-    currentSearchKey?: SearchKey,
+    currentSearchKey: SearchKey | undefined,
+    personalPolicyID: string | undefined,
 ) {
-    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, lastPaymentMethod, getReportType(item.reportID));
+    const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
     if (!item.reportID) {
         return;
@@ -1030,14 +1046,20 @@ function shouldShowBulkOptionForRemainingTransactions(selectedTransactions: Sele
 /**
  * Checks if the current selected reports/transactions are eligible for bulk pay.
  */
-function getPayOption(selectedReports: SelectedReports[], selectedTransactions: SelectedTransactions, lastPaymentMethods: OnyxEntry<LastPaymentMethod>, selectedReportIDs: string[]) {
+function getPayOption(
+    selectedReports: SelectedReports[],
+    selectedTransactions: SelectedTransactions,
+    lastPaymentMethods: OnyxEntry<LastPaymentMethod>,
+    selectedReportIDs: string[],
+    personalPolicyID: string | undefined,
+) {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
     const firstReport = selectedReports.at(0);
     const hasLastPaymentMethod =
         selectedReports.length > 0
-            ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, lastPaymentMethods))
-            : transactionKeys.every((transactionIDKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIDKey].policyID, lastPaymentMethods));
+            ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
+            : transactionKeys.every((transactionIDKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIDKey].policyID, personalPolicyID, lastPaymentMethods));
 
     const shouldShowBulkPayOption =
         selectedReports.length > 0
