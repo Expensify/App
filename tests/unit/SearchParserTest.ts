@@ -779,6 +779,32 @@ const keywordTests = [
             },
         },
     },
+    {
+        query: 'columns:original-amount,tax-amount,is',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            columns: ['originalAmount', 'taxAmount', 'is'],
+            filters: null,
+        },
+    },
+    {
+        query: 'type:expense action:submit columns:group-bank-account,group-from',
+        expected: {
+            type: 'expense',
+            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+            sortBy: 'date',
+            sortOrder: 'desc',
+            columns: ['groupBankAccount', 'groupFrom'],
+            filters: {
+                left: 'action',
+                operator: 'eq',
+                right: 'submit',
+            },
+        },
+    },
 ];
 
 describe('search parser', () => {
