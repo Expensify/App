@@ -203,11 +203,20 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
                         interactive={false}
                     />
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                        title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
-                        interactive={false}
-                    />
+                    <OfflineWithFeedback
+                        pendingAction={card?.pendingFields?.scrapeMinDate}
+                        errorRowStyles={[styles.ph5, styles.mb3]}
+                        errors={getLatestErrorField(card ?? {}, 'scrapeMinDate')}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'scrapeMinDate', true)}
+                    >
+                        <MenuItemWithTopDescription
+                            description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
+                            title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
+                            shouldShowRightIcon
+                            brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName))}
+                        />
+                    </OfflineWithFeedback>
                     <MenuItem
                         icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
