@@ -119,6 +119,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         [approvalWorkflow.action, policyID],
     );
 
+    const handleExpensesFromPress = useCallback(() => {
+        Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID));
+    }, [policyID]);
+
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
     const addAdditionalApprover = useCallback(() => {
         if (!isControlPolicy(policy) && approverCount > 0) {
@@ -151,7 +155,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                     numberOfLinesTitle={4}
                     description={translate('workflowsExpensesFromPage.title')}
                     descriptionTextStyle={!!members && styles.textLabelSupportingNormal}
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.getRoute(policyID))}
+                    onPress={handleExpensesFromPress}
                     wrapperStyle={[styles.sectionMenuItemTopDescription]}
                     errorText={approvalWorkflow?.errors?.members ? translate(approvalWorkflow.errors.members) : undefined}
                     brickRoadIndicator={approvalWorkflow?.errors?.members ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
