@@ -57,6 +57,7 @@ import {
     isChatRoom as isChatRoomReportUtils,
     isChatThread as isChatThreadReportUtils,
     isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
+    isConciergeChatReport,
     isCurrentUserSubmitter,
     isDeprecatedGroupDM,
     isExpenseRequest,
@@ -104,7 +105,7 @@ type HeaderViewProps = {
 };
 
 function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false, isInSidePanel}: HeaderViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow', 'Close']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
@@ -243,6 +244,10 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
     const shouldShowBackButton = shouldUseNarrowLayout || !!isInSidePanel;
 
+    const shouldShowCloseButton = isInSidePanel && !shouldUseNarrowLayout && isConciergeChatReport(report);
+    const backButtonIcon = shouldShowCloseButton ? icons.Close : icons.BackArrow;
+    const backButtonLabel = shouldShowCloseButton ? translate('common.close') : translate('common.back');
+
     const onboardingHelpDropdownButton = (
         <OnboardingHelpDropdownButton
             reportID={report?.reportID}
@@ -277,17 +282,17 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     onPress={onNavigationMenuButtonClicked}
                                     style={[styles.LHNToggle, shouldUseNarrowLayout && styles.pl5]}
                                     accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
-                                    accessibilityLabel={translate('common.back')}
+                                    accessibilityLabel={backButtonLabel}
                                     role={CONST.ROLE.BUTTON}
                                     sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.BACK_BUTTON}
                                 >
                                     <Tooltip
-                                        text={translate('common.back')}
+                                        text={backButtonLabel}
                                         shiftVertical={4}
                                     >
                                         <View>
                                             <Icon
-                                                src={icons.BackArrow}
+                                                src={backButtonIcon}
                                                 fill={theme.icon}
                                             />
                                         </View>
