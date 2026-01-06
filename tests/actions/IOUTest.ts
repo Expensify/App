@@ -11763,103 +11763,12 @@ describe('actions/IOU', () => {
             };
 
             duplicateExpenseTransaction(
-                mockDistanceTransaction,
-                mockOptimisticChatReportID,
-                mockOptimisticIOUReportID,
-                mockIsASAPSubmitBetaEnabled,
-                undefined,
-                [],
-                '',
-                mockPolicy,
-                fakePolicyCategories,
-                policyExpenseChat,
-            );
-
-            await waitForBatchedUpdates();
-
-            let duplicatedTransaction: OnyxEntry<Transaction>;
-
-            await getOnyxData({
-                key: ONYXKEYS.COLLECTION.TRANSACTION,
-                waitForCollectionCallback: true,
-                callback: (allTransactions) => {
-                    duplicatedTransaction = Object.values(allTransactions ?? {}).find((t) => !!t);
-                },
-            });
-
-            if (!duplicatedTransaction) {
-                return;
-            }
-
-            isTransactionDuplicated(mockDistanceTransaction, duplicatedTransaction);
-        });
-    });
-
-    describe('getReportOriginalCreationTimestamp', () => {
-        it('should return undefined when report is undefined', () => {
-            const result = getReportOriginalCreationTimestamp(undefined);
-            expect(result).toBeUndefined();
-        });
-
-        it('should return timestamp from CREATED action when it exists', async () => {
-            const createdTimestamp = '2024-01-15 12:00:00.000';
-            const report = createRandomReport(1, undefined);
-            const reportAction1 = createRandomReportAction(1);
-            const reportAction2 = {
-                ...createRandomReportAction(2),
-                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                created: createdTimestamp,
-            };
-            const reportAction3 = createRandomReportAction(3);
-
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
-                    [reportAction1.reportActionID]: reportAction1,
-                    [reportAction2.reportActionID]: reportAction2,
-                    [reportAction3.reportActionID]: reportAction3,
-                },
-            } as unknown as OnyxMultiSetInput);
-            await waitForBatchedUpdates();
-
-            const result = getReportOriginalCreationTimestamp(report);
-            expect(result).toBe(createdTimestamp);
-        });
-
-        it('should return report.created when CREATED action does not exist', async () => {
-            const reportCreatedTimestamp = '2024-01-15 10:00:00.000';
-            const report = {
-                ...createRandomReport(1, undefined),
-                created: reportCreatedTimestamp,
-            };
-            const reportAction1 = createRandomReportAction(1);
-
-            await Onyx.multiSet({
-                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]: {
-                    [reportAction1.reportActionID]: reportAction1,
-                },
-            } as unknown as OnyxMultiSetInput);
-            await waitForBatchedUpdates();
-
-            const result = getReportOriginalCreationTimestamp(report);
-            expect(result).toBe(reportCreatedTimestamp);
-        });
-
-        it('should create a duplicate distance expense with all fields duplicated', async () => {
-            const randomDistanceTransaction = createRandomDistanceRequestTransaction(1, true);
-
-            const mockDistanceTransaction = {
-                ...randomDistanceTransaction,
-                amount: randomDistanceTransaction.amount * -1,
-            };
-
-            duplicateExpenseTransaction(
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
                 isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
                 introSelected: undefined,
+                activePolicyID: undefined,
                 quickAction: undefined,
                 policyRecentlyUsedCurrencies: [],
                 customUnitPolicyID: '',

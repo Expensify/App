@@ -6448,6 +6448,7 @@ function duplicateExpenseTransaction({
     activePolicyID,
     quickAction,
     policyRecentlyUsedCurrencies,
+    customUnitPolicyID,
     targetPolicy,
     targetPolicyCategories,
     targetReport,
