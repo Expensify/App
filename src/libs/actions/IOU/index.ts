@@ -668,6 +668,10 @@ type CreateTrackExpenseParams = {
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
     isASAPSubmitBetaEnabled: boolean;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
@@ -704,6 +708,10 @@ type GetTrackExpenseInformationParams = {
     transactionParams: GetTrackExpenseInformationTransactionParams;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     isASAPSubmitBetaEnabled: boolean;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicyID: string | undefined;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
 };
 
@@ -3541,6 +3549,10 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         transactionParams,
         retryParams,
         isASAPSubmitBetaEnabled,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        introSelected,
+        activePolicyID,
         quickAction,
     } = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
@@ -3654,6 +3666,10 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             policyID: policy?.id,
             expenseReportId: chatReport?.reportID,
             engagementChoice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            introSelected,
+            activePolicyID,
         });
         createdWorkspaceParams = workspaceData.params;
         optimisticData.push(...workspaceData.optimisticData);
@@ -6091,6 +6107,10 @@ function trackExpense(params: CreateTrackExpenseParams) {
         shouldHandleNavigation = true,
         shouldPlaySound = true,
         isASAPSubmitBetaEnabled,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        introSelected,
+        activePolicyID,
         quickAction,
     } = params;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -6214,6 +6234,10 @@ function trackExpense(params: CreateTrackExpenseParams) {
             },
             retryParams,
             isASAPSubmitBetaEnabled,
+            currentUserAccountIDParam,
+            currentUserEmailParam,
+            introSelected,
+            activePolicyID,
             quickAction,
         }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
@@ -6395,17 +6419,33 @@ function trackExpense(params: CreateTrackExpenseParams) {
     notifyNewAction(activeReportID, payeeAccountID);
 }
 
-function duplicateExpenseTransaction(
-    transaction: OnyxEntry<OnyxTypes.Transaction>,
-    optimisticChatReportID: string,
-    optimisticIOUReportID: string,
-    isASAPSubmitBetaEnabled: boolean,
-    quickAction: OnyxEntry<OnyxTypes.QuickAction>,
-    policyRecentlyUsedCurrencies: string[],
-    targetPolicy?: OnyxEntry<OnyxTypes.Policy>,
-    targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    targetReport?: OnyxTypes.Report,
-) {
+type DuplicateExpenseTransactionParams = {
+    transaction: OnyxEntry<OnyxTypes.Transaction>;
+    optimisticChatReportID: string;
+    optimisticIOUReportID: string;
+    isASAPSubmitBetaEnabled: boolean;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicyID: string | undefined;
+    quickAction: OnyxEntry<OnyxTypes.QuickAction>;
+    policyRecentlyUsedCurrencies: string[];
+    targetPolicy?: OnyxEntry<OnyxTypes.Policy>;
+    targetPolicyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    targetReport?: OnyxTypes.Report;
+};
+
+function duplicateExpenseTransaction({
+    transaction,
+    optimisticChatReportID,
+    optimisticIOUReportID,
+    isASAPSubmitBetaEnabled,
+    introSelected,
+    activePolicyID,
+    quickAction,
+    policyRecentlyUsedCurrencies,
+    targetPolicy,
+    targetPolicyCategories,
+    targetReport,
+}: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
     }
@@ -6464,6 +6504,8 @@ function duplicateExpenseTransaction(
             },
             report: undefined,
             isDraftPolicy: false,
+            introSelected,
+            activePolicyID,
             quickAction,
         };
         return trackExpense(trackExpenseParams);
@@ -9068,6 +9110,7 @@ function getReportFromHoldRequestsOnyxData(
     iouReport: OnyxEntry<OnyxTypes.Report>,
     recipient: Participant,
     policy: OnyxEntry<OnyxTypes.Policy>,
+    createdTimestamp?: string,
 ): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -9093,6 +9136,8 @@ function getReportFromHoldRequestsOnyxData(
               iouReport?.currency ?? '',
               holdNonReimbursableAmount,
               newParentReportActionID,
+              undefined,
+              createdTimestamp,
           )
         : buildOptimisticIOUReport(
               iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
@@ -9102,6 +9147,8 @@ function getReportFromHoldRequestsOnyxData(
               iouReport?.currency ?? '',
               false,
               newParentReportActionID,
+              undefined,
+              createdTimestamp,
           );
 
     const optimisticExpenseReportPreview = buildOptimisticReportPreview(
@@ -9318,7 +9365,7 @@ function getPayMoneyRequestParams({
     bankAccountID,
     currentUserAccountIDParam,
     currentUserEmailParam,
-    introSelectedParam,
+    introSelected,
     paymentPolicyID,
     lastUsedPaymentMethod,
     existingB2BInvoiceReport,
@@ -9338,7 +9385,7 @@ function getPayMoneyRequestParams({
     activePolicy?: OnyxEntry<OnyxTypes.Policy>;
     currentUserAccountIDParam?: number;
     currentUserEmailParam?: string;
-    introSelectedParam?: OnyxEntry<OnyxTypes.IntroSelected>;
+    introSelected?: OnyxEntry<OnyxTypes.IntroSelected>;
 }): PayMoneyRequestData {
     const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
     let payerPolicyID = activePolicy?.id;
@@ -9360,10 +9407,10 @@ function getPayMoneyRequestParams({
             policyOwnerEmail: currentUserEmail,
             makeMeAdmin: true,
             policyID: payerPolicyID,
-            currentUserAccountIDParam,
-            currentUserEmailParam,
-            introSelectedParam,
-            activePolicyIDParam: activePolicy?.id,
+            currentUserAccountIDParam: currentUserAccountIDParam ?? CONST.DEFAULT_NUMBER_ID,
+            currentUserEmailParam: currentUserEmailParam ?? '',
+            introSelected,
+            activePolicyID: activePolicy?.id,
         });
         const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
 
@@ -9811,6 +9858,20 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
     });
 }
 
+/**
+ * Gets the original creation timestamp from a report's CREATED action or falls back to report.created
+ */
+function getReportOriginalCreationTimestamp(expenseReport?: OnyxEntry<OnyxTypes.Report>): string | undefined {
+    if (!expenseReport?.reportID) {
+        return undefined;
+    }
+
+    const expenseReportActions = getAllReportActions(expenseReport.reportID);
+    const createdAction = Object.values(expenseReportActions ?? {}).find((action) => isCreatedAction(action));
+
+    return createdAction?.created ?? expenseReport.created;
+}
+
 function approveMoneyRequest(
     expenseReport: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
@@ -9994,7 +10055,8 @@ function approveMoneyRequest(
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
     if (!full && !!chatReport && !!expenseReport) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID}, policy);
+        const originalCreated = getReportOriginalCreationTimestamp(expenseReport);
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID}, policy, originalCreated);
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
         successData.push(...holdReportOnyxData.successData);
@@ -11061,7 +11123,7 @@ function payInvoice({
         activePolicy,
         currentUserAccountIDParam,
         currentUserEmailParam,
-        introSelectedParam: introSelected,
+        introSelected,
     });
 
     const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
@@ -13396,8 +13458,11 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
         });
 
         Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
-
-        Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()));
+        if (isSearchTopmostFullScreenRoute()) {
+            Navigation.navigate(ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()));
+        } else {
+            Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, transaction.transactionID, Navigation.getActiveRoute()));
+        }
         return;
     }
 
@@ -13426,7 +13491,11 @@ function initSplitExpense(transactions: OnyxCollection<OnyxTypes.Transaction>, r
 
     Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transaction?.transactionID}`, draftTransaction);
 
-    Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID, transaction.transactionID, undefined, Navigation.getActiveRoute()));
+    if (isSearchTopmostFullScreenRoute()) {
+        Navigation.navigate(ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, transaction.transactionID, undefined, Navigation.getActiveRoute()));
+    } else {
+        Navigation.navigate(ROUTES.SPLIT_EXPENSE.getRoute(reportID, transaction.transactionID, undefined, Navigation.getActiveRoute()));
+    }
 }
 
 /**
@@ -14060,17 +14129,113 @@ function updateSplitTransactions({
                 splitApiParams[`splits[${i}][${key}]`] = value !== null && typeof value === 'object' ? JSON.stringify(value) : value;
             }
         }
-        const parameters: SplitTransactionParams = {
+
+        if (isCreationOfSplits) {
+            const isTransactionOnHold = isOnHold(originalTransaction);
+
+            if (isTransactionOnHold) {
+                const holdReportActionIDs: string[] = [];
+                const holdReportActionCommentIDs: string[] = [];
+                const transactionReportActions = getAllReportActions(firstIOU?.childReportID);
+                const holdReportAction = getReportAction(firstIOU?.childReportID, `${originalTransaction?.comment?.hold ?? ''}`);
+
+                const holdReportActionComment = holdReportAction
+                    ? Object.values(transactionReportActions ?? {}).find(
+                          (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && action?.timestamp === holdReportAction.timestamp,
+                      )
+                    : undefined;
+
+                if (holdReportAction && holdReportActionComment) {
+                    // Loop through all split expenses and add optimistic hold report actions for each split
+                    for (const [index, splitExpense] of splits.entries()) {
+                        const splitReportID = splitExpense?.transactionThreadReportID;
+                        if (!splitReportID) {
+                            continue;
+                        }
+
+                        // Generate new IDs and timestamps for each split
+                        const newHoldReportActionID = NumberUtils.rand64();
+                        const newHoldReportActionCommentID = NumberUtils.rand64();
+                        const timestamp = DateUtils.getDBTime();
+                        const reportActionTimestamp = DateUtils.addMillisecondsFromDateTime(timestamp, 1);
+
+                        // Store IDs for API parameters
+                        holdReportActionIDs[index] = newHoldReportActionID;
+                        holdReportActionCommentIDs[index] = newHoldReportActionCommentID;
+
+                        // Create new optimistic hold report action with new ID and timestamp, keeping other information
+                        const newHoldReportAction = {
+                            ...holdReportAction,
+                            reportActionID: newHoldReportActionID,
+                            created: timestamp,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        };
+
+                        // Create new optimistic hold report action comment with new ID and timestamp, keeping other information
+                        const newHoldReportActionComment = {
+                            ...holdReportActionComment,
+                            reportActionID: newHoldReportActionCommentID,
+                            created: reportActionTimestamp,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        };
+
+                        // Add to optimisticData for this split's reportActions
+                        optimisticData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
+                            value: {
+                                [newHoldReportActionID]: newHoldReportAction,
+                                [newHoldReportActionCommentID]: newHoldReportActionComment,
+                            },
+                        });
+
+                        // Add successData to clear pendingAction after API call succeeds
+                        successData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
+                            value: {
+                                [newHoldReportActionID]: {pendingAction: null},
+                                [newHoldReportActionCommentID]: {pendingAction: null},
+                            },
+                        });
+
+                        // Add failureData to remove optimistic hold report actions if the request fails
+                        failureData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
+                            value: {
+                                [newHoldReportActionID]: null,
+                                [newHoldReportActionCommentID]: null,
+                            },
+                        });
+                    }
+
+                    // Add hold report action IDs to API parameters
+                    for (const [i, holdReportActionID] of holdReportActionIDs.entries()) {
+                        if (holdReportActionID) {
+                            splitApiParams[`splits[${i}][holdReportActionID]`] = holdReportActionID;
+                        }
+                    }
+                    for (const [i, holdReportActionCommentID] of holdReportActionCommentIDs.entries()) {
+                        if (holdReportActionCommentID) {
+                            splitApiParams[`splits[${i}][holdReportActionCommentID]`] = holdReportActionCommentID;
+                        }
+                    }
+                }
+            }
+        }
+
+        const splitParameters: SplitTransactionParams = {
             ...splitApiParams,
             transactionID: originalTransactionID,
         };
 
         if (isCreationOfSplits) {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+            API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, splitParameters, {optimisticData, successData, failureData});
         } else {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+            API.write(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters, {optimisticData, successData, failureData});
         }
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -14371,6 +14536,7 @@ export {
     detachReceipt,
     duplicateExpenseTransaction,
     getIOURequestPolicyID,
+    getReportOriginalCreationTimestamp,
     initMoneyRequest,
     checkIfScanFileCanBeRead,
     dismissModalAndOpenReportInInboxTab,
