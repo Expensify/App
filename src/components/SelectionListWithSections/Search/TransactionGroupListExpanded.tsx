@@ -1,3 +1,4 @@
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useContext, useMemo} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -55,6 +56,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
     const {translate} = useLocalize();
     const [isMobileSelectionModeEnabled] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true, selector: columnsSelector});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     const transactionsSnapshotMetadata = useMemo(() => {
         return transactionsSnapshot?.search;
@@ -212,6 +214,7 @@ function TransactionGroupListExpanded<TItem extends ListItem>({
                         shouldShowBottomBorder={shouldShowBottomBorder}
                         onArrowRightPress={() => openReportInRHP(transaction)}
                         shouldShowArrowRightOnNarrowLayout
+                        reportAttributesDerived={reportAttributesDerived}
                     />
                 );
                 return (

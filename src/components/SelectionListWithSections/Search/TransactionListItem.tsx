@@ -1,3 +1,4 @@
+import reportsSelector from '@selectors/Attributes';
 import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -65,6 +66,7 @@ function TransactionListItem<TItem extends ListItem>({
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, transactionItem.policyID]);
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
+    const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true, selector: reportsSelector});
 
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {canBeMissing: true});
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
@@ -228,6 +230,7 @@ function TransactionListItem<TItem extends ListItem>({
                             onArrowRightPress={onPress}
                             isHover={hovered}
                             customCardNames={customCardNames}
+                            reportAttributesDerived={reportAttributesDerived}
                         />
                     </>
                 )}
