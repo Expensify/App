@@ -854,6 +854,7 @@ type OptionData = {
     isDefaultRoom?: boolean;
     isInvoiceRoom?: boolean;
     isExpenseReport?: boolean;
+    isDM?: boolean;
     isOptimisticPersonalDetail?: boolean;
     selected?: boolean;
     isOptimisticAccount?: boolean;
@@ -4545,11 +4546,6 @@ function canEditMoneyRequest(
         return true;
     }
 
-    // Allow workflow approvers to edit OPEN expense reports
-    if (isExpenseReport(moneyRequestReport) && isOpenReport(moneyRequestReport) && currentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport)) {
-        return true;
-    }
-
     if (reportPolicy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport)) {
         const isForwarded = getSubmitToAccountID(reportPolicy, moneyRequestReport) !== moneyRequestReport.managerID;
         return !isForwarded;
@@ -4618,8 +4614,7 @@ function canEditReportPolicy(report: OnyxEntry<Report>, reportPolicy: OnyxEntry<
 
     if (isExpenseType) {
         if (isOpen) {
-            const isApprover = currentUserAccountID === getManagerAccountID(reportPolicy, report);
-            return isSubmitter || isAdmin || isApprover;
+            return isSubmitter || isAdmin;
         }
 
         if (isSubmitted) {
@@ -4693,14 +4688,13 @@ function canEditFieldOfMoneyRequest(
     const isAdmin = isExpenseReport(moneyRequestReport) && reportPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     const isManager = isExpenseReport(moneyRequestReport) && currentUserAccountID === moneyRequestReport?.managerID;
     const isRequestor = currentUserAccountID === reportAction?.actorAccountID;
-    const isApprover = isExpenseReport(moneyRequestReport) && isOpenReport(moneyRequestReport) && currentUserAccountID === getManagerAccountID(reportPolicy, moneyRequestReport);
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REIMBURSABLE) {
-        return isAdmin || isManager || isRequestor || isApprover;
+        return isAdmin || isManager || isRequestor;
     }
 
     if ((fieldToEdit === CONST.EDIT_REQUEST_FIELD.AMOUNT || fieldToEdit === CONST.EDIT_REQUEST_FIELD.CURRENCY) && isDistanceRequest(transaction)) {
-        return isAdmin || isManager || isRequestor || isApprover;
+        return isAdmin || isManager || isRequestor;
     }
 
     if (
@@ -4716,7 +4710,7 @@ function canEditFieldOfMoneyRequest(
             !isReceiptBeingScanned(transaction) &&
             !isPerDiemRequest(transaction) &&
             (!isDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction)) &&
-            (isAdmin || isManager || isRequestor || isApprover) &&
+            (isAdmin || isManager || isRequestor) &&
             (isDeleteAction ? isRequestor : true)
         );
     }
