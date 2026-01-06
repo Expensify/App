@@ -231,16 +231,14 @@ function IOURequestStartPage({
 
     // Fetch per diem rates for policies with per diem enabled, especially to make per diem tab visible after clearing cache
     useEffect(() => {
-        if (!isFromGlobalCreate || isOffline || moreThanOnePerDiemExist) {
+        if (!isFromGlobalCreate || isOffline || moreThanOnePerDiemExist || !isEmptyObject(perDiemCustomUnit?.rates)) {
             return;
         }
 
         const policiesWithPerDiemEnabled = getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserPersonalDetails.login);
-        for (const perDiemPolicy of policiesWithPerDiemEnabled) {
-            if (!isEmptyObject(perDiemCustomUnit?.rates)) {
-                break;
-            }
-            fetchPerDiemRates(perDiemPolicy.id);
+        const firstPolicyWithPerDiem = policiesWithPerDiemEnabled.at(0);
+        if (firstPolicyWithPerDiem) {
+            fetchPerDiemRates(firstPolicyWithPerDiem.id);
         }
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFromGlobalCreate, isOffline, perDiemCustomUnit?.rates, currentUserPersonalDetails.login, moreThanOnePerDiemExist]);
