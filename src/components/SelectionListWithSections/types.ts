@@ -633,6 +633,7 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
     columns?: SearchColumnType[];
     violations?: Record<string, TransactionViolations | undefined> | undefined;
+    customCardNames?: Record<number, string>;
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
 };
@@ -1089,8 +1090,8 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     shouldDisableHoverStyle?: boolean;
     setShouldDisableHoverStyle?: React.Dispatch<React.SetStateAction<boolean>>;
 
-    /** Whether the list is percentage mode (for scroll offset calculation) */
-    isPercentageMode?: boolean;
+    /** When true, skips the contentHeaderHeight from the viewOffset calculation during scroll-to-index. Only needed on native platforms for split expense tabs (Amount/Percentage/Date) scroll correction. Web should always pass false. */
+    shouldSkipContentHeaderHeightOffset?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
