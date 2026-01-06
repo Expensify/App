@@ -1404,7 +1404,13 @@ const ROUTES = {
     },
     WORKSPACE_OVERVIEW_CURRENCY: {
         route: 'workspaces/:policyID/overview/currency',
-        getRoute: (policyID: string) => `workspaces/${policyID}/overview/currency` as const,
+        getRoute: (policyID: string, isForcedToChangeCurrency?: boolean) => {
+            let queryParams = '';
+            if (isForcedToChangeCurrency) {
+                queryParams += `?isForcedToChangeCurrency=true`;
+            }
+            return `workspaces/${policyID}/overview/currency${queryParams}` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/export',
