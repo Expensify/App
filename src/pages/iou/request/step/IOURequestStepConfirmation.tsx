@@ -1126,6 +1126,7 @@ function IOURequestStepConfirmation({
             userLocation,
             submitPerDiemExpense,
             policyRecentlyUsedCurrencies,
+            reportID,
         ],
     );
 

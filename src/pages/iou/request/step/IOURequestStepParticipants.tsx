@@ -285,7 +285,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             // We use || to be sure that if the first participant doesn't have a reportID, we generate a new one.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            selectedReportID.current = (firstParticipantReportID && isInvoiceRoomWithID(firstParticipantReportID)) ? firstParticipantReportID : generateReportID();
+            selectedReportID.current = firstParticipantReportID && isInvoiceRoomWithID(firstParticipantReportID) ? firstParticipantReportID : generateReportID();
 
             // IOUs are always reported. non-CREATE actions require a report
             if (!isPolicyExpenseChat || action !== CONST.IOU.ACTION.CREATE) {
