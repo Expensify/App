@@ -1626,6 +1626,12 @@ function setServerErrorsOnForm(errors: Errors) {
     });
 }
 
+function updateIsVerifiedValidateActionCode(isVerifiedValidateActionCode: boolean) {
+    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
+        isVerifiedValidateActionCode,
+    });
+}
+
 export {
     closeAccount,
     setServerErrorsOnForm,
@@ -1668,4 +1674,5 @@ export {
     requestUnlockAccount,
     respondToProactiveAppReview,
     verifyAddSecondaryLoginCode,
+    updateIsVerifiedValidateActionCode,
 };

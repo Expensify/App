@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {addNewContactMethod, clearContactMethod, clearUnvalidatedNewContactMethodAction, setServerErrorsOnForm} from '@userActions/User';
+import {addNewContactMethod, clearContactMethod, clearUnvalidatedNewContactMethodAction, setServerErrorsOnForm, updateIsVerifiedValidateActionCode} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -37,13 +37,22 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
     const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION, {canBeMissing: true});
+    const [validateActionCode] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const navigateBackTo = route?.params?.backTo;
     const loginData = pendingContactAction?.contactMethod ? loginList?.[pendingContactAction?.contactMethod] : undefined;
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
+    const validateActionCodeError = getLatestErrorField(validateActionCode, 'addedLogin');
 
     useEffect(() => {
-        setServerErrorsOnForm(validateLoginError);
-    }, [validateLoginError]);
+        updateIsVerifiedValidateActionCode(false);
+    }, []);
+    useEffect(() => {
+        let error = validateLoginError;
+        if (isEmptyObject(error)) {
+            error = validateActionCodeError;
+        }
+        setServerErrorsOnForm(error);
+    }, [validateLoginError, validateActionCodeError]);
     useEffect(() => {
         return () => {
             if (!loginList) {
@@ -103,21 +112,6 @@ function NewContactMethodPage({route}: NewContactMethodPageProps) {
     const onBackButtonPress = useCallback(() => {
         Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(navigateBackTo));
     }, [navigateBackTo]);
-
-    const navigateToConfirmMagicCode = useCallback(() => {
-        clearUnvalidatedNewContactMethodAction();
-        Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_MAGIC_CODE.getRoute(navigateBackTo ?? ''));
-    }, [navigateBackTo]);
-
-    useEffect(() => {
-        if (!pendingContactAction) {
-            return;
-        }
-        if ((pendingContactAction?.validateActionCode && pendingContactAction.isVerifiedValidateActionCode) || pendingContactAction?.actionVerified) {
-            return;
-        }
-        navigateToConfirmMagicCode();
-    }, [navigateToConfirmMagicCode, pendingContactAction]);
 
     useEffect(() => {
         if (!pendingContactAction?.actionVerified || !pendingContactAction?.contactMethod) {
