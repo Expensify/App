@@ -66,6 +66,7 @@ function TransactionListItem<TItem extends ListItem>({
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, transactionItem.policyID]);
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {canBeMissing: true});
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
@@ -142,6 +143,7 @@ function TransactionListItem<TItem extends ListItem>({
             isDEWBetaEnabled,
             isDelegateAccessRestricted,
             onDelegateAccessRestricted: showDelegateNoAccessModal,
+            personalPolicyID,
         });
     }, [
         currentSearchHash,
@@ -150,6 +152,7 @@ function TransactionListItem<TItem extends ListItem>({
         snapshotReport,
         snapshotPolicy,
         lastPaymentMethod,
+        personalPolicyID,
         currentSearchKey,
         onSelectRow,
         item,
