@@ -90,7 +90,6 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import {
     getDefaultApprover,
     getMemberAccountIDsForWorkspace,
-    isInstantSubmitEnabled,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
     isPolicyMember,
