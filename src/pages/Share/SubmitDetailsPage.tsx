@@ -186,6 +186,7 @@ function SubmitDetailsPage({
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 transactionViolations,
                 policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                quickAction,
             });
         }
     };
