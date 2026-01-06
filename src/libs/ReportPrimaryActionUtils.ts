@@ -423,17 +423,8 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
     }
 
     const isPayActionWithAllExpensesHeld =
-        isPrimaryPayAction(
-            report,
-            currentUserAccountID,
-            currentUserEmail,
-            bankAccountList,
-            policy,
-            reportNameValuePairs,
-            isChatReportArchived,
-            invoiceReceiverPolicy,
-            reportActions,
-        ) && hasOnlyHeldExpenses(report?.reportID);
+        isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, bankAccountList, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions) &&
+        hasOnlyHeldExpenses(report?.reportID);
     const expensesToHold = getAllExpensesToHoldIfApplicable(report, reportActions, reportTransactions, policy);
 
     if (isMarkAsCashAction(currentUserEmail, currentUserAccountID, report, reportTransactions, violations, policy)) {
@@ -459,19 +450,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
     }
 
-    if (
-        isPrimaryPayAction(
-            report,
-            currentUserAccountID,
-            currentUserEmail,
-            bankAccountList,
-            policy,
-            reportNameValuePairs,
-            isChatReportArchived,
-            invoiceReceiverPolicy,
-            reportActions,
-        )
-    ) {
+    if (isPrimaryPayAction(report, currentUserAccountID, currentUserEmail, bankAccountList, policy, reportNameValuePairs, isChatReportArchived, invoiceReceiverPolicy, reportActions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
