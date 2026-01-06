@@ -134,6 +134,12 @@ const userFriendlyStatusList = Object.values({
     ...CONST.SEARCH.STATUS.TASK,
 }).map((value) => getUserFriendlyValue(value));
 
+const userFriendlyColumnList = new Set(
+    Object.entries(CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP)
+        .filter(([key]) => Object.values(CONST.SEARCH.TABLE_COLUMNS).includes(key as SearchColumnType))
+        .map(([, value]) => value),
+);
+
 /**
  * @private
  * Determines if a specific value in the search syntax can/should be highlighted as valid or not
@@ -159,10 +165,6 @@ function filterOutRangesWithCorrectValue(
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
     const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
-
-    const columnList = Object.entries(CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP)
-        .filter(([key]) => Object.values(CONST.SEARCH.TABLE_COLUMNS).includes(key as SearchColumnType))
-        .map(([, value]) => value);
 
     if (range.key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         return range.value.length > 0;
@@ -232,7 +234,7 @@ function filterOutRangesWithCorrectValue(
             // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
             return /^-?(?!.*[.,].*[.,])\d{0,8}(?:[.,]\d{0,2})?$/.test(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
-            return columnList.includes(range.value);
+            return userFriendlyColumnList.has(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IS:
             return isList.includes(range.value);
         default:
