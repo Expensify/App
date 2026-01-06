@@ -201,7 +201,7 @@ function WorkspaceReceiptPartnersPage({route}: WorkspaceReceiptPartnersPageProps
                             : undefined,
                         badgeStyle: styles.mr3,
                         badgeSuccess: isUber,
-                        shouldShowBadgeInSeperateRow: shouldUseNarrowLayout,
+                        shouldShowBadgeInSeparateRow: shouldUseNarrowLayout,
                         numberOfLinesDescription: 5,
                         titleContainerStyle: [styles.pr2],
                         description: integrationData?.description,

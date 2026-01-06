@@ -402,7 +402,7 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         isFocused?: boolean;
 
         /** Whether to show the badge in a separate row */
-        shouldShowBadgeInSeperateRow?: boolean;
+        shouldShowBadgeInSeparateRow?: boolean;
     };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
@@ -423,7 +423,7 @@ function MenuItem({
     badgeIcon,
     badgeSuccess,
     onBadgePress,
-    shouldShowBadgeInSeperateRow = false,
+    shouldShowBadgeInSeparateRow = false,
     style,
     wrapperStyle,
     titleWrapperStyle,
@@ -928,7 +928,7 @@ function MenuItem({
                                                 </View>
                                             </View>
                                             <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact), !hasPressableRightComponent && styles.pointerEventsNone]}>
-                                                {!!badgeText && !shouldShowBadgeInSeperateRow && (
+                                                {!!badgeText && !shouldShowBadgeInSeparateRow && (
                                                     <Badge
                                                         text={badgeText}
                                                         icon={badgeIcon}
@@ -1017,7 +1017,7 @@ function MenuItem({
                                                 )}
                                             </View>
                                         </View>
-                                        {!!badgeText && shouldShowBadgeInSeperateRow && (
+                                        {!!badgeText && shouldShowBadgeInSeparateRow && (
                                             <Badge
                                                 text={badgeText}
                                                 icon={badgeIcon}
