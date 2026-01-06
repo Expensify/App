@@ -3,9 +3,7 @@ import useOnyx from '@hooks/useOnyx';
 import useProactiveAppReview from '@hooks/useProactiveAppReview';
 import requestStoreReview from '@libs/actions/StoreReview';
 import {respondToProactiveAppReview} from '@libs/actions/User';
-import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {AppReviewResponse} from '@src/types/onyx/AppReview';
 import ProactiveAppReviewModal from './ProactiveAppReviewModal';
 
