@@ -191,7 +191,13 @@ function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedM
     }
 
     // This is the case for transaction objects once they have been saved to the server
-    return hasDistanceCustomUnit(transaction) && isEmptyObject(transaction?.comment?.waypoints);
+    // Exclude odometer requests which also have no waypoints but have odometer readings
+    return (
+        hasDistanceCustomUnit(transaction) &&
+        isEmptyObject(transaction?.comment?.waypoints) &&
+        transaction?.comment?.odometerStart === undefined &&
+        transaction?.comment?.odometerEnd === undefined
+    );
 }
 
 function isOdometerDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -585,17 +591,11 @@ function getUpdatedTransaction({
                 comment: transactionChanges.comment,
             };
         } else if (typeof transactionChanges.comment === 'object' && transactionChanges.comment !== null) {
-            // If comment is an object, it might contain odometerStart/odometerEnd or other comment properties
+            // If comment is an object, it contains the comment text
             updatedTransaction.comment = {
                 ...updatedTransaction.comment,
                 ...(typeof (transactionChanges.comment as {comment?: string}).comment === 'string' && {
                     comment: (transactionChanges.comment as {comment: string}).comment,
-                }),
-                ...('odometerStart' in transactionChanges.comment && {
-                    odometerStart: (transactionChanges.comment as {odometerStart?: number | null}).odometerStart,
-                }),
-                ...('odometerEnd' in transactionChanges.comment && {
-                    odometerEnd: (transactionChanges.comment as {odometerEnd?: number | null}).odometerEnd,
                 }),
             };
         }
