@@ -1251,6 +1251,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
+        hiddenTextInputContainer: {
+            paddingLeft: 8,
+            paddingRight: 8,
+            borderWidth: 1,
+        },
+
         cannotBeEditedSplitInputContainer: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -4244,6 +4250,10 @@ const staticStyles = (theme: ThemeColors) =>
         reportPreviewBoxHoverBorder: {
             borderColor: theme.cardBG,
             backgroundColor: theme.cardBG,
+        },
+
+        reportPreviewBoxHoverBorderColor: {
+            borderColor: theme.cardBG,
         },
 
         reportContainerBorderRadius: {
