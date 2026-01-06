@@ -162,11 +162,7 @@ function AuthScreens() {
     // Check if the user is currently on a 2FA setup screen
     // We can't rely on useRoute in this component because we're not a child of a Navigator, so we must sift through nav state by hand
     const isIn2FASetupFlow = useNavigationState((state) => {
-        if (!state) {
-            return false;
-        }
-        const currentRoute = state.routes[state.index];
-        const focusedScreenName = getDeepestFocusedScreenName(currentRoute);
+        const focusedScreenName = getDeepestFocusedScreenName(state);
         return isTwoFactorSetupScreen(focusedScreenName);
     });
 
