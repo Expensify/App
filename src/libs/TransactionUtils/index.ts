@@ -181,9 +181,9 @@ function isMapDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
     return hasDistanceCustomUnit(transaction);
 }
 
-function isManualDistanceRequest(transaction: OnyxEntry<Transaction>): boolean {
+function isManualDistanceRequest(transaction: OnyxEntry<Transaction>, isUpdatedMergeTransaction = false): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
-    if (lodashHas(transaction, 'iouRequestType')) {
+    if (lodashHas(transaction, 'iouRequestType') && !isUpdatedMergeTransaction) {
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL;
     }
 
@@ -1139,7 +1139,16 @@ function isManagedCardTransaction(transaction: OnyxEntry<Transaction>): boolean 
  * This includes managed cards (Expensify/Company cards) and personal cards imported via bank connection.
  */
 function isFromCreditCardImport(transaction: OnyxEntry<Transaction>): boolean {
+    // This can be set in transactions found in the search snapshot
+    if (transaction?.transactionType === CONST.SEARCH.TRANSACTION_TYPE.CARD) {
+        return true;
+    }
+
     if (transaction?.bank === CONST.COMPANY_CARDS.BANK_NAME.UPLOAD) {
+        return false;
+    }
+
+    if (transaction?.cardName === CONST.EXPENSE.TYPE.CASH_CARD_NAME) {
         return false;
     }
 
@@ -1419,14 +1428,13 @@ function shouldShowViolation(
     const isSubmitter = isCurrentUserSubmitter(iouReport);
     const isPolicyMember = isPolicyMemberPolicyUtils(policy, currentUserEmail);
     const isReportOpen = isOpenExpenseReport(iouReport);
-    const isOpenOrProcessingReport = isReportOpen || isProcessingReport(iouReport);
 
     if (violationName === CONST.VIOLATIONS.AUTO_REPORTED_REJECTED_EXPENSE) {
         return isSubmitter || isPolicyAdmin(policy);
     }
 
     if (violationName === CONST.VIOLATIONS.OVER_AUTO_APPROVAL_LIMIT) {
-        return isPolicyAdmin(policy) && !isSubmitter && isOpenOrProcessingReport;
+        return isPolicyAdmin(policy) && !isSubmitter && isProcessingReport(iouReport);
     }
 
     if (violationName === CONST.VIOLATIONS.RTER) {
@@ -2227,11 +2235,10 @@ function compareDuplicateTransactionFields(
     return {keep, change};
 }
 
-function getTransactionID(threadReportID?: string): string | undefined {
-    if (!threadReportID) {
+function getTransactionID(report?: OnyxEntry<Report>): string | undefined {
+    if (!report) {
         return;
     }
-    const report = deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`];
     const parentReportAction = isThread(report) ? getReportAction(report.parentReportID, report.parentReportActionID) : undefined;
     const IOUTransactionID = isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
 
@@ -2307,7 +2314,11 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
     });
 }
 
-function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction: OnyxEntry<Transaction>): boolean {
+function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction?: OnyxEntry<Transaction>): boolean {
+    if (!originalTransaction) {
+        return !!transaction?.comment?.originalTransactionID && transaction?.comment?.source === 'split';
+    }
+
     const {originalTransactionID, source, splits} = transaction?.comment ?? {};
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

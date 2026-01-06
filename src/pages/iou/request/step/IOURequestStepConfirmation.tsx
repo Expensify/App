@@ -74,11 +74,7 @@ import type {GpsPoint} from '@userActions/IOU';
 import {
     createDistanceRequest as createDistanceRequestIOUActions,
     getIOURequestPolicyID,
-    getReceiverType,
     requestMoney as requestMoneyIOUActions,
-    sendInvoice,
-    sendMoneyElsewhere,
-    sendMoneyWithWallet,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
     setMoneyRequestParticipantsFromReport,
@@ -92,6 +88,8 @@ import {
     trackExpense as trackExpenseIOUActions,
     updateLastLocationPermissionPrompt,
 } from '@userActions/IOU';
+import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
+import {sendMoneyElsewhere, sendMoneyWithWallet} from '@userActions/IOU/SendMoney';
 import {openDraftWorkspaceRequest} from '@userActions/Policy/Policy';
 import {removeDraftTransaction, removeDraftTransactions, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 import CONST from '@src/CONST';
@@ -613,6 +611,7 @@ function IOURequestStepConfirmation({
                     currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                     currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                     transactionViolations,
+                    policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
                 });
                 existingIOUReport = iouReport;
             }
@@ -642,6 +641,7 @@ function IOURequestStepConfirmation({
             parentReportAction,
             transactionViolations,
             isManualDistanceRequest,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
@@ -847,6 +847,7 @@ function IOURequestStepConfirmation({
             isASAPSubmitBetaEnabled,
             transactionViolations,
             quickAction,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
@@ -1110,6 +1111,7 @@ function IOURequestStepConfirmation({
             trackExpense,
             userLocation,
             submitPerDiemExpense,
+            policyRecentlyUsedCurrencies,
         ],
     );
 
