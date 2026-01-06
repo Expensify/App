@@ -157,7 +157,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const confirmModalPrompt = useMemo(() => {
         const approverEmail = selectedEmployees.find((selectedEmployee) => isApprover(policy, selectedEmployee));
 
-        if (!!approverEmail) {
+        if (approverEmail) {
             const approverAccountID = policyMemberEmailsToAccountIDs[approverEmail];
             return translate('workspace.people.removeMembersWarningPrompt', {
                 memberName: getDisplayNameForParticipant({accountID: approverAccountID, formatPhoneNumber}),
@@ -165,14 +165,14 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             });
         }
 
-        const exporters = [
+        const exporters = new Set([
             policy?.connections?.intacct?.config?.export?.exporter,
             policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
             policy?.connections?.quickbooksOnline?.config?.export?.exporter,
             policy?.connections?.xero?.config?.export?.exporter,
             policy?.connections?.netsuite?.options?.config?.exporter,
-        ];
-        const userExporter = selectedEmployees.find((selectedEmployee) => exporters.includes(selectedEmployee));
+        ]);
+        const userExporter = selectedEmployees.find((selectedEmployee) => exporters.has(selectedEmployee));
 
         if (userExporter) {
             const exporterAccountID = policyMemberEmailsToAccountIDs[userExporter];
