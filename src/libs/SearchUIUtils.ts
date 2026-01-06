@@ -1233,7 +1233,7 @@ function getTransactionsSections(
     const allViolations = getViolations(data);
 
     // Use Map for faster lookups of personal details and reportActions
-    const personalDetailsMap = new Map(Object.entries(data.personalDetailsList || {}));
+    const personalDetailsMap = new Map(Object.entries(data.personalDetailsList ?? {}));
     const {moneyRequestReportActionsByTransactionID, holdReportActionsByTransactionID} = createReportActionsLookupMaps(data);
 
     const transactionsSections: TransactionListItemType[] = [];
