@@ -23,8 +23,6 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
-        with:
-          IS_DESKTOP_BUILD: true
 
       - name: Remove E/App version from package-lock.json
         shell: bash
