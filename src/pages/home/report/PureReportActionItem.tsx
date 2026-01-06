@@ -54,6 +54,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
+import {dismissExportError} from '@libs/actions/ReportActions';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import Navigation from '@libs/Navigation/Navigation';
@@ -130,6 +131,7 @@ import {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
+    isIntegrationMessageAction,
     isIOURequestReportAction,
     isMarkAsClosedAction,
     isMessageDeleted,
@@ -559,6 +561,12 @@ function PureReportActionItem({
 
     const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
     const dismissError = useCallback(() => {
+        // For INTEGRATIONS_MESSAGE actions (export errors), dismiss the entire action
+        if (isIntegrationMessageAction(action) && action.reportActionID) {
+            dismissExportError(reportID, action.reportActionID);
+            return;
+        }
+
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (transactionID) {
             clearError(transactionID);
