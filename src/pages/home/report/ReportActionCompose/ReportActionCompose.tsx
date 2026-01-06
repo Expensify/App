@@ -127,7 +127,12 @@ const willBlurTextInputOnTapOutside = willBlurTextInputOnTapOutsideFunc();
  * Returns an array of AI-aware placeholders for expense threads
  */
 function getAIPlaceholders(translate: LocalizedTranslate): string[] {
-    return [translate('reportActionCompose.askConciergeToCreate'), translate('reportActionCompose.askConciergeToUpdate'), translate('reportActionCompose.askConciergeToCorrect')];
+    return [
+        translate('reportActionCompose.askConciergeToCreate'),
+        translate('reportActionCompose.askConciergeToUpdate'),
+        translate('reportActionCompose.askConciergeToCorrect'),
+        translate('reportActionCompose.addColleagueWithMention'),
+    ];
 }
 
 // eslint-disable-next-line import/no-mutable-exports
@@ -185,8 +190,7 @@ function ReportActionCompose({
         return !draftComment || !!draftComment.match(CONST.REGEX.EMPTY_COMMENT);
     });
 
-    // Select a random AI placeholder index on mount (0, 1, or 2)
-    const [randomPlaceholderIndex] = useState(() => Math.floor(Math.random() * 3));
+    const [randomPlaceholderIndex] = useState(() => Math.floor(Math.random() * 4));
 
     /**
      * Updates the visibility state of the menu

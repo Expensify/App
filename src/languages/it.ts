@@ -875,6 +875,7 @@ const translations: TranslationDeepObject<typeof en> = {
         askConciergeToCreate: 'Chiedi a Concierge AI di creare una spesa...',
         askConciergeToUpdate: 'Chiedi a Concierge AI di aggiornare una spesa...',
         askConciergeToCorrect: 'Chiedi a Concierge AI di correggere una spesa...',
+        addColleagueWithMention: 'Aggiungi un collega con una menzione "@"...',
     },
     reportActionContextMenu: {
         copyMessage: 'Copia messaggio',

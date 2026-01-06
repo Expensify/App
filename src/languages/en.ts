@@ -854,6 +854,7 @@ const translations = {
         askConciergeToCreate: 'Ask Concierge AI to create an expense...',
         askConciergeToUpdate: 'Ask Concierge AI to update an expense...',
         askConciergeToCorrect: 'Ask Concierge AI to correct an expense...',
+        addColleagueWithMention: 'Add a colleague with an "@" mention...',
         fileUploadFailed: 'Upload failed. File is not supported.',
         localTime: ({user, time}: LocalTimeParams) => `It's ${time} for ${user}`,
         edited: '(edited)',
