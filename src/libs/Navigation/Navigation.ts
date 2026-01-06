@@ -110,9 +110,13 @@ function getDeepestFocusedScreenName(route: NavigationRoute | NavigationState | 
         return undefined;
     }
 
-    // NavigationState case - has routes array and index
-    if ('routes' in route && 'index' in route && Array.isArray(route.routes) && typeof route.index === 'number') {
-        const focusedRoute = route.routes[route.index];
+    // NavigationState case - has routes array
+    if ('routes' in route && Array.isArray(route.routes)) {       
+        // When routes array is just one item, the index key is omitted
+        let focusedRoute = route.routes[0];
+        if ('index' in route && typeof route.index === 'number') {
+            focusedRoute = route.routes[route.index];
+        }
         return getDeepestFocusedScreenName(focusedRoute);
     }
 
@@ -121,7 +125,7 @@ function getDeepestFocusedScreenName(route: NavigationRoute | NavigationState | 
         return getDeepestFocusedScreenName(route.state);
     }
 
-    // Route with params.screen case (initial navigation before navigator mounts)
+    // Route with params.screen case (initial navigation before sidebar navigator mounts)
     if ('params' in route && route.params && typeof route.params === 'object' && 'screen' in route.params) {
         const params = route.params as {screen?: string; params?: Record<string, unknown>};
         if (params.screen) {
