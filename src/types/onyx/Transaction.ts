@@ -121,10 +121,10 @@ type Comment = {
     pendingAutoCategorizationTime?: string;
 
     /** Odometer start reading for distance expenses */
-    odometerStart?: number | null;
+    odometerStart?: number;
 
     /** Odometer end reading for distance expenses */
-    odometerEnd?: number | null;
+    odometerEnd?: number;
 };
 
 /** Model of transaction custom unit */

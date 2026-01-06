@@ -114,8 +114,8 @@ type TransactionParams = {
     splitsStartDate?: string;
     splitsEndDate?: string;
     distance?: number;
-    odometerStart?: number | null;
-    odometerEnd?: number | null;
+    odometerStart?: number;
+    odometerEnd?: number;
 };
 
 type BuildOptimisticTransactionParams = {
