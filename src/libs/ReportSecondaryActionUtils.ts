@@ -143,20 +143,31 @@ function isSplitAction(report: OnyxEntry<Report>, reportTransactions: Array<Onyx
     return (isSubmitter && isAwaitingFirstLevelApproval(report)) || isAdmin || isManager;
 }
 
-// eslint-disable-next-line @typescript-eslint/max-params
-function isSubmitAction(
-    report: Report,
-    reportTransactions: Transaction[],
-    policy?: Policy,
-    reportNameValuePairs?: ReportNameValuePairs,
-    reportActions?: ReportAction[],
-    reportMetadata?: OnyxEntry<ReportMetadata>,
+function isSubmitAction({
+    report,
+    reportTransactions,
+    policy,
+    reportNameValuePairs,
+    reportActions,
+    reportMetadata,
     isChatReportArchived = false,
-    primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '',
-    violations?: OnyxCollection<TransactionViolation[]>,
-    currentUserEmail?: string,
-    currentUserAccountID?: number,
-): boolean {
+    primaryAction,
+    violations,
+    currentUserEmail,
+    currentUserAccountID,
+}: {
+    report: Report;
+    reportTransactions: Transaction[];
+    policy?: Policy;
+    reportNameValuePairs?: ReportNameValuePairs;
+    reportActions?: ReportAction[];
+    reportMetadata?: OnyxEntry<ReportMetadata>;
+    isChatReportArchived?: boolean;
+    primaryAction?: ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '';
+    violations?: OnyxCollection<TransactionViolation[]>;
+    currentUserEmail?: string;
+    currentUserAccountID?: number;
+}): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
@@ -808,7 +819,7 @@ function getSecondaryReportActions({
     });
 
     if (
-        isSubmitAction(
+        isSubmitAction({
             report,
             reportTransactions,
             policy,
@@ -820,7 +831,7 @@ function getSecondaryReportActions({
             violations,
             currentUserEmail,
             currentUserAccountID,
-        )
+        })
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }

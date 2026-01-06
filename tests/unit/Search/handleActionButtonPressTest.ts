@@ -312,6 +312,7 @@ describe('handleActionButtonPress', () => {
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(1);
     });
@@ -325,6 +326,7 @@ describe('handleActionButtonPress', () => {
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
             lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
