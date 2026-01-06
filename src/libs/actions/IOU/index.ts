@@ -1637,10 +1637,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_MANUAL;
     }
 
-    // Odometer drafts may lack iouRequestType; detect via odometer fields or last saved distance type.
-    const isOdometerDraft = transaction?.comment?.odometerStart !== undefined || transaction?.comment?.odometerEnd !== undefined;
-    const lastDistanceIsDistance = lastDistanceExpenseTypeValue?.startsWith('distance');
-    if (isDistanceRequestTransactionUtils(transaction) || isOdometerDraft || lastDistanceIsDistance) {
+    if (isDistanceRequestTransactionUtils(transaction)) {
         newQuickAction = CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
     }
     const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
