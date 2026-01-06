@@ -995,16 +995,7 @@ function getReportOption(participant: Participant, reportAttributesDerived?: Rep
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(
-            report,
-            undefined,
-            undefined,
-            undefined,
-            allReportNameValuePairs,
-            allPersonalDetails,
-            undefined,
-            currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-        );
+        option.text = computeReportName(report, undefined, undefined, undefined, allReportNameValuePairs, allPersonalDetails, undefined, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else {
@@ -1053,16 +1044,7 @@ function getReportDisplayOption(report: OnyxEntry<Report>, unknownUserDetails: O
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('reportActionsView.yourSpace');
     } else if (option.isInvoiceRoom) {
-        option.text = computeReportName(
-            report,
-            undefined,
-            undefined,
-            undefined,
-            allReportNameValuePairs,
-            allPersonalDetails,
-            undefined,
-            currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID,
-        );
+        option.text = computeReportName(report, undefined, undefined, undefined, allReportNameValuePairs, allPersonalDetails, undefined, currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         option.alternateText = translateLocal('workspace.common.invoices');
     } else if (unknownUserDetails) {
