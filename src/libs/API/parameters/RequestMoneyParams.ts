@@ -44,7 +44,7 @@ type RequestMoneyParams = {
     rate?: number;
 
     /** Unit for time tracking (e.g., 'h' for hours) */
-    unit?: string;
+    unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
 };
 
 export default RequestMoneyParams;

@@ -446,7 +446,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
     rate?: number;
 
     /** Unit for time tracking (e.g., 'h' for hours) */
-    unit?: string;
+    unit?: ValueOf<typeof CONST.TIME_TRACKING.UNIT>;
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
