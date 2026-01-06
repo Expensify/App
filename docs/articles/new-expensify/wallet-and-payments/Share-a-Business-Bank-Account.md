@@ -26,7 +26,7 @@ To share an existing account with other admins:
 2. Click the **three-dot menu (⋮)** next to the bank account you want to share.
 3. Select **Share**.
 4. On the Share screen:
-   - You’ll see a list of eligible Workspace Admins across Workspaces you manage.
+   - The list shows only Workspace Admins from workspaces where you also have admin access.
 5. Select the admins you want to share with, then click **Share**.
 6. You’ll see a confirmation screen once the share is successful.
 
