@@ -336,16 +336,7 @@ function ReportActionCompose({
             }
 
             if (attachmentFileRef.current) {
-                addAttachmentWithComment(
-                    transactionThreadReportID ?? reportID,
-                    reportID,
-                    ancestors,
-                    attachmentFileRef.current,
-                    newCommentTrimmed,
-                    personalDetail.timezone,
-                    true,
-                    isInSidePanel,
-                );
+                addAttachmentWithComment(transactionThreadReport ?? report, reportID, ancestors, attachmentFileRef.current, newCommentTrimmed, personalDetail.timezone, true, isInSidePanel);
                 attachmentFileRef.current = null;
             } else {
                 Performance.markStart(CONST.TIMING.SEND_MESSAGE, {message: newCommentTrimmed});
@@ -361,7 +352,7 @@ function ReportActionCompose({
                 onSubmit(newCommentTrimmed);
             }
         },
-        [onSubmit, ancestors, kickoffWaitingIndicator, isConciergeChat, reportID, personalDetail.timezone, transactionThreadReportID],
+        [isConciergeChat, kickoffWaitingIndicator, transactionThreadReport, report, reportID, ancestors, personalDetail.timezone, onSubmit, isInSidePanel],
     );
 
     const onTriggerAttachmentPicker = useCallback(() => {

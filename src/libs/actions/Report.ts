@@ -310,13 +310,6 @@ Onyx.connect({
     },
 });
 
-let allTransactionViolations: OnyxCollection<TransactionViolations> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
-    callback: (value) => (allTransactionViolations = value),
-});
-
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -550,11 +543,15 @@ function notifyNewAction(reportID: string | undefined, accountID: number | undef
  * - Adding one attachment
  * - Add both a comment and attachment simultaneously
  *
- * @param reportID - The report ID where the comment should be added
+ * @param report - The report where the comment should be added
  * @param notifyReportID - The report ID we should notify for new actions. This is usually the same as reportID, except when adding a comment to an expense report with a single transaction thread, in which case we want to notify the parent expense report.
  * @param isInSidePanel - Whether the comment is being added from the side panel
  */
-function addActions(reportID: string, notifyReportID: string, ancestors: Ancestor[], timezoneParam: Timezone, text = '', file?: FileObject, isInSidePanel = false) {
+function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors: Ancestor[], timezoneParam: Timezone, text = '', file?: FileObject, isInSidePanel = false) {
+    if (!report?.reportID) {
+        return;
+    }
+    const reportID = report.reportID;
     let reportCommentText = '';
     let reportCommentAction: OptimisticAddCommentReportAction | undefined;
     let attachmentAction: OptimisticAddCommentReportAction | undefined;
@@ -596,7 +593,6 @@ function addActions(reportID: string, notifyReportID: string, ancestors: Ancesto
         lastReadTime: currentTime,
     };
 
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     const shouldUpdateNotificationPreference = !isEmptyObject(report) && isHiddenForCurrentUser(report);
     if (shouldUpdateNotificationPreference) {
         optimisticReport.participants = {
@@ -726,7 +722,7 @@ function addActions(reportID: string, notifyReportID: string, ancestors: Ancesto
 
 /** Add an attachment with an optional comment to a report */
 function addAttachmentWithComment(
-    reportID: string,
+    report: OnyxEntry<Report>,
     notifyReportID: string,
     ancestors: Ancestor[],
     attachments: FileObject | FileObject[],
@@ -735,7 +731,7 @@ function addAttachmentWithComment(
     shouldPlaySound = false,
     isInSidePanel = false,
 ) {
-    if (!reportID) {
+    if (!report?.reportID) {
         return;
     }
 
@@ -748,17 +744,17 @@ function addAttachmentWithComment(
 
     // Single attachment
     if (!Array.isArray(attachments)) {
-        addActions(reportID, notifyReportID, ancestors, timezone, text, attachments, isInSidePanel);
+        addActions(report, notifyReportID, ancestors, timezone, text, attachments, isInSidePanel);
         handlePlaySound();
         return;
     }
 
     // Multiple attachments - first: combine text + first attachment as a single action
-    addActions(reportID, notifyReportID, ancestors, timezone, text, attachments?.at(0), isInSidePanel);
+    addActions(report, notifyReportID, ancestors, timezone, text, attachments?.at(0), isInSidePanel);
 
     // Remaining: attachment-only actions (no text duplication)
     for (let i = 1; i < attachments?.length; i += 1) {
-        addActions(reportID, notifyReportID, ancestors, timezone, '', attachments?.at(i), isInSidePanel);
+        addActions(report, notifyReportID, ancestors, timezone, '', attachments?.at(i), isInSidePanel);
     }
 
     // Play sound once
@@ -766,18 +762,18 @@ function addAttachmentWithComment(
 }
 
 /** Add a single comment to a report */
-function addComment(reportID: string, notifyReportID: string, ancestors: Ancestor[], text: string, timezoneParam: Timezone, shouldPlaySound?: boolean, isInSidePanel?: boolean) {
+function addComment(report: OnyxEntry<Report>, notifyReportID: string, ancestors: Ancestor[], text: string, timezoneParam: Timezone, shouldPlaySound?: boolean, isInSidePanel?: boolean) {
     if (shouldPlaySound) {
         playSound(SOUNDS.DONE);
     }
-    addActions(reportID, notifyReportID, ancestors, timezoneParam, text, undefined, isInSidePanel);
+    addActions(report, notifyReportID, ancestors, timezoneParam, text, undefined, isInSidePanel);
 }
 
 function reportActionsExist(reportID: string): boolean {
     return allReportActions?.[reportID] !== undefined;
 }
 
-function updateChatName(reportID: string, reportName: string, type: typeof CONST.REPORT.CHAT_TYPE.GROUP | typeof CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
+function updateChatName(reportID: string, oldReportName: string | undefined, reportName: string, type: typeof CONST.REPORT.CHAT_TYPE.GROUP | typeof CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -810,7 +806,7 @@ function updateChatName(reportID: string, reportName: string, type: typeof CONST
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
-                reportName: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName ?? null,
+                reportName: oldReportName ?? null,
                 pendingFields: {
                     reportName: null,
                 },
@@ -3747,7 +3743,7 @@ function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
+function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false, skipNavigation = false) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!report) {
@@ -3863,6 +3859,9 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     // If this is the leave action from a workspace room, simply dismiss the modal, i.e., allow the user to view the room and join again immediately.
     // If this is the leave action from a chat thread (even if the chat thread is in a room), do not allow the user to stay in the thread after leaving.
     if (isWorkspaceMemberLeavingWorkspaceRoom && !isChatThread) {
+        return;
+    }
+    if (skipNavigation) {
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
@@ -3993,10 +3992,10 @@ function inviteToRoom(reportID: string, inviteeEmailsToAccountIDs: InvitedEmails
 }
 
 /** Invites people to a room via concierge whisper */
-function inviteToRoomAction(reportID: string, ancestors: Ancestor[], inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, timezoneParam: Timezone) {
+function inviteToRoomAction(report: Report, ancestors: Ancestor[], inviteeEmailsToAccountIDs: InvitedEmailsToAccountIDs, timezoneParam: Timezone) {
     const inviteeEmails = Object.keys(inviteeEmailsToAccountIDs);
 
-    addComment(reportID, reportID, ancestors, inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, false);
+    addComment(report, report.reportID, ancestors, inviteeEmails.map((login) => `@${login}`).join(' '), timezoneParam, false);
 }
 
 function clearAddRoomMemberError(reportID: string, invitedAccountID: string) {
@@ -4949,7 +4948,12 @@ function clearDeleteTransactionNavigateBackUrl() {
 }
 
 /** Deletes a report and un-reports all transactions on the report along with its reportActions, any linked reports and any linked IOU report actions. */
-function deleteAppReport(reportID: string | undefined, currentUserEmailParam: string, reportAllTransactions: Transaction[]) {
+function deleteAppReport(
+    reportID: string | undefined,
+    currentUserEmailParam: string,
+    reportTransactions: Record<string, Transaction>,
+    transactionsViolations: Record<string, TransactionViolations>,
+) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
         return;
@@ -5061,8 +5065,8 @@ function deleteAppReport(reportID: string | undefined, currentUserEmailParam: st
 
         // 1. Update the transaction and its violations
         if (transactionID) {
-            const transaction = reportAllTransactions.find((t) => t.transactionID === transactionID);
-            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+            const transaction = reportTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const transactionViolations = transactionsViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
 
             optimisticData.push(
                 {
@@ -5083,7 +5087,6 @@ function deleteAppReport(reportID: string | undefined, currentUserEmailParam: st
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
                     value: {reportID: transaction?.reportID, comment: {hold: transaction?.comment?.hold}},
                 },
-                // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                 {
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
@@ -6200,7 +6203,7 @@ function changeReportPolicyAndInviteSubmitter(
  * @param ancestors - Array of ancestor reports for proper threading
  */
 function resolveConciergeOptions(
-    reportID: string | undefined,
+    report: OnyxEntry<Report>,
     notifyReportID: string | undefined,
     reportActionID: string | undefined,
     selectedValue: string,
@@ -6208,11 +6211,12 @@ function resolveConciergeOptions(
     selectedField: 'selectedCategory' | 'selectedDescription',
     ancestors: Ancestor[] = [],
 ) {
-    if (!reportID || !reportActionID) {
+    if (!report?.reportID || !reportActionID) {
         return;
     }
 
-    addComment(reportID, notifyReportID ?? reportID, ancestors, selectedValue, timezoneParam);
+    const reportID = report.reportID;
+    addComment(report, notifyReportID ?? reportID, ancestors, selectedValue, timezoneParam);
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         [reportActionID]: {
@@ -6233,14 +6237,14 @@ function resolveConciergeOptions(
  * @param ancestors - Array of ancestor reports for proper threading
  */
 function resolveConciergeCategoryOptions(
-    reportID: string | undefined,
+    report: OnyxEntry<Report>,
     notifyReportID: string | undefined,
     reportActionID: string | undefined,
     selectedCategory: string,
     timezoneParam: Timezone,
     ancestors: Ancestor[] = [],
 ) {
-    resolveConciergeOptions(reportID, notifyReportID, reportActionID, selectedCategory, timezoneParam, 'selectedCategory', ancestors);
+    resolveConciergeOptions(report, notifyReportID, reportActionID, selectedCategory, timezoneParam, 'selectedCategory', ancestors);
 }
 
 /**
@@ -6253,14 +6257,14 @@ function resolveConciergeCategoryOptions(
  * @param ancestors - Array of ancestor reports for proper threading
  */
 function resolveConciergeDescriptionOptions(
-    reportID: string | undefined,
+    report: OnyxEntry<Report>,
     notifyReportID: string | undefined,
     reportActionID: string | undefined,
     selectedDescription: string,
     timezoneParam: Timezone,
     ancestors: Ancestor[] = [],
 ) {
-    resolveConciergeOptions(reportID, notifyReportID, reportActionID, selectedDescription, timezoneParam, 'selectedDescription', ancestors);
+    resolveConciergeOptions(report, notifyReportID, reportActionID, selectedDescription, timezoneParam, 'selectedDescription', ancestors);
 }
 
 /**
