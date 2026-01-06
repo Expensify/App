@@ -655,7 +655,7 @@ function computeReportName(
     allReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
     personalDetailsList?: PersonalDetailsList,
     reportActions?: OnyxCollection<ReportActions>,
-    currentUserAccountID: number,
+    currentUserAccountID?: number,
 ): string {
     if (!report || !report.reportID) {
         return '';
