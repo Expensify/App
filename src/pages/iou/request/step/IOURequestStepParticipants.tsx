@@ -18,7 +18,7 @@ import {isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpen
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, isInvoiceRoomWithID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
 import {getRequestType, isCorporateCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
@@ -285,7 +285,7 @@ function IOURequestStepParticipants({
             // When a participant is selected, the reportID needs to be saved because that's the reportID that will be used in the confirmation step.
             // We use || to be sure that if the first participant doesn't have a reportID, we generate a new one.
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            selectedReportID.current = firstParticipantReportID || generateReportID();
+            selectedReportID.current = (firstParticipantReportID && isInvoiceRoomWithID(firstParticipantReportID)) ? firstParticipantReportID : generateReportID();
 
             // IOUs are always reported. non-CREATE actions require a report
             if (!isPolicyExpenseChat || action !== CONST.IOU.ACTION.CREATE) {
