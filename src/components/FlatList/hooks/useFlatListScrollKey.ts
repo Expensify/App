@@ -1,17 +1,19 @@
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList, ScrollView} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
+import type {ListRenderItem, ListRenderItemInfo, FlatList as RNFlatList} from 'react-native';
 import {View} from 'react-native';
-import getInitialPaginationSize from '@components/InvertedFlatList/getInitialPaginationSize';
-import RenderTaskQueue from '@components/InvertedFlatList/RenderTaskQueue';
+import getInitialPaginationSize from '@components/FlatList/getInitialPaginationSize';
+import RenderTaskQueue from '@components/FlatList/InvertedFlatList/RenderTaskQueue';
+import type {FlatListInnerRefType} from '@components/FlatList/types';
 import type {ScrollViewProps} from '@components/ScrollView';
+import usePrevious from '@hooks/usePrevious';
 import getPlatform from '@libs/getPlatform';
 import CONST from '@src/CONST';
-import usePrevious from './usePrevious';
+import useFlatListHandle from './useFlatListHandle';
 
 type FlatListScrollKeyProps<T> = {
+    ref?: ForwardedRef<RNFlatList<T>>;
     data: T[];
     keyExtractor: (item: T, index: number) => string;
     initialScrollKey: string | null | undefined;
@@ -19,7 +21,8 @@ type FlatListScrollKeyProps<T> = {
     onStartReached?: ((info: {distanceFromStart: number}) => void) | null;
     shouldEnableAutoScrollToTopThreshold?: boolean;
     renderItem: ListRenderItem<T>;
-    ref?: ForwardedRef<RNFlatList>;
+    remainingItemsToDisplay?: number;
+    onScrollToIndexFailed?: (params: {index: number; averageItemLength: number; highestMeasuredFrameIndex: number}) => void;
 };
 
 const AUTOSCROLL_TO_TOP_THRESHOLD = 250;
@@ -33,6 +36,8 @@ export default function useFlatListScrollKey<T>({
     shouldEnableAutoScrollToTopThreshold,
     renderItem,
     ref,
+    remainingItemsToDisplay,
+    onScrollToIndexFailed,
 }: FlatListScrollKeyProps<T>) {
     // `initialScrollIndex` doesn't work properly with FlatList, this uses an alternative approach to achieve the same effect.
     // What we do is start rendering the list from `initialScrollKey` and then whenever we reach the start we render more
@@ -159,43 +164,13 @@ export default function useFlatListScrollKey<T>({
         });
     }, [inverted, isInitialData, isQueueRendering]);
 
-    const listRef = useRef<RNFlatList | null>(null);
-    useImperativeHandle(ref, () => {
-        // If we're trying to scroll at the start of the list we need to make sure to
-        // render all items.
-        const scrollToOffsetFn: RNFlatList['scrollToOffset'] = (params) => {
-            if (params.offset === 0) {
-                setCurrentDataId(null);
-            }
-            requestAnimationFrame(() => {
-                listRef.current?.scrollToOffset(params);
-            });
-        };
-
-        const scrollToEndFn: RNFlatList['scrollToEnd'] = (params) => {
-            const scrollViewRef = listRef.current?.getNativeScrollRef();
-            // Try to scroll on underlying scrollView if available, fallback to usual listRef
-            if (scrollViewRef && 'scrollToEnd' in scrollViewRef) {
-                (scrollViewRef as ScrollView).scrollToEnd({animated: !!params?.animated});
-                return;
-            }
-            listRef.current?.scrollToEnd(params);
-        };
-
-        return new Proxy(
-            {},
-            {
-                get: (_target, prop) => {
-                    if (prop === 'scrollToOffset') {
-                        return scrollToOffsetFn;
-                    }
-                    if (prop === 'scrollToEnd') {
-                        return scrollToEndFn;
-                    }
-                    return listRef.current?.[prop as keyof RNFlatList];
-                },
-            },
-        ) as RNFlatList;
+    const listRef = useRef<FlatListInnerRefType<T> | null>(null);
+    useFlatListHandle<T>({
+        ref,
+        listRef,
+        remainingItemsToDisplay,
+        setCurrentDataId,
+        onScrollToIndexFailed,
     });
 
     return {
