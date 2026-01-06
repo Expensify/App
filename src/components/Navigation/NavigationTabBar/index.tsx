@@ -37,7 +37,14 @@ import {startSpan} from '@libs/telemetry/activeSpans';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
 import navigationRef from '@navigation/navigationRef';
-import type {DomainSplitNavigatorParamList, ReportsSplitNavigatorParamList, RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import type {
+    DomainSplitNavigatorParamList,
+    ReportsSplitNavigatorParamList,
+    RootNavigatorParamList,
+    SearchFullscreenNavigatorParamList,
+    State,
+    WorkspaceSplitNavigatorParamList,
+} from '@navigation/types';
 import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/home/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
