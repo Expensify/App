@@ -257,7 +257,6 @@ import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -1772,6 +1771,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         failureData.push(...testDriveFailureData);
     }
 
+    let iouAction = iou.action;
     if (isMoneyRequestToManagerMcTest) {
         const date = new Date();
         const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
@@ -1787,6 +1787,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             transactionID: transaction.transactionID,
             reportActionID: iou.action.reportActionID,
         });
+        iouAction = optimisticIOUReportAction;
 
         optimisticData.push(
             // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
@@ -2124,7 +2125,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         transaction,
         participant,
         iouReport: iou.report,
-        iouAction: iou.action,
+        iouAction,
         policy,
         transactionThreadReportID: transactionThreadReport?.reportID,
         isFromOneTransactionReport: isOneTransactionReport(iou.report),
@@ -8995,8 +8996,8 @@ function deleteMoneyRequest({
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`]: {
-                        // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                         pendingFields: {
+                            // @ts-expect-error - will be solved in https://github.com/Expensify/App/issues/73830
                             preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         },
                     },
@@ -9746,8 +9747,7 @@ function canIOUBePaid(
     iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
     policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy>,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transactions?: OnyxTypes.Transaction[] | SearchTransaction[],
+    transactions?: OnyxTypes.Transaction[],
     onlyShowPayElsewhere = false,
     chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
     invoiceReceiverPolicy?: OnyxTypes.Policy,
@@ -9818,8 +9818,7 @@ function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxE
 function canSubmitReport(
     report: OnyxEntry<OnyxTypes.Report>,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transactions: OnyxTypes.Transaction[] | SearchTransaction[],
+    transactions: OnyxTypes.Transaction[],
     allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
     isReportArchived: boolean,
     currentUserEmailParam: string,
@@ -14129,17 +14128,113 @@ function updateSplitTransactions({
                 splitApiParams[`splits[${i}][${key}]`] = value !== null && typeof value === 'object' ? JSON.stringify(value) : value;
             }
         }
-        const parameters: SplitTransactionParams = {
+
+        if (isCreationOfSplits) {
+            const isTransactionOnHold = isOnHold(originalTransaction);
+
+            if (isTransactionOnHold) {
+                const holdReportActionIDs: string[] = [];
+                const holdReportActionCommentIDs: string[] = [];
+                const transactionReportActions = getAllReportActions(firstIOU?.childReportID);
+                const holdReportAction = getReportAction(firstIOU?.childReportID, `${originalTransaction?.comment?.hold ?? ''}`);
+
+                const holdReportActionComment = holdReportAction
+                    ? Object.values(transactionReportActions ?? {}).find(
+                          (action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && action?.timestamp === holdReportAction.timestamp,
+                      )
+                    : undefined;
+
+                if (holdReportAction && holdReportActionComment) {
+                    // Loop through all split expenses and add optimistic hold report actions for each split
+                    for (const [index, splitExpense] of splits.entries()) {
+                        const splitReportID = splitExpense?.transactionThreadReportID;
+                        if (!splitReportID) {
+                            continue;
+                        }
+
+                        // Generate new IDs and timestamps for each split
+                        const newHoldReportActionID = NumberUtils.rand64();
+                        const newHoldReportActionCommentID = NumberUtils.rand64();
+                        const timestamp = DateUtils.getDBTime();
+                        const reportActionTimestamp = DateUtils.addMillisecondsFromDateTime(timestamp, 1);
+
+                        // Store IDs for API parameters
+                        holdReportActionIDs[index] = newHoldReportActionID;
+                        holdReportActionCommentIDs[index] = newHoldReportActionCommentID;
+
+                        // Create new optimistic hold report action with new ID and timestamp, keeping other information
+                        const newHoldReportAction = {
+                            ...holdReportAction,
+                            reportActionID: newHoldReportActionID,
+                            created: timestamp,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        };
+
+                        // Create new optimistic hold report action comment with new ID and timestamp, keeping other information
+                        const newHoldReportActionComment = {
+                            ...holdReportActionComment,
+                            reportActionID: newHoldReportActionCommentID,
+                            created: reportActionTimestamp,
+                            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                        };
+
+                        // Add to optimisticData for this split's reportActions
+                        optimisticData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
+                            value: {
+                                [newHoldReportActionID]: newHoldReportAction,
+                                [newHoldReportActionCommentID]: newHoldReportActionComment,
+                            },
+                        });
+
+                        // Add successData to clear pendingAction after API call succeeds
+                        successData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
+                            value: {
+                                [newHoldReportActionID]: {pendingAction: null},
+                                [newHoldReportActionCommentID]: {pendingAction: null},
+                            },
+                        });
+
+                        // Add failureData to remove optimistic hold report actions if the request fails
+                        failureData.push({
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitReportID}`,
+                            value: {
+                                [newHoldReportActionID]: null,
+                                [newHoldReportActionCommentID]: null,
+                            },
+                        });
+                    }
+
+                    // Add hold report action IDs to API parameters
+                    for (const [i, holdReportActionID] of holdReportActionIDs.entries()) {
+                        if (holdReportActionID) {
+                            splitApiParams[`splits[${i}][holdReportActionID]`] = holdReportActionID;
+                        }
+                    }
+                    for (const [i, holdReportActionCommentID] of holdReportActionCommentIDs.entries()) {
+                        if (holdReportActionCommentID) {
+                            splitApiParams[`splits[${i}][holdReportActionCommentID]`] = holdReportActionCommentID;
+                        }
+                    }
+                }
+            }
+        }
+
+        const splitParameters: SplitTransactionParams = {
             ...splitApiParams,
             transactionID: originalTransactionID,
         };
 
         if (isCreationOfSplits) {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+            API.write(WRITE_COMMANDS.SPLIT_TRANSACTION, splitParameters, {optimisticData, successData, failureData});
         } else {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            API.write(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, parameters, {optimisticData, successData, failureData});
+            API.write(WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters, {optimisticData, successData, failureData});
         }
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated

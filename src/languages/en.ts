@@ -493,6 +493,7 @@ const translations = {
         showMore: 'Show more',
         showLess: 'Show less',
         merchant: 'Merchant',
+        change: 'Change',
         category: 'Category',
         report: 'Report',
         billable: 'Billable',
@@ -2346,6 +2347,24 @@ const translations = {
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
         defaultPaymentMethod: 'Default',
         bankAccountLastFour: (lastFour: string) => `Bank Account • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Expense rules',
+        subtitle: 'These rules will apply to your expenses. If you submit to a workspace, then the workspace rules may override them.',
+        emptyRules: {
+            title: "You haven't created any rules",
+            subtitle: 'Add a rule to automate expense reporting.',
+        },
+        changes: {
+            billable: (value: boolean) => `Update expense ${value ? 'billable' : 'non-billable'}`,
+            category: (value: string) => `Update category to "${value}"`,
+            comment: (value: string) => `Change description to "${value}"`,
+            merchant: (value: string) => `Update merchant to "${value}"`,
+            reimbursable: (value: boolean) => `Update expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
+            report: (value: string) => `Add a report named "${value}"`,
+            tag: (value: string) => `Update tag to "${value}"`,
+            tax: (value: string) => `Update tax rate to "${value}"`,
+        },
     },
     preferencesPage: {
         appSection: {
