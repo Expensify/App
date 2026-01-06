@@ -87,7 +87,7 @@ Use search commands in the search bar to run advanced queries based on specific 
 Below are some example queries you can use depending on your role:
 
 - Draft expenses:  
-  `type:expense status:drafts from:you@domain.com`
+  `type:expense status:draft from:you@domain.com`
 
 - Approved cash expenses:  
   `type:expense status:approved expense-type:cash from:you@domain.com`
