@@ -2,7 +2,6 @@ import React, {useCallback} from 'react';
 import useOnyx from 'react-native-onyx/dist/useOnyx';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import {addNewCompanyCardsFeed, setAddNewCompanyCardStepAndData} from '@libs/actions/CompanyCards';
 import Navigation from '@libs/Navigation/Navigation';
 import WorkspaceCompanyCardStatementCloseDateSelectionList from '@pages/workspace/companyCards/WorkspaceCompanyCardStatementCloseDateSelectionList';
@@ -21,12 +20,11 @@ type StatementCloseDateStepProps = {
 
 function StatementCloseDateStep({policyID, workspaceAccountID}: StatementCloseDateStepProps) {
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
     const [cardFeeds] = useCardFeeds(policyID);
 
-    const isPlaid = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !!addNewCard?.data?.publicToken;
+    const isPlaid = !!addNewCard?.data?.publicToken;
 
     const submit = useCallback(
         (statementPeriodEnd: StatementPeriodEnd | undefined, statementPeriodEndDay: StatementPeriodEndDay | undefined) => {
