@@ -1429,6 +1429,36 @@ describe('TransactionUtils', () => {
 
             expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
         });
+
+        it('should return false for unreported expenses', () => {
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
+
+        it('should return false for invoice expenses', async () => {
+            const invoiceReportID = 'invoice123';
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {
+                reportID: invoiceReportID,
+                type: CONST.REPORT.TYPE.INVOICE,
+            });
+
+            const transaction = generateTransaction({
+                category: '',
+                merchant: 'Some Merchant',
+                amount: 100,
+                reportID: invoiceReportID,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            expect(TransactionUtils.isCategoryBeingAnalyzed(transaction)).toBe(false);
+        });
     });
 
     describe('shouldReuseInitialTransaction', () => {
@@ -1480,6 +1510,31 @@ describe('TransactionUtils', () => {
                 receipt: {source: 'source'},
             });
             expect(TransactionUtils.shouldReuseInitialTransaction(transactionWithReceiptSource, true, 0, true, [initialTransaction])).toBe(false);
+        });
+    });
+
+    describe('shouldShowExpenseBreakdown', () => {
+        it('should return false when transactions array is undefined', () => {
+            expect(TransactionUtils.shouldShowExpenseBreakdown(undefined)).toBe(false);
+        });
+
+        it('should return false when transactions array is empty', () => {
+            expect(TransactionUtils.shouldShowExpenseBreakdown([])).toBe(false);
+        });
+
+        it('should return false when all transactions are reimbursable', () => {
+            const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: true})];
+            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(false);
+        });
+
+        it('should return true when all transactions are non-reimbursable', () => {
+            const transactions = [generateTransaction({reimbursable: false}), generateTransaction({reimbursable: false})];
+            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
+        });
+
+        it('should return true when there are both reimbursable and non-reimbursable transactions', () => {
+            const transactions = [generateTransaction({reimbursable: true}), generateTransaction({reimbursable: false})];
+            expect(TransactionUtils.shouldShowExpenseBreakdown(transactions)).toBe(true);
         });
     });
 });
