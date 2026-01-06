@@ -70,6 +70,7 @@ describe('useIsBlockedToAddFeed', () => {
             {status: 'loaded'},
         ]);
         const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+        
         // CSV feeds don't count toward the limit, so user can add another feed
         expect(result.current.isBlockedToAddNewFeeds).toBe(false);
     });
