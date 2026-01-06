@@ -1984,7 +1984,6 @@ function handlePreexistingReport(report: Report) {
         if (activeRoute.includes(ROUTES.REPORT_WITH_ID.getRoute(reportID)) || activeRoute.includes(ROUTES.SEARCH_REPORT.getRoute({reportID}))) {
             const currCallback = callback;
             callback = () => {
-                currCallback();
                 if (!parentReportActionID || !isParentOneTransactionReport) {
                     // We are either in a DM/group-DM that do not have a parent report,
                     // a thread under any comment,
@@ -1999,6 +1998,7 @@ function handlePreexistingReport(report: Report) {
                     // and the one transaction should be accessed via the one expense report screen
                     Navigation.setParams({reportID: parentReportID});
                 }
+                currCallback();
             };
 
             // The report screen will listen to this event and transfer the draft comment to the existing report
