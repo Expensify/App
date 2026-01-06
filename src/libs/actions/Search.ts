@@ -48,7 +48,6 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFilt
 import type {ExportTemplate, LastPaymentMethod, LastPaymentMethodType, Policy, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 import SafeString from '@src/utils/SafeString';
 import {setPersonalBankAccountContinueKYCOnSuccess} from './BankAccounts';
@@ -103,8 +102,7 @@ function handleActionButtonPress({
 }: HandleActionButtonPressParams) {
     // The transactionIDList is needed to handle actions taken on `status:""` where transactions on single expense reports can be approved/paid.
     // We need the transactionID to display the loading indicator for that list item's action.
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as SearchTransaction[];
+    const allReportTransactions = (isTransactionGroupListItemType(item) ? item.transactions : [item]) as Transaction[];
     const hasHeldExpense = hasHeldExpenses('', allReportTransactions);
 
     if (hasHeldExpense && item.action !== CONST.SEARCH.ACTION_TYPES.SUBMIT) {
@@ -129,14 +127,14 @@ function handleActionButtonPress({
                 onDEWModalOpen?.();
                 return;
             }
-            approveMoneyRequestOnSearch(hash, [item.reportID], currentSearchKey);
+            approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
                 onDEWModalOpen?.();
                 return;
             }
-            submitMoneyRequestOnSearch(hash, [item], [snapshotPolicy], currentSearchKey);
+            submitMoneyRequestOnSearch(hash, [item as Report], [snapshotPolicy], currentSearchKey);
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -151,7 +149,7 @@ function handleActionButtonPress({
                 return;
             }
 
-            exportToIntegrationOnSearch(hash, item.reportID, connectedIntegration, currentSearchKey);
+            exportToIntegrationOnSearch(hash, item?.reportID, connectedIntegration, currentSearchKey);
             return;
         }
         default:
@@ -215,6 +213,10 @@ function getPayActionCallback(
     personalPolicyID: string | undefined,
 ) {
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
+
+    if (!item.reportID) {
+        return;
+    }
 
     if (!lastPolicyPaymentMethod || !Object.values(CONST.IOU.PAYMENT_TYPE).includes(lastPolicyPaymentMethod)) {
         goToItem();
@@ -575,7 +577,10 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST_ON_SEARCH, {hash, reportIDList}, {optimisticData, failureData, successData});
 }
 
-function exportToIntegrationOnSearch(hash: number, reportID: string, connectionName: ConnectionName, currentSearchKey?: SearchKey) {
+function exportToIntegrationOnSearch(hash: number, reportID: string | undefined, connectionName: ConnectionName, currentSearchKey?: SearchKey) {
+    if (!reportID) {
+        return;
+    }
     const optimisticAction = buildOptimisticExportIntegrationAction(connectionName);
     const successAction: OptimisticExportIntegrationAction = {...optimisticAction, pendingAction: null};
     const optimisticReportActionID = optimisticAction.reportActionID;
@@ -788,7 +793,7 @@ function rejectMoneyRequestInBulk(reportID: string, comment: string, policy: Ony
 
 /** Minimal transaction info needed for reject - only reportID is used */
 type TransactionReportInfo = {
-    reportID: string;
+    reportID?: string;
 };
 
 function rejectMoneyRequestsOnSearch(
@@ -802,6 +807,10 @@ function rejectMoneyRequestsOnSearch(
 
     const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {
         const reportID = selectedTransactions[transactionID].reportID;
+
+        if (!reportID) {
+            return acc;
+        }
 
         if (!acc[reportID]) {
             acc[reportID] = [];
@@ -1024,7 +1033,9 @@ function shouldShowBulkOptionForRemainingTransactions(selectedTransactions: Sele
     if (!selectedTransactions || isEmpty(selectedTransactions)) {
         return true;
     }
-    const neededFilterTransactions = transactionKeys?.filter((transactionIDKey) => !selectedReportIDs?.includes(selectedTransactions[transactionIDKey].reportID));
+    const neededFilterTransactions = transactionKeys?.filter(
+        (transactionIDKey) => selectedTransactions[transactionIDKey]?.reportID && !selectedReportIDs?.includes(selectedTransactions[transactionIDKey]?.reportID),
+    );
     if (!neededFilterTransactions?.length) {
         return true;
     }

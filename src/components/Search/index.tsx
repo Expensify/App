@@ -71,7 +71,6 @@ import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import {isActionLoadingSetSelector} from '@src/selectors/ReportMetaData';
 import type {OutstandingReportsByPolicyIDDerivedValue, Transaction} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {TransactionViolation} from '@src/types/onyx/TransactionViolation';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arraysEqual from '@src/utils/arraysEqual';
@@ -177,6 +176,7 @@ function prepareTransactionsList(
             action: item.action,
             reportID: item.reportID,
             policyID: item.policyID,
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             amount: Math.abs(item.modifiedAmount || item.amount),
             groupAmount: item.groupAmount,
             groupCurrency: item.groupCurrency,
@@ -263,8 +263,7 @@ function Search({
         const transactionKeys = Object.keys(searchResults.data).filter((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
 
         for (const key of transactionKeys) {
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            const transaction = searchResults.data[key as keyof typeof searchResults.data] as SearchTransaction;
+            const transaction = searchResults.data[key as keyof typeof searchResults.data] as Transaction;
             if (!transaction || typeof transaction !== 'object' || !('transactionID' in transaction) || !('reportID' in transaction)) {
                 continue;
             }

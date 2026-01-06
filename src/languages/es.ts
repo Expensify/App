@@ -227,6 +227,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Mostrar más',
         showLess: 'Mostrar menos',
         merchant: 'Comerciante',
+        change: 'Cambio',
         category: 'Categoría',
         report: 'Informe',
         billable: 'Facturable',
@@ -2021,6 +2022,24 @@ ${amount} para ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
         defaultPaymentMethod: 'Predeterminado',
         bankAccountLastFour: (lastFour) => `Cuenta bancaria • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Reglas de gastos',
+        subtitle: 'Estas reglas se aplicarán a tus gastos. Si los envías a un espacio de trabajo, las reglas del espacio de trabajo pueden anularlas.',
+        emptyRules: {
+            title: 'Aún no has creado ninguna regla',
+            subtitle: 'Añade una regla para automatizar los informes de gastos.',
+        },
+        changes: {
+            billable: (value: boolean) => `Actualiza el gasto a ${value ? 'facturable' : 'no facturable'}`,
+            category: (value: string) => `Actualiza la categoría a "${value}"`,
+            comment: (value: string) => `Cambia la descripción a "${value}"`,
+            merchant: (value: string) => `Actualiza el comercio a "${value}"`,
+            reimbursable: (value: boolean) => `Actualiza el gasto a ${value ? 'reembolsable' : 'no reembolsable'}`,
+            report: (value: string) => `Añade un informe llamado "${value}"`,
+            tag: (value: string) => `Actualiza la etiqueta a "${value}"`,
+            tax: (value: string) => `Actualiza la tasa de impuesto a ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {
