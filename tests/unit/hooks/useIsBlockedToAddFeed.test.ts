@@ -138,6 +138,7 @@ describe('useIsBlockedToAddFeed', () => {
             {status: 'loaded'},
         ]);
         const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+
         // Pending feeds count toward the limit, so user should be blocked from adding another feed
         expect(result.current.isBlockedToAddNewFeeds).toBe(true);
     });
@@ -156,6 +157,7 @@ describe('useIsBlockedToAddFeed', () => {
             {status: 'loaded'},
         ]);
         const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+
         // Pending CSV feeds don't count toward the limit, so user can add another feed
         expect(result.current.isBlockedToAddNewFeeds).toBe(false);
     });
@@ -181,6 +183,7 @@ describe('useIsBlockedToAddFeed', () => {
             {status: 'loaded'},
         ]);
         const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+
         // Both regular and pending feeds count, so user should be blocked
         expect(result.current.isBlockedToAddNewFeeds).toBe(true);
     });
@@ -199,6 +202,7 @@ describe('useIsBlockedToAddFeed', () => {
             {status: 'loaded'},
         ]);
         const {result} = renderHook(() => useIsBlockedToAddFeed(mockPolicyID));
+
         // Pending feeds count toward the limit, so even with only a pending feed, user should be blocked
         expect(result.current.isBlockedToAddNewFeeds).toBe(true);
     });

@@ -10,7 +10,7 @@ import usePolicy from './usePolicy';
  *
  * Collect plan workspaces are limited to one company card feed. This hook checks if the workspace already has
  * a feed and returns whether users should be blocked from adding more feeds.
- * CSV uploads from Classic should not count toward this limit.
+ * CSV uploads from Classic and Expensify Cards should not count toward this limit.
  *
  * @param policyID - The ID of the workspace/policy to check
  * @returns An object containing:
