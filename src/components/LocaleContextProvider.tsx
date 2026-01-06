@@ -103,13 +103,16 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         return isSupportedLocale(deviceLocale) ? deviceLocale : CONST.LOCALES.DEFAULT;
     }, [nvpPreferredLocale, nvpPreferredLocaleMetadata]);
 
+    if (localeToApply) {
+        IntlStore.load(localeToApply);
+    }
+
     useEffect(() => {
         if (!localeToApply) {
             return;
         }
 
         setLocale(localeToApply, nvpPreferredLocale);
-        IntlStore.load(localeToApply);
         localeEventCallback(localeToApply);
 
         // For locales without emoji support, fallback on English
