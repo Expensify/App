@@ -362,9 +362,8 @@ function IOURequestStepDistanceOdometer({
                     isASAPSubmitBetaEnabled: false,
                 });
             }
-            if (isEditingConfirmation) {
-                allowNavigation();
-            }
+            // Allow navigation after saving changes to prevent discard modal
+            allowNavigation();
             if (confirmationRoute) {
                 Navigation.goBack(confirmationRoute);
                 return;
@@ -528,7 +527,7 @@ function IOURequestStepDistanceOdometer({
         navigateToNextPage();
     };
 
-    const shouldEnableDiscardConfirmation = !isEditingConfirmation && !shouldSkipConfirmation;
+    const shouldEnableDiscardConfirmation = !isEditingConfirmation && !shouldSkipConfirmation && !isEditing;
 
     return (
         <StepScreenWrapper

@@ -844,7 +844,7 @@ function MoneyRequestView({
                         copyable={!!descriptionCopyValue}
                     />
                 </OfflineWithFeedback>
-                {isManualDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
+                {isManualDistanceRequest || isOdometerDistanceRequest || (isMapDistanceRequest && transaction?.comment?.waypoints) ? (
                     distanceRequestFields
                 ) : (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
