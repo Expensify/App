@@ -185,6 +185,7 @@ function getReportPreviewAction({
     isPaidAnimationRunning,
     isApprovedAnimationRunning,
     isSubmittingAnimationRunning,
+    isDEWSubmitPending,
     violationsData,
 }: {
     isReportArchived: boolean;
@@ -198,6 +199,7 @@ function getReportPreviewAction({
     isPaidAnimationRunning?: boolean;
     isApprovedAnimationRunning?: boolean;
     isSubmittingAnimationRunning?: boolean;
+    isDEWSubmitPending?: boolean;
     violationsData?: OnyxCollection<TransactionViolation[]>;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
@@ -215,6 +217,10 @@ function getReportPreviewAction({
     }
     if (isAddExpenseAction(report, transactions ?? [], isReportArchived)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
+    }
+
+    if (isDEWSubmitPending && isOpenReport(report)) {
+        return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
     if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserEmail, violationsData, policy, transactions)) {

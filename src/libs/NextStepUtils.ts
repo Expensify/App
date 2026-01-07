@@ -332,6 +332,36 @@ function buildOptimisticNextStepForStrictPolicyRuleViolations() {
     return optimisticNextStep;
 }
 
+function buildOptimisticNextStepForDynamicExternalWorkflowError(iconFill?: string) {
+    const optimisticNextStep: ReportNextStepDeprecated = {
+        type: 'alert',
+        icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
+        iconFill,
+        message: [
+            {
+                text: "This report can't be submitted. Please review the comments to resolve.",
+                type: 'alert-text',
+            },
+        ],
+    };
+
+    return optimisticNextStep;
+}
+
+function buildOptimisticNextStepForDEWOfflineSubmission() {
+    const optimisticNextStep: ReportNextStepDeprecated = {
+        type: 'neutral',
+        icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+        message: [
+            {
+                text: 'Waiting for you to come back online to determine next steps.',
+            },
+        ],
+    };
+
+    return optimisticNextStep;
+}
+
 /**
  * Generates an optimistic nextStep based on a current report status and other properties.
  * Need to rename this function and remove the buildNextStep function above after migrating to this function
@@ -703,6 +733,8 @@ export {
     parseMessage,
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
+    buildOptimisticNextStepForDynamicExternalWorkflowError,
+    buildOptimisticNextStepForDEWOfflineSubmission,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildNextStepNew,
 };
