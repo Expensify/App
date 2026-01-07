@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import {useIsFocused} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -114,11 +113,14 @@ function IOURequestStepDistanceOdometer({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
-    const shouldUseDefaultExpensePolicy =
-        iouType === CONST.IOU.TYPE.CREATE &&
-        isPaidGroupPolicy(defaultExpensePolicy) &&
-        defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
-        !shouldRestrictUserBillableActions(defaultExpensePolicy.id);
+    const shouldUseDefaultExpensePolicy = useMemo(
+        () =>
+            iouType === CONST.IOU.TYPE.CREATE &&
+            isPaidGroupPolicy(defaultExpensePolicy) &&
+            defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
+            !shouldRestrictUserBillableActions(defaultExpensePolicy.id),
+        [iouType, defaultExpensePolicy],
+    );
 
     const unit = DistanceRequestUtils.getRate({transaction, policy: shouldUseDefaultExpensePolicy ? defaultExpensePolicy : policy}).unit;
 
@@ -237,7 +239,7 @@ function IOURequestStepDistanceOdometer({
         return shouldShowSave ? translate('common.save') : translate('common.next');
     })();
 
-    const handleStartReadingChange = (text: string) => {
+    const cleanOdometerReading = (text: string): string => {
         // Allow digits and one decimal point or comma
         // Remove all characters except digits, dots, and commas
         let cleaned = text.replaceAll(/[^0-9.,]/g, '');
@@ -252,6 +254,11 @@ function IOURequestStepDistanceOdometer({
         if (cleaned.startsWith('.')) {
             cleaned = `0${cleaned}`;
         }
+        return cleaned;
+    };
+
+    const handleStartReadingChange = (text: string) => {
+        const cleaned = cleanOdometerReading(text);
         setStartReading(cleaned);
         startReadingRef.current = cleaned;
         if (formError) {
@@ -260,20 +267,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     const handleEndReadingChange = (text: string) => {
-        // Allow digits and one decimal point or comma
-        // Remove all characters except digits, dots, and commas
-        let cleaned = text.replaceAll(/[^0-9.,]/g, '');
-        // Replace comma with dot for consistency
-        cleaned = cleaned.replaceAll(',', '.');
-        // Allow only one decimal point
-        const parts = cleaned.split('.');
-        if (parts.length > 2) {
-            cleaned = `${parts.at(0) ?? ''}.${parts.slice(1).join('')}`;
-        }
-        // Don't allow decimal point at the start
-        if (cleaned.startsWith('.')) {
-            cleaned = `0${cleaned}`;
-        }
+        const cleaned = cleanOdometerReading(text);
         setEndReading(cleaned);
         endReadingRef.current = cleaned;
         if (formError) {
@@ -295,6 +289,7 @@ function IOURequestStepDistanceOdometer({
         }
     };
 
+    // Prevents useBeforeRemove from redirecting during Navigation.goBack() after Save
     const allowNavigationRef = useRef(false);
     const allowNavigation = () => {
         allowNavigationRef.current = true;
