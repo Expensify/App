@@ -2254,7 +2254,23 @@ ${amount}，商户：${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '无法更改审批人。请重试或联系支持。',
-        header: '发送给该成员以供审批：',
+        title: '发送给该成员以供审批：',
+        description: '此人将审批费用。',
+    },
+    workflowsApprovalLimitPage: {
+        title: '审批人',
+        header: '（可选）是否添加审批限额？',
+        description: ({approverName}: {approverName: string}) =>
+            approverName ? `当<strong>${approverName}</strong>为审批人且报告超过以下金额时，添加另一位审批人：` : '当报告超过以下金额时，添加另一位审批人：',
+        reportAmountLabel: '报告金额',
+        additionalApproverLabel: '额外审批人',
+        skip: '跳过',
+        next: '下一步',
+        removeLimit: '移除限额',
+        enterAmountError: '请输入有效金额',
+        enterApproverError: '设置报告限额时需要审批人',
+        enterBothError: '请输入报告金额和额外审批人',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `超过${approvalLimit}的报告将转发给${approverName}`,
     },
     workflowsPayerPage: {
         title: '授权付款人',
@@ -7799,6 +7815,7 @@ ${reportName}
         locationRequiredModal: {title: '需要访问位置信息', prompt: '请在设备设置中允许位置访问以开始 GPS 距离跟踪。', allow: '允许'},
         androidBackgroundLocationRequiredModal: {title: '需要后台位置访问权限', prompt: '请在设备设置中允许应用使用“始终允许”位置访问权限，以开始 GPS 距离跟踪。'},
         preciseLocationRequiredModal: {title: '需要精确位置', prompt: '请在设备设置中启用“精确位置”以开始 GPS 距离跟踪。'},
+        desktop: {title: '在手机上跟踪距离', subtitle: '使用 GPS 自动记录英里或公里，并将行程即时转换为报销费用。', button: '下载应用程序'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

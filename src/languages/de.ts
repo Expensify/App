@@ -2299,7 +2299,25 @@ ${amount} für ${merchant} – ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Der Genehmiger konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
-        header: 'Zur Genehmigung an dieses Mitglied senden:',
+        title: 'Zur Genehmigung an dieses Mitglied senden:',
+        description: 'Diese Person wird die Ausgaben genehmigen.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Genehmiger',
+        header: '(Optional) Möchten Sie ein Genehmigungslimit hinzufügen?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Fügen Sie einen weiteren Genehmiger hinzu, wenn <strong>${approverName}</strong> Genehmiger ist und der Bericht den folgenden Betrag überschreitet:`
+                : 'Fügen Sie einen weiteren Genehmiger hinzu, wenn der Bericht den folgenden Betrag überschreitet:',
+        reportAmountLabel: 'Berichtsbetrag',
+        additionalApproverLabel: 'Zusätzlicher Genehmiger',
+        skip: 'Überspringen',
+        next: 'Weiter',
+        removeLimit: 'Limit entfernen',
+        enterAmountError: 'Bitte geben Sie einen gültigen Betrag ein',
+        enterApproverError: 'Ein Genehmiger ist erforderlich, wenn Sie ein Berichtslimit festlegen',
+        enterBothError: 'Geben Sie einen Berichtsbetrag und einen zusätzlichen Genehmiger ein',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Berichte über ${approvalLimit} werden an ${approverName} weitergeleitet`,
     },
     workflowsPayerPage: {
         title: 'Autorisierter Zahler',
@@ -8042,6 +8060,11 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
         preciseLocationRequiredModal: {
             title: 'Genaue Position erforderlich',
             prompt: 'Bitte aktiviere „genaue Standortbestimmung“ in den Einstellungen deines Geräts, um die GPS‑Streckenverfolgung zu starten.',
+        },
+        desktop: {
+            title: 'Entfernung auf deinem Handy verfolgen',
+            subtitle: 'Protokolliere Meilen oder Kilometer automatisch mit GPS und verwandle Fahrten sofort in Ausgaben.',
+            button: 'App herunterladen',
         },
     },
 };

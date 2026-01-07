@@ -730,6 +730,7 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
+        ZERO_EXPENSES: 'zeroExpenses',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
     },
@@ -6714,6 +6715,7 @@ const CONST = {
             CARD: 'card',
             DISTANCE: 'distance',
             PER_DIEM: 'perDiem',
+            TIME: 'time',
         },
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',

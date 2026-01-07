@@ -2252,7 +2252,25 @@ const translations = {
     },
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
-        header: 'Send to this member for approval:',
+        title: 'Set approver',
+        description: 'This person will approve the expenses.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Approver',
+        header: '(Optional) Want to add an approval limit?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Add another approver when <strong>${approverName}</strong> is approver and report exceeds the amount below:`
+                : 'Add another approver when a report exceeds the amount below:',
+        reportAmountLabel: 'Report amount',
+        additionalApproverLabel: 'Additional approver',
+        skip: 'Skip',
+        next: 'Next',
+        removeLimit: 'Remove limit',
+        enterAmountError: 'Please enter a valid amount',
+        enterApproverError: 'Approver is required when you set a report limit',
+        enterBothError: 'Enter a report amount and additional approver',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Reports above ${approvalLimit} forward to ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -7111,6 +7129,10 @@ const translations = {
         preciseLocationRequiredModal: {
             title: 'Precise location required',
             prompt: 'Please enable "precise location" in your device settings to start GPS distance tracking.',
+        desktop: {
+            title: 'Track distance on your phone',
+            subtitle: 'Log miles or kilometers automatically with GPS and turn trips into expenses instantly.',
+            button: 'Download the app',
         },
     },
     reportCardLostOrDamaged: {
