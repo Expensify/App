@@ -7803,7 +7803,8 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(Number(transactionID)),
                 reportID: parentReport.reportID,
-                amount: 0,
+                created: '',
+                modifiedCreated: '',
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
@@ -7828,7 +7829,8 @@ describe('ReportUtils', () => {
             const transaction: Transaction = {
                 ...createRandomTransaction(12345),
                 reportID: parentReport.reportID,
-                amount: 0,
+                created: '',
+                modifiedCreated: '',
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await waitForBatchedUpdates();
