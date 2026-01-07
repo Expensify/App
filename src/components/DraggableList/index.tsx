@@ -61,7 +61,8 @@ function DraggableList<T>({
 
     const sortableItems = data.map((item, index) => {
         const key = keyExtractor(item, index);
-        const isDragDisabled = typeof item === 'object' && item !== null && 'isDragDisabled' in item ? !!(item as {isDragDisabled?: boolean}).isDragDisabled : false;
+        // Check if item has a disabled property for dragging
+        const isDisabled = typeof item === 'object' && item !== null && 'isDragDisabled' in item ? !!(item as {isDragDisabled?: boolean}).isDragDisabled : false;
         const isFocused = index === focusedIndex;
 
         const renderedItem = renderItem({
@@ -77,7 +78,7 @@ function DraggableList<T>({
             <SortableItem
                 id={key}
                 key={key}
-                disabled={isDragDisabled}
+                disabled={isDisabled}
                 isFocused={isFocused}
             >
                 {itemWithFocus}
