@@ -34,6 +34,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     shouldSyncFocus,
     onCheckboxPress,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: ExpenseReportListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
@@ -42,6 +43,7 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchContext();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
@@ -64,18 +66,20 @@ function ExpenseReportListItem<TItem extends ListItem>({
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const handleOnButtonPress = useCallback(() => {
-        handleActionButtonPress(
-            currentSearchHash,
-            reportItem,
-            () => onSelectRow(reportItem as unknown as TItem),
+        handleActionButtonPress({
+            hash: currentSearchHash,
+            item: reportItem,
+            goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDEWBetaEnabled,
             isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-        );
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+            personalPolicyID,
+        });
     }, [
         currentSearchHash,
         reportItem,
@@ -83,8 +87,10 @@ function ExpenseReportListItem<TItem extends ListItem>({
         snapshotReport,
         snapshotPolicy,
         lastPaymentMethod,
+        personalPolicyID,
         currentSearchKey,
         onDEWModalOpen,
+        isDEWBetaEnabled,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
     ]);
