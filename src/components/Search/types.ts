@@ -3,6 +3,7 @@ import type {PaymentMethod} from '@components/KYCWall/types';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
 import type {SearchKey} from '@libs/SearchUIUtils';
 import type CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -10,9 +11,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 type SelectedTransactionInfo = {
     /** Whether the transaction is selected */
     isSelected: boolean;
-
-    /** If the transaction can be deleted */
-    canDelete: boolean;
 
     /** If the transaction can be rejected */
     canReject: boolean;
@@ -39,7 +37,7 @@ type SelectedTransactionInfo = {
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
 
     /** The reportID of the transaction */
-    reportID: string;
+    reportID?: string;
 
     /** The policyID tied to the report the transaction is reported on */
     policyID: string | undefined;
@@ -56,11 +54,16 @@ type SelectedTransactionInfo = {
     /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
     groupCurrency?: string;
 
+    /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
+    groupExchangeRate?: number;
+
     /** Whether it is the only expense of the parent expense report */
     isFromOneTransactionReport?: boolean;
 
     /** Account ID of the report owner */
     ownerAccountID?: number;
+
+    reportAction?: ReportAction;
 };
 
 /** Model of selected transactions */
@@ -68,7 +71,7 @@ type SelectedTransactions = Record<string, SelectedTransactionInfo>;
 
 /** Model of selected reports */
 type SelectedReports = {
-    reportID: string;
+    reportID: string | undefined;
     policyID: string | undefined;
     action: ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
     allActions: Array<ValueOf<typeof CONST.SEARCH.ACTION_TYPES>>;
@@ -110,7 +113,13 @@ type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 type SearchDatePreset = ValueOf<typeof CONST.SEARCH.DATE_PRESETS>;
 type SearchWithdrawalType = ValueOf<typeof CONST.SEARCH.WITHDRAWAL_TYPE>;
 type SearchAction = ValueOf<typeof CONST.SEARCH.ACTION_FILTERS>;
-type SearchCustomColumnIds = ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE> | ValueOf<typeof CONST.SEARCH.CUSTOM_COLUMNS.EXPENSE_REPORT>;
+
+type SearchCustomColumnIds =
+    | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>
+    | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>;
 
 type SearchContextData = {
     currentSearchHash: number;
