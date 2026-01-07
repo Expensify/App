@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
@@ -27,6 +28,8 @@ function AddPersonalBankAccountPage() {
     const [selectedPlaidAccountId, setSelectedPlaidAccountId] = useState('');
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT, {canBeMissing: true});
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
+    const personalPolicy = usePolicy(personalPolicyID);
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
     const kycWallRef = useContext(KYCWallContext);
@@ -59,9 +62,9 @@ function AddPersonalBankAccountPage() {
                       ...selectedPlaidBankAccount,
                       plaidAccessToken: plaidData?.plaidAccessToken ?? '',
                   };
-            addPersonalBankAccount(bankAccountWithToken, policyID, source);
+            addPersonalBankAccount(bankAccountWithToken, policyID, source, undefined, personalPolicy);
         }
-    }, [plaidData?.bankAccounts, plaidData?.plaidAccessToken, selectedPlaidAccountId, personalBankAccount?.policyID, personalBankAccount?.source]);
+    }, [plaidData?.bankAccounts, plaidData?.plaidAccessToken, personalBankAccount?.policyID, personalBankAccount?.source, selectedPlaidAccountId, personalPolicy]);
 
     const exitFlow = useCallback(
         (shouldContinue = false) => {
