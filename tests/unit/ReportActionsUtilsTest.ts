@@ -2274,7 +2274,7 @@ describe('ReportActionsUtils', () => {
                     newValue: true,
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
             expect(actual).toBe('enabled the Distance rate "Default Rate"');
         });
 
@@ -2291,7 +2291,7 @@ describe('ReportActionsUtils', () => {
                     newValue: false,
                 },
             };
-            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(action);
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, action);
             expect(actual).toBe('disabled the Distance rate "Default Rate"');
         });
     });
