@@ -1599,7 +1599,7 @@ function explain(reportAction: OnyxEntry<ReportAction>, originalReportID: string
     // Schedule adding the explanation comment on the next animation frame
     // so it runs immediately after navigation completes.
     requestAnimationFrame(() => {
-        addComment(report.reportID, report.reportID, [], translate('reportActionContextMenu.explainMessage'), timezone);
+        addComment(report, report.reportID, [], translate('reportActionContextMenu.explainMessage'), timezone, true);
     });
 }
 
