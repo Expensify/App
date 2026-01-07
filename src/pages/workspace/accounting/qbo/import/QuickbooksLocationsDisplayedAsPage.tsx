@@ -1,6 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -71,7 +71,7 @@ function QuickbooksLocationsDisplayedAsPage({policy}: WithPolicyProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksLocationsDisplayedAsPage"
-            sections={data.length ? [{data}] : []}
+            data={data}
             listItem={RadioListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID))}
             onSelectRow={(selection) => selectDisplayedAs(selection as CardListItem)}

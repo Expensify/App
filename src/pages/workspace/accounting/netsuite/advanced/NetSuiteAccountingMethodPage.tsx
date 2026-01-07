@@ -2,7 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import type {ListItem} from '@components/SelectionListWithSections/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
@@ -70,7 +70,7 @@ function NetSuiteAccountingMethodPage({policy, route}: WithPolicyConnectionsProp
             displayName="NetSuiteAccountingMethodPage"
             title="workspace.netsuite.advancedConfig.accountingMethods.label"
             headerContent={headerContent}
-            sections={[{data}]}
+            data={data}
             listItem={RadioListItem}
             onSelectRow={(selection: SelectorType) => selectExpenseReportApprovalLevel(selection as MenuListItem)}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}

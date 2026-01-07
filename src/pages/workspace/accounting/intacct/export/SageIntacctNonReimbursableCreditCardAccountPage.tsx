@@ -67,7 +67,7 @@ function SageIntacctNonReimbursableCreditCardAccountPage({policy}: WithPolicyCon
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="SageIntacctNonReimbursableCreditCardAccountPage"
-            sections={creditCardSelectorOptions.length ? [{data: creditCardSelectorOptions}] : []}
+            data={creditCardSelectorOptions ?? []}
             listItem={RadioListItem}
             onSelectRow={updateCreditCardAccount}
             initiallyFocusedOptionKey={creditCardSelectorOptions.find((mode) => mode.isSelected)?.keyForList}

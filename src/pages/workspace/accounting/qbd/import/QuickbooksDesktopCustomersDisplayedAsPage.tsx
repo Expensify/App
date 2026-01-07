@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -57,7 +57,7 @@ function QuickbooksDesktopCustomersDisplayedAsPage({policy}: WithPolicyConnectio
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="QuickbooksDesktopCustomersDisplayedAsPage"
-            sections={data.length ? [{data}] : []}
+            data={data}
             listItem={RadioListItem}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CUSTOMERS.getRoute(policyID))}
             onSelectRow={selectDisplayedAs}

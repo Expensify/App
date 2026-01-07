@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import RadioListItem from '@components/SelectionListWithSections/RadioListItem';
+import RadioListItem from '@components/SelectionList/ListItem/RadioListItem';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import useLocalize from '@hooks/useLocalize';
