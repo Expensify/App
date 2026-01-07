@@ -390,7 +390,6 @@ function MoneyRequestConfirmationListFooter({
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
     const shouldDisplayTaxRateError = formError === 'violations.taxOutOfPolicy';
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
-    const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
     // The per diem custom unit
@@ -740,7 +739,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key="attendees"
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon
                     title={iouAttendees?.map((item) => item?.displayName ?? item?.login).join(', ')}
                     description={`${translate('iou.attendees')} ${
                         iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
@@ -754,10 +753,8 @@ function MoneyRequestConfirmationListFooter({
 
                         Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                     }}
-                    interactive={!isReadOnly}
+                    interactive
                     shouldRenderAsHTML
-                    brickRoadIndicator={shouldDisplayAttendeesError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayAttendeesError ? translate(formError) : ''}
                 />
             ),
             shouldShow: shouldShowAttendees,
