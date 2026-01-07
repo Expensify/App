@@ -49,13 +49,11 @@ import {
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
+import {computeReportName, getReportName} from '@libs/ReportNameUtils';
 import {
     generateReportID,
     getDisplayNameForParticipant,
     getIcons,
-    // Will be fixed in https://github.com/Expensify/App/issues/76852
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportName,
     getWorkspaceChats,
     hasEmptyReportsForPolicy,
     hasViolations as hasViolationsReportUtils,
@@ -301,8 +299,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     }, [isValidReport, quickActionAvatars, personalDetails, quickAction?.action]);
 
     const quickActionSubtitle = useMemo(() => {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return !hideQABSubtitle ? (getReportName(quickActionReport, quickActionPolicy, undefined, personalDetails) ?? translate('quickAction.updateDestination')) : '';
+        return !hideQABSubtitle
+            ? (computeReportName(quickActionReport, allReports, allPolicies as OnyxCollection<OnyxTypes.Policy>, undefined, undefined, personalDetails) ??
+                  translate('quickAction.updateDestination'))
+            : '';
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [hideQABSubtitle, personalDetails, quickAction?.action, quickActionPolicy?.name, quickActionReport, translate]);
@@ -500,7 +500,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
                     ...baseQuickAction,
                     icon: icons.ReceiptScan,
                     text: translate('quickAction.scanReceipt'),
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     description: getReportName(policyChatForActivePolicy),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     onSelected,

@@ -9,6 +9,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import type {Report, ReportAction} from '@src/types/onyx';
 import SafeString from '@src/utils/SafeString';
+import {getReportName} from '@libs/ReportNameUtils';
 import focusApp from './focusApp';
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
@@ -115,7 +116,7 @@ export default {
         }
 
         if (isRoomOrGroupChat) {
-            const roomName = ReportUtils.getReportName(report);
+            const roomName = getReportName(report);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
