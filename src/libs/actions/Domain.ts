@@ -7,6 +7,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getAuthToken} from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type {ScimTokenWithState} from './ScimToken/ScimTokenUtils';
 import {ScimTokenState} from './ScimToken/ScimTokenUtils';
 
@@ -535,7 +536,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
             value: {
                 [PERMISSION_KEY]: accountID,
-            },
+            } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX, number>,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,

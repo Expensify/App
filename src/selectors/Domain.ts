@@ -63,7 +63,7 @@ const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardF
  */
 function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
     if (!domain) {
-        return getEmptyArray<number>();;
+        return getEmptyArray<number>();
     }
 
     const memberIDs = Object.entries(domain).reduce<number[]>((acc, [key, value]) => {

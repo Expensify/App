@@ -762,7 +762,7 @@ const ONYXKEYS = {
         EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
 
         /** Stores domain security group */
-        DOMAIN_SECURITY_GROUP_PREFIX: 'expensify_securityGroup_',
+        DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
 
         /** Pending actions for a domain */
         DOMAIN_PENDING_ACTIONS: 'domainPendingActions_',
