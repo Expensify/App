@@ -676,9 +676,9 @@ type OptimisticTaskReportAction = Pick<
 >;
 
 type AnnounceRoomOnyxData = {
-    onyxOptimisticData: OnyxUpdate[];
-    onyxSuccessData: OnyxUpdate[];
-    onyxFailureData: OnyxUpdate[];
+    onyxOptimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_DRAFT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    onyxSuccessData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    onyxFailureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
 };
 
 type OptimisticAnnounceChat = {
@@ -891,9 +891,11 @@ type OptionData = {
     ReportNameValuePairs;
 
 type OnyxDataTaskAssigneeChat = {
-    optimisticData: OnyxUpdate[];
-    successData: OnyxUpdate[];
-    failureData: OnyxUpdate[];
+    optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
+    successData: Array<
+        OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_METADATA | typeof ONYXKEYS.PERSONAL_DETAILS_LIST | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>
+    >;
+    failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.PERSONAL_DETAILS_LIST>>;
     optimisticAssigneeAddComment?: OptimisticReportAction;
     optimisticChatCreatedReportAction?: OptimisticCreatedReportAction;
 };
@@ -10840,7 +10842,7 @@ function getOptimisticDataForParentReportAction(report: Report | undefined, last
  * @param lastVisibleActionCreated Last visible action created of the child report
  * @param type The type of action in the child report
  */
-function getOptimisticDataForAncestors(ancestors: Ancestor[], lastVisibleActionCreated: string, type: string): OnyxUpdate[] {
+function getOptimisticDataForAncestors(ancestors: Ancestor[], lastVisibleActionCreated: string, type: string): Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> {
     let previousActionDeleted = false;
     return ancestors.map(({report: ancestorReport, reportAction: ancestorReportAction}, index) => {
         const updatedReportAction = updateOptimisticParentReportAction(ancestorReportAction, lastVisibleActionCreated, type, previousActionDeleted ? index + 1 : undefined);
