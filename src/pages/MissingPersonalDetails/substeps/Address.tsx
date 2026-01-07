@@ -50,24 +50,15 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
             }
 
             if (values.addressLine2.length > CONST.FORM_CHARACTER_LIMIT) {
-                errors.addressLine2 = translate('common.error.characterLimitExceedCounter', {
-                    length: values.addressLine2.length,
-                    limit: CONST.FORM_CHARACTER_LIMIT,
-                });
+                errors.addressLine2 = translate('common.error.characterLimitExceedCounter', values.addressLine2.length, CONST.FORM_CHARACTER_LIMIT);
             }
 
             if (values.city.length > CONST.FORM_CHARACTER_LIMIT) {
-                errors.city = translate('common.error.characterLimitExceedCounter', {
-                    length: values.city.length,
-                    limit: CONST.FORM_CHARACTER_LIMIT,
-                });
+                errors.city = translate('common.error.characterLimitExceedCounter', values.city.length, CONST.FORM_CHARACTER_LIMIT);
             }
 
             if (values.country !== CONST.COUNTRY.US && values.state.length > CONST.STATE_CHARACTER_LIMIT) {
-                errors.state = translate('common.error.characterLimitExceedCounter', {
-                    length: values.state.length,
-                    limit: CONST.STATE_CHARACTER_LIMIT,
-                });
+                errors.state = translate('common.error.characterLimitExceedCounter', values.state.length, CONST.STATE_CHARACTER_LIMIT);
             }
 
             // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
