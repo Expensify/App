@@ -532,7 +532,7 @@ function isChangeWorkspaceAction(report: Report, policies: OnyxCollection<Policy
     }
 
     const submitterEmail = getLoginByAccountID(report?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID);
-    const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy));
+    const availablePolicies = Object.values(policies ?? {}).filter((newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy, report));
     let hasAvailablePolicies = availablePolicies.length > 1;
     if (!hasAvailablePolicies && availablePolicies.length === 1) {
         hasAvailablePolicies = !report.policyID || report.policyID !== availablePolicies?.at(0)?.id;
