@@ -1251,12 +1251,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
-        hiddenTextInputContainer: {
-            paddingLeft: 8,
-            paddingRight: 8,
-            borderWidth: 1,
-        },
-
         cannotBeEditedSplitInputContainer: {
             flexDirection: 'row',
             alignItems: 'center',
@@ -2108,6 +2102,13 @@ const staticStyles = (theme: ThemeColors) =>
                 paddingBottom: 0,
                 alignSelf: 'center',
                 verticalAlign: 'middle',
+                ...(Platform.OS === 'android' && {
+                    height: undefined,
+                    lineHeight: undefined,
+                    alignSelf: 'stretch',
+                    flexGrow: 1,
+                    flexShrink: 1,
+                }),
             },
             0,
         ),
@@ -4252,6 +4253,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
         },
 
+        reportPreviewBoxHoverBorderColor: {
+            borderColor: theme.cardBG,
+        },
+
         reportContainerBorderRadius: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
@@ -5087,6 +5092,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 172,
         },
 
+        gpsWebIllustrationContainer: {
+            width: 286,
+            height: 188,
+        },
+
         emptyStateCardIllustrationContainer: {
             height: 220,
             ...flex.alignItemsCenter,
@@ -5284,6 +5294,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        workflowApprovalLimitText: {
+            marginLeft: 32,
+            paddingBottom: 0,
         },
 
         integrationIcon: {

@@ -1006,7 +1006,15 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: 'サブスクリプション',
         domains: 'ドメイン',
     },
-    tabSelector: {chat: 'チャット', room: '部屋', distance: '距離', manual: '手動', scan: 'スキャン', map: '地図', gps: 'GPS', odometer: 'オドメーター'},
+    tabSelector: {
+        chat: 'チャット',
+        room: '部屋',
+        distance: '距離',
+        manual: '手動',
+        scan: 'スキャン',
+        map: '地図',
+        gps: 'GPS',
+    },
     spreadsheet: {
         upload: 'スプレッドシートをアップロード',
         import: 'スプレッドシートをインポート',
@@ -1252,6 +1260,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} 用` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `送信済み${memo ? `、メモ「${memo}」と述べています` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出を遅らせる</a>を通じて送信されました`,
+        queuedToSubmitViaDEW: 'カスタム承認ワークフローを介して送信待ちキューに入れられました',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} 用` : ''} を追跡中`,
         splitAmount: ({amount}: SplitAmountParams) => `${amount} を分割`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `分割 ${formattedAmount}${comment ? `${comment} 用` : ''}`,
@@ -1333,9 +1342,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'このワークスペースでは無効なレートです。ワークスペースから利用可能なレートを選択してください。',
             endDateBeforeStartDate: '終了日は開始日より前にはできません',
             endDateSameAsStartDate: '終了日は開始日と同じにはできません',
-            odometerReadingRequired: '開始値と終了値の両方を入力してください',
-            negativeDistanceNotAllowed: '終了読み取り値は開始読み取り値より大きくする必要があります',
-            invalidReadings: '開始と終了の読取値を両方入力してください',
         },
         dismissReceiptError: 'エラーを閉じる',
         dismissReceiptErrorConfirmation: '注意！このエラーを無視すると、アップロードした領収書が完全に削除されます。本当に実行しますか？',
@@ -2275,7 +2281,28 @@ ${merchant} への ${amount}（${date}）`,
         title: '経費（発生日）',
         header: '次のメンバーが経費を提出したとき:',
     },
-    workflowsApproverPage: {genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。', header: 'このメンバーに承認のため送信:'},
+    workflowsApproverPage: {
+        genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
+        title: 'このメンバーに承認用として送信:',
+        description: 'この人が経費を承認します。',
+    },
+    workflowsApprovalLimitPage: {
+        title: '承認者',
+        header: '（オプション）承認限度額を追加しますか？',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `<strong>${approverName}</strong>が承認者で、レポートが以下の金額を超える場合に別の承認者を追加します：`
+                : 'レポートが以下の金額を超える場合に別の承認者を追加します：',
+        reportAmountLabel: 'レポート金額',
+        additionalApproverLabel: '追加の承認者',
+        skip: 'スキップ',
+        next: '次へ',
+        removeLimit: '制限を削除',
+        enterAmountError: '有効な金額を入力してください',
+        enterApproverError: 'レポート制限を設定する場合は承認者が必要です',
+        enterBothError: 'レポート金額と追加の承認者を入力してください',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `${approvalLimit}を超えるレポートは${approverName}に転送されます`,
+    },
     workflowsPayerPage: {
         title: '認可された支払担当者',
         genericErrorMessage: '支払権限者を変更できませんでした。もう一度お試しください。',
@@ -7126,7 +7153,6 @@ ${reportName}
         error: {
             selectSuggestedAddress: '候補の住所を選択するか、現在地を使用してください',
         },
-        odometer: {startReading: '読み始める', endReading: '読み終える', saveForLater: '後で保存', totalDistance: '合計距離'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成績証明書の紛失または損傷',
@@ -7928,6 +7954,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         stopGpsTrackingModal: {title: 'GPS追跡を停止', prompt: '本当に終了しますか？現在のジャーニーが終了します。', cancel: '追跡を再開', confirm: 'GPS追跡を停止'},
         discardDistanceTrackingModal: {title: '距離の追跡を破棄', prompt: '本当に実行しますか？現在の行程が破棄され、元に戻すことはできません。', confirm: '距離の追跡を破棄'},
         zeroDistanceTripModal: {title: '経費を作成できません', prompt: '開始地点と終了地点が同じ経路では経費を作成できません。'},
+        desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
     },
     desktopAppRetiredPage: {
         title: 'デスクトップアプリは廃止されました',
