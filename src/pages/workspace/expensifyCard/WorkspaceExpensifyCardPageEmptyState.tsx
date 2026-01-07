@@ -112,7 +112,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     ctaText={translate(isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
                     ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     onCtaPress={() => {
-                        if (isActingAsDelegate) {
+                        if (isDelegateAccessRestricted) {
                             showDelegateNoAccessModal();
                             return;
                         }
