@@ -34,4 +34,6 @@ function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoEle
     );
 }
 
+AttachmentViewVideo.displayName = 'AttachmentViewVideo';
+
 export default React.memo(AttachmentViewVideo);
