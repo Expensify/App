@@ -999,6 +999,17 @@ type OriginalMessageIntegrationSyncFailed = {
 };
 
 /**
+ * Original message for DEW_SUBMIT_FAILED and DEW_APPROVE_FAILED actions
+ */
+type OriginalMessageDEWFailed = {
+    /** The error message */
+    message: string;
+
+    /** Whether the action was automatic */
+    automaticAction?: boolean;
+};
+
+/**
  * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ISSUED_VIRTUAL, and CARD_REPLACED_VIRTUAL actions
  */
 type OriginalMessageCard = {
@@ -1150,6 +1161,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
+    [CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED]: OriginalMessageDEWFailed;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;

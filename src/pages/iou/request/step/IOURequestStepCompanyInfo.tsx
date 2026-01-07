@@ -46,6 +46,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const policy = usePolicy(policyID);
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`, {canBeMissing: true});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, {canBeMissing: true});
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
 
@@ -87,6 +88,7 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
             companyName: values.companyName,
             companyWebsite,
             policyRecentlyUsedCategories,
+            policyRecentlyUsedTags,
         });
     };
 
