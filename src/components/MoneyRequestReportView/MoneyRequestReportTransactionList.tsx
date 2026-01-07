@@ -40,6 +40,7 @@ import {
     isCurrentUserSubmitter,
     isExpenseReport,
     isIOUReport,
+    getBillableAndTaxTotal,
 } from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {
@@ -174,9 +175,13 @@ function MoneyRequestReportTransactionList({
     const {reportPendingAction} = getReportOfflinePendingActionAndErrors(report);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const {billableTotal, taxTotal} = getBillableAndTaxTotal(report, transactions);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
-    const shouldShowBreakdown = useMemo(() => shouldShowExpenseBreakdown(transactions), [transactions]);
+    const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
+    const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
+    const shouldShowExpenseReportBreakDown = shouldShowExpenseBreakdown(transactions);
+    const shouldShowBreakdown = useMemo(() => shouldShowExpenseReportBreakDown || !!billableTotal || !!taxTotal, [shouldShowExpenseReportBreakDown, billableTotal, taxTotal]);
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(report?.reportID);
@@ -598,9 +603,11 @@ function MoneyRequestReportTransactionList({
                     {shouldShowBreakdown && (
                         <View style={[styles.dFlex, styles.alignItemsEnd, styles.gap2, styles.mb2, styles.flex1]}>
                             {[
-                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount},
-                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount},
-                            ].map(({text, value}) => (
+                                {text: 'cardTransactions.outOfPocket', value: formattedOutOfPocketAmount, shouldShow: nonReimbursableSpend + reimbursableSpend !== 0},
+                                {text: 'cardTransactions.companySpend', value: formattedCompanySpendAmount, shouldShow: nonReimbursableSpend + reimbursableSpend !== 0},
+                                {text: 'common.billable', value: formattedBillableAmount, shouldShow: !!billableTotal},
+                                {text: 'common.tax', value: formattedTaxAmount, shouldShow: !!taxTotal},
+                            ].filter(({shouldShow}) => shouldShow).map(({text, value}) => (
                                 <View
                                     key={text}
                                     style={[
