@@ -127,7 +127,14 @@ function updateImportSpreadsheetData(tagsLength: number): OnyxData {
     return onyxData;
 }
 
-function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTagLists = {}, setupTagsTaskReport?: OnyxEntry<Report>) {
+function createPolicyTag(
+    policyID: string,
+    tagName: string,
+    policyTags: PolicyTagLists = {},
+    setupTagsTaskReport?: OnyxEntry<Report>,
+    setupCategoriesAndTagsTaskReport?: OnyxEntry<Report>,
+    policyHasCustomCategories?: boolean,
+) {
     const policyTag = PolicyUtils.getTagLists(policyTags)?.at(0) ?? ({} as PolicyTagList);
     const newTagName = PolicyUtils.escapeTagName(tagName);
 
@@ -192,6 +199,15 @@ function createPolicyTag(policyID: string, tagName: string, policyTags: PolicyTa
 
     if (setupTagsTaskReport && (setupTagsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || setupTagsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)) {
         completeTask(setupTagsTaskReport, false, false, undefined);
+    }
+
+    // Complete the combined "Set up categories and tags" task only if categories already exist
+    if (
+        setupCategoriesAndTagsTaskReport &&
+        policyHasCustomCategories &&
+        (setupCategoriesAndTagsTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || setupCategoriesAndTagsTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED)
+    ) {
+        completeTask(setupCategoriesAndTagsTaskReport, false, false, undefined);
     }
 }
 
