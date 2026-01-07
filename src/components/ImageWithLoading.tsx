@@ -5,9 +5,9 @@ import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
-import FullscreenLoadingIndicator from './FullscreenLoadingIndicator';
 import Image from './Image';
 import type {ImageObjectPosition, ImageOnLoadEvent, ImageProps} from './Image/types';
+import LoadingIndicator from './LoadingIndicator';
 
 type ImageWithSizeLoadingProps = {
     /** Any additional styles to apply */
@@ -36,7 +36,6 @@ function ImageWithLoading({
     resizeMode,
     onLoad,
     onLayout,
-    style,
     ...rest
 }: ImageWithSizeLoadingProps) {
     const styles = useThemeStyles();
@@ -86,7 +85,7 @@ function ImageWithLoading({
             <Image
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...rest}
-                style={[styles.w100, styles.h100, style]}
+                style={[styles.w100, styles.h100]}
                 onLoadStart={() => {
                     if (isLoadedRef.current ?? isLoading) {
                         return;
@@ -109,7 +108,7 @@ function ImageWithLoading({
                 loadingIndicatorStyles={loadingIndicatorStyles}
             />
             {isLoading && !isImageCached && !isOffline && (
-                <FullscreenLoadingIndicator
+                <LoadingIndicator
                     iconSize={loadingIconSize}
                     style={[styles.opacity1, styles.bgTransparent, loadingIndicatorStyles]}
                 />
@@ -118,5 +117,7 @@ function ImageWithLoading({
         </View>
     );
 }
+
+ImageWithLoading.displayName = 'ImageWithLoading';
 
 export default React.memo(ImageWithLoading);

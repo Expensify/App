@@ -43,7 +43,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
             const errors = {};
             const taskDescriptionLength = getCommentLength(values.description);
             if (values?.description && taskDescriptionLength > CONST.DESCRIPTION_LIMIT) {
-                addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', {length: taskDescriptionLength, limit: CONST.DESCRIPTION_LIMIT}));
+                addErrorMessage(errors, 'description', translate('common.error.characterLimitExceedCounter', taskDescriptionLength, CONST.DESCRIPTION_LIMIT));
             }
 
             return errors;
