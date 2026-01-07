@@ -407,7 +407,8 @@ function MoneyRequestView({
         }
         updateMoneyRequestBillable(
             transaction.transactionID,
-            transactionThreadReport?.reportID,
+            transactionThreadReport,
+            parentReport,
             newBillable,
             policy,
             policyTagList,
@@ -425,7 +426,8 @@ function MoneyRequestView({
         }
         updateMoneyRequestReimbursable(
             transaction.transactionID,
-            transactionThreadReport?.reportID,
+            transactionThreadReport,
+            parentReport,
             newReimbursable,
             policy,
             policyTagList,
