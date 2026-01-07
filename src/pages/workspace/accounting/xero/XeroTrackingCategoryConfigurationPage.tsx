@@ -37,7 +37,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
             const decodedCategoryName = getDecodedCategoryName(category.name);
             return {
                 id: category.id,
-                description: translate('workspace.xero.mapTrackingCategoryTo', {categoryName: decodedCategoryName}) as TranslationPaths,
+                description: translate('workspace.xero.mapTrackingCategoryTo', decodedCategoryName) as TranslationPaths,
                 onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES_MAP.getRoute(policyID, category.id, category.name)),
                 title: translate(
                     `workspace.xero.trackingCategoriesOptions.${
@@ -50,7 +50,7 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
 
     return (
         <ConnectionLayout
-            displayName={XeroTrackingCategoryConfigurationPage.displayName}
+            displayName="XeroTrackingCategoryConfigurationPage"
             headerTitle="workspace.xero.trackingCategories"
             title="workspace.xero.trackingCategoriesDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
@@ -95,5 +95,4 @@ function XeroTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
     );
 }
 
-XeroTrackingCategoryConfigurationPage.displayName = 'XeroTrackCategoriesPage';
 export default withPolicyConnections(XeroTrackingCategoryConfigurationPage);

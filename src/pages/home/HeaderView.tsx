@@ -9,7 +9,7 @@ import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
 // eslint-disable-next-line no-restricted-imports
-import {BackArrow, DotIndicator} from '@components/Icon/Expensicons';
+import {DotIndicator} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import OnboardingHelpDropdownButton from '@components/OnboardingHelpDropdownButton';
@@ -18,7 +18,7 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -26,6 +26,7 @@ import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -97,9 +98,13 @@ type HeaderViewProps = {
 
     /** Whether we should display the header as in narrow layout */
     shouldUseNarrowLayout?: boolean;
+
+    /** Whether the header view is being displayed in the side panel */
+    isInSidePanel?: boolean;
 };
 
-function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false}: HeaderViewProps) {
+function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, shouldUseNarrowLayout = false, isInSidePanel}: HeaderViewProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
@@ -122,7 +127,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isReportArchived = isArchivedReport(reportNameValuePairs);
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
@@ -134,7 +139,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isMultipleParticipant = participants.length > 1;
 
     const participantPersonalDetails = getPersonalDetailsForAccountIDs(participants, personalDetails);
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, localeCompare, undefined, isSelfDM);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetails, isMultipleParticipant, localeCompare, formatPhoneNumber, isSelfDM);
 
     const isChatThread = isChatThreadReportUtils(report);
     const isChatRoom = isChatRoomReportUtils(report);
@@ -187,7 +192,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
-    const canJoin = canJoinChat(report, parentReportAction, policy, isReportArchived);
+    const canJoin = canJoinChat(report, parentReportAction, policy, parentReport, isReportArchived);
 
     const joinButton = (
         <Button
@@ -226,15 +231,17 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isLoading = !report?.reportID || !title;
     const isParentReportLoading = !!report?.parentReportID && !parentReport;
 
-    const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
-    const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
+    const isReportInRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
+    const shouldDisplaySearchRouter = !isInSidePanel && (!isReportInRHP || isSmallScreenWidth);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
-    const shouldShowRegisterForWebinar = introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || (isAdminRoom(report) && !isChatThread));
-    const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived;
-    const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
+    const shouldShowRegisterForWebinar =
+        introSelected?.companySize === CONST.ONBOARDING_COMPANY_SIZE.MICRO && (isChatUsedForOnboarding || (isAdminRoom(report) && !isChatThread)) && !isInSidePanel;
+    const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived && !isInSidePanel;
+    const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !isInSidePanel;
     const latestScheduledCall = reportNameValuePairs?.calendlyCalls?.at(-1);
     const hasActiveScheduledCall = latestScheduledCall && !isPast(latestScheduledCall.eventTime) && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
+    const shouldShowBackButton = shouldUseNarrowLayout || !!isInSidePanel;
 
     const onboardingHelpDropdownButton = (
         <OnboardingHelpDropdownButton
@@ -265,13 +272,14 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
                         <View style={[styles.appContentHeaderTitle, !shouldUseNarrowLayout && !isLoading && styles.pl5]}>
-                            {shouldUseNarrowLayout && (
+                            {shouldShowBackButton && (
                                 <PressableWithoutFeedback
                                     onPress={onNavigationMenuButtonClicked}
-                                    style={styles.LHNToggle}
+                                    style={[styles.LHNToggle, shouldUseNarrowLayout && styles.pl5]}
                                     accessibilityHint={translate('accessibilityHints.navigateToChatsList')}
                                     accessibilityLabel={translate('common.back')}
                                     role={CONST.ROLE.BUTTON}
+                                    sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.BACK_BUTTON}
                                 >
                                     <Tooltip
                                         text={translate('common.back')}
@@ -279,7 +287,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     >
                                         <View>
                                             <Icon
-                                                src={BackArrow}
+                                                src={icons.BackArrow}
                                                 fill={theme.icon}
                                             />
                                         </View>
@@ -293,6 +301,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     disabled={shouldDisableDetailPage}
                                     accessibilityLabel={title}
                                     role={CONST.ROLE.BUTTON}
+                                    sentryLabel={CONST.SENTRY_LABEL.HEADER_VIEW.DETAILS_BUTTON}
                                 >
                                     {shouldShowSubscript ? multipleAvatars : <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>{multipleAvatars}</OfflineWithFeedback>}
                                     <View
@@ -370,7 +379,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     {!shouldUseNarrowLayout && isOpenTaskReport(report, parentReportAction) && <TaskHeaderActionButton report={report} />}
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
-                                <HelpButton style={styles.ml2} />
+                                {!isInSidePanel && <SidePanelButton style={styles.ml2} />}
                                 {shouldDisplaySearchRouter && <SearchButton />}
                             </View>
                             <ConfirmModal
@@ -431,7 +440,5 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         </>
     );
 }
-
-HeaderView.displayName = 'HeaderView';
 
 export default memo(HeaderView);

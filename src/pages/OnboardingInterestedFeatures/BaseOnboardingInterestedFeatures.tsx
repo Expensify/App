@@ -35,7 +35,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingMessages} = useOnboardingMessages();
-    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'InvoiceBlue', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['FolderOpen', 'Accounting', 'CompanyCard', 'Workflows', 'InvoiceBlue', 'Rules', 'Car', 'Tag', 'PerDiem', 'HandCard']);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -179,8 +179,8 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                   companySize: onboardingCompanySize,
                   userReportedIntegration: newUserReportedIntegration,
                   featuresMap,
-                  introSelectedParam: introSelected,
-                  activePolicyIDParam: activePolicyID,
+                  introSelected,
+                  activePolicyID,
                   currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                   currentUserEmailParam: currentUserPersonalDetails.email ?? '',
                   shouldAddGuideWelcomeMessage: false,
@@ -344,6 +344,7 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 shouldShowBackButton
                 progressBarPercentage={90}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_ACCOUNTING.getRoute())}
+                shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.interestedFeatures.title')}</Text>
@@ -371,7 +372,5 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingInterestedFeatures.displayName = 'BaseOnboardingInterestedFeatures';
 
 export default BaseOnboardingInterestedFeatures;
