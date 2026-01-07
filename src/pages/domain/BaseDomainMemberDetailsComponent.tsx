@@ -57,6 +57,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems
     const phoneNumber = getPhoneNumber(personalDetails);
     const memberLogin = personalDetails?.login ?? '';
     const isSMSLogin = Str.isSMSLogin(memberLogin);
+    const copyableName = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin;
 
     return (
         <DomainNotFoundPageWrapper domainAccountID={domainAccountID}>
@@ -93,8 +94,8 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, menuItems
                     </View>
 
                     <MenuItemWithTopDescription
-                        title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                        copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
+                        title={copyableName}
+                        copyValue={copyableName}
                         description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
                         interactive={false}
                         copyable
