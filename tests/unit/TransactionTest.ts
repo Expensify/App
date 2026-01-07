@@ -583,7 +583,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReport.reportID}`, newExpenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', newExpenseReport);
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', {}, newExpenseReport);
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
@@ -636,7 +636,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReport.reportID}`, newExpenseReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
-            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', newExpenseReport);
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', {}, newExpenseReport);
             await waitForBatchedUpdates();
             const report = await new Promise<OnyxEntry<Report>>((resolve) => {
                 const connection = Onyx.connect({
