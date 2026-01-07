@@ -1340,6 +1340,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateBeforeStartDate: 'La date de fin ne peut pas être antérieure à la date de début',
             endDateSameAsStartDate: 'La date de fin ne peut pas être identique à la date de début',
             odometerReadingRequired: 'Veuillez saisir les relevés de début et de fin',
+            negativeDistanceNotAllowed: 'La valeur de fin doit être supérieure à la valeur de début',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera entièrement votre reçu téléchargé. Êtes-vous sûr ?',

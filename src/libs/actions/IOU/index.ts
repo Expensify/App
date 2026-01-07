@@ -1083,8 +1083,8 @@ function initMoneyRequest({
         }
         // Initialize odometer readings for odometer type
         if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER) {
-            comment.odometerStart = null;
-            comment.odometerEnd = null;
+            comment.odometerStart = undefined;
+            comment.odometerEnd = undefined;
         }
     }
 

@@ -1333,6 +1333,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateBeforeStartDate: 'De einddatum kan niet vóór de startdatum liggen',
             endDateSameAsStartDate: 'De einddatum mag niet hetzelfde zijn als de startdatum',
             odometerReadingRequired: 'Voer zowel de begin- als eindstand in',
+            negativeDistanceNotAllowed: 'Eindstand moet groter zijn dan beginstand',
         },
         dismissReceiptError: 'Foutmelding sluiten',
         dismissReceiptErrorConfirmation: 'Let op! Als je deze foutmelding negeert, wordt je geüploade bon volledig verwijderd. Weet je het zeker?',
