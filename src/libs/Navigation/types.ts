@@ -1384,6 +1384,14 @@ type SettingsNavigatorParamList = {
     [SCREENS.DOMAIN.ADD_ADMIN]: {
         domainAccountID: number;
     };
+    [SCREENS.DOMAIN.MEMBER_DETAILS]: {
+        domainAccountID: number;
+        accountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT]: {
+        domainAccountID: number;
+        accountID: number;
+    };
 } & ReimbursementAccountNavigatorParamList;
 
 type DomainCardNavigatorParamList = {
@@ -2494,6 +2502,13 @@ type DomainSplitNavigatorParamList = {
     };
     [SCREENS.DOMAIN.ADMINS]: {
         domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBERS]: {
+        domainAccountID: number;
+    };
+    [SCREENS.DOMAIN.MEMBER_DETAILS]: {
+        domainAccountID: number;
+        accountID: number;
     };
 };
 

@@ -3585,6 +3585,18 @@ const ROUTES = {
         route: 'domain/:domainAccountID/admins/invite',
         getRoute: (domainAccountID: number) => `domain/${domainAccountID}/admins/invite` as const,
     },
+    DOMAIN_MEMBERS: {
+        route: 'domain/:domainAccountID/members',
+        getRoute: (domainAccountID: number) => `domain/${domainAccountID}/members` as const,
+    },
+    DOMAIN_MEMBER_DETAILS: {
+        route: 'domain/:domainAccountID/members/:accountID',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}` as const,
+    },
+    DOMAIN_LOCK_ACCOUNT: {
+        route: 'domain/:domainAccountID/members/:accountID/lock-account',
+        getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/lock-account` as const,
+    },
 } as const;
 
 /**
