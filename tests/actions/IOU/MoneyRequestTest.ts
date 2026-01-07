@@ -15,6 +15,7 @@ import * as IOU from '../../../src/libs/actions/IOU';
 import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import getOnyxValue from '../../utils/getOnyxValue';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/actions/IOU', () => ({
@@ -233,7 +234,7 @@ describe('MoneyRequest', () => {
     describe('handleMoneyRequestStepDistanceNavigation', () => {
         const fakeReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
         const fakeTransaction = createRandomTransaction(1);
-        const fakePolicy = createRandomPolicy(1);
+        const fakePolicy = createRandomPolicy(1, CONST.POLICY.TYPE.TEAM);
         const fakeQuickAction: OnyxEntry<QuickAction> = {
             action: CONST.QUICK_ACTIONS.ASSIGN_TASK,
             chatReportID: 'quick_action_chat_123',
@@ -549,17 +550,8 @@ describe('MoneyRequest', () => {
             });
             await waitForBatchedUpdates();
 
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`,
-                    waitForCollectionCallback: false,
-                    callback: (transaction) => {
-                        Onyx.disconnect(connection);
-                        expect(transaction?.reportID).toBe('1');
-                        resolve();
-                    },
-                });
-            });
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`);
+            expect(updatedTransaction?.reportID).toBe('1');
 
             const rateID = DistanceRequestUtils.getCustomUnitRateID({
                 reportID: fakeReport.reportID,
@@ -601,17 +593,8 @@ describe('MoneyRequest', () => {
             });
             await waitForBatchedUpdates();
 
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`,
-                    waitForCollectionCallback: false,
-                    callback: (transaction) => {
-                        Onyx.disconnect(connection);
-                        expect(transaction?.reportID).toBe('0');
-                        resolve();
-                    },
-                });
-            });
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${baseParams.transactionID}`);
+            expect(updatedTransaction?.reportID).toBe('0');
 
             expect(DistanceRequestUtils.getCustomUnitRateID).toHaveBeenCalledWith(expect.objectContaining({reportID: '0'}));
         });
