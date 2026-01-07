@@ -77,7 +77,7 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
                 errors[INPUT_IDS.END_DATE] = translate('iou.error.endDateBeforeStartDate');
             } else if (endDate.getTime() === startDate.getTime()) {
                 errors[INPUT_IDS.END_DATE] = translate('iou.error.endDateSameAsStartDate');
-            } else if (differenceInDays(endDate, startDate) + 1 > CONST.IOU.SPLIT_DATE_RANGE_LIMIT) {
+            } else if (differenceInDays(endDate, startDate) + 1 > CONST.IOU.SPLITS_LIMIT) {
                 errors[INPUT_IDS.END_DATE] = translate('iou.error.dateRangeExceedsMaxDays');
             }
         }
