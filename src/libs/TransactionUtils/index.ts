@@ -584,21 +584,10 @@ function getUpdatedTransaction({
 
     // The comment property does not have its modifiedComment counterpart
     if (Object.hasOwn(transactionChanges, 'comment')) {
-        if (typeof transactionChanges.comment === 'string') {
-            // If comment is a string, it's the comment text
-            updatedTransaction.comment = {
-                ...updatedTransaction.comment,
-                comment: transactionChanges.comment,
-            };
-        } else if (typeof transactionChanges.comment === 'object' && transactionChanges.comment !== null) {
-            // If comment is an object, it contains the comment text
-            updatedTransaction.comment = {
-                ...updatedTransaction.comment,
-                ...(typeof (transactionChanges.comment as {comment?: string}).comment === 'string' && {
-                    comment: (transactionChanges.comment as {comment: string}).comment,
-                }),
-            };
-        }
+        updatedTransaction.comment = {
+            ...updatedTransaction.comment,
+            comment: transactionChanges.comment,
+        };
     }
     if (Object.hasOwn(transactionChanges, 'created')) {
         updatedTransaction.modifiedCreated = transactionChanges.created;
