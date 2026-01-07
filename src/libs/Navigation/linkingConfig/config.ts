@@ -717,6 +717,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.route,
                         },
+                        [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE]: {
+                            path: ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.route,
+                        },
                         [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
                             path: ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.route,
                         },
@@ -1467,7 +1470,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION_VERIFY_ACCOUNT]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION_VERIFY_ACCOUNT.route,
-                        [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: ROUTES.MONEY_REQUEST_STEP_CURRENCY.route,
                         [SCREENS.MONEY_REQUEST.STEP_DATE]: ROUTES.MONEY_REQUEST_STEP_DATE.route,
                         [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.route,
                         [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: ROUTES.MONEY_REQUEST_STEP_DISTANCE.route,
@@ -1501,6 +1503,21 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: ROUTES.IOU_SEND_ADD_DEBIT_CARD,
                         [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: {
                             path: ROUTES.SPLIT_EXPENSE.route,
+                            exact: true,
+                            screens: {
+                                [CONST.TAB.SPLIT.AMOUNT]: {
+                                    path: CONST.TAB.SPLIT.AMOUNT,
+                                },
+                                [CONST.TAB.SPLIT.PERCENTAGE]: {
+                                    path: CONST.TAB.SPLIT.PERCENTAGE,
+                                },
+                                [CONST.TAB.SPLIT.DATE]: {
+                                    path: CONST.TAB.SPLIT.DATE,
+                                },
+                            },
+                        },
+                        [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH]: {
+                            path: ROUTES.SPLIT_EXPENSE_SEARCH.route,
                             exact: true,
                             screens: {
                                 [CONST.TAB.SPLIT.AMOUNT]: {
@@ -1895,6 +1912,10 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 },
                 [SCREENS.SETTINGS.WALLET.ROOT]: {
                     path: ROUTES.SETTINGS_WALLET,
+                    exact: true,
+                },
+                [SCREENS.SETTINGS.RULES.ROOT]: {
+                    path: ROUTES.SETTINGS_RULES,
                     exact: true,
                 },
                 [SCREENS.SETTINGS.ABOUT]: {

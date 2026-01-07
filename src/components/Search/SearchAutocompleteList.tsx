@@ -435,6 +435,12 @@ function SearchAutocompleteList({
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
+                // If autocompleteValue is empty or just whitespace and we have already completed keys,
+                // return empty array to hide suggestion list (consistent with group-by behavior)
+                if (!autocompleteValue.trim() && alreadyAutocompletedKeys.size > 0) {
+                    return [];
+                }
+
                 const filteredReports = getSearchOptions({
                     options,
                     draftComments,
@@ -450,7 +456,12 @@ function SearchAutocompleteList({
                     countryCode,
                     loginList,
                     shouldShowGBR: true,
-                }).recentReports;
+                }).recentReports.filter((chat) => {
+                    if (!chat.text) {
+                        return false;
+                    }
+                    return !alreadyAutocompletedKeys.has(chat.text.toLowerCase());
+                });
 
                 return filteredReports.map((chat) => ({
                     filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
@@ -893,6 +904,8 @@ function SearchAutocompleteList({
         )
     );
 }
+
+SearchAutocompleteList.displayName = 'SearchAutocompleteList';
 
 export default React.memo(SearchAutocompleteList);
 export {SearchRouterItem};

@@ -42,10 +42,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
             const value = values[INPUT_IDS.GL_CODE];
 
             if (value.length > CONST.MAX_LENGTH_256) {
-                errors[INPUT_IDS.GL_CODE] = translate('common.error.characterLimitExceedCounter', {
-                    length: value.length,
-                    limit: CONST.MAX_LENGTH_256,
-                });
+                errors[INPUT_IDS.GL_CODE] = translate('common.error.characterLimitExceedCounter', value.length, CONST.MAX_LENGTH_256);
             }
 
             return errors;
