@@ -5,7 +5,7 @@ import type {KeyValueMapping} from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type Navigation from '@libs/Navigation/Navigation';
-import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportActionsUtils';
+import {buildOptimisticCreatedReportForUnapprovedAction} from '@libs/ReportUtils';
 import HeaderView from '@pages/home/HeaderView';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';

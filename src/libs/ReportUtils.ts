@@ -7266,6 +7266,41 @@ function buildOptimisticUnapprovedReportAction(amount: number, currency: string,
 }
 
 /**
+ * Builds an optimistic CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS system report action.
+ * Used to inform users that a new report was created for held/unapproved transactions.
+ */
+function buildOptimisticCreatedReportForUnapprovedAction(
+    reportID: string,
+    originalReportID: string | undefined,
+): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS> {
+    const createdTime = DateUtils.getDBTime();
+    const actor = getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]).at(0);
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS,
+        actorAccountID: actor,
+        avatar: getDefaultAvatarURL({accountID: actor, accountEmail: CONST.EMAIL.CONCIERGE}),
+        created: createdTime,
+        lastModified: createdTime,
+        message: [],
+        originalMessage: {
+            originalID: originalReportID,
+        },
+        reportActionID: rand64(),
+        reportID,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        isOptimisticAction: true,
+        shouldShow: true,
+        person: [
+            {
+                text: CONST.DISPLAY_NAME.EXPENSIFY_CONCIERGE,
+                type: 'TEXT',
+            },
+        ],
+    };
+}
+
+/**
  * Builds an optimistic MOVED report action with a randomly generated reportActionID.
  * This action is used when we move reports across workspaces.
  */
@@ -12808,6 +12843,7 @@ export {
     buildOptimisticAddCommentReportAction,
     buildOptimisticApprovedReportAction,
     checkBulkRejectHydration,
+    buildOptimisticCreatedReportForUnapprovedAction,
     buildOptimisticUnapprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
     buildOptimisticChangedTaskAssigneeReportAction,

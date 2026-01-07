@@ -96,7 +96,6 @@ import {
     isSubmitAndClose,
 } from '@libs/PolicyUtils';
 import {
-    buildOptimisticCreatedReportForUnapprovedAction,
     getAllReportActions,
     getIOUActionForReportID,
     getLastVisibleAction,
@@ -122,6 +121,7 @@ import {
     buildOptimisticChangeApproverReportAction,
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
+    buildOptimisticCreatedReportForUnapprovedAction,
     buildOptimisticDetachReceipt,
     buildOptimisticDismissedViolationReportAction,
     buildOptimisticExpenseReport,
