@@ -7894,7 +7894,9 @@ const translations = {
             addMember: 'Add member',
             invite: 'Invite',
             email: 'Email address',
-            addMemberError: 'Unable to add this member. Please try again.',
+            errors: {
+                addMember: 'Unable to add this member. Please try again.',
+            },
         },
     },
 };

@@ -749,7 +749,7 @@ function addMemberToDomain(domainAccountID: number, targetEmail: string) {
             value: {
                 memberErrors: {
                     [optimisticAccountID]: {
-                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.addMemberError'),
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.members.errors.addMember'),
                     },
                 },
             },

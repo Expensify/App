@@ -30,9 +30,9 @@ type DomainPendingAction = {
     useTechnicalContactBillingCard?: OnyxCommon.PendingAction;
 
     /**
-     * Pending actions for specific member, keyed by their accountID
+     * Pending actions for specific domain member, keyed by their accountID
      */
-    member?: Record<number, GeneralDomainAdminPendingAction>;
+    member?: Record<number, GeneralDomainPendingAction>;
 };
 
 export default DomainPendingAction;

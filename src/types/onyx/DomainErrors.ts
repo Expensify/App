@@ -10,7 +10,6 @@ type GeneralDomainErrors = {
     errors: OnyxCommon.Errors;
 };
 
-
 /**
  * Collection of errors related to domain operations received from the backend
  */
@@ -31,7 +30,7 @@ type DomainErrors = {
     useTechnicalContactBillingCardErrors?: OnyxCommon.Errors;
 
     /**
-     * Errors related to specific domain administrators, keyed by their adminID
+     * Errors related to specific domain member, keyed by their accountID
      */
     memberErrors?: Record<number, GeneralDomainErrors>;
 };

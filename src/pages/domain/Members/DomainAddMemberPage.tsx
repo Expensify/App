@@ -1,5 +1,4 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import type {NativeSyntheticEvent, TextInputSelectionChangeEventData} from 'react-native';
 import {View} from 'react-native';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
@@ -17,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import {domainNameSelector} from '@src/selectors/Domain';
 
 type DomainAddMemberProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.ADD_MEMBER>;
 
@@ -25,9 +25,8 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
     const {translate} = useLocalize();
 
     const domainAccountID = route.params.domainAccountID;
-    const [domain] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true});
+    const [domainName] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {canBeMissing: true, selector: domainNameSelector});
 
-    const domainName = domain ? Str.extractEmailDomain(domain.email) : undefined;
     const domainSuffix = domainName ? `@${domainName}` : '';
 
     const [email, setEmail] = useState(domainSuffix);
@@ -40,43 +39,40 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
 
     const maxCursorPosition = Math.max(0, email.length - domainSuffix.length);
 
-    const handleInputChange =
-        (value: string) => {
-            if (!domainName) {
-                setEmail(value);
-                return;
-            }
-
-            const loginPart = value.replace(domainSuffix, '').split('@').at(0) ?? '';
-
-            if (loginPart === '') {
-                setEmail(domainSuffix);
-                setSelection({start: 0, end: 0});
-            } else {
-                setEmail(`${loginPart}${domainSuffix}`);
-            }
+    const handleInputChange = (value: string) => {
+        if (!domainName) {
+            setEmail(value);
+            return;
         }
 
-    const handleSelectionChange =
-        (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
-            const {start, end} = event.nativeEvent.selection;
+        const loginPart = value.replace(domainSuffix, '').split('@').at(0) ?? '';
 
-            if (start > maxCursorPosition || end > maxCursorPosition) {
-                const constrainedPosition = Math.min(start, end, maxCursorPosition);
-                setSelection({
-                    start: constrainedPosition,
-                    end: constrainedPosition,
-                });
-            } else {
-                setSelection({start, end});
-            }
+        if (loginPart === '') {
+            setEmail(domainSuffix);
+            setSelection({start: 0, end: 0});
+        } else {
+            setEmail(`${loginPart}${domainSuffix}`);
         }
+    };
+
+    const handleSelectionChange = (event: NativeSyntheticEvent<TextInputSelectionChangeEventData>) => {
+        const {start, end} = event.nativeEvent.selection;
+
+        if (start > maxCursorPosition || end > maxCursorPosition) {
+            const constrainedPosition = Math.min(start, end, maxCursorPosition);
+            setSelection({
+                start: constrainedPosition,
+                end: constrainedPosition,
+            });
+        } else {
+            setSelection({start, end});
+        }
+    };
 
     const inviteUser = () => {
-        debugger;
         addMemberToDomain(domainAccountID, email);
         Navigation.dismissModal();
-    }
+    };
 
     const isButtonDisabled = !email || email === domainSuffix || !email.includes('@');
 
@@ -89,14 +85,12 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
         >
             <HeaderWithBackButton
                 title={translate('domain.members.addMember')}
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID));
-                }}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAIN_ADMINS.getRoute(domainAccountID))}
             />
 
             <View style={[styles.flex1, styles.p5]}>
                 <TextInput
-                    accessibilityLabel="Text input field"
+                    accessibilityLabel={`${translate('domain.members.email')} at domain ${domainName}`}
                     label={`${translate('domain.members.email')} at domain ${domainName}`}
                     value={email}
                     onChangeText={handleInputChange}
@@ -115,7 +109,7 @@ function DomainAddMemberPage({route}: DomainAddMemberProps) {
                 isAlertVisible={false}
                 buttonText={translate('common.invite')}
                 onSubmit={inviteUser}
-                containerStyles={[styles.p5]}
+                containerStyles={styles.p5}
                 enabledWhenOffline
             />
         </ScreenWrapper>
