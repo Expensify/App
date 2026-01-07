@@ -9,7 +9,6 @@ import {
     areTransactionsEligibleForMerge,
     getMergeableDataAndConflictFields,
     getMergeFieldValue,
-    getTransactionThreadReportID,
     MERGE_FIELDS,
     selectTargetAndSourceTransactionsForMerge,
     shouldNavigateToReceiptReview,
@@ -184,6 +183,8 @@ function getTransactionsForMerging({
 function getOnyxTargetTransactionData(
     targetTransaction: Transaction,
     mergeTransaction: MergeTransaction,
+    targetTransactionThreadReport: OnyxEntry<Report>,
+    targetTransactionThreadParentReport: OnyxEntry<Report>,
     policy: OnyxEntry<Policy>,
     policyTags: OnyxEntry<PolicyTagLists>,
     policyCategories: OnyxEntry<PolicyCategories>,
@@ -193,7 +194,6 @@ function getOnyxTargetTransactionData(
 ) {
     let data: UpdateMoneyRequestData;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
-    const transactionThreadReportID = getTransactionThreadReportID(targetTransaction);
     const violations = getTransactionViolationsOfTransaction(targetTransaction.transactionID);
 
     // Compare mergeTransaction with targetTransaction and remove fields with same values
@@ -213,11 +213,18 @@ function getOnyxTargetTransactionData(
     const shouldBuildOptimisticModifiedExpenseReportAction = false;
 
     if (isUnreportedExpense) {
-        data = getUpdateTrackExpenseParams(targetTransaction.transactionID, transactionThreadReportID, filteredTransactionChanges, policy, shouldBuildOptimisticModifiedExpenseReportAction);
+        data = getUpdateTrackExpenseParams(
+            targetTransaction.transactionID,
+            targetTransactionThreadReport?.reportID,
+            filteredTransactionChanges,
+            policy,
+            shouldBuildOptimisticModifiedExpenseReportAction,
+        );
     } else {
         data = getUpdateMoneyRequestParams({
             transactionID: targetTransaction.transactionID,
-            transactionThreadReportID,
+            transactionThreadReport: targetTransactionThreadReport,
+            iouReport: targetTransactionThreadParentReport,
             transactionChanges: filteredTransactionChanges,
             policy,
             policyTagList: policyTags,
@@ -265,6 +272,8 @@ type MergeTransactionRequestParams = {
     mergeTransaction: MergeTransaction;
     targetTransaction: Transaction;
     sourceTransaction: Transaction;
+    targetTransactionThreadReport: OnyxEntry<Report>;
+    targetTransactionThreadParentReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
     policyTags: OnyxEntry<PolicyTagLists>;
     policyCategories: OnyxEntry<PolicyCategories>;
@@ -280,6 +289,8 @@ function mergeTransactionRequest({
     mergeTransaction,
     targetTransaction,
     sourceTransaction,
+    targetTransactionThreadReport,
+    targetTransactionThreadParentReport,
     policy,
     policyTags,
     policyCategories,
@@ -318,6 +329,8 @@ function mergeTransactionRequest({
     const onyxTargetTransactionData = getOnyxTargetTransactionData(
         targetTransaction,
         mergeTransaction,
+        targetTransactionThreadReport,
+        targetTransactionThreadParentReport,
         policy,
         policyTags,
         policyCategories,
