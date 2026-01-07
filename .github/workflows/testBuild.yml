@@ -22,10 +22,6 @@ on:
         description: Should build web app?
         type: boolean
         default: true
-      DESKTOP:
-        description: Should build desktop app?
-        type: boolean
-        default: true
       IOS:
         description: Should build iOS app?
         type: boolean
@@ -181,75 +177,6 @@ jobs:
               issue_number: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }},
               body: `🚧 @${{ github.actor }} has triggered a test Expensify/Mobile-Expensify build. You can view the [workflow run here](${workflowURL}).`
               });
-
-  desktop:
-    name: Build and deploy Desktop for testing
-    if: ${{ inputs.DESKTOP && needs.prep.outputs.APP_PR_NUMBER }}
-    needs: [prep]
-    runs-on: macos-14-large
-    env:
-      PULL_REQUEST_NUMBER: ${{ needs.prep.outputs.APP_PR_NUMBER }}
-    steps:
-      - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          ref: ${{ needs.prep.outputs.APP_REF }}
-
-      - name: Create .env.adhoc file based on staging and add PULL_REQUEST_NUMBER env to it
-        run: |
-          cp .env.staging .env.adhoc
-          sed -i '' 's/ENVIRONMENT=staging/ENVIRONMENT=adhoc/' .env.adhoc
-          echo "PULL_REQUEST_NUMBER=$PULL_REQUEST_NUMBER" >> .env.adhoc
-
-      - name: Setup Node
-        uses: ./.github/actions/composite/setupNode
-        with:
-          IS_DESKTOP_BUILD: true
-
-      # v6.0.0
-      - name: Setup python for node-gyp
-        id: setup-python
-        uses: actions/setup-python@18566f86b301499665bd3eb1a2247e0849c64fa5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-          cache-dependency-path: desktop/requirements.txt
-
-      - name: Ensure setuptools for node-gyp
-        run: pip install --upgrade -r desktop/requirements.txt
-
-      - name: Load Desktop credentials from 1Password
-        id: load-credentials
-        # v2
-        uses: 1password/load-secrets-action@581a835fb51b8e7ec56b71cf2ffddd7e68bb25e0
-        with:
-          export-env: false
-        env:
-          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
-          DESKTOP_CERTIFICATE_BASE64: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_LINK"
-          DESKTOP_CERTIFICATE_PASSWORD: "op://${{ vars.OP_VAULT }}/Desktop Certificates.p12/CSC_KEY_PASSWORD"
-
-      - name: Configure AWS Credentials
-        # v4
-        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-
-      - name: Build desktop app for testing
-        run: npm run desktop-build-adhoc
-        env:
-          CSC_LINK: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_BASE64 }}
-          CSC_KEY_PASSWORD: ${{ steps.load-credentials.outputs.DESKTOP_CERTIFICATE_PASSWORD }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          GCP_GEOLOCATION_API_KEY: ${{ secrets.GCP_GEOLOCATION_API_KEY_STAGING }}
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
   web:
     name: Build and deploy Web
@@ -524,7 +451,7 @@ jobs:
     runs-on: ubuntu-latest
     if: always()
     name: Post a GitHub comment with app download links for testing
-    needs: [prep, getMobileExpensifyPR, desktop, web, androidHybrid, iosHybrid]
+    needs: [prep, getMobileExpensifyPR, web, androidHybrid, iosHybrid]
     steps:
       - name: Checkout
         # v4
@@ -545,11 +472,9 @@ jobs:
           MOBILE_EXPENSIFY_PR_NUMBER: ${{ needs.getMobileExpensifyPR.outputs.MOBILE_EXPENSIFY_PR }}
           GITHUB_TOKEN: ${{ github.token }}
           ANDROID: ${{ needs.androidHybrid.result }}
-          DESKTOP: ${{ needs.desktop.result }}
           IOS: ${{ needs.iosHybrid.result }}
           WEB: ${{ needs.web.result }}
           ANDROID_LINK: ${{ needs.androidHybrid.outputs.ROCK_ANDROID_ADHOC_INDEX_URL }}
-          DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ needs.prep.outputs.APP_PR_NUMBER }}/NewExpensify.dmg
           IOS_LINK: ${{ needs.iosHybrid.outputs.ROCK_IOS_ADHOC_INDEX_URL }}
           WEB_LINK: https://${{ needs.prep.outputs.APP_PR_NUMBER }}.pr-testing.expensify.com
 

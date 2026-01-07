@@ -147,6 +147,10 @@ const SCREENS = {
             PAYMENT_CURRENCY: 'Settings_Payment_Currency',
         },
 
+        RULES: {
+            ROOT: 'Settings_Rules',
+        },
+
         WALLET: {
             ROOT: 'Settings_Wallet',
             VERIFY_ACCOUNT: 'Settings_Wallet_VerifyAccount',
