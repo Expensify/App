@@ -60,7 +60,7 @@ jobs:
         run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
 
       - name: Restore ESLint cache
-        # v4
+        # v5.0.1
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: node_modules/.cache/eslint-changed
@@ -81,7 +81,7 @@ jobs:
           fi
 
       - name: Save ESLint cache
-        # v4
+        # v5.0.1
         uses: actions/cache/save@9255dc7a253b0ccc959486e2bca901246202afeb
         if: always()
         with:
