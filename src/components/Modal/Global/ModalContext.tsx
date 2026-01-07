@@ -1,7 +1,5 @@
 import noop from 'lodash/noop';
-import React, {useCallback, useContext, useMemo, useState} from 'react';
-import Log from '@libs/Log';
-import CONST from '@src/CONST';
+import React, {useCallback, useContext, useMemo, useRef, useState} from 'react';
 
 const ModalActions = {
     CONFIRM: 'CONFIRM',
@@ -40,48 +38,53 @@ type ModalInfo = {
 
 function ModalProvider({children}: {children: React.ReactNode}) {
     const [modalStack, setModalStack] = useState<{modals: ModalInfo[]}>({modals: []});
+    // Use a ref to track modals synchronously for duplicate ID checks
+    const modalStackRef = useRef<ModalInfo[]>([]);
 
     const showModal = useCallback<ModalContextType['showModal']>(({component, props, id, isCloseable = true}) => {
-        // This is a promise that will resolve when the modal is closed
-        let closeModalPromise: Promise<ModalStateChangePayload> | null = null;
+        const modalId = id ?? String(modalID++);
 
-        setModalStack((prevState) => {
-            // Check current state for existing modal
-            const existingModal = id ? prevState.modals.find((modal: ModalInfo) => modal.id === id) : undefined;
-            if (existingModal) {
-                // There is already a modal with this ID. Return the existing promise and don't modify state.
-                closeModalPromise = existingModal.promiseWithResolvers.promise;
-                return prevState; // No state change needed
-            }
-
-            // Create a new promise with resolvers to be resolved when the modal is closed
-            const promiseWithResolvers = Promise.withResolvers<ModalStateChangePayload>();
-            closeModalPromise = promiseWithResolvers.promise;
-
-            return {
-                ...prevState,
-                modals: [...prevState.modals, {component: component as React.FunctionComponent<ModalProps>, props, promiseWithResolvers, isCloseable, id: id ?? String(modalID++)}],
-            };
-        });
-
-        // At this point, closeModalPromise should always be assigned
-        if (!closeModalPromise) {
-            Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} Failed to create modal promise. This should never happen.`);
-            throw new Error('Failed to create modal promise');
+        // Check for existing modal with the same ID using the ref (synchronous)
+        const existingModal = id ? modalStackRef.current.find((modal: ModalInfo) => modal.id === id) : undefined;
+        if (existingModal) {
+            // There is already a modal with this ID. Return the existing promise.
+            return existingModal.promiseWithResolvers.promise;
         }
 
-        return closeModalPromise;
+        // Create the promise outside of the state setter to avoid React batching issues
+        const promiseWithResolvers = Promise.withResolvers<ModalStateChangePayload>();
+
+        const newModal: ModalInfo = {
+            component: component as React.FunctionComponent<ModalProps>,
+            props,
+            promiseWithResolvers,
+            isCloseable,
+            id: modalId,
+        };
+
+        // Update the ref synchronously
+        modalStackRef.current = [...modalStackRef.current, newModal];
+
+        // Update the state (may be batched by React)
+        setModalStack((prevState) => ({
+            ...prevState,
+            modals: [...prevState.modals, newModal],
+        }));
+
+        return promiseWithResolvers.promise;
     }, []);
 
     const closeModal = useCallback<ModalContextType['closeModal']>((data = {action: 'CLOSE'}) => {
-        setModalStack((prevState) => {
-            const lastModal = prevState.modals.at(-1);
-            lastModal?.promiseWithResolvers.resolve(data);
-            return {
-                ...prevState,
-                modals: prevState.modals.slice(0, -1),
-            };
-        });
+        // Update the ref synchronously
+        const lastModal = modalStackRef.current.at(-1);
+        lastModal?.promiseWithResolvers.resolve(data);
+        modalStackRef.current = modalStackRef.current.slice(0, -1);
+
+        // Update the state
+        setModalStack((prevState) => ({
+            ...prevState,
+            modals: prevState.modals.slice(0, -1),
+        }));
     }, []);
 
     const contextValue = useMemo(() => ({showModal, closeModal}), [closeModal, showModal]);
