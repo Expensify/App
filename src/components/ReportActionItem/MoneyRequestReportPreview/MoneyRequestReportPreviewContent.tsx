@@ -466,6 +466,34 @@ function MoneyRequestReportPreviewContent({
         carouselTransactionsRef.current = carouselTransactions;
     }, [carouselTransactions]);
 
+    useEffect(() => {
+        const prevLength = prevCarouselTransactionLength.current;
+        const currentLength = carouselTransactions.length;
+
+        // Reset to beginning if currentIndex is out of bounds for the new transactions list
+        if (currentIndex > 0 && (currentLength === 0 || currentIndex >= currentLength)) {
+            setCurrentIndex(0);
+            setOptimisticIndex(undefined);
+            setCurrentVisibleItems([0]);
+            // Scroll the FlatList back to the beginning
+            if (carouselRef.current && currentLength > 0) {
+                carouselRef.current.scrollToIndex({index: 0, animated: false});
+            } else if (carouselRef.current) {
+                // If there are no transactions, scroll to offset 0
+                carouselRef.current.scrollToOffset({offset: 0, animated: false});
+            }
+        }
+        // Reset when transactions go from empty to having items (to ensure we start at the beginning)
+        else if (prevLength === 0 && currentLength > 0 && currentIndex !== 0) {
+            setCurrentIndex(0);
+            setOptimisticIndex(undefined);
+            setCurrentVisibleItems([0]);
+            if (carouselRef.current) {
+                carouselRef.current.scrollToIndex({index: 0, animated: false});
+            }
+        }
+    }, [carouselTransactions.length, currentIndex]);
+
     useFocusEffect(
         useCallback(() => {
             const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.includes(transaction.transactionID));
