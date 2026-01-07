@@ -1,10 +1,11 @@
 import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import MenuItem from '@components/MenuItem';
 import Modal from '@components/Modal';
 import SelectionList from '@components/SelectionList';
 import type {ListItem, SelectionListHandle, SelectionListProps} from '@components/SelectionList/types';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useHandleSelectionMode from '@hooks/useHandleSelectionMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -41,17 +42,25 @@ function SelectionListWithModal<TItem extends ListItem>({
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
 
+    // Debounce the data prop to prevent rapid updates that cause FlashList layout errors
+    // This gives FlashList time to properly update its layout cache when searching/filtering
+    const [, debouncedData, setDataState] = useDebouncedState<TItem[]>(data, CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
+
+    useEffect(() => {
+        setDataState(data);
+    }, [data, setDataState]);
+
     const selectedItems = useMemo(
         () =>
             selectedItemsProp ??
-            data.filter((item) => {
+            debouncedData.filter((item) => {
                 if (isSelected) {
                     return isSelected(item);
                 }
                 return !!item.isSelected;
             }) ??
             [],
-        [isSelected, data, selectedItemsProp],
+        [isSelected, debouncedData, selectedItemsProp],
     );
 
     useHandleSelectionMode(selectedItems);
@@ -87,7 +96,7 @@ function SelectionListWithModal<TItem extends ListItem>({
         <>
             <SelectionList
                 ref={ref}
-                data={data}
+                data={debouncedData}
                 addBottomSafeAreaPadding
                 selectedItems={selectedItemsProp}
                 onLongPressRow={handleLongPressRow}
