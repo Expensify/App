@@ -790,6 +790,8 @@ function WorkspacesListPage() {
                         keyboardShouldPersistTaps="handled"
                         contentContainerStyle={styles.pb20}
                         onScroll={onScroll}
+                        // Render all items on first mount to restore scroll position correctly.
+                        // Lists are small, so this won’t impact performance.
                         initialNumToRender={data.length}
                     />
                 )}
