@@ -7099,6 +7099,11 @@ const translations = {
             title: "Can't create expense",
             prompt: "You can't create an expense with the same start and stop location.",
         },
+        desktop: {
+            title: 'Track distance on your phone',
+            subtitle: 'Log miles or kilometers automatically with GPS and turn trips into expenses instantly.',
+            button: 'Download the app',
+        },
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Report card lost or damaged',
@@ -7887,13 +7892,6 @@ const translations = {
             addAdmin: 'Add admin',
             invite: 'Invite',
             addAdminError: 'Unable to add this member as an admin. Please try again.',
-        },
-    },
-    gps: {
-        desktop: {
-            title: 'Track distance on your phone',
-            subtitle: 'Log miles or kilometers automatically with GPS and turn trips into expenses instantly.',
-            button: 'Download the app',
         },
     },
 };
