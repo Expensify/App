@@ -141,7 +141,7 @@ function TransactionListItem<TItem extends ListItem>({
             snapshotPolicy?.type === CONST.POLICY.TYPE.CORPORATE,
         );
 
-        return [...onyxViolations, ...attendeeOnyxViolations];
+        return attendeeOnyxViolations;
     }, [snapshotPolicy, policyCategories, snapshotReport, transactionItem, violations, currentUserDetails.email, currentUserDetails.accountID, currentUserDetails]);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
