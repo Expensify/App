@@ -142,6 +142,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
                     shouldShowBackButton={false}
                     iconFill={theme.iconColorfulBackground}
                     progressBarPercentage={isPrivateDomainAndHasAccessiblePolicies ? 60 : 20}
+                    shouldDisplayHelpButton={false}
                 />
             </View>
             <ScrollView style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}>
@@ -161,7 +162,5 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingPurpose.displayName = 'BaseOnboardingPurpose';
 
 export default BaseOnboardingPurpose;

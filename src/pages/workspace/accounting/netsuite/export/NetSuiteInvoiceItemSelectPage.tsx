@@ -34,7 +34,7 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
             if (config?.invoiceItem !== value && policyID) {
                 updateNetSuiteInvoiceItem(policyID, value, config?.invoiceItem);
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID));
+            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID), {compareParams: false});
         },
         [policyID, config?.invoiceItem],
     );
@@ -58,12 +58,12 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteInvoiceItemSelectPage.displayName}
+            displayName="NetSuiteInvoiceItemSelectPage"
             sections={netsuiteInvoiceItemOptions.length ? [{data: netsuiteInvoiceItemOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateInvoiceItem}
             initiallyFocusedOptionKey={initiallyFocusedOptionKey}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.getRoute(policyID), {compareParams: false})}
             title="workspace.netsuite.invoiceItem.label"
             listEmptyContent={listEmptyContent}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
@@ -75,7 +75,5 @@ function NetSuiteInvoiceItemSelectPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-NetSuiteInvoiceItemSelectPage.displayName = 'NetSuiteInvoiceItemSelectPage';
 
 export default withPolicyConnections(NetSuiteInvoiceItemSelectPage);

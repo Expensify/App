@@ -1,6 +1,5 @@
 import {isBlockedFromChatSelector} from '@selectors/BlockedFromChat';
 import {Str} from 'expensify-common';
-import {deepEqual} from 'fast-equals';
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -75,6 +74,9 @@ type ReportFooterProps = {
 
     /** A method to call when the input is blur */
     onComposerBlur?: () => void;
+
+    /** Whether the report screen is being displayed in the side panel */
+    isInSidePanel?: boolean;
 };
 
 function ReportFooter({
@@ -88,6 +90,7 @@ function ReportFooter({
     onComposerFocus,
     reportTransactions,
     transactionThreadReportID,
+    isInSidePanel,
 }: ReportFooterProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -191,11 +194,10 @@ function ReportFooter({
             }
             // If we are adding an action on an expense report that only has a single transaction thread child report, we need to add the action to the transaction thread instead.
             // This is because we need it to be associated with the transaction thread and not the expense report in order for conversational corrections to work as expected.
-            const targetReportID = transactionThreadReportID ?? report.reportID;
-            addComment(targetReportID, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
+            addComment(targetReport, report.reportID, targetReportAncestors, text, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE, true);
         },
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [report.reportID, handleCreateTask, transactionThreadReportID, targetReportAncestors],
+        [report.reportID, handleCreateTask, targetReport, targetReportAncestors],
     );
 
     const [didHideComposerInput, setDidHideComposerInput] = useState(!shouldShowComposeInput);
@@ -220,7 +222,7 @@ function ReportFooter({
                     {isAnonymousUser && !isArchivedRoom && (
                         <AnonymousReportFooter
                             report={report}
-                            isSmallSizeLayout={isSmallSizeLayout}
+                            isSmallSizeLayout={isSmallSizeLayout || isInSidePanel}
                         />
                     )}
                     {isArchivedRoom && <ArchivedReportFooter report={report} />}
@@ -262,17 +264,19 @@ function ReportFooter({
     );
 }
 
-ReportFooter.displayName = 'ReportFooter';
-
 export default memo(
     ReportFooter,
     (prevProps, nextProps) =>
-        deepEqual(prevProps.report, nextProps.report) &&
+        // Report comes from useOnyx - reference is stable
+        prevProps.report === nextProps.report &&
         prevProps.pendingAction === nextProps.pendingAction &&
         prevProps.isComposerFullSize === nextProps.isComposerFullSize &&
         prevProps.lastReportAction === nextProps.lastReportAction &&
-        deepEqual(prevProps.reportMetadata, nextProps.reportMetadata) &&
-        deepEqual(prevProps.policy?.employeeList, nextProps.policy?.employeeList) &&
-        deepEqual(prevProps.policy?.role, nextProps.policy?.role) &&
-        deepEqual(prevProps.reportTransactions, nextProps.reportTransactions),
+        // reportMetadata comes from useOnyx - reference is stable
+        prevProps.reportMetadata === nextProps.reportMetadata &&
+        // policy comes from useOnyx - comparing nested properties which may be stable
+        prevProps.policy?.employeeList === nextProps.policy?.employeeList &&
+        prevProps.policy?.role === nextProps.policy?.role &&
+        // reportTransactions comes from useOnyx - reference is stable
+        prevProps.reportTransactions === nextProps.reportTransactions,
 );

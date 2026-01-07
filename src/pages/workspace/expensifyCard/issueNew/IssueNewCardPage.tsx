@@ -106,6 +106,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                         policyID={policyID}
                         stepNames={stepNames}
                         startStepIndex={startStepIndex}
+                        backTo={backTo}
                     />
                 );
             case CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER:
@@ -125,7 +126,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
-                testID={IssueNewCardPage.displayName}
+                testID="IssueNewCardPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
             >
@@ -148,5 +149,4 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     );
 }
 
-IssueNewCardPage.displayName = 'IssueNewCardPage';
 export default withPolicyAndFullscreenLoading(IssueNewCardPage);

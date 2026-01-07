@@ -48,13 +48,14 @@ function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnb
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
-            testID={BaseOnboardingWorkspaceCurrency.displayName}
+            testID="BaseOnboardingWorkspaceCurrency"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldShowOfflineIndicator={!onboardingIsMediumOrLargerScreenWidth}
         >
             <HeaderWithBackButton
                 progressBarPercentage={100}
                 onBackButtonPress={goBack}
+                shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                 <Text style={styles.textHeadlineH1}>{translate('common.currency')}</Text>
@@ -70,7 +71,5 @@ function BaseOnboardingWorkspaceCurrency({route, shouldUseNativeStyles}: BaseOnb
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingWorkspaceCurrency.displayName = 'BaseOnboardingWorkspaceCurrency';
 
 export default BaseOnboardingWorkspaceCurrency;
