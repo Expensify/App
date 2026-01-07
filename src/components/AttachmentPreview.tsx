@@ -114,6 +114,4 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
     return <DefaultAttachmentView fileName={fileName} />;
 }
 
-AttachmentPreview.displayName = 'AttachmentPreview';
-
 export default AttachmentPreview;

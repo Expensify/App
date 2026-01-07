@@ -54,5 +54,4 @@ function SearchBar({label, style, icon, inputValue, onChangeText, onSubmitEditin
     );
 }
 
-SearchBar.displayName = 'SearchBar';
 export default SearchBar;

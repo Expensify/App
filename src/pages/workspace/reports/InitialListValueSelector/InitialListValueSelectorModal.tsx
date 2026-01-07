@@ -47,7 +47,7 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
                 style={styles.pb0}
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={InitialListValueSelectorModal.displayName}
+                testID="InitialListValueSelectorModal"
             >
                 <HeaderWithBackButton
                     title={label}
@@ -67,7 +67,5 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
         </Modal>
     );
 }
-
-InitialListValueSelectorModal.displayName = 'InitialListValueSelectorModal';
 
 export default InitialListValueSelectorModal;

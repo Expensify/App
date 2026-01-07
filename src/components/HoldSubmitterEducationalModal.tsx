@@ -39,12 +39,11 @@ function HoldSubmitterEducationalModal({onClose, onConfirm}: HoldSubmitterEducat
             onConfirm={onConfirm}
             shouldCloseOnConfirm={false}
             shouldGoBack={false}
+            shouldUseScrollView
         >
             <HoldMenuSectionList />
         </FeatureTrainingModal>
     );
 }
-
-HoldSubmitterEducationalModal.displayName = 'HoldSubmitterEducationalModal';
 
 export default HoldSubmitterEducationalModal;

@@ -111,7 +111,7 @@ function OptionRow({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark'] as const);
     const pressableRef = useRef<View | HTMLDivElement>(null);
     const [isDisabled, setIsDisabled] = useState(isOptionDisabled);
@@ -155,6 +155,7 @@ function OptionRow({
         (option.participantsList ?? (option.accountID ? [option as OptionData] : [])).slice(0, 10),
         shouldUseShortFormInTooltip,
         localeCompare,
+        formatPhoneNumber,
     );
     let subscriptColor = theme.appBG;
     if (optionIsFocused) {

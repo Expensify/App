@@ -70,6 +70,7 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
             onClose={onClose}
             onConfirm={onConfirm}
             shouldGoBack={false}
+            shouldUseScrollView
         >
             <>
                 {menuSections.map((section) => (
@@ -92,7 +93,5 @@ function HoldOrRejectEducationalModal({onClose, onConfirm}: HoldOrRejectEducatio
         </FeatureTrainingModal>
     );
 }
-
-HoldOrRejectEducationalModal.displayName = 'HoldOrRejectEducationalModal';
 
 export default HoldOrRejectEducationalModal;

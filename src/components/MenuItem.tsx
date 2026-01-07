@@ -4,6 +4,7 @@ import React, {useContext, useMemo, useRef} from 'react';
 import type {GestureResponderEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -25,6 +26,7 @@ import CONST from '@src/CONST';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
+import type WithSentryLabel from '@src/types/utils/SentryLabel';
 import ActivityIndicator from './ActivityIndicator';
 import Avatar from './Avatar';
 import Badge from './Badge';
@@ -65,336 +67,337 @@ type NoIcon = {
     icon?: undefined;
 };
 
-type MenuItemBaseProps = ForwardedFSClassProps & {
-    /** Reference to the outer element */
-    ref?: PressableRef | Ref<View>;
+type MenuItemBaseProps = ForwardedFSClassProps &
+    WithSentryLabel & {
+        /** Reference to the outer element */
+        ref?: PressableRef | Ref<View>;
 
-    /** Function to fire when component is pressed */
-    onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
+        /** Function to fire when component is pressed */
+        onPress?: (event: GestureResponderEvent | KeyboardEvent) => void | Promise<void>;
 
-    /** Whether the menu item should be interactive at all */
-    interactive?: boolean;
+        /** Whether the menu item should be interactive at all */
+        interactive?: boolean;
 
-    /** Text to be shown as badge near the right end. */
-    badgeText?: string;
+        /** Text to be shown as badge near the right end. */
+        badgeText?: string;
 
-    /** Icon to display on the left side of the badge */
-    badgeIcon?: IconAsset;
+        /** Icon to display on the left side of the badge */
+        badgeIcon?: IconAsset;
 
-    /** Whether the badge should be shown as success */
-    badgeSuccess?: boolean;
+        /** Whether the badge should be shown as success */
+        badgeSuccess?: boolean;
 
-    /** Used to apply offline styles to child text components */
-    style?: StyleProp<ViewStyle>;
+        /** Used to apply offline styles to child text components */
+        style?: StyleProp<ViewStyle>;
 
-    /** Outer wrapper styles */
-    outerWrapperStyle?: StyleProp<ViewStyle>;
+        /** Outer wrapper styles */
+        outerWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Any additional styles to apply */
-    wrapperStyle?: StyleProp<ViewStyle>;
+        /** Any additional styles to apply */
+        wrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Styles to apply on the title wrapper */
-    titleWrapperStyle?: StyleProp<ViewStyle>;
+        /** Styles to apply on the title wrapper */
+        titleWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Any additional styles to apply on the outer element */
-    containerStyle?: StyleProp<ViewStyle>;
+        /** Any additional styles to apply on the outer element */
+        containerStyle?: StyleProp<ViewStyle>;
 
-    /** Used to apply styles specifically to the title */
-    titleStyle?: StyleProp<TextStyle>;
+        /** Used to apply styles specifically to the title */
+        titleStyle?: StyleProp<TextStyle>;
 
-    /** Any additional styles to apply on the badge element */
-    badgeStyle?: ViewStyle;
+        /** Any additional styles to apply on the badge element */
+        badgeStyle?: ViewStyle;
 
-    /** Any additional styles to apply to the label */
-    labelStyle?: StyleProp<ViewStyle>;
+        /** Any additional styles to apply to the label */
+        labelStyle?: StyleProp<ViewStyle>;
 
-    /** Additional styles to style the description text below the title */
-    descriptionTextStyle?: StyleProp<TextStyle>;
+        /** Additional styles to style the description text below the title */
+        descriptionTextStyle?: StyleProp<TextStyle>;
 
-    /** The fill color to pass into the icon. */
-    iconFill?: string | ((isHovered: boolean) => string);
+        /** The fill color to pass into the icon. */
+        iconFill?: string | ((isHovered: boolean) => string);
 
-    /** Secondary icon to display on the left side of component, right of the icon */
-    secondaryIcon?: IconAsset;
+        /** Secondary icon to display on the left side of component, right of the icon */
+        secondaryIcon?: IconAsset;
 
-    /** The fill color to pass into the secondary icon. */
-    secondaryIconFill?: string;
+        /** The fill color to pass into the secondary icon. */
+        secondaryIconFill?: string;
 
-    /** Whether the secondary icon should have hover style */
-    isSecondaryIconHoverable?: boolean;
+        /** Whether the secondary icon should have hover style */
+        isSecondaryIconHoverable?: boolean;
 
-    /** Icon Width */
-    iconWidth?: number;
+        /** Icon Width */
+        iconWidth?: number;
 
-    /** Icon Height */
-    iconHeight?: number;
+        /** Icon Height */
+        iconHeight?: number;
 
-    /** Any additional styles to pass to the icon container. */
-    iconStyles?: StyleProp<ViewStyle>;
+        /** Any additional styles to pass to the icon container. */
+        iconStyles?: StyleProp<ViewStyle>;
 
-    /** Additional styles to pass to the icon itself */
-    additionalIconStyles?: StyleProp<ViewStyle>;
+        /** Additional styles to pass to the icon itself */
+        additionalIconStyles?: StyleProp<ViewStyle>;
 
-    /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
-    fallbackIcon?: IconAsset;
+        /** A fallback avatar icon to display when there is an error on loading avatar from remote URL. */
+        fallbackIcon?: IconAsset;
 
-    /** An icon to display under the main item */
-    furtherDetailsIcon?: IconAsset;
+        /** An icon to display under the main item */
+        furtherDetailsIcon?: IconAsset;
 
-    /** Boolean whether to display the title right icon */
-    shouldShowTitleIcon?: boolean;
+        /** Boolean whether to display the title right icon */
+        shouldShowTitleIcon?: boolean;
 
-    /** Icon to display at right side of title */
-    titleIcon?: IconAsset;
+        /** Icon to display at right side of title */
+        titleIcon?: IconAsset;
 
-    /** Boolean whether to display the right icon */
-    shouldShowRightIcon?: boolean;
+        /** Boolean whether to display the right icon */
+        shouldShowRightIcon?: boolean;
 
-    /** Overrides the icon for shouldShowRightIcon */
-    iconRight?: IconAsset;
+        /** Overrides the icon for shouldShowRightIcon */
+        iconRight?: IconAsset;
 
-    /** Should render component on the right */
-    shouldShowRightComponent?: boolean;
+        /** Should render component on the right */
+        shouldShowRightComponent?: boolean;
 
-    /** Component to be displayed on the right */
-    rightComponent?: ReactNode;
+        /** Component to be displayed on the right */
+        rightComponent?: ReactNode;
 
-    /** A description text to show under the title */
-    description?: string;
+        /** A description text to show under the title */
+        description?: string;
 
-    /** Text to show below menu item. This text is not interactive */
-    helperText?: string;
+        /** Text to show below menu item. This text is not interactive */
+        helperText?: string;
 
-    /** Any additional styles to pass to helper text. */
-    helperTextStyle?: StyleProp<TextStyle>;
+        /** Any additional styles to pass to helper text. */
+        helperTextStyle?: StyleProp<TextStyle>;
 
-    /** Should the description be shown above the title (instead of the other way around) */
-    shouldShowDescriptionOnTop?: boolean;
+        /** Should the description be shown above the title (instead of the other way around) */
+        shouldShowDescriptionOnTop?: boolean;
 
-    /** Error to display at the bottom of the component */
-    errorText?: string | ReactNode;
+        /** Error to display at the bottom of the component */
+        errorText?: string | ReactNode;
 
-    /** Any additional styles to pass to error text. */
-    errorTextStyle?: StyleProp<ViewStyle>;
+        /** Any additional styles to pass to error text. */
+        errorTextStyle?: StyleProp<ViewStyle>;
 
-    /** Hint to display at the bottom of the component */
-    hintText?: string | ReactNode;
+        /** Hint to display at the bottom of the component */
+        hintText?: string | ReactNode;
 
-    /** Should the error text red dot indicator be shown */
-    shouldShowRedDotIndicator?: boolean;
+        /** Should the error text red dot indicator be shown */
+        shouldShowRedDotIndicator?: boolean;
 
-    /** A boolean flag that gives the icon a green fill if true */
-    success?: boolean;
+        /** A boolean flag that gives the icon a green fill if true */
+        success?: boolean;
 
-    /** Whether item is focused or active */
-    focused?: boolean;
+        /** Whether item is focused or active */
+        focused?: boolean;
 
-    /** Should we disable this menu item? */
-    disabled?: boolean;
+        /** Should we disable this menu item? */
+        disabled?: boolean;
 
-    /** Text that appears above the title */
-    label?: string;
+        /** Text that appears above the title */
+        label?: string;
 
-    /** Character limit after which the menu item text will be truncated */
-    characterLimit?: number;
+        /** Character limit after which the menu item text will be truncated */
+        characterLimit?: number;
 
-    isLabelHoverable?: boolean;
+        isLabelHoverable?: boolean;
 
-    /** Label to be displayed on the right */
-    rightLabel?: string;
+        /** Label to be displayed on the right */
+        rightLabel?: string;
 
-    /** Text to display for the item */
-    title?: string;
+        /** Text to display for the item */
+        title?: string;
 
-    /** Component to display as the title */
-    titleComponent?: ReactElement;
+        /** Component to display as the title */
+        titleComponent?: ReactElement;
 
-    /** Any additional styles to apply to the container for title components */
-    titleContainerStyle?: StyleProp<ViewStyle>;
+        /** Any additional styles to apply to the container for title components */
+        titleContainerStyle?: StyleProp<ViewStyle>;
 
-    /** A right-aligned subtitle for this menu option */
-    subtitle?: string | number;
+        /** A right-aligned subtitle for this menu option */
+        subtitle?: string | number;
 
-    /** Should the title show with normal font weight (not bold) */
-    shouldShowBasicTitle?: boolean;
+        /** Should the title show with normal font weight (not bold) */
+        shouldShowBasicTitle?: boolean;
 
-    /** Should we make this selectable with a checkbox */
-    shouldShowSelectedState?: boolean;
+        /** Should we make this selectable with a checkbox */
+        shouldShowSelectedState?: boolean;
 
-    /** Should we truncate the title */
-    shouldTruncateTitle?: boolean;
+        /** Should we truncate the title */
+        shouldTruncateTitle?: boolean;
 
-    /** Whether this item is selected */
-    isSelected?: boolean;
+        /** Whether this item is selected */
+        isSelected?: boolean;
 
-    /** Prop to identify if we should load avatars vertically instead of diagonally */
-    shouldStackHorizontally?: boolean;
+        /** Prop to identify if we should load avatars vertically instead of diagonally */
+        shouldStackHorizontally?: boolean;
 
-    /** Prop to represent the size of the avatar images to be shown */
-    avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
+        /** Prop to represent the size of the avatar images to be shown */
+        avatarSize?: ValueOf<typeof CONST.AVATAR_SIZE>;
 
-    /** Affects avatar size  */
-    viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
+        /** Affects avatar size  */
+        viewMode?: ValueOf<typeof CONST.OPTION_MODE>;
 
-    /** Used to truncate the text with an ellipsis after computing the text layout */
-    numberOfLinesTitle?: number;
+        /** Used to truncate the text with an ellipsis after computing the text layout */
+        numberOfLinesTitle?: number;
 
-    /** Used to truncate the description with an ellipsis after computing the text layout */
-    numberOfLinesDescription?: number;
+        /** Used to truncate the description with an ellipsis after computing the text layout */
+        numberOfLinesDescription?: number;
 
-    /**  Whether we should use small avatar subscript sizing the for menu item */
-    isSmallAvatarSubscriptMenu?: boolean;
+        /**  Whether we should use small avatar subscript sizing the for menu item */
+        isSmallAvatarSubscriptMenu?: boolean;
 
-    /** The type of brick road indicator to show. */
-    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+        /** The type of brick road indicator to show. */
+        brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 
-    /** Should render the content in HTML format */
-    shouldRenderAsHTML?: boolean;
+        /** Should render the content in HTML format */
+        shouldRenderAsHTML?: boolean;
 
-    /** Whether or not the text should be escaped */
-    shouldEscapeText?: boolean;
+        /** Whether or not the text should be escaped */
+        shouldEscapeText?: boolean;
 
-    /** Should we grey out the menu item when it is disabled? */
-    shouldGreyOutWhenDisabled?: boolean;
+        /** Should we grey out the menu item when it is disabled? */
+        shouldGreyOutWhenDisabled?: boolean;
 
-    /** Should we remove the background color of the menu item */
-    shouldRemoveBackground?: boolean;
+        /** Should we remove the background color of the menu item */
+        shouldRemoveBackground?: boolean;
 
-    /** Should we remove the hover background color of the menu item */
-    shouldRemoveHoverBackground?: boolean;
+        /** Should we remove the hover background color of the menu item */
+        shouldRemoveHoverBackground?: boolean;
 
-    rightIconAccountID?: number | string;
+        rightIconAccountID?: number | string;
 
-    iconAccountID?: number;
+        iconAccountID?: number;
 
-    /** Should we use default cursor for disabled content */
-    shouldUseDefaultCursorWhenDisabled?: boolean;
+        /** Should we use default cursor for disabled content */
+        shouldUseDefaultCursorWhenDisabled?: boolean;
 
-    /** The action accept for anonymous user or not */
-    isAnonymousAction?: boolean;
+        /** The action accept for anonymous user or not */
+        isAnonymousAction?: boolean;
 
-    /** Flag to indicate whether or not text selection should be disabled from long-pressing the menu item. */
-    shouldBlockSelection?: boolean;
+        /** Flag to indicate whether or not text selection should be disabled from long-pressing the menu item. */
+        shouldBlockSelection?: boolean;
 
-    /** Whether should render title as HTML or as Text */
-    shouldParseTitle?: boolean;
+        /** Whether should render title as HTML or as Text */
+        shouldParseTitle?: boolean;
 
-    /** Whether should render helper text as HTML or as Text */
-    shouldParseHelperText?: boolean;
+        /** Whether should render helper text as HTML or as Text */
+        shouldParseHelperText?: boolean;
 
-    /** Whether should render hint text as HTML or as Text */
-    shouldRenderHintAsHTML?: boolean;
+        /** Whether should render hint text as HTML or as Text */
+        shouldRenderHintAsHTML?: boolean;
 
-    /** Whether should render error text as HTML or as Text */
-    shouldRenderErrorAsHTML?: boolean;
+        /** Whether should render error text as HTML or as Text */
+        shouldRenderErrorAsHTML?: boolean;
 
-    /** List of markdown rules that will be ignored */
-    excludedMarkdownRules?: string[];
+        /** List of markdown rules that will be ignored */
+        excludedMarkdownRules?: string[];
 
-    /** Should check anonymous user in onPress function */
-    shouldCheckActionAllowedOnPress?: boolean;
+        /** Should check anonymous user in onPress function */
+        shouldCheckActionAllowedOnPress?: boolean;
 
-    /** Text to display under the main item */
-    furtherDetails?: string;
+        /** Text to display under the main item */
+        furtherDetails?: string;
 
-    /** The maximum number of lines for further details text */
-    furtherDetailsNumberOfLines?: number;
+        /** The maximum number of lines for further details text */
+        furtherDetailsNumberOfLines?: number;
 
-    /** The further details additional style */
-    furtherDetailsStyle?: StyleProp<TextStyle>;
+        /** The further details additional style */
+        furtherDetailsStyle?: StyleProp<TextStyle>;
 
-    /** Render custom content under the main item */
-    furtherDetailsComponent?: ReactElement;
+        /** Render custom content under the main item */
+        furtherDetailsComponent?: ReactElement;
 
-    /** The function that should be called when this component is LongPressed or right-clicked. */
-    onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
+        /** The function that should be called when this component is LongPressed or right-clicked. */
+        onSecondaryInteraction?: (event: GestureResponderEvent | MouseEvent) => void;
 
-    /** Array of objects that map display names to their corresponding tooltip */
-    titleWithTooltips?: DisplayNameWithTooltip[] | undefined;
+        /** Array of objects that map display names to their corresponding tooltip */
+        titleWithTooltips?: DisplayNameWithTooltip[] | undefined;
 
-    /** Icon should be displayed in its own color */
-    displayInDefaultIconColor?: boolean;
+        /** Icon should be displayed in its own color */
+        displayInDefaultIconColor?: boolean;
 
-    /** Determines how the icon should be resized to fit its container */
-    contentFit?: ImageContentFit;
+        /** Determines how the icon should be resized to fit its container */
+        contentFit?: ImageContentFit;
 
-    /** Is this in the Pane */
-    isPaneMenu?: boolean;
+        /** Is this in the Pane */
+        isPaneMenu?: boolean;
 
-    /** Adds padding to the left of the text when there is no icon. */
-    shouldPutLeftPaddingWhenNoIcon?: boolean;
+        /** Adds padding to the left of the text when there is no icon. */
+        shouldPutLeftPaddingWhenNoIcon?: boolean;
 
-    /** Handles what to do when the item is focused */
-    onFocus?: () => void;
+        /** Handles what to do when the item is focused */
+        onFocus?: () => void;
 
-    /** Handles what to do when the item loose focus */
-    onBlur?: () => void;
+        /** Handles what to do when the item loose focus */
+        onBlur?: () => void;
 
-    /** Optional account id if it's user avatar or policy id if it's workspace avatar */
-    avatarID?: number | string;
+        /** Optional account id if it's user avatar or policy id if it's workspace avatar */
+        avatarID?: number | string;
 
-    /** Whether to show the tooltip */
-    shouldRenderTooltip?: boolean;
+        /** Whether to show the tooltip */
+        shouldRenderTooltip?: boolean;
 
-    /** Anchor alignment of the tooltip */
-    tooltipAnchorAlignment?: TooltipAnchorAlignment;
+        /** Anchor alignment of the tooltip */
+        tooltipAnchorAlignment?: TooltipAnchorAlignment;
 
-    /** Additional styles for tooltip wrapper */
-    tooltipWrapperStyle?: StyleProp<ViewStyle>;
+        /** Additional styles for tooltip wrapper */
+        tooltipWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Any additional amount to manually adjust the horizontal position of the tooltip */
-    tooltipShiftHorizontal?: number;
+        /** Any additional amount to manually adjust the horizontal position of the tooltip */
+        tooltipShiftHorizontal?: number;
 
-    /** Any additional amount to manually adjust the vertical position of the tooltip */
-    tooltipShiftVertical?: number;
+        /** Any additional amount to manually adjust the vertical position of the tooltip */
+        tooltipShiftVertical?: number;
 
-    /** Render custom content inside the tooltip. */
-    renderTooltipContent?: () => ReactNode;
+        /** Render custom content inside the tooltip. */
+        renderTooltipContent?: () => ReactNode;
 
-    /** Callback to fire when the education tooltip is pressed */
-    onEducationTooltipPress?: () => void;
+        /** Callback to fire when the education tooltip is pressed */
+        onEducationTooltipPress?: () => void;
 
-    /** Whether the tooltip should hide on scroll */
-    shouldHideOnScroll?: boolean;
+        /** Whether the tooltip should hide on scroll */
+        shouldHideOnScroll?: boolean;
 
-    shouldShowLoadingSpinnerIcon?: boolean;
+        shouldShowLoadingSpinnerIcon?: boolean;
 
-    /** Should selected item be marked with checkmark */
-    shouldShowSelectedItemCheck?: boolean;
+        /** Should selected item be marked with checkmark */
+        shouldShowSelectedItemCheck?: boolean;
 
-    /** Should use auto width for the icon container. */
-    shouldIconUseAutoWidthStyle?: boolean;
+        /** Should use auto width for the icon container. */
+        shouldIconUseAutoWidthStyle?: boolean;
 
-    /** Should break word for room title */
-    shouldBreakWord?: boolean;
+        /** Should break word for room title */
+        shouldBreakWord?: boolean;
 
-    /** Pressable component Test ID. Used to locate the component in tests. */
-    pressableTestID?: string;
+        /** Pressable component Test ID. Used to locate the component in tests. */
+        pressableTestID?: string;
 
-    /** Whether to teleport the portal to the modal layer */
-    shouldTeleportPortalToModalLayer?: boolean;
+        /** Whether to teleport the portal to the modal layer */
+        shouldTeleportPortalToModalLayer?: boolean;
 
-    /** The value to copy in copy to clipboard action. Must be used in conjunction with `copyable=true`. Default value is `title` prop. */
-    copyValue?: string;
+        /** The value to copy in copy to clipboard action. Must be used in conjunction with `copyable=true`. Default value is `title` prop. */
+        copyValue?: string;
 
-    /** Should enable copy to clipboard action */
-    copyable?: boolean;
+        /** Should enable copy to clipboard action */
+        copyable?: boolean;
 
-    /** Plaid image for the bank */
-    plaidUrl?: string;
+        /** Plaid image for the bank */
+        plaidUrl?: string;
 
-    /** Report ID for the avatar */
-    iconReportID?: string;
+        /** Report ID for the avatar */
+        iconReportID?: string;
 
-    /** Report ID for the avatar on the right */
-    rightIconReportID?: string;
+        /** Report ID for the avatar on the right */
+        rightIconReportID?: string;
 
-    /** Whether the menu item contains nested submenu items. */
-    hasSubMenuItems?: boolean;
+        /** Whether the menu item contains nested submenu items. */
+        hasSubMenuItems?: boolean;
 
-    /** Whether the screen containing the item is focused */
-    isFocused?: boolean;
-};
+        /** Whether the screen containing the item is focused */
+        isFocused?: boolean;
+    };
 
 type MenuItemProps = (IconProps | AvatarProps | NoIcon) & MenuItemBaseProps;
 
@@ -434,13 +437,13 @@ function MenuItem({
     iconWidth,
     iconHeight,
     iconStyles,
-    fallbackIcon = Expensicons.FallbackAvatar,
+    fallbackIcon,
     shouldShowTitleIcon = false,
     titleIcon,
     rightIconAccountID,
     iconAccountID,
     shouldShowRightIcon = false,
-    iconRight = Expensicons.ArrowRight,
+    iconRight,
     furtherDetailsIcon,
     furtherDetails,
     furtherDetailsNumberOfLines = 2,
@@ -522,7 +525,9 @@ function MenuItem({
     forwardedFSClass,
     ref,
     isFocused,
+    sentryLabel,
 }: MenuItemProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -604,7 +609,7 @@ function MenuItem({
         return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
     }, [shouldParseHelperText, helperHtml]);
 
-    const hasPressableRightComponent = iconRight || (shouldShowRightComponent && rightComponent);
+    const hasPressableRightComponent = (iconRight ?? icons.ArrowRight) || (shouldShowRightComponent && rightComponent);
 
     const renderTitleContent = () => {
         if (title && titleWithTooltips && Array.isArray(titleWithTooltips) && titleWithTooltips.length > 0) {
@@ -722,6 +727,7 @@ function MenuItem({
                                 accessibilityLabel={title ? title.toString() : ''}
                                 accessible
                                 onFocus={onFocus}
+                                sentryLabel={sentryLabel}
                             >
                                 {({pressed}) => (
                                     <View style={[styles.flex1]}>
@@ -801,7 +807,7 @@ function MenuItem({
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     size={CONST.AVATAR_SIZE.DEFAULT}
                                                                     source={icon}
-                                                                    fallbackIcon={fallbackIcon}
+                                                                    fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
                                                                     name={title}
                                                                     avatarID={avatarID}
                                                                     type={CONST.ICON_TYPE_WORKSPACE}
@@ -812,7 +818,7 @@ function MenuItem({
                                                                     imageStyles={[styles.alignSelfCenter]}
                                                                     source={icon}
                                                                     avatarID={avatarID}
-                                                                    fallbackIcon={fallbackIcon}
+                                                                    fallbackIcon={fallbackIcon ?? icons.FallbackAvatar}
                                                                     size={avatarSize}
                                                                     type={CONST.ICON_TYPE_AVATAR}
                                                                 />
@@ -970,7 +976,7 @@ function MenuItem({
                                                         ]}
                                                     >
                                                         <Icon
-                                                            src={iconRight}
+                                                            src={iconRight ?? icons.ArrowRight}
                                                             fill={StyleUtils.getIconFillColor(getButtonState(focused || isHovered, pressed, success, disabled, interactive))}
                                                             width={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
                                                             height={hasSubMenuItems ? variables.iconSizeSmall : variables.iconSizeNormal}
@@ -1037,8 +1043,6 @@ function MenuItem({
         </View>
     );
 }
-
-MenuItem.displayName = 'MenuItem';
 
 export type {MenuItemBaseProps, MenuItemProps};
 export default MenuItem;

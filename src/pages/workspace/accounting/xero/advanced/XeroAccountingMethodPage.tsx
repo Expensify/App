@@ -66,7 +66,7 @@ function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
 
     return (
         <SelectionScreen
-            displayName={XeroAccountingMethodPage.displayName}
+            displayName="XeroAccountingMethodPage"
             headerTitleAlreadyTranslated={translate('workspace.xero.accountingMethods.label')}
             headerContent={headerContent}
             sections={[{data}]}
@@ -83,7 +83,5 @@ function XeroAccountingMethodPage({policy, route}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-XeroAccountingMethodPage.displayName = 'XeroAccountingMethodPage';
 
 export default withPolicyConnections(XeroAccountingMethodPage);
