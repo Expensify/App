@@ -1,11 +1,40 @@
 import * as core from '@actions/core';
+import {compare} from '@callstack/reassure-compare';
 import type {CompareResult, MeasureEntry} from '@callstack/reassure-compare';
 import fs from 'fs';
 
-const run = (): boolean => {
-    const regressionOutput = JSON.parse(fs.readFileSync('.reassure/output.json', 'utf8')) as CompareResult;
+const OUTPUT_FILE = '.reassure/output.json';
+const BASELINE_FILE = '.reassure/baseline.perf';
+const CURRENT_FILE = '.reassure/current.perf';
+
+const run = async (): Promise<boolean> => {
     const countDeviation = Number(core.getInput('COUNT_DEVIATION', {required: true}));
     const durationDeviation = Number(core.getInput('DURATION_DEVIATION_PERCENTAGE', {required: true}));
+
+    if (!fs.existsSync(OUTPUT_FILE)) {
+        console.log('output.json not found, running comparison from perf files...');
+
+        if (!fs.existsSync(BASELINE_FILE)) {
+            core.setFailed(`Baseline file "${BASELINE_FILE}" does not exist.`);
+            return false;
+        }
+
+        if (!fs.existsSync(CURRENT_FILE)) {
+            core.setFailed(`Current file "${CURRENT_FILE}" does not exist.`);
+            return false;
+        }
+
+        await compare({
+            baselineFile: BASELINE_FILE,
+            currentFile: CURRENT_FILE,
+            outputFile: OUTPUT_FILE,
+            outputFormat: 'all',
+        });
+
+        console.log('Comparison complete, output.json generated.');
+    }
+
+    const regressionOutput = JSON.parse(fs.readFileSync(OUTPUT_FILE, 'utf8')) as CompareResult;
 
     if (regressionOutput.countChanged === undefined || regressionOutput.countChanged.length === 0) {
         console.log('No countChanged data available. Exiting...');
