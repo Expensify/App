@@ -57,7 +57,7 @@ jobs:
           allowed_non_write_users: "*"
           prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
           claude_args: |
-            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(addPrReaction.sh:*),Bash(createInlineComment.sh:*)"
+            --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(addPrReaction.sh:*),Bash(createInlineComment.sh:*),Bash(createGeneralComment.sh:*),Bash(checkReactCompilerOptimization.ts:*)"
 
       - name: Run Claude Code (docs)
         if: steps.filter.outputs.docs == 'true'
