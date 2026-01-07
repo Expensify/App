@@ -1,7 +1,5 @@
 import {getUnixTime} from 'date-fns';
-import {deepEqual} from 'fast-equals';
 import lodashClone from 'lodash/clone';
-import lodashHas from 'lodash/has';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
