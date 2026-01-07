@@ -31,6 +31,7 @@ function BaseSearchList({
     flattenedItemsLength,
     newTransactions,
     selectedTransactions,
+    customCardNames,
 }: BaseSearchListProps) {
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
@@ -103,7 +104,10 @@ function BaseSearchList({
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    const extraData = useMemo(() => [focusedIndex, columns, newTransactions, selectedTransactions], [focusedIndex, columns, newTransactions, selectedTransactions]);
+    const extraData = useMemo(
+        () => [focusedIndex, columns, newTransactions, selectedTransactions, customCardNames],
+        [focusedIndex, columns, newTransactions, selectedTransactions, customCardNames],
+    );
 
     return (
         <AnimatedFlashListComponent

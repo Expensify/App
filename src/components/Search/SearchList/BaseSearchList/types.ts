@@ -43,6 +43,9 @@ type BaseSearchListProps = Pick<
 
     /** Selected transactions for triggering re-render via extraData */
     selectedTransactions?: SelectedTransactions;
+
+    /** Custom card names for triggering re-render via extraData */
+    customCardNames?: Record<number, string>;
 };
 
 export default BaseSearchListProps;
