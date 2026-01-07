@@ -14,7 +14,7 @@ type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParam
 function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Members']);
+    const illustrations = useMemoizedLazyIllustrations(['Profile']);
 
     const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
@@ -28,7 +28,7 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
             headerTitle={translate('domain.members.title')}
             searchPlaceholder={translate('domain.members.findMember')}
             onSelectRow={() => {}}
-            headerIcon={illustrations.Members}
+            headerIcon={illustrations.Profile}
         />
     );
 }

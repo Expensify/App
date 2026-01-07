@@ -25,7 +25,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['Members']);
+    const illustrations = useMemoizedLazyIllustrations(['UserShield']);
     const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Plus']);
 
     const [adminAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -82,7 +82,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             accountIDs={adminAccountIDs ?? []}
             headerTitle={translate('domain.admins.title')}
             searchPlaceholder={translate('domain.admins.findAdmin')}
-            headerIcon={illustrations.Members}
+            headerIcon={illustrations.UserShield}
             headerContent={headerContent}
             getCustomRightElement={getCustomRightElement}
             getCustomRowProps={getCustomRowProps}
@@ -93,4 +93,5 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
 }
 
 DomainAdminsPage.displayName = 'DomainAdminsPage';
+
 export default DomainAdminsPage;
