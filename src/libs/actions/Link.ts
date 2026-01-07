@@ -320,7 +320,7 @@ function openReportFromDeepLink(
                                     const lastAccessedReportID = findLastAccessedReport(false, shouldOpenOnAdminRoom(), undefined, reportID)?.reportID;
                                     if (lastAccessedReportID) {
                                         const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
-                                        Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID});
+                                        Navigation.navigate(lastAccessedReportRoute);
                                         return;
                                     }
                                     navigateToConciergeChat(false, () => true);
@@ -343,7 +343,7 @@ function openReportFromDeepLink(
                                     // eslint-disable-next-line rulesdir/prefer-early-return
                                     callback: (report) => {
                                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                                        if (report?.errorFields?.notFound || report?.reportID || report === undefined) {
+                                        if (report?.errorFields?.notFound || report?.reportID) {
                                             Onyx.disconnect(reportConnection);
                                             navigateHandler(report);
                                         }

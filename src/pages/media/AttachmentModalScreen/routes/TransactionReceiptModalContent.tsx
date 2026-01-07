@@ -349,6 +349,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             isRotating,
             onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
             transaction,
+            shouldMinimizeMenuButton: false,
         }),
         [
             allowDownload,

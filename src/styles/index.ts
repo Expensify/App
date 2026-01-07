@@ -2102,6 +2102,13 @@ const staticStyles = (theme: ThemeColors) =>
                 paddingBottom: 0,
                 alignSelf: 'center',
                 verticalAlign: 'middle',
+                ...(Platform.OS === 'android' && {
+                    height: undefined,
+                    lineHeight: undefined,
+                    alignSelf: 'stretch',
+                    flexGrow: 1,
+                    flexShrink: 1,
+                }),
             },
             0,
         ),
@@ -4246,6 +4253,10 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.cardBG,
         },
 
+        reportPreviewBoxHoverBorderColor: {
+            borderColor: theme.cardBG,
+        },
+
         reportContainerBorderRadius: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
@@ -5278,6 +5289,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: 1,
             marginLeft: 19,
             backgroundColor: theme.border,
+        },
+
+        workflowApprovalLimitText: {
+            marginLeft: 32,
+            paddingBottom: 0,
         },
 
         integrationIcon: {
