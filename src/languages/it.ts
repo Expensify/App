@@ -749,6 +749,27 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: 'La tua sessione è scaduta.',
         signIn: 'Accedi di nuovo.',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Test biometrico',
+            authenticationSuccessful: 'Autenticazione riuscita',
+            successfullyAuthenticatedUsing: ({authType}) => `Ti sei autenticato con successo utilizzando ${authType}.`,
+            biometricsAuthentication: 'Autenticazione biometrica',
+            yourAttemptWasUnsuccessful: 'Il tuo tentativo di autenticazione non è riuscito.',
+            areYouSureToReject: "Sei sicuro? L'autenticazione sarà rifiutata se chiudi questa schermata.",
+            rejectAuthentication: 'Rifiuta autenticazione',
+        },
+        oops: 'Ops, qualcosa è andato storto',
+        looksLikeYouRanOutOfTime: 'Sembra che il tempo sia scaduto! Per favore, riprova presso il commerciante.',
+        youRanOutOfTime: 'Il tempo è scaduto',
+        letsVerifyItsYou: 'Verifichiamo che sei tu',
+        verifyYourself: {
+            biometrics: 'Verificati con il tuo viso o impronta digitale',
+        },
+        enableQuickVerification: {
+            biometrics: 'Abilita una verifica rapida e sicura utilizzando il tuo viso o impronta digitale. Nessuna password o codice necessario.',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             Abracadabra,

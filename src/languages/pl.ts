@@ -749,6 +749,27 @@ const translations: TranslationDeepObject<typeof en> = {
         expired: 'Twoja sesja wygasła.',
         signIn: 'Zaloguj się ponownie.',
     },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Test biometryczny',
+            authenticationSuccessful: 'Autentykacja zakończona sukcesem',
+            successfullyAuthenticatedUsing: ({authType}) => `Pomyślnie uwierzytelniono za pomocą ${authType}.`,
+            biometricsAuthentication: 'Autentykacja biometryczna',
+            yourAttemptWasUnsuccessful: 'Twoja próba autentykacji była nieudana.',
+            areYouSureToReject: 'Czy jesteś pewien? Próba autentykacji zostanie odrzucona, jeśli zamkniesz ten ekran.',
+            rejectAuthentication: 'Odrzuć autentykację',
+        },
+        oops: 'Ups, coś poszło nie tak',
+        looksLikeYouRanOutOfTime: 'Wygląda na to, że zabrakło ci czasu! Spróbuj ponownie u sprzedawcy.',
+        youRanOutOfTime: 'Czas minął',
+        letsVerifyItsYou: 'Sprawdźmy, czy to ty',
+        verifyYourself: {
+            biometrics: 'Zweryfikuj się za pomocą twarzy lub odcisku palca',
+        },
+        enableQuickVerification: {
+            biometrics: 'Włącz szybką i bezpieczną weryfikację za pomocą twarzy lub odcisku palca. Bez haseł ani kodów.',
+        },
+    },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
             Abrakadabra,

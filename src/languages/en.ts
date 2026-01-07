@@ -58,6 +58,7 @@ import type {
     MovedFromPersonalSpaceParams,
     MovedFromReportParams,
     MovedTransactionParams,
+    MultifactorAuthenticationTranslationParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
     NextStepParams,
@@ -733,6 +734,27 @@ const translations = {
         launching: 'Launching Expensify',
         expired: 'Your session has expired.',
         signIn: 'Please sign in again.',
+    },
+    multifactorAuthentication: {
+        biometricsTest: {
+            biometricsTest: 'Biometrics test',
+            authenticationSuccessful: 'Authentication successful',
+            successfullyAuthenticatedUsing: ({authType}: MultifactorAuthenticationTranslationParams) => `You’ve successfully authenticated using ${authType}.`,
+            biometricsAuthentication: 'Biometrics authentication',
+            yourAttemptWasUnsuccessful: 'Your authentication attempt was unsuccessful.',
+            areYouSureToReject: 'Are you sure? The authentication attempt will be rejected if you close this screen.',
+            rejectAuthentication: 'Reject authentication',
+        },
+        oops: 'Oops, something went wrong',
+        looksLikeYouRanOutOfTime: 'Looks like you ran out of time! Please try again at the merchant.',
+        youRanOutOfTime: 'You ran out of time',
+        letsVerifyItsYou: 'Let’s verify it’s you',
+        verifyYourself: {
+            biometrics: 'Verify yourself with your face or fingerprint',
+        },
+        enableQuickVerification: {
+            biometrics: 'Enable quick, secure verification using your face or fingerprint. No passwords or codes required.',
+        },
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
