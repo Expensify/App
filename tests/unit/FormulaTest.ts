@@ -678,6 +678,17 @@ describe('CustomFormula', () => {
             expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-14');
         });
 
+        test('should fallback to current date for trip frequency when no transactions', () => {
+            mockReportUtils.getReportTransactions.mockReturnValue([]);
+
+            const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP} as Policy;
+            const context = createMockContext(policy);
+
+            // Should fall back to current date (2025-01-19 from jest.setSystemTime)
+            expect(compute('{report:autoreporting:start}', context)).toBe('2025-01-19');
+            expect(compute('{report:autoreporting:end}', context)).toBe('2025-01-19');
+        });
+
         test('should apply custom date formats', () => {
             const policy = {autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY} as Policy;
             const context = createMockContext(policy);
