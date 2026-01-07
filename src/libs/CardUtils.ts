@@ -489,6 +489,67 @@ function getCustomOrFormattedFeedName(feed?: CompanyCardFeed, customFeedName?: s
     return customFeedName || formattedFeedName || feed;
 }
 
+/**
+ * Check if a card feed exists in the card feeds collection.
+ */
+function doesCardFeedExist(feed: CompanyCardFeed | undefined, cardFeeds: OnyxCollection<CardFeeds> | undefined): boolean {
+    if (!feed || !cardFeeds) {
+        return false;
+    }
+
+    for (const feedData of Object.values(cardFeeds)) {
+        const companyFeeds = getOriginalCompanyFeeds(feedData);
+        if (feed in companyFeeds) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Retrieve the custom nickname for a feed from the card feeds collection.
+ */
+function getCustomFeedNameFromFeeds(cardFeeds: OnyxCollection<CardFeeds> | undefined, feed: CompanyCardFeed | undefined): string | undefined {
+    if (!feed || !cardFeeds) {
+        return undefined;
+    }
+
+    for (const feedData of Object.values(cardFeeds)) {
+        const nickname = feedData?.settings?.companyCardNicknames?.[feed];
+        if (nickname) {
+            return nickname;
+        }
+    }
+
+    return undefined;
+}
+
+/**
+ * Get the feed name for display purposes.
+ * Returns "Deleted Feed" if the feed doesn't exist, otherwise returns the formatted feed name.
+ */
+function getFeedNameForDisplay(
+    feed: CompanyCardFeed | undefined,
+    cardFeeds: OnyxCollection<CardFeeds> | undefined,
+    customFeedName?: string,
+    shouldAddCardsSuffix = true,
+): string | undefined {
+    if (!feed) {
+        return undefined;
+    }
+
+    const feedExists = doesCardFeedExist(feed, cardFeeds);
+
+    if (!feedExists) {
+        return translateLocal('workspace.companyCards.deletedFeed');
+    }
+
+    const customName = customFeedName ?? getCustomFeedNameFromFeeds(cardFeeds, feed);
+
+    return getCustomOrFormattedFeedName(feed, customName, shouldAddCardsSuffix);
+}
+
 function getPlaidInstitutionIconUrl(feedName?: string) {
     const institutionId = getPlaidInstitutionId(feedName);
     if (!institutionId) {
@@ -926,6 +987,9 @@ export {
     getSelectedFeed,
     getPlaidCountry,
     getCustomOrFormattedFeedName,
+    doesCardFeedExist,
+    getCustomFeedNameFromFeeds,
+    getFeedNameForDisplay,
     isCardClosed,
     isPlaidSupportedCountry,
     getFilteredCardList,
