@@ -329,9 +329,9 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
 
     switch (subField.toLowerCase()) {
         case 'start':
-            return formatDate(startDate ? startDate.toISOString() : undefined, format);
+            return formatDate(startDate?.toISOString(), format);
         case 'end':
-            return formatDate(endDate ? endDate.toISOString() : undefined, format);
+            return formatDate(endDate?.toISOString(), format);
         default:
             return part.definition;
     }
@@ -726,7 +726,7 @@ function getMonthlyLastBusinessDayPeriod(currentDate: Date): {startDate: Date; e
 /**
  * Calculate the start and end dates for auto-reporting based on the frequency and current date
  */
-function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date()): {startDate: Date | '' | undefined; endDate: Date | '' | undefined} {
+function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date()): {startDate: Date | undefined; endDate: Date | undefined} {
     const frequency = policy?.autoReportingFrequency;
     const offset = policy?.autoReportingOffset;
 
@@ -735,15 +735,8 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
         return {startDate: undefined, endDate: undefined};
     }
 
-    // For auto-reporting formulas, if there are no transactions, return undefined dates
-    const oldestTransactionDateString = getOldestTransactionDate(report.reportID);
-    const newestTransactionDateString = getNewestTransactionDate(report.reportID);
-    if (!oldestTransactionDateString || !newestTransactionDateString) {
-        return {startDate: '', endDate: ''};
-    }
-
-    let startDate: Date | undefined;
-    let endDate: Date | undefined;
+    let startDate: Date;
+    let endDate: Date;
 
     switch (frequency) {
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY: {
@@ -787,6 +780,8 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
 
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP: {
             // For trip-based, use oldest transaction as start and newest transaction as end
+            const oldestTransactionDateString = getOldestTransactionDate(report.reportID);
+            const newestTransactionDateString = getNewestTransactionDate(report.reportID);
             startDate = oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate;
             endDate = newestTransactionDateString ? new Date(newestTransactionDateString) : currentDate;
             break;
