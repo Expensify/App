@@ -338,8 +338,10 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     const shouldShowLeaveButton = canLeaveChat(report, policy, !!reportNameValuePairs?.private_isArchived);
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending;
-
-    const reportName = isGroupChat ? getReportNameFromReportNameUtils(report, reportAttributes) : Parser.htmlToText(getReportNameFromReportNameUtils(report, reportAttributes));
+    // Calculating the report title with parent report if parent report is invoice and current report is chat thread.
+    const isParentInvoiceAndIsChatThread = useMemo(() => isChatThread && isInvoiceReportUtil(parentReport), [isChatThread, parentReport]);
+    const reportForHeader = isParentInvoiceAndIsChatThread ? parentReport : report; 
+    const reportName = isGroupChat ? getReportNameFromReportNameUtils(reportForHeader, reportAttributes) : Parser.htmlToText(getReportNameFromReportNameUtils(reportForHeader, reportAttributes));
     const additionalRoomDetails =
         (isPolicyExpenseChat && !!report?.isOwnPolicyExpenseChat) || isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom
             ? chatRoomSubtitle
