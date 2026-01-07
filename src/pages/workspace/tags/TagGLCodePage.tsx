@@ -53,7 +53,7 @@ function TagGLCodePage({route}: EditTagGLCodePageProps) {
             const tagGLCode = values.glCode.trim();
 
             if (tagGLCode.length > CONST.MAX_LENGTH_256) {
-                errors.glCode = translate('common.error.characterLimitExceedCounter', {length: tagGLCode.length, limit: CONST.MAX_LENGTH_256});
+                errors.glCode = translate('common.error.characterLimitExceedCounter', tagGLCode.length, CONST.MAX_LENGTH_256);
             }
 
             return errors;

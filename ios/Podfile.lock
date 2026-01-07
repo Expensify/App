@@ -2526,7 +2526,7 @@ PODS:
     - Yoga
   - react-native-launch-arguments (4.0.2):
     - React
-  - react-native-netinfo (11.2.1):
+  - react-native-netinfo (11.4.1):
     - boost
     - DoubleConversion
     - fast_float
@@ -3401,7 +3401,7 @@ PODS:
     - Yoga
   - RNAppleAuthentication (2.5.0):
     - React-Core
-  - RNCClipboard (1.15.0):
+  - RNCClipboard (1.16.3):
     - boost
     - DoubleConversion
     - fast_float
@@ -4721,7 +4721,7 @@ SPEC CHECKSUMS:
   react-native-key-command: 7538df85ed26502b2a929c0584235459b26c7a91
   react-native-keyboard-controller: c4ca61f44d66c2f8987a7e67e9b78e80dc965c45
   react-native-launch-arguments: d4759f7591e2766e6c5ec746b7032429edaf7058
-  react-native-netinfo: b88a57a1f93f4d63aeab839d51c746484641564b
+  react-native-netinfo: cec9c4e86083cb5b6aba0e0711f563e2fbbff187
   react-native-pager-view: b93d2fcd4dc06c519b8ad0ceddaf183fb5fa32e7
   react-native-pdf: 6a09a9be0e7ee954ea671437483316f9a28f8572
   react-native-performance: a7a65d0b0f3055c5db33e1433e4345143ef6a100
@@ -4763,7 +4763,7 @@ SPEC CHECKSUMS:
   ReactCommon: e9ab32f1d1482d207867b4fdd139361302b9dcc6
   ReactNativeHybridApp: 16ebccf5382436fcb9303ab5f4b50d9942bccf5c
   RNAppleAuthentication: 9027af8aa92b4719ef1b6030a8e954d37079473a
-  RNCClipboard: e7da00b1612a8faf2309c6636043713cfe11092e
+  RNCClipboard: e560338bf6cc4656a09ff90610b62ddc0dbdad65
   RNCPicker: eb89e9d8bbd728bc00c48d294553f5968900f874
   RNDeviceInfo: f4e8dcaba08a5d3a703d30ad41e964e21148d7e2
   RNFBAnalytics: 2f451df50833a890974d55a93557da878a85b29e
