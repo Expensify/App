@@ -624,6 +624,7 @@ const config = defineConfig([
         'src/languages/pl.ts',
         'src/languages/pt-BR.ts',
         'src/languages/zh-hans.ts',
+        'desktop/**/*',
     ]),
 ]);
 

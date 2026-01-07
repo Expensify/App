@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useContext, useDeferredValue, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {ListRenderItemInfo, ViewToken} from 'react-native';
@@ -43,6 +44,7 @@ import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportU
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
+import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import {getInvoicePayerName} from '@libs/ReportNameUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import {
@@ -95,6 +97,7 @@ const reportAttributesSelector = (c: OnyxEntry<ReportAttributesDerivedValue>) =>
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
+    newTransactionIDs,
     chatReportID,
     action,
     containerStyles,
@@ -123,6 +126,7 @@ function MoneyRequestReportPreviewContent({
     forwardedFSClass,
 }: MoneyRequestReportPreviewContentProps) {
     const [chatReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReportID}`, {canBeMissing: true, allowStaleData: true});
+    const [iouReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReportID}`, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReportID}`, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
@@ -170,6 +174,7 @@ function MoneyRequestReportPreviewContent({
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isDEWBetaEnabled = isBetaEnabled(CONST.BETAS.NEW_DOT_DEW);
     const hasViolations = hasViolationsReportUtils(iouReport?.reportID, transactionViolations, currentUserAccountID, currentUserEmail);
 
     const getCanIOUBePaid = useCallback(
@@ -264,7 +269,7 @@ function MoneyRequestReportPreviewContent({
                         activePolicy,
                     });
                 } else {
-                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy);
+                    payMoneyRequest(type, chatReport, iouReport, introSelected, undefined, true, activePolicy, policy);
                 }
             }
         },
@@ -279,11 +284,12 @@ function MoneyRequestReportPreviewContent({
             activePolicy,
             currentUserAccountID,
             currentUserEmail,
+            policy,
         ],
     );
 
     const confirmApproval = () => {
-        if (hasDynamicExternalWorkflow(policy)) {
+        if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
             setIsDEWModalVisible(true);
             return;
         }
@@ -414,7 +420,7 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
-    const carouselTransactions = shouldShowAccessPlaceHolder ? [] : transactions.slice(0, 11);
+    const carouselTransactions = useMemo(() => (shouldShowAccessPlaceHolder ? [] : transactions.slice(0, 11)), [shouldShowAccessPlaceHolder, transactions]);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
@@ -440,6 +446,47 @@ function MoneyRequestReportPreviewContent({
     const viewabilityConfig = useMemo(() => {
         return {itemVisiblePercentThreshold: 100};
     }, []);
+    const numberOfScrollToIndexFailed = useRef(0);
+    const onScrollToIndexFailed: (info: {index: number; highestMeasuredFrameIndex: number; averageItemLength: number}) => void = ({index}) => {
+        // There is a probability of infinite loop so we want to make sure that it is not called more than 5 times.
+        if (numberOfScrollToIndexFailed.current > 4) {
+            return;
+        }
+
+        // Sometimes scrollToIndex might be called before the item is rendered so we will re-call scrollToIndex after a small delay.
+        setTimeout(() => {
+            carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2 * styles.gap2.gap});
+        }, 100);
+        numberOfScrollToIndexFailed.current++;
+    };
+
+    const carouselTransactionsRef = useRef(carouselTransactions);
+
+    useEffect(() => {
+        carouselTransactionsRef.current = carouselTransactions;
+    }, [carouselTransactions]);
+
+    useFocusEffect(
+        useCallback(() => {
+            const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.includes(transaction.transactionID));
+
+            if (index < 0) {
+                return;
+            }
+            const newTransaction = carouselTransactions.at(index);
+            setTimeout(() => {
+                // If the new transaction is not available at the index it was on before the delay, avoid the scrolling
+                // because we are scrolling to either a wrong or unavailable transaction (which can cause crash).
+                if (newTransaction?.transactionID !== carouselTransactionsRef.current.at(index)?.transactionID) {
+                    return;
+                }
+                numberOfScrollToIndexFailed.current = 0;
+                carouselRef.current?.scrollToIndex({index, viewOffset: 2 * styles.gap2.gap, animated: true});
+            }, CONST.ANIMATED_TRANSITION);
+
+            // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        }, [newTransactionIDs]),
+    );
 
     // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
@@ -515,6 +562,8 @@ function MoneyRequestReportPreviewContent({
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
 
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+    const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
     const reportPreviewAction = useMemo(() => {
         return getReportPreviewAction({
             isReportArchived: isIouReportArchived || isChatReportArchived,
@@ -527,6 +576,7 @@ function MoneyRequestReportPreviewContent({
             isPaidAnimationRunning,
             isApprovedAnimationRunning,
             isSubmittingAnimationRunning,
+            isDEWSubmitPending,
             violationsData: transactionViolations,
         });
     }, [
@@ -542,6 +592,7 @@ function MoneyRequestReportPreviewContent({
         isApprovedAnimationRunning,
         isSubmittingAnimationRunning,
         transactionViolations,
+        isDEWSubmitPending,
     ]);
 
     const addExpenseDropdownOptions = useMemo(
@@ -558,7 +609,7 @@ function MoneyRequestReportPreviewContent({
                 success={isWaitingForSubmissionFromCurrentUser}
                 text={translate('common.submit')}
                 onPress={() => {
-                    if (hasDynamicExternalWorkflow(policy)) {
+                    if (hasDynamicExternalWorkflow(policy) && !isDEWBetaEnabled) {
                         setIsDEWModalVisible(true);
                         return;
                     }
@@ -728,7 +779,7 @@ function MoneyRequestReportPreviewContent({
                                                 ) : (
                                                     (!shouldShowEmptyPlaceholder || shouldShowAccessPlaceHolder) && (
                                                         <View style={[styles.flexRow, styles.justifyContentStart, styles.alignItemsCenter]}>
-                                                            {!!reportStatus && !!action?.childMoneyRequestCount && (
+                                                            {!!reportStatus && !!expenseCount && (
                                                                 <View
                                                                     style={[
                                                                         styles.reportStatusContainer,
@@ -808,6 +859,7 @@ function MoneyRequestReportPreviewContent({
                                     ) : (
                                         <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible]}>
                                             <FlatList
+                                                onScrollToIndexFailed={onScrollToIndexFailed}
                                                 snapToAlignment="start"
                                                 decelerationRate="fast"
                                                 snapToInterval={reportPreviewStyles.transactionPreviewCarouselStyle.width + styles.gap2.gap}
