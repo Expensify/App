@@ -473,14 +473,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Cargando Expensify',
         expired: 'Tu sesión ha expirado.',
         signIn: 'Por favor, inicia sesión de nuevo.',
-        redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
-        youCanAlso: 'También puedes',
-        openLinkInBrowser: 'abrir este enlace en tu navegador',
-        loggedInAs: ({email}) => `Has iniciado sesión como ${email}. Haz clic en "Abrir enlace" en el aviso para iniciar sesión en la aplicación de escritorio con esta cuenta.`,
-        doNotSeePrompt: '¿No ves el aviso?',
-        tryAgain: 'Inténtalo de nuevo',
-        or: ', o',
-        continueInWeb: 'continuar en la web',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -539,12 +531,6 @@ const translations: TranslationDeepObject<typeof en> = {
             header: 'Viajes y gastos, a la velocidad del chat',
             body: 'Bienvenido a la próxima generación de Expensify, donde tus viajes y gastos avanzan más rápido con la ayuda de un chat contextual en tiempo real.',
         },
-    },
-    thirdPartySignIn: {
-        alreadySignedIn: (email) => `Ya has iniciado sesión con ${email}.`,
-        goBackMessage: ({provider}) => `No quieres iniciar sesión con ${provider}?`,
-        continueWithMyCurrentSession: 'Continuar con mi sesión actual',
-        redirectToDesktopMessage: 'Lo redirigiremos a la aplicación de escritorio una vez que termine de iniciar sesión.',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Continua iniciando sesión con el inicio de sesión único:',
@@ -1256,6 +1242,17 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador añada gastos.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> envíes los gastos.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> envíe los gastos.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador envíe los gastos.`;
+                }
+            },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_) => `¡No se requiere ninguna acción adicional!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}) => {
@@ -1348,6 +1345,9 @@ const translations: TranslationDeepObject<typeof en> = {
 
                 return `Esperando a que se complete el pago${formattedETA}.`;
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_) =>
+                `¡Ups! Parece que estás enviando el informe a <strong>ti mismo</strong>. Aprobar tus propios informes está <strong>prohibido</strong> por tu espacio de trabajo. Por favor, envía este informe a otra persona o contacta a tu administrador para cambiar la persona a la que lo envías.`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'en breve',
@@ -1460,7 +1460,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updateRequired: 'Actualización requerida',
         pleaseInstall: 'Por favor, actualiza a la última versión de New Expensify',
         pleaseInstallExpensifyClassic: 'Por favor, instala la última versión de Expensify',
-        toGetLatestChanges: 'Para móvil o escritorio, descarga e instala la última versión. Para la web, actualiza tu navegador.',
+        toGetLatestChanges: 'Para móvil, descarga e instala la última versión. Para la web, actualiza tu navegador.',
         newAppNotAvailable: 'La App New Expensify ya no está disponible.',
     },
     initialSettingsPage: {
@@ -1480,9 +1480,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             ios: {
                 label: 'iOS',
-            },
-            desktop: {
-                label: 'macOS',
             },
         },
         troubleshoot: {
@@ -1943,7 +1940,25 @@ ${amount} para ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
-        header: 'Enviar a este miembro para su aprobación:',
+        title: 'Establecer aprobador',
+        description: 'Esta persona aprobará los gastos.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Aprobador',
+        header: '(Opcional) ¿Quieres añadir un límite de aprobación?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Añadir otro aprobador cuando <strong>${approverName}</strong> es aprobador y el informe supera el importe indicado:`
+                : 'Añadir otro aprobador cuando el informe supera el importe indicado:',
+        reportAmountLabel: 'Importe del informe',
+        additionalApproverLabel: 'Aprobador adicional',
+        skip: 'Omitir',
+        next: 'Siguiente',
+        removeLimit: 'Eliminar límite',
+        enterAmountError: 'Por favor, introduce un importe válido',
+        enterApproverError: 'Se requiere un aprobador cuando estableces un límite de informe',
+        enterBothError: 'Introduce un importe del informe y un aprobador adicional',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Los informes superiores a ${approvalLimit} se envían a ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Pagador autorizado',
@@ -4458,7 +4473,6 @@ ${amount} para ${merchant} - ${date}`,
             customCloseDate: 'Fecha de cierre personalizada',
             letsDoubleCheck: 'Verifiquemos que todo esté bien.',
             confirmationDescription: 'Comenzaremos a importar transacciones inmediatamente.',
-            cardholder: 'Titular de la tarjeta',
             card: 'Tarjeta',
             cardName: 'Nombre de la tarjeta',
             brokenConnectionError:
@@ -5816,10 +5830,6 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Reglas de categoría',
                 approver: 'Aprobador',
                 requireDescription: 'Requerir descripción',
-                requireFields: 'Requerir campos',
-                requiredFieldsTitle: 'Campos obligatorios',
-                requiredFieldsDescription: (categoryName) => `Esto se aplicará a todos los gastos categorizados como <strong>${categoryName}</strong>.`,
-                requireAttendees: 'Requerir asistentes',
                 descriptionHint: 'Sugerencia de descripción',
                 descriptionHintDescription: (categoryName) =>
                     `Recuerda a los empleados que deben proporcionar información adicional para los gastos de “${categoryName}”. Esta sugerencia aparece en el campo de descripción en los gastos.`,
@@ -6425,11 +6435,6 @@ ${amount} para ${merchant} - ${date}`,
         },
         refresh: 'Actualizar',
     },
-    desktopAppRetiredPage: {
-        title: 'La aplicación de escritorio ha sido retirada',
-        body: 'La nueva aplicación de escritorio Expensify para Mac ha sido retirada. En adelante, utiliza la aplicación web para acceder a tu cuenta.',
-        goToWeb: 'Ir a la web',
-    },
     fileDownload: {
         success: {
             title: '¡Descargado!',
@@ -6444,73 +6449,6 @@ ${amount} para ${merchant} - ${date}`,
         permissionError: {
             title: 'Permiso para acceder al almacenamiento',
             message: 'Expensify no puede guardar los archivos adjuntos sin permiso para acceder al almacenamiento. Haz click en configuración para actualizar los permisos.',
-        },
-    },
-    desktopApplicationMenu: {
-        mainMenu: 'New Expensify',
-        about: 'Sobre New Expensify',
-        update: 'Actualizar New Expensify',
-        checkForUpdates: 'Buscar actualizaciones',
-        toggleDevTools: 'Ver herramientas de desarrollo',
-        viewShortcuts: 'Ver atajos de teclado',
-        services: 'Servicios',
-        hide: 'Ocultar New Expensify',
-        hideOthers: 'Ocultar otros',
-        showAll: 'Mostrar todos',
-        quit: 'Salir de New Expensify',
-        fileMenu: 'Archivo',
-        closeWindow: 'Cerrar ventana',
-        editMenu: 'Editar',
-        undo: 'Deshacer',
-        redo: 'Rehacer',
-        cut: 'Cortar',
-        copy: 'Copiar',
-        paste: 'Pegar',
-        pasteAndMatchStyle: 'Pegar adaptando el estilo',
-        pasteAsPlainText: 'Pegar como texto sin formato',
-        delete: 'Eliminar',
-        selectAll: 'Seleccionar todo',
-        speechSubmenu: 'Voz',
-        startSpeaking: 'Empezar a hablar',
-        stopSpeaking: 'Dejar de Hablar',
-        viewMenu: 'Ver',
-        reload: 'Cargar de nuevo',
-        forceReload: 'Forzar recarga',
-        resetZoom: 'Tamaño real',
-        zoomIn: 'Acercar',
-        zoomOut: 'Alejar',
-        togglefullscreen: 'Alternar pantalla completa',
-        historyMenu: 'Historial',
-        back: 'Atrás',
-        forward: 'Adelante',
-        windowMenu: 'Ventana',
-        minimize: 'Minimizar',
-        zoom: 'Zoom',
-        front: 'Traer todo al frente',
-        helpMenu: 'Ayuda',
-        learnMore: 'Más información',
-        documentation: 'Documentación',
-        communityDiscussions: 'Debates de la comunidad',
-        searchIssues: 'Buscar problemas',
-    },
-    historyMenu: {
-        forward: 'Adelante',
-        back: 'Atrás',
-    },
-    checkForUpdatesModal: {
-        available: {
-            title: 'Actualización disponible',
-            message: ({isSilentUpdating}) => `La nueva versión estará disponible dentro de poco.${isSilentUpdating ? ' Te notificaremos cuando esté lista.' : ''}`,
-            soundsGood: 'Suena bien',
-        },
-        notAvailable: {
-            title: 'Actualización no disponible',
-            message: '¡No existe ninguna actualización disponible! Inténtalo de nuevo más tarde.',
-            okay: 'Vale',
-        },
-        error: {
-            title: 'Comprobación fallida',
-            message: 'No hemos podido comprobar si existe una actualización. ¡Inténtalo de nuevo más tarde!.',
         },
     },
     settlement: {
@@ -7307,7 +7245,6 @@ ${amount} para ${merchant} - ${date}`,
         maxAge: ({maxAge}) => `Fecha de más de ${maxAge} días`,
         missingCategory: 'Falta categoría',
         missingComment: 'Descripción obligatoria para la categoría seleccionada',
-        missingAttendees: 'Se requieren múltiples asistentes para esta categoría',
         missingTag: ({tagName} = {}) => `Falta ${tagName ?? 'etiqueta'}`,
         modifiedAmount: ({type, displayPercentVariance}) => {
             switch (type) {
@@ -8068,6 +8005,11 @@ ${amount} para ${merchant} - ${date}`,
         zeroDistanceTripModal: {
             title: 'No se puede crear el gasto',
             prompt: 'No puedes crear un gasto con la misma ubicación de inicio y fin.',
+        },
+        desktop: {
+            title: 'Registra la distancia en tu teléfono',
+            subtitle: 'Registra millas o kilómetros automáticamente con GPS y convierte los viajes en gastos al instante.',
+            button: 'Descarga la app',
         },
     },
 };
