@@ -4,8 +4,9 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportActionUtils from '@libs/ReportActionsUtils';
+import {getExportIntegrationActionFragments} from '@libs/ReportActionsUtils';
 import type {ReportAction} from '@src/types/onyx';
 
 type ExportIntegrationProps = {
@@ -14,7 +15,8 @@ type ExportIntegrationProps = {
 
 function ExportIntegration({action}: ExportIntegrationProps) {
     const styles = useThemeStyles();
-    const fragments = ReportActionUtils.getExportIntegrationActionFragments(action);
+    const {translate} = useLocalize();
+    const fragments = getExportIntegrationActionFragments(translate, action);
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.flexWrap]}>
@@ -42,7 +44,5 @@ function ExportIntegration({action}: ExportIntegrationProps) {
         </View>
     );
 }
-
-ExportIntegration.displayName = 'ExportIntegration';
 
 export default ExportIntegration;

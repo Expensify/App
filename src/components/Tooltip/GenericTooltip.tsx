@@ -201,6 +201,4 @@ function GenericTooltip({
     );
 }
 
-GenericTooltip.displayName = 'GenericTooltip';
-
 export default memo(GenericTooltip);

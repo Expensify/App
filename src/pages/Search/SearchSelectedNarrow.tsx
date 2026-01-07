@@ -74,6 +74,7 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
                         shouldAlwaysShowDropdownMenu
                         isDisabled={options.length === 0}
                         onPress={() => null}
+                        shouldPopoverUseScrollView={options.length >= CONST.DROPDOWN_SCROLL_THRESHOLD}
                         onOptionSelected={(item) => handleOnMenuItemPress(item)}
                         onSubItemSelected={(subItem) =>
                             handleBulkPayItemSelected({
@@ -104,7 +105,5 @@ function SearchSelectedNarrow({options, itemsLength, currentSelectedPolicyID, cu
         </KYCWall>
     );
 }
-
-SearchSelectedNarrow.displayName = 'SearchSelectedNarrow';
 
 export default SearchSelectedNarrow;

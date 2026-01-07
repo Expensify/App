@@ -68,27 +68,28 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
             >
-                <TransactionItemRow
-                    transactionItem={transactionItem}
-                    violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`]}
-                    shouldUseNarrowLayout
-                    isSelected={isSelected}
-                    shouldShowTooltip={showTooltip}
-                    dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
-                    onCheckboxPress={() => {
-                        onSelectRow(item);
-                    }}
-                    isDisabled={isItemDisabled}
-                    shouldShowCheckbox
-                    style={styles.p3}
-                />
+                {({hovered}) => (
+                    <TransactionItemRow
+                        transactionItem={transactionItem}
+                        violations={violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`]}
+                        shouldUseNarrowLayout
+                        isSelected={isSelected}
+                        shouldShowTooltip={showTooltip}
+                        dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                        onCheckboxPress={() => {
+                            onSelectRow(item);
+                        }}
+                        isDisabled={isItemDisabled}
+                        shouldShowCheckbox
+                        style={styles.p3}
+                        isHover={hovered}
+                    />
+                )}
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
 }
-
-UnreportedExpenseListItem.displayName = 'UnreportedExpenseListItem';
 
 export default UnreportedExpenseListItem;

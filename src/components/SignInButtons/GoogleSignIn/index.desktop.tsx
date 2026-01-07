@@ -25,6 +25,4 @@ function GoogleSignIn() {
     );
 }
 
-GoogleSignIn.displayName = 'GoogleSignIn';
-
 export default GoogleSignIn;
