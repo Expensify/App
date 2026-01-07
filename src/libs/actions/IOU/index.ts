@@ -6558,6 +6558,7 @@ function duplicateExpenseTransaction({
                 ...params,
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
+                    comment: transactionDetails?.comment ?? '',
                     customUnit: transaction?.comment?.customUnit ?? {},
                 },
                 hasViolations: false,
