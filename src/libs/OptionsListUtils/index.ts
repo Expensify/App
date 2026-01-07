@@ -600,7 +600,6 @@ function getLastMessageTextForReport({
     isReportArchived = false,
     policyTags,
     translate,
-    policyForMovingExpensesID,
     reportMetadata,
 }: {
     report: OnyxEntry<Report>;
@@ -611,7 +610,6 @@ function getLastMessageTextForReport({
     isReportArchived?: boolean;
     policyTags: OnyxEntry<PolicyTagLists>;
     translate: LocalizedTranslate;
-    policyForMovingExpensesID?: string;
     reportMetadata?: OnyxEntry<ReportMetadata>;
 }): string {
     const reportID = report?.reportID;

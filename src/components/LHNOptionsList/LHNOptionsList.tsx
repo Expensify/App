@@ -239,7 +239,6 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 policy: itemPolicy,
                 isReportArchived: !!itemReportNameValuePairs?.private_isArchived,
                 policyTags: itemPolicyTags,
-                policyForMovingExpensesID,
                 reportMetadata: itemReportMetadata,
             });
 
