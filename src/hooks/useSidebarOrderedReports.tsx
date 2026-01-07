@@ -31,7 +31,7 @@ type SidebarOrderedReportsContextValue = {
     orderedReportIDs: string[];
     currentReportID: string | undefined;
     policyMemberAccountIDs: number[];
-    clearCache: () => void;
+    clearLHNCache: () => void;
 };
 
 type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean}>;
@@ -41,7 +41,7 @@ const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextV
     orderedReportIDs: [],
     currentReportID: '',
     policyMemberAccountIDs: [],
-    clearCache: () => {},
+    clearLHNCache: () => {},
 });
 
 const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
@@ -251,7 +251,7 @@ function SidebarOrderedReportsContextProvider({
 
     const orderedReports = useMemo(() => getOrderedReports(orderedReportIDs), [getOrderedReports, orderedReportIDs]);
 
-    const clearCache = useCallback(() => {
+    const clearLHNCache = useCallback(() => {
         Log.info('[useSidebarOrderedReports] Clearing sidebar cache manually via debug modal');
         setCurrentReportsToDisplay({});
         setClearCacheDummyCounter((current) => current + 1);
@@ -281,7 +281,7 @@ function SidebarOrderedReportsContextProvider({
                 orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
                 policyMemberAccountIDs,
-                clearCache,
+                clearLHNCache,
             };
         }
 
@@ -290,9 +290,9 @@ function SidebarOrderedReportsContextProvider({
             orderedReportIDs,
             currentReportID: derivedCurrentReportID,
             policyMemberAccountIDs,
-            clearCache,
+            clearLHNCache,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports, clearCache]);
+    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports, clearLHNCache]);
 
     const currentDeps = {
         priorityMode,

@@ -24,7 +24,7 @@ function TestToolMenu() {
     const [isDebugModeEnabled = false] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {clearCache} = useSidebarOrderedReports();
+    const {clearLHNCache} = useSidebarOrderedReports();
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
@@ -80,7 +80,7 @@ function TestToolMenu() {
                         <Button
                             small
                             text={translate('initialSettingsPage.troubleshoot.clearleftHandNavCache')}
-                            onPress={clearCache}
+                            onPress={clearLHNCache}
                         />
                     </TestToolRow>
                 </>
