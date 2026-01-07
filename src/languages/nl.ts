@@ -1006,7 +1006,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: 'Abonnement',
         domains: 'Domeinen',
     },
-    tabSelector: {chat: 'Chat', room: 'Kamer', distance: 'Afstand', manual: 'Handmatig', scan: 'Scannen', map: 'Kaart', gps: 'GPS', odometer: 'Kilometerteller'},
+    tabSelector: {chat: 'Chat', room: 'Kamer', distance: 'Afstand', manual: 'Handmatig', scan: 'Scannen', map: 'Kaart', gps: 'GPS', odometer: 'Kilometerstand'},
     spreadsheet: {
         upload: 'Een spreadsheet uploaden',
         import: 'Spreadsheet importeren',
@@ -7192,7 +7192,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         error: {
             selectSuggestedAddress: 'Selecteer een voorgesteld adres of gebruik huidige locatie',
         },
-        odometer: {startReading: 'Begin met lezen', endReading: 'Lezen beëindigen', saveForLater: 'Voor later opslaan', totalDistance: 'Totale afstand'},
+        odometer: {startReading: 'Begin met lezen', endReading: 'Lezen beëindigen', saveForLater: 'Opslaan voor later', totalDistance: 'Totale afstand'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Rapportkaart kwijt of beschadigd',
