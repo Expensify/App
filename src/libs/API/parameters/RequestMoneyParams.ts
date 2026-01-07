@@ -35,7 +35,7 @@ type RequestMoneyParams = {
     testDriveCommentReportActionID?: string;
 
     /** Transaction type (e.g., 'time' for time tracking expenses) */
-    type?: string;
+    type?: ValueOf<typeof CONST.TRANSACTION.TYPE>;
 
     /** Number of hours for time tracking expenses */
     count?: number;
