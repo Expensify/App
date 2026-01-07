@@ -717,8 +717,6 @@ const CONST = {
         ALL: 'all',
         ASAP_SUBMIT: 'asapSubmit',
         DEFAULT_ROOMS: 'defaultRooms',
-        P2P_DISTANCE_REQUESTS: 'p2pDistanceRequests',
-        SPOTNANA_TRAVEL: 'spotnanaTravel',
         PREVENT_SPOTNANA_TRAVEL: 'preventSpotnanaTravel',
         REPORT_FIELDS_FEATURE: 'reportFieldsFeature',
         NETSUITE_USA_TAX: 'netsuiteUsaTax',
@@ -726,12 +724,13 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         CUSTOM_RULES: 'customRules',
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
+        TRAVEL_INVOICING: 'travelInvoicing',
         EXPENSIFY_CARD_EU_UK: 'expensifyCardEuUk',
-        TIME_TRACKING: 'timeTracking',
         EUR_BILLING: 'eurBilling',
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
+        NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
     },
     BUTTON_STATES: {
@@ -1236,6 +1235,7 @@ const CONST = {
                 CREATED: 'CREATED',
                 DELETED_ACCOUNT: 'DELETEDACCOUNT', // Deprecated OldDot Action
                 DELETED_TRANSACTION: 'DELETEDTRANSACTION',
+                DEW_SUBMIT_FAILED: 'DEWSUBMITFAILED',
                 DISMISSED_VIOLATION: 'DISMISSEDVIOLATION',
                 DONATION: 'DONATION', // Deprecated OldDot Action
                 DYNAMIC_EXTERNAL_WORKFLOW_ROUTED: 'DYNAMICEXTERNALWORKFLOWROUTED',
@@ -1569,6 +1569,7 @@ const CONST = {
             HOURGLASS: 'hourglass',
             CHECKMARK: 'checkmark',
             STOPWATCH: 'stopwatch',
+            DOT_INDICATOR: 'dotIndicator',
         },
         ETA_KEY: {
             SHORTLY: 'shortly',
@@ -2748,10 +2749,10 @@ const CONST = {
             KBA_NEEDED: 'KBA needed',
             NO_ACCOUNT_TO_LINK: '405 No account to link to wallet',
             INVALID_WALLET: '405 Invalid wallet account',
-            NOT_OWNER_OF_BANK_ACCOUNT: '401 Wallet owner does not own linked bank account',
-            INVALID_BANK_ACCOUNT: '405 Attempting to link an invalid bank account to a wallet',
-            NOT_OWNER_OF_FUND: '401 Wallet owner does not own linked fund',
-            INVALID_FUND: '405 Attempting to link an invalid fund to a wallet',
+            NOT_OWNER_OF_BANK_ACCOUNT: '401 User does not own bank account',
+            INVALID_BANK_ACCOUNT: '405 Bank account is not eligible for wallet transfers',
+            NOT_OWNER_OF_FUND: '401 User does not own fund',
+            INVALID_FUND: '405 Fund is not eligible for wallet transfers',
         },
         STEP: {
             // In the order they appear in the Wallet flow
@@ -3982,6 +3983,10 @@ const CONST = {
         ADD: 'add',
         DELETE: 'delete',
         UPDATE: 'update',
+    },
+    EXPENSE_PENDING_ACTION: {
+        SUBMIT: 'SUBMIT',
+        APPROVE: 'APPROVE',
     },
     BRICK_ROAD_INDICATOR_STATUS: {
         ERROR: 'error',
@@ -5767,6 +5772,7 @@ const CONST = {
         RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
         OVER_TRIP_LIMIT: 'overTripLimit',
         COMPANY_CARD_REQUIRED: 'companyCardRequired',
+        MISSING_ATTENDEES: 'missingAttendees',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',

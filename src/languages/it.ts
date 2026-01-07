@@ -502,6 +502,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Mostra altro',
         showLess: 'Mostra meno',
         merchant: 'Esercente',
+        change: 'Modifica',
         category: 'Categoria',
         report: 'Report',
         billable: 'Fatturabile',
@@ -1257,6 +1258,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `per ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `inviato${memo ? `, dicendo ${memo}` : ''}`,
         automaticallySubmitted: `inviato tramite <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">invio ritardato</a>`,
+        queuedToSubmitViaDEW: "in coda per l'invio tramite flusso di approvazione personalizzato",
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `monitoraggio ${formattedAmount}${comment ? `per ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividi ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividi ${formattedAmount}${comment ? `per ${comment}` : ''}`,
@@ -2369,6 +2371,21 @@ ${amount} per ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Aggiungi un metodo di pagamento per inviare e ricevere pagamenti direttamente nell’app.',
         defaultPaymentMethod: 'Predefinito',
         bankAccountLastFour: (lastFour: string) => `Conto bancario • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Regole spesa',
+        subtitle: 'Queste regole si applicheranno alle tue spese. Se le invii a uno spazio di lavoro, le regole dello spazio di lavoro potrebbero sostituirle.',
+        emptyRules: {title: 'Non hai creato alcuna regola', subtitle: 'Aggiungi una regola per automatizzare la rendicontazione delle spese.'},
+        changes: {
+            billable: (value: boolean) => `Aggiorna spesa ${value ? 'fatturabile' : 'non fatturabile'}`,
+            category: (value: string) => `Aggiorna categoria in "${value}"`,
+            comment: (value: string) => `Modifica la descrizione in "${value}"`,
+            merchant: (value: string) => `Aggiorna esercente in "${value}"`,
+            reimbursable: (value: boolean) => `Aggiorna la spesa ${value ? 'rimborsabile' : 'non rimborsabile'}`,
+            report: (value: string) => `Aggiungi un report chiamato "${value}"`,
+            tag: (value: string) => `Aggiorna etichetta in "${value}"`,
+            tax: (value: string) => `Aggiorna l’aliquota fiscale a ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {
@@ -3858,6 +3875,8 @@ ${
             viewTransactions: 'Visualizza transazioni',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Spese di ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Le transazioni Expensify Card verranno esportate automaticamente in un "Conto passività Expensify Card" creato con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">la nostra integrazione</a>.</muted-text-label>`,
+            youCantDowngradeInvoicing:
+                'Non puoi effettuare il downgrade del tuo piano su un abbonamento fatturato. Per discutere o apportare modifiche al tuo abbonamento, contatta il tuo account manager o Concierge per assistenza.',
         },
         receiptPartners: {
             uber: {
@@ -6181,6 +6200,10 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 title: 'Regole di categoria',
                 approver: 'Approvatore',
                 requireDescription: 'Richiedi descrizione',
+                requireFields: 'Rendi obbligatori i campi',
+                requiredFieldsTitle: 'Campi obbligatori',
+                requiredFieldsDescription: (categoryName: string) => `Questo si applicherà a tutte le spese classificate come <strong>${categoryName}</strong>.`,
+                requireAttendees: 'Richiedi partecipanti',
                 descriptionHint: 'Suggerimento per la descrizione',
                 descriptionHintDescription: (categoryName: string) =>
                     `Ricorda ai dipendenti di fornire informazioni aggiuntive per la spesa in “${categoryName}”. Questo suggerimento appare nel campo descrizione sulle spese.`,
@@ -7240,6 +7263,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data precedente a ${maxAge} giorni`,
         missingCategory: 'Categoria mancante',
         missingComment: 'Descrizione richiesta per la categoria selezionata',
+        missingAttendees: 'Più partecipanti obbligatori per questa categoria',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Manca ${tagName ?? 'etichetta'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -7969,6 +7993,28 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             invite: 'Invita',
             addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
         },
+    },
+    gps: {
+        tooltip: 'Monitoraggio GPS in corso! Quando hai finito, interrompi il monitoraggio qui sotto.',
+        disclaimer: 'Usa il GPS per creare una spesa dal tuo viaggio. Tocca Avvia qui sotto per iniziare il tracciamento.',
+        error: {failedToStart: 'Impossibile avviare il tracciamento della posizione.', failedToGetPermissions: 'Impossibile ottenere le autorizzazioni di localizzazione richieste.'},
+        trackingDistance: 'Tracciamento distanza...',
+        stopped: 'Interrotto',
+        start: 'Avvia',
+        stop: 'Interrompi',
+        discard: 'Scarta',
+        stopGpsTrackingModal: {
+            title: 'Interrompi il tracciamento GPS',
+            prompt: 'Sei sicuro? Questo terminerà il tuo percorso attuale.',
+            cancel: 'Riprendi il tracciamento',
+            confirm: 'Interrompi il tracciamento GPS',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Scarta monitoraggio distanza',
+            prompt: 'Sei sicuro? Questo annullerà il tuo percorso attuale e non potrà essere annullato.',
+            confirm: 'Scarta monitoraggio distanza',
+        },
+        zeroDistanceTripModal: {title: 'Impossibile creare la spesa', prompt: 'Non puoi creare una spesa con la stessa località di partenza e di arrivo.'},
     },
     desktopAppRetiredPage: {
         title: "L'app desktop è stata dismessa",
