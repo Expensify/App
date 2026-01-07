@@ -675,8 +675,8 @@ const getFileValidationErrorText = (
             };
         case CONST.FILE_VALIDATION_ERRORS.PDF_LIBRARY_FAILED:
             return {
-                title: translateLocal('common.error.loadingFailed'),
-                reason: translateLocal('common.error.pdfLibraryLoadFailed'),
+                title: translate('common.error.loadingFailed'),
+                reason: translate('common.error.pdfLibraryLoadFailed'),
             };
         default:
             return {

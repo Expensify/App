@@ -91,15 +91,11 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
 
     const loadingIndicator = useMemo(
         () => (
-             <LoadingIndicator
-                    style={
-                        isUsedAsChatAttachment && [
-                            styles.chatItemPDFAttachmentLoading,
-                            StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT),
-                            styles.pRelative,
-                        ]
-                    }
-                />
+            <LoadingIndicator
+                style={
+                    isUsedAsChatAttachment && [styles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT), styles.pRelative]
+                }
+            />
         ),
         [StyleUtils, isUsedAsChatAttachment, styles.chatItemPDFAttachmentLoading, styles.pRelative],
     );
