@@ -5921,667 +5921,675 @@ const CONST = {
 
     /* If we update these values, let's ensure this logic is consistent with the logic in the backend (Auth), since we're using the same method to calculate the rate value in distance requests created via Concierge. */
     CURRENCY_TO_DEFAULT_MILEAGE_RATE: JSON.parse(`{
-        "AED": {
-            "rate": 414,
-            "unit": "km"
-        },
-        "AFN": {
-            "rate": 8851,
-            "unit": "km"
-        },
-        "ALL": {
-            "rate": 10783,
-            "unit": "km"
-        },
-        "AMD": {
-            "rate": 45116,
-            "unit": "km"
-        },
-        "ANG": {
-            "rate": 203,
-            "unit": "km"
-        },
-        "AOA": {
-            "rate": 102929,
-            "unit": "km"
-        },
-        "ARS": {
-            "rate": 118428,
-            "unit": "km"
-        },
-        "AUD": {
-            "rate": 88,
-            "unit": "km"
-        },
-        "AWG": {
-            "rate": 203,
-            "unit": "km"
-        },
-        "AZN": {
-            "rate": 192,
-            "unit": "km"
-        },
-        "BAM": {
-            "rate": 212,
-            "unit": "km"
-        },
-        "BBD": {
-            "rate": 225,
-            "unit": "km"
-        },
-        "BDT": {
-            "rate": 13697,
-            "unit": "km"
-        },
-        "BGN": {
-            "rate": 211,
-            "unit": "km"
-        },
-        "BHD": {
-            "rate": 42,
-            "unit": "km"
-        },
-        "BIF": {
-            "rate": 331847,
-            "unit": "km"
-        },
-        "BMD": {
-            "rate": 113,
-            "unit": "km"
-        },
-        "BND": {
-            "rate": 153,
-            "unit": "km"
-        },
-        "BOB": {
-            "rate": 779,
-            "unit": "km"
-        },
-        "BRL": {
-            "rate": 660,
-            "unit": "km"
-        },
-        "BSD": {
-            "rate": 113,
-            "unit": "km"
-        },
-        "BTN": {
-            "rate": 9761,
-            "unit": "km"
-        },
-        "BWP": {
-            "rate": 1569,
-            "unit": "km"
-        },
-        "BYN": {
-            "rate": 369,
-            "unit": "km"
-        },
-        "BYR": {
-            "rate": 2255979,
-            "unit": "km"
-        },
-        "BZD": {
-            "rate": 227,
-            "unit": "km"
-        },
-        "CAD": {
-            "rate": 72,
-            "unit": "km"
-        },
-        "CDF": {
-            "rate": 321167,
-            "unit": "km"
-        },
-        "CHF": {
-            "rate": 76,
-            "unit": "km"
-        },
-        "CLP": {
-            "rate": 111689,
-            "unit": "km"
-        },
-        "CNY": {
-            "rate": 808,
-            "unit": "km"
-        },
-        "COP": {
-            "rate": 473791,
-            "unit": "km"
-        },
-        "CRC": {
-            "rate": 57190,
-            "unit": "km"
-        },
-        "CUC": {
-            "rate": 113,
-            "unit": "km"
-        },
-        "CUP": {
-            "rate": 2902,
-            "unit": "km"
-        },
-        "CVE": {
-            "rate": 11961,
-            "unit": "km"
-        },
-        "CZK": {
-            "rate": 2715,
-            "unit": "km"
-        },
-        "DJF": {
-            "rate": 19956,
-            "unit": "km"
-        },
-        "DKK": {
-            "rate": 381,
-            "unit": "km"
-        },
-        "DOP": {
-            "rate": 6948,
-            "unit": "km"
-        },
-        "DZD": {
-            "rate": 15226,
-            "unit": "km"
-        },
-        "EEK": {
-            "rate": 1646,
-            "unit": "km"
-        },
-        "EGP": {
-            "rate": 5657,
-            "unit": "km"
-        },
-        "ERN": {
-            "rate": 1690,
-            "unit": "km"
-        },
-        "ETB": {
-            "rate": 14326,
-            "unit": "km"
-        },
-        "EUR": {
-            "rate": 30,
-            "unit": "km"
-        },
-        "FJD": {
-            "rate": 264,
-            "unit": "km"
-        },
-        "FKP": {
-            "rate": 90,
-            "unit": "km"
-        },
-        "GBP": {
-            "rate": 45,
-            "unit": "mi"
-        },
-        "GEL": {
-            "rate": 323,
-            "unit": "km"
-        },
-        "GHS": {
-            "rate": 1724,
-            "unit": "km"
-        },
-        "GIP": {
-            "rate": 90,
-            "unit": "km"
-        },
-        "GMD": {
-            "rate": 8111,
-            "unit": "km"
-        },
-        "GNF": {
-            "rate": 974619,
-            "unit": "km"
-        },
-        "GTQ": {
-            "rate": 872,
-            "unit": "km"
-        },
-        "GYD": {
-            "rate": 23585,
-            "unit": "km"
-        },
-        "HKD": {
-            "rate": 877,
-            "unit": "km"
-        },
-        "HNL": {
-            "rate": 2881,
-            "unit": "km"
-        },
-        "HRK": {
-            "rate": 814,
-            "unit": "km"
-        },
-        "HTG": {
-            "rate": 14734,
-            "unit": "km"
-        },
-        "HUF": {
-            "rate": 44127,
-            "unit": "km"
-        },
-        "IDR": {
-            "rate": 1830066,
-            "unit": "km"
-        },
-        "ILS": {
-            "rate": 540,
-            "unit": "km"
-        },
-        "INR": {
-            "rate": 9761,
-            "unit": "km"
-        },
-        "IQD": {
-            "rate": 147577,
-            "unit": "km"
-        },
-        "IRR": {
-            "rate": 4741290,
-            "unit": "km"
-        },
-        "ISK": {
-            "rate": 15772,
-            "unit": "km"
-        },
-        "JMD": {
-            "rate": 17738,
-            "unit": "km"
-        },
-        "JOD": {
-            "rate": 80,
-            "unit": "km"
-        },
-        "JPY": {
-            "rate": 17542,
-            "unit": "km"
-        },
-        "KES": {
-            "rate": 14589,
-            "unit": "km"
-        },
-        "KGS": {
-            "rate": 9852,
-            "unit": "km"
-        },
-        "KHR": {
-            "rate": 453066,
-            "unit": "km"
-        },
-        "KMF": {
-            "rate": 53269,
-            "unit": "km"
-        },
-        "KPW": {
-            "rate": 101389,
-            "unit": "km"
-        },
-        "KRW": {
-            "rate": 162705,
-            "unit": "km"
-        },
-        "KWD": {
-            "rate": 35,
-            "unit": "km"
-        },
-        "KYD": {
-            "rate": 93,
-            "unit": "km"
-        },
-        "KZT": {
-            "rate": 58319,
-            "unit": "km"
-        },
-        "LAK": {
-            "rate": 2452802,
-            "unit": "km"
-        },
-        "LBP": {
-            "rate": 10093809,
-            "unit": "km"
-        },
-        "LKR": {
-            "rate": 33423,
-            "unit": "km"
-        },
-        "LRD": {
-            "rate": 22185,
-            "unit": "km"
-        },
-        "LSL": {
-            "rate": 2099,
-            "unit": "km"
-        },
-        "LTL": {
-            "rate": 364,
-            "unit": "km"
-        },
-        "LVL": {
-            "rate": 74,
-            "unit": "km"
-        },
-        "LYD": {
-            "rate": 554,
-            "unit": "km"
-        },
-        "MAD": {
-            "rate": 1127,
-            "unit": "km"
-        },
-        "MDL": {
-            "rate": 2084,
-            "unit": "km"
-        },
-        "MGA": {
-            "rate": 529635,
-            "unit": "km"
-        },
-        "MKD": {
-            "rate": 6650,
-            "unit": "km"
-        },
-        "MMK": {
-            "rate": 236413,
-            "unit": "km"
-        },
-        "MNT": {
-            "rate": 382799,
-            "unit": "km"
-        },
-        "MOP": {
-            "rate": 904,
-            "unit": "km"
-        },
-        "MRO": {
-            "rate": 40234,
-            "unit": "km"
-        },
-        "MRU": {
-            "rate": 4506,
-            "unit": "km"
-        },
-        "MUR": {
-            "rate": 5226,
-            "unit": "km"
-        },
-        "MVR": {
-            "rate": 1735,
-            "unit": "km"
-        },
-        "MWK": {
-            "rate": 195485,
-            "unit": "km"
-        },
-        "MXN": {
-            "rate": 93,
-            "unit": "km"
-        },
-        "MYR": {
-            "rate": 494,
-            "unit": "km"
-        },
-        "MZN": {
-            "rate": 7199,
-            "unit": "km"
-        },
-        "NAD": {
-            "rate": 2099,
-            "unit": "km"
-        },
-        "NGN": {
-            "rate": 174979,
-            "unit": "km"
-        },
-        "NIO": {
-            "rate": 4147,
-            "unit": "km"
-        },
-        "NOK": {
-            "rate": 350,
-            "unit": "km"
-        },
-        "NPR": {
-            "rate": 15617,
-            "unit": "km"
-        },
-        "NZD": {
-            "rate": 104,
-            "unit": "km"
-        },
-        "OMR": {
-            "rate": 43,
-            "unit": "km"
-        },
-        "PAB": {
-            "rate": 113,
-            "unit": "km"
-        },
-        "PEN": {
-            "rate": 420,
-            "unit": "km"
-        },
-        "PGK": {
-            "rate": 455,
-            "unit": "km"
-        },
-        "PHP": {
-            "rate": 6582,
-            "unit": "km"
-        },
-        "PKR": {
-            "rate": 31411,
-            "unit": "km"
-        },
-        "PLN": {
-            "rate": 89,
-            "unit": "km"
-        },
-        "PYG": {
-            "rate": 890772,
-            "unit": "km"
-        },
-        "QAR": {
-            "rate": 410,
-            "unit": "km"
-        },
-        "RON": {
-            "rate": 538,
-            "unit": "km"
-        },
-        "RSD": {
-            "rate": 12656,
-            "unit": "km"
-        },
-        "RUB": {
-            "rate": 11182,
-            "unit": "km"
-        },
-        "RWF": {
-            "rate": 156589,
-            "unit": "km"
-        },
-        "SAR": {
-            "rate": 423,
-            "unit": "km"
-        },
-        "SBD": {
-            "rate": 951,
-            "unit": "km"
-        },
-        "SCR": {
-            "rate": 1611,
-            "unit": "km"
-        },
-        "SDG": {
-            "rate": 67705,
-            "unit": "km"
-        },
-        "SEK": {
-            "rate": 250,
-            "unit": "km"
-        },
-        "SGD": {
-            "rate": 151,
-            "unit": "km"
-        },
-        "SHP": {
-            "rate": 90,
-            "unit": "km"
-        },
-        "SLL": {
-            "rate": 2362357,
-            "unit": "km"
-        },
-        "SLE": {
-            "rate": 2363,
-            "unit": "km"
-        },
-        "SOS": {
-            "rate": 64374,
-            "unit": "km"
-        },
-        "SRD": {
-            "rate": 3954,
-            "unit": "km"
-        },
-        "STD": {
-            "rate": 2510095,
-            "unit": "km"
-        },
-        "STN": {
-            "rate": 2683,
-            "unit": "km"
-        },
-        "SVC": {
-            "rate": 987,
-            "unit": "km"
-        },
-        "SYP": {
-            "rate": 1464664,
-            "unit": "km"
-        },
-        "SZL": {
-            "rate": 2099,
-            "unit": "km"
-        },
-        "THB": {
-            "rate": 3801,
-            "unit": "km"
-        },
-        "TJS": {
-            "rate": 1228,
-            "unit": "km"
-        },
-        "TMT": {
-            "rate": 394,
-            "unit": "km"
-        },
-        "TND": {
-            "rate": 360,
-            "unit": "km"
-        },
-        "TOP": {
-            "rate": 274,
-            "unit": "km"
-        },
-        "TRY": {
-            "rate": 4035,
-            "unit": "km"
-        },
-        "TTD": {
-            "rate": 763,
-            "unit": "km"
-        },
-        "TWD": {
-            "rate": 3703,
-            "unit": "km"
-        },
-        "TZS": {
-            "rate": 286235,
-            "unit": "km"
-        },
-        "UAH": {
-            "rate": 4725,
-            "unit": "km"
-        },
-        "UGX": {
-            "rate": 416016,
-            "unit": "km"
-        },
-        "USD": {
-            "rate": 70,
-            "unit": "mi"
-        },
-        "UYU": {
-            "rate": 4888,
-            "unit": "km"
-        },
-        "UZS": {
-            "rate": 1462038,
-            "unit": "km"
-        },
-        "VEB": {
-            "rate": 709737,
-            "unit": "km"
-        },
-        "VEF": {
-            "rate": 27993155,
-            "unit": "km"
-        },
-        "VES": {
-            "rate": 6457,
-            "unit": "km"
-        },
-        "VND": {
-            "rate": 2825526,
-            "unit": "km"
-        },
-        "VUV": {
-            "rate": 13358,
-            "unit": "km"
-        },
-        "WST": {
-            "rate": 315,
-            "unit": "km"
-        },
-        "XAF": {
-            "rate": 70811,
-            "unit": "km"
-        },
-        "XCD": {
-            "rate": 304,
-            "unit": "km"
-        },
-        "XOF": {
-            "rate": 70811,
-            "unit": "km"
-        },
-        "XPF": {
-            "rate": 12875,
-            "unit": "km"
-        },
-        "YER": {
-            "rate": 28003,
-            "unit": "km"
-        },
-        "ZAR": {
-            "rate": 484,
-            "unit": "km"
-        },
-        "ZMK": {
-            "rate": 591756,
-            "unit": "km"
-        },
-        "ZMW": {
-            "rate": 3148,
-            "unit": "km"
-        }
-    }`) as Record<string, MileageRate>,
+    "AED": {
+        "rate": 425,
+        "unit": "km"
+    },
+    "AFN": {
+        "rate": 7725,
+        "unit": "km"
+    },
+    "ALL": {
+        "rate": 9495,
+        "unit": "km"
+    },
+    "AMD": {
+        "rate": 44197,
+        "unit": "km"
+    },
+    "ANG": {
+        "rate": 208,
+        "unit": "km"
+    },
+    "AOA": {
+        "rate": 106025,
+        "unit": "km"
+    },
+    "ARS": {
+        "rate": 169993,
+        "unit": "km"
+    },
+    "AUD": {
+        "rate": 88,
+        "unit": "km"
+    },
+    "AWG": {
+        "rate": 209,
+        "unit": "km"
+    },
+    "AZN": {
+        "rate": 196,
+        "unit": "km"
+    },
+    "BAM": {
+        "rate": 193,
+        "unit": "km"
+    },
+    "BBD": {
+        "rate": 232,
+        "unit": "km"
+    },
+    "BDT": {
+        "rate": 14154,
+        "unit": "km"
+    },
+    "BGN": {
+        "rate": 193,
+        "unit": "km"
+    },
+    "BHD": {
+        "rate": 43,
+        "unit": "km"
+    },
+    "BIF": {
+        "rate": 343112,
+        "unit": "km"
+    },
+    "BMD": {
+        "rate": 116,
+        "unit": "km"
+    },
+    "BND": {
+        "rate": 148,
+        "unit": "km"
+    },
+    "BOB": {
+        "rate": 801,
+        "unit": "km"
+    },
+    "BRL": {
+        "rate": 623,
+        "unit": "km"
+    },
+    "BSD": {
+        "rate": 116,
+        "unit": "km"
+    },
+    "BTN": {
+        "rate": 10445,
+        "unit": "km"
+    },
+    "BWP": {
+        "rate": 1609,
+        "unit": "km"
+    },
+    "BYN": {
+        "rate": 341,
+        "unit": "km"
+    },
+    "BYR": {
+        "rate": 2320514,
+        "unit": "km"
+    },
+    "BZD": {
+        "rate": 233,
+        "unit": "km"
+    },
+    "CAD": {
+        "rate": 72,
+        "unit": "km"
+    },
+    "CDF": {
+        "rate": 263043,
+        "unit": "km"
+    },
+    "CHF": {
+        "rate": 76,
+        "unit": "km"
+    },
+    "CLP": {
+        "rate": 103642,
+        "unit": "km"
+    },
+    "CNY": {
+        "rate": 810,
+        "unit": "km"
+    },
+    "COP": {
+        "rate": 436937,
+        "unit": "km"
+    },
+    "CRC": {
+        "rate": 57573,
+        "unit": "km"
+    },
+    "CUC": {
+        "rate": 116,
+        "unit": "km"
+    },
+    "CUP": {
+        "rate": 2984,
+        "unit": "km"
+    },
+    "CVE": {
+        "rate": 10927,
+        "unit": "km"
+    },
+    "CZK": {
+        "rate": 2396,
+        "unit": "km"
+    },
+    "DJF": {
+        "rate": 20600,
+        "unit": "km"
+    },
+    "DKK": {
+        "rate": 381,
+        "unit": "km"
+    },
+    "DOP": {
+        "rate": 7348,
+        "unit": "km"
+    },
+    "DZD": {
+        "rate": 15049,
+        "unit": "km"
+    },
+    "EEK": {
+        "rate": 1693,
+        "unit": "km"
+    },
+    "EGP": {
+        "rate": 5475,
+        "unit": "km"
+    },
+    "ERN": {
+        "rate": 1738,
+        "unit": "km"
+    },
+    "ETB": {
+        "rate": 17952,
+        "unit": "km"
+    },
+    "EUR": {
+        "rate": 30,
+        "unit": "km"
+    },
+    "FJD": {
+        "rate": 264,
+        "unit": "km"
+    },
+    "FKP": {
+        "rate": 85,
+        "unit": "km"
+    },
+    "GBP": {
+        "rate": 45,
+        "unit": "mi"
+    },
+    "GEL": {
+        "rate": 312,
+        "unit": "km"
+    },
+    "GHS": {
+        "rate": 1238,
+        "unit": "km"
+    },
+    "GIP": {
+        "rate": 85,
+        "unit": "km"
+    },
+    "GMD": {
+        "rate": 8517,
+        "unit": "km"
+    },
+    "GNF": {
+        "rate": 1012760,
+        "unit": "km"
+    },
+    "GTQ": {
+        "rate": 888,
+        "unit": "km"
+    },
+    "GYD": {
+        "rate": 24232,
+        "unit": "km"
+    },
+    "HKD": {
+        "rate": 903,
+        "unit": "km"
+    },
+    "HNL": {
+        "rate": 3059,
+        "unit": "km"
+    },
+    "HRK": {
+        "rate": 747,
+        "unit": "km"
+    },
+    "HTG": {
+        "rate": 15162,
+        "unit": "km"
+    },
+    "HUF": {
+        "rate": 38143,
+        "unit": "km"
+    },
+    "IDR": {
+        "rate": 1940755,
+        "unit": "km"
+    },
+    "ILS": {
+        "rate": 540,
+        "unit": "km"
+    },
+    "INR": {
+        "rate": 10446,
+        "unit": "km"
+    },
+    "IQD": {
+        "rate": 151761,
+        "unit": "km"
+    },
+    "IRR": {
+        "rate": 4876636,
+        "unit": "km"
+    },
+    "ISK": {
+        "rate": 14645,
+        "unit": "km"
+    },
+    "JMD": {
+        "rate": 18388,
+        "unit": "km"
+    },
+    "JOD": {
+        "rate": 82,
+        "unit": "km"
+    },
+    "JPY": {
+        "rate": 18186,
+        "unit": "km"
+    },
+    "KES": {
+        "rate": 14954,
+        "unit": "km"
+    },
+    "KGS": {
+        "rate": 10132,
+        "unit": "km"
+    },
+    "KHR": {
+        "rate": 465327,
+        "unit": "km"
+    },
+    "KMF": {
+        "rate": 48924,
+        "unit": "km"
+    },
+    "KPW": {
+        "rate": 104286,
+        "unit": "km"
+    },
+    "KRW": {
+        "rate": 167533,
+        "unit": "km"
+    },
+    "KWD": {
+        "rate": 35,
+        "unit": "km"
+    },
+    "KYD": {
+        "rate": 97,
+        "unit": "km"
+    },
+    "KZT": {
+        "rate": 59031,
+        "unit": "km"
+    },
+    "LAK": {
+        "rate": 2503013,
+        "unit": "km"
+    },
+    "LBP": {
+        "rate": 10372547,
+        "unit": "km"
+    },
+    "LKR": {
+        "rate": 35913,
+        "unit": "km"
+    },
+    "LRD": {
+        "rate": 20772,
+        "unit": "km"
+    },
+    "LSL": {
+        "rate": 1897,
+        "unit": "km"
+    },
+    "LTL": {
+        "rate": 373,
+        "unit": "km"
+    },
+    "LVL": {
+        "rate": 76,
+        "unit": "km"
+    },
+    "LYD": {
+        "rate": 628,
+        "unit": "km"
+    },
+    "MAD": {
+        "rate": 1064,
+        "unit": "km"
+    },
+    "MDL": {
+        "rate": 1938,
+        "unit": "km"
+    },
+    "MGA": {
+        "rate": 533659,
+        "unit": "km"
+    },
+    "MKD": {
+        "rate": 6101,
+        "unit": "km"
+    },
+    "MMK": {
+        "rate": 243333,
+        "unit": "km"
+    },
+    "MNT": {
+        "rate": 412507,
+        "unit": "km"
+    },
+    "MOP": {
+        "rate": 929,
+        "unit": "km"
+    },
+    "MRO": {
+        "rate": 41360,
+        "unit": "km"
+    },
+    "MRU": {
+        "rate": 4667,
+        "unit": "km"
+    },
+    "MUR": {
+        "rate": 5366,
+        "unit": "km"
+    },
+    "MVR": {
+        "rate": 1791,
+        "unit": "km"
+    },
+    "MWK": {
+        "rate": 201014,
+        "unit": "km"
+    },
+    "MXN": {
+        "rate": 93,
+        "unit": "km"
+    },
+    "MYR": {
+        "rate": 470,
+        "unit": "km"
+    },
+    "MZN": {
+        "rate": 7406,
+        "unit": "km"
+    },
+    "NAD": {
+        "rate": 1897,
+        "unit": "km"
+    },
+    "NGN": {
+        "rate": 165101,
+        "unit": "km"
+    },
+    "NIO": {
+        "rate": 4262,
+        "unit": "km"
+    },
+    "NOK": {
+        "rate": 350,
+        "unit": "km"
+    },
+    "NPR": {
+        "rate": 16711,
+        "unit": "km"
+    },
+    "NZD": {
+        "rate": 117,
+        "unit": "km"
+    },
+    "OMR": {
+        "rate": 45,
+        "unit": "km"
+    },
+    "PAB": {
+        "rate": 116,
+        "unit": "km"
+    },
+    "PEN": {
+        "rate": 389,
+        "unit": "km"
+    },
+    "PGK": {
+        "rate": 497,
+        "unit": "km"
+    },
+    "PHP": {
+        "rate": 6870,
+        "unit": "km"
+    },
+    "PKR": {
+        "rate": 32428,
+        "unit": "km"
+    },
+    "PLN": {
+        "rate": 89,
+        "unit": "km"
+    },
+    "PYG": {
+        "rate": 782141,
+        "unit": "km"
+    },
+    "QAR": {
+        "rate": 422,
+        "unit": "km"
+    },
+    "RON": {
+        "rate": 505,
+        "unit": "km"
+    },
+    "RSD": {
+        "rate": 11632,
+        "unit": "km"
+    },
+    "RUB": {
+        "rate": 9328,
+        "unit": "km"
+    },
+    "RWF": {
+        "rate": 168659,
+        "unit": "km"
+    },
+    "SAR": {
+        "rate": 435,
+        "unit": "km"
+    },
+    "SBD": {
+        "rate": 941,
+        "unit": "km"
+    },
+    "SCR": {
+        "rate": 1605,
+        "unit": "km"
+    },
+    "SDG": {
+        "rate": 69640,
+        "unit": "km"
+    },
+    "SEK": {
+        "rate": 250,
+        "unit": "km"
+    },
+    "SGD": {
+        "rate": 148,
+        "unit": "km"
+    },
+    "SHP": {
+        "rate": 85,
+        "unit": "km"
+    },
+    "SLL": {
+        "rate": 2429788,
+        "unit": "km"
+    },
+    "SLE": {
+        "rate": 2781,
+        "unit": "km"
+    },
+    "SOS": {
+        "rate": 66144,
+        "unit": "km"
+    },
+    "SRD": {
+        "rate": 4439,
+        "unit": "km"
+    },
+    "STD": {
+        "rate": 2581871,
+        "unit": "km"
+    },
+    "STN": {
+        "rate": 2424,
+        "unit": "km"
+    },
+    "SVC": {
+        "rate": 1014,
+        "unit": "km"
+    },
+    "SYP": {
+        "rate": 1506507,
+        "unit": "km"
+    },
+    "SZL": {
+        "rate": 1897,
+        "unit": "km"
+    },
+    "THB": {
+        "rate": 3616,
+        "unit": "km"
+    },
+    "TJS": {
+        "rate": 1070,
+        "unit": "km"
+    },
+    "TMT": {
+        "rate": 406,
+        "unit": "km"
+    },
+    "TND": {
+        "rate": 335,
+        "unit": "km"
+    },
+    "TOP": {
+        "rate": 278,
+        "unit": "km"
+    },
+    "TRY": {
+        "rate": 4987,
+        "unit": "km"
+    },
+    "TTD": {
+        "rate": 787,
+        "unit": "km"
+    },
+    "TWD": {
+        "rate": 3652,
+        "unit": "km"
+    },
+    "TZS": {
+        "rate": 286726,
+        "unit": "km"
+    },
+    "UAH": {
+        "rate": 4933,
+        "unit": "km"
+    },
+    "UGX": {
+        "rate": 419556,
+        "unit": "km"
+    },
+    "USD": {
+        "rate": 72,
+        "unit": "mi"
+    },
+    "UYU": {
+        "rate": 4513,
+        "unit": "km"
+    },
+    "UZS": {
+        "rate": 1385890,
+        "unit": "km"
+    },
+    "VEB": {
+        "rate": 730044,
+        "unit": "km"
+    },
+    "VEF": {
+        "rate": 28792959,
+        "unit": "km"
+    },
+    "VES": {
+        "rate": 35661,
+        "unit": "km"
+    },
+    "VND": {
+        "rate": 3044397,
+        "unit": "km"
+    },
+    "VUV": {
+        "rate": 14001,
+        "unit": "km"
+    },
+    "WST": {
+        "rate": 320,
+        "unit": "km"
+    },
+    "XAF": {
+        "rate": 65018,
+        "unit": "km"
+    },
+    "XCD": {
+        "rate": 314,
+        "unit": "km"
+    },
+    "XCG": {
+        "rate": 209,
+        "unit": "km"
+    },
+    "XOF": {
+        "rate": 65018,
+        "unit": "km"
+    },
+    "XPF": {
+        "rate": 11909,
+        "unit": "km"
+    },
+    "YER": {
+        "rate": 27681,
+        "unit": "km"
+    },
+    "ZAR": {
+        "rate": 476,
+        "unit": "km"
+    },
+    "ZMK": {
+        "rate": 608654,
+        "unit": "km"
+    },
+    "ZMW": {
+        "rate": 2424,
+        "unit": "km"
+    },
+    "ZWG": {
+        "rate": 3003,
+        "unit": "km"
+    }
+}`) as Record<string, MileageRate>,
 
     EXIT_SURVEY: {
         REASONS: {
