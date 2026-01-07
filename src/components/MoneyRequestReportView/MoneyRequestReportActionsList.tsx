@@ -230,8 +230,7 @@ function MoneyRequestReportActionsList({
                 return false;
             }
 
-            const passesOfflineCheck =
-                isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors;
+            const passesOfflineCheck = isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors;
             if (!passesOfflineCheck) {
                 return false;
             }
