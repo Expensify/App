@@ -30,6 +30,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -77,6 +78,7 @@ import {
     isExpenseReport as isExpenseReportUtil,
     isInvoiceReport,
     isIOUReport as isIOUReportUtil,
+    isTrackExpenseReport,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -268,6 +270,43 @@ function SearchPage({route}: SearchPageProps) {
         },
         [queryJSON, selectedTransactionsKeys, areAllMatchingItemsSelected, selectedTransactionReportIDs],
     );
+
+    const selectedTransactionReport = useMemo(() => {
+        if (!selectedTransactionsKeys.length) {
+            return null;
+        }
+
+        const firstTransactionID = selectedTransactionsKeys.at(0);
+
+        if (!firstTransactionID) {
+            return null;
+        }
+
+        const transaction = selectedTransactions[firstTransactionID];
+
+        if (!transaction || typeof transaction !== 'object' || !('reportID' in transaction)) {
+            return null;
+        }
+
+        return getReportOrDraftReport(transaction.reportID);
+    }, [selectedTransactionsKeys, selectedTransactions]);
+
+    const iouType = useMemo(() => {
+        if (!selectedTransactionReport) {
+            return CONST.IOU.TYPE.SUBMIT;
+        }
+
+        if (isTrackExpenseReport(selectedTransactionReport)) {
+            return CONST.IOU.TYPE.TRACK;
+        }
+        if (isInvoiceReport(selectedTransactionReport)) {
+            return CONST.IOU.TYPE.INVOICE;
+        }
+        return CONST.IOU.TYPE.SUBMIT;
+    }, [selectedTransactionReport]);
+
+    const {policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const shouldNavigateToUpgradePath = !policyForMovingExpenses && !shouldSelectPolicy;
 
     const policyIDsWithVBBA = useMemo(() => {
         return Object.values(policies ?? {})
@@ -764,7 +803,21 @@ function SearchPage({route}: SearchPageProps) {
                 icon: expensifyIcons.DocumentMerge,
                 value: CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_REPORT,
                 shouldCloseModalOnSelect: true,
-                onSelected: () => Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP),
+                onSelected: () => {
+                    if (shouldNavigateToUpgradePath && selectedTransactionsKeys.length > 0) {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                action: CONST.IOU.ACTION.EDIT,
+                                iouType,
+                                transactionID: selectedTransactionsKeys.at(0),
+                                reportID: selectedTransactions[selectedTransactionsKeys[0]].reportID,
+                                upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                            }),
+                        );
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.MOVE_TRANSACTIONS_SEARCH_RHP);
+                },
             });
         }
 
