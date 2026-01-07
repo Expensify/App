@@ -13,15 +13,19 @@ import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import {
     getCardIssuedMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getExpenseReportTransactionIDs,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportActionActorAccountID,
     getSendMoneyFlowAction,
+    getTransactionIDsForIOUAction,
     isIOUActionMatchingTransactionList,
 } from '../../src/libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportForUnapprovedAction} from '../../src/libs/ReportUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {Card, OriginalMessageIOU, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {ValueOf} from 'type-fest';
+import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
@@ -2609,6 +2613,240 @@ describe('ReportActionsUtils', () => {
 
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
             expect(actorAccountID).toBe(9999);
+        });
+    });
+
+    describe('getExpenseReportTransactionIDs', () => {
+        const expenseReportID = 'expense-report-123';
+        const transactionID1 = 'transaction-1';
+        const transactionID2 = 'transaction-2';
+        const transactionID3 = 'transaction-3';
+        const otherReportID = 'other-report-456';
+
+        const createMockTransaction = (transactionID: string, reportID: string, pendingAction?: string): Transaction => ({
+            transactionID,
+            reportID,
+            amount: 1000,
+            currency: 'USD',
+            comment: {},
+            created: '2024-01-01',
+            pendingAction: pendingAction as ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION> | undefined,
+        } as Transaction);
+
+        it('should return transaction IDs that match the expense report ID', () => {
+            const allTransactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID1}`]: createMockTransaction(transactionID1, expenseReportID),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`]: createMockTransaction(transactionID2, expenseReportID),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID3}`]: createMockTransaction(transactionID3, otherReportID),
+            };
+
+            const result = getExpenseReportTransactionIDs(allTransactions, expenseReportID, undefined, false);
+
+            expect(result).toEqual([transactionID1, transactionID2]);
+            expect(result).not.toContain(transactionID3);
+        });
+
+        it('should exclude transactions with pending actions when online', () => {
+            const allTransactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID1}`]: createMockTransaction(transactionID1, expenseReportID),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`]: createMockTransaction(transactionID2, expenseReportID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID3}`]: createMockTransaction(transactionID3, expenseReportID, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE),
+            };
+
+            const result = getExpenseReportTransactionIDs(allTransactions, expenseReportID, undefined, false);
+
+            expect(result).toEqual([transactionID1]);
+            expect(result).not.toContain(transactionID2);
+            expect(result).not.toContain(transactionID3);
+        });
+
+        it('should include transactions with ADD pending action when offline', () => {
+            const allTransactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID1}`]: createMockTransaction(transactionID1, expenseReportID),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`]: createMockTransaction(transactionID2, expenseReportID, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID3}`]: createMockTransaction(transactionID3, expenseReportID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+            };
+
+            const result = getExpenseReportTransactionIDs(allTransactions, expenseReportID, undefined, true);
+
+            expect(result).toEqual([transactionID1, transactionID2]);
+            expect(result).not.toContain(transactionID3);
+        });
+
+        it('should include transactionInOnyx if it matches reportID and is not already in the list', () => {
+            const transactionInOnyxID = 'transaction-in-onyx';
+            const allTransactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID1}`]: createMockTransaction(transactionID1, expenseReportID),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionInOnyxID}`]: createMockTransaction(transactionInOnyxID, expenseReportID),
+            };
+
+            const result = getExpenseReportTransactionIDs(allTransactions, expenseReportID, transactionInOnyxID, false);
+
+            expect(result).toContain(transactionInOnyxID);
+            expect(result).toContain(transactionID1);
+        });
+
+        it('should not include transactionInOnyx if it has invalid pending action when online', () => {
+            const transactionInOnyxID = 'transaction-in-onyx';
+            const allTransactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID1}`]: createMockTransaction(transactionID1, expenseReportID),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionInOnyxID}`]: createMockTransaction(transactionInOnyxID, expenseReportID, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE),
+            };
+
+            const result = getExpenseReportTransactionIDs(allTransactions, expenseReportID, transactionInOnyxID, false);
+
+            expect(result).toEqual([transactionID1]);
+            expect(result).not.toContain(transactionInOnyxID);
+        });
+
+        it('should return empty array when no transactions match the expense report ID', () => {
+            const allTransactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID1}`]: createMockTransaction(transactionID1, otherReportID),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`]: createMockTransaction(transactionID2, otherReportID),
+            };
+
+            const result = getExpenseReportTransactionIDs(allTransactions, expenseReportID, undefined, false);
+
+            expect(result).toEqual([]);
+        });
+
+        it('should handle null or undefined transactions in the collection', () => {
+            const allTransactions: Record<string, Transaction | null | undefined> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID1}`]: createMockTransaction(transactionID1, expenseReportID),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID2}`]: null,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID3}`]: undefined,
+            };
+
+            const result = getExpenseReportTransactionIDs(allTransactions as Record<string, Transaction>, expenseReportID, undefined, false);
+
+            expect(result).toEqual([transactionID1]);
+        });
+    });
+
+    describe('getTransactionIDsForIOUAction', () => {
+        const expenseReportID = 'expense-report-123';
+        const regularIOUReportID = 'iou-report-456';
+        const transactionID = 'transaction-123';
+        const reportTransactionIDs = ['default-transaction-1', 'default-transaction-2'];
+
+        const createMockIOUAction = (iouReportID: string, iouTransactionID: string): ReportAction => ({
+            ...createRandomReportAction(0),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {
+                IOUReportID: iouReportID,
+                IOUTransactionID: iouTransactionID,
+                amount: 1000,
+                currency: 'USD',
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            },
+        } as ReportAction);
+
+        const createMockNonIOUAction = (): ReportAction => ({
+            ...createRandomReportAction(0),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            originalMessage: {
+                html: 'Test comment',
+            },
+        } as ReportAction);
+
+        beforeEach(() => {
+            jest.spyOn(require('../../src/libs/ReportUtils'), 'getReportOrDraftReport').mockImplementation((reportID: string) => {
+                if (reportID === expenseReportID) {
+                    return {...createRandomReport(0), reportID: expenseReportID, type: CONST.REPORT.TYPE.EXPENSE};
+                }
+                if (reportID === regularIOUReportID) {
+                    return {...createRandomReport(0), reportID: regularIOUReportID, type: CONST.REPORT.TYPE.IOU};
+                }
+                return null;
+            });
+
+            jest.spyOn(require('../../src/libs/ReportUtils'), 'isExpenseReport').mockImplementation((report: Report | null) => {
+                return report?.reportID === expenseReportID;
+            });
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should return reportTransactionIDs for non-money request actions', () => {
+            const nonIOUAction = createMockNonIOUAction();
+
+            const result = getTransactionIDsForIOUAction(nonIOUAction, reportTransactionIDs, {}, false);
+
+            expect(result).toEqual(reportTransactionIDs);
+        });
+
+        it('should return reportTransactionIDs when IOUReportID or IOUTransactionID is missing', () => {
+            const actionWithoutReportID = {
+                ...createMockIOUAction(expenseReportID, transactionID),
+                originalMessage: {
+                    IOUTransactionID: transactionID,
+                    amount: 1000,
+                    currency: 'USD',
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            } as ReportAction;
+
+            const result = getTransactionIDsForIOUAction(actionWithoutReportID, reportTransactionIDs, {}, false);
+
+            expect(result).toEqual(reportTransactionIDs);
+        });
+
+        it('should return reportTransactionIDs for regular IOU reports (non-expense)', () => {
+            const regularIOUAction = createMockIOUAction(regularIOUReportID, transactionID);
+
+            const result = getTransactionIDsForIOUAction(regularIOUAction, reportTransactionIDs, {}, false);
+
+            expect(result).toEqual(reportTransactionIDs);
+        });
+
+        it('should call getExpenseReportTransactionIDs for expense reports', () => {
+            const expenseIOUAction = createMockIOUAction(expenseReportID, transactionID);
+            const allTransactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                    transactionID,
+                    reportID: expenseReportID,
+                    amount: 1000,
+                    currency: 'USD',
+                    comment: {},
+                    created: '2024-01-01',
+                } as Transaction,
+            };
+
+            const result = getTransactionIDsForIOUAction(expenseIOUAction, reportTransactionIDs, allTransactions, false);
+
+            expect(result).toEqual([transactionID]);
+            expect(result).not.toEqual(reportTransactionIDs);
+        });
+
+        it('should pass isOffline flag to getExpenseReportTransactionIDs', () => {
+            const expenseIOUAction = createMockIOUAction(expenseReportID, transactionID);
+            const transactionWithAddPending = 'transaction-with-add-pending';
+            const allTransactions: Record<string, Transaction> = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                    transactionID,
+                    reportID: expenseReportID,
+                    amount: 1000,
+                    currency: 'USD',
+                    comment: {},
+                    created: '2024-01-01',
+                } as Transaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionWithAddPending}`]: {
+                    transactionID: transactionWithAddPending,
+                    reportID: expenseReportID,
+                    amount: 2000,
+                    currency: 'USD',
+                    comment: {},
+                    created: '2024-01-01',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                } as Transaction,
+            };
+
+            const result = getTransactionIDsForIOUAction(expenseIOUAction, reportTransactionIDs, allTransactions, true);
+
+            expect(result).toContain(transactionID);
+            expect(result).toContain(transactionWithAddPending);
         });
     });
 });

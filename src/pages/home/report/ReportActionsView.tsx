@@ -1,7 +1,7 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import useCopySelectionHelper from '@hooks/useCopySelectionHelper';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -25,6 +25,7 @@ import {
     getMostRecentIOURequestActionID,
     getOriginalMessage,
     getSortedReportActionsForDisplay,
+    getTransactionIDsForIOUAction,
     isCreatedAction,
     isDeletedParentAction,
     isIOUActionMatchingTransactionList,
@@ -117,10 +118,10 @@ function ReportActionsView({
     const prevShouldUseNarrowLayoutRef = useRef(shouldUseNarrowLayout);
     const isReportFullyVisible = useMemo((): boolean => getIsReportFullyVisible(isFocused), [isFocused]);
     const {transactions: reportTransactions} = useTransactionsAndViolationsForReport(reportID);
-    const reportTransactionIDs = useMemo(() => {
-        const allTransactions = getAllNonDeletedTransactions(reportTransactions, allReportActions ?? []);
-        return allTransactions.map((transaction) => transaction.transactionID);
-    }, [reportTransactions, allReportActions]);
+    const reportTransactionIDs = useMemo(
+        () => getAllNonDeletedTransactions(reportTransactions, allReportActions ?? []).map((transaction) => transaction.transactionID),
+        [reportTransactions, allReportActions],
+    );
 
     const lastAction = allReportActions?.at(-1);
     const isInitiallyLoadingTransactionThread = isReportTransactionThread && (!!isLoadingInitialReportActions || (allReportActions ?? [])?.length <= 1);
@@ -218,10 +219,52 @@ function ReportActionsView({
         [allReportActions, transactionThreadReportActions, transactionThreadReport?.parentReportActionID],
     );
 
-    const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
+    const expenseReportIDs = useMemo(() => {
+        const expenseReportIDSet = new Set<string>();
+        for (const reportAction of reportActions) {
+            if (!isMoneyRequestAction(reportAction)) {
+                continue;
+            }
+            const originalMessage = getOriginalMessage(reportAction);
+            const iouReportID = originalMessage?.IOUReportID;
+            if (!iouReportID) {
+                continue;
+            }
+            const iouReport = getReportOrDraftReport(iouReportID);
+            if (isExpenseReport(iouReport)) {
+                expenseReportIDSet.add(iouReportID);
+            }
+        }
+        return Array.from(expenseReportIDSet);
+    }, [reportActions]);
+
+    const expenseReportTransactionsSelector = useCallback(
+        (transactions: OnyxCollection<OnyxTypes.Transaction>) => {
+            if (!transactions || expenseReportIDs.length === 0) {
+                return {};
+            }
+            const expenseTransactions: Record<string, OnyxCollection<OnyxTypes.Transaction>> = {};
+            for (const reportID of expenseReportIDs) {
+                const filteredTransactions: OnyxCollection<OnyxTypes.Transaction> = {};
+                for (const [key, transaction] of Object.entries(transactions ?? {})) {
+                    if (transaction && transaction.reportID === reportID) {
+                        filteredTransactions[key] = transaction;
+                    }
+                }
+                expenseTransactions[reportID] = filteredTransactions;
+            }
+            return expenseTransactions;
+        },
+        [expenseReportIDs],
+    );
+
+    const [expenseReportTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: expenseReportTransactionsSelector,
+        canBeMissing: true,
+    });
 
     const visibleReportActions = useMemo(() => {
-        const filtered = reportActions.filter((reportAction) => {
+        return reportActions.filter((reportAction) => {
             const passesBasicFilters =
                 (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
                 shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction, policy);
@@ -234,46 +277,15 @@ function ReportActionsView({
                 return true;
             }
 
-            const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction) : undefined;
-            const iouReportID = originalMessage?.IOUReportID;
-            const transactionID = originalMessage?.IOUTransactionID;
-            let transactionIDsToCheck = reportTransactionIDs;
+            const originalMessage = getOriginalMessage(reportAction);
+            const iouReportID = originalMessage && 'IOUReportID' in originalMessage ? (originalMessage as OnyxTypes.OriginalMessageIOU).IOUReportID : undefined;
+            const transactionsForReport = iouReportID ? expenseReportTransactions?.[iouReportID] : undefined;
 
-            if (iouReportID && transactionID) {
-                const transactionInOnyx = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+            const transactionIDsToCheck = getTransactionIDsForIOUAction(reportAction, reportTransactionIDs, transactionsForReport, isOffline);
 
-                const iouReport = getReportOrDraftReport(iouReportID);
-                const isIOUReportExpense = isExpenseReport(iouReport);
-
-                if (isIOUReportExpense) {
-                    const expenseReportTransactions = Object.values(allTransactions ?? {}).filter((transaction) => {
-                        if (!transaction) {
-                            return false;
-                        }
-                        const matchesReportID = transaction.reportID === iouReportID;
-                        const hasValidPendingAction = !transaction.pendingAction || (isOffline && transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-
-                        return matchesReportID && hasValidPendingAction;
-                    });
-                    transactionIDsToCheck = expenseReportTransactions
-                        .map((transaction) => transaction?.transactionID)
-                        .filter((id): id is string => Boolean(id));
-
-                    if (transactionInOnyx && transactionInOnyx.reportID === iouReportID && !transactionIDsToCheck.includes(transactionID)) {
-                        const hasValidPendingAction = !transactionInOnyx.pendingAction || (isOffline && transactionInOnyx.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                        if (hasValidPendingAction) {
-                            transactionIDsToCheck.push(transactionID);
-                        }
-                    }
-                }
-            }
-
-            const matches = isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
-            return matches;
+            return isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
         });
-
-        return filtered;
-    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, policy, allTransactions]);
+    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, policy, expenseReportTransactions]);
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);

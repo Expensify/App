@@ -125,15 +125,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
         onConfirm: handleConfirm,
     };
 
-    const shouldShowLoadingPlaceholder = useMemo(() => {
-        if (isOffline) {
-            return false;
-        }
-        if (Array.isArray(eligibleTransactions)) {
-            return false;
-        }
-        return true;
-    }, [isOffline, eligibleTransactions]);
+    const shouldShowLoadingPlaceholder = !isOffline && !Array.isArray(eligibleTransactions);
 
     if (eligibleTransactions?.length === 0 || (!eligibleTransactions && !shouldShowLoadingPlaceholder && data.length === 0)) {
         return (

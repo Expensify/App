@@ -13,7 +13,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
+import type {Card, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportMetadata, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {
     JoinWorkspaceResolution,
     OriginalMessageChangeLog,
@@ -43,6 +43,7 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
+import {getReportOrDraftReport, isExpenseReport} from './ReportUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
@@ -1522,6 +1523,71 @@ const isIOUActionMatchingTransactionList = (
     const {IOUTransactionID} = getOriginalMessage(action) ?? {};
     return !!IOUTransactionID && reportTransactionIDs.includes(IOUTransactionID);
 };
+
+/**
+ * Filters transactions for an expense report and returns their transaction IDs.
+ */
+function getExpenseReportTransactionIDs(
+    allTransactions: OnyxCollection<Transaction>,
+    iouReportID: string,
+    transactionID: string | undefined,
+    isOffline: boolean,
+): string[] {
+    const expenseReportTransactions = Object.values(allTransactions ?? {}).filter((transaction) => {
+        if (!transaction) {
+            return false;
+        }
+        const matchesReportID = transaction.reportID === iouReportID;
+        const hasValidPendingAction = !transaction.pendingAction || (isOffline && transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+        return matchesReportID && hasValidPendingAction;
+    });
+
+    let transactionIDsToCheck = expenseReportTransactions.map((transaction) => transaction?.transactionID).filter((id): id is string => Boolean(id));
+
+    if (transactionID) {
+        const transactionInOnyx = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+        if (transactionInOnyx && transactionInOnyx.reportID === iouReportID && !transactionIDsToCheck.includes(transactionID)) {
+            const hasValidPendingAction = !transactionInOnyx.pendingAction || (isOffline && transactionInOnyx.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+            if (hasValidPendingAction) {
+                transactionIDsToCheck.push(transactionID);
+            }
+        }
+    }
+
+    return transactionIDsToCheck;
+}
+
+/**
+ * Determines which transaction IDs should be checked for an IOU action.
+ */
+function getTransactionIDsForIOUAction(
+    reportAction: ReportAction,
+    reportTransactionIDs: string[],
+    allTransactions: OnyxCollection<Transaction>,
+    isOffline: boolean,
+): string[] {
+    if (!isMoneyRequestAction(reportAction)) {
+        return reportTransactionIDs;
+    }
+
+    const originalMessage = getOriginalMessage(reportAction);
+    const iouReportID = originalMessage?.IOUReportID;
+    const transactionID = originalMessage?.IOUTransactionID;
+
+    if (!iouReportID || !transactionID) {
+        return reportTransactionIDs;
+    }
+
+    const iouReport = getReportOrDraftReport(iouReportID);
+    const isIOUReportExpense = isExpenseReport(iouReport);
+
+    if (isIOUReportExpense) {
+        return getExpenseReportTransactionIDs(allTransactions, iouReportID, transactionID, isOffline);
+    }
+
+    return reportTransactionIDs;
+}
 
 /**
  * Gets the report action for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
@@ -3556,6 +3622,7 @@ export {
     getAllReportActions,
     getCombinedReportActions,
     getDismissedViolationMessageText,
+    getExpenseReportTransactionIDs,
     getFirstVisibleReportActionID,
     getIOUActionForReportID,
     getIOUActionForTransactionID,
@@ -3588,6 +3655,7 @@ export {
     getSortedReportActions,
     getSortedReportActionsForDisplay,
     getTextFromHtml,
+    getTransactionIDsForIOUAction,
     getTrackExpenseActionableWhisper,
     getWhisperedTo,
     hasRequestFromCurrentAccount,
