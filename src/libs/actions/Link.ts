@@ -208,18 +208,16 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
     const internalExpensifyPath = getInternalExpensifyPath(href);
 
+    const isNarrowLayout = getIsNarrowLayout();
     const currentState = navigationRef.getRootState();
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
-    const willOpenInRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
-    const isNarrowLayout = getIsNarrowLayout();
-
-    let willOpenSameRoute = false;
-    if (isRHPOpen && willOpenInRHP) {
+    let shouldCloseRHP = false;
+    if (!isNarrowLayout && isRHPOpen) {
+        const willOpenInRHP = willRouteNavigateToRHP(internalNewExpensifyPath as Route);
         const currentRoute = Navigation.getActiveRoute();
-        willOpenSameRoute = getNormalizedRoute(currentRoute) === getNormalizedRoute(internalNewExpensifyPath);
+        const willOpenSameRoute = getNormalizedRoute(currentRoute) === getNormalizedRoute(internalNewExpensifyPath);
+        shouldCloseRHP = !willOpenInRHP || !willOpenSameRoute;
     }
-
-    const shouldCloseRHP = !isNarrowLayout && isRHPOpen && (!willOpenInRHP || !willOpenSameRoute);
 
     // There can be messages from Concierge with links to specific NewDot reports. Those URLs look like this:
     // https://www.expensify.com.dev/newdotreport?reportID=3429600449838908 and they have a target="_blank" attribute. This is so that when a user is on OldDot,
