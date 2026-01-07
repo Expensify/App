@@ -7129,6 +7129,7 @@ const translations = {
         preciseLocationRequiredModal: {
             title: 'Precise location required',
             prompt: 'Please enable "precise location" in your device settings to start GPS distance tracking.',
+        },
         desktop: {
             title: 'Track distance on your phone',
             subtitle: 'Log miles or kilometers automatically with GPS and turn trips into expenses instantly.',

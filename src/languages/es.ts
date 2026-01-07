@@ -8094,6 +8094,7 @@ ${amount} para ${merchant} - ${date}`,
         preciseLocationRequiredModal: {
             title: 'Se requiere ubicación precisa',
             prompt: 'Por favor, habilita la "ubicación precisa" en la configuración de tu dispositivo para iniciar el seguimiento de distancia por GPS.',
+        },
         desktop: {
             title: 'Registra la distancia en tu teléfono',
             subtitle: 'Registra millas o kilómetros automáticamente con GPS y convierte los viajes en gastos al instante.',
