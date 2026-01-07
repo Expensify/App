@@ -62,7 +62,7 @@ type IOURequestStepDistanceOdometerProps = WithCurrentUserPersonalDetailsProps &
 function IOURequestStepDistanceOdometer({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backToReport, isEditingFromConfirmation},
+        params: {action, iouType, reportID, transactionID, backToReport},
     },
     transaction,
     currentUserPersonalDetails,
@@ -108,7 +108,7 @@ function IOURequestStepDistanceOdometer({
     const defaultExpensePolicy = useDefaultExpensePolicy();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isEditingConfirmation = isEditingFromConfirmation === 'editing';
+    const isEditingConfirmation = action === CONST.IOU.ACTION.CREATE;
     const isCreatingNewRequest = !isEditingConfirmation && !isEditing;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
