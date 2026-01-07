@@ -415,7 +415,6 @@ ___
 ## 4. Prerequisites & Eligibility
 *To ensure proposals are measurable and based on realistic scenarios, you must meet the following criteria:*
 
-- [ ] **Experience:** I have at least **1 merged PR** in the App repository.
 - [ ] **Test Environment:** I tested on a high-traffic account (instructions to create this [here](https://github.com/Expensify/App/blob/main/contributingGuides/CONTRIBUTING.md#high-traffic-accounts)).
 - [ ] **Thresholds:** My proposal meets **at least one** of the following:
     - [ ] > 20% reduction in Render Count
