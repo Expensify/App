@@ -2,9 +2,11 @@ import {renderHook} from '@testing-library/react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import Navigation from '@libs/Navigation/Navigation';
-import {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
+import {getSecondaryText, handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
+import type {GetSecondaryTextParams} from '@libs/SettlementButtonUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {BankAccount, Policy} from '@src/types/onyx';
 
 jest.mock('@libs/Navigation/Navigation');
 
@@ -218,5 +220,292 @@ describe('useSettlementButtonPaymentMethods', () => {
         expect(result.current[CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT]).not.toHaveProperty('shouldUpdateSelectedIndex');
         expect(result.current[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]).not.toHaveProperty('shouldUpdateSelectedIndex');
         expect(result.current[CONST.IOU.PAYMENT_TYPE.ELSEWHERE].shouldUpdateSelectedIndex).toBe(false);
+    });
+});
+
+describe('getSecondaryText', () => {
+    const mockTranslateFunc = jest.fn((key: string, params?: Record<string, string>) => {
+        if (params) {
+            return `${key}:${JSON.stringify(params)}`;
+        }
+        return key;
+    });
+
+    const createDefaultParams = (overrides: Partial<GetSecondaryTextParams> = {}): GetSecondaryTextParams => ({
+        shouldUseShortForm: false,
+        lastPaymentMethod: undefined,
+        paymentButtonOptions: [{value: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, text: 'Pay'}],
+        shouldHidePaymentOptions: false,
+        shouldShowApproveButton: false,
+        onlyShowPayElsewhere: false,
+        lastPaymentPolicy: null,
+        hasIntentToPay: false,
+        isExpenseReport: false,
+        isInvoiceReport: false,
+        policy: null,
+        bankAccountToDisplay: undefined,
+        personalBankAccountList: [],
+        bankAccount: undefined,
+        translate: mockTranslateFunc,
+        ...overrides,
+    });
+
+    beforeEach(() => {
+        mockTranslateFunc.mockClear();
+    });
+
+    describe('Early returns', () => {
+        it('should return undefined when shouldUseShortForm is true', () => {
+            const result = getSecondaryText(createDefaultParams({shouldUseShortForm: true}));
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when lastPaymentMethod is ELSEWHERE', () => {
+            const result = getSecondaryText(createDefaultParams({lastPaymentMethod: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}));
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when only ELSEWHERE option is available', () => {
+            const result = getSecondaryText(
+                createDefaultParams({
+                    paymentButtonOptions: [{value: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere'}],
+                }),
+            );
+            expect(result).toBeUndefined();
+        });
+
+        it('should return undefined when shouldHidePaymentOptions and shouldShowApproveButton', () => {
+            const result = getSecondaryText(
+                createDefaultParams({
+                    shouldHidePaymentOptions: true,
+                    shouldShowApproveButton: true,
+                }),
+            );
+            expect(result).toBeUndefined();
+        });
+    });
+
+    describe('Policy-based returns', () => {
+        it('should return policy name when lastPaymentPolicy exists', () => {
+            const mockPolicy = {name: 'Test Policy'} as Policy;
+            const result = getSecondaryText(createDefaultParams({lastPaymentPolicy: mockPolicy}));
+            expect(result).toBe('Test Policy');
+        });
+    });
+
+    describe('Expense reports - the critical fix for issue #78310', () => {
+        it('should show bank account for expense report with hasIntentToPay and policy.achAccount', () => {
+            const mockPolicy = {
+                achAccount: {accountNumber: '1234567890'},
+            } as Policy;
+
+            const result = getSecondaryText(
+                createDefaultParams({
+                    isExpenseReport: true,
+                    hasIntentToPay: true,
+                    policy: mockPolicy,
+                }),
+            );
+
+            expect(result).toContain('paymentMethodList.bankAccountLastFour');
+            expect(result).toContain('7890');
+        });
+
+        it('should return undefined for expense report with hasIntentToPay but NO policy.achAccount - NEVER show Wallet', () => {
+            const result = getSecondaryText(
+                createDefaultParams({
+                    isExpenseReport: true,
+                    hasIntentToPay: true,
+                    policy: null,
+                }),
+            );
+
+            // This is the critical test - expense reports should NEVER show Wallet
+            expect(result).toBeUndefined();
+            expect(result).not.toBe('common.wallet');
+        });
+
+        it('should show bank account for expense report with VBBA payment method and policy.achAccount', () => {
+            const mockPolicy = {
+                achAccount: {accountNumber: '9876543210'},
+            } as Policy;
+
+            const result = getSecondaryText(
+                createDefaultParams({
+                    isExpenseReport: true,
+                    lastPaymentMethod: CONST.IOU.PAYMENT_TYPE.VBBA,
+                    policy: mockPolicy,
+                }),
+            );
+
+            expect(result).toContain('paymentMethodList.bankAccountLastFour');
+            expect(result).toContain('3210');
+        });
+
+        it('should return undefined for expense report when bank account has no account number', () => {
+            const mockPolicy = {
+                achAccount: {bankAccountID: 123},
+            } as Policy;
+
+            const result = getSecondaryText(
+                createDefaultParams({
+                    isExpenseReport: true,
+                    hasIntentToPay: true,
+                    policy: mockPolicy,
+                    bankAccountToDisplay: undefined,
+                }),
+            );
+
+            expect(result).toBeUndefined();
+        });
+
+        it('should use bankAccountToDisplay when policy.achAccount has no accountNumber', () => {
+            const mockPolicy = {
+                achAccount: {bankAccountID: 123},
+            } as Policy;
+            const mockBankAccount = {
+                accountData: {accountNumber: '5555666677'},
+            } as BankAccount;
+
+            const result = getSecondaryText(
+                createDefaultParams({
+                    isExpenseReport: true,
+                    hasIntentToPay: true,
+                    policy: mockPolicy,
+                    bankAccountToDisplay: mockBankAccount,
+                }),
+            );
+
+            expect(result).toContain('paymentMethodList.bankAccountLastFour');
+            expect(result).toContain('6677');
+        });
+    });
+
+    describe('Invoice reports', () => {
+        it('should show business bank account text for invoice with business bank account', () => {
+            const mockBankAccount = {
+                accountData: {
+                    type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                    accountNumber: '1111222233',
+                },
+            } as BankAccount;
+
+            const result = getSecondaryText(
+                createDefaultParams({
+                    isInvoiceReport: true,
+                    hasIntentToPay: true,
+                    bankAccountToDisplay: mockBankAccount,
+                }),
+            );
+
+            expect(result).toContain('iou.invoiceBusinessBank');
+        });
+
+        it('should show personal bank account text for invoice with personal bank account', () => {
+            const mockBankAccount = {
+                accountData: {
+                    type: CONST.BANK_ACCOUNT.TYPE.PERSONAL,
+                    accountNumber: '4444555566',
+                },
+            } as BankAccount;
+
+            const result = getSecondaryText(
+                createDefaultParams({
+                    isInvoiceReport: true,
+                    hasIntentToPay: true,
+                    bankAccountToDisplay: mockBankAccount,
+                }),
+            );
+
+            expect(result).toContain('iou.invoicePersonalBank');
+        });
+    });
+
+    describe('IOUs with Wallet', () => {
+        it('should show Wallet for IOU with EXPENSIFY payment method and personal bank accounts', () => {
+            const result = getSecondaryText(
+                createDefaultParams({
+                    isExpenseReport: false,
+                    isInvoiceReport: false,
+                    lastPaymentMethod: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                    personalBankAccountList: [{} as never],
+                }),
+            );
+
+            expect(result).toBe('common.wallet');
+        });
+
+        it('should return undefined for IOU with EXPENSIFY payment method but no personal bank accounts', () => {
+            const result = getSecondaryText(
+                createDefaultParams({
+                    isExpenseReport: false,
+                    isInvoiceReport: false,
+                    lastPaymentMethod: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                    personalBankAccountList: [],
+                }),
+            );
+
+            expect(result).toBeUndefined();
+        });
+    });
+
+    describe('Business bank account fallback', () => {
+        it('should show bank account for business bank account on expense report', () => {
+            const mockBankAccount = {
+                accountData: {
+                    type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                    accountNumber: '7777888899',
+                },
+            } as BankAccount;
+
+            const result = getSecondaryText(
+                createDefaultParams({
+                    isExpenseReport: true,
+                    bankAccount: mockBankAccount,
+                }),
+            );
+
+            expect(result).toContain('paymentMethodList.bankAccountLastFour');
+            expect(result).toContain('8899');
+        });
+    });
+
+    describe('Customer scenario from issue #78310', () => {
+        it('expense report with hasIntentToPay and configured achAccount should show bank account, NOT Wallet', () => {
+            const mockPolicy = {
+                achAccount: {
+                    bankAccountID: 2474101,
+                    accountNumber: '****1234',
+                },
+            } as Policy;
+
+            const result = getSecondaryText(
+                createDefaultParams({
+                    isExpenseReport: true,
+                    hasIntentToPay: true,
+                    policy: mockPolicy,
+                }),
+            );
+
+            // Should show bank account info
+            expect(result).toContain('paymentMethodList.bankAccountLastFour');
+            // Should NOT show Wallet
+            expect(result).not.toBe('common.wallet');
+        });
+
+        it('expense report with hasIntentToPay but NO achAccount should return undefined, NOT Wallet', () => {
+            const result = getSecondaryText(
+                createDefaultParams({
+                    isExpenseReport: true,
+                    hasIntentToPay: true,
+                    policy: {achAccount: undefined} as Policy,
+                }),
+            );
+
+            // Should return undefined (no valid payment method)
+            expect(result).toBeUndefined();
+            // Should absolutely NOT show Wallet for expense reports
+            expect(result).not.toBe('common.wallet');
+        });
     });
 });

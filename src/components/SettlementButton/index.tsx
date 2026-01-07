@@ -35,7 +35,7 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport,
 } from '@libs/ReportUtils';
-import {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
+import {getSecondaryText, handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {setPersonalBankAccountContinueKYCOnSuccess} from '@userActions/BankAccounts';
 import {approveMoneyRequest} from '@userActions/IOU';
@@ -499,55 +499,25 @@ function SettlementButton({
         return translate('iou.settlePayment', {formattedAmount});
     };
 
-    const getSecondaryText = (): string | undefined => {
-        if (
-            shouldUseShortForm ||
-            lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE ||
-            (paymentButtonOptions.length === 1 && paymentButtonOptions.every((option) => option.value === CONST.IOU.PAYMENT_TYPE.ELSEWHERE)) ||
-            (shouldHidePaymentOptions && (shouldShowApproveButton || onlyShowPayElsewhere))
-        ) {
-            return undefined;
-        }
+    const bankAccountToDisplay = hasIntentToPay ? (formattedPaymentMethods.at(0) as BankAccount) : bankAccount;
 
-        if (lastPaymentPolicy) {
-            return lastPaymentPolicy.name;
-        }
-
-        const bankAccountToDisplay = hasIntentToPay ? (formattedPaymentMethods.at(0) as BankAccount) : bankAccount;
-
-        // Handle bank account payments first (expense reports require bank account, never wallet)
-        if ((lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA || (hasIntentToPay && isExpenseReport)) && !!policy?.achAccount) {
-            if (policy?.achAccount?.accountNumber) {
-                return translate('paymentMethodList.bankAccountLastFour', policy?.achAccount?.accountNumber?.slice(-4));
-            }
-
-            if (!bankAccountToDisplay?.accountData?.accountNumber) {
-                return;
-            }
-
-            return translate('paymentMethodList.bankAccountLastFour', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4));
-        }
-
-        // Handle wallet payments for IOUs and bank account display for invoices
-        if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && isInvoiceReport)) {
-            if (isInvoiceReport) {
-                const isBusinessBankAccount = bankAccountToDisplay?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
-                return translate(isBusinessBankAccount ? 'iou.invoiceBusinessBank' : 'iou.invoicePersonalBank', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4) ?? '');
-            }
-
-            if (!personalBankAccountList.length) {
-                return;
-            }
-
-            return translate('common.wallet');
-        }
-
-        if (bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && isExpenseReportUtil(iouReport)) {
-            return translate('paymentMethodList.bankAccountLastFour', bankAccount?.accountData?.accountNumber?.slice(-4) ?? '');
-        }
-
-        return undefined;
-    };
+    const secondaryTextValue = getSecondaryText({
+        shouldUseShortForm,
+        lastPaymentMethod,
+        paymentButtonOptions,
+        shouldHidePaymentOptions,
+        shouldShowApproveButton,
+        onlyShowPayElsewhere,
+        lastPaymentPolicy,
+        hasIntentToPay,
+        isExpenseReport,
+        isInvoiceReport,
+        policy,
+        bankAccountToDisplay,
+        personalBankAccountList,
+        bankAccount,
+        translate,
+    });
 
     const handlePaymentSelection = (event: GestureResponderEvent | KeyboardEvent | undefined, selectedOption: string, triggerKYCFlow: (params: ContinueActionParams) => void) => {
         if (checkForNecessaryAction()) {
@@ -565,7 +535,7 @@ function SettlementButton({
     };
 
     const customText = getCustomText();
-    const secondaryText = truncate(getSecondaryText(), {length: CONST.FORM_CHARACTER_LIMIT});
+    const secondaryText = truncate(secondaryTextValue, {length: CONST.FORM_CHARACTER_LIMIT});
 
     const defaultSelectedIndex = paymentButtonOptions.findIndex((paymentOption) => {
         if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {

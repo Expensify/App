@@ -1,10 +1,102 @@
 import {useMemo} from 'react';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {BankAccount, Policy} from '@src/types/onyx';
+import type {OnyxEntry} from 'react-native-onyx';
+import type PaymentMethod from '@src/types/onyx/PaymentMethod';
 import Log from './Log';
 import Navigation from './Navigation/Navigation';
+
+type GetSecondaryTextParams = {
+    shouldUseShortForm: boolean;
+    lastPaymentMethod: string | undefined;
+    paymentButtonOptions: Array<DropdownOption<string>>;
+    shouldHidePaymentOptions: boolean;
+    shouldShowApproveButton: boolean;
+    onlyShowPayElsewhere: boolean | undefined;
+    lastPaymentPolicy: OnyxEntry<Policy>;
+    hasIntentToPay: boolean;
+    isExpenseReport: boolean;
+    isInvoiceReport: boolean;
+    policy: OnyxEntry<Policy>;
+    bankAccountToDisplay: BankAccount | PaymentMethod | undefined;
+    personalBankAccountList: PaymentMethod[];
+    bankAccount: BankAccount | undefined;
+    translate: LocaleContextProps['translate'];
+};
+
+/**
+ * Determines the secondary text to display on the SettlementButton based on the payment context.
+ * For expense reports, this will show the bank account info (never Wallet).
+ * For IOUs, this may show Wallet if available.
+ * For invoices, this shows the appropriate bank account type.
+ */
+function getSecondaryText({
+    shouldUseShortForm,
+    lastPaymentMethod,
+    paymentButtonOptions,
+    shouldHidePaymentOptions,
+    shouldShowApproveButton,
+    onlyShowPayElsewhere,
+    lastPaymentPolicy,
+    hasIntentToPay,
+    isExpenseReport,
+    isInvoiceReport,
+    policy,
+    bankAccountToDisplay,
+    personalBankAccountList,
+    bankAccount,
+    translate,
+}: GetSecondaryTextParams): string | undefined {
+    if (
+        shouldUseShortForm ||
+        lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE ||
+        (paymentButtonOptions.length === 1 && paymentButtonOptions.every((option) => option.value === CONST.IOU.PAYMENT_TYPE.ELSEWHERE)) ||
+        (shouldHidePaymentOptions && (shouldShowApproveButton || onlyShowPayElsewhere))
+    ) {
+        return undefined;
+    }
+
+    if (lastPaymentPolicy) {
+        return lastPaymentPolicy.name;
+    }
+
+    // Handle bank account payments first (expense reports require bank account, never wallet)
+    if ((lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA || (hasIntentToPay && isExpenseReport)) && !!policy?.achAccount) {
+        if (policy?.achAccount?.accountNumber) {
+            return translate('paymentMethodList.bankAccountLastFour', policy?.achAccount?.accountNumber?.slice(-4));
+        }
+
+        if (!bankAccountToDisplay?.accountData?.accountNumber) {
+            return undefined;
+        }
+
+        return translate('paymentMethodList.bankAccountLastFour', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4));
+    }
+
+    // Handle wallet payments for IOUs and bank account display for invoices
+    if (lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY || (hasIntentToPay && isInvoiceReport)) {
+        if (isInvoiceReport) {
+            const isBusinessBankAccount = bankAccountToDisplay?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS;
+            return translate(isBusinessBankAccount ? 'iou.invoiceBusinessBank' : 'iou.invoicePersonalBank', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4) ?? '');
+        }
+
+        if (!personalBankAccountList.length) {
+            return undefined;
+        }
+
+        return translate('common.wallet');
+    }
+
+    if (bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && isExpenseReport) {
+        return translate('paymentMethodList.bankAccountLastFour', bankAccount?.accountData?.accountNumber?.slice(-4) ?? '');
+    }
+
+    return undefined;
+}
 
 type RouteMapping = {
     /** Condition that determines if this route mapping applies to the current active route */
@@ -114,4 +206,5 @@ const useSettlementButtonPaymentMethods = (hasActivatedWallet: boolean, translat
     return paymentMethods;
 };
 
-export {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods};
+export {handleUnvalidatedUserNavigation, useSettlementButtonPaymentMethods, getSecondaryText};
+export type {GetSecondaryTextParams};
