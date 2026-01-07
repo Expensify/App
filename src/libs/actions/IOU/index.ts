@@ -4156,10 +4156,10 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
         },
     });
 
-    if (updatedReportAction) {
+    if (updatedReportAction && transactionThreadReport?.reportID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`,
             value: {
                 lastActorAccountID: updatedReportAction.actorAccountID,
             },
@@ -4451,11 +4451,13 @@ function getUpdateMoneyRequestParams(params: GetUpdateMoneyRequestParamsType): U
     }
 
     // Reset the transaction thread to its original state
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
-        value: transactionThreadReport,
-    });
+    if (transactionThreadReport?.reportID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`,
+            value: transactionThreadReport,
+        });
+    }
 
     return {
         params: apiParams,
@@ -4834,6 +4836,7 @@ function updateMoneyRequestAttendees(
         transactionID,
         transactionThreadReport,
         iouReport: parentReport,
+        transactionChanges,
         policy,
         policyTagList,
         policyCategories,
