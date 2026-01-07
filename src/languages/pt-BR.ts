@@ -189,9 +189,7 @@ import type {
     UpdatedPolicyCategoryMaxExpenseAmountParams,
     UpdatedPolicyCategoryNameParams,
     UpdatedPolicyCategoryParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
     UpdatedPolicyCurrencyParams,
-    UpdatedPolicyCustomTaxNameParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
     UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
@@ -200,7 +198,6 @@ import type {
     UpdatedPolicyDescriptionParams,
     UpdatedPolicyFieldWithNewAndOldValueParams,
     UpdatedPolicyFieldWithValueParam,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatedPolicyFrequencyParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyPreventSelfApprovalParams,
@@ -505,6 +502,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Mostrar mais',
         showLess: 'Mostrar menos',
         merchant: 'Comerciante',
+        change: 'Alterar',
         category: 'Categoria',
         report: 'Relatório',
         billable: 'Faturável',
@@ -1259,6 +1257,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `para ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `enviado${memo ? `, dizendo ${memo}` : ''}`,
         automaticallySubmitted: `enviado via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">atrasar envios</a>`,
+        queuedToSubmitViaDEW: 'enfileirado para envio via fluxo de aprovação personalizado',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `rastreamento de ${formattedAmount}${comment ? `para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividir ${formattedAmount}${comment ? `para ${comment}` : ''}`,
@@ -2365,6 +2364,21 @@ ${amount} para ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Adicione uma forma de pagamento para enviar e receber pagamentos diretamente no app.',
         defaultPaymentMethod: 'Padrão',
         bankAccountLastFour: (lastFour: string) => `Conta bancária • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Regras de despesas',
+        subtitle: 'Essas regras serão aplicadas às suas despesas. Se você enviar para um workspace, as regras do workspace poderão substituí-las.',
+        emptyRules: {title: 'Você não criou nenhuma regra', subtitle: 'Adicione uma regra para automatizar o relatório de despesas.'},
+        changes: {
+            billable: (value: boolean) => `Atualizar despesa ${value ? 'cobrável' : 'não faturável'}`,
+            category: (value: string) => `Atualizar categoria para "${value}"`,
+            comment: (value: string) => `Alterar descrição para "${value}"`,
+            merchant: (value: string) => `Atualizar comerciante para "${value}"`,
+            reimbursable: (value: boolean) => `Atualizar despesa ${value ? 'reembolsável' : 'não reembolsável'}`,
+            report: (value: string) => `Adicione um relatório chamado "${value}"`,
+            tag: (value: string) => `Atualizar etiqueta para "${value}"`,
+            tax: (value: string) => `Atualizar taxa de imposto para ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {
@@ -3859,6 +3873,8 @@ ${
             viewTransactions: 'Ver transações',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Despesas de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>As transações do Cartão Expensify serão exportadas automaticamente para uma “Conta de Responsabilidade do Cartão Expensify” criada com <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nossa integração</a>.</muted-text-label>`,
+            youCantDowngradeInvoicing:
+                'Você não pode fazer downgrade do seu plano em uma assinatura faturada. Para discutir ou fazer alterações na sua assinatura, entre em contato com o gerente da sua conta ou com o Concierge para obter ajuda.',
         },
         receiptPartners: {
             uber: {
@@ -6564,11 +6580,8 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
                 }
             }
         },
-        updateCustomTaxName: ({oldName, newName}: UpdatedPolicyCustomTaxNameParams) => `alterou o nome do imposto personalizado para "${newName}" (antes "${oldName}")`,
-        updateCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyCurrencyDefaultTaxParams) =>
-            `alterou a taxa de imposto padrão da moeda do workspace para "${newName}" (anteriormente "${oldName}")`,
-        updateForeignCurrencyDefaultTax: ({oldName, newName}: UpdatedPolicyForeignCurrencyDefaultTaxParams) =>
-            `alterou a alíquota de imposto padrão em moeda estrangeira para "${newName}" (anteriormente "${oldName}")`,
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `alterou a fórmula do nome do relatório personalizado para "${newValue}" (anteriormente "${oldValue}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -7955,6 +7968,28 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             invite: 'Convidar',
             addAdminError: 'Não foi possível adicionar este membro como administrador. Tente novamente.',
         },
+    },
+    gps: {
+        tooltip: 'Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.',
+        disclaimer: 'Use o GPS para criar uma despesa a partir da sua viagem. Toque em Iniciar abaixo para começar o rastreamento.',
+        error: {failedToStart: 'Falha ao iniciar o rastreamento de localização.', failedToGetPermissions: 'Falha ao obter as permissões de localização necessárias.'},
+        trackingDistance: 'Acompanhando a distância...',
+        stopped: 'Parado',
+        start: 'Iniciar',
+        stop: 'Parar',
+        discard: 'Descartar',
+        stopGpsTrackingModal: {
+            title: 'Parar rastreamento por GPS',
+            prompt: 'Tem certeza? Isso encerrará sua jornada atual.',
+            cancel: 'Retomar rastreamento',
+            confirm: 'Parar rastreamento por GPS',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Descartar rastreamento de distância',
+            prompt: 'Tem certeza? Isso descartará sua jornada atual e não poderá ser desfeito.',
+            confirm: 'Descartar rastreamento de distância',
+        },
+        zeroDistanceTripModal: {title: 'Não é possível criar a despesa', prompt: 'Você não pode criar uma despesa com o mesmo local de partida e de chegada.'},
     },
     desktopAppRetiredPage: {
         title: 'O app para desktop foi descontinuado',
