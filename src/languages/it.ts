@@ -3720,7 +3720,7 @@ ${
             conciergeMessage: ({domain}: {domain: string}) => `Abilitazione dei viaggi non riuscita per il dominio: ${domain}. Controlla e abilita i viaggi per questo dominio.`,
         },
         updates: {
-            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = ' ') =>
+            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = '') =>
                 `Il tuo volo ${airlineCode} (${origin} → ${destination}) del ${startDate} è stato prenotato. Codice di conferma: ${confirmationID}`,
             ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `Il tuo biglietto per il volo ${airlineCode} (${origin} → ${destination}) del ${startDate} è stato annullato.`,

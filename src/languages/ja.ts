@@ -3708,7 +3708,7 @@ ${
             conciergeMessage: ({domain}: {domain: string}) => `ドメイン ${domain} の出張機能の有効化に失敗しました。このドメインの出張機能を確認して有効にしてください。`,
         },
         updates: {
-            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = ' ') =>
+            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = '') =>
                 `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）が予約されました。確認コード：${confirmationID}`,
             ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）のチケットは無効になりました。`,

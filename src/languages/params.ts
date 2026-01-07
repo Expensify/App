@@ -475,18 +475,6 @@ type SubmittedToVacationDelegateParams = {submittedToName: string; vacationDeleg
 
 type RoleNamesParams = {role: string};
 
-type SpreadSheetColumnParams = {
-    name: string;
-};
-
-type SpreadFieldNameParams = {
-    fieldName: string;
-};
-
-type SpreadCategoriesParams = {
-    categories: number;
-};
-
 type FeatureNameParams = {
     featureName: string;
     moreFeaturesLink?: string;
@@ -518,19 +506,6 @@ type InvalidPropertyParams = {
 
 type InvalidValueParams = {
     expectedValues: string;
-};
-
-type ImportTagsSuccessfulDescriptionParams = {
-    tags: number;
-};
-
-type ImportMembersSuccessfulDescriptionParams = {
-    added: number;
-    updated: number;
-};
-
-type ImportPerDiemRatesSuccessfulDescriptionParams = {
-    rates: number;
 };
 
 type WorkspaceYouMayJoin = {
@@ -726,8 +701,6 @@ export type {
     SplitExpenseSubtitleParams,
     SplitDateRangeParams,
     TotalAmountGreaterOrLessThanOriginalParams,
-    ImportMembersSuccessfulDescriptionParams,
-    ImportTagsSuccessfulDescriptionParams,
     MissingPropertyParams,
     InvalidPropertyParams,
     InvalidValueParams,
@@ -735,9 +708,6 @@ export type {
     RemovedFromApprovalWorkflowParams,
     DemotedFromWorkspaceParams,
     FeatureNameParams,
-    SpreadSheetColumnParams,
-    SpreadFieldNameParams,
-    SpreadCategoriesParams,
     DelegateRoleParams,
     VacationDelegateParams,
     LastSyncAccountingParams,
@@ -881,7 +851,6 @@ export type {
     OptionalParam,
     WorkspaceYouMayJoin,
     WorkspaceMemberList,
-    ImportPerDiemRatesSuccessfulDescriptionParams,
     WorkspaceLockedPlanTypeParams,
     CustomUnitRateParams,
     UpdatedPolicyCurrencyParams,

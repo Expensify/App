@@ -3688,7 +3688,7 @@ const translations = {
             conciergeMessage: ({domain}: {domain: string}) => `Travel enablement failed for domain: ${domain}. Please review and enable travel for this domain.`,
         },
         updates: {
-            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = ' ') =>
+            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = '') =>
                 `Your flight ${airlineCode} (${origin} → ${destination}) on ${startDate} has been booked. Confirmation code: ${confirmationID}`,
             ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `Your ticket for flight ${airlineCode} (${origin} → ${destination}) on ${startDate} has been voided.`,

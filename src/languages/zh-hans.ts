@@ -3657,7 +3657,7 @@ ${
             conciergeMessage: ({domain}: {domain: string}) => `为域名：${domain} 启用差旅失败。请检查并为此域名启用差旅。`,
         },
         updates: {
-            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = ' ') =>
+            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = '') =>
                 `您于${startDate}的航班 ${airlineCode}（${origin} → ${destination}）已预订成功。确认代码：${confirmationID}`,
             ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `您在${startDate}乘坐的航班${airlineCode}（${origin} → ${destination}）的机票已作废。`,

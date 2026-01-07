@@ -3718,7 +3718,7 @@ ${
             conciergeMessage: ({domain}: {domain: string}) => `Reizen inschakelen is mislukt voor domein: ${domain}. Controleer dit domein en schakel reizen in.`,
         },
         updates: {
-            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = ' ') =>
+            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = '') =>
                 `Je vlucht ${airlineCode} (${origin} → ${destination}) op ${startDate} is geboekt. Bevestigingscode: ${confirmationID}`,
             ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `Je ticket voor vlucht ${airlineCode} (${origin} → ${destination}) op ${startDate} is geannuleerd.`,

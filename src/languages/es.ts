@@ -3401,7 +3401,7 @@ ${amount} para ${merchant} - ${date}`,
             conciergeMessage: ({domain}) => `Hubo un error habilitando viajes para el dominio: ${domain}. Por favor, revisa y habilita los viajes para este dominio.`,
         },
         updates: {
-            bookingTicketed: (airlineCode, origin, destination, startDate, confirmationID = ' ') =>
+            bookingTicketed: (airlineCode, origin, destination, startDate, confirmationID = '') =>
                 `Tu vuelo ${airlineCode} (${origin} → ${destination}) para el ${startDate} ha sido reservado. Código de confirmación: ${confirmationID}`,
             ticketVoided: (airlineCode, origin, destination, startDate) => `Tu billete para el vuelo ${airlineCode} (${origin} → ${destination}) del ${startDate} ha sido anulado.`,
             ticketRefunded: (airlineCode, origin, destination, startDate) =>

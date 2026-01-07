@@ -3741,7 +3741,7 @@ ${
             conciergeMessage: ({domain}: {domain: string}) => `L’activation des voyages a échoué pour le domaine : ${domain}. Veuillez vérifier et activer les voyages pour ce domaine.`,
         },
         updates: {
-            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = ' ') =>
+            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = '') =>
                 `Votre vol ${airlineCode} (${origin} → ${destination}) du ${startDate} a été réservé. Code de confirmation : ${confirmationID}`,
             ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `Votre billet pour le vol ${airlineCode} (${origin} → ${destination}) le ${startDate} a été annulé.`,
