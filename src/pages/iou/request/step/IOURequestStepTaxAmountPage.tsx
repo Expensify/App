@@ -9,7 +9,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import {setDraftSplitTransaction, setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount, updateMoneyRequestTaxAmount} from '@libs/actions/IOU';
-import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {calculateTaxAmount, getAmount, getDefaultTaxCode, getTaxValue, getTaxAmount as getTransactionTaxAmount} from '@libs/TransactionUtils';
@@ -47,7 +47,7 @@ function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Pol
 
 function IOURequestStepTaxAmountPage({
     route: {
-        params: {action, iouType, reportID, transactionID, backTo, currency: selectedCurrency = ''},
+        params: {action, iouType, reportID, transactionID, backTo},
     },
     transaction,
     report,
@@ -71,7 +71,7 @@ function IOURequestStepTaxAmountPage({
 
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionDetails = getTransactionDetails(currentTransaction);
-    const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : transactionDetails?.currency;
+    const currency = transactionDetails?.currency;
 
     useFocusEffect(
         useCallback(() => {
@@ -87,23 +87,6 @@ function IOURequestStepTaxAmountPage({
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
-    };
-
-    const navigateToCurrencySelectionPage = () => {
-        // If the expense being created is a distance expense, don't allow the user to choose the currency.
-        // Only USD is allowed for distance expenses.
-        // Remove query from the route and encode it.
-        Navigation.navigate(
-            ROUTES.MONEY_REQUEST_STEP_CURRENCY.getRoute(
-                CONST.IOU.ACTION.CREATE,
-                iouType,
-                transactionID,
-                reportID,
-                backTo ? 'confirm' : '',
-                currency,
-                Navigation.getActiveRouteWithoutParams(),
-            ),
-        );
     };
 
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
@@ -176,7 +159,8 @@ function IOURequestStepTaxAmountPage({
                 ref={(e) => {
                     textInput.current = e;
                 }}
-                onCurrencyButtonPress={navigateToCurrencySelectionPage}
+                // onCurrencyButtonPress is intentionally left empty as currency selection is not allowed on this page
+                onCurrencyButtonPress={() => {}}
                 onSubmitButtonPress={updateTaxAmount}
                 isCurrencyPressable={false}
                 chatReportID={reportID}
