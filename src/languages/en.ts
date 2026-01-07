@@ -1,4 +1,4 @@
- import {CONST as COMMON_CONST} from 'expensify-common';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import type {OnboardingTask} from '@libs/actions/Welcome/OnboardingFlow';
 import StringUtils from '@libs/StringUtils';
