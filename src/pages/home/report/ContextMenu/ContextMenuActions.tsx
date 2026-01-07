@@ -266,7 +266,7 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
               | 'Flag'
               | 'Bug'
               | 'Trashcan'
-              | 'QuestionMark'
+              | 'Concierge'
           >;
     successTextTranslateKey?: TranslationPaths;
     successIcon?:
@@ -288,7 +288,7 @@ type ContextMenuActionWithIcon = WithSentryLabel & {
               | 'Bug'
               | 'Trashcan'
               | 'ThreeDots'
-              | 'QuestionMark'
+              | 'Concierge'
           >;
     onPress: OnPress;
     getDescription: GetDescription;
@@ -406,7 +406,7 @@ const ContextMenuActions: ContextMenuAction[] = [
     {
         isAnonymousAction: false,
         textTranslateKey: 'reportActionContextMenu.explain',
-        icon: 'QuestionMark',
+        icon: 'Concierge',
         shouldShow: ({type, reportAction, isArchivedRoom}): boolean => {
             if (type !== CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || isArchivedRoom || !reportAction) {
                 return false;

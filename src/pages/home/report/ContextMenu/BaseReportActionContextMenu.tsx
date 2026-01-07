@@ -151,6 +151,7 @@ function BaseReportActionContextMenu({
         'QuestionMark',
         'Trashcan',
         'Checkmark',
+        'Concierge',
     ] as const);
     const StyleUtils = useStyleUtils();
     const {translate, getLocalDateFromDatetime} = useLocalize();
