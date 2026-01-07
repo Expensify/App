@@ -68,6 +68,7 @@ function SplitList({data, initiallyFocusedOptionKey, onSelectRow, listFooterCont
             style={{containerStyle: styles.flexBasisAuto}}
             listFooterContent={listFooterContent}
             shouldPreventDefaultFocusOnSelectRow
+            shouldScrollToFocusedIndex={false}
             shouldSingleExecuteRowSelect
             disableKeyboardShortcuts
             canSelectMultiple={false}
