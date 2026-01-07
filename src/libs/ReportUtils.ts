@@ -290,6 +290,7 @@ import {
     getCategory,
     getCurrency,
     getDescription,
+    getDistanceInMeters,
     getFormattedCreated,
     getFormattedPostedDate,
     getMCCGroup,
@@ -5028,9 +5029,8 @@ function getTransactionReportName({
         return translateLocal('iou.fieldPending');
     }
 
-    // If a map distance request has no route (the distance is zero) the merchant would be empty
-    // Using the merchant is easier than explicitly checking for distance
-    if (isMapDistanceRequest(transaction) && !getMerchant(transaction)) {
+    // The unit does not matter as we are only interested in whether the distance is zero or not
+    if (isMapDistanceRequest(transaction) && !getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return translateLocal('violations.noRoute');
     }
