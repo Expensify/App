@@ -68,6 +68,7 @@ import {
     getOriginalTransactionWithSplitInfo,
     hasReceipt as hasReceiptTransactionUtils,
     hasSmartScanFailedViolation,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isOnHold as isOnHoldTransactionUtils,
@@ -735,6 +736,11 @@ function isDuplicateAction(report: Report, reportTransactions: Transaction[]): b
     }
 
     const reportTransaction = reportTransactions.at(0);
+
+    // Distance expenses will be handled separately in a follow-up
+    if (isDistanceRequestTransactionUtils(reportTransaction)) {
+        return false;
+    }
 
     // We can't duplicate per diem expenses that don't have start & end dates.
     const dates = reportTransaction?.comment?.customUnit?.attributes?.dates;
