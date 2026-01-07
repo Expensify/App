@@ -153,7 +153,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
 
     // Clear cached dimensions and reset loading states when URI changes to ensure the new image get fresh dimensions
     useEffect(() => {
-        if (previousUri === uri) {
+        if (previousUri === uri || !previousUri || !uri) {
             return;
         }
         // Clear the content size state to force recalculation of dimensions
