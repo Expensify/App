@@ -2254,7 +2254,7 @@ describe('actions/Policy', () => {
                     waitForCollectionCallback: false,
                     callback: (policyTags) => {
                         Onyx.disconnect(connection);
-                        const tagList = Object.values(policyTags ?? {})[0];
+                        const tagList = Object.values(policyTags ?? {}).at(0);
                         const newTag = tagList?.tags?.[newTagName];
                         expect(newTag?.name).toBe(newTagName);
                         resolve();
