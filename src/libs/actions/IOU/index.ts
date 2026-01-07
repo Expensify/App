@@ -918,14 +918,6 @@ Onyx.connect({
     },
 });
 
-let lastDistanceExpenseTypeValue: ValueOf<typeof CONST.IOU.REQUEST_TYPE> | undefined;
-Onyx.connect({
-    key: ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE,
-    callback: (value) => {
-        lastDistanceExpenseTypeValue = value;
-    },
-});
-
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
