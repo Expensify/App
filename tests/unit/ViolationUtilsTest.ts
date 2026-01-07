@@ -18,6 +18,7 @@ jest.mock('@libs/actions/Report', () => ({
 const categoryOutOfPolicyViolation = {
     name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
     type: CONST.VIOLATION_TYPES.VIOLATION,
+    showInReview: true,
 };
 
 const missingCategoryViolation = {
