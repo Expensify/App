@@ -6113,7 +6113,9 @@ function getSearchReportName(props: GetReportNameParams): string {
         const visitedReportIDs = new Set<string>();
 
         while (currentParent) {
-            // Prevent infinite loops in case of circular references
+            if (!currentParent.reportID) {
+                break;
+            }
             if (visitedReportIDs.has(currentParent.reportID)) {
                 break;
             }
