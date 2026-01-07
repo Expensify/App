@@ -89,10 +89,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                 errors[firstNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
             } else if (firstName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                 // @ts-expect-error type mismatch to be fixed
-                errors[firstNameInputID] = translate('common.error.characterLimitExceedCounter', {
-                    length: firstName.length,
-                    limit: CONST.LEGAL_NAME.MAX_LENGTH,
-                });
+                errors[firstNameInputID] = translate('common.error.characterLimitExceedCounter', firstName.length, CONST.LEGAL_NAME.MAX_LENGTH);
             }
 
             if (doesContainReservedWord(firstName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
@@ -109,10 +106,7 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
                 errors[lastNameInputID] = translate('privatePersonalDetails.error.hasInvalidCharacter');
             } else if (lastName.length > CONST.LEGAL_NAME.MAX_LENGTH) {
                 // @ts-expect-error type mismatch to be fixed
-                errors[lastNameInputID] = translate('common.error.characterLimitExceedCounter', {
-                    length: lastName.length,
-                    limit: CONST.LEGAL_NAME.MAX_LENGTH,
-                });
+                errors[lastNameInputID] = translate('common.error.characterLimitExceedCounter', lastName.length, CONST.LEGAL_NAME.MAX_LENGTH);
             }
 
             if (doesContainReservedWord(lastName, CONST.DISPLAY_NAME.RESERVED_NAMES)) {
