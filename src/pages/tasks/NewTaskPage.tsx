@@ -43,6 +43,7 @@ function NewTaskPage({route}: NewTaskPageProps) {
         getPersonalDetailsForAccountIDs(task?.assigneeAccountID ? [task.assigneeAccountID] : [], personalDetails),
         false,
         localeCompare,
+        formatPhoneNumber,
     );
     const shareDestination = useMemo(
         () => (task?.shareDestination ? getShareDestination(task.shareDestination, reports, personalDetails, localeCompare) : undefined),

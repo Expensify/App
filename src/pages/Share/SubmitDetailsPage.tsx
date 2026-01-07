@@ -12,6 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GpsPoint} from '@libs/actions/IOU';
@@ -58,12 +59,17 @@ function SubmitDetailsPage({
     const [currentDate] = useOnyx(ONYXKEYS.CURRENT_DATE, {canBeMissing: true});
     const [validFilesToUpload] = useOnyx(ONYXKEYS.VALIDATED_FILE_OBJECT, {canBeMissing: true});
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
+    const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${getIOURequestPolicyID(transaction, report)}`, {canBeMissing: true});
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const shouldUsePreValidatedFile = shouldValidateFile(currentAttachment);
     const isLinkedTrackedExpenseReportArchived = useReportIsArchived(transaction?.linkedTrackedExpenseReportID);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES, {canBeMissing: true});
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const personalPolicy = usePersonalPolicy();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
@@ -89,6 +95,7 @@ function SubmitDetailsPage({
         initMoneyRequest({
             reportID: reportOrAccountID,
             policy,
+            personalPolicy,
             currentIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             newIouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
             report,
@@ -97,7 +104,7 @@ function SubmitDetailsPage({
             currentUserPersonalDetails,
             hasOnlyPersonalPolicies,
         });
-    }, [reportOrAccountID, policy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
+    }, [reportOrAccountID, policy, personalPolicy, report, parentReport, currentDate, currentUserPersonalDetails, hasOnlyPersonalPolicies]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const participants = selectedParticipants.map((participant) =>
@@ -141,13 +148,17 @@ function SubmitDetailsPage({
                     isLinkedTrackedExpenseReportArchived,
                 },
                 isASAPSubmitBetaEnabled,
+                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
+                activePolicyID,
+                introSelected,
                 quickAction,
             });
         } else {
             requestMoney({
                 report,
                 participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
-                policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedCategories},
+                policyParams: {policy, policyTagList: policyTags, policyCategories, policyRecentlyUsedCategories, policyRecentlyUsedTags},
                 gpsPoint,
                 action: CONST.IOU.TYPE.CREATE,
                 transactionParams: {
@@ -174,6 +185,7 @@ function SubmitDetailsPage({
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
                 transactionViolations,
+                policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             });
         }
     };

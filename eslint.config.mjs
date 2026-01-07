@@ -66,6 +66,11 @@ const restrictedImportPaths = [
         message: "Please use 'ViewStyle', 'TextStyle', 'ImageStyle' from 'react-native' instead.",
     },
     {
+        name: 'react',
+        importNames: ['forwardRef'],
+        message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
+    },
+    {
         name: '@styles/index',
         importNames: ['default', 'defaultStyles'],
         message: 'Do not import styles directly. Please use the `useThemeStyles` hook instead.',
@@ -325,6 +330,10 @@ const config = defineConfig([
                 {
                     selector: 'TSEnumDeclaration',
                     message: "Please don't declare enums, use union types instead.",
+                },
+                {
+                    selector: 'CallExpression[callee.object.name="React"][callee.property.name="forwardRef"]',
+                    message: 'forwardRef is deprecated. Please use ref as a prop instead. See: contributingGuides/STYLE.md#forwarding-refs',
                 },
                 {
                     selector: 'CallExpression[callee.name="getUrlWithBackToParam"]',
@@ -615,6 +624,7 @@ const config = defineConfig([
         'src/languages/pl.ts',
         'src/languages/pt-BR.ts',
         'src/languages/zh-hans.ts',
+        'desktop/**/*',
     ]),
 ]);
 

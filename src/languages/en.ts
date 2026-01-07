@@ -112,7 +112,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestCountParams,
     RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
@@ -494,6 +493,7 @@ const translations = {
         showMore: 'Show more',
         showLess: 'Show less',
         merchant: 'Merchant',
+        change: 'Change',
         category: 'Category',
         report: 'Report',
         billable: 'Billable',
@@ -1198,20 +1198,6 @@ const translations = {
         yourCompanyWebsiteNote: "If you don't have a website, you can provide your company's LinkedIn or social media profile instead.",
         invalidDomainError: 'You have entered an invalid domain. To continue, please enter a valid domain.',
         publicDomainError: 'You have entered a public domain. To continue, please enter a private domain.',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} scanning`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} pending`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 expense (${statusText.join(', ')})` : `1 expense`,
-                other: (count: number) => (statusText.length > 0 ? `${count} expenses (${statusText.join(', ')})` : `${count} expenses`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 expense',
@@ -1255,6 +1241,7 @@ const translations = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `submitted${memo ? `, saying ${memo}` : ''}`,
         automaticallySubmitted: `submitted via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">delay submissions</a>`,
+        queuedToSubmitViaDEW: 'queued to submit via custom approval workflow',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `tracking ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `split ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `split ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
@@ -1994,8 +1981,8 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'For security purposes, Xero requires two-factor authentication to connect the integration.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Two-factor authentication required',
         twoFactorAuthIsRequiredForAdminsTitle: 'Please enable two-factor authentication',
-        twoFactorAuthIsRequiredXero: 'Your Xero accounting connection requires the use of two-factor authentication. To continue using Expensify, please enable it.',
-        twoFactorAuthIsRequiredCompany: 'Your company requires the use of two-factor authentication. To continue using Expensify, please enable it.',
+        twoFactorAuthIsRequiredXero: 'Your Xero accounting connection requires two-factor authentication.',
+        twoFactorAuthIsRequiredCompany: 'Your company requires two-factor authentication.',
         twoFactorAuthCannotDisable: 'Cannot disable 2FA',
         twoFactorAuthRequired: 'Two-factor authentication (2FA) is required for your Xero connection and cannot be disabled.',
     },
@@ -2265,7 +2252,25 @@ const translations = {
     },
     workflowsApproverPage: {
         genericErrorMessage: "The approver couldn't be changed. Please try again or contact support.",
-        header: 'Send to this member for approval:',
+        title: 'Set approver',
+        description: 'This person will approve the expenses.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Approver',
+        header: '(Optional) Want to add an approval limit?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Add another approver when <strong>${approverName}</strong> is approver and report exceeds the amount below:`
+                : 'Add another approver when a report exceeds the amount below:',
+        reportAmountLabel: 'Report amount',
+        additionalApproverLabel: 'Additional approver',
+        skip: 'Skip',
+        next: 'Next',
+        removeLimit: 'Remove limit',
+        enterAmountError: 'Please enter a valid amount',
+        enterApproverError: 'Approver is required when you set a report limit',
+        enterBothError: 'Enter a report amount and additional approver',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Reports above ${approvalLimit} forward to ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Authorized payer',
@@ -2343,6 +2348,24 @@ const translations = {
         addFirstPaymentMethod: 'Add a payment method to send and receive payments directly in the app.',
         defaultPaymentMethod: 'Default',
         bankAccountLastFour: (lastFour: string) => `Bank Account • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Expense rules',
+        subtitle: 'These rules will apply to your expenses. If you submit to a workspace, then the workspace rules may override them.',
+        emptyRules: {
+            title: "You haven't created any rules",
+            subtitle: 'Add a rule to automate expense reporting.',
+        },
+        changes: {
+            billable: (value: boolean) => `Update expense ${value ? 'billable' : 'non-billable'}`,
+            category: (value: string) => `Update category to "${value}"`,
+            comment: (value: string) => `Change description to "${value}"`,
+            merchant: (value: string) => `Update merchant to "${value}"`,
+            reimbursable: (value: boolean) => `Update expense ${value ? 'reimbursable' : 'non-reimbursable'}`,
+            report: (value: string) => `Add a report named "${value}"`,
+            tag: (value: string) => `Update tag to "${value}"`,
+            tax: (value: string) => `Update tax rate to "${value}"`,
+        },
     },
     preferencesPage: {
         appSection: {
@@ -3838,13 +3861,14 @@ const translations = {
                 monthly: 'Monthly',
             },
             planType: 'Plan type',
+            youCantDowngradeInvoicing:
+                "You can't downgrade your plan on an invoiced subscription. To discuss or make changes to your subscription, reach out to your account manager or Concierge for help.",
             defaultCategory: 'Default category',
             viewTransactions: 'View transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `${displayName}'s expenses`,
             deepDiveExpensifyCard: `<muted-text-label>Expensify Card transactions will automatically export to an "Expensify Card Liability Account" created with <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">our integration</a>.</muted-text-label>`,
         },
         receiptPartners: {
-            connect: 'Connect now',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Connected to ${organizationName}` : 'Automate travel and meal delivery expenses across your organization.',
@@ -3871,8 +3895,6 @@ const translations = {
                 invitationFailure: 'Failed to invite member to Uber for Business',
                 autoInvite: 'Invite new workspace members to Uber for Business',
                 autoRemove: 'Deactivate removed workspace members from Uber for Business',
-                bannerTitle: 'Expensify + Uber for Business',
-                bannerDescription: 'Connect Uber for Business to automate travel and meal delivery expenses across your organization.',
                 emptyContent: {
                     title: 'No outstanding invites',
                     subtitle: 'Huzzah! We looked high and low and couldn’t find any outstanding invites.',
@@ -4739,13 +4761,11 @@ const translations = {
                 '<muted-text><centered-text>Or something might be broken. Either way, if you have any questions, just <concierge-link>contact Concierge</concierge-link>.</centered-text></muted-text>',
             chooseTransactionStartDate: 'Choose a transaction start date',
             startDateDescription: "Choose your import start date. We'll sync all transactions from this date onwards.",
-
             fromTheBeginning: 'From the beginning',
             customStartDate: 'Custom start date',
             customCloseDate: 'Custom close date',
-            letsDoubleCheck: 'Let’s double check that everything looks right.',
-            confirmationDescription: 'We’ll begin importing transactions immediately.',
-            cardholder: 'Cardholder',
+            letsDoubleCheck: "Let's double check that everything looks right.",
+            confirmationDescription: "We'll begin importing transactions immediately.",
             card: 'Card',
             cardName: 'Card name',
             brokenConnectionError: '<rbr>Card feed connection is broken. Please <a href="#">log into your bank</a> so we can establish the connection again.</rbr>',
@@ -5165,7 +5185,7 @@ const translations = {
                 title: "You haven't created any tags",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Add a tag to track projects, locations, departments, and more.',
-                subtitleHTML: `<muted-text><centered-text>Import a spreadsheet to add tags for tracking projects, locations, departments, and more. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Learn more</a> about formatting tag files.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Add tags to track projects, locations, departments, and more. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Learn more</a> about formatting tag files for import.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>Your tags are currently importing from an accounting connection. Head over to <a href="${accountingPageURL}">accounting</a> to make any changes.</centered-text></muted-text>`,
             },
@@ -6326,6 +6346,8 @@ const translations = {
         updateDefaultBillable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultReimbursable: ({oldValue, newValue}: UpdatedPolicyFieldWithNewAndOldValueParams) => `updated "Cash expense default" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultTitleEnforced: ({value}: UpdatedPolicyFieldWithValueParam) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `changed the custom report name formula to "${newValue}" (previously "${oldValue}")`,
         renamedWorkspaceNameAction: ({oldName, newName}: RenamedWorkspaceNameActionParams) => `updated the name of this workspace to "${newName}" (previously "${oldName}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}: UpdatedPolicyDescriptionParams) =>
             !oldDescription
@@ -7064,6 +7086,39 @@ const translations = {
         },
         error: {
             selectSuggestedAddress: 'Please select a suggested address or use current location',
+        },
+    },
+    gps: {
+        tooltip: "GPS tracking in progress! When you're done, stop tracking below.",
+        disclaimer: 'Use GPS to create an expense from your journey. Tap Start below to begin tracking.',
+        error: {
+            failedToStart: 'Failed to start location tracking.',
+            failedToGetPermissions: 'Failed to get required location permissions.',
+        },
+        trackingDistance: 'Tracking distance...',
+        stopped: 'Stopped',
+        start: 'Start',
+        stop: 'Stop',
+        discard: 'Discard',
+        stopGpsTrackingModal: {
+            title: 'Stop GPS tracking',
+            prompt: 'Are you sure? This will end your current journey.',
+            cancel: 'Resume tracking',
+            confirm: 'Stop GPS tracking',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Discard distance tracking',
+            prompt: "Are you sure? This will discard your current journey and can't be undone.",
+            confirm: 'Discard distance tracking',
+        },
+        zeroDistanceTripModal: {
+            title: "Can't create expense",
+            prompt: "You can't create an expense with the same start and stop location.",
+        },
+        desktop: {
+            title: 'Track distance on your phone',
+            subtitle: 'Log miles or kilometers automatically with GPS and turn trips into expenses instantly.',
+            button: 'Download the app',
         },
     },
     reportCardLostOrDamaged: {

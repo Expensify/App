@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Currency, CurrencyList, Locale} from '@src/types/onyx';
+import type {CurrencyList, Locale} from '@src/types/onyx';
 import {format, formatToParts} from './NumberFormatUtils';
 
 let currencyList: OnyxValues[typeof ONYXKEYS.CURRENCY_LIST] = {};
@@ -29,11 +29,6 @@ Onyx.connect({
 function getCurrencyDecimals(currency: string = CONST.CURRENCY.USD): number {
     const decimals = currencyList?.[currency]?.decimals;
     return decimals ?? 2;
-}
-
-function getCurrency(currency: string = CONST.CURRENCY.USD): Currency | null {
-    const currencyItem = currencyList?.[currency];
-    return currencyItem;
 }
 
 /**
@@ -235,6 +230,5 @@ export {
     convertToDisplayStringWithoutCurrency,
     isValidCurrencyCode,
     convertToShortDisplayString,
-    getCurrency,
     sanitizeCurrencyCode,
 };
