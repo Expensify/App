@@ -791,6 +791,7 @@ function IOURequestStepScan({
         cameraPermissionStatus,
         didCapturePhoto,
         isMultiScanEnabled,
+        askForPermissions,
         translate,
         showBlink,
         flash,

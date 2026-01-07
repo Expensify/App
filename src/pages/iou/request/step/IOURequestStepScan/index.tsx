@@ -621,7 +621,6 @@ function IOURequestStepScan({
             policy,
             personalPolicy?.autoReporting,
             selfDMReportID,
-            policyRecentlyUsedCurrencies,
         ],
     );
 
