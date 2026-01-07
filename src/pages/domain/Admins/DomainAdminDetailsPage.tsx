@@ -118,6 +118,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
                             {!domainHasOnlyOneAdmin && (
                                 <MenuItem
                                     disabled={isCurrentUserPrimaryContact}
+                                    hintText={isCurrentUserPrimaryContact ? translate('domain.admins.cantRevokeAdminAccess') : undefined}
                                     style={styles.mb5}
                                     title={translate('domain.admins.revokeAdminAccess')}
                                     icon={icons.ClosedSign}

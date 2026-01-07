@@ -18,7 +18,6 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {clearRemoveAdminError} from '@libs/actions/Domain';
 import {getLatestError} from '@libs/ErrorUtils';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
@@ -27,7 +26,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@navigation/types';
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
-import {clearAddAdminError} from '@userActions/Domain';
+import {clearAdminError} from '@userActions/Domain';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -70,8 +69,6 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
         canBeMissing: false,
         selector: technicalContactSettingsSelector,
     });
-    const [domainErrors] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {canBeMissing: true});
-    const [domainPendingActions] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {canBeMissing: true});
 
     const currentUserAccountID = getCurrentUserAccountID();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
@@ -96,7 +93,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
             ],
             rightElement: isPrimaryContact && <Badge text={translate('domain.admins.primaryContact')} />,
             errors: getLatestError(domainErrors?.adminErrors?.[accountID]?.errors),
-            pendingAction: domainPendingActions?.admin?.[accountID]?.pendingAction,
+            pendingAction: domainPendingAction?.[accountID]?.pendingAction,
         });
     }
 
@@ -194,7 +191,7 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
                     showScrollIndicator={false}
                     addBottomSafeAreaPadding
                     customListHeader={getCustomListHeader()}
-                    onDismissError={(item: AdminOption) => clearAddAdminError(domainAccountID, item.accountID)}
+                    onDismissError={(item: AdminOption) => clearAdminError(domainAccountID, item.accountID)}
                 />
             </ScreenWrapper>
         </DomainNotFoundPageWrapper>
