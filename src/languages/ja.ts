@@ -1852,6 +1852,8 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Sentryリクエストをコンソールに記録',
             sentryHighlightedSpanOps: 'ハイライト表示するspan名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            leftHandNavCache: '左側ナビキャッシュ',
+            clearleftHandNavCache: 'クリア',
         },
         debugConsole: {
             saveLog: 'ログを保存',

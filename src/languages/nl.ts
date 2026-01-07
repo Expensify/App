@@ -1852,6 +1852,8 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Sentry-verzoeken naar console loggen',
             sentryHighlightedSpanOps: 'Geresalteerde spannamen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            leftHandNavCache: 'Cache van linkernavigatie',
+            clearleftHandNavCache: 'Wissen',
         },
         debugConsole: {
             saveLog: 'Log opslaan',

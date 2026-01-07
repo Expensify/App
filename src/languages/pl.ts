@@ -1849,6 +1849,8 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Rejestruj żądania Sentry w konsoli',
             sentryHighlightedSpanOps: 'Nazwy wyróżnionych spanów',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            leftHandNavCache: 'Pamięć podręczna lewego panelu nawigacyjnego',
+            clearleftHandNavCache: 'Wyczyść',
         },
         debugConsole: {
             saveLog: 'Zapisz log',

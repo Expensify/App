@@ -1825,6 +1825,8 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: '将Sentry请求记录到控制台',
             sentryHighlightedSpanOps: '突出显示的Span名称',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            leftHandNavCache: '左侧导航缓存',
+            clearleftHandNavCache: '清除',
         },
         debugConsole: {
             saveLog: '保存日志',

@@ -1860,6 +1860,8 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Enregistrer les requêtes Sentry dans la console',
             sentryHighlightedSpanOps: 'Noms de spans mis en valeur',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            leftHandNavCache: 'Cache de navigation gauche',
+            clearleftHandNavCache: 'Effacer',
         },
         debugConsole: {
             saveLog: 'Enregistrer le journal',
