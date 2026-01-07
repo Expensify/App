@@ -1,11 +1,10 @@
 import 'core-js/proposals/promise-with-resolvers';
 import React, {Suspense, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 import {Document, ensurePdfJsInitialized, Thumbnail} from '@components/PDF';
 import useThemeStyles from '@hooks/useThemeStyles';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
-import CONST from '@src/CONST';
 import PDFThumbnailError from './PDFThumbnailError';
 import type PDFThumbnailProps from './types';
 
@@ -30,7 +29,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const loadingIndicator = useMemo(() => <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />, []);
+    const loadingIndicator = useMemo(() => <LoadingIndicator />, []);
 
     const handleOnLoad = useCallback(() => {
         setFailedToLoad(false);
@@ -89,5 +88,7 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
         </View>
     );
 }
+
+PDFThumbnail.displayName = 'PDFThumbnail';
 
 export default React.memo(PDFThumbnail);

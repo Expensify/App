@@ -3,7 +3,7 @@ import 'core-js/features/array/at';
 import type {CSSProperties} from 'react';
 import React, {memo, Suspense, useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 import {PDFPreviewer} from '@components/PDF';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import useLocalize from '@hooks/useLocalize';
@@ -91,13 +91,15 @@ function PDFView({onToggleKeyboard, fileName, onPress, isFocused, sourceURL, sty
 
     const loadingIndicator = useMemo(
         () => (
-            <View
-                style={
-                    isUsedAsChatAttachment && [styles.chatItemPDFAttachmentLoading, StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT), styles.pRelative]
-                }
-            >
-                <ActivityIndicator size="large" />
-            </View>
+             <LoadingIndicator
+                    style={
+                        isUsedAsChatAttachment && [
+                            styles.chatItemPDFAttachmentLoading,
+                            StyleUtils.getWidthAndHeightStyle(LOADING_THUMBNAIL_WIDTH, LOADING_THUMBNAIL_HEIGHT),
+                            styles.pRelative,
+                        ]
+                    }
+                />
         ),
         [StyleUtils, isUsedAsChatAttachment, styles.chatItemPDFAttachmentLoading, styles.pRelative],
     );
