@@ -4,7 +4,6 @@ import type ChatListItem from '@components/SelectionListWithSections/ChatListIte
 import type TransactionGroupListItem from '@components/SelectionListWithSections/Search/TransactionGroupListItem';
 import type TransactionListItem from '@components/SelectionListWithSections/Search/TransactionListItem';
 import type {ReportActionListItemType, TaskListItemType, TransactionGroupListItemType, TransactionListItemType} from '@components/SelectionListWithSections/types';
-import type {IOURequestType} from '@libs/actions/IOU';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
 import type {BankName} from './Bank';
@@ -14,6 +13,7 @@ import type Policy from './Policy';
 import type Report from './Report';
 import type ReportAction from './ReportAction';
 import type ReportNameValuePairs from './ReportNameValuePairs';
+import type Transaction from './Transaction';
 import type {TransactionViolation} from './TransactionViolation';
 
 /** Types of search data */
@@ -68,123 +68,6 @@ type SearchResultsInfo = {
 
 /** The action that can be performed for the transaction */
 type SearchTransactionAction = ValueOf<typeof CONST.SEARCH.ACTION_TYPES>;
-
-/** Model of transaction search result
- *
- * @deprecated - Use Transaction instead
- */
-type SearchTransaction = {
-    /** The ID of the transaction */
-    transactionID: string;
-
-    /** The transaction created date */
-    created: string;
-
-    /** The edited transaction created date */
-    modifiedCreated: string;
-
-    /** The transaction amount */
-    amount: number;
-
-    /** If the transaction can be deleted */
-    canDelete: boolean;
-
-    /** The edited transaction amount */
-    modifiedAmount: number;
-
-    /** The transaction currency */
-    currency: string;
-
-    /** The edited transaction currency */
-    modifiedCurrency: string;
-
-    /** The transaction merchant */
-    merchant: string;
-
-    /** The edited transaction merchant */
-    modifiedMerchant: string;
-
-    /** The receipt object */
-    receipt?: {
-        /** Source of the receipt */
-        source?: string;
-
-        /** State of the receipt */
-        state?: ValueOf<typeof CONST.IOU.RECEIPT_STATE>;
-
-        /** The name of the file of the receipt */
-        filename?: string;
-    };
-
-    /** The transaction tag */
-    tag: string;
-
-    /** The transaction description */
-    comment?: {
-        /** Content of the transaction description */
-        comment?: string;
-
-        /** The HOLD report action ID if the transaction is on hold */
-        hold?: string;
-    };
-
-    /** The transaction category */
-    category: string;
-
-    /** The ID of the parent of the transaction */
-    parentTransactionID?: string;
-
-    /** If the transaction has an Ereceipt */
-    hasEReceipt?: boolean;
-
-    /** Used during the creation flow before the transaction is saved to the server */
-    iouRequestType?: IOURequestType;
-
-    /** The transaction tax amount */
-    taxAmount?: number;
-
-    /** The ID of the report the transaction is associated with */
-    reportID: string;
-
-    /** The policyID of the report */
-    policyID?: string;
-
-    /** The MCC Group associated with the transaction */
-    mccGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
-
-    /** The modified MCC Group associated with the transaction */
-    modifiedMCCGroup?: ValueOf<typeof CONST.MCC_GROUPS>;
-
-    /** Whether the transaction has violations or errors */
-    errors?: OnyxCommon.Errors;
-
-    /** The type of action that's pending  */
-    pendingAction?: OnyxCommon.PendingAction;
-
-    /** The CC for this transaction */
-    cardID?: number;
-
-    /** The display name of the purchaser card, if any */
-    cardName?: string;
-
-    /** The transaction converted amount in `groupCurrency` currency */
-    groupAmount?: number;
-
-    /** The group currency if the transaction is grouped. Defaults to the active policy currency if group has no target currency */
-    groupCurrency?: string;
-
-    /** The exchange rate of the transaction if the transaction is grouped. Defaults to the exchange rate against the active policy currency if group has no target currency */
-    groupExchangeRate?: number;
-
-    /** Reimbursable status of the transaction */
-    reimbursable?: boolean;
-
-    /** Billable status of the transaction */
-    billable?: boolean;
-
-    /** The card transaction's posted date */
-    posted?: string;
-};
 
 /** Model of tasks search result */
 type SearchTask = {
@@ -299,8 +182,7 @@ type SearchResults = {
     search: SearchResultsInfo;
 
     /** Search results data */
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, SearchTransaction> &
+    data: PrefixedRecord<typeof ONYXKEYS.COLLECTION.TRANSACTION, Transaction> &
         Record<typeof ONYXKEYS.PERSONAL_DETAILS_LIST, Record<string, PersonalDetails>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction>> &
         PrefixedRecord<typeof ONYXKEYS.COLLECTION.REPORT, Report> &
@@ -318,16 +200,4 @@ type SearchResults = {
 
 export default SearchResults;
 
-export type {
-    ListItemType,
-    ListItemDataType,
-    SearchTask,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    SearchTransaction,
-    SearchTransactionAction,
-    SearchDataTypes,
-    SearchResultsInfo,
-    SearchMemberGroup,
-    SearchCardGroup,
-    SearchWithdrawalIDGroup,
-};
+export type {ListItemType, ListItemDataType, SearchTask, SearchTransactionAction, SearchDataTypes, SearchResultsInfo, SearchMemberGroup, SearchCardGroup, SearchWithdrawalIDGroup};

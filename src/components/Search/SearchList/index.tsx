@@ -120,8 +120,14 @@ type SearchListProps = Pick<FlashListProps<SearchListItem>, 'onScroll' | 'conten
     /** Violations indexed by transaction ID */
     violations?: Record<string, TransactionViolations | undefined> | undefined;
 
+    /** Custom card names */
+    customCardNames?: Record<number, string>;
+
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
 
     /** Selected transactions for determining isSelected state */
     selectedTransactions: SelectedTransactions;
@@ -175,7 +181,9 @@ function SearchList({
     isMobileSelectionModeEnabled,
     newTransactions = [],
     violations,
+    customCardNames,
     onDEWModalOpen,
+    isDEWBetaEnabled,
     selectedTransactions,
     ref,
 }: SearchListProps) {
@@ -400,6 +408,7 @@ function SearchList({
                         groupBy={groupBy}
                         searchType={type}
                         onDEWModalOpen={onDEWModalOpen}
+                        isDEWBetaEnabled={isDEWBetaEnabled}
                         userWalletTierName={userWalletTierName}
                         isUserValidated={isUserValidated}
                         personalDetails={personalDetails}
@@ -407,6 +416,7 @@ function SearchList({
                         accountID={accountID}
                         isOffline={isOffline}
                         violations={violations}
+                        customCardNames={customCardNames}
                         onFocus={onFocus}
                         newTransactionID={newTransactionID}
                     />
@@ -441,6 +451,8 @@ function SearchList({
             isOffline,
             violations,
             onDEWModalOpen,
+            isDEWBetaEnabled,
+            customCardNames,
         ],
     );
 
@@ -500,6 +512,7 @@ function SearchList({
                 contentContainerStyle={contentContainerStyle}
                 newTransactions={newTransactions}
                 selectedTransactions={selectedTransactions}
+                customCardNames={customCardNames}
             />
             <Modal
                 isVisible={isModalVisible}
