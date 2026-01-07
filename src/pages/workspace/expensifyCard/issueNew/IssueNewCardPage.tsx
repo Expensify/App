@@ -49,7 +49,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const {currentStep} = issueNewCard ?? {};
     const backTo = route?.params?.backTo;
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector, canBeMissing: true});
+    const [isDelegateAccessRestricted] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isDelegateAccessRestrictedSelector, canBeMissing: true});
     const stepNames = issueNewCard?.isChangeAssigneeDisabled ? CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES : CONST.EXPENSIFY_CARD.STEP_NAMES;
     const startStepIndex = useMemo(() => getStartStepIndex(issueNewCard), [issueNewCard]);
 
