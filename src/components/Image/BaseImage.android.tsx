@@ -23,6 +23,7 @@ function BaseImage({onLoad, source, ...props}: BaseImageProps) {
     useEffect(() => {
         isLoadedRef.current = false;
     }, [source]);
+
     const imageLoadedSuccessfully = useCallback(
         (event: ImageLoadEventData) => {
             setAttachmentLoaded(source as AttachmentSource, true);
