@@ -66,19 +66,19 @@ function IOURequestStepAttendees({
         if (!deepEqual(previousAttendees, attendees)) {
             setMoneyRequestAttendees(transactionID, attendees, !isEditing);
             if (isEditing) {
-                updateMoneyRequestAttendees(
+                updateMoneyRequestAttendees({
                     transactionID,
-                    report,
+                    transactionThreadReport: report,
                     parentReport,
                     attendees,
                     policy,
-                    policyTags,
+                    policyTagList: policyTags,
                     policyCategories,
-                    transactionViolations ?? undefined,
+                    violations: transactionViolations ?? undefined,
                     currentUserAccountIDParam,
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
-                );
+                });
             }
         }
 

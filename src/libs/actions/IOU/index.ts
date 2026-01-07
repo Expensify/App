@@ -4808,19 +4808,31 @@ function updateMoneyRequestMerchant(
 }
 
 /** Updates the attendees list of an expense */
-function updateMoneyRequestAttendees(
-    transactionID: string,
-    transactionThreadReport: OnyxEntry<OnyxTypes.Report>,
-    parentReport: OnyxEntry<OnyxTypes.Report>,
-    attendees: Attendee[],
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    violations: OnyxEntry<OnyxTypes.TransactionViolations> | undefined,
-    currentUserAccountIDParam: number,
-    currentUserEmailParam: string,
-    isASAPSubmitBetaEnabled: boolean,
-) {
+function updateMoneyRequestAttendees({
+    transactionID,
+    transactionThreadReport,
+    parentReport,
+    attendees,
+    policy,
+    policyTagList,
+    policyCategories,
+    violations,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    isASAPSubmitBetaEnabled,
+}: {
+    transactionID: string;
+    transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
+    parentReport: OnyxEntry<OnyxTypes.Report>;
+    attendees: Attendee[];
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+    violations: OnyxEntry<OnyxTypes.TransactionViolations> | undefined;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    isASAPSubmitBetaEnabled: boolean;
+}) {
     const transactionChanges: TransactionChanges = {
         attendees,
     };
