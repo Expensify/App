@@ -79,7 +79,7 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     personalDetails?: PersonalDetailsList;
     currentUserLogin?: string;
     currentUserAccountID: number;
-    backTo: Route;
+    backTo?: Route;
     backToReport?: string;
     shouldSkipConfirmation: boolean;
     defaultExpensePolicy?: OnyxEntry<Policy> | null;
@@ -598,3 +598,4 @@ function handleMoneyRequestStepDistanceNavigation({
 }
 
 export {createTransaction, handleMoneyRequestStepScanParticipants, handleMoneyRequestStepDistanceNavigation};
+export type {MoneyRequestStepScanParticipantsFlowParams, MoneyRequestStepDistanceNavigationParams};
