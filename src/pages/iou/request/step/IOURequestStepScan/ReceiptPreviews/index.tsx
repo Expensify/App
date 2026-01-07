@@ -5,9 +5,9 @@ import type {FlatList as FlatListType} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import FlatList from '@components/FlatList';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Image from '@components/Image';
 import {PressableWithFeedback} from '@components/Pressable';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
@@ -32,6 +32,7 @@ type ReceiptPreviewsProps = {
 };
 
 function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -133,7 +134,7 @@ function ReceiptPreviews({submit, isMultiScanEnabled}: ReceiptPreviewsProps) {
                         large
                         isDisabled={!optimisticTransactionsReceipts?.length}
                         innerStyles={[styles.singleAvatarMedium, styles.bgGreenSuccess]}
-                        icon={Expensicons.ArrowRight}
+                        icon={icons.ArrowRight}
                         iconFill={theme.white}
                         onPress={submit}
                     />

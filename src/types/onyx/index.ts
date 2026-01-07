@@ -7,6 +7,7 @@ import type {ApprovalWorkflowOnyx} from './ApprovalWorkflow';
 import type {AssignCard, AssignCardData} from './AssignCard';
 import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
+import type BankAccountShareDetails from './BankAccountShareDetails';
 import type Beta from './Beta';
 import type BetaConfiguration from './BetaConfiguration';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
@@ -36,6 +37,7 @@ import type DomainErrors from './DomainErrors';
 import type DomainPendingActions from './DomainPendingActions';
 import type Download from './Download';
 import type DuplicateWorkspace from './DuplicateWorkspace';
+import type ExpenseRule from './ExpenseRule';
 import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type ExportTemplate from './ExportTemplate';
@@ -109,10 +111,12 @@ import type ReviewDuplicates from './ReviewDuplicates';
 import type {SaveSearch} from './SaveSearch';
 import type ScheduleCallDraft from './ScheduleCallDraft';
 import type ScreenShareRequest from './ScreenShareRequest';
+import type SearchContext from './SearchContext';
 import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
+import type ShareBankAccount from './ShareBankAccount';
 import type ShareTempFile from './ShareTempFile';
 import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
@@ -164,6 +168,7 @@ export type {
     WorkspaceCardsList,
     FailedCompanyCardAssignment,
     FailedCompanyCardAssignments,
+    ExpenseRule,
     ExpensifyCardSettings,
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
@@ -209,6 +214,7 @@ export type {
     PolicyTagLists,
     PrivatePersonalDetails,
     QuickAction,
+    ShareBankAccount,
     RecentWaypoint,
     RecentlyUsedCategories,
     RecentlyUsedTags,
@@ -278,7 +284,9 @@ export type {
     DomainSettings,
     SaveSearch,
     RecentSearchItem,
+    SearchContext,
     ImportedSpreadsheet,
+    BankAccountShareDetails,
     ImportedSpreadsheetMemberData,
     Onboarding,
     OnboardingPurpose,

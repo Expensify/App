@@ -186,7 +186,7 @@ function Section({
                         />
                     )}
                     <View style={[styles.flexShrink1, styles.w100]}>
-                        {renderTitle ? renderTitle() : <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>}
+                        {renderTitle ? renderTitle() : !!title && <Text style={[styles.textHeadline, styles.cardSectionTitle, titleStyles]}>{title}</Text>}
                     </View>
                     {cardLayout === CARD_LAYOUT.ICON_ON_RIGHT && (
                         <IconSection
