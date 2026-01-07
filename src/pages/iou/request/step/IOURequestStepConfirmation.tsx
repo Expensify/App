@@ -243,6 +243,7 @@ function IOURequestStepConfirmation({
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const isManualDistanceRequest = isManualDistanceRequestTransactionUtils(transaction);
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
+    const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest ? (transaction?.comment?.customUnit?.quantity ?? undefined) : undefined;
     const isPerDiemRequest = requestType === CONST.IOU.REQUEST_TYPE.PER_DIEM;
     const [lastLocationPermissionPrompt] = useOnyx(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, {canBeMissing: true});
     const {
@@ -809,7 +810,6 @@ function IOURequestStepConfirmation({
             if (!transaction) {
                 return;
             }
-            const transactionDistance = isManualDistanceRequest || isOdometerDistanceRequest ? (transaction.comment?.customUnit?.quantity ?? undefined) : undefined;
 
             createDistanceRequestIOUActions({
                 report,
@@ -866,6 +866,7 @@ function IOURequestStepConfirmation({
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,
             isManualDistanceRequest,
+            transactionDistance,
             transactionTaxCode,
             transactionTaxAmount,
             customUnitRateID,
