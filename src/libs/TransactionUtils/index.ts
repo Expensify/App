@@ -21,6 +21,7 @@ import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import Permissions from '@libs/Permissions';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
     getCommaSeparatedTagNameWithSanitizedColons,
@@ -53,6 +54,7 @@ import type {IOUType} from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
+    Beta,
     CardList,
     OnyxInputOrEntry,
     Policy,
@@ -71,8 +73,6 @@ import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {
     Comment,
     Receipt,
@@ -125,6 +125,12 @@ type BuildOptimisticTransactionParams = {
     isDemoTransactionParam?: boolean;
 };
 
+let allBetas: OnyxEntry<Beta[]>;
+Onyx.connectWithoutView({
+    key: ONYXKEYS.BETAS,
+    callback: (value) => (allBetas = value),
+});
+
 let deprecatedAllReports: OnyxCollection<Report> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -141,7 +147,7 @@ Onyx.connect({
     callback: (value) => (deprecatedAllTransactionViolations = value),
 });
 
-function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction>): boolean {
+function hasDistanceCustomUnit(transaction: OnyxEntry<Transaction> | Partial<Transaction>): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_DISTANCE;
@@ -197,6 +203,11 @@ function isScanRequest(transaction: OnyxEntry<Transaction> | Partial<Transaction
         return transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.SCAN;
     }
 
+    // Distance requests can have a receipt source (for the map), so we need to exclude them
+    if (hasDistanceCustomUnit(transaction)) {
+        return false;
+    }
+
     return !!transaction?.receipt?.source && transaction?.amount === 0;
 }
 
@@ -210,6 +221,10 @@ function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
     const type = transaction?.comment?.type;
     const customUnitName = transaction?.comment?.customUnit?.name;
     return type === CONST.TRANSACTION.TYPE.CUSTOM_UNIT && customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
+}
+
+function isTimeRequest(transaction: OnyxEntry<Transaction>): boolean {
+    return transaction?.comment?.type === CONST.TRANSACTION.TYPE.TIME;
 }
 
 function isCorporateCardTransaction(transaction: OnyxEntry<Transaction>): boolean {
@@ -273,6 +288,10 @@ function getTransactionType(transaction: OnyxEntry<Transaction>, cardList?: Card
 
     if (customUnitName === CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL) {
         return CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM;
+    }
+
+    if (isTimeRequest(transaction)) {
+        return CONST.SEARCH.TRANSACTION_TYPE.TIME;
     }
 
     const cardID = transaction?.cardID;
@@ -396,6 +415,8 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         lodashSet(commentJSON, 'customUnit', customUnit);
     }
 
+    const isManualTransaction = !isPerDiemTransaction && !isMapDistanceTransaction && !isManualDistanceTransaction && !splitExpenses && !receipt?.source;
+
     return {
         ...(!isEmptyObject(pendingFields) ? {pendingFields} : {}),
         transactionID,
@@ -403,7 +424,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         currency,
         reportID,
         comment: commentJSON,
-        merchant: merchant || CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        merchant: merchant || (isManualTransaction ? CONST.TRANSACTION.DEFAULT_MERCHANT : CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT),
         created: created || DateUtils.getDBTime(),
         pendingAction,
         receipt: receipt?.source
@@ -447,9 +468,10 @@ function isDemoTransaction(transaction: OnyxInputOrEntry<Transaction>): boolean 
 
 function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
     if (transaction?.modifiedMerchant && transaction.modifiedMerchant !== '') {
-        return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+        return transaction.modifiedMerchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction.modifiedMerchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
     }
-    const isMerchantEmpty = transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === '';
+    const isMerchantEmpty =
+        transaction?.merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || transaction?.merchant === CONST.TRANSACTION.DEFAULT_MERCHANT || transaction?.merchant === '';
 
     return isMerchantEmpty;
 }
@@ -475,7 +497,20 @@ function isPartialMerchant(merchant: string): boolean {
 }
 
 function isAmountMissing(transaction: OnyxEntry<Transaction>) {
-    return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
+    if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
+        return transaction?.amount === undefined && (!transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
+    }
+    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
+}
+
+function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
+    if (!transaction) {
+        return false;
+    }
+    if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
+        return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '';
+    }
+    return transaction?.modifiedAmount !== undefined && transaction?.modifiedAmount !== null && transaction?.modifiedAmount !== '' && transaction?.modifiedAmount !== 0;
 }
 
 function isPartial(transaction: OnyxEntry<Transaction>): boolean {
@@ -496,6 +531,9 @@ function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, reportTrans
         (participant) => deprecatedAllReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`]?.isOwnPolicyExpenseChat,
     );
     const isMerchantRequired = isFromExpenseReport || isSplitPolicyExpenseChat;
+    if (Permissions.isBetaEnabled(CONST.BETAS.ZERO_EXPENSES, allBetas)) {
+        return (isMerchantRequired && isMerchantMissing(transaction)) || isCreatedMissing(transaction);
+    }
     return (isMerchantRequired && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
 
@@ -752,8 +790,8 @@ function getDescription(transaction: OnyxInputOrEntry<Transaction>): string {
 function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport = false, isFromTrackedExpense = false, allowNegative = false, disableOppositeConversion = false): number {
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport && !isFromTrackedExpense && !allowNegative) {
-        const amount = transaction?.modifiedAmount ?? 0;
-        if (amount) {
+        const amount = Number(transaction?.modifiedAmount) ?? 0;
+        if (hasValidModifiedAmount(transaction)) {
             return Math.abs(amount);
         }
         return Math.abs(transaction?.amount ?? 0);
@@ -766,8 +804,8 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
     // Expense report case:
     // The amounts are stored using an opposite sign and negative values can be set,
     // we need to return an opposite sign than is saved in the transaction object
-    let amount = transaction?.modifiedAmount ?? 0;
-    if (amount) {
+    let amount = Number(transaction?.modifiedAmount) ?? 0;
+    if (hasValidModifiedAmount(transaction)) {
         return -amount;
     }
 
@@ -830,6 +868,25 @@ function getCurrency(transaction: OnyxInputOrEntry<Transaction>): string {
 }
 
 /**
+ * Determines if a transaction's convertedAmount should be cleared when moving to a different currency workspace.
+ * The convertedAmount is calculated for the source workspace's currency, so it becomes stale when:
+ * 1. Source and destination workspace currencies differ, AND
+ * 2. The transaction's currency doesn't match the destination currency
+ *
+ * Transactions that match the destination currency can keep their convertedAmount since no conversion is needed.
+ */
+function shouldClearConvertedAmount(transaction: OnyxInputOrEntry<Transaction>, sourceCurrency: string | undefined, destinationCurrency: string | undefined): boolean {
+    if (!sourceCurrency || !destinationCurrency || sourceCurrency === destinationCurrency) {
+        return false;
+    }
+
+    const transactionCurrency = getCurrency(transaction);
+    const transactionMatchesDestination = transactionCurrency === destinationCurrency;
+
+    return !transactionMatchesDestination;
+}
+
+/**
  * Return the original currency field from the transaction.
  */
 function getOriginalCurrency(transaction: Transaction): string {
@@ -852,9 +909,9 @@ function getOriginalAmount(transaction: Transaction): number {
 function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmount' | 'amount' | 'modifiedAmount'>, isExpenseReport: boolean): number {
     /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     if (isExpenseReport) {
-        return -((transaction.originalAmount || transaction.amount || transaction.modifiedAmount) ?? 0);
+        return -((transaction.originalAmount || transaction.amount || Number(transaction.modifiedAmount)) ?? 0);
     }
-    return getOriginalAmount(transaction as Transaction) || Math.abs(transaction.amount ?? 0) || Math.abs(transaction.modifiedAmount ?? 0);
+    return getOriginalAmount(transaction as Transaction) || Math.abs(transaction.amount ?? 0) || Math.abs(Number(transaction.modifiedAmount ?? 0));
     /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 }
 
@@ -1268,8 +1325,7 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>, r
  * Get all transaction violations of the transaction with given transactionID.
  */
 function getTransactionViolations(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transaction: OnyxEntry<Transaction | SearchTransaction>,
+    transaction: OnyxEntry<Transaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -1314,8 +1370,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
  * Check if there is broken connection violation.
  */
 function hasBrokenConnectionViolation(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transaction: Transaction | SearchTransaction,
+    transaction: Transaction,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -1456,8 +1511,7 @@ function shouldShowViolation(
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
 function allHavePendingRTERViolation(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transactions: OnyxEntry<Transaction[] | SearchTransaction[]>,
+    transactions: OnyxEntry<Transaction[]>,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -1491,8 +1545,7 @@ function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, sho
  * Check if there is any transaction without RTER violation within the given transactionIDs.
  */
 function hasAnyTransactionWithoutRTERViolation(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transactions: Transaction[] | SearchTransaction[],
+    transactions: Transaction[],
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -2375,6 +2428,19 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, reports
 }
 
 /**
+ * Determines whether a report should display the expense breakdown.
+ */
+function shouldShowExpenseBreakdown(transactions?: Transaction[]): boolean {
+    if (!transactions || transactions.length === 0) {
+        return false;
+    }
+
+    // Show breakdown if there is ANY non-reimbursable expense.
+    // If there are no non-reimbursable expenses (i.e., all are reimbursable), do not show the breakdown.
+    return transactions.some((transaction) => !getReimbursable(transaction));
+}
+
+/**
  * Creates sections data for unreported expenses, marking transactions with DELETE pending action as disabled
  */
 function createUnreportedExpenses(transactions: Array<Transaction | undefined>): UnreportedExpenseListItemType[] {
@@ -2456,6 +2522,7 @@ export {
     getTaxAmount,
     getTaxCode,
     getCurrency,
+    shouldClearConvertedAmount,
     getDistanceInMeters,
     getCardID,
     getOriginalCurrency,
@@ -2499,6 +2566,7 @@ export {
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
     hasPendingRTERViolation,
+    hasValidModifiedAmount,
     allHavePendingRTERViolation,
     hasPendingUI,
     getWaypointIndex,
@@ -2559,6 +2627,8 @@ export {
     shouldReuseInitialTransaction,
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
+    shouldShowExpenseBreakdown,
+    isTimeRequest,
 };
 
 export type {TransactionChanges};
