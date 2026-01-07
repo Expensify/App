@@ -87,7 +87,16 @@ describe('actions/PolicyCategory', () => {
             mockFetch?.pause?.();
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-            createPolicyCategory(fakePolicy.id, newCategoryName, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID, false, undefined);
+            createPolicyCategory({
+                policyID: fakePolicy.id,
+                categoryName: newCategoryName,
+                isSetupCategoriesTaskParentReportArchived: false,
+                setupCategoryTaskReport: undefined,
+                setupCategoryTaskParentReport: undefined,
+                currentUserAccountID: CONST.DEFAULT_NUMBER_ID,
+                hasOutstandingChildTask: false,
+                parentReportAction: undefined,
+            });
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
