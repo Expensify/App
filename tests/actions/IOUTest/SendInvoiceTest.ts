@@ -10,7 +10,7 @@ import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, RecentlyUsedCategories, Report} from '@src/types/onyx';
+import type {PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {Participant as IOUParticipant} from '@src/types/onyx/IOU';
 import type {InvoiceReceiver} from '@src/types/onyx/Report';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -613,6 +613,47 @@ describe('actions/SendInvoice', () => {
             );
 
             writeSpy.mockRestore();
+        });
+
+        it('should update policyRecentlyUsedTags when tag is provided', async () => {
+            // Given a transaction with a tag
+            const policyID = 'A';
+            const transactionTag = 'new tag';
+            const transaction: Transaction = {
+                ...createRandomTransaction(1),
+                tag: transactionTag,
+                participants: [{isSender: true, policyID}],
+            };
+            const tagName = 'Tag';
+            const policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags> = {
+                [tagName]: ['old tag'],
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {
+                [tagName]: {name: tagName},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`, policyRecentlyUsedTags);
+
+            // When sending an invoice
+            sendInvoice({
+                currentUserAccountID: 1,
+                transaction,
+                policyRecentlyUsedCurrencies: [],
+                policyRecentlyUsedTags,
+            });
+            waitForBatchedUpdates();
+
+            // Then the transaction tag should be added to the recently used tags collection
+            const newPolicyRecentlyUsedTags: RecentlyUsedTags = await new Promise((resolve) => {
+                const connection = Onyx.connectWithoutView({
+                    key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`,
+                    callback: (recentlyUsedTags) => {
+                        resolve(recentlyUsedTags ?? {});
+                        Onyx.disconnect(connection);
+                    },
+                });
+            });
+            expect(newPolicyRecentlyUsedTags[tagName].length).toBe(2);
+            expect(newPolicyRecentlyUsedTags[tagName].at(0)).toBe(transactionTag);
         });
     });
     describe('Invoice recipient change while offline', () => {
