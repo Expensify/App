@@ -624,7 +624,6 @@ function addActions(report: OnyxEntry<Report>, notifyReportID: string, ancestors
         parameters.isOldDotConciergeChat = true;
     }
 
-    // Capture page HTML when sending from side panel to Concierge or admins room
     if (isInSidePanel && (isConciergeChatReport(report) || isAdminRoom(report))) {
         const pageHTML = capturePageHTML();
         if (pageHTML) {
