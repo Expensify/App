@@ -208,7 +208,19 @@ function SidebarOrderedReportsContextProvider({
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes, reportsDrafts, clearCacheDummyCounter]);
+    }, [
+        getUpdatedReports,
+        chatReports,
+        derivedCurrentReportID,
+        priorityMode,
+        betas,
+        policies,
+        transactionViolations,
+        reportNameValuePairs,
+        reportAttributes,
+        reportsDrafts,
+        clearCacheDummyCounter,
+    ]);
 
     const deepComparedReportsToDisplayInLHN = useDeepCompareRef(reportsToDisplayInLHN);
     const deepComparedReportsDrafts = useDeepCompareRef(reportsDrafts);
@@ -242,7 +254,7 @@ function SidebarOrderedReportsContextProvider({
     const clearCache = useCallback(() => {
         Log.info('[useSidebarOrderedReports] Clearing sidebar cache manually via debug modal');
         setCurrentReportsToDisplay({});
-        setClearCacheDummyCounter(current => current + 1)
+        setClearCacheDummyCounter((current) => current + 1);
     }, []);
 
     const contextValue: SidebarOrderedReportsContextValue = useMemo(() => {
