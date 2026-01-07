@@ -1312,6 +1312,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: '结束日期不能与开始日期相同',
             odometerReadingRequired: '请输入起始读数和结束读数',
             negativeDistanceNotAllowed: '结束读数必须大于开始读数',
+            invalidReadings: '请输入开始和结束读数',
         },
         dismissReceiptError: '忽略错误',
         dismissReceiptErrorConfirmation: '提醒！关闭此错误会完全删除你上传的收据。确定要继续吗？',
@@ -2245,10 +2246,7 @@ ${amount}，商户：${merchant} - ${date}`,
         title: '来自的报销',
         header: '当以下成员提交报销时：',
     },
-    workflowsApproverPage: {
-        genericErrorMessage: '无法更改审批人。请重试或联系支持。',
-        header: '发送给该成员以供审批：',
-    },
+    workflowsApproverPage: {genericErrorMessage: '无法更改审批人。请重试或联系支持。', header: '发送给此成员以供审批：'},
     workflowsPayerPage: {
         title: '授权付款人',
         genericErrorMessage: '无法更改授权付款人。请重试。',
@@ -7015,12 +7013,7 @@ ${reportName}
         error: {
             selectSuggestedAddress: '请选择一个建议地址或使用当前位置',
         },
-        odometer: {
-            startReading: '开始阅读',
-            endReading: '结束阅读',
-            saveForLater: '稍后保存',
-            totalDistance: '总距离',
-        },
+        odometer: {startReading: '开始阅读', endReading: '结束阅读', saveForLater: '稍后保存', totalDistance: '总距离'},
     },
     reportCardLostOrDamaged: {
         screenTitle: '成绩单遗失或损坏',

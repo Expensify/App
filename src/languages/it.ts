@@ -1335,6 +1335,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La data di fine non può essere uguale alla data di inizio',
             odometerReadingRequired: 'Inserisci sia la lettura iniziale che quella finale',
             negativeDistanceNotAllowed: 'La lettura finale deve essere maggiore della lettura iniziale',
+            invalidReadings: 'Inserisci sia la lettura iniziale che quella finale',
         },
         dismissReceiptError: 'Ignora errore',
         dismissReceiptErrorConfirmation: 'Attenzione! Se ignori questo errore, la ricevuta caricata verrà rimossa completamente. Sei sicuro?',
@@ -2282,10 +2283,7 @@ ${amount} per ${merchant} - ${date}`,
         title: 'Spese da',
         header: 'Quando i seguenti membri inviano note spese:',
     },
-    workflowsApproverPage: {
-        genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.",
-        header: 'Invia a questo membro per approvazione:',
-    },
+    workflowsApproverPage: {genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.", header: 'Invia a questo membro per approvazione:'},
     workflowsPayerPage: {
         title: 'Pagatore autorizzato',
         genericErrorMessage: 'Non è stato possibile modificare il pagatore autorizzato. Riprova.',
@@ -7184,12 +7182,7 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         error: {
             selectSuggestedAddress: 'Seleziona un indirizzo suggerito o usa la posizione attuale',
         },
-        odometer: {
-            startReading: 'Inizia a leggere',
-            endReading: 'Fine lettura',
-            saveForLater: 'Salva per dopo',
-            totalDistance: 'Distanza totale',
-        },
+        odometer: {startReading: 'Inizia a leggere', endReading: 'Termina lettura', saveForLater: 'Salva per dopo', totalDistance: 'Distanza totale'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Pagella smarrita o danneggiata',

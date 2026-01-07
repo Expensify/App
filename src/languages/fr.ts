@@ -1341,6 +1341,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La date de fin ne peut pas être identique à la date de début',
             odometerReadingRequired: 'Veuillez saisir les relevés de début et de fin',
             negativeDistanceNotAllowed: 'La valeur de fin doit être supérieure à la valeur de début',
+            invalidReadings: 'Veuillez saisir à la fois les relevés de début et de fin',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera entièrement votre reçu téléchargé. Êtes-vous sûr ?',
@@ -2293,10 +2294,7 @@ ${amount} pour ${merchant} - ${date}`,
         title: 'Dépenses de',
         header: 'Lorsque les membres suivants soumettent des dépenses :',
     },
-    workflowsApproverPage: {
-        genericErrorMessage: 'Le valideur n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
-        header: 'Envoyer à ce membre pour approbation :',
-    },
+    workflowsApproverPage: {genericErrorMessage: 'Le valideur n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.', header: 'Envoyer à ce membre pour approbation :'},
     workflowsPayerPage: {
         title: 'Payeur autorisé',
         genericErrorMessage: 'Le payeur autorisé n’a pas pu être modifié. Veuillez réessayer.',
@@ -7210,12 +7208,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         error: {
             selectSuggestedAddress: 'Veuillez sélectionner une adresse suggérée ou utiliser la position actuelle',
         },
-        odometer: {
-            startReading: 'Commencer la lecture',
-            endReading: 'Terminer la lecture',
-            saveForLater: 'Enregistrer pour plus tard',
-            totalDistance: 'Distance totale',
-        },
+        odometer: {startReading: 'Commencer la lecture', endReading: 'Terminer la lecture', saveForLater: 'Enregistrer pour plus tard', totalDistance: 'Distance totale'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Bulletin perdu ou endommagé',

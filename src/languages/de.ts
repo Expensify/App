@@ -1339,7 +1339,8 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateBeforeStartDate: 'Das Enddatum darf nicht vor dem Startdatum liegen',
             endDateSameAsStartDate: 'Das Enddatum darf nicht mit dem Startdatum identisch sein',
             odometerReadingRequired: 'Bitte geben Sie sowohl Start- als auch Endstand ein',
-            negativeDistanceNotAllowed: 'Endstand muss größer als Startstand sein',
+            negativeDistanceNotAllowed: 'Endwert muss größer als Startwert sein',
+            invalidReadings: 'Bitte geben Sie sowohl Anfangs- als auch Endstand ein',
         },
         dismissReceiptError: 'Fehler ausblenden',
         dismissReceiptErrorConfirmation: 'Achtung! Wenn du diesen Fehler verwirfst, wird dein hochgeladener Beleg vollständig entfernt. Bist du sicher?',
@@ -2292,7 +2293,7 @@ ${amount} für ${merchant} – ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Der Genehmiger konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
-        header: 'Zur Genehmigung an dieses Mitglied senden:',
+        header: 'An dieses Mitglied zur Genehmigung senden:',
     },
     workflowsPayerPage: {
         title: 'Autorisierter Zahler',
@@ -7200,12 +7201,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         error: {
             selectSuggestedAddress: 'Bitte wählen Sie eine vorgeschlagene Adresse aus oder verwenden Sie den aktuellen Standort',
         },
-        odometer: {
-            startReading: 'Lesen starten',
-            endReading: 'Lesen beenden',
-            saveForLater: 'Für später speichern',
-            totalDistance: 'Gesamtstrecke',
-        },
+        odometer: {startReading: 'Lesen starten', endReading: 'Lesen beenden', saveForLater: 'Für später speichern', totalDistance: 'Gesamtdistanz'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Zeugnis verloren oder beschädigt',

@@ -1005,7 +1005,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: 'Assinatura',
         domains: 'Domínios',
     },
-    tabSelector: {chat: 'Chat', room: 'Sala', distance: 'Distância', manual: 'Manual', scan: 'Escanear', map: 'Mapa', gps: 'GPS', odometer: 'Hodômetro'},
+    tabSelector: {chat: 'Chat', room: 'Sala', distance: 'Distância', manual: 'Manual', scan: 'Escanear', map: 'Mapa', gps: 'GPS', odometer: 'Odômetro'},
     spreadsheet: {
         upload: 'Enviar uma planilha',
         import: 'Importar planilha',
@@ -1331,6 +1331,7 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'A data de término não pode ser igual à data de início',
             odometerReadingRequired: 'Insira as leituras de início e de fim',
             negativeDistanceNotAllowed: 'A leitura final deve ser maior que a leitura inicial',
+            invalidReadings: 'Insira as leituras de início e de fim',
         },
         dismissReceiptError: 'Dispensar erro',
         dismissReceiptErrorConfirmation: 'Atenção! Ignorar este erro removerá completamente o seu recibo enviado. Tem certeza?',
@@ -2276,10 +2277,7 @@ ${amount} para ${merchant} - ${date}`,
         title: 'Despesas de',
         header: 'Quando os seguintes membros enviarem despesas:',
     },
-    workflowsApproverPage: {
-        genericErrorMessage: 'O aprovador não pôde ser alterado. Tente novamente ou entre em contato com o suporte.',
-        header: 'Enviar para este membro para aprovação:',
-    },
+    workflowsApproverPage: {genericErrorMessage: 'O aprovador não pôde ser alterado. Tente novamente ou entre em contato com o suporte.', header: 'Enviar para este membro para aprovação:'},
     workflowsPayerPage: {
         title: 'Pagador autorizado',
         genericErrorMessage: 'O pagador autorizado não pôde ser alterado. Tente novamente.',
@@ -7163,12 +7161,7 @@ Exija detalhes de despesas como recibos e descrições, defina limites e padrõe
         error: {
             selectSuggestedAddress: 'Selecione um endereço sugerido ou use a localização atual',
         },
-        odometer: {
-            startReading: 'Começar a ler',
-            endReading: 'Finalizar leitura',
-            saveForLater: 'Salvar para depois',
-            totalDistance: 'Distância total',
-        },
+        odometer: {startReading: 'Começar a ler', endReading: 'Fim da leitura', saveForLater: 'Salvar para depois', totalDistance: 'Distância total'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Boletim perdido ou danificado',
