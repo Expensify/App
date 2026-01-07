@@ -1,5 +1,5 @@
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import LoadingIndicator from '@components/LoadingIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
 import {isExpiredSession} from '@libs/actions/Session';
 import activateReauthenticator from '@libs/actions/Session/AttachmentImageReauthenticator';
@@ -157,7 +157,7 @@ function Image({
     }
     if (source === undefined) {
         return (
-            <FullScreenLoadingIndicator
+            <LoadingIndicator
                 iconSize={loadingIconSize}
                 style={loadingIndicatorStyles}
             />
@@ -174,6 +174,8 @@ function Image({
         />
     );
 }
+
+Image.displayName = 'Image';
 
 export default React.memo(
     Image,
