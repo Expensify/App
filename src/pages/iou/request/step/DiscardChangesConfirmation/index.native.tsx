@@ -1,4 +1,4 @@
-import {useIsFocused, usePreventRemove, type NavigationAction} from '@react-navigation/native';
+import {type NavigationAction, useIsFocused, usePreventRemove} from '@react-navigation/native';
 import React, {memo, useCallback, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';

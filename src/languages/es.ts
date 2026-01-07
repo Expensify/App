@@ -1003,6 +1003,7 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidTagLength: 'La longitud de la etiqueta escogida excede el máximo permitido (255). Por favor, escoge otra etiqueta o acorta la etiqueta primero.',
             invalidAmount: 'Por favor, ingresa un importe válido antes de continuar',
             invalidDistance: 'Por favor, ingresa una distancia válida antes de continuar',
+            invalidReadings: 'Por favor ingrese ambas lecturas de inicio y fin',
             negativeDistanceNotAllowed: 'La lectura final debe ser mayor que la lectura inicial',
             invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar',
             invalidTaxAmount: ({amount}) => `El importe máximo del impuesto es ${amount}`,
