@@ -2792,11 +2792,11 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, isReportArchiv
     if (!isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
-    
+
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     const policy = getPolicy(moneyRequestReport?.policyID);
-    
+
     if (isExpenseReport(moneyRequestReport) && (!isCurrentUserSubmitter(moneyRequestReport) || !isPaidGroupPolicyPolicyUtils(policy))) {
         return false;
     }
