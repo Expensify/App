@@ -656,7 +656,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 const content = selection || messageHtml;
                 if (isReportPreviewAction) {
                     const iouReportID = getIOUReportIDFromReportActionPreview(reportAction);
-                    const displayMessage = getReportPreviewMessage(iouReportID, reportAction, undefined, undefined, undefined, undefined, undefined, true);
+                    const displayMessage = getReportPreviewMessage(iouReportID, reportAction);
                     Clipboard.setString(displayMessage);
                 } else if (isTaskActionReportActionsUtils(reportAction)) {
                     const {text, html} = getTaskReportActionMessage(reportAction);
