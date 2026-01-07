@@ -225,7 +225,7 @@ function getSendMoneyParams({
     > = [];
 
     // Add optimistic personal details for recipient
-    let optimisticPersonalDetailListData: OnyxUpdate | null = null;
+    let optimisticPersonalDetailListData: OnyxUpdate<typeof ONYXKEYS.PERSONAL_DETAILS_LIST> | null = null;
     const optimisticPersonalDetailListAction = isNewChat
         ? {
               [recipientAccountID]: {
@@ -407,7 +407,16 @@ function getSendMoneyParams({
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<
+        OnyxUpdate<
+            | typeof ONYXKEYS.COLLECTION.REPORT
+            | typeof ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE
+            | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS
+            | typeof ONYXKEYS.COLLECTION.TRANSACTION
+            | typeof ONYXKEYS.COLLECTION.REPORT_METADATA
+            | typeof ONYXKEYS.PERSONAL_DETAILS_LIST
+        >
+    > = [
         optimisticChatReportData,
         optimisticQuickActionData,
         optimisticIOUReportData,
