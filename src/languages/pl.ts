@@ -758,6 +758,7 @@ const translations: TranslationDeepObject<typeof en> = {
             yourAttemptWasUnsuccessful: 'Twoja próba autentykacji była nieudana.',
             areYouSureToReject: 'Czy jesteś pewien? Próba autentykacji zostanie odrzucona, jeśli zamkniesz ten ekran.',
             rejectAuthentication: 'Odrzuć autentykację',
+            test: 'Test',
         },
         oops: 'Ups, coś poszło nie tak',
         looksLikeYouRanOutOfTime: 'Wygląda na to, że zabrakło ci czasu! Spróbuj ponownie u sprzedawcy.',

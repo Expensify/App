@@ -484,6 +484,7 @@ const translations: TranslationDeepObject<typeof en> = {
             yourAttemptWasUnsuccessful: 'Tu intento de autenticación fue fallido.',
             areYouSureToReject: '¿Estás seguro? El intento de autenticación será rechazado si cierras esta pantalla.',
             rejectAuthentication: 'Rechazar autenticación',
+            test: 'Prueba',
         },
         oops: 'Ups, algo salió mal',
         looksLikeYouRanOutOfTime: '¡Parece que se te acabó el tiempo! Por favor, inténtalo de nuevo en el comercio.',

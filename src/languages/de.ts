@@ -757,6 +757,7 @@ const translations: TranslationDeepObject<typeof en> = {
             yourAttemptWasUnsuccessful: 'Dein Authentifizierungsversuch war nicht erfolgreich.',
             areYouSureToReject: 'Bist du sicher? Der Authentifizierungsversuch wird abgelehnt, wenn du diesen Bildschirm schließt.',
             rejectAuthentication: 'Authentifizierung ablehnen',
+            test: 'Test',
         },
         oops: 'Hoppla, etwas ist schief gelaufen',
         looksLikeYouRanOutOfTime: 'Sieht aus, als wäre deine Zeit abgelaufen! Bitte versuche es erneut beim Händler.',

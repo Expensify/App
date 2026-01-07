@@ -5,6 +5,7 @@ import type DotLottieAnimation from '@components/LottieAnimations/types';
 import type {MultifactorAuthenticationActionParams, MultifactorAuthenticationKeyInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import type SCREENS from '@src/SCREENS';
 import type {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG, MultifactorAuthenticationScenarioPayload} from './index';
 
 type MultifactorAuthenticationCancelConfirm = {
@@ -74,6 +75,8 @@ type MultifactorAuthenticationScenarioResponse = {
     reason: MultifactorAuthenticationReason;
 };
 
+type MultifactorAuthenticationScreen = ValueOf<typeof SCREENS.MULTIFACTOR_AUTHENTICATION>;
+
 type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknown>> = (
     params: MultifactorAuthenticationActionParams<T, 'signedChallenge'>,
 ) => Promise<MultifactorAuthenticationScenarioResponse>;
@@ -81,6 +84,7 @@ type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknow
 type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> = EmptyObject> = {
     action: MultifactorAuthenticationScenarioPureMethod<T>;
     allowedAuthentication: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>;
+    screen: MultifactorAuthenticationScreen;
     pure?: true;
     nativePromptTitle: TranslationPaths;
 } & MultifactorAuthenticationUI;

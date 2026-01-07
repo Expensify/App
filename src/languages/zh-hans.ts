@@ -753,6 +753,7 @@ const translations: TranslationDeepObject<typeof en> = {
             yourAttemptWasUnsuccessful: '您的认证尝试未成功。',
             areYouSureToReject: '您确定要拒绝吗？如果您关闭此屏幕，认证尝试将被拒绝。',
             rejectAuthentication: '拒绝认证',
+            test: '测试',
         },
         oops: '哎呀，出错了',
         looksLikeYouRanOutOfTime: '看起来你的时间用完了！请在商户处再试一次。',

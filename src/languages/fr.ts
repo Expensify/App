@@ -760,6 +760,7 @@ const translations: TranslationDeepObject<typeof en> = {
             yourAttemptWasUnsuccessful: "Votre tentative d'authentification a échoué.",
             areYouSureToReject: "Êtes-vous sûr ? L'authentification sera rejetée si vous fermez cet écran.",
             rejectAuthentication: "Rejeter l'authentification",
+            test: 'Test',
         },
         oops: "Oups, quelque chose s'est mal passé",
         looksLikeYouRanOutOfTime: 'On dirait que vous avez manqué de temps ! Veuillez réessayer chez le marchand.',

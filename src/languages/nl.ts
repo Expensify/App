@@ -758,6 +758,7 @@ const translations: TranslationDeepObject<typeof en> = {
             yourAttemptWasUnsuccessful: 'Je authenticatiepoging is mislukt.',
             areYouSureToReject: 'Weet je het zeker? De authenticatiepoging wordt afgewezen als je dit scherm sluit.',
             rejectAuthentication: 'Authenticatie afwijzen',
+            test: 'Test',
         },
         oops: 'Oeps, er ging iets mis',
         looksLikeYouRanOutOfTime: 'Het lijkt erop dat je tijd op is! Probeer het opnieuw bij de handelaar.',

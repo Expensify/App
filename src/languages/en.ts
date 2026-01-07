@@ -744,6 +744,7 @@ const translations = {
             yourAttemptWasUnsuccessful: 'Your authentication attempt was unsuccessful.',
             areYouSureToReject: 'Are you sure? The authentication attempt will be rejected if you close this screen.',
             rejectAuthentication: 'Reject authentication',
+            test: 'Test',
         },
         oops: 'Oops, something went wrong',
         looksLikeYouRanOutOfTime: 'Looks like you ran out of time! Please try again at the merchant.',

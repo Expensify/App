@@ -1878,6 +1878,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.RIGHT_MODAL.MULTIFACTOR_AUTHENTICATION]: {
+                    screens: {
+                        [SCREENS.MULTIFACTOR_AUTHENTICATION.BIOMETRICS_TEST]: ROUTES.MULTIFACTOR_AUTHENTICATION_BIOMETRICS_TEST,
+                    },
+                },
             },
         },
 
