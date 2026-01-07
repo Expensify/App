@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import isEmpty from 'lodash/isEmpty';
-import React, {useEffect} from 'react';
+import React, {memo, useEffect, useMemo} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 import Text from '@components/Text';
 import ZeroWidthView from '@components/ZeroWidthView';
@@ -11,7 +11,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, isEmojiOnSeparateLine, splitTextWithEmojis} from '@libs/EmojiUtils';
+import {containsOnlyCustomEmoji as containsOnlyCustomEmojiUtil, containsOnlyEmojis as containsOnlyEmojisUtil, splitTextWithEmojis} from '@libs/EmojiUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
 import {getHtmlWithAttachmentID, getTextFromHtml} from '@libs/ReportActionsUtils';
@@ -62,7 +62,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
 
     const message = isEmpty(iouMessage) ? text : iouMessage;
 
-    const processedTextArray = splitTextWithEmojis(message);
+    const processedTextArray = useMemo(() => splitTextWithEmojis(message), [message]);
 
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.SEND_MESSAGE, {message: text});
@@ -74,7 +74,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     // on native, we render it as text, not as html
     // on other device, only render it as text if the only difference is <br /> tag
     const containsOnlyEmojis = containsOnlyEmojisUtil(text ?? '');
-    const containsOnlyCustomEmoji = containsOnlyCustomEmojiUtil(text);
+    const containsOnlyCustomEmoji = useMemo(() => containsOnlyCustomEmojiUtil(text), [text]);
     const containsEmojis = CONST.REGEX.ALL_EMOJIS.test(text ?? '');
     if (!shouldRenderAsText(html, text ?? '') && !(containsOnlyEmojis && styleAsDeleted)) {
         const editedTag = fragment?.isEdited ? `<edited ${styleAsDeleted ? 'deleted' : ''}></edited>` : '';
@@ -90,15 +90,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             if (!htmlContent.includes('<emoji>')) {
                 htmlContent = Parser.replace(htmlContent, {filterRules: ['emoji'], shouldEscapeText: false});
             }
-            const lines = htmlContent.split(/<br\s*\/?>/i);
-            const processedLines = lines.map((line) => {
-                if (isEmojiOnSeparateLine(line)) {
-                    return line.replace('<emoji>', '<emoji ismedium oneline >');
-                }
-                return line.replace('<emoji>', '<emoji ismedium>');
-            });
-
-            htmlContent = processedLines.join('<br />');
+            htmlContent = Str.replaceAll(htmlContent, '<emoji>', '<emoji ismedium>');
         }
 
         let htmlWithTag = editedTag ? `${htmlContent}${editedTag}` : htmlContent;
@@ -166,4 +158,4 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
     );
 }
 
-export default TextCommentFragment;
+export default memo(TextCommentFragment);
