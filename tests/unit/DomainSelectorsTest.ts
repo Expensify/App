@@ -1,6 +1,6 @@
 import {adminAccountIDsSelector, domainEmailSelector, selectMemberIDs, technicalContactSettingsSelector} from '@selectors/Domain';
 import type {OnyxEntry} from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
+import CONST from '@src/CONST';
 import type {CardFeeds, Domain} from '@src/types/onyx';
 
 describe('domainSelectors', () => {
@@ -11,8 +11,8 @@ describe('domainSelectors', () => {
 
         it('Should return an array of admin IDs when keys start with the admin access prefix', () => {
             const domain = {
-                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 321,
-                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}321`]: 123,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 321,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}321`]: 123,
             } as unknown as OnyxEntry<Domain>;
 
             expect(adminAccountIDsSelector(domain)).toEqual([321, 123]);
@@ -20,7 +20,7 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys that do not start with the admin access prefix', () => {
             const domain = {
-                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 321,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 321,
                 somOtherProperty: 'value',
             } as unknown as OnyxEntry<Domain>;
 
@@ -29,9 +29,9 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys with falsy values even if they have the correct prefix', () => {
             const domain = {
-                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 123,
-                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`]: undefined,
-                [`${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}999`]: null,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}123`]: 123,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`]: undefined,
+                [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}999`]: null,
             } as unknown as OnyxEntry<Domain>;
 
             expect(adminAccountIDsSelector(domain)).toEqual([123]);
@@ -130,7 +130,7 @@ describe('domainSelectors', () => {
 
         it('Should return member IDs when keys start with the security group prefix', () => {
             const domain = {
-                [`${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '100': 'value',
@@ -138,7 +138,7 @@ describe('domainSelectors', () => {
                         '200': 'value',
                     },
                 },
-                [`${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '300': 'value',
@@ -151,13 +151,13 @@ describe('domainSelectors', () => {
 
         it('Should return unique member IDs if they appear in multiple security groups', () => {
             const domain = {
-                [`${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '123': 'value',
                     },
                 },
-                [`${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '123': 'value',
@@ -170,7 +170,7 @@ describe('domainSelectors', () => {
 
         it('Should ignore keys that do not start with the security group prefix', () => {
             const domain = {
-                [`${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '456': 'value',
@@ -189,9 +189,9 @@ describe('domainSelectors', () => {
 
         it('Should ignore groups that do not have a shared property', () => {
             const domain = {
-                [`${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {},
-                [`${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {shared: null},
-                [`${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}3`]: {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}2`]: {shared: null},
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}3`]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '111': 'value',
@@ -204,7 +204,7 @@ describe('domainSelectors', () => {
 
         it('Should filter out non-numeric shared keys', () => {
             const domain = {
-                [`${ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
                     shared: {
                         // eslint-disable-next-line @typescript-eslint/naming-convention
                         '123': 'value',

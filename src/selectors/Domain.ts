@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import type {OnyxEntry} from 'react-native-onyx';
-import ONYXKEYS from '@src/ONYXKEYS';
+import CONST from '@src/CONST';
 import type {CardFeeds, Domain, DomainSecurityGroup, SamlMetadata} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -35,7 +35,7 @@ function adminAccountIDsSelector(domain: OnyxEntry<Domain>): number[] {
 
     return (
         Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
-            if (!key.startsWith(ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX) || value === undefined || value === null) {
+            if (!key.startsWith(CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX) || value === undefined || value === null) {
                 return acc;
             }
 
@@ -63,11 +63,11 @@ const technicalContactSettingsSelector = (domainMemberSharedNVP: OnyxEntry<CardF
  */
 function selectMemberIDs(domain: OnyxEntry<Domain>): number[] {
     if (!domain) {
-        return getEmptyArray<number>();;
+        return getEmptyArray<number>();
     }
 
     const memberIDs = Object.entries(domain).reduce<number[]>((acc, [key, value]) => {
-        if (key.startsWith(ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX)) {
+        if (key.startsWith(CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX)) {
             const securityGroup = value as DomainSecurityGroup;
 
             const sharedMembers = securityGroup?.shared ?? {};
