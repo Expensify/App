@@ -107,7 +107,7 @@ function IOURequestStepDistanceOdometer({
     const defaultExpensePolicy = useDefaultExpensePolicy();
 
     const isEditing = action === CONST.IOU.ACTION.EDIT;
-    const isEditingConfirmation = action === CONST.IOU.ACTION.CREATE;
+    const isEditingConfirmation = action === CONST.IOU.ACTION.CREATE && !!backToReport;
     const isCreatingNewRequest = !isEditingConfirmation && !isEditing;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
