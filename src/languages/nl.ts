@@ -1333,7 +1333,6 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Tarief is niet geldig voor deze workspace. Selecteer een beschikbaar tarief uit de workspace.',
             endDateBeforeStartDate: 'De einddatum kan niet vóór de startdatum liggen',
             endDateSameAsStartDate: 'De einddatum mag niet hetzelfde zijn als de startdatum',
-            odometerReadingRequired: 'Voer zowel de begin- als eindstand in',
             negativeDistanceNotAllowed: 'Eindstand moet groter zijn dan beginstand',
             invalidReadings: 'Voer zowel de begin- als eindstand in',
         },
