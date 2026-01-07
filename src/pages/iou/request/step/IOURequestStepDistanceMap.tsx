@@ -140,6 +140,8 @@ function IOURequestStepDistanceMap({
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
 
@@ -303,6 +305,8 @@ function IOURequestStepDistanceMap({
             translate,
             quickAction,
             policyRecentlyUsedCurrencies,
+            introSelected,
+            activePolicyID,
         });
     }, [
         transaction,
@@ -311,6 +315,7 @@ function IOURequestStepDistanceMap({
         reportNameValuePairs,
         iouType,
         defaultExpensePolicy,
+        currentUserAccountIDParam,
         setDistanceRequestData,
         shouldSkipConfirmation,
         transactionID,
@@ -318,17 +323,19 @@ function IOURequestStepDistanceMap({
         reportAttributesDerived,
         translate,
         currentUserEmailParam,
-        currentUserAccountIDParam,
         policy,
         waypoints,
         lastSelectedDistanceRates,
         backToReport,
         isASAPSubmitBetaEnabled,
-        customUnitRateID,
-        personalPolicy?.autoReporting,
-        reportID,
         transactionViolations,
         quickAction,
+        policyRecentlyUsedCurrencies,
+        customUnitRateID,
+        introSelected,
+        activePolicyID,
+        personalPolicy?.autoReporting,
+        reportID,
     ]);
 
     const getError = () => {

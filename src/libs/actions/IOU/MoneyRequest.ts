@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type {LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {IntroSelected, LastSelectedDistanceRates, PersonalDetailsList, Policy, QuickAction, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type {Receipt, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -48,6 +48,8 @@ type CreateTransactionParams = {
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
+    introSelected?: IntroSelected;
+    activePolicyID?: string;
     files: ReceiptFile[];
     participant: Participant;
     gpsPoint?: GpsPoint;
@@ -87,6 +89,8 @@ type MoneyRequestStepScanParticipantsFlowParams = {
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
+    introSelected?: IntroSelected;
+    activePolicyID?: string;
     files: ReceiptFile[];
     isTestTransaction: boolean;
     locationPermissionGranted: boolean;
@@ -120,6 +124,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => string;
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
+    introSelected?: IntroSelected;
+    activePolicyID?: string;
 };
 
 function createTransaction({
@@ -134,6 +140,8 @@ function createTransaction({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
+    introSelected,
+    activePolicyID,
     files,
     participant,
     gpsPoint,
@@ -167,6 +175,10 @@ function createTransaction({
                 ...(policyParams ?? {}),
                 shouldHandleNavigation: index === files.length - 1,
                 isASAPSubmitBetaEnabled,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserEmailParam: currentUserEmail ?? '',
+                introSelected,
+                activePolicyID,
                 quickAction,
             });
         } else {
@@ -224,6 +236,8 @@ function handleMoneyRequestStepScanParticipants({
     transactionViolations,
     quickAction,
     policyRecentlyUsedCurrencies,
+    introSelected,
+    activePolicyID,
     files,
     isTestTransaction = false,
     locationPermissionGranted = false,
@@ -287,6 +301,8 @@ function handleMoneyRequestStepScanParticipants({
                     taxAmount: initialTransaction.taxAmount,
                     quickAction,
                     policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
+                    // No need to update recently used tags because no tags are used when the confirmation step is skipped
+                    policyRecentlyUsedTags: undefined,
                 });
                 return;
             }
@@ -314,6 +330,8 @@ function handleMoneyRequestStepScanParticipants({
                             transactionViolations,
                             quickAction,
                             policyRecentlyUsedCurrencies,
+                            introSelected,
+                            activePolicyID,
                             files,
                             participant,
                             gpsPoint,
@@ -337,6 +355,8 @@ function handleMoneyRequestStepScanParticipants({
                             transactionViolations,
                             quickAction,
                             policyRecentlyUsedCurrencies,
+                            introSelected,
+                            activePolicyID,
                             files,
                             participant,
                         });
@@ -356,6 +376,8 @@ function handleMoneyRequestStepScanParticipants({
                 transactionViolations,
                 quickAction,
                 policyRecentlyUsedCurrencies,
+                introSelected,
+                activePolicyID,
                 files,
                 participant,
             });
@@ -442,6 +464,8 @@ function handleMoneyRequestStepDistanceNavigation({
     translate,
     quickAction,
     policyRecentlyUsedCurrencies,
+    introSelected,
+    activePolicyID,
 }: MoneyRequestStepDistanceNavigationParams) {
     if (transaction?.splitShares && !manualDistance) {
         resetSplitShares(transaction);
@@ -494,6 +518,10 @@ function handleMoneyRequestStepDistanceNavigation({
                         attendees: transaction?.comment?.attendees,
                     },
                     isASAPSubmitBetaEnabled,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserLogin ?? '',
+                    introSelected,
+                    activePolicyID,
                     quickAction,
                 });
                 return;
