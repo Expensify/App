@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/native';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import AttachmentPicker from '@components/AttachmentPicker';
@@ -19,13 +19,13 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePopoverPosition from '@hooks/usePopoverPosition';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import usePrevious from '@hooks/usePrevious';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
@@ -49,6 +49,7 @@ import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {AnchorPosition} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -156,8 +157,9 @@ function AttachmentPickerWithMenuItems({
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {windowHeight, windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {calculatePopoverPosition} = usePopoverPosition();
+    const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE, {canBeMissing: true});
@@ -196,7 +198,7 @@ function AttachmentPickerWithMenuItems({
         policyID: report?.policyID,
         policyName: policy?.name ?? '',
         onConfirm: (shouldDismissEmptyReportsConfirmation) =>
-            selectOption(() => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, true, shouldDismissEmptyReportsConfirmation), true),
+            selectOption(() => createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, true, shouldDismissEmptyReportsConfirmation), true),
     });
 
     const openCreateReportConfirmationRef = useRef(openCreateReportConfirmation);
@@ -206,9 +208,9 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmationRef.current();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, true, false);
+            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, true, false);
         }
-    }, [currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, report?.policyID, shouldShowEmptyReportConfirmation]);
+    }, [currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, shouldShowEmptyReportConfirmation]);
 
     const teacherUnitePolicyID = isProduction ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
     const isTeachersUniteReport = report?.policyID === teacherUnitePolicyID;
@@ -365,6 +367,20 @@ function AttachmentPickerWithMenuItems({
         setMenuVisibility(false);
     }, [didScreenBecomeInactive, isMenuVisible, setMenuVisibility]);
 
+    // Calculate anchor position when menu becomes visible
+    useEffect(() => {
+        if (!actionButtonRef.current || !isMenuVisible) {
+            return;
+        }
+
+        calculatePopoverPosition(actionButtonRef as React.RefObject<View>, {
+            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+        }).then((position) => {
+            setPopoverAnchorPosition({...position, vertical: position.vertical - CONST.MODAL.POPOVER_MENU_PADDING});
+        });
+    }, [isMenuVisible, calculatePopoverPosition, actionButtonRef]);
+
     // 1. Limit the container width to a single column.
     const outerContainerStyles = [{flexBasis: styles.composerSizeButton.width + styles.composerSizeButton.marginHorizontal * 2}, styles.flexGrow0, styles.flexShrink0];
 
@@ -474,7 +490,7 @@ function AttachmentPickerWithMenuItems({
                                                 >
                                                     <Icon
                                                         fill={theme.icon}
-                                                        src={Expensicons.Collapse}
+                                                        src={icons.Collapse}
                                                     />
                                                 </PressableWithFeedback>
                                             </Tooltip>
@@ -499,7 +515,7 @@ function AttachmentPickerWithMenuItems({
                                                 >
                                                     <Icon
                                                         fill={theme.icon}
-                                                        src={Expensicons.Expand}
+                                                        src={icons.Expand}
                                                     />
                                                 </PressableWithFeedback>
                                             </Tooltip>
@@ -531,7 +547,7 @@ function AttachmentPickerWithMenuItems({
                                     });
                                 }
                             }}
-                            anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
+                            anchorPosition={popoverAnchorPosition ?? {horizontal: 0, vertical: 0}}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,

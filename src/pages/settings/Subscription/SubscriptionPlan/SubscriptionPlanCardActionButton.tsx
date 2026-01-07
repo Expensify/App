@@ -11,6 +11,7 @@ import usePrivateSubscription from '@hooks/usePrivateSubscription';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {upgradeToCorporate} from '@libs/actions/Policy/Policy';
 import {getOwnedPaidPolicies, isPolicyAdmin} from '@libs/PolicyUtils';
+import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import {getCurrentUserAccountID} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -62,7 +63,10 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         if (!ownerPolicies.length) {
             return;
         }
-        if (planType === CONST.POLICY.TYPE.TEAM && privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && !account?.canDowngrade) {
+        if (
+            (planType === CONST.POLICY.TYPE.TEAM && privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL && !account?.canDowngrade) ||
+            isSubscriptionTypeOfInvoicing(privateSubscription?.type)
+        ) {
             Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_DOWNGRADE_BLOCKED.getRoute(Navigation.getActiveRoute()));
             return;
         }
@@ -122,6 +126,10 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
                 />
             );
         }
+    }
+
+    if (isSubscriptionTypeOfInvoicing(privateSubscription?.type)) {
+        return undefined;
     }
 
     const autoIncrease = privateSubscription?.addNewUsersAutomatically ? translate('subscription.subscriptionSettings.on') : translate('subscription.subscriptionSettings.off');

@@ -3,6 +3,7 @@ import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} fro
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
 export default function useTodos() {
@@ -11,6 +12,7 @@ export default function useTodos() {
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
+    const {email = '', accountID} = useCurrentUserPersonalDetails();
 
     return useMemo(() => {
         const reportsToSubmit: Report[] = [];
@@ -48,7 +50,7 @@ export default function useTodos() {
             if (isApproveAction(report, reportTransactions, policy)) {
                 reportsToApprove.push(report);
             }
-            if (isPrimaryPayAction(report, policy, reportNameValuePair)) {
+            if (isPrimaryPayAction(report, accountID, email, policy, reportNameValuePair)) {
                 reportsToPay.push(report);
             }
             if (isExportAction(report, policy, reportActions)) {
@@ -57,5 +59,5 @@ export default function useTodos() {
         }
 
         return {reportsToSubmit, reportsToApprove, reportsToPay, reportsToExport};
-    }, [allReports, allPolicies, allReportNameValuePairs, allTransactions, allReportActions]);
+    }, [allReports, allTransactions, allPolicies, allReportNameValuePairs, allReportActions, accountID, email]);
 }

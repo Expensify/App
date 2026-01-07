@@ -1,10 +1,10 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import type {Meta, StoryFn} from '@storybook/react';
+import type {Meta, StoryFn} from '@storybook/react-webpack5';
 import React from 'react';
 import {View} from 'react-native';
 import type {AvatarProps} from '@components/Avatar';
 import Avatar from '@components/Avatar';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {getExpensifyIcon} from '@components/Icon/chunks/expensify-icons.chunk';
 import {PRESET_AVATAR_CATALOG} from '@libs/Avatars/PresetAvatarCatalog';
 import CONST from '@src/CONST';
 
@@ -44,7 +44,7 @@ WorkspaceAvatar.args = {
 const FallbackAvatar: AvatarStory = Template.bind({});
 FallbackAvatar.args = {
     type: CONST.ICON_TYPE_AVATAR,
-    fallbackIcon: Expensicons.FallbackAvatar,
+    fallbackIcon: getExpensifyIcon('FallbackAvatar'),
     name: 'Offline User',
     size: CONST.AVATAR_SIZE.DEFAULT,
 };
