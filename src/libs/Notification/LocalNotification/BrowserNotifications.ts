@@ -9,7 +9,6 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import type {Report, ReportAction} from '@src/types/onyx';
 import SafeString from '@src/utils/SafeString';
-import focusApp from './focusApp';
 import type {LocalNotificationClickHandler, LocalNotificationData, LocalNotificationModifiedExpensePushParams} from './types';
 
 const notificationCache: Record<string, Notification> = {};
@@ -77,7 +76,6 @@ function push(
             onClick();
             window.parent.focus();
             window.focus();
-            focusApp();
             notificationCache[notificationID].close();
         };
         notificationCache[notificationID].onclose = () => {

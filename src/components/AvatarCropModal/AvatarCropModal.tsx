@@ -8,7 +8,6 @@ import {interpolate, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnUI} from 'react-native-worklets';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
-import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -370,7 +369,6 @@ function AvatarCropModal({imageUri = '', imageName = '', imageType = '', onClose
                 shouldEnableKeyboardAvoidingView={false}
                 testID="AvatarCropModal"
             >
-                {shouldUseNarrowLayout && <HeaderGap />}
                 <HeaderWithBackButton
                     title={translate('avatarCropModal.title')}
                     onBackButtonPress={onClose}

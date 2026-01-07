@@ -1296,7 +1296,6 @@ function IOURequestStepConfirmation({
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID="IOURequestStepConfirmation"
-            headerGapStyles={isDraggingOver ? [styles.dropWrapper] : []}
         >
             <DragAndDropProvider
                 setIsDraggingOver={setIsDraggingOver}

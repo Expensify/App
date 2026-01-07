@@ -1144,11 +1144,6 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
         },
 
-        searchHeaderGap: {
-            zIndex: variables.searchTopBarZIndex + 2,
-            backgroundColor: theme.appBG,
-        },
-
         reportOptions: {
             marginLeft: 8,
         },
@@ -5380,10 +5375,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: '100%',
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
-        },
-
-        testDriveBannerGap: {
-            height: CONST.DESKTOP_HEADER_PADDING * 2,
         },
 
         twoColumnLayoutCol: {

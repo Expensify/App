@@ -325,18 +325,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
             // React Native libraries may have web-specific module implementations that appear with the extension `.web.js`
             // without this, web will try to use native implementations and break in not very obvious ways.
             // This is also why we have to use .website.js for our own web-specific files...
-            extensions: [
-                '.web.js',
-                '.website.js',
-                '.js',
-                '.jsx',
-                '.web.ts',
-                '.website.ts',
-                '.website.tsx',
-                '.ts',
-                '.web.tsx',
-                '.tsx',
-            ],
+            extensions: ['.web.js', '.website.js', '.js', '.jsx', '.web.ts', '.website.ts', '.website.tsx', '.ts', '.web.tsx', '.tsx'],
             fallback: {
                 'process/browser': require.resolve('process/browser'),
                 crypto: false,

@@ -235,7 +235,6 @@ function IOURequestStartPage({
                 shouldEnableKeyboardAvoidingView={false}
                 shouldEnableMaxHeight={selectedTab === CONST.TAB_REQUEST.PER_DIEM}
                 shouldEnableMinHeight={canUseTouchScreen()}
-                headerGapStyles={isDraggingOver ? styles.dropWrapper : []}
                 testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
