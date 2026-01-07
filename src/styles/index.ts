@@ -1144,10 +1144,6 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
         },
 
-        headerGap: {
-            height: CONST.DESKTOP_HEADER_PADDING,
-        },
-
         searchHeaderGap: {
             zIndex: variables.searchTopBarZIndex + 2,
             backgroundColor: theme.appBG,
@@ -4110,11 +4106,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 10,
         },
 
-        desktopSignInButtonContainer: {
-            width: 40,
-            height: 40,
-        },
-
         signInIconButton: {
             paddingVertical: 2,
         },
@@ -5053,15 +5044,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         updateRequiredViewTextContainer: {
             width: variables.updateTextViewContainerWidth,
-        },
-
-        desktopAppRetiredIllustration: {
-            width: variables.desktopAppRetiredIllustrationW,
-            height: variables.desktopAppRetiredIllustrationH,
-        },
-
-        desktopAppRetiredViewTextContainer: {
-            width: variables.desktopAppRetiredViewContainerWidth,
         },
 
         twoFARequiredContainer: {

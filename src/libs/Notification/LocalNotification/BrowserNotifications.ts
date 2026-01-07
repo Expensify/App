@@ -1,4 +1,4 @@
-// Web and desktop implementation only. Do not import for direct use. Use LocalNotification.
+// Web implementation only. Do not import for direct use. Use LocalNotification.
 import {Str} from 'expensify-common';
 import type {ImageSourcePropType} from 'react-native';
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
