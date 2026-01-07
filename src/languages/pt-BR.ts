@@ -7961,6 +7961,7 @@ Aqui está um *recibo de teste* para mostrar como funciona:`,
             invite: 'Convidar',
             addAdminError: 'Não foi possível adicionar este membro como administrador. Tente novamente.',
         },
+        members: {title: 'Membros', findMember: 'Encontrar membro'},
     },
     gps: {
         tooltip: 'Rastreamento por GPS em andamento! Quando terminar, pare o rastreamento abaixo.',

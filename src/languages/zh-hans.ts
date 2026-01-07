@@ -7781,6 +7781,7 @@ ${reportName}
             invite: '邀请',
             addAdminError: '无法将此成员添加为管理员。请重试。',
         },
+        members: {title: '成员', findMember: '查找成员'},
     },
     gps: {
         tooltip: 'GPS 跟踪进行中！完成后，请在下方停止跟踪。',

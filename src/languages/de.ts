@@ -8003,6 +8003,7 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             invite: 'Einladen',
             addAdminError: 'Dieser Benutzer kann nicht als Admin hinzugefügt werden. Bitte versuche es erneut.',
         },
+        members: {title: 'Mitglieder', findMember: 'Mitglied suchen'},
     },
     gps: {
         tooltip: 'GPS-Verfolgung läuft! Wenn du fertig bist, stoppe die Verfolgung unten.',

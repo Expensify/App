@@ -8008,6 +8008,7 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             invite: 'Inviter',
             addAdminError: 'Impossible d’ajouter ce membre en tant qu’administrateur. Veuillez réessayer.',
         },
+        members: {title: 'Membres', findMember: 'Rechercher un membre'},
     },
     gps: {
         tooltip: 'Suivi GPS en cours ! Quand vous avez terminé, arrêtez le suivi ci-dessous.',

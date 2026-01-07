@@ -7985,6 +7985,7 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             invite: 'Invita',
             addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
         },
+        members: {title: 'Membri', findMember: 'Trova membro'},
     },
     gps: {
         tooltip: 'Monitoraggio GPS in corso! Quando hai finito, interrompi il monitoraggio qui sotto.',
