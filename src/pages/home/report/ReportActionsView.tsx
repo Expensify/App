@@ -110,7 +110,6 @@ function ReportActionsView({
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
     const didLayout = useRef(false);
     const {isOffline} = useNetwork();
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`, {canBeMissing: true});
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isFocused = useIsFocused();
@@ -267,7 +266,7 @@ function ReportActionsView({
         return reportActions.filter((reportAction) => {
             const passesBasicFilters =
                 (isOffline || isDeletedParentAction(reportAction) || reportAction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || reportAction.errors) &&
-                shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction, policy);
+                shouldReportActionBeVisible(reportAction, reportAction.reportActionID, canPerformWriteAction);
 
             if (!passesBasicFilters) {
                 return false;
@@ -281,11 +280,16 @@ function ReportActionsView({
             const iouReportID = originalMessage && 'IOUReportID' in originalMessage ? (originalMessage as OnyxTypes.OriginalMessageIOU).IOUReportID : undefined;
             const transactionsForReport = iouReportID ? expenseReportTransactions?.[iouReportID] : undefined;
 
+            if (isOffline && !transactionsForReport && iouReportID) {
+                const transactionIDsToCheck = getTransactionIDsForIOUAction(reportAction, reportTransactionIDs, undefined, isOffline);
+                return isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
+            }
+
             const transactionIDsToCheck = getTransactionIDsForIOUAction(reportAction, reportTransactionIDs, transactionsForReport, isOffline);
 
             return isIOUActionMatchingTransactionList(reportAction, transactionIDsToCheck);
         });
-    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, policy, expenseReportTransactions]);
+    }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, expenseReportTransactions]);
 
     const newestReportAction = useMemo(() => reportActions?.at(0), [reportActions]);
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
@@ -391,6 +395,7 @@ function ReportActionsView({
                 listID={listID}
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
                 hasCreatedActionAdded={shouldAddCreatedAction}
+                isLoadingInitialReportActions={isLoadingInitialReportActions}
             />
             <UserTypingEventListener report={report} />
         </>
