@@ -2302,7 +2302,26 @@ ${amount} pour ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Le valideur n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
-        header: 'Envoyer à ce membre pour approbation :',
+        title: 'Définir l’approbateur',
+        description: 'Cette personne approuvera les dépenses.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Approbateur',
+        header: "(Optionnel) Voulez-vous ajouter une limite d'approbation ?",
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Ajoutez un autre approbateur lorsque <strong>${approverName}</strong> est approbateur et que le rapport dépasse le montant ci-dessous :`
+                : 'Ajoutez un autre approbateur lorsque le rapport dépasse le montant ci-dessous :',
+        reportAmountLabel: 'Montant du rapport',
+        additionalApproverLabel: 'Approbateur supplémentaire',
+        skip: 'Passer',
+        next: 'Suivant',
+        removeLimit: 'Supprimer la limite',
+        enterAmountError: 'Veuillez entrer un montant valide',
+        enterApproverError: 'Un approbateur est requis lorsque vous définissez une limite de rapport',
+        enterBothError: 'Entrez un montant de rapport et un approbateur supplémentaire',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
+            `Les rapports supérieurs à ${approvalLimit} sont transférés à ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Payeur autorisé',
@@ -4864,7 +4883,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             customCloseDate: 'Date de clôture personnalisée',
             letsDoubleCheck: 'Vérifions une dernière fois que tout est correct.',
             confirmationDescription: 'Nous allons commencer à importer les transactions immédiatement.',
-            cardholder: 'Titulaire de la carte',
             card: 'Carte',
             cardName: 'Nom de la carte',
             brokenConnectionError:
@@ -6227,10 +6245,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 title: 'Règles de catégorie',
                 approver: 'Approbateur',
                 requireDescription: 'Description requise',
-                requireFields: 'Rendre les champs obligatoires',
-                requiredFieldsTitle: 'Champs obligatoires',
-                requiredFieldsDescription: (categoryName: string) => `Cela s’appliquera à toutes les dépenses classées dans la catégorie <strong>${categoryName}</strong>.`,
-                requireAttendees: 'Exiger des participants',
                 descriptionHint: 'Indice de description',
                 descriptionHintDescription: (categoryName: string) =>
                     `Rappelez aux employés de fournir des informations supplémentaires pour les dépenses « ${categoryName} ». Cet indice apparaît dans le champ de description des dépenses.`,
@@ -7285,7 +7299,6 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Date de plus de ${maxAge} jours`,
         missingCategory: 'Catégorie manquante',
         missingComment: 'Description requise pour la catégorie sélectionnée',
-        missingAttendees: 'Plusieurs participants sont requis pour cette catégorie',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Manquant ${tagName ?? 'étiquette'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -8035,6 +8048,11 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             confirm: 'Ignorer le suivi de la distance',
         },
         zeroDistanceTripModal: {title: 'Impossible de créer la dépense', prompt: 'Vous ne pouvez pas créer une dépense avec le même lieu de départ et d’arrivée.'},
+        desktop: {
+            title: 'Suivez la distance sur votre téléphone',
+            subtitle: 'Enregistrez automatiquement les miles ou kilomètres avec le GPS et transformez instantanément vos trajets en dépenses.',
+            button: 'Télécharger l’application',
+        },
     },
     desktopAppRetiredPage: {
         title: 'L’application de bureau a été retirée',

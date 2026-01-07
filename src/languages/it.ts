@@ -2291,7 +2291,26 @@ ${amount} per ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.",
-        header: 'Invia a questo membro per approvazione:',
+        title: 'Invia a questo membro per approvazione:',
+        description: 'Questa persona approverà le spese.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Approvatore',
+        header: '(Opzionale) Vuoi aggiungere un limite di approvazione?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Aggiungi un altro approvatore quando <strong>${approverName}</strong> è approvatore e il report supera l'importo seguente:`
+                : "Aggiungi un altro approvatore quando il report supera l'importo seguente:",
+        reportAmountLabel: 'Importo del report',
+        additionalApproverLabel: 'Approvatore aggiuntivo',
+        skip: 'Salta',
+        next: 'Avanti',
+        removeLimit: 'Rimuovi limite',
+        enterAmountError: 'Inserisci un importo valido',
+        enterApproverError: 'Un approvatore è richiesto quando imposti un limite di report',
+        enterBothError: 'Inserisci un importo del report e un approvatore aggiuntivo',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
+            `I report superiori a ${approvalLimit} vengono inoltrati a ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Pagatore autorizzato',
@@ -4843,7 +4862,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             customCloseDate: 'Data di chiusura personalizzata',
             letsDoubleCheck: 'Controlliamo ancora una volta che tutto sia corretto.',
             confirmationDescription: 'Inizieremo subito a importare le transazioni.',
-            cardholder: 'Titolare della carta',
             card: 'Carta',
             cardName: 'Nome carta',
             brokenConnectionError: '<rbr>La connessione al feed della carta è interrotta. Per favore <a href="#">accedi alla tua banca</a> così possiamo ristabilire la connessione.</rbr>',
@@ -6200,10 +6218,6 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 title: 'Regole di categoria',
                 approver: 'Approvatore',
                 requireDescription: 'Richiedi descrizione',
-                requireFields: 'Rendi obbligatori i campi',
-                requiredFieldsTitle: 'Campi obbligatori',
-                requiredFieldsDescription: (categoryName: string) => `Questo si applicherà a tutte le spese classificate come <strong>${categoryName}</strong>.`,
-                requireAttendees: 'Richiedi partecipanti',
                 descriptionHint: 'Suggerimento per la descrizione',
                 descriptionHintDescription: (categoryName: string) =>
                     `Ricorda ai dipendenti di fornire informazioni aggiuntive per la spesa in “${categoryName}”. Questo suggerimento appare nel campo descrizione sulle spese.`,
@@ -7260,7 +7274,6 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Data precedente a ${maxAge} giorni`,
         missingCategory: 'Categoria mancante',
         missingComment: 'Descrizione richiesta per la categoria selezionata',
-        missingAttendees: 'Più partecipanti obbligatori per questa categoria',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Manca ${tagName ?? 'etichetta'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
@@ -8012,6 +8025,11 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             confirm: 'Scarta monitoraggio distanza',
         },
         zeroDistanceTripModal: {title: 'Impossibile creare la spesa', prompt: 'Non puoi creare una spesa con la stessa località di partenza e di arrivo.'},
+        desktop: {
+            title: 'Tieni traccia della distanza sul tuo telefono',
+            subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',
+            button: 'Scarica l’app',
+        },
     },
     desktopAppRetiredPage: {
         title: "L'app desktop è stata dismessa",
