@@ -36,12 +36,12 @@ import getReportURLForCurrentContext from './Navigation/helpers/getReportURLForC
 import Parser from './Parser';
 import {arePersonalDetailsMissing, getEffectiveDisplayName, getPersonalDetailByEmail, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
+import type {getReportName} from './ReportNameUtils';
 // eslint-disable-next-line import/no-cycle
 import {isHarvestCreatedExpenseReport, isPolicyExpenseChat} from './ReportUtils';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {getReportFieldTypeTranslationKey} from './WorkspaceReportFieldUtils';
-import type {getReportName} from './ReportNameUtils';
 
 type LastVisibleMessage = {
     lastMessageText: string;

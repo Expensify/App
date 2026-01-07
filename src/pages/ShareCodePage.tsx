@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
@@ -33,7 +34,6 @@ import {
     isExpenseReport,
     isMoneyRequestReport,
 } from '@libs/ReportUtils';
-import {getReportName} from '@libs/ReportNameUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 import addTrailingForwardSlash from '@libs/UrlUtils';
 import {getAvatarURL} from '@libs/UserAvatarUtils';

@@ -86,8 +86,8 @@ import {
     isWhisperActionTargetedToOthers,
     shouldReportActionBeVisible,
 } from './ReportActionsUtils';
-import {isExportAction} from './ReportPrimaryActionUtils';
 import {computeReportName} from './ReportNameUtils';
+import {isExportAction} from './ReportPrimaryActionUtils';
 import {
     canUserPerformWriteAction,
     findSelfDMReportID,
