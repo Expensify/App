@@ -3121,7 +3121,7 @@ function getPolicyChangeLogMaxExpenseAmountMessage(translate: LocalizedTranslate
     return getReportActionText(action);
 }
 
-function getPolicyChangeLogMaxExpenseAgeMessage(action: ReportAction): string {
+function getPolicyChangeLogMaxExpenseAgeMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {oldMaxExpenseAge, newMaxExpenseAge} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE>) ?? {};
 
     if (typeof oldMaxExpenseAge === 'number' && typeof newMaxExpenseAge === 'number') {

@@ -2275,7 +2275,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountMessage(action);
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
             expect(result).toBe('set max expense amount to "$100.00"');
         });
 
@@ -2290,7 +2290,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountMessage(action);
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
             expect(result).toBe('removed max expense amount (previously "$100.00")');
         });
 
@@ -2305,7 +2305,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountMessage(action);
+            const result = getPolicyChangeLogMaxExpenseAmountMessage(translateLocal, action);
             expect(result).toBe('changed max expense amount to "$500.00" (previously "$100.00")');
         });
     });
@@ -2321,7 +2321,7 @@ describe('ReportActionsUtils', () => {
                     newMaxExpenseAge: 30,
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAgeMessage(action);
+            const result = getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, action);
             expect(result).toBe('set max expense age to "30" days');
         });
 
@@ -2335,7 +2335,7 @@ describe('ReportActionsUtils', () => {
                     newMaxExpenseAge: CONST.POLICY.DISABLED_MAX_EXPENSE_AGE,
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAgeMessage(action);
+            const result = getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, action);
             expect(result).toBe('removed max expense age (previously "30" days)');
         });
 
@@ -2349,7 +2349,7 @@ describe('ReportActionsUtils', () => {
                     newMaxExpenseAge: 60,
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAgeMessage(action);
+            const result = getPolicyChangeLogMaxExpenseAgeMessage(translateLocal, action);
             expect(result).toBe('changed max expense age to "60" days (previously "30")');
         });
     });
@@ -2366,7 +2366,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
             expect(result).toBe('set receipt required amount to "$25.00"');
         });
 
@@ -2381,7 +2381,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
             expect(result).toBe('removed receipt required amount (previously "$25.00")');
         });
 
@@ -2396,7 +2396,7 @@ describe('ReportActionsUtils', () => {
                     currency: 'USD',
                 },
             } as ReportAction;
-            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(action);
+            const result = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translateLocal, action);
             expect(result).toBe('changed receipt required amount to "$75.00" (previously "$25.00")');
         });
     });
