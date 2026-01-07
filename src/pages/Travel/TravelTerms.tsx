@@ -45,8 +45,6 @@ function TravelTerms({route}: TravelTermsPageProps) {
     const [errorMessage, setErrorMessage] = useState('');
     const [travelProvisioning] = useOnyx(ONYXKEYS.TRAVEL_PROVISIONING, {canBeMissing: true});
     const {showConfirmModal} = useConfirmModal();
-    const hasShownVerifyModalRef = useRef(false);
-
     const isLoading = travelProvisioning?.isLoading;
     const domain = route.params.domain === CONST.TRAVEL.DEFAULT_DOMAIN ? undefined : route.params.domain;
 
@@ -65,8 +63,13 @@ function TravelTerms({route}: TravelTermsPageProps) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
     }, [translate, account?.primaryLogin, conciergeReportID, conciergeReport]);
 
-    const showVerifyCompanyModal = useCallback(() => {
-        showConfirmModal({
+    const hasShownVerifyModalRef = useRef(false);
+    const showVerifyCompanyModal = useCallback(async () => {
+        if (hasShownVerifyModalRef.current) {
+            return;
+        }
+        hasShownVerifyModalRef.current = true;
+        const {action} = await showConfirmModal({
             title: translate('travel.verifyCompany.title'),
             titleStyles: styles.textHeadlineH1,
             titleContainerStyles: styles.mb2,
@@ -76,14 +79,13 @@ function TravelTerms({route}: TravelTermsPageProps) {
             shouldShowCancelButton: false,
             image: illustrations.RocketDude,
             imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
-        }).then(({action}) => {
-            // Cleanup provisioning session after modal interaction to prevent reopening
-            cleanupTravelProvisioningSession();
-            if (action !== ModalActions.CONFIRM) {
-                return;
-            }
-            createTravelEnablementIssue();
         });
+        // Cleanup provisioning session after modal interaction to prevent reopening
+        cleanupTravelProvisioningSession();
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        createTravelEnablementIssue();
     }, [showConfirmModal, translate, styles.textHeadlineH1, styles.mb2, illustrations.RocketDude, StyleUtils, createTravelEnablementIssue]);
 
     useEffect(() => {
@@ -92,8 +94,7 @@ function TravelTerms({route}: TravelTermsPageProps) {
             cleanupTravelProvisioningSession();
         }
 
-        if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_ADDITIONAL_VERIFICATION_REQUIRED && !hasShownVerifyModalRef.current) {
-            hasShownVerifyModalRef.current = true;
+        if (travelProvisioning?.error === CONST.TRAVEL.PROVISIONING.ERROR_ADDITIONAL_VERIFICATION_REQUIRED) {
             showVerifyCompanyModal();
         }
 

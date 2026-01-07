@@ -172,22 +172,21 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, ref
     const fabRef = useRef<HTMLDivElement>(null);
     const {showConfirmModal} = useConfirmModal();
 
-    const showRedirectToExpensifyClassicModal = useCallback(() => {
-        showConfirmModal({
+    const showRedirectToExpensifyClassicModal = useCallback(async () => {
+        const {action} = await showConfirmModal({
             title: translate('sidebarScreen.redirectToExpensifyClassicModal.title'),
             prompt: translate('sidebarScreen.redirectToExpensifyClassicModal.description'),
             confirmText: translate('exitSurvey.goToExpensifyClassic'),
             cancelText: translate('common.cancel'),
-        }).then(({action}) => {
-            if (action !== ModalActions.CONFIRM) {
-                return;
-            }
-            if (CONFIG.IS_HYBRID_APP) {
-                closeReactNativeApp({shouldSetNVP: true});
-                return;
-            }
-            openOldDotLink(CONST.OLDDOT_URLS.INBOX);
         });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        if (CONFIG.IS_HYBRID_APP) {
+            closeReactNativeApp({shouldSetNVP: true});
+            return;
+        }
+        openOldDotLink(CONST.OLDDOT_URLS.INBOX);
     }, [showConfirmModal, translate]);
 
     const {windowHeight} = useWindowDimensions();
