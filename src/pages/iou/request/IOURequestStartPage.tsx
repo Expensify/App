@@ -65,7 +65,6 @@ function IOURequestStartPage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldUseTab = iouType !== CONST.IOU.TYPE.SEND && iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.INVOICE;
-    const [isDraggingOver, setIsDraggingOver] = useState(false);
     const personalPolicy = usePersonalPolicy();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`, {canBeMissing: true});
@@ -238,10 +237,7 @@ function IOURequestStartPage({
                 testID="IOURequestStartPage"
                 focusTrapSettings={{containerElements: focusTrapContainerElements}}
             >
-                <DragAndDropProvider
-                    setIsDraggingOver={setIsDraggingOver}
-                    isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}
-                >
+                <DragAndDropProvider isDisabled={selectedTab !== CONST.TAB_REQUEST.SCAN}>
                     <View style={styles.flex1}>
                         <FocusTrapContainerElement
                             onContainerElementChanged={setHeaderWithBackButtonContainerElement}

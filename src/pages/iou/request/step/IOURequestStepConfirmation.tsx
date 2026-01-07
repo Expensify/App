@@ -235,7 +235,6 @@ function IOURequestStepConfirmation({
     const {isOffline} = useNetwork();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [selectedParticipantList, setSelectedParticipantList] = useState<Participant[]>([]);
-    const [isDraggingOver, setIsDraggingOver] = useState(false);
 
     const [receiptFiles, setReceiptFiles] = useState<Record<string, Receipt>>({});
     const requestType = getRequestType(transaction);
@@ -1297,10 +1296,7 @@ function IOURequestStepConfirmation({
             shouldEnableMaxHeight={canUseTouchScreen()}
             testID="IOURequestStepConfirmation"
         >
-            <DragAndDropProvider
-                setIsDraggingOver={setIsDraggingOver}
-                isDisabled={!showReceiptEmptyState}
-            >
+            <DragAndDropProvider isDisabled={!showReceiptEmptyState}>
                 <View style={styles.flex1}>
                     <HeaderWithBackButton
                         title={headerTitle}
