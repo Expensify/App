@@ -904,43 +904,40 @@ function ReportDetailsPage({policy, report, route, reportMetadata}: ReportDetail
 
     // Where to navigate back to after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
-        // Ensure navigation is ready before proceeding
-        Navigation.isNavigationReady().then(() => {
-            let urlToNavigateBack: string | undefined;
+        let urlToNavigateBack: string | undefined;
 
-            // Only proceed with navigation logic if transaction was actually deleted
-            if (!isEmptyObject(requestParentReportAction)) {
-                const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
-                if (isTrackExpense) {
-                    urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
-                        moneyRequestReport?.reportID,
-                        moneyRequestReport,
-                        iouTransactionID,
-                        requestParentReportAction,
-                        iouReport,
-                        chatIOUReport,
-                        isChatIOUReportArchived,
-                        isSingleTransactionView,
-                    );
-                } else {
-                    urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
-                        iouTransactionID,
-                        requestParentReportAction,
-                        iouReport,
-                        chatIOUReport,
-                        isChatIOUReportArchived,
-                        isSingleTransactionView,
-                    );
-                }
-            }
-
-            if (!urlToNavigateBack) {
-                Navigation.dismissModal();
+        // Only proceed with navigation logic if transaction was actually deleted
+        if (!isEmptyObject(requestParentReportAction)) {
+            const isTrackExpense = isTrackExpenseAction(requestParentReportAction);
+            if (isTrackExpense) {
+                urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(
+                    moneyRequestReport?.reportID,
+                    moneyRequestReport,
+                    iouTransactionID,
+                    requestParentReportAction,
+                    iouReport,
+                    chatIOUReport,
+                    isChatIOUReportArchived,
+                    isSingleTransactionView,
+                );
             } else {
-                setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
-                navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
+                urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
+                    iouTransactionID,
+                    requestParentReportAction,
+                    iouReport,
+                    chatIOUReport,
+                    isChatIOUReportArchived,
+                    isSingleTransactionView,
+                );
             }
-        });
+        }
+
+        if (!urlToNavigateBack) {
+            Navigation.dismissModal();
+        } else {
+            setDeleteTransactionNavigateBackUrl(urlToNavigateBack);
+            navigateBackOnDeleteTransaction(urlToNavigateBack as Route, true);
+        }
     }, [iouTransactionID, requestParentReportAction, isSingleTransactionView, moneyRequestReport, isChatIOUReportArchived, iouReport, chatIOUReport]);
 
     const showDeleteModal = useCallback(() => {
