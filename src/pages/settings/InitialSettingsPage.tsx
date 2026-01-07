@@ -9,8 +9,6 @@ import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
 import Icon from '@components/Icon';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -36,7 +34,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
 import {closeReactNativeApp} from '@libs/actions/HybridApp';
 import {hasPartiallySetupBankAccount} from '@libs/BankAccountUtils';
-import {checkIfFeedConnectionIsBroken, hasPendingExpensifyCardAction} from '@libs/CardUtils';
+import {checkIfFeedConnectionIsBroken, filterPersonalCards, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import Navigation from '@libs/Navigation/Navigation';
@@ -88,7 +86,22 @@ type MenuData = {
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
 function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear', 'Profile', 'NewWindow', 'Heart', 'Info', 'QuestionMark', 'ExpensifyLogoNew', 'TreasureChest', 'Exit', 'Lightbulb', 'Lock']);
+    const icons = useMemoizedLazyExpensifyIcons([
+        'Gear',
+        'Profile',
+        'NewWindow',
+        'Heart',
+        'Info',
+        'QuestionMark',
+        'ExpensifyLogoNew',
+        'TreasureChest',
+        'Exit',
+        'Lightbulb',
+        'Lock',
+        'Emoji',
+        'CreditCard',
+        'Wallet',
+    ] as const);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST, {canBeMissing: true});
@@ -96,7 +109,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {canBeMissing: true});
     const [vacationDelegate] = useOnyx(ONYXKEYS.NVP_PRIVATE_VACATION_DELEGATE, {canBeMissing: true});
-    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [allCards] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [stripeCustomerId] = useOnyx(ONYXKEYS.NVP_PRIVATE_STRIPE_CUSTOMER_ID, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
@@ -205,7 +218,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
             },
             {
                 translationKey: 'common.wallet',
-                icon: Expensicons.Wallet,
+                icon: icons.Wallet,
                 screenName: SCREENS.SETTINGS.WALLET.ROOT,
                 brickRoadIndicator: walletBrickRoadIndicator,
                 action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
@@ -228,7 +241,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         if (subscriptionPlan) {
             items.splice(1, 0, {
                 translationKey: 'allSettingsScreen.subscription',
-                icon: Expensicons.CreditCard,
+                icon: icons.CreditCard,
                 screenName: SCREENS.SETTINGS.SUBSCRIPTION.ROOT,
                 brickRoadIndicator:
                     !!privateSubscription?.errors || hasSubscriptionRedDotError(stripeCustomerId, retryBillingSuccessful, billingDisputePending, retryBillingFailed, fundList, billingStatus)
@@ -253,6 +266,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         icons.Profile,
         icons.Gear,
         icons.Lock,
+        icons.Wallet,
+        icons.CreditCard,
         walletBrickRoadIndicator,
         hasActivatedWallet,
         userWallet?.currentBalance,
@@ -456,7 +471,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                                     <Text style={styles.primaryMediumText}>{emojiCode}</Text>
                                 ) : (
                                     <Icon
-                                        src={Expensicons.Emoji}
+                                        src={icons.Emoji}
                                         width={variables.iconSizeNormal}
                                         height={variables.iconSizeNormal}
                                         fill={theme.icon}
@@ -497,7 +512,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
-            testID={InitialSettingsPage.displayName}
+            testID="InitialSettingsPage"
             bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
         >
@@ -535,7 +550,5 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         </ScreenWrapper>
     );
 }
-
-InitialSettingsPage.displayName = 'InitialSettingsPage';
 
 export default withCurrentUserPersonalDetails(InitialSettingsPage);

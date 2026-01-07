@@ -60,11 +60,11 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
                 if (!email) {
                     return null;
                 }
-                const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? CONST.DEFAULT_NUMBER_ID);
-                const isPendingDelete = employeeList?.[accountID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                const accountID = policyMemberEmailsToAccountIDs[email];
+                const isPendingDelete = employee?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
-                // Filter the current report approver and members which are pending for deletion
-                if (report.managerID === accountID || isPendingDelete || !isAllowedToApproveExpenseReport(report, accountID, policy)) {
+                // Filter the current report approver, members which are pending for deletion, or members we cannot map to an account
+                if (!accountID || report.managerID === accountID || isPendingDelete || !isAllowedToApproveExpenseReport(report, accountID, policy)) {
                     return null;
                 }
 
@@ -125,7 +125,7 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
 
     return (
         <ApproverSelectionList
-            testID={ReportAddApproverPage.displayName}
+            testID="ReportAddApproverPage"
             headerTitle={translate('iou.changeApprover.actions.addApprover')}
             onBackButtonPress={() => {
                 Navigation.goBack(ROUTES.REPORT_CHANGE_APPROVER.getRoute(report.reportID), {compareParams: false});
@@ -144,7 +144,5 @@ function ReportAddApproverPage({report, isLoadingReportData, policy}: ReportAddA
         />
     );
 }
-
-ReportAddApproverPage.displayName = 'ReportAddApproverPage';
 
 export default withReportOrNotFound()(ReportAddApproverPage);

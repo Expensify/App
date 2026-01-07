@@ -34,6 +34,7 @@ import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
+import getPlatform from './libs/getPlatform';
 import Growl, {growlRef} from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
@@ -121,6 +122,7 @@ function Expensify() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
+    const isDesktop = getPlatform() === CONST.PLATFORM.DESKTOP;
 
     useDebugShortcut();
     usePriorityMode();
@@ -357,6 +359,10 @@ function Expensify() {
         return null;
     }
 
+    if (isDesktop) {
+        throw new Error(CONST.ERROR.DESKTOP_APP_RETIRED);
+    }
+
     if (updateRequired) {
         throw new Error(CONST.ERROR.UPDATE_REQUIRED);
     }
@@ -403,7 +409,5 @@ function Expensify() {
         </DeeplinkWrapper>
     );
 }
-
-Expensify.displayName = 'Expensify';
 
 export default Expensify;

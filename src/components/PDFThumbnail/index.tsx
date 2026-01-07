@@ -90,5 +90,4 @@ function PDFThumbnail({previewSourceURL, style, isAuthTokenRequired = false, ena
     );
 }
 
-PDFThumbnail.displayName = 'PDFThumbnail';
 export default React.memo(PDFThumbnail);

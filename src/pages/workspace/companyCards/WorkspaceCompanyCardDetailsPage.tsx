@@ -1,4 +1,5 @@
 import {format, parseISO} from 'date-fns';
+import {Str} from 'expensify-common';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -48,8 +49,8 @@ type WorkspaceCompanyCardDetailsPageProps = PlatformStackScreenProps<SettingsNav
 
 function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPageProps) {
     const {policyID, cardID, backTo} = route.params;
-    const bank = decodeURIComponent(route.params.bank) as CompanyCardFeedWithDomainID;
-    const feed = getCompanyCardFeed(bank);
+    const feedName = decodeURIComponent(route.params.feed) as CompanyCardFeedWithDomainID;
+    const bank = getCompanyCardFeed(feedName);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`, {canBeMissing: true});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
     const policy = usePolicy(policyID);
@@ -67,7 +68,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
-    const [allBankCards, allBankCardsMetadata] = useCardsList(bank);
+    const [allBankCards, allBankCardsMetadata] = useCardsList(feedName);
     const card = allBankCards?.[cardID];
 
     const cardBank = card?.bank ?? '';
@@ -77,27 +78,27 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[bank]);
-    const plaidUrl = getPlaidInstitutionIconUrl(bank);
+    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, companyFeeds[feedName]);
+    const plaidUrl = getPlaidInstitutionIconUrl(feedName);
 
     const unassignCard = () => {
         setIsUnassignModalVisible(false);
         if (card) {
-            unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, feed, card);
+            unassignWorkspaceCompanyCard(domainOrWorkspaceAccountID, bank, card);
         }
         Navigation.goBack();
     };
 
     const updateCard = () => {
-        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, feed, card?.lastScrapeResult);
+        updateWorkspaceCompanyCard(domainOrWorkspaceAccountID, cardID, bank, card?.lastScrapeResult);
     };
 
     const lastScrape = useMemo(() => {
         if (!card?.lastScrape) {
-            return '';
+            return translate('workspace.moreFeatures.companyCards.neverUpdated');
         }
         return format(getLocalDateFromDatetime(card?.lastScrape), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
-    }, [getLocalDateFromDatetime, card?.lastScrape]);
+    }, [getLocalDateFromDatetime, card?.lastScrape, translate]);
 
     if (!card && !isLoadingOnyxValue(allBankCardsMetadata)) {
         return <NotFoundPage />;
@@ -110,7 +111,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
-                testID={WorkspaceCompanyCardDetailsPage.displayName}
+                testID="WorkspaceCompanyCardDetailsPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.moreFeatures.companyCards.cardDetails')}
@@ -151,13 +152,13 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         iconStyles={styles.mt1}
                         icon={cardholder?.avatar ?? expensifyIcons.FallbackAvatar}
                         iconType={CONST.ICON_TYPE_AVATAR}
-                        description={cardholder?.login}
+                        description={Str.removeSMSDomain(cardholder?.login ?? '')}
                         interactive={false}
                     />
                     <MenuItemWithTopDescription
                         numberOfLinesTitle={3}
                         description={translate('workspace.moreFeatures.companyCards.cardNumber')}
-                        title={maskCardNumber(card?.cardName ?? '', feed, true)}
+                        title={maskCardNumber(card?.cardName ?? '', bank, true)}
                         interactive={false}
                         titleStyle={styles.walletCardNumber}
                     />
@@ -165,14 +166,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         pendingAction={card?.nameValuePairs?.pendingFields?.cardTitle}
                         errorRowStyles={[styles.ph5, styles.mb3]}
                         errors={getLatestErrorField(card?.nameValuePairs ?? {}, 'cardTitle')}
-                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, feed, 'cardTitle')}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'cardTitle')}
                     >
                         <MenuItemWithTopDescription
                             description={translate('workspace.moreFeatures.companyCards.cardName')}
                             title={customCardNames?.[cardID] ?? getDefaultCardName(cardholder?.firstName)}
                             shouldShowRightIcon
                             brickRoadIndicator={card?.nameValuePairs?.errorFields?.cardTitle ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_NAME.getRoute(policyID, cardID, bank))}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_CARD_NAME.getRoute(policyID, cardID, feedName))}
                         />
                     </OfflineWithFeedback>
                     {exportMenuItem?.shouldShowMenuItem ? (
@@ -184,14 +185,14 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                                 if (!exportMenuItem.exportType) {
                                     return;
                                 }
-                                clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, feed, exportMenuItem.exportType);
+                                clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, exportMenuItem.exportType);
                             }}
                         >
                             <MenuItemWithTopDescription
                                 description={exportMenuItem.description}
                                 title={exportMenuItem.title}
                                 shouldShowRightIcon
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, bank, backTo))}
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EXPORT.getRoute(policyID, cardID, feedName, backTo))}
                             />
                         </OfflineWithFeedback>
                     ) : null}
@@ -202,11 +203,20 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         title={card?.isLoadingLastUpdated ? translate('workspace.moreFeatures.companyCards.updating') : lastScrape}
                         interactive={false}
                     />
-                    <MenuItemWithTopDescription
-                        description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                        title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
-                        interactive={false}
-                    />
+                    <OfflineWithFeedback
+                        pendingAction={card?.pendingFields?.scrapeMinDate}
+                        errorRowStyles={[styles.ph5, styles.mb3]}
+                        errors={getLatestErrorField(card ?? {}, 'scrapeMinDate')}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'scrapeMinDate', true)}
+                    >
+                        <MenuItemWithTopDescription
+                            description={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
+                            title={card?.scrapeMinDate ? format(parseISO(card.scrapeMinDate), CONST.DATE.FNS_FORMAT_STRING) : ''}
+                            shouldShowRightIcon
+                            brickRoadIndicator={card?.errorFields?.scrapeMinDate ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_EDIT_TRANSACTION_START_DATE.getRoute(policyID, cardID, feedName))}
+                        />
+                    </OfflineWithFeedback>
                     <MenuItem
                         icon={expensifyIcons.MoneySearch}
                         title={translate('workspace.common.viewTransactions')}
@@ -223,7 +233,7 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
                         pendingAction={card?.pendingFields?.lastScrape}
                         errorRowStyles={[styles.ph5, styles.mb3]}
                         errors={getLatestErrorField(card ?? {}, 'lastScrape')}
-                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, feed, 'lastScrape', true)}
+                        onClose={() => clearCompanyCardErrorField(domainOrWorkspaceAccountID, cardID, bank, 'lastScrape', true)}
                     >
                         <MenuItem
                             icon={expensifyIcons.Sync}
@@ -255,7 +265,5 @@ function WorkspaceCompanyCardDetailsPage({route}: WorkspaceCompanyCardDetailsPag
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceCompanyCardDetailsPage.displayName = 'WorkspaceCompanyCardDetailsPage';
 
 export default WorkspaceCompanyCardDetailsPage;

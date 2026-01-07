@@ -86,7 +86,7 @@ function SecuritySettingsPage() {
     });
 
     const {isAccountLocked, showLockedAccountModal} = useContext(LockedAccountContext);
-    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
+    const {isActingAsDelegate, isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
     const delegates = account?.delegatedAccess?.delegates ?? [];
     const delegators = account?.delegatedAccess?.delegators ?? [];
 
@@ -320,7 +320,7 @@ function SecuritySettingsPage() {
             text: translate('delegate.removeCopilot'),
             icon: Expensicons.Trashcan,
             onPress: () => {
-                if (isDelegateAccessRestricted) {
+                if (isActingAsDelegate) {
                     modalClose(() => showDelegateNoAccessModal());
                     return;
                 }
@@ -343,7 +343,7 @@ function SecuritySettingsPage() {
 
     return (
         <ScreenWrapper
-            testID={SecuritySettingsPage.displayName}
+            testID="SecuritySettingsPage"
             includeSafeAreaPaddingBottom={false}
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
@@ -453,6 +453,11 @@ function SecuritySettingsPage() {
                                 prompt={translate('delegate.removeCopilotConfirmation')}
                                 danger
                                 onConfirm={() => {
+                                    if (isActingAsDelegate) {
+                                        setShouldShowRemoveDelegateModal(false);
+                                        showDelegateNoAccessModal();
+                                        return;
+                                    }
                                     removeDelegate({email: selectedDelegate?.email ?? '', delegatedAccess: account?.delegatedAccess});
                                     setShouldShowRemoveDelegateModal(false);
                                     setSelectedDelegate(undefined);
@@ -472,7 +477,5 @@ function SecuritySettingsPage() {
         </ScreenWrapper>
     );
 }
-
-SecuritySettingsPage.displayName = 'SettingSecurityPage';
 
 export default SecuritySettingsPage;

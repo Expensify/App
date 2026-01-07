@@ -515,7 +515,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [chatTextLink, chatReportID] = useMemo(() => {
         // If they have an onboarding specialist assigned display the following and link to the #admins room with the setup specialist.
         if (policy?.chatReportIDAdmins) {
-            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins];
+            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins?.toString()];
         }
 
         // If not, if they have an account manager assigned display the following and link to the DM with their account manager.
@@ -535,7 +535,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
         >
             <ScreenWrapper
-                testID={PolicyAccountingPage.displayName}
+                testID="PolicyAccountingPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
@@ -656,7 +656,5 @@ function PolicyAccountingPageWrapper(props: PolicyAccountingPageProps) {
         </AccountingContextProvider>
     );
 }
-
-PolicyAccountingPage.displayName = 'PolicyAccountingPage';
 
 export default withPolicyConnections(PolicyAccountingPageWrapper);

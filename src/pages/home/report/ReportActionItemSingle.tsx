@@ -157,7 +157,7 @@ function ReportActionItemSingle({
 
     const currentSelectedTimezone = currentUserPersonalDetails?.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected;
     const hasEmojiStatus = !details.shouldDisplayAllActors && details.status?.emojiCode;
-    const formattedDate = DateUtils.getStatusUntilDate(details.status?.clearAfter ?? '', details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
+    const formattedDate = DateUtils.getStatusUntilDate(translate, details.status?.clearAfter ?? '', details.timezone?.selected ?? CONST.DEFAULT_TIME_ZONE.selected, currentSelectedTimezone);
     const statusText = details.status?.text ?? '';
     const statusTooltipText = formattedDate ? `${statusText ? `${statusText} ` : ''}(${formattedDate})` : statusText;
 
@@ -228,7 +228,7 @@ function ReportActionItemSingle({
                         <ReportActionItemDate created={action?.created ?? ''} />
                     </View>
                 ) : null}
-                {!!delegateAccountID && <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', {delegator: accountOwnerDetails?.displayName ?? ''})}</Text>}
+                {!!delegateAccountID && <Text style={[styles.chatDelegateMessage]}>{translate('delegate.onBehalfOfMessage', accountOwnerDetails?.displayName ?? '')}</Text>}
                 {!!vacationer && !!submittedTo && (
                     <Text style={[styles.chatDelegateMessage]}>
                         {translate('statusPage.toAsVacationDelegate', {
@@ -247,7 +247,5 @@ function ReportActionItemSingle({
         </View>
     );
 }
-
-ReportActionItemSingle.displayName = 'ReportActionItemSingle';
 
 export default ReportActionItemSingle;
