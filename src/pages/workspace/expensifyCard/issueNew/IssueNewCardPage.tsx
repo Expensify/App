@@ -123,7 +123,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
         }
     };
 
-    if (isActingAsDelegate) {
+    if (isDelegateAccessRestricted) {
         return (
             <ScreenWrapper
                 testID="IssueNewCardPage"
@@ -131,7 +131,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                 shouldEnablePickerAvoiding={false}
             >
                 <DelegateNoAccessWrapper
-                    accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}
+                    accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.SUBMITTER]}
                     onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
             </ScreenWrapper>
