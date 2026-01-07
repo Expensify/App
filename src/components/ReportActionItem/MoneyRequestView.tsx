@@ -92,6 +92,7 @@ import {
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
+    isTimeRequest as isTimeRequestTransactionUtils,
     shouldShowAttendees as shouldShowAttendeesTransactionUtils,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
@@ -196,6 +197,7 @@ function MoneyRequestView({
     }
     const isExpenseUnreported = isExpenseUnreportedTransactionUtils(transaction);
     const {policyForMovingExpensesID, policyForMovingExpenses, shouldSelectPolicy} = usePolicyForMovingExpenses();
+    const isTimeRequest = isTimeRequestTransactionUtils(transaction);
 
     const [policiesWithPerDiem] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: perDiemPoliciesSelector,
@@ -370,7 +372,7 @@ function MoneyRequestView({
     const canEditReimbursable = isEditable && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, undefined, isChatReportArchived);
     const shouldShowAttendees = shouldShowAttendeesTransactionUtils(iouType, policy);
 
-    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest);
+    const shouldShowTax = isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
     const tripID = getTripIDFromTransactionParentReportID(parentReport?.parentReportID);
     const shouldShowViewTripDetails = hasReservationList(transaction) && !!tripID;
 
@@ -452,17 +454,12 @@ function MoneyRequestView({
         if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
         }
-    } else {
-        if (!isDistanceRequest && !isPerDiemRequest) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
-        }
-        if (isCancelled) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
-        } else if (isApproved) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
-        } else if (shouldShowPaid) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
-        }
+    } else if (isCancelled) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
+    } else if (isApproved) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
+    } else if (shouldShowPaid) {
+        amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
     }
     if (isExpenseSplit) {
         amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.split')}`;
