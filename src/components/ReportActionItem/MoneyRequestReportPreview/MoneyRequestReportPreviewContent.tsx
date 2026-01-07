@@ -561,7 +561,7 @@ function MoneyRequestReportPreviewContent({
         });
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute()));
     }, [iouReportID]);
-    
+
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: true});
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
