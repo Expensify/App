@@ -7,6 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import WorkspaceTravelInvoicingSection from '@pages/workspace/travel/WorkspaceTravelInvoicingSection';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxKey} from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -21,7 +22,8 @@ const WORKSPACE_ACCOUNT_ID = 999888;
 // We use literal values that match the constants above.
 
 jest.mock('@react-navigation/native', () => {
-    const actualNav = jest.requireActual<typeof import('@libs/Navigation/Navigation')>('@react-navigation/native');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const actualNav = jest.requireActual('@react-navigation/native');
     return {
         ...actualNav,
         useIsFocused: () => true,
@@ -37,11 +39,13 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@src/hooks/useResponsiveLayout');
 
 jest.mock('@hooks/useWorkspaceAccountID', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => 999888, // Must match WORKSPACE_ACCOUNT_ID
 }));
 
 jest.mock('@hooks/useScreenWrapperTransitionStatus', () => ({
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     __esModule: true,
     default: () => ({didScreenTransitionEnd: true}),
 }));
@@ -96,7 +100,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
 
         it('should show setup CTA when paymentBankAccountID is not set', async () => {
             // Given Travel Invoicing card settings exist but without paymentBankAccountID
-            const travelInvoicingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}_TRAVEL_US`;
+            const travelInvoicingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}_TRAVEL_US` as OnyxKey;
 
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
@@ -118,7 +122,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
     });
 
     describe('When Travel Invoicing is configured', () => {
-        const travelInvoicingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}_TRAVEL_US`;
+        const travelInvoicingKey = `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${WORKSPACE_ACCOUNT_ID}_TRAVEL_US` as OnyxKey;
         const bankAccountKey = ONYXKEYS.BANK_ACCOUNT_LIST;
 
         it('should render the section title when card settings are properly configured', async () => {
@@ -130,8 +134,9 @@ describe('WorkspaceTravelInvoicingSection', () => {
                     remainingLimit: 50000,
                     currentBalance: 10000,
                 });
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(bankAccountKey, {
-                    '12345': {
+                    12345: {
                         accountData: {
                             addressName: 'Test Company',
                             accountNumber: '****1234',
@@ -148,7 +153,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Then the section title should be visible
-            expect(screen.getByText('Travel Invoicing')).toBeTruthy();
+            expect(screen.getByText('Travel booking')).toBeTruthy();
         });
 
         it('should display current spend when configured', async () => {
@@ -160,8 +165,9 @@ describe('WorkspaceTravelInvoicingSection', () => {
                     remainingLimit: 50000,
                     currentBalance: 25000,
                 });
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(bankAccountKey, {
-                    '12345': {
+                    12345: {
                         accountData: {
                             addressName: 'Test Company',
                             accountNumber: '****1234',
@@ -190,8 +196,9 @@ describe('WorkspaceTravelInvoicingSection', () => {
                     remainingLimit: 100000,
                     currentBalance: 25000,
                 });
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(bankAccountKey, {
-                    '12345': {
+                    12345: {
                         accountData: {
                             addressName: 'Test Company',
                             accountNumber: '****1234',
@@ -220,8 +227,9 @@ describe('WorkspaceTravelInvoicingSection', () => {
                     remainingLimit: 50000,
                     currentBalance: 10000,
                 });
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(bankAccountKey, {
-                    '12345': {
+                    12345: {
                         accountData: {
                             addressName: 'Test Company',
                             accountNumber: '****1234',
@@ -250,8 +258,9 @@ describe('WorkspaceTravelInvoicingSection', () => {
                     remainingLimit: 50000,
                     currentBalance: 10000,
                 });
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 await Onyx.merge(bankAccountKey, {
-                    '12345': {
+                    12345: {
                         accountData: {
                             addressName: 'Test Company',
                             accountNumber: '****1234',

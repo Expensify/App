@@ -25,7 +25,8 @@ describe('TravelInvoicingUtils', () => {
         });
 
         it('Should return false when cardSettings is null', () => {
-            const result = getIsTravelInvoicingEnabled(null);
+            // Using undefined since OnyxEntry doesn't accept null
+            const result = getIsTravelInvoicingEnabled(undefined);
             expect(result).toBe(false);
         });
 
@@ -131,16 +132,15 @@ describe('TravelInvoicingUtils', () => {
     });
 
     describe('getTravelSettlementAccount', () => {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         const mockBankAccountList: BankAccountList = {
-            '12345': {
+            12345: {
                 accountData: {
                     addressName: 'Test Company',
                     accountNumber: '****1234',
                     routingNumber: '123456789',
-                    bankName: 'Test Bank',
                     accountType: 'checking',
                     bankAccountID: 12345,
-                    processor: 'dwolla',
                 },
             },
         };

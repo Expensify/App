@@ -19,9 +19,9 @@ import {
     hasTravelInvoicingSettlementAccount,
     PROGRAM_TRAVEL_US,
 } from '@libs/TravelInvoicingUtils';
+import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ToggleSettingOptionRow from '../workflows/ToggleSettingsOptionRow';
 import GetStartedTravelInvoicing from './GetStartedTravelInvoicing';
 
 type WorkspaceTravelInvoicingSectionProps = {
@@ -52,7 +52,10 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     const travelLimit = getTravelLimit(cardSettings);
     const settlementAccount = getTravelSettlementAccount(cardSettings, bankAccountList);
     const settlementFrequency = getTravelSettlementFrequency(cardSettings);
-    const localizedFrequency = translate(`workspace.expensifyCard.frequency.${settlementFrequency}`);
+    const localizedFrequency =
+        settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY
+            ? translate('workspace.expensifyCard.frequency.monthly')
+            : translate('workspace.expensifyCard.frequency.daily');
 
     // Format currency values (assuming USD for Travel Invoicing based on PROGRAM_TRAVEL_US)
     const formattedSpend = convertToDisplayString(travelSpend, CONST.CURRENCY.USD);
@@ -66,15 +69,15 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
     return (
         <>
             <Section
-                title={'Travel booking'}
-                subtitle={"Congrats! You're all set to book and manage travel on this workspace."}
+                title="Travel booking"
+                subtitle="Congrats! You're all set to book and manage travel on this workspace."
                 containerStyles={styles.p8}
                 subtitleStyles={styles.mb6}
             >
                 {/* Manage travel */}
                 <OfflineWithFeedback errorRowStyles={styles.mh0}>
                     <MenuItemWithTopDescription
-                        title={'Manage travel'}
+                        title="Manage travel"
                         titleStyle={styles.textStrong}
                         icon={icons.LuggageWithLines}
                         iconRight={icons.NewWindow}
@@ -92,15 +95,15 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
                                 <ToggleSettingOptionRow
                                     disabled={false}
                                     disabledAction={() => {}}
-                                    title={'Central invoicing'}
+                                    title="Central invoicing"
                                     titleStyle={styles.textStrong}
-                                    subtitle={'Allow your members to pay and bill travel directly to the workspace'}
-                                    switchAccessibilityLabel={'Allow your members to pay and bill travel directly to the workspace'}
-                                    isActive={true}
+                                    subtitle="Allow your members to pay and bill travel directly to the workspace"
+                                    switchAccessibilityLabel="Allow your members to pay and bill travel directly to the workspace"
+                                    isActive
                                     pendingAction={null}
                                     onToggle={() => {}}
                                     showLockIcon={false}
-                                    errors={null}
+                                    errors={undefined}
                                     onCloseError={() => {}}
                                     onPress={() => {}}
                                 />
