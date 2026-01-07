@@ -27,6 +27,7 @@ import {
     getIOUReportActionToApproveOrPay,
     getPerDiemExpenseInformation,
     getReportPreviewAction,
+    handleNavigateAfterExpenseCreate,
     initMoneyRequest,
     initSplitExpense,
     markRejectViolationAsResolved,
@@ -63,6 +64,7 @@ import {subscribeToUserEvents} from '@libs/actions/User';
 import type {ApiCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
@@ -78,7 +80,7 @@ import {
 } from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread, createDraftTransactionAndNavigateToParticipantSelector, isIOUReport} from '@libs/ReportUtils';
-import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil} from '@libs/TransactionUtils';
+import {buildOptimisticTransaction, getValidWaypoints, isDistanceRequest as isDistanceRequestUtil, mergeTransactionIdsHighlightOnSearchRoute} from '@libs/TransactionUtils';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -147,6 +149,7 @@ jest.mock('@src/libs/actions/Report', () => {
     };
 });
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
+jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
 
 const unapprovedCashHash = 71801560;
 const unapprovedCashSimilarSearchHash = 1832274510;
@@ -11433,5 +11436,40 @@ describe('actions/IOU', () => {
 
             isTransactionDuplicated(mockCashExpenseTransaction, duplicatedTransaction);
         });
+    });
+
+    it('handleNavigateAfterExpenseCreate', async () => {
+        const mockedIsReportTopmostSplitNavigator = isReportTopmostSplitNavigator as jest.MockedFunction<typeof isReportTopmostSplitNavigator>;
+        const spyOnMergeTransactionIdsHighlightOnSearchRoute = jest.spyOn(require('@libs/TransactionUtils'), 'mergeTransactionIdsHighlightOnSearchRoute');
+        mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
+
+        // When on the Inbox tab, or NOT from the "global create" button, or without a transactionID,
+        // the function dismissModalAndOpenReportInInboxTab will always be called to handle it,
+        // so mergeTransactionIdsHighlightOnSearchRoute will never be invoked.
+        handleNavigateAfterExpenseCreate({activeReportID: '1', isFromGlobalCreate: false});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+
+        handleNavigateAfterExpenseCreate({activeReportID: '1', isFromGlobalCreate: true});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+
+        mockedIsReportTopmostSplitNavigator.mockReturnValue(true);
+        handleNavigateAfterExpenseCreate({activeReportID: '1', isFromGlobalCreate: true, transactionID: '1'});
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(0);
+
+        // When NOT on the Inbox tab
+        mockedIsReportTopmostSplitNavigator.mockReturnValue(false);
+        handleNavigateAfterExpenseCreate({activeReportID: '1', isFromGlobalCreate: true, transactionID: '1'});
+
+        // then mergeTransactionIdsHighlightOnSearchRoute will be called
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(CONST.SEARCH.DATA_TYPES.EXPENSE, {'1': true});
+        spyOnMergeTransactionIdsHighlightOnSearchRoute.mockClear();
+
+        //If expense is an invoice
+        handleNavigateAfterExpenseCreate({activeReportID: '1', isFromGlobalCreate: true, transactionID: '1', isInvoice: true});
+
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledTimes(1);
+        expect(spyOnMergeTransactionIdsHighlightOnSearchRoute).toHaveBeenCalledWith(CONST.SEARCH.DATA_TYPES.INVOICE, {'1': true});
+        spyOnMergeTransactionIdsHighlightOnSearchRoute.mockReset();
     });
 });

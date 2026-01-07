@@ -605,6 +605,7 @@ function IOURequestStepConfirmation({
                         originalTransactionID: item.comment?.originalTransactionID,
                         source: item.comment?.source,
                         isLinkedTrackedExpenseReportArchived,
+                        isFromGlobalCreate: item?.isFromGlobalCreate,
                     },
                     shouldHandleNavigation: index === transactions.length - 1,
                     shouldGenerateTransactionThreadReport,
@@ -685,6 +686,7 @@ function IOURequestStepConfirmation({
                     billable: transaction.billable,
                     reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
+                    isFromGlobalCreate: transaction.isFromGlobalCreate,
                 },
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
@@ -758,6 +760,7 @@ function IOURequestStepConfirmation({
                         customUnitRateID,
                         attendees: item.comment?.attendees,
                         isLinkedTrackedExpenseReportArchived,
+                        isFromGlobalCreate: item?.isFromGlobalCreate,
                     },
                     accountantParams: {
                         accountant: item.accountant,
@@ -826,6 +829,7 @@ function IOURequestStepConfirmation({
                     reimbursable: transaction.reimbursable,
                     attendees: transaction.comment?.attendees,
                     receipt: isManualDistanceRequest ? receiptFiles[transaction.transactionID] : undefined,
+                    isFromGlobalCreate: transaction.isFromGlobalCreate,
                 },
                 backToReport,
                 isASAPSubmitBetaEnabled,
@@ -1006,6 +1010,7 @@ function IOURequestStepConfirmation({
                     policyTagList: policyTags,
                     policyCategories,
                     policyRecentlyUsedCategories,
+                    isFromGlobalCreate: transaction?.isFromGlobalCreate,
                     policyRecentlyUsedTags,
                 });
                 return;

@@ -7,10 +7,13 @@ import type {SearchListItem, SelectionListHandle, TransactionGroupListItemType, 
 import {search} from '@libs/actions/Search';
 import {isReportActionEntry} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
+import {mergeTransactionIdsHighlightOnSearchRoute} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useNetwork from './useNetwork';
+import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 
 type UseSearchHighlightAndScroll = {
@@ -51,6 +54,12 @@ function useSearchHighlightAndScroll({
     const initializedRef = useRef(false);
     const hasPendingSearchRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+
+    const transactionIDsToHighlightSelector = useCallback((allTransactionIDs: OnyxEntry<Record<string, Record<string, boolean>>>) => allTransactionIDs?.[queryJSON.type], [queryJSON.type]);
+    const [transactionIDsToHighlight] = useOnyx(ONYXKEYS.TRANSACTION_IDS_HIGHLIGHT_ON_SEARCH_ROUTE, {
+        canBeMissing: true,
+        selector: transactionIDsToHighlightSelector,
+    });
 
     const existingSearchResultIDs = useMemo(() => {
         if (!searchResults?.data) {
@@ -201,11 +210,20 @@ function useSearchHighlightAndScroll({
         } else {
             const previousTransactionIDs = extractTransactionIDsFromSearchResults(previousSearchResults);
             const currentTransactionIDs = extractTransactionIDsFromSearchResults(searchResults.data);
+            const manualHighlightTransactionIDs = new Set(Object.keys(transactionIDsToHighlight ?? {}).filter((id) => !!transactionIDsToHighlight?.[id]));
 
             // Find new transaction IDs that are not in the previousTransactionIDs and not already highlighted
-            const newTransactionIDs = currentTransactionIDs.filter((id) => !previousTransactionIDs.includes(id) && !highlightedIDs.current.has(id));
+            const newTransactionIDs = currentTransactionIDs.filter((id) => {
+                if (manualHighlightTransactionIDs.has(id)) {
+                    return true;
+                }
+                if (!triggeredByHookRef.current || !hasNewItemsRef.current) {
+                    return false;
+                }
+                return !previousTransactionIDs.includes(id) && !highlightedIDs.current.has(id);
+            });
 
-            if (!triggeredByHookRef.current || newTransactionIDs.length === 0 || !hasNewItemsRef.current) {
+            if (newTransactionIDs.length === 0) {
                 return;
             }
 
@@ -217,7 +235,31 @@ function useSearchHighlightAndScroll({
             }
             setNewSearchResultKeys(newKeys);
         }
-    }, [searchResults?.data, previousSearchResults, isChat]);
+    }, [searchResults?.data, previousSearchResults, isChat, transactionIDsToHighlight]);
+
+    // Reset transactionIDsToHighlight after they have been highlighted
+    useEffect(() => {
+        if (isEmptyObject(transactionIDsToHighlight) || newSearchResultKeys === null) {
+            return;
+        }
+
+        const highlightedTransactionIDs = Object.keys(transactionIDsToHighlight).filter(
+            (id) => transactionIDsToHighlight[id] && newSearchResultKeys?.has(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`),
+        );
+
+        const timer = setTimeout(() => {
+            mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, Object.fromEntries(highlightedTransactionIDs.map((id) => [id, false])));
+        }, CONST.ANIMATED_HIGHLIGHT_START_DURATION);
+        return () => clearTimeout(timer);
+    }, [transactionIDsToHighlight, queryJSON.type, newSearchResultKeys]);
+
+    // Remove transactionIDsToHighlight when the user leaves the current search type
+    useEffect(
+        () => () => {
+            mergeTransactionIdsHighlightOnSearchRoute(queryJSON.type, null);
+        },
+        [queryJSON.type],
+    );
 
     // Reset newSearchResultKey after it's been used
     useEffect(() => {
