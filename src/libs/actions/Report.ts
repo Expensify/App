@@ -2092,13 +2092,13 @@ function deleteReportComment(
 
     // Force LHN re-evaluation for empty child thread by triggering an Onyx update
     if (reportAction.childReportID && childVisibleActionCount === 0) {
-        const childReportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`;
+        const childReportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`;
         const childReport = allReports?.[childReportKey];
 
         if (childReport) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: childReportKey as `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`,
+                key: childReportKey,
                 value: {
                     lastMessageText: '',
                 },
@@ -2106,7 +2106,7 @@ function deleteReportComment(
 
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: childReportKey as `${typeof ONYXKEYS.COLLECTION.REPORT}${string}`,
+                key: childReportKey,
                 value: {
                     lastMessageText: childReport.lastMessageText ?? '',
                 },
