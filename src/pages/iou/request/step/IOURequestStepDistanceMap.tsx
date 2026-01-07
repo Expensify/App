@@ -52,7 +52,7 @@ import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getPolicy, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {getDistanceInMeters, getRateID, getRequestType, getValidWaypoints, hasRoute, isCustomUnitRateIDForP2P} from '@libs/TransactionUtils';
+import {getDistanceInMeters, getRateID, getRequestType, getValidWaypoints, hasRoute, isCustomUnitRateIDForP2P, isWaypointNullIsland} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -138,7 +138,7 @@ function IOURequestStepDistanceMap({
         return isEmpty(waypointWithoutKey);
     };
     const nonEmptyWaypointsCount = useMemo(() => Object.keys(waypoints).filter((key) => !isWaypointEmpty(waypoints[key])).length, [waypoints]);
-
+    const isWaypointsNullIslandError = useMemo(() => Object.values(waypoints).some(isWaypointNullIsland), [waypoints]);
     const duplicateWaypointsError = useMemo(
         () => nonEmptyWaypointsCount >= 2 && Object.keys(validatedWaypoints).length !== nonEmptyWaypointsCount,
         [nonEmptyWaypointsCount, validatedWaypoints],
@@ -468,6 +468,9 @@ function IOURequestStepDistanceMap({
         // Get route error if available else show the invalid number of waypoints error.
         if (hasRouteError) {
             return getLatestErrorField(transaction, 'route');
+        }
+        if (isWaypointsNullIslandError) {
+            return {isWaypointsNullIslandError: `${translate('common.please')} ${translate('common.fixTheErrors')} ${translate('common.inTheFormBeforeContinuing')}.`} as Errors;
         }
         if (duplicateWaypointsError) {
             return {duplicateWaypointsError: translate('iou.error.duplicateWaypointsErrorMessage')} as Errors;
