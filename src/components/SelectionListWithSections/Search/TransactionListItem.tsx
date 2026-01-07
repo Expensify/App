@@ -44,9 +44,10 @@ function TransactionListItem<TItem extends ListItem>({
     shouldSyncFocus,
     columns,
     isLoading,
-    areAllOptionalColumnsHidden,
     violations,
+    customCardNames,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -65,10 +66,11 @@ function TransactionListItem<TItem extends ListItem>({
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, transactionItem.policyID]);
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {canBeMissing: true});
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
-    const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, {canBeMissing: true});
+    const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.reportAction?.reportActionID}`],
         [transactionItem?.reportAction?.reportActionID],
@@ -98,37 +100,51 @@ function TransactionListItem<TItem extends ListItem>({
         backgroundColor: theme.highlightBG,
     });
 
-    const {amountColumnSize, dateColumnSize, taxAmountColumnSize} = useMemo(() => {
+    const {amountColumnSize, dateColumnSize, taxAmountColumnSize, submittedColumnSize, approvedColumnSize, postedColumnSize, exportedColumnSize} = useMemo(() => {
         return {
             amountColumnSize: transactionItem.isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             taxAmountColumnSize: transactionItem.isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
             dateColumnSize: transactionItem.shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            submittedColumnSize: transactionItem.shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            approvedColumnSize: transactionItem.shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            postedColumnSize: transactionItem.shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
+            exportedColumnSize: transactionItem.shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL,
         };
-    }, [transactionItem.isAmountColumnWide, transactionItem.isTaxAmountColumnWide, transactionItem.shouldShowYear]);
+    }, [
+        transactionItem.isAmountColumnWide,
+        transactionItem.isTaxAmountColumnWide,
+        transactionItem.shouldShowYear,
+        transactionItem.shouldShowYearSubmitted,
+        transactionItem.shouldShowYearApproved,
+        transactionItem.shouldShowYearPosted,
+        transactionItem.shouldShowYearExported,
+    ]);
 
     const transactionViolations = useMemo(() => {
         return (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
             (violation: TransactionViolation) =>
                 !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, snapshotReport, snapshotPolicy) &&
-                shouldShowViolation(snapshotReport, snapshotPolicy, violation.name, currentUserDetails.email ?? '', false),
+                shouldShowViolation(snapshotReport, snapshotPolicy, violation.name, currentUserDetails.email ?? '', false, transactionItem),
         );
     }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email, currentUserDetails.accountID]);
 
     const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const handleActionButtonPress = useCallback(() => {
-        handleActionButtonPressUtil(
-            currentSearchHash,
-            transactionItem,
-            () => onSelectRow(item, transactionPreviewData),
+        handleActionButtonPressUtil({
+            hash: currentSearchHash,
+            item: transactionItem,
+            goToItem: () => onSelectRow(item, transactionPreviewData),
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDEWBetaEnabled,
             isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-        );
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+            personalPolicyID,
+        });
     }, [
         currentSearchHash,
         transactionItem,
@@ -136,10 +152,12 @@ function TransactionListItem<TItem extends ListItem>({
         snapshotReport,
         snapshotPolicy,
         lastPaymentMethod,
+        personalPolicyID,
         currentSearchKey,
         onSelectRow,
         item,
         onDEWModalOpen,
+        isDEWBetaEnabled,
         isDelegateAccessRestricted,
         showDelegateNoAccessModal,
     ]);
@@ -182,38 +200,46 @@ function TransactionListItem<TItem extends ListItem>({
                 onFocus={onFocus}
                 wrapperStyle={[styles.mb2, styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone]}
             >
-                {!isLargeScreenWidth && (
-                    <UserInfoAndActionButtonRow
-                        item={transactionItem}
-                        handleActionButtonPress={handleActionButtonPress}
-                        shouldShowUserInfo={!!transactionItem?.from}
-                        isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
-                    />
+                {({hovered}) => (
+                    <>
+                        {!isLargeScreenWidth && (
+                            <UserInfoAndActionButtonRow
+                                item={transactionItem}
+                                handleActionButtonPress={handleActionButtonPress}
+                                shouldShowUserInfo={!!transactionItem?.from}
+                                isInMobileSelectionMode={shouldUseNarrowLayout && !!canSelectMultiple}
+                            />
+                        )}
+                        <TransactionItemRow
+                            hash={currentSearchHash}
+                            transactionItem={transactionItem}
+                            report={transactionItem.report}
+                            shouldShowTooltip={showTooltip}
+                            onButtonPress={handleActionButtonPress}
+                            onCheckboxPress={handleCheckboxPress}
+                            shouldUseNarrowLayout={!isLargeScreenWidth}
+                            columns={columns}
+                            isActionLoading={isLoading ?? isActionLoading}
+                            isSelected={!!transactionItem.isSelected}
+                            dateColumnSize={dateColumnSize}
+                            submittedColumnSize={submittedColumnSize}
+                            approvedColumnSize={approvedColumnSize}
+                            postedColumnSize={postedColumnSize}
+                            exportedColumnSize={exportedColumnSize}
+                            amountColumnSize={amountColumnSize}
+                            taxAmountColumnSize={taxAmountColumnSize}
+                            shouldShowCheckbox={!!canSelectMultiple}
+                            style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
+                            violations={transactionViolations}
+                            onArrowRightPress={onPress}
+                            isHover={hovered}
+                            customCardNames={customCardNames}
+                        />
+                    </>
                 )}
-                <TransactionItemRow
-                    transactionItem={transactionItem}
-                    report={transactionItem.report}
-                    shouldShowTooltip={showTooltip}
-                    onButtonPress={handleActionButtonPress}
-                    onCheckboxPress={handleCheckboxPress}
-                    shouldUseNarrowLayout={!isLargeScreenWidth}
-                    columns={columns}
-                    isActionLoading={isLoading ?? isActionLoading}
-                    isSelected={!!transactionItem.isSelected}
-                    dateColumnSize={dateColumnSize}
-                    amountColumnSize={amountColumnSize}
-                    taxAmountColumnSize={taxAmountColumnSize}
-                    shouldShowCheckbox={!!canSelectMultiple}
-                    style={[styles.p3, styles.pv2, shouldUseNarrowLayout ? styles.pt2 : {}]}
-                    areAllOptionalColumnsHidden={areAllOptionalColumnsHidden}
-                    violations={transactionViolations}
-                    onArrowRightPress={onPress}
-                />
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
 }
-
-TransactionListItem.displayName = 'TransactionListItem';
 
 export default TransactionListItem;

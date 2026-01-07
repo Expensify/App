@@ -2,15 +2,15 @@ import {useFocusEffect} from '@react-navigation/native';
 import reportsSelector from '@selectors/Attributes';
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import Button from '@components/Button';
-import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectCircle from '@components/SelectCircle';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from '@components/SelectionListWithSections';
 import type {ListItem, SelectionListHandle} from '@components/SelectionListWithSections/types';
 import UserListItem from '@components/SelectionListWithSections/UserListItem';
@@ -18,6 +18,7 @@ import useContactImport from '@hooks/useContactImport';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
+import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -27,7 +28,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
-import memoize from '@libs/memoize';
 import Navigation from '@libs/Navigation/Navigation';
 import type {Option, Section} from '@libs/OptionsListUtils';
 import {
@@ -55,60 +55,74 @@ type SelectedOption = ListItem &
         reportID?: string;
     };
 
-const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'NewChatPage.getValidOptions'});
-
 function useOptions() {
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [newGroupDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {canBeMissing: true});
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const personalData = useCurrentUserPersonalDetails();
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const {contacts} = useContactImport();
-    const {options: listOptions, areOptionsInitialized} = useOptionsList({
-        shouldInitialize: didScreenTransitionEnd,
-    });
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: true});
+
+    const {
+        options: listOptions,
+        isLoading,
+        loadMore,
+        hasMore,
+        isLoadingMore,
+    } = useFilteredOptions({
+        maxRecentReports: 500,
+        enabled: didScreenTransitionEnd,
+        includeP2P: true,
+        batchSize: 100,
+        enablePagination: true,
+        searchTerm: debouncedSearchTerm,
+        betas,
+    });
+
     const [nvpDismissedProductTraining] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {canBeMissing: true});
-    const defaultOptions = useMemo(() => {
-        const filteredOptions = memoizedGetValidOptions(
-            {
-                reports: listOptions.reports ?? [],
-                personalDetails: (listOptions.personalDetails ?? []).concat(contacts),
-            },
-            draftComments,
-            nvpDismissedProductTraining,
-            {
-                betas: betas ?? [],
-                includeSelfDM: true,
-            },
-            countryCode,
-        );
-        return filteredOptions;
-    }, [listOptions.reports, listOptions.personalDetails, contacts, draftComments, betas, nvpDismissedProductTraining, countryCode]);
 
-    const unselectedOptions = useMemo(() => filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID))), [defaultOptions, selectedOptions]);
+    const reports = listOptions?.reports ?? [];
+    const personalDetails = listOptions?.personalDetails ?? [];
 
-    const options = useMemo(() => {
-        const filteredOptions = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, {
-            selectedOptions,
-            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        });
+    const defaultOptions = getValidOptions(
+        {
+            reports,
+            personalDetails: personalDetails.concat(contacts),
+        },
+        draftComments,
+        nvpDismissedProductTraining,
+        loginList,
+        {
+            betas: betas ?? [],
+            includeSelfDM: true,
+            shouldAlwaysIncludeDM: true,
+        },
+        countryCode,
+    );
 
-        return filteredOptions;
-    }, [debouncedSearchTerm, unselectedOptions, selectedOptions, countryCode]);
-    const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
-    const headerMessage = useMemo(() => {
-        return getHeaderMessage(
-            options.personalDetails.length + options.recentReports.length !== 0,
-            !!options.userToInvite,
-            debouncedSearchTerm.trim(),
-            countryCode,
-            selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
-        );
-    }, [cleanSearchTerm, debouncedSearchTerm, options.personalDetails.length, options.recentReports.length, options.userToInvite, selectedOptions, countryCode]);
+    const unselectedOptions = filterSelectedOptions(defaultOptions, new Set(selectedOptions.map(({accountID}) => accountID)));
+
+    const areOptionsInitialized = !isLoading;
+
+    const options = filterAndOrderOptions(unselectedOptions, debouncedSearchTerm, countryCode, loginList, {
+        selectedOptions,
+        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+    });
+
+    const cleanSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+
+    const headerMessage = getHeaderMessage(
+        options.personalDetails.length + options.recentReports.length !== 0,
+        !!options.userToInvite,
+        debouncedSearchTerm.trim(),
+        countryCode,
+        selectedOptions.some((participant) => getPersonalDetailSearchTerms(participant).join(' ').toLowerCase?.().includes(cleanSearchTerm)),
+    );
 
     useFocusEffect(
         useCallback(() => {
@@ -128,41 +142,71 @@ function useOptions() {
         searchInServer(debouncedSearchTerm);
     }, [debouncedSearchTerm]);
 
+    const participants = newGroupDraft?.participants;
+
+    const draftSelectedOptions: OptionData[] | null =
+        participants && personalDetails.length
+            ? participants.reduce<OptionData[]>((result, participant) => {
+                  if (participant.accountID === personalData.accountID) {
+                      return result;
+                  }
+                  const participantOption: OptionData | undefined | null =
+                      personalDetails.find((option) => option.accountID === participant.accountID) ??
+                      getUserToInviteOption({
+                          searchValue: participant?.login,
+                          loginList,
+                      });
+                  if (participantOption) {
+                      result.push({
+                          ...participantOption,
+                          isSelected: true,
+                      });
+                  }
+                  return result;
+              }, [])
+            : null;
+
     useEffect(() => {
-        if (!newGroupDraft?.participants) {
+        if (!draftSelectedOptions) {
             return;
         }
-        const newSelectedOptions: OptionData[] = [];
-        for (const participant of newGroupDraft.participants) {
-            if (participant.accountID === personalData.accountID) {
-                continue;
+
+        setSelectedOptions((prevSelectedOptions) => {
+            if (
+                prevSelectedOptions.length === draftSelectedOptions.length &&
+                prevSelectedOptions.every((prevOption, index) => {
+                    const nextOption = draftSelectedOptions.at(index);
+                    if (!nextOption) {
+                        return false;
+                    }
+                    return prevOption.accountID === nextOption.accountID && prevOption.login === nextOption.login;
+                })
+            ) {
+                return prevSelectedOptions;
             }
-            let participantOption: OptionData | undefined | null = listOptions.personalDetails.find((option) => option.accountID === participant.accountID);
-            if (!participantOption) {
-                participantOption = getUserToInviteOption({
-                    searchValue: participant?.login,
-                });
-            }
-            if (!participantOption) {
-                continue;
-            }
-            newSelectedOptions.push({
-                ...participantOption,
-                isSelected: true,
-            });
+
+            return draftSelectedOptions;
+        });
+    }, [draftSelectedOptions, setSelectedOptions]);
+
+    const handleEndReached = () => {
+        if (!hasMore || isLoadingMore || !areOptionsInitialized) {
+            return;
         }
-        setSelectedOptions(newSelectedOptions);
-    }, [newGroupDraft?.participants, listOptions.personalDetails, personalData.accountID]);
+        loadMore();
+    };
 
     return {
         ...options,
         searchTerm,
         debouncedSearchTerm,
         setSearchTerm,
-        areOptionsInitialized: areOptionsInitialized && didScreenTransitionEnd,
+        areOptionsInitialized,
         selectedOptions,
         setSelectedOptions,
         headerMessage,
+        handleEndReached,
+        isLoadingMore,
     };
 }
 
@@ -192,8 +236,20 @@ function NewChatPage({ref}: NewChatPageProps) {
         focus: selectionListRef.current?.focusTextInput,
     }));
 
-    const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
-        useOptions();
+    const {
+        headerMessage,
+        searchTerm,
+        debouncedSearchTerm,
+        handleEndReached,
+        isLoadingMore,
+        setSearchTerm,
+        selectedOptions,
+        setSelectedOptions,
+        recentReports,
+        personalDetails,
+        userToInvite,
+        areOptionsInitialized,
+    } = useOptions();
 
     const [sections, firstKeyForList] = useMemo(() => {
         const sectionsList: Section[] = [];
@@ -287,6 +343,14 @@ function NewChatPage({ref}: NewChatPageProps) {
                 Navigation.dismissModalWithReport({reportID: option.reportID});
                 return;
             }
+            if (option?.reportID) {
+                Navigation.dismissModal({
+                    callback: () => {
+                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option?.reportID));
+                    },
+                });
+                return;
+            }
             if (selectedOptions.length && option) {
                 // Prevent excluded emails from being added to groups
                 if (option?.login && excludedGroupEmails.has(option.login)) {
@@ -316,7 +380,7 @@ function NewChatPage({ref}: NewChatPageProps) {
 
     const itemRightSideComponent = useCallback(
         (item: ListItem & Option, isFocused?: boolean) => {
-            if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login))) {
+            if (!!item.isSelfDM || (item.login && excludedGroupEmails.has(item.login)) || !item.login) {
                 return null;
             }
 
@@ -398,7 +462,7 @@ function NewChatPage({ref}: NewChatPageProps) {
             keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
-            testID={NewChatPage.displayName}
+            testID="NewChatPage"
         >
             <SelectionList<Option & ListItem>
                 ref={selectionListRef}
@@ -416,7 +480,9 @@ function NewChatPage({ref}: NewChatPageProps) {
                 footerContent={footerContent}
                 showLoadingPlaceholder={!areOptionsInitialized}
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                isLoadingNewOptions={!!isSearchingForReports}
+                isLoadingNewOptions={!!isSearchingForReports || isLoadingMore}
+                onEndReached={handleEndReached}
+                onEndReachedThreshold={0.75}
                 initiallyFocusedOptionKey={firstKeyForList}
                 shouldTextInputInterceptSwipe
                 addBottomSafeAreaPadding
@@ -425,7 +491,5 @@ function NewChatPage({ref}: NewChatPageProps) {
         </ScreenWrapper>
     );
 }
-
-NewChatPage.displayName = 'NewChatPage';
 
 export default NewChatPage;

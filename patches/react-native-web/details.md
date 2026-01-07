@@ -60,17 +60,17 @@
 - E/App issue: 🛑
 - PR introducing patch: 
 
-### [react-native-web+0.21.2+006+remove-focus-trap-from-modal.patch](react-native-web+0.21.2+006+remove-focus-trap-from-modal.patch)
+### [react-native-web+0.21.2+006+modal.patch](react-native-web+0.21.2+006+modal.patch)
 
 - Reason:
   
     ```
-    Removes the library's focus trap implementation so the App can have its own, allowing it to have custom implementation and fixes.
+    Removes the library's focus trap implementation and allows customizing zIndex of the modal. App can handle focus trapping and zIndex management on its own, allowing it to have custom implementation and fixes.
     ```
   
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
-- PR introducing patch: https://github.com/Expensify/App/pull/39520
+- PR introducing patch: https://github.com/Expensify/App/pull/39520 and https://github.com/Expensify/App/pull/76277
 
 ### [react-native-web+0.21.2+007+fix-scrollable-overflown-text.patch](react-native-web+0.21.2+007+fix-scrollable-overflown-text.patch)
 
@@ -143,3 +143,18 @@
 - Upstream PR/issue: The patch isn't something we can apply to upstream
 - E/App issue: https://github.com/Expensify/App/issues/44647
 - PR introducing patch: https://github.com/Expensify/App/pull/52689
+
+### [react-native-web+0.21.2+012+submitBehavior-support.patch](react-native-web+0.21.2+012+submitBehavior-support.patch)
+
+- Reason:
+    ```
+    Adds support for the `submitBehavior` prop in TextInput component for web.
+    React Native deprecated `blurOnSubmit` in favor of `submitBehavior` (React Native 0.73+),
+    but React Native Web doesn't natively support this prop. This patch implements the web
+    equivalent behavior, mapping `submitBehavior` values ('submit', 'blurAndSubmit', 'newline')
+    to the appropriate keyboard handling logic while maintaining backwards compatibility with
+    the deprecated `blurOnSubmit` prop.
+    ```
+- Upstream PR/issue: https://github.com/necolas/react-native-web/issues/2817
+- E/App issue: https://github.com/Expensify/App/issues/73782
+- PR introducing patch: https://github.com/Expensify/App/pull/76332

@@ -86,7 +86,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
 
     return (
         <ScreenWrapper
-            testID={BaseVerifyDomainPage.displayName}
+            testID="BaseVerifyDomainPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
         >
@@ -100,15 +100,15 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
                     keyboardShouldPersistTaps="always"
                 >
                     <View style={[styles.pt3, styles.gap5]}>
-                        <Text style={styles.webViewStyles.baseFontStyle}>
+                        <View style={[styles.renderHTML, styles.webViewStyles.baseFontStyle]}>
                             <RenderHTML html={translate('domain.verifyDomain.beforeProceeding', {domainName})} />
-                        </Text>
+                        </View>
 
-                        <Text style={styles.webViewStyles.baseFontStyle}>
+                        <View style={[styles.renderHTML, styles.webViewStyles.baseFontStyle]}>
                             <OrderedListRow index={1}>
                                 <RenderHTML html={translate('domain.verifyDomain.accessYourDNS', {domainName})} />
                             </OrderedListRow>
-                        </Text>
+                        </View>
 
                         <View>
                             <OrderedListRow index={2}>
@@ -166,5 +166,4 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
     );
 }
 
-BaseVerifyDomainPage.displayName = 'BaseVerifyDomainPage';
 export default BaseVerifyDomainPage;

@@ -8,6 +8,7 @@ import {AppState, DeviceEventEmitter} from 'react-native';
 import type {TextStyle, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {setSidebarLoaded} from '@libs/actions/App';
 import {trackExpense} from '@libs/actions/IOU';
 import {addComment, deleteReportComment, markCommentAsUnread, readNewestAction} from '@libs/actions/Report';
@@ -493,7 +494,8 @@ describe('Unread Indicators', () => {
                 expect(unreadIndicator).toHaveLength(1);
 
                 // Leave a comment as the current user and verify the indicator is removed
-                addComment(REPORT_ID, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
+                const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+                addComment(report, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
                 return waitForBatchedUpdates();
             })
             .then(() => {
@@ -554,9 +556,10 @@ describe('Unread Indicators', () => {
             signInAndGetAppWithUnreadChat()
                 // Navigate to the chat and simulate leaving a comment from the current user
                 .then(() => navigateToSidebarOption(0))
-                .then(() => {
+                .then(async () => {
+                    const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
                     // Leave a comment as the current user
-                    addComment(REPORT_ID, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
+                    addComment(report, REPORT_ID, [], 'Current User Comment 1', CONST.DEFAULT_TIME_ZONE);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -601,7 +604,8 @@ describe('Unread Indicators', () => {
         await signInAndGetAppWithUnreadChat();
         await navigateToSidebarOption(0);
 
-        addComment(REPORT_ID, REPORT_ID, [], 'Comment 1', CONST.DEFAULT_TIME_ZONE);
+        const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
+        addComment(report, REPORT_ID, [], 'Comment 1', CONST.DEFAULT_TIME_ZONE);
 
         await waitForBatchedUpdates();
 
@@ -612,7 +616,7 @@ describe('Unread Indicators', () => {
 
             await waitForBatchedUpdates();
 
-            addComment(REPORT_ID, REPORT_ID, [], 'Comment 2', CONST.DEFAULT_TIME_ZONE);
+            addComment(report, REPORT_ID, [], 'Comment 2', CONST.DEFAULT_TIME_ZONE);
 
             await waitForBatchedUpdates();
 
@@ -711,6 +715,11 @@ describe('Unread Indicators', () => {
                 created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
             },
             isASAPSubmitBetaEnabled: true,
+            currentUserAccountIDParam: USER_A_ACCOUNT_ID,
+            currentUserEmailParam: USER_A_EMAIL,
+            introSelected: undefined,
+            activePolicyID: undefined,
+            quickAction: undefined,
         });
         await waitForBatchedUpdates();
 
