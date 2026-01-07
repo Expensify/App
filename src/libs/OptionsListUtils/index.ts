@@ -30,6 +30,7 @@ import {
     getCountOfEnabledTagsOfList,
     getCountOfRequiredTagLists,
     getSubmitToAccountID,
+    hasDynamicExternalWorkflow,
     isCurrentUserMemberOfAnyPolicy,
 } from '@libs/PolicyUtils';
 import {
@@ -54,6 +55,7 @@ import {
     getSortedReportActions,
     getTravelUpdateMessage,
     getUpdateRoomDescriptionMessage,
+    hasPendingDEWSubmit,
     isActionableAddPaymentCard,
     isActionableJoinRequest,
     isActionableMentionWhisper,
@@ -62,6 +64,7 @@ import {
     isClosedAction,
     isCreatedTaskReportAction,
     isDeletedParentAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
     isInviteOrRemovedAction,
     isMarkAsClosedAction,
     isModifiedExpenseAction,
@@ -155,6 +158,7 @@ import type {
     ReportAction,
     ReportActions,
     ReportAttributesDerivedValue,
+    ReportMetadata,
     ReportNameValuePairs,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -593,6 +597,7 @@ function getLastMessageTextForReport({
     policy,
     isReportArchived = false,
     policyForMovingExpensesID,
+    reportMetadata,
 }: {
     report: OnyxEntry<Report>;
     lastActorDetails: Partial<PersonalDetails> | null;
@@ -601,6 +606,7 @@ function getLastMessageTextForReport({
     policy?: OnyxEntry<Policy>;
     isReportArchived?: boolean;
     policyForMovingExpensesID?: string;
+    reportMetadata?: OnyxEntry<ReportMetadata>;
 }): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
@@ -700,9 +706,15 @@ function getLastMessageTextForReport({
         isMarkAsClosedAction(lastReportAction)
     ) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(lastReportAction) ? (getOriginalMessage(lastReportAction)?.harvesting ?? false) : false;
+        const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+        const isPendingAdd = lastReportAction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
         if (wasSubmittedViaHarvesting) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = Parser.htmlToText(translateLocal('iou.automaticallySubmitted'));
+        } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            lastMessageTextFromReport = translateLocal('iou.queuedToSubmitViaDEW');
         } else {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.submitted', {memo: getOriginalMessage(lastReportAction)?.message});
@@ -716,6 +728,9 @@ function getLastMessageTextForReport({
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             lastMessageTextFromReport = translateLocal('iou.approvedMessage');
         }
+    } else if (isDynamicExternalWorkflowSubmitFailedAction(lastReportAction)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        lastMessageTextFromReport = getOriginalMessage(lastReportAction)?.message ?? translateLocal('iou.error.genericCreateFailureMessage');
     } else if (isUnapprovedAction(lastReportAction)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = translateLocal('iou.unapproved');
@@ -875,6 +890,7 @@ function createOption(
         isSelfDM: report ? reportUtilsIsSelfDM(report) : false,
         isChatRoom: report ? reportUtilsIsChatRoom(report) : false,
         isInvoiceRoom: report ? isInvoiceRoom(report) : false,
+        isDM: report ? isDM(report) : false,
 
         // Status properties - used in SearchOption context
         private_isArchived: undefined, // Set from reportNameValuePairs below
@@ -1827,6 +1843,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
         excludeNonAdminWorkspaces,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
+        shouldAlwaysIncludeDM,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
@@ -1922,7 +1939,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     - It doesn't have a login
     - It is not an invoice room that should be shown
     */
-    if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !option.login && !shouldShowInvoiceRoom) {
+    if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !option.login && (!option.isDM || !shouldAlwaysIncludeDM) && !shouldShowInvoiceRoom) {
         return false;
     }
 

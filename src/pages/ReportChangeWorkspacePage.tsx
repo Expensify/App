@@ -135,7 +135,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         localeCompare,
         additionalFilter: (newPolicy) => {
             const isReportSettled = isSettled(report);
-            const isEligible = isWorkspaceEligibleForReportChange(submitterEmail, newPolicy);
+            const isEligible = isWorkspaceEligibleForReportChange(submitterEmail, newPolicy, report);
             if (isReportSettled) {
                 return isEligible && isPolicyAdmin(newPolicy, session?.email);
             }
