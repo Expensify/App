@@ -240,7 +240,7 @@ function isReportPreviewAction(reportAction: OnyxInputOrEntry<ReportAction>): re
  */
 function buildOptimisticCreatedReportForUnapprovedAction(
     reportID: string,
-    originalReportID: string,
+    originalReportID: string | undefined,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS> {
     const createdTime = DateUtils.getDBTime();
     const actor = getAccountIDsByLogins([CONST.EMAIL.CONCIERGE]).at(0);
