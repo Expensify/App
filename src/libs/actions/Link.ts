@@ -43,13 +43,11 @@ Onyx.connectWithoutView({
 });
 
 let currentUserEmail = '';
-let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
-        currentUserAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
@@ -117,7 +115,7 @@ function buildTravelDotURL(spotnanaToken: string, isTestAccount: boolean, postLo
 
     const authCode = `authCode=${spotnanaToken}`;
     const tmcIDParam = `tmcId=${tmcID}`;
-    const redirectURL = postLoginPath ? `redirectUrl=${Url.addLeadingForwardSlash(postLoginPath)}` : '';
+    const redirectURL = postLoginPath ? `redirectUrl=${encodeURIComponent(Url.addLeadingForwardSlash(postLoginPath))}` : '';
 
     const paramsArray = [authCode, tmcIDParam, redirectURL];
     const params = paramsArray.filter(Boolean).join('&');
@@ -380,32 +378,6 @@ function openReportFromDeepLink(
     });
 }
 
-function buildURLWithAuthToken(url: string, shortLivedAuthToken?: string) {
-    const authTokenParam = shortLivedAuthToken ? `shortLivedAuthToken=${shortLivedAuthToken}` : '';
-    const emailParam = `email=${encodeURIComponent(currentUserEmail)}`;
-    const exitTo = `exitTo=${encodeURIComponent(url)}`;
-    const accountID = `accountID=${currentUserAccountID}`;
-    const referrer = 'referrer=desktop';
-    const paramsArray = [accountID, emailParam, authTokenParam, exitTo, referrer];
-    const params = paramsArray.filter(Boolean).join('&');
-
-    return `${CONFIG.EXPENSIFY.NEW_EXPENSIFY_URL}transition?${params}`;
-}
-
-/**
- * @param shouldSkipCustomSafariLogic When true, we will use `Linking.openURL` even if the browser is Safari.
- */
-function openExternalLinkWithToken(url: string, shouldSkipCustomSafariLogic = false) {
-    asyncOpenURL(
-        // eslint-disable-next-line rulesdir/no-api-side-effects-method
-        API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK, {}, {})
-            .then((response) => (response ? buildURLWithAuthToken(url, response.shortLivedAuthToken) : buildURLWithAuthToken(url)))
-            .catch(() => buildURLWithAuthToken(url)),
-        (link) => link,
-        shouldSkipCustomSafariLogic,
-    );
-}
-
 function getTravelDotLink(policyID: OnyxEntry<string>) {
     if (policyID === null || policyID === undefined) {
         return Promise.reject(new Error('Policy ID is required'));
@@ -432,7 +404,6 @@ export {
     getInternalExpensifyPath,
     openTravelDotLink,
     buildTravelDotURL,
-    openExternalLinkWithToken,
     getTravelDotLink,
     buildOldDotURL,
     openReportFromDeepLink,

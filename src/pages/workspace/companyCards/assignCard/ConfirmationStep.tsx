@@ -118,7 +118,9 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                 Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(routeParams), {compareParams: false});
                 break;
             case CONST.COMPANY_CARD.STEP.TRANSACTION_START_DATE:
-                Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute(routeParams));
+                Navigation.setNavigationActionToMicrotaskQueue(() => {
+                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE.getRoute(routeParams));
+                });
                 break;
             case CONST.COMPANY_CARD.STEP.CARD_NAME:
                 Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_CARD_NAME.getRoute(routeParams));
@@ -153,11 +155,12 @@ function ConfirmationStep({route}: ConfirmationStepProps) {
                     title={cardToAssign?.encryptedCardNumber ?? maskCardNumber(cardToAssign?.cardNumber ?? '', cardToAssign?.bankName)}
                     interactive={false}
                 />
+                <View style={[styles.optionsListSectionHeader, styles.justifyContentCenter]}>
+                    <Text style={[styles.ph5, styles.textLabelSupporting]}>{translate('common.to')}</Text>
+                </View>
                 <MenuItem
-                    label={translate('workspace.companyCards.cardholder')}
-                    labelStyle={styles.mb3}
-                    title={cardholderName && cardholderName !== cardholderEmail ? cardholderName : cardholderEmail}
-                    description={cardholderName && cardholderName !== cardholderEmail ? cardholderEmail : undefined}
+                    title={cardholderName}
+                    description={cardholderEmail}
                     icon={cardholder?.avatar ?? getDefaultAvatarURL({accountID: cardholderAccountID ?? CONST.DEFAULT_NUMBER_ID})}
                     iconType={CONST.ICON_TYPE_AVATAR}
                     shouldShowRightIcon

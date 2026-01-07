@@ -981,6 +981,7 @@ function getShareDestination(
         OptionsListUtils.getPersonalDetailsForAccountIDs(participants, personalDetails),
         isMultipleParticipant,
         localeCompare,
+        LocalePhoneNumber.formatPhoneNumber,
     );
 
     let subtitle = '';

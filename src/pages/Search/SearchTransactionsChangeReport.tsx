@@ -73,7 +73,7 @@ function SearchTransactionsChangeReport() {
     }, [selectedTransactions, selectedTransactionsKeys]);
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpensesID, false, shouldDismissEmptyReportsConfirmation);
+        const optimisticReport = createNewReport(currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policyForMovingExpenses, false, shouldDismissEmptyReportsConfirmation);
         const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${optimisticReport.reportID}`];
         setNavigationActionToMicrotaskQueue(() => {
             changeTransactionsReport(
@@ -82,7 +82,7 @@ function SearchTransactionsChangeReport() {
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 session?.email ?? '',
                 optimisticReport,
-                policyForMovingExpensesID ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyForMovingExpensesID}`] : undefined,
+                policyForMovingExpenses,
                 reportNextStep,
                 allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyForMovingExpensesID}`],
             );

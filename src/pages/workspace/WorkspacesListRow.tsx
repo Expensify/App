@@ -127,7 +127,7 @@ function WorkspacesListRow({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
     const isNarrow = layoutWidth === CONST.LAYOUT_WIDTH.NARROW;
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Hourglass']);
     const illustrations = useMemoizedLazyIllustrations(['Mailbox', 'ShieldYellow']);
 
     const workspaceTypeIcon = useCallback(
@@ -300,7 +300,7 @@ function WorkspacesListRow({
                     {!isNarrow && (
                         <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.touchableButtonImage]}>
                             <Icon
-                                src={Expensicons.ArrowRight}
+                                src={icons.ArrowRight}
                                 fill={theme.icon}
                                 additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
                                 isButtonIcon
