@@ -8,8 +8,6 @@ function IOURequestStepDistanceGPS(props: IOURequestStepDistanceGPSProps) {
     return null;
 }
 
-IOURequestStepDistanceGPS.displayName = 'IOURequestStepDistanceGPS';
-
 const IOURequestStepDistanceGPSWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistanceGPS);
 // eslint-disable-next-line rulesdir/no-negated-variables
 const IOURequestStepDistanceGPSWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceGPSWithCurrentUserPersonalDetails, true);
