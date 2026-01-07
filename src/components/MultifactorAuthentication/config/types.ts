@@ -1,10 +1,11 @@
 import type {ViewStyle} from 'react-native';
-import type {ValueOf} from 'type-fest';
+import type {EmptyObject, ValueOf} from 'type-fest';
 import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
+import type {MultifactorAuthenticationActionParams, MultifactorAuthenticationKeyInfo, MultifactorAuthenticationReason} from '@libs/MultifactorAuthentication/Biometrics/types';
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG} from './index';
+import type {MULTIFACTOR_AUTHENTICATION_SCENARIO_CONFIG, MultifactorAuthenticationScenarioPayload} from './index';
 
 type MultifactorAuthenticationCancelConfirm = {
     description?: TranslationPaths;
@@ -68,12 +69,26 @@ type MultifactorAuthenticationNotificationMap = Record<AllMultifactorAuthenticat
 
 type MultifactorAuthenticationNotificationOptions = keyof MultifactorAuthenticationScenarioNotificationConst[MultifactorAuthenticationScenario];
 
-type MultifactorAuthenticationScenarioConfig = {
+type MultifactorAuthenticationScenarioResponse = {
+    httpCode: number;
+    reason: MultifactorAuthenticationReason;
+};
+
+type MultifactorAuthenticationScenarioPureMethod<T extends Record<string, unknown>> = (
+    params: MultifactorAuthenticationActionParams<T, 'signedChallenge'>,
+) => Promise<MultifactorAuthenticationScenarioResponse>;
+
+type MultifactorAuthenticationScenarioConfig<T extends Record<string, unknown> = EmptyObject> = {
+    action: MultifactorAuthenticationScenarioPureMethod<T>;
     allowedAuthentication: ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.TYPE>;
+    pure?: true;
     nativePromptTitle: TranslationPaths;
 } & MultifactorAuthenticationUI;
 
-type MultifactorAuthenticationScenarioCustomConfig = Omit<MultifactorAuthenticationScenarioConfig, 'MODALS' | 'NOTIFICATIONS' | 'nativePromptTitle'> & {
+type MultifactorAuthenticationScenarioCustomConfig<T extends Record<string, unknown> = EmptyObject> = Omit<
+    MultifactorAuthenticationScenarioConfig<T>,
+    'MODALS' | 'NOTIFICATIONS' | 'nativePromptTitle'
+> & {
     nativePromptTitle?: TranslationPaths;
     MODALS?: MultifactorAuthenticationModalOptional;
     NOTIFICATIONS: MultifactorAuthenticationNotificationOptional;
@@ -81,7 +96,24 @@ type MultifactorAuthenticationScenarioCustomConfig = Omit<MultifactorAuthenticat
 
 type MultifactorAuthenticationDefaultUIConfig = Pick<MultifactorAuthenticationScenarioConfig, 'nativePromptTitle' | 'MODALS' | 'NOTIFICATIONS'>;
 
-type MultifactorAuthenticationScenarioConfigRecord = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfig>;
+type MultifactorAuthenticationScenarioConfigRecord = Record<MultifactorAuthenticationScenario, MultifactorAuthenticationScenarioConfig<never>>;
+
+type RegisterBiometricsParams = MultifactorAuthenticationActionParams<
+    {
+        keyInfo: MultifactorAuthenticationKeyInfo<'biometric'>;
+    },
+    'validateCode'
+>;
+
+type MultifactorAuthenticationScenarioParameters = {
+    [key in MultifactorAuthenticationScenario]: MultifactorAuthenticationActionParams<
+        key extends keyof MultifactorAuthenticationScenarioPayload ? MultifactorAuthenticationScenarioPayload[key] : EmptyObject,
+        'signedChallenge'
+    >;
+} & {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    'REGISTER-BIOMETRICS': RegisterBiometricsParams;
+};
 
 type MultifactorAuthenticationScenario = ValueOf<typeof CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO>;
 
@@ -89,6 +121,7 @@ export type {
     MultifactorAuthenticationPrompt,
     MultifactorAuthenticationNotificationRecord,
     MultifactorAuthenticationNotificationMap,
+    MultifactorAuthenticationScenarioParameters,
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationNotificationOptions,
     MultifactorAuthenticationScenarioConfigRecord,

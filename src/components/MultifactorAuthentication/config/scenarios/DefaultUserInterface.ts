@@ -44,7 +44,7 @@ const DEFAULT_CONFIG = {
     nativePromptTitle: 'multifactorAuthentication.letsVerifyItsYou',
 } as const satisfies MultifactorAuthenticationDefaultUIConfig;
 
-function customConfig<const T extends MultifactorAuthenticationScenarioCustomConfig>(config: T) {
+function customConfig<const T extends MultifactorAuthenticationScenarioCustomConfig<never>>(config: T) {
     const MODALS = {
         ...config.MODALS,
         cancelConfirmation: {
