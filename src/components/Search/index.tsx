@@ -1046,7 +1046,6 @@ function Search({
                     canSelectMultiple={canSelectMultiple}
                     selectedTransactions={selectedTransactions}
                     shouldPreventLongPressRow={isChat || isTask}
-                    isFocused={isFocused}
                     onDEWModalOpen={handleDEWModalOpen}
                     isDEWBetaEnabled={isDEWBetaEnabled}
                     SearchTableHeader={

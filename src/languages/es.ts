@@ -5816,6 +5816,10 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Reglas de categoría',
                 approver: 'Aprobador',
                 requireDescription: 'Requerir descripción',
+                requireFields: 'Requerir campos',
+                requiredFieldsTitle: 'Campos obligatorios',
+                requiredFieldsDescription: (categoryName) => `Esto se aplicará a todos los gastos categorizados como <strong>${categoryName}</strong>.`,
+                requireAttendees: 'Requerir asistentes',
                 descriptionHint: 'Sugerencia de descripción',
                 descriptionHintDescription: (categoryName) =>
                     `Recuerda a los empleados que deben proporcionar información adicional para los gastos de “${categoryName}”. Esta sugerencia aparece en el campo de descripción en los gastos.`,
@@ -7303,6 +7307,7 @@ ${amount} para ${merchant} - ${date}`,
         maxAge: ({maxAge}) => `Fecha de más de ${maxAge} días`,
         missingCategory: 'Falta categoría',
         missingComment: 'Descripción obligatoria para la categoría seleccionada',
+        missingAttendees: 'Se requieren múltiples asistentes para esta categoría',
         missingTag: ({tagName} = {}) => `Falta ${tagName ?? 'etiqueta'}`,
         modifiedAmount: ({type, displayPercentVariance}) => {
             switch (type) {
