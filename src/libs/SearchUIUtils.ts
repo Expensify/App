@@ -1616,6 +1616,7 @@ function getTaskSections(
             if (parentReport && personalDetails) {
                 const isParentReportArchived = archivedReportsIDList?.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`);
                 const parentReportName = computeReportName(parentReport, reports, policies, transactions, reportNameValuePairs, personalDetails, reportActions);
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 const policy = getPolicy(parentReport.policyID);
                 const icons = getIcons(parentReport, formatPhoneNumber, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
                 const parentReportIcon = icons?.at(0);

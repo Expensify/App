@@ -122,6 +122,7 @@ function IOURequestEditReportCommon({
         if (!outstandingReportsByPolicyID || isEmptyObject(outstandingReportsByPolicyID)) {
             return [];
         }
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const personalPolicyID = getPersonalPolicy()?.id;
         if (!selectedPolicyID || selectedPolicyID === personalPolicyID || isSelfDM(selectedReport)) {
             return Object.values(allPoliciesID ?? {})
