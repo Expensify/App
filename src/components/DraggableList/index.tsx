@@ -2,7 +2,7 @@ import type {DragEndEvent} from '@dnd-kit/core';
 import {closestCenter, DndContext, PointerSensor, useSensor} from '@dnd-kit/core';
 import {restrictToParentElement, restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {arrayMove, SortableContext, verticalListSortingStrategy} from '@dnd-kit/sortable';
-import React, {Fragment, useMemo} from 'react';
+import React, {Fragment} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
@@ -33,17 +33,7 @@ function DraggableList<T>({
         return keyExtractor(item, index);
     });
 
-    const disabledArrowKeyIndexes = useMemo(
-        () =>
-            data.reduce<number[]>((acc, item, index) => {
-                // For keyboard navigation, skip items that are truly disabled (isDisabled), not just drag-disabled (isDragDisabled)
-                if ((item as {isDisabled?: boolean})?.isDisabled) {
-                    acc.push(index);
-                }
-                return acc;
-            }, []),
-        [data],
-    );
+    const disabledArrowKeyIndexes = data.flatMap((item, index) => ((item as {isDisabled?: boolean})?.isDisabled ? [index] : []));
 
     const [focusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
@@ -71,7 +61,7 @@ function DraggableList<T>({
 
     const sortableItems = data.map((item, index) => {
         const key = keyExtractor(item, index);
-        const isDragDisabled = (item as {isDragDisabled?: boolean})?.isDragDisabled ?? false;
+        const isDragDisabled = typeof item === 'object' && item !== null && 'isDragDisabled' in item ? !!(item as {isDragDisabled?: boolean}).isDragDisabled : false;
         const isFocused = index === focusedIndex;
 
         const renderedItem = renderItem({
@@ -81,7 +71,6 @@ function DraggableList<T>({
             drag: () => {},
         });
 
-        // Clone the rendered item and inject isFocused prop for hover styling
         const itemWithFocus = React.isValidElement(renderedItem) ? React.cloneElement(renderedItem, {isFocused} as React.Attributes) : renderedItem;
 
         return (
