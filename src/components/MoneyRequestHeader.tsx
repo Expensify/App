@@ -502,7 +502,6 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
                     <MoneyRequestReportTransactionsNavigation
                         currentTransactionID={transaction.transactionID}
                         isFromReviewDuplicates={isFromReviewDuplicates}
-                        parentReportID={report?.parentReportID}
                     />
                 )}
             </HeaderWithBackButton>
