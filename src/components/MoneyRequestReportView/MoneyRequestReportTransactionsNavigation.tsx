@@ -12,6 +12,7 @@ import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
@@ -141,7 +142,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
-        requestAnimationFrame(() => Navigation.setParams(navigationParams));
+        requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(navigationParams), {forceReplace: true}));
     };
 
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) => {
@@ -169,7 +170,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, isFromR
             navigationParams.reportID = transactionThreadReport?.reportID;
         }
         // Wait for the next frame to ensure Onyx has processed the optimistic data updates from setOptimisticTransactionThread or createTransactionThreadReport before navigating
-        requestAnimationFrame(() => Navigation.setParams(navigationParams));
+        requestAnimationFrame(() => Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(navigationParams), {forceReplace: true}));
     };
 
     return (

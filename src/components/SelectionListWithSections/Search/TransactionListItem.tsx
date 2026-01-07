@@ -1,10 +1,11 @@
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useContext, useMemo, useRef} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
 import {getButtonRole} from '@components/Button/utils';
+import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -20,6 +21,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
+import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
@@ -44,7 +46,9 @@ function TransactionListItem<TItem extends ListItem>({
     columns,
     isLoading,
     violations,
+    customCardNames,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: TransactionListItemProps<TItem>) {
     const transactionItem = item as unknown as TransactionListItemType;
     const styles = useThemeStyles();
@@ -62,11 +66,14 @@ function TransactionListItem<TItem extends ListItem>({
     const snapshotPolicy = useMemo(() => {
         return (snapshot?.data?.[`${ONYXKEYS.COLLECTION.POLICY}${transactionItem.policyID}`] ?? {}) as Policy;
     }, [snapshot, transactionItem.policyID]);
+    // Fetch policy categories directly from Onyx since they are not included in the search snapshot
+    const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${transactionItem.policyID}`, {canBeMissing: true});
     const [lastPaymentMethod] = useOnyx(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionItem.reportID)}`, {canBeMissing: true});
     const [transactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
-    const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`, {canBeMissing: true});
+    const [transaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionItem.transactionID)}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${transactionItem?.reportAction?.reportActionID}`],
         [transactionItem?.reportAction?.reportActionID],
@@ -117,25 +124,59 @@ function TransactionListItem<TItem extends ListItem>({
     ]);
 
     const transactionViolations = useMemo(() => {
-        return (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
+        const onyxViolations = (violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionItem.transactionID}`] ?? []).filter(
             (violation: TransactionViolation) =>
                 !isViolationDismissed(transactionItem, violation, currentUserDetails.email ?? '', currentUserDetails.accountID, snapshotReport, snapshotPolicy) &&
                 shouldShowViolation(snapshotReport, snapshotPolicy, violation.name, currentUserDetails.email ?? '', false, transactionItem),
         );
-    }, [snapshotPolicy, snapshotReport, transactionItem, violations, currentUserDetails.email, currentUserDetails.accountID]);
+
+        // Sync missingAttendees violation with current policy category settings (can be removed later when BE handles this)
+        const attendeeOnyxViolations = syncMissingAttendeesViolation(
+            onyxViolations,
+            policyCategories,
+            transactionItem.category ?? '',
+            transactionItem.attendees,
+            currentUserDetails,
+            snapshotPolicy?.isAttendeeTrackingEnabled ?? false,
+            snapshotPolicy?.type === CONST.POLICY.TYPE.CORPORATE,
+        );
+
+        return [...onyxViolations, ...attendeeOnyxViolations];
+    }, [snapshotPolicy, policyCategories, snapshotReport, transactionItem, violations, currentUserDetails.email, currentUserDetails.accountID, currentUserDetails]);
+
+    const {isDelegateAccessRestricted, showDelegateNoAccessModal} = useContext(DelegateNoAccessContext);
 
     const handleActionButtonPress = useCallback(() => {
-        handleActionButtonPressUtil(
-            currentSearchHash,
-            transactionItem,
-            () => onSelectRow(item, transactionPreviewData),
+        handleActionButtonPressUtil({
+            hash: currentSearchHash,
+            item: transactionItem,
+            goToItem: () => onSelectRow(item, transactionPreviewData),
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
-        );
-    }, [currentSearchHash, transactionItem, transactionPreviewData, snapshotReport, snapshotPolicy, lastPaymentMethod, currentSearchKey, onSelectRow, item, onDEWModalOpen]);
+            isDEWBetaEnabled,
+            isDelegateAccessRestricted,
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+            personalPolicyID,
+        });
+    }, [
+        currentSearchHash,
+        transactionItem,
+        transactionPreviewData,
+        snapshotReport,
+        snapshotPolicy,
+        lastPaymentMethod,
+        personalPolicyID,
+        currentSearchKey,
+        onSelectRow,
+        item,
+        onDEWModalOpen,
+        isDEWBetaEnabled,
+        isDelegateAccessRestricted,
+        showDelegateNoAccessModal,
+    ]);
 
     const handleCheckboxPress = useCallback(() => {
         onCheckboxPress?.(item);
@@ -208,6 +249,7 @@ function TransactionListItem<TItem extends ListItem>({
                             violations={transactionViolations}
                             onArrowRightPress={onPress}
                             isHover={hovered}
+                            customCardNames={customCardNames}
                         />
                     </>
                 )}
