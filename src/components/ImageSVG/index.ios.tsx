@@ -40,12 +40,13 @@ function ImageSVG({src, width = '100%', height = '100%', fill, contentFit = 'cov
     return (
         <Image
             onLoadEnd={onLoadEnd}
-            cachePolicy="memory-disk"
             contentFit={contentFit}
             source={src}
             style={[{width, height}, style]}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...tintColorProp}
+            // Temporary solution only, since other cache policies are causing memory leaks on iOS
+            cachePolicy="none"
         />
     );
 }

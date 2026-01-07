@@ -30,7 +30,7 @@ function Waypoints() {
     const shouldShowLoadingEndAddress = isTripCaptured && !gpsDraftDetails.endAddress.value;
 
     return (
-        <View style={[styles.pv5, styles.gap3]}>
+        <View style={[styles.pv6, styles.gap6]}>
             {!!gpsDraftDetails.startAddress.value && (
                 <GPSTooltip>
                     <View>
