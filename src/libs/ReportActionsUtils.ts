@@ -2982,7 +2982,7 @@ function formatAddressToString(address: CompanyAddressOriginalMessage['newAddres
     return parts.join(', ');
 }
 
-function getCompanyAddressUpdateMessage(action: ReportAction): string {
+function getCompanyAddressUpdateMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const originalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS>) as CompanyAddressOriginalMessage | undefined;
 
     if (!originalMessage) {
@@ -2992,8 +2992,7 @@ function getCompanyAddressUpdateMessage(action: ReportAction): string {
     const newAddressStr = formatAddressToString(originalMessage.newAddress);
     const oldAddressStr = formatAddressToString(originalMessage.oldAddress);
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal('workspaceActions.changedCompanyAddress', {
+    return translate('workspaceActions.changedCompanyAddress', {
         newAddress: newAddressStr,
         previousAddress: oldAddressStr || undefined,
     });
