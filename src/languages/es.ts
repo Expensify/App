@@ -1518,6 +1518,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidFile: 'Archivo inválido',
             invalidFileDescription: 'El archivo que ests intentando importar no es válido. Por favor, inténtalo de nuevo.',
             invalidateWithDelay: 'Invalidar con retraso',
+            leftHandNavCache: "Caché del menú de navegación izquierdo",
+            clearleftHandNavCache: "borrar",
             recordTroubleshootData: 'Registrar datos de resolución de problemas',
             softKillTheApp: 'Desactivar la aplicación',
             kill: 'Matar',
