@@ -3588,6 +3588,9 @@ const translations = {
         features: {
             saveMoney: 'Save money on your bookings',
             alerts: 'Get realtime alerts if your travel plans change',
+            easyPayments: 'Easy payments for your members',
+            travelSpendLimits: 'Set travel spend limits',
+            invoicedMonthlyWeekly: 'Get invoiced monthly or weekly',
         },
         bookTravel: 'Book travel',
         bookDemo: 'Book demo',
@@ -4929,6 +4932,19 @@ const translations = {
                     title: 'Book or manage your trip',
                     subtitle: 'Use Expensify Travel to get the best travel offers and manage all your business expenses in a single place.',
                     ctaText: 'Book or manage',
+                },
+                travelInvoicing: {
+                    title: 'Travel Invoicing',
+                    description: 'Centralize all employee travel on a single invoice.',
+                    currentSpend: 'Current spend',
+                    spendLimit: 'Spend limit',
+                    settlementAccount: 'Settlement account',
+                    settlementFrequency: 'Settlement frequency',
+                    setup: {
+                        title: 'Set up centralized travel invoicing',
+                        subtitle: 'Allow your members to pay and bill travel directly to the workspace',
+                        ctaText: 'Set up travel invoicing',
+                    },
                 },
             },
             expensifyCard: {

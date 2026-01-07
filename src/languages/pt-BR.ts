@@ -3609,6 +3609,9 @@ ${
         features: {
             saveMoney: 'Economize nas suas reservas',
             alerts: 'Receba alertas em tempo real se seus planos de viagem mudarem',
+            easyPayments: 'Pagamentos fáceis para seus membros',
+            travelSpendLimits: 'Definir limites de gastos de viagem',
+            invoicedMonthlyWeekly: 'Seja faturado mensalmente ou semanalmente',
         },
         bookTravel: 'Reservar viagem',
         bookDemo: 'Agendar demonstração',
@@ -5012,6 +5015,19 @@ _Para instruções mais detalhadas, [visite nosso site de ajuda](${CONST.NETSUIT
                     title: 'Reserve ou gerencie sua viagem',
                     subtitle: 'Use o Expensify Travel para obter as melhores ofertas de viagem e gerencie todas as suas despesas comerciais em um só lugar.',
                     ctaText: 'Reservar ou gerenciar',
+                },
+                travelInvoicing: {
+                    title: 'Faturamento de Viagens',
+                    description: 'Centralize todas as viagens dos funcionários em uma única fatura.',
+                    currentSpend: 'Gasto atual',
+                    spendLimit: 'Limite de gastos',
+                    settlementAccount: 'Conta de liquidação',
+                    settlementFrequency: 'Frequência de liquidação',
+                    setup: {
+                        title: 'Configurar faturamento centralizado de viagens',
+                        subtitle: 'Permita que seus membros paguem e faturem viagens diretamente ao workspace',
+                        ctaText: 'Configurar faturamento de viagens',
+                    },
                 },
             },
             expensifyCard: {

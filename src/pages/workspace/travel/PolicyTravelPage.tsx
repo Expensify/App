@@ -22,6 +22,7 @@ import type SCREENS from '@src/SCREENS';
 import BookOrManageYourTrip from './BookOrManageYourTrip';
 import GetStartedTravel from './GetStartedTravel';
 import ReviewingRequest from './ReviewingRequest';
+import WorkspaceTravelInvoicingSection from './WorkspaceTravelInvoicingSection';
 
 type WorkspaceTravelPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TRAVEL>;
 
@@ -37,6 +38,7 @@ function WorkspaceTravelPage({
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const illustrations = useMemoizedLazyIllustrations(['Luggage'] as const);
+    const isTravelInvoicingEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_INVOICING);
 
     const {login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -46,6 +48,9 @@ function WorkspaceTravelPage({
     const mainContent = (() => {
         switch (step) {
             case CONST.TRAVEL.STEPS.BOOK_OR_MANAGE_YOUR_TRIP:
+                if (isTravelInvoicingEnabled) {
+                    return <WorkspaceTravelInvoicingSection policyID={policyID} />;
+                }
                 return <BookOrManageYourTrip policyID={policyID} />;
             case CONST.TRAVEL.STEPS.REVIEWING_REQUEST:
                 return <ReviewingRequest />;

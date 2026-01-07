@@ -3615,6 +3615,9 @@ ${
         features: {
             saveMoney: 'Risparmia denaro sulle tue prenotazioni',
             alerts: 'Ricevi avvisi in tempo reale se i tuoi piani di viaggio cambiano',
+            easyPayments: 'Pagamenti facili per i tuoi membri',
+            travelSpendLimits: 'Imposta limiti di spesa per i viaggi',
+            invoicedMonthlyWeekly: 'Ricevi fatture mensili o settimanali',
         },
         bookTravel: 'Prenota viaggio',
         bookDemo: 'Prenota demo',
@@ -5028,6 +5031,19 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                     title: 'Prenota o gestisci il tuo viaggio',
                     subtitle: 'Usa Expensify Travel per ottenere le migliori offerte di viaggio e gestisci tutte le tue spese aziendali in un unico posto.',
                     ctaText: 'Prenota o gestisci',
+                },
+                travelInvoicing: {
+                    title: 'Fatturazione viaggi',
+                    description: 'Centralizza tutti i viaggi dei dipendenti su un’unica fattura.',
+                    currentSpend: 'Spesa attuale',
+                    spendLimit: 'Limite di spesa',
+                    settlementAccount: 'Conto di regolamento',
+                    settlementFrequency: 'Frequenza di liquidazione',
+                    setup: {
+                        title: 'Imposta la fatturazione centralizzata dei viaggi',
+                        subtitle: 'Consenti ai tuoi membri di pagare e addebitare i viaggi direttamente allo spazio di lavoro',
+                        ctaText: 'Imposta la fatturazione dei viaggi',
+                    },
                 },
             },
             expensifyCard: {

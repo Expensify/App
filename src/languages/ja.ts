@@ -3605,6 +3605,9 @@ ${
         features: {
             saveMoney: '予約で節約しましょう',
             alerts: '旅行計画が変更された場合のリアルタイムアラートを受け取る',
+            easyPayments: 'メンバーのための簡単なお支払い',
+            travelSpendLimits: '出張費の上限を設定',
+            invoicedMonthlyWeekly: '毎月または毎週の請求書発行',
         },
         bookTravel: '出張を予約',
         bookDemo: 'デモを予約',
@@ -4999,6 +5002,15 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     title: '旅行を予約または管理',
                     subtitle: 'Expensify Travelを使用して最高の旅行オファーを取得し、すべてのビジネス経費を一箇所で管理します。',
                     ctaText: '予約または管理',
+                },
+                travelInvoicing: {
+                    title: '出張請求',
+                    description: 'すべての従業員の出張を 1 つの請求書に集約します。',
+                    currentSpend: '現在の支出',
+                    spendLimit: '利用上限',
+                    settlementAccount: '決済口座',
+                    settlementFrequency: '決済頻度',
+                    setup: {title: '出張費の集中請求を設定', subtitle: 'メンバーが出張費をワークスペースに直接請求・支払いできるようにします', ctaText: '出張請求書を設定'},
                 },
             },
             expensifyCard: {

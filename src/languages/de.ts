@@ -3629,6 +3629,9 @@ ${
         features: {
             saveMoney: 'Spare Geld bei deinen Buchungen',
             alerts: 'Erhalten Sie Echtzeit-Benachrichtigungen, wenn sich Ihre Reisepläne ändern',
+            easyPayments: 'Einfache Zahlungen für Ihre Mitglieder',
+            travelSpendLimits: 'Reiseausgabenlimits festlegen',
+            invoicedMonthlyWeekly: 'Monatlich oder wöchentlich abrechnen lassen',
         },
         bookTravel: 'Reise buchen',
         bookDemo: 'Demo buchen',
@@ -5044,6 +5047,19 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                     title: 'Buchen oder verwalten Sie Ihre Reise',
                     subtitle: 'Nutzen Sie Expensify Travel für die besten Reiseangebote und verwalten Sie alle Ihre Geschäftsausgaben an einem Ort.',
                     ctaText: 'Buchen oder verwalten',
+                },
+                travelInvoicing: {
+                    title: 'Reiserechnungsstellung',
+                    description: 'Zentralisieren Sie alle Mitarbeiterreisen auf einer einzigen Rechnung.',
+                    currentSpend: 'Aktuelle Ausgaben',
+                    spendLimit: 'Ausgabenlimit',
+                    settlementAccount: 'Verrechnungskonto',
+                    settlementFrequency: 'Häufigkeit der Abrechnung',
+                    setup: {
+                        title: 'Zentrale Reiseabrechnung einrichten',
+                        subtitle: 'Ermöglichen Sie Ihren Mitgliedern, Reisen direkt über den Workspace zu bezahlen und abzurechnen',
+                        ctaText: 'Reiseabrechnung einrichten',
+                    },
                 },
             },
             expensifyCard: {

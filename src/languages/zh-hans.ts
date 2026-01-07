@@ -3559,6 +3559,9 @@ ${
         features: {
             saveMoney: '在预订时省钱',
             alerts: '如果您的旅行计划发生变化，获取实时提醒',
+            easyPayments: '为您的成员提供便捷付款',
+            travelSpendLimits: '设置差旅支出限额',
+            invoicedMonthlyWeekly: '按月或按周开具发票',
         },
         bookTravel: '预订出行',
         bookDemo: '预订演示',
@@ -4924,6 +4927,15 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                     title: '预订或管理您的旅行',
                     subtitle: '使用 Expensify Travel 获得最佳旅行优惠，并在一个地方管理所有商务费用。',
                     ctaText: '预订或管理',
+                },
+                travelInvoicing: {
+                    title: '旅行发票',
+                    description: '将所有员工差旅集中到一张发票中。',
+                    currentSpend: '当前支出',
+                    spendLimit: '支出限额',
+                    settlementAccount: '结算账户',
+                    settlementFrequency: '结算频率',
+                    setup: {title: '设置集中化差旅发票管理', subtitle: '允许您的成员直接将差旅费用支付和记入该工作区', ctaText: '设置差旅开票'},
                 },
             },
             expensifyCard: {

@@ -3613,6 +3613,9 @@ ${
         features: {
             saveMoney: 'Bespaar geld op je boekingen',
             alerts: 'Ontvang realtime meldingen als uw reisplannen veranderen',
+            easyPayments: 'Moeiteloze betalingen voor je leden',
+            travelSpendLimits: 'Reisuitgavenlimieten instellen',
+            invoicedMonthlyWeekly: 'Maandelijks of wekelijks gefactureerd worden',
         },
         bookTravel: 'Reis boeken',
         bookDemo: 'Demo boeken',
@@ -5022,6 +5025,19 @@ _Voor gedetailleerdere instructies, [bezoek onze helpsite](${CONST.NETSUITE_IMPO
                     title: 'Boek of beheer uw reis',
                     subtitle: 'Gebruik Expensify Travel om de beste reisaanbiedingen te krijgen en beheer al uw zakelijke uitgaven op één plek.',
                     ctaText: 'Boeken of beheren',
+                },
+                travelInvoicing: {
+                    title: 'Facturatie voor reizen',
+                    description: 'Centraliseer alle zakelijke reizen van medewerkers op één enkele factuur.',
+                    currentSpend: 'Huidige uitgaven',
+                    spendLimit: 'Bestedingslimiet',
+                    settlementAccount: 'Verrekeningsrekening',
+                    settlementFrequency: 'Afrekeningsfrequentie',
+                    setup: {
+                        title: 'Gecentraliseerde reisfacturatie instellen',
+                        subtitle: 'Sta uw leden toe reizen rechtstreeks via de workspace te betalen en te factureren',
+                        ctaText: 'Reisfacturatie instellen',
+                    },
                 },
             },
             expensifyCard: {

@@ -3610,6 +3610,9 @@ ${
         features: {
             saveMoney: 'Oszczędzaj pieniądze na swoich rezerwacjach',
             alerts: 'Otrzymuj alerty w czasie rzeczywistym, jeśli Twoje plany podróży się zmienią',
+            easyPayments: 'Łatwe płatności dla Twoich członków',
+            travelSpendLimits: 'Ustaw limity wydatków na podróże',
+            invoicedMonthlyWeekly: 'Otrzymuj faktury co miesiąc lub co tydzień',
         },
         bookTravel: 'Zarezerwuj podróż',
         bookDemo: 'Zarezerwuj demo',
@@ -5012,6 +5015,19 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                     title: 'Zarezerwuj lub zarządzaj swoją podróżą',
                     subtitle: 'Użyj Expensify Travel, aby uzyskać najlepsze oferty podróży i zarządzaj wszystkimi wydatkami służbowymi w jednym miejscu.',
                     ctaText: 'Rezerwuj lub zarządzaj',
+                },
+                travelInvoicing: {
+                    title: 'Fakturowanie podróży',
+                    description: 'Scentralizuj wszystkie podróże służbowe pracowników na jednej fakturze.',
+                    currentSpend: 'Bieżące wydatki',
+                    spendLimit: 'Limit wydatków',
+                    settlementAccount: 'Konto rozliczeniowe',
+                    settlementFrequency: 'Częstotliwość rozliczeń',
+                    setup: {
+                        title: 'Skonfiguruj scentralizowane fakturowanie podróży',
+                        subtitle: 'Pozwól członkom rozliczać i fakturować podróże bezpośrednio na przestrzeń roboczą',
+                        ctaText: 'Skonfiguruj fakturowanie podróży',
+                    },
                 },
             },
             expensifyCard: {
