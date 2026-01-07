@@ -20,7 +20,7 @@ function SearchAdvancedFiltersPage() {
 
     const shouldShowResetFilters = Object.entries(searchAdvancedFilters)
         .filter(([key, value]) => {
-            if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY) {
+            if (key === CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS) {
                 return false;
             }
 
@@ -38,7 +38,7 @@ function SearchAdvancedFiltersPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchAdvancedFiltersPage.displayName}
+            testID="SearchAdvancedFiltersPage"
             shouldShowOfflineIndicatorInWideScreen
             offlineIndicatorStyle={styles.mtAuto}
             includeSafeAreaPaddingBottom
@@ -50,7 +50,5 @@ function SearchAdvancedFiltersPage() {
         </ScreenWrapper>
     );
 }
-
-SearchAdvancedFiltersPage.displayName = 'SearchAdvancedFiltersPage';
 
 export default SearchAdvancedFiltersPage;

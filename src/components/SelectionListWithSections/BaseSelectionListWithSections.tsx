@@ -24,7 +24,6 @@ import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
-import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -89,6 +88,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     customListHeader,
     customListHeaderHeight = 0,
     listHeaderWrapperStyle,
+    selectAllStyle,
     isRowMultilineSupported = false,
     isAlternateTextMultilineSupported = false,
     alternateTextNumberOfLines = 2,
@@ -145,6 +145,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
+    shouldSkipContentHeaderHeightOffset,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -355,7 +356,12 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 viewOffsetToKeepFocusedItemAtTopOfViewableArea = firstPreviousItemHeight + secondPreviousItemHeight;
             }
 
-            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset: variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea});
+            let viewOffset = variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea;
+            // Skip contentHeaderHeight for native split expense tabs scroll correction
+            if (shouldSkipContentHeaderHeightOffset) {
+                viewOffset = viewOffsetToKeepFocusedItemAtTopOfViewableArea;
+            }
+            listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset});
             pendingScrollIndexRef.current = null;
         },
 
@@ -440,16 +446,10 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                 (shouldDebounceScrolling ? debouncedScrollToIndex : scrollToIndex)(index, true);
             }
         },
-        ...(!hasKeyBeenPressed.current && {setHasKeyBeenPressed}),
+        setHasKeyBeenPressed,
         isFocused,
         onArrowUpDownCallback,
     });
-
-    useEffect(() => {
-        addKeyDownPressListener(setHasKeyBeenPressed);
-
-        return () => removeKeyDownPressListener(setHasKeyBeenPressed);
-    }, [setHasKeyBeenPressed]);
 
     const selectedItemIndex = useMemo(
         () => (initiallyFocusedOptionKey ? flattenedSections.allOptions.findIndex(isItemSelected) : -1),
@@ -632,7 +632,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                             >
-                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                                <Text style={[styles.textStrong, styles.ph3, selectAllStyle]}>{translate('workspace.people.selectAll')}</Text>
                             </PressableWithFeedback>
                         )}
                     </View>
@@ -1119,7 +1119,5 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
         </View>
     );
 }
-
-BaseSelectionListWithSections.displayName = 'BaseSelectionListWithSections';
 
 export default BaseSelectionListWithSections;

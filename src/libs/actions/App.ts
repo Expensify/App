@@ -181,7 +181,7 @@ function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
     }
 
     // Optimistically change preferred locale
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PREFERRED_LOCALE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -461,6 +461,9 @@ type CreateWorkspaceWithPolicyDraftParams = {
     file?: File;
     routeToNavigateAfterCreate?: Route;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
+    activePolicyID: string | undefined;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
 };
 
 /**
@@ -479,6 +482,9 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
         file,
         routeToNavigateAfterCreate,
         lastUsedPaymentMethod,
+        activePolicyID,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
     } = params;
 
     const policyIDWithDefault = policyID || generatePolicyID();
@@ -490,31 +496,57 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 Navigation.goBack();
             }
             const routeToNavigate = routeToNavigateAfterCreate ?? ROUTES.WORKSPACE_INITIAL.getRoute(policyIDWithDefault, backTo);
-            savePolicyDraftByNewWorkspace(policyIDWithDefault, policyName, policyOwnerEmail, makeMeAdmin, currency, file, lastUsedPaymentMethod);
+            savePolicyDraftByNewWorkspace({
+                policyID: policyIDWithDefault,
+                policyName,
+                policyOwnerEmail,
+                makeMeAdmin,
+                currency,
+                file,
+                lastUsedPaymentMethod,
+                introSelected,
+                activePolicyID,
+                currentUserAccountIDParam,
+                currentUserEmailParam,
+                allReportsParam: allReports,
+            });
             Navigation.navigate(routeToNavigate, {forceReplace: !transitionFromOldDot});
         })
         .then(endSignOnTransition);
 }
 
+type SavePolicyDraftByNewWorkspaceParams = {
+    policyID?: string;
+    policyName?: string;
+    policyOwnerEmail?: string;
+    makeMeAdmin?: boolean;
+    currency?: string;
+    file?: File;
+    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicyID?: string;
+    currentUserAccountIDParam: number;
+    currentUserEmailParam: string;
+    allReportsParam: OnyxCollection<OnyxTypes.Report>;
+};
+
 /**
  * Create a new workspace and delete the draft
- *
- * @param [policyID] the ID of the policy to use
- * @param [policyName] custom policy name we will use for created workspace
- * @param [policyOwnerEmail] Optional, the email of the account to make the owner of the policy
- * @param [makeMeAdmin] Optional, leave the calling account as an admin on the policy
- * @param [currency] Optional, selected currency for the workspace
- * @param [file] Optional, avatar file for workspace
  */
-function savePolicyDraftByNewWorkspace(
-    policyID?: string,
-    policyName?: string,
+function savePolicyDraftByNewWorkspace({
+    policyID,
+    policyName,
     policyOwnerEmail = '',
     makeMeAdmin = false,
     currency = '',
-    file?: File,
-    lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType,
-) {
+    file,
+    lastUsedPaymentMethod,
+    introSelected,
+    activePolicyID,
+    currentUserAccountIDParam,
+    currentUserEmailParam,
+    allReportsParam,
+}: SavePolicyDraftByNewWorkspaceParams) {
     createWorkspace({
         policyOwnerEmail,
         makeMeAdmin,
@@ -524,6 +556,11 @@ function savePolicyDraftByNewWorkspace(
         currency,
         file,
         lastUsedPaymentMethod,
+        introSelected,
+        activePolicyID,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        allReportsParam,
     });
 }
 
@@ -542,7 +579,7 @@ function savePolicyDraftByNewWorkspace(
  * When the exitTo route is 'workspace/new', we create a new
  * workspace and navigate to it
  */
-function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSelected: OnyxEntry<OnyxTypes.IntroSelected>) {
+function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSelected: OnyxEntry<OnyxTypes.IntroSelected>, activePolicyID: string | undefined) {
     const currentUrl = getCurrentUrl();
     if (!session || !currentUrl?.includes('exitTo')) {
         endSignOnTransition();
@@ -570,6 +607,9 @@ function setUpPoliciesAndNavigate(session: OnyxEntry<OnyxTypes.Session>, introSe
             policyName,
             transitionFromOldDot: true,
             makeMeAdmin,
+            activePolicyID,
+            currentUserAccountIDParam: currentSessionData.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            currentUserEmailParam: currentSessionData.email ?? '',
         });
         return;
     }

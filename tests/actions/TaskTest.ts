@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {act, renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
@@ -370,7 +369,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate
             createTaskAndNavigate({
-                parentReportID: mockParentReportID,
+                parentReport: {reportID: mockParentReportID},
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockAssigneeEmail,
@@ -416,7 +415,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate without assignee chat report
             createTaskAndNavigate({
-                parentReportID: mockParentReportID,
+                parentReport: {reportID: mockParentReportID},
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockAssigneeEmail,
@@ -476,7 +475,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate with markdown flag
             createTaskAndNavigate({
-                parentReportID: mockParentReportID,
+                parentReport: {reportID: mockParentReportID},
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockAssigneeEmail,
@@ -514,7 +513,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate with default policy ID
             createTaskAndNavigate({
-                parentReportID: mockParentReportID,
+                parentReport: {reportID: mockParentReportID},
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockAssigneeEmail,
@@ -559,7 +558,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate with assignee as current user
             createTaskAndNavigate({
-                parentReportID: mockParentReportID,
+                parentReport: {reportID: mockParentReportID},
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockCurrentUserEmail,
@@ -614,7 +613,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate with undefined parent report ID
             createTaskAndNavigate({
-                parentReportID: undefined, // parentReportID is undefined
+                parentReport: undefined,
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockAssigneeEmail,
@@ -649,7 +648,7 @@ describe('actions/Task', () => {
 
             // When: Call createTaskAndNavigate with empty quick action
             createTaskAndNavigate({
-                parentReportID: mockParentReportID,
+                parentReport: {reportID: mockParentReportID},
                 title: mockTitle,
                 description: mockDescription,
                 assigneeEmail: mockAssigneeEmail,
@@ -744,7 +743,7 @@ describe('actions/Task', () => {
             await waitForBatchedUpdatesWithAct();
 
             // When: Call completeTask
-            completeTask(taskReport, false, parentReportAction);
+            completeTask(taskReport, false, false, parentReportAction);
 
             await waitForBatchedUpdatesWithAct();
 
@@ -810,7 +809,7 @@ describe('actions/Task', () => {
             await waitForBatchedUpdatesWithAct();
 
             // When: Call completeTask
-            completeTask(taskReport, false, undefined);
+            completeTask(taskReport, false, false, undefined);
 
             await waitForBatchedUpdatesWithAct();
 

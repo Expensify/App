@@ -49,8 +49,7 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
                 return acc;
             }
 
-            // eslint-disable-next-line unicorn/no-array-for-each
-            Object.entries(feed.settings.companyCards).forEach(([key, feedSettings]) => {
+            for (const [key, feedSettings] of Object.entries(feed.settings.companyCards)) {
                 const feedName = key as CompanyCardFeed;
                 const feedOAuthAccountDetails = feed.settings.oAuthAccountDetails?.[feedName];
                 const feedCompanyCardNickname = feed.settings.companyCardNicknames?.[feedName];
@@ -58,7 +57,7 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
                 const shouldAddFeed = domainID && (feedSettings.preferredPolicy ? feedSettings.preferredPolicy === policyID : domainID === workspaceAccountID.toString());
 
                 if (!shouldAddFeed) {
-                    return;
+                    continue;
                 }
 
                 const combinedFeedKey = getCompanyCardFeedWithDomainID(feedName, domainID);
@@ -70,7 +69,7 @@ const useCardFeeds = (policyID: string | undefined): [CombinedCardFeeds | undefi
                     domainID: Number(domainID),
                     feed: feedName,
                 };
-            });
+            }
 
             return acc;
         }, result);

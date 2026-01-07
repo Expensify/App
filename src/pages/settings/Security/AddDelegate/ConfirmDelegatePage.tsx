@@ -3,10 +3,10 @@ import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderPageLayout from '@components/HeaderPageLayout';
-import {FallbackAvatar} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,6 +21,7 @@ import type SCREENS from '@src/SCREENS';
 type ConfirmDelegatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.DELEGATE.DELEGATE_CONFIRM>;
 
 function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {translate, formatPhoneNumber} = useLocalize();
 
     const styles = useThemeStyles();
@@ -29,7 +30,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
     const {isOffline} = useNetwork();
 
     const personalDetails = getPersonalDetailByEmail(login);
-    const avatarIcon = personalDetails?.avatar ?? FallbackAvatar;
+    const avatarIcon = personalDetails?.avatar ?? icons.FallbackAvatar;
     const formattedLogin = formatPhoneNumber(login ?? '');
     const displayName = personalDetails?.displayName ?? formattedLogin;
 
@@ -51,7 +52,7 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
         <HeaderPageLayout
             onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(login, role))}
             title={translate('delegate.addCopilot')}
-            testID={ConfirmDelegatePage.displayName}
+            testID="ConfirmDelegatePage"
             footer={submitButton}
             childrenContainerStyles={[styles.pt3, styles.gap6]}
             keyboardShouldPersistTaps="handled"
@@ -78,7 +79,5 @@ function ConfirmDelegatePage({route}: ConfirmDelegatePageProps) {
         </HeaderPageLayout>
     );
 }
-
-ConfirmDelegatePage.displayName = 'ConfirmDelegatePage';
 
 export default ConfirmDelegatePage;
