@@ -889,7 +889,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const {originalID} = getOriginalMessage(reportAction) ?? {};
                     const reportName = getReportName(getReportOrDraftReport(originalID));
                     const displayMessage = getCreatedReportForUnapprovedTransactionsMessage(originalID, reportName, translate);
-                    Clipboard.setString(displayMessage);
+                    setClipboardMessage(displayMessage);
                 } else if (content) {
                     setClipboardMessage(
                         content.replaceAll(/(<mention-user>)(.*?)(<\/mention-user>)/gi, (match, openTag: string, innerContent: string, closeTag: string): string => {
