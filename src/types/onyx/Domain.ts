@@ -94,6 +94,25 @@ type SamlMetadata = {
     samlMetadataError: OnyxCommon.Errors;
 };
 
-export {type SamlMetadata};
+/** Model of Security Group data */
+type SecurityGroup = {
+    /** Name of the security group (e.g. "Employees") */
+    name: string;
+
+    /** Whether the security group restricts policy creation */
+    enableRestrictedPolicyCreation: boolean;
+
+    /** Whether strict policy rules are enabled for this group */
+    enableStrictPolicyRules: boolean;
+
+    /**
+     * A map of member account IDs to their permission level within the group.
+     * Key: The accountID of the member.
+     * Value: The permission level (e.g. "read").
+     */
+    shared: Record<string, string>;
+};
+
+export {type SamlMetadata, type SecurityGroup};
 
 export default Domain;
