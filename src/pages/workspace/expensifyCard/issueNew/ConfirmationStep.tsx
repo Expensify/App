@@ -73,11 +73,15 @@ function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: Confirm
             return;
         }
 
-        // Handle extended access failure and fall back to magic code page
         const hasError = !!getLatestErrorMessage(issueNewCard);
         if (hasError) {
-            clearIssueNewCardError(policyID);
-            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+            const errorMessage = getLatestErrorMessage(issueNewCard);
+
+            // Redirect to the magic code page when there is an error with the user's validateCode authentication
+            if (errorMessage.toLowerCase().includes('request a new code')) {
+                clearIssueNewCardError(policyID);
+                Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+            }
         }
     }, [issueNewCard, isSuccessful, policyID]);
 
