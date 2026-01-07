@@ -29,7 +29,7 @@ import {
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {getSnapshotKeys} from '@libs/SearchUIUtils';
-import {isManagedCardTransaction, isOnHold, waypointHasValidAddress} from '@libs/TransactionUtils';
+import {isManagedCardTransaction, isOnHold, shouldClearConvertedAmount, waypointHasValidAddress} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -827,6 +827,9 @@ function changeTransactionsReport(
     const policyTagList = getPolicyTagsData(policy?.id);
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
 
+    // Determine the destination currency for convertedAmount clearing logic
+    const destinationCurrency = newReport?.currency ?? policy?.outputCurrency;
+
     for (const transaction of transactions) {
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -841,6 +844,8 @@ function changeTransactionsReport(
 
         const oldReportID = isUnreportedExpense ? CONST.REPORT.UNREPORTED_REPORT_ID : transaction.reportID;
         const oldReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
+        const sourceCurrency = oldReport?.currency;
+        const shouldClearAmount = shouldClearConvertedAmount(transaction, sourceCurrency, destinationCurrency);
 
         const isUnreported = reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const optimisticMoneyRequestReportActionID = rand64();
@@ -860,14 +865,17 @@ function changeTransactionsReport(
         };
 
         // 1. Optimistically change the reportID on the passed transactions
+        // Only set pendingAction for transactions that need convertedAmount recalculation
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
+                ...(shouldClearAmount && {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 comment: {
                     hold: null,
                 },
+                ...(shouldClearAmount && {convertedAmount: null}),
                 ...(oldIOUAction ? {linkedTrackedExpenseReportAction: newIOUAction} : {}),
             },
         });
@@ -877,6 +885,7 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID,
+                ...(shouldClearAmount && {pendingAction: null}),
             },
         });
 
@@ -885,9 +894,11 @@ function changeTransactionsReport(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID: transaction.reportID,
+                ...(shouldClearAmount && {pendingAction: transaction.pendingAction ?? null}),
                 comment: {
                     hold: transaction.comment?.hold,
                 },
+                ...(shouldClearAmount && {convertedAmount: transaction.convertedAmount}),
             },
         });
 
@@ -1112,7 +1123,20 @@ function changeTransactionsReport(
 
                 const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
                 updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal - (transactionReimbursable && !isOnHold(transaction) ? 0 : transactionAmount);
-            } else {
+            } else if (transaction.convertedAmount && oldReport?.currency === targetReport?.currency) {
+                // Use convertedAmount when transaction currency differs but workspace currency is the same
+                const {convertedAmount} = transaction;
+                const currentTotal = updatedReportTotals[targetReportID] ?? targetReport?.total ?? 0;
+                updatedReportTotals[targetReportID] = currentTotal + convertedAmount;
+
+                const currentNonReimbursableTotal = updatedReportNonReimbursableTotals[targetReportID] ?? targetReport?.nonReimbursableTotal ?? 0;
+                updatedReportNonReimbursableTotals[targetReportID] = currentNonReimbursableTotal + (transactionReimbursable ? 0 : convertedAmount);
+
+                const currentUnheldNonReimbursableTotal = updatedReportUnheldNonReimbursableTotals[targetReportID] ?? targetReport?.unheldNonReimbursableTotal ?? 0;
+                updatedReportUnheldNonReimbursableTotals[targetReportID] = currentUnheldNonReimbursableTotal + (transactionReimbursable && !isOnHold(transaction) ? 0 : convertedAmount);
+            }
+
+            if (transactionCurrency !== targetReport?.currency) {
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.MERGE,
                     key: `${ONYXKEYS.COLLECTION.REPORT}${targetReportID}`,
