@@ -300,8 +300,8 @@ function MoneyRequestReportTransactionList({
     }, [groupedTransactions, sortedTransactions, shouldShowGroupedTransactions]);
 
     useEffect(() => {
-        setActiveTransactionIDs(visualOrderTransactionIDs)
-    }, [visualOrderTransactionIDs])
+        setActiveTransactionIDs(visualOrderTransactionIDs);
+    }, [visualOrderTransactionIDs]);
 
     const sortedTransactionsMap = useMemo(() => {
         const map = new Map<string, OnyxTypes.Transaction>();
