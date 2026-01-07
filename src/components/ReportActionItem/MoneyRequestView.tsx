@@ -445,7 +445,7 @@ function MoneyRequestView({
         amountDescription += translate('common.distance');
     } else if (isPerDiemRequest) {
         amountDescription += translate('common.perDiem');
-    } else if (isCardTransaction) {
+    } else if (isManagedCardTransaction) {
         amountDescription += translate('iou.card');
     } else {
         amountDescription += translate('iou.cash');
