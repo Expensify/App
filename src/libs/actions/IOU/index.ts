@@ -14110,9 +14110,12 @@ function updateSplitTransactions({
             }
 
             if (Object.keys(transactionChanges).length > 0) {
+                const transactionThreadReport = allReports?.[`${isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID}`];
+                const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpense?.reportID ?? transactionThreadReport?.parentReportID}`];
                 const {onyxData: moneyRequestParamsOnyxData, params} = getUpdateMoneyRequestParams({
                     transactionID: existingTransactionID,
-                    transactionThreadReportID: isReverseSplitOperation ? splitExpense?.reportID : transactionThreadReportID,
+                    transactionThreadReport,
+                    iouReport,
                     transactionChanges,
                     policy,
                     policyTagList: policyTags ?? null,
