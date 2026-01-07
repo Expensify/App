@@ -149,6 +149,7 @@ function WorkspacesListPage() {
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN, {canBeMissing: false});
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS, {canBeMissing: false});
     const [adminAccess] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS, {canBeMissing: false});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
 
     // This hook preloads the screens of adjacent tabs to make changing tabs faster.
     usePreloadFullScreenNavigators();
@@ -219,6 +220,7 @@ function WorkspacesListPage() {
             bankAccountList,
             lastUsedPaymentMethods: lastPaymentMethod,
             localeCompare,
+            personalPolicyID,
         });
         if (isOffline) {
             setIsDeleteModalOpen(false);
