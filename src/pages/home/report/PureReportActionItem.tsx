@@ -10,7 +10,6 @@ import type {Emoji} from '@assets/emojis/types';
 import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Hoverable from '@components/Hoverable';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
@@ -18,6 +17,7 @@ import Icon from '@components/Icon';
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import KYCWall from '@components/KYCWall';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import ReportActionItemEmojiReactions from '@components/Reactions/ReportActionItemEmojiReactions';
@@ -39,6 +39,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -60,7 +61,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getCleanedTagName, getPersonalPolicy, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
+import {getCleanedTagName, getPersonalPolicy, hasDynamicExternalWorkflow, isPolicyAdmin, isPolicyMember, isPolicyOwner} from '@libs/PolicyUtils';
 import {
     extractLinksFromMessageHtml,
     getActionableCardFraudAlertMessage,
@@ -115,6 +116,7 @@ import {
     getWorkspaceTagUpdateMessage,
     getWorkspaceTaxUpdateMessage,
     getWorkspaceUpdateFieldMessage,
+    hasPendingDEWSubmit,
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
     isActionableJoinRequest,
@@ -130,6 +132,7 @@ import {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
+    isDynamicExternalWorkflowSubmitFailedAction,
     isIOURequestReportAction,
     isMarkAsClosedAction,
     isMessageDeleted,
@@ -322,6 +325,9 @@ type PureReportActionItemProps = {
     /** ID of the original report from which the given reportAction is first created */
     originalReportID?: string;
 
+    /** Original report from which the given reportAction is first created */
+    originalReport?: OnyxTypes.Report;
+
     /** Function to deletes the draft for a comment report action. */
     deleteReportActionDraft?: (reportID: string | undefined, action: OnyxTypes.ReportAction) => void;
 
@@ -418,6 +424,9 @@ type PureReportActionItemProps = {
 
     /** Report name value pairs originalID */
     reportNameValuePairsOriginalID?: string;
+
+    /** Report metadata for the report */
+    reportMetadata?: OnyxEntry<OnyxTypes.ReportMetadata>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -464,6 +473,7 @@ function PureReportActionItem({
     personalDetails,
     blockedFromConcierge,
     originalReportID = '-1',
+    originalReport,
     deleteReportActionDraft = () => {},
     isArchivedRoom,
     isChronosReport,
@@ -488,9 +498,11 @@ function PureReportActionItem({
     bankAccountList,
     reportNameValuePairsOrigin,
     reportNameValuePairsOriginalID,
+    reportMetadata,
 }: PureReportActionItemProps) {
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate, formatPhoneNumber, localeCompare, formatTravelDate, getLocalDateFromDatetime} = useLocalize();
+    const {showConfirmModal} = useConfirmModal();
     const personalDetail = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
@@ -553,7 +565,6 @@ function PureReportActionItem({
         currentSearchHash = searchContextCurrentSearchHash;
     }
 
-    const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
     const dismissError = useCallback(() => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         if (transactionID) {
@@ -562,18 +573,33 @@ function PureReportActionItem({
         clearAllRelatedReportActionErrors(reportID, action);
     }, [reportID, clearError, clearAllRelatedReportActionErrors, action]);
 
-    const onClose = () => {
+    const showDismissReceiptErrorModal = useCallback(async () => {
+        const result = await showConfirmModal({
+            title: translate('iou.dismissReceiptError'),
+            prompt: translate('iou.dismissReceiptErrorConfirmation'),
+            confirmText: translate('common.dismiss'),
+            cancelText: translate('common.cancel'),
+            shouldShowCancelButton: true,
+            danger: true,
+        });
+        if (result.action === ModalActions.CONFIRM) {
+            dismissError();
+        }
+    }, [showConfirmModal, translate, dismissError]);
+
+    const onClose = useCallback(() => {
         const errors = linkedTransactionRouteError ?? getLatestErrorMessageField(action as OnyxDataWithErrors);
         const errorEntries = Object.entries(errors ?? {});
         const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
         const hasReceiptError = Object.values(errorMessages).some((error) => isReceiptError(error));
 
         if (hasReceiptError) {
-            setShowConfirmDismissReceiptError(true);
+            showDismissReceiptErrorModal();
         } else {
             dismissError();
         }
-    };
+    }, [linkedTransactionRouteError, action, showDismissReceiptErrorModal, dismissError]);
+
     useEffect(
         () => () => {
             // ReportActionContextMenu, EmojiPicker and PopoverReactionList are global components,
@@ -782,7 +808,7 @@ function PureReportActionItem({
             ];
         }
 
-        const reportActionReportID = originalReportID ?? reportID;
+        const reportActionReport = originalReport ?? report;
         if (isConciergeCategoryOptions(action)) {
             const options = getOriginalMessage(action)?.options;
             if (!options) {
@@ -793,7 +819,7 @@ function PureReportActionItem({
                 return [];
             }
 
-            if (!reportActionReportID) {
+            if (!reportActionReport) {
                 return [];
             }
 
@@ -801,7 +827,7 @@ function PureReportActionItem({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
-                    resolveConciergeCategoryOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                    resolveConciergeCategoryOptions(reportActionReport, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                 },
             }));
         }
@@ -816,7 +842,7 @@ function PureReportActionItem({
                 return [];
             }
 
-            if (!reportActionReportID) {
+            if (!reportActionReport) {
                 return [];
             }
 
@@ -824,7 +850,7 @@ function PureReportActionItem({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeDescriptionOptions-${option}`,
                 onPress: () => {
-                    resolveConciergeDescriptionOptions(reportActionReportID, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
+                    resolveConciergeDescriptionOptions(reportActionReport, reportID, action.reportActionID, option, personalDetail.timezone ?? CONST.DEFAULT_TIME_ZONE);
                 },
             }));
         }
@@ -833,6 +859,7 @@ function PureReportActionItem({
             return [];
         }
 
+        const reportActionReportID = originalReportID ?? reportID;
         if (isActionableTrackExpense(action)) {
             const transactionID = getOriginalMessage(action)?.transactionID;
             const options = [
@@ -993,7 +1020,6 @@ function PureReportActionItem({
         originalReportID,
         reportID,
         isActionableWhisper,
-        report?.policyID,
         policy,
         currentUserAccountID,
         personalDetail.timezone,
@@ -1007,6 +1033,8 @@ function PureReportActionItem({
         isOriginalReportArchived,
         resolveActionableMentionWhisper,
         introSelected,
+        report,
+        originalReport,
     ]);
 
     /**
@@ -1199,12 +1227,18 @@ function PureReportActionItem({
             );
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
             const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;
+            const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+
+            const isPendingAdd = action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
             if (wasSubmittedViaHarvesting) {
                 children = (
                     <ReportActionItemBasicMessage>
                         <RenderHTML html={`<comment><muted-text>${translate('iou.automaticallySubmitted')}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
+            } else if (hasPendingDEWSubmit(reportMetadata, isDEWPolicy) && isPendingAdd) {
+                children = <ReportActionItemBasicMessage message={translate('iou.queuedToSubmitViaDEW')} />;
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.submitted', {memo: getOriginalMessage(action)?.message})} />;
             }
@@ -1219,6 +1253,9 @@ function PureReportActionItem({
             } else {
                 children = <ReportActionItemBasicMessage message={translate('iou.approvedMessage')} />;
             }
+        } else if (isDynamicExternalWorkflowSubmitFailedAction(action)) {
+            const errorMessage = getOriginalMessage(action)?.message ?? translate('iou.error.genericCreateFailureMessage');
+            children = <ReportActionItemBasicMessage message={errorMessage} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY) {
             const wasAutoPaid = getOriginalMessage(action)?.automaticAction ?? false;
             const paymentType = getOriginalMessage(action)?.paymentType;
@@ -1908,22 +1945,6 @@ function PureReportActionItem({
                 <View style={styles.reportActionSystemMessageContainer}>
                     <InlineSystemMessage message={action.error} />
                 </View>
-                <ConfirmModal
-                    isVisible={showConfirmDismissReceiptError}
-                    onConfirm={() => {
-                        dismissError();
-                        setShowConfirmDismissReceiptError(false);
-                    }}
-                    onCancel={() => {
-                        setShowConfirmDismissReceiptError(false);
-                    }}
-                    title={translate('iou.dismissReceiptError')}
-                    prompt={translate('iou.dismissReceiptErrorConfirmation')}
-                    confirmText={translate('common.dismiss')}
-                    cancelText={translate('common.cancel')}
-                    shouldShowCancelButton
-                    danger
-                />
             </PressableWithSecondaryInteraction>
         </View>
     );
@@ -1939,8 +1960,9 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.shouldDisplayNewMarker === nextProps.shouldDisplayNewMarker &&
         deepEqual(prevProps.action, nextProps.action) &&
         deepEqual(prevProps.report?.pendingFields, nextProps.report?.pendingFields) &&
-        deepEqual(prevProps.report?.isDeletedParentAction, nextProps.report?.isDeletedParentAction) &&
+        deepEqual(prevProps.report?.participants, nextProps.report?.participants) &&
         deepEqual(prevProps.report?.errorFields, nextProps.report?.errorFields) &&
+        prevProps.report?.isDeletedParentAction === nextProps.report?.isDeletedParentAction &&
         prevProps.report?.statusNum === nextProps.report?.statusNum &&
         prevProps.report?.stateNum === nextProps.report?.stateNum &&
         prevProps.report?.parentReportID === nextProps.report?.parentReportID &&
@@ -1971,6 +1993,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         deepEqual(prevProps.introSelected, nextProps.introSelected) &&
         deepEqual(prevProps.blockedFromConcierge, nextProps.blockedFromConcierge) &&
         prevProps.originalReportID === nextProps.originalReportID &&
+        deepEqual(prevProps.originalReport?.participants, nextProps.originalReport?.participants) &&
         prevProps.isArchivedRoom === nextProps.isArchivedRoom &&
         prevProps.isChronosReport === nextProps.isChronosReport &&
         prevProps.isClosedExpenseReportWithNoExpenses === nextProps.isClosedExpenseReportWithNoExpenses &&
@@ -1982,6 +2005,7 @@ export default memo(PureReportActionItem, (prevProps, nextProps) => {
         prevProps.shouldHighlight === nextProps.shouldHighlight &&
         deepEqual(prevProps.bankAccountList, nextProps.bankAccountList) &&
         prevProps.reportNameValuePairsOrigin === nextProps.reportNameValuePairsOrigin &&
-        prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID
+        prevProps.reportNameValuePairsOriginalID === nextProps.reportNameValuePairsOriginalID &&
+        prevProps.reportMetadata?.pendingExpenseAction === nextProps.reportMetadata?.pendingExpenseAction
     );
 });
