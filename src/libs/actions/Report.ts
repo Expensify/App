@@ -3736,7 +3736,7 @@ function leaveGroupChat(reportID: string, shouldClearQuickAction: boolean) {
 }
 
 /** Leave a report by setting the state to submitted and closed */
-function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false, skipNavigation = false) {
+function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = false) {
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 
     if (!report) {
@@ -3852,9 +3852,6 @@ function leaveRoom(reportID: string, isWorkspaceMemberLeavingWorkspaceRoom = fal
     // If this is the leave action from a workspace room, simply dismiss the modal, i.e., allow the user to view the room and join again immediately.
     // If this is the leave action from a chat thread (even if the chat thread is in a room), do not allow the user to stay in the thread after leaving.
     if (isWorkspaceMemberLeavingWorkspaceRoom && !isChatThread) {
-        return;
-    }
-    if (skipNavigation) {
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.

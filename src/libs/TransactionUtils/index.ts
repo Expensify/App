@@ -71,8 +71,6 @@ import type {Attendee, Participant, SplitExpense} from '@src/types/onyx/IOU';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {OnyxData} from '@src/types/onyx/Request';
-// eslint-disable-next-line @typescript-eslint/no-deprecated
-import type {SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {
     Comment,
     Receipt,
@@ -1287,8 +1285,7 @@ function hasMissingSmartscanFields(transaction: OnyxInputOrEntry<Transaction>, r
  * Get all transaction violations of the transaction with given transactionID.
  */
 function getTransactionViolations(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transaction: OnyxEntry<Transaction | SearchTransaction>,
+    transaction: OnyxEntry<Transaction>,
     transactionViolations: OnyxCollection<TransactionViolations>,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -1333,8 +1330,7 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
  * Check if there is broken connection violation.
  */
 function hasBrokenConnectionViolation(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transaction: Transaction | SearchTransaction,
+    transaction: Transaction,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -1475,8 +1471,7 @@ function shouldShowViolation(
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
 function allHavePendingRTERViolation(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transactions: OnyxEntry<Transaction[] | SearchTransaction[]>,
+    transactions: OnyxEntry<Transaction[]>,
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
     currentUserAccountID: number,
@@ -1510,8 +1505,7 @@ function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, sho
  * Check if there is any transaction without RTER violation within the given transactionIDs.
  */
 function hasAnyTransactionWithoutRTERViolation(
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    transactions: Transaction[] | SearchTransaction[],
+    transactions: Transaction[],
     transactionViolations: OnyxCollection<TransactionViolations> | undefined,
     currentUserEmail: string,
     currentUserAccountID: number,

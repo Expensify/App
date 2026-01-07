@@ -1,6 +1,6 @@
 import React, {useContext, useMemo} from 'react';
-import {View} from 'react-native';
 import type {ColorValue} from 'react-native';
+import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
@@ -59,6 +59,9 @@ type ReportListItemHeaderProps<TItem extends ListItem> = {
 
     /** Callback to fire when DEW modal should be opened */
     onDEWModalOpen?: () => void;
+
+    /** Whether the DEW beta flag is enabled */
+    isDEWBetaEnabled?: boolean;
 };
 
 type FirstRowReportHeaderProps<TItem extends ListItem> = {
@@ -112,21 +115,15 @@ function HeaderFirstRow<TItem extends ListItem>({
     const theme = useTheme();
     const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`, {canBeMissing: true, selector: isActionLoadingSelector});
 
-    const {total, currency} = useMemo(() => {
-        let reportTotal = reportItem.total ?? 0;
-
-        if (reportTotal) {
-            if (reportItem.type === CONST.REPORT.TYPE.IOU) {
-                reportTotal = Math.abs(reportTotal ?? 0);
-            } else {
-                reportTotal *= reportItem.type === CONST.REPORT.TYPE.EXPENSE || reportItem.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
-            }
+    let total = reportItem.total ?? 0;
+    if (total) {
+        if (reportItem.type === CONST.REPORT.TYPE.IOU) {
+            total = Math.abs(total);
+        } else {
+            total *= reportItem.type === CONST.REPORT.TYPE.EXPENSE || reportItem.type === CONST.REPORT.TYPE.INVOICE ? -1 : 1;
         }
-
-        const reportCurrency = reportItem.currency ?? CONST.CURRENCY.USD;
-
-        return {total: reportTotal, currency: reportCurrency};
-    }, [reportItem.type, reportItem.total, reportItem.currency]);
+    }
+    const currency = reportItem.currency ?? CONST.CURRENCY.USD;
 
     return (
         <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pl3]}>
@@ -209,6 +206,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     isExpanded,
     isHovered,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: ReportListItemHeaderProps<TItem>) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
@@ -216,6 +214,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     const {currentSearchHash, currentSearchKey} = useSearchContext();
     const {isLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const [personalPolicyID] = useOnyx(ONYXKEYS.PERSONAL_POLICY_ID, {canBeMissing: true});
     const thereIsFromAndTo = !!reportItem?.from && !!reportItem?.to;
     const showUserInfo = (reportItem.type === CONST.REPORT.TYPE.IOU && thereIsFromAndTo) || (reportItem.type === CONST.REPORT.TYPE.EXPENSE && !!reportItem?.from);
     const [snapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}`, {canBeMissing: true});
@@ -231,18 +230,20 @@ function ReportListItemHeader<TItem extends ListItem>({
         theme.highlightBG;
 
     const handleOnButtonPress = () => {
-        handleActionButtonPress(
-            currentSearchHash,
-            reportItem,
-            () => onSelectRow(reportItem as unknown as TItem),
+        handleActionButtonPress({
+            hash: currentSearchHash,
+            item: reportItem,
+            goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
             lastPaymentMethod,
             currentSearchKey,
             onDEWModalOpen,
+            isDEWBetaEnabled,
             isDelegateAccessRestricted,
-            showDelegateNoAccessModal,
-        );
+            onDelegateAccessRestricted: showDelegateNoAccessModal,
+            personalPolicyID,
+        });
     };
     return !isLargeScreenWidth ? (
         <View style={[styles.pv1Half]}>
