@@ -3854,9 +3854,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 最終同期日 ${formattedDate}`,
             authenticationError: (connectionName: string) => `認証エラーのため、${connectionName} に接続できません。`,
             learnMore: '詳細はこちら',
-            memberAlternateText: 'メンバーはレポートを提出および承認できます。',
-            adminAlternateText: '管理者は、すべてのレポートとワークスペース設定を完全に編集できます。',
-            auditorAlternateText: '監査担当者はレポートを閲覧し、コメントすることができます。',
+            memberAlternateText: 'レポートを提出して承認する。',
+            adminAlternateText: 'レポートとワークスペース設定を管理します。',
+            auditorAlternateText: 'レポートを表示してコメントする。',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:

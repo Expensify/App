@@ -3864,9 +3864,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Laatst gesynchroniseerd ${formattedDate}`,
             authenticationError: (connectionName: string) => `Kan geen verbinding maken met ${connectionName} vanwege een authenticatiefout.`,
             learnMore: 'Meer informatie',
-            memberAlternateText: 'Leden kunnen rapporten indienen en goedkeuren.',
-            adminAlternateText: 'Beheerders hebben volledige bewerkingsrechten voor alle rapporten en werkruimte-instellingen.',
-            auditorAlternateText: 'Auditors kunnen rapporten bekijken en erop reageren.',
+            memberAlternateText: 'Rapporten indienen en goedkeuren.',
+            adminAlternateText: 'Beheer rapporten en werkruimte-instellingen.',
+            auditorAlternateText: 'Bekijk en becommentarieer rapporten.',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:

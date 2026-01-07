@@ -3858,9 +3858,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Última sincronização em ${formattedDate}`,
             authenticationError: (connectionName: string) => `Não é possível conectar a ${connectionName} devido a um erro de autenticação.`,
             learnMore: 'Saiba mais',
-            memberAlternateText: 'Os membros podem enviar e aprovar relatórios.',
-            adminAlternateText: 'Admins têm acesso total de edição a todos os relatórios e configurações do espaço de trabalho.',
-            auditorAlternateText: 'Auditores podem visualizar e comentar em relatórios.',
+            memberAlternateText: 'Enviar e aprovar relatórios.',
+            adminAlternateText: 'Gerencie relatórios e configurações do workspace.',
+            auditorAlternateText: 'Visualize e comente relatórios.',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:

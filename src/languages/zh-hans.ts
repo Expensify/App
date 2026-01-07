@@ -3800,9 +3800,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 上次同步时间：${formattedDate}`,
             authenticationError: (connectionName: string) => `由于身份验证错误，无法连接到 ${connectionName}。`,
             learnMore: '了解更多',
-            memberAlternateText: '成员可以提交和批准报表。',
-            adminAlternateText: '管理员对所有报表和工作区设置拥有完整的编辑权限。',
-            auditorAlternateText: '审核员可以查看并评论报表。',
+            memberAlternateText: '提交并批准报表。',
+            adminAlternateText: '管理报表和工作区设置。',
+            auditorAlternateText: '查看并评论报表。',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
