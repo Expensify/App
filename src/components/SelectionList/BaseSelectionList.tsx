@@ -152,11 +152,21 @@ function BaseSelectionList<TItem extends ListItem>({
 
     const scrollToIndex = useCallback(
         (index: number) => {
-            const item = data.at(index);
-            if (!listRef.current || !item || index === -1) {
+            // Bounds check: ensure index is valid for current data
+            if (index < 0 || index >= data.length) {
                 return;
             }
-            listRef.current.scrollToIndex({index});
+            const item = data.at(index);
+            if (!listRef.current || !item) {
+                return;
+            }
+            try {
+                listRef.current.scrollToIndex({index});
+            } catch (error) {
+                // FlashList may throw if layout for this index doesn't exist yet
+                // This can happen when data changes rapidly (e.g., during search filtering)
+                // The layout will be computed on next render, so we can safely ignore this
+            }
         },
         [data],
     );
@@ -183,6 +193,11 @@ function BaseSelectionList<TItem extends ListItem>({
         isFocused,
         onArrowUpDownCallback,
     });
+
+    // extraData helps FlashList detect when data changes significantly (e.g., during filtering)
+    // Including data.length ensures FlashList resets its layout cache when the list size changes
+    // This prevents "index out of bounds" errors when filtering reduces the list size
+    const extraData = useMemo(() => [data.length], [data.length]);
 
     const selectRow = useCallback(
         (item: TItem, indexToFocus?: number) => {
@@ -516,6 +531,7 @@ function BaseSelectionList<TItem extends ListItem>({
                         renderItem={renderItem}
                         ref={listRef}
                         keyExtractor={(item) => item.keyForList}
+                        extraData={extraData}
                         ListFooterComponent={listFooterContent}
                         scrollEnabled={scrollEnabled}
                         indicatorStyle="white"
