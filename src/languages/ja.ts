@@ -2000,8 +2000,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'セキュリティ上の理由により、Xero の連携を接続するには二要素認証が必要です。',
         twoFactorAuthIsRequiredForAdminsHeader: '2 要素認証が必要です',
         twoFactorAuthIsRequiredForAdminsTitle: '二要素認証を有効にしてください',
-        twoFactorAuthIsRequiredXero: 'お使いのXero会計連携には二要素認証の利用が必要です。引き続きExpensifyをご利用いただくために、有効にしてください。',
-        twoFactorAuthIsRequiredCompany: 'ご利用の会社では二要素認証の使用が必須です。引き続きExpensifyを利用するには、二要素認証を有効にしてください。',
+        twoFactorAuthIsRequiredXero: 'Xero 会計連携には二要素認証の使用が必要です。Expensify を引き続きご利用いただくには、二要素認証を有効にしてください。',
+        twoFactorAuthIsRequiredCompany: 'あなたの会社では二要素認証の利用が必須となっています。Expensify を引き続き利用するには、二要素認証を有効にしてください。',
         twoFactorAuthCannotDisable: '2要素認証を無効にできません',
         twoFactorAuthRequired: 'Xero 連携には二要素認証（2FA）が必須であり、無効にすることはできません。',
     },
@@ -3819,9 +3819,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 最終同期日 ${formattedDate}`,
             authenticationError: (connectionName: string) => `認証エラーのため、${connectionName} に接続できません。`,
             learnMore: '詳細はこちら',
-            memberAlternateText: 'メンバーはレポートを提出および承認できます。',
-            adminAlternateText: '管理者は、すべてのレポートとワークスペース設定を完全に編集できます。',
-            auditorAlternateText: '監査担当者はレポートを閲覧し、コメントすることができます。',
+            memberAlternateText: 'レポートを提出して承認します。',
+            adminAlternateText: 'レポートとワークスペースの設定を管理します。',
+            auditorAlternateText: 'レポートを表示してコメントします。',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:

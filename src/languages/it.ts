@@ -2004,7 +2004,7 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'Per motivi di sicurezza, Xero richiede l’autenticazione a due fattori per connettere l’integrazione.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Autenticazione a due fattori richiesta',
         twoFactorAuthIsRequiredForAdminsTitle: 'Abilita l’autenticazione a due fattori',
-        twoFactorAuthIsRequiredXero: 'La tua connessione contabile Xero richiede l’uso dell’autenticazione a due fattori. Per continuare a usare Expensify, abilitala.',
+        twoFactorAuthIsRequiredXero: 'La tua connessione contabile a Xero richiede l’uso dell’autenticazione a due fattori. Per continuare a usare Expensify, abilitala.', //_/\__/_/  \_,_/\__/\__/\_,_/
         twoFactorAuthIsRequiredCompany: 'La tua azienda richiede l’uso dell’autenticazione a due fattori. Per continuare a usare Expensify, abilitala.',
         twoFactorAuthCannotDisable: 'Impossibile disattivare l’autenticazione a due fattori (2FA)',
         twoFactorAuthRequired: "Per la tua connessione a Xero è richiesta l'autenticazione a due fattori (2FA) e non può essere disattivata.",
@@ -3829,9 +3829,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Ultima sincronizzazione ${formattedDate}`,
             authenticationError: (connectionName: string) => `Impossibile connettersi a ${connectionName} a causa di un errore di autenticazione.`,
             learnMore: 'Scopri di più',
-            memberAlternateText: 'I membri possono inviare e approvare i report.',
-            adminAlternateText: 'Gli amministratori hanno pieno accesso di modifica a tutti i report e alle impostazioni dello spazio di lavoro.',
-            auditorAlternateText: 'I revisori possono visualizzare e commentare i report.',
+            memberAlternateText: 'Invia e approva i report.',
+            adminAlternateText: 'Gestisci i report e le impostazioni dello spazio di lavoro.',
+            auditorAlternateText: 'Visualizza e commenta i report.',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:

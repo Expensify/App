@@ -3850,9 +3850,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Dernière synchronisation le ${formattedDate}`,
             authenticationError: (connectionName: string) => `Impossible de se connecter à ${connectionName} en raison d’une erreur d’authentification.`,
             learnMore: 'En savoir plus',
-            memberAlternateText: 'Les membres peuvent soumettre et approuver des rapports.',
-            adminAlternateText: 'Les administrateurs ont un accès complet en modification à tous les rapports et paramètres de l’espace de travail.',
-            auditorAlternateText: 'Les auditeurs peuvent consulter et commenter les rapports.',
+            memberAlternateText: 'Soumettre et approuver les rapports.',
+            adminAlternateText: 'Gérez les rapports et les paramètres de l’espace de travail.',
+            auditorAlternateText: 'Afficher et commenter des rapports.',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
