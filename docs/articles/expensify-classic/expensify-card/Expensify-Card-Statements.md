@@ -107,5 +107,52 @@ It includes all pending and posted transactions since the last settlement. Only 
 4. Set the start date to the day after the last settled expenses and the end date to today.
 5. The **Imported Total** will display the outstanding amount, with a breakdown of individual expenses available.
 
+## How is Cash Back calculated?
+
+Cash Back is calculated on net spend (purchases less refunds) with US merchants. Only transactions with merchants located in the 50 US states are eligible—US territories are not considered US spend.
+
+Cash Back is calculated on eligible spend that has been successfully settled within 30 days of the settlement becoming due. There are no limits to Cash Back, and it's in addition to the discount off an Expensify subscription when putting 50% of approved spend on the Expensify Card.
+
+**Important:** Purchases relating to a failed settlement that remains unpaid for more than 30 days will no longer be eligible for Cash Back. This gives you a 30-day grace period in the event of a failed settlement.
+
+## What are the Cash Back rates?
+
+- **1% Cash Back**: If your domain's total eligible spend is under $250,000
+- **2% Cash Back**: If your domain's total eligible spend is $250,000 or more (applied to your total eligible spend, not just the amount over $250,000)
+
+## When are settlements included in Cash Back calculations?
+
+Settlements are only included in Cash Back calculations once they have cleared. Clearing typically takes about 3 business days from when the settlement is initiated.
+
+This means settlements from the last few days of a month may not be included in that month's Cash Back calculation. These settlements will be included in the following month's calculation instead.
+
+In practice, settlements from around the 26th of the prior month through around the 25th of the current month are typically included in the current month's Cash Back calculation.
+
+**Tip for Monthly Settlement Customers:** If you want your Cash Back in the same month, set your settlement date for the 25th. This ensures all spend that occurred before then (as well as the last few days of the previous month) will be eligible.
+
+## How do I reconcile Cash Back?
+
+To reconcile Cash Back, follow these steps:
+
+1. Run the Settlements CSV report in the Reconciliation Dashboard.
+2. The report shows which month's Cash Back a transaction was included in and the merchant's country to identify eligible spend.
+3. Look back 2 months (e.g., for cash back paid on August 1st, search June 1st to August 1st).
+4. Use the filters to view expenses where the Cashback Credited Date matches the payment date.
+
+## How do I receive Cash Back?
+
+By default, Cash Back is automatically applied to your company's Expensify bill. If you prefer to receive Cash Back via ACH, you can toggle this setting off in Domain settings.
+
+If the Cash Back amount is higher than your bill amount, the remaining Cash Back is paid via ACH to your Settlement Verified Business Bank Account.
+
+To view your Cash Back:
+
+1. Go to **Settings > Domains > [Domain Name] > Company Cards > Reconciliation > Settlements**.
+2. Check the Settlements table:
+   - If the amount is $0, the entire Cash Back amount was applied to your bill (visible on your bill).
+   - If an amount is listed, this is what was paid via ACH to your Expensify Card settlement bank account.
+
+**Note:** If you have multiple domains receiving Cash Back under a single billing owner, only one domain's Cash Back will be applied to your bill (if you've elected for that), and the other domains will be paid via ACH.
+
 For additional support, contact Concierge via Expensify.
 
