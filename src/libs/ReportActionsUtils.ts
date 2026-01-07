@@ -3722,9 +3722,6 @@ export {
     isSystemUserMentioned,
     withDEWRoutedActionsArray,
     withDEWRoutedActionsObject,
-    isTravelUpdate,
-    isVisiblePreviewOrMoneyRequest,
-    isActionableJoinRequestPendingReportAction,
     getReportActionActorAccountID,
 };
 
