@@ -16,10 +16,10 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import SearchBar from '@components/SearchBar';
+import TableListItem from '@components/SelectionList/ListItem/TableListItem';
+import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
-import TableListItem from '@components/SelectionListWithSections/TableListItem';
-import type {ListItem} from '@components/SelectionListWithSections/types';
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
@@ -58,11 +58,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-
-type PolicyOption = ListItem & {
-    /** Category name is used as a key for the selectedCategories state */
-    keyForList: string;
-};
 
 type WorkspaceCategoriesPageProps =
     | PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES>
@@ -183,9 +178,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const glCodeTextStyle = useMemo(() => [styles.alignSelfStart], [styles.alignSelfStart]);
     const switchContainerStyle = useMemo(() => [StyleUtils.getMinimumWidth(variables.w72)], [StyleUtils]);
 
-    const categoryList = useMemo<PolicyOption[]>(() => {
+    const categoryList = useMemo<ListItem[]>(() => {
         const categories = Object.values(policyCategories ?? {});
-        return categories.reduce<PolicyOption[]>((acc, value) => {
+        return categories.reduce<ListItem[]>((acc, value) => {
             const isDisabled = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
             if (!isOffline && isDisabled) {
@@ -245,12 +240,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }, []);
     }, [policyCategories, isOffline, translate, updateWorkspaceCategoryEnabled, policy, isControlPolicyWithWideLayout, glCodeContainerStyle, glCodeTextStyle, switchContainerStyle]);
 
-    const filterCategory = useCallback((categoryOption: PolicyOption, searchInput: string) => {
+    const filterCategory = useCallback((categoryOption: ListItem, searchInput: string) => {
         const results = tokenizedSearch([categoryOption], searchInput, (option) => [option.text ?? '', option.alternateText ?? '']);
         return results.length > 0;
     }, []);
     const sortCategories = useCallback(
-        (data: PolicyOption[]) => {
+        (data: ListItem[]) => {
             return data.sort((a, b) => localeCompare(a.text ?? '', b?.text ?? ''));
         },
         [localeCompare],
@@ -260,7 +255,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
     const toggleCategory = useCallback(
-        (category: PolicyOption) => {
+        (category: ListItem) => {
             setSelectedCategories((prev) => {
                 if (prev.includes(category.keyForList)) {
                     return prev.filter((key) => key !== category.keyForList);
@@ -309,7 +304,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         );
     };
 
-    const navigateToCategorySettings = (category: PolicyOption) => {
+    const navigateToCategorySettings = (category: ListItem) => {
         if (isSmallScreenWidth && isMobileSelectionModeEnabled) {
             toggleCategory(category);
             return;
@@ -329,7 +324,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_CREATE.getRoute(policyId, backTo) : ROUTES.WORKSPACE_CATEGORY_CREATE.getRoute(policyId));
     };
 
-    const dismissError = (item: PolicyOption) => {
+    const dismissError = (item: ListItem) => {
         clearCategoryErrors(policyId, item.keyForList, policyCategories);
     };
 
