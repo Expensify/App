@@ -813,9 +813,7 @@ function ReportActionsList({
         );
     }, [canShowHeader, retryLoadNewerChatsError]);
 
-    const shouldShowSkeleton = isOffline && sortedVisibleReportActions.length === 0;
-
-
+    const shouldShowSkeleton = !isOffline && sortedVisibleReportActions.length === 0;
     const listFooterComponent = useMemo(() => {
         if (!shouldShowSkeleton) {
             return;
