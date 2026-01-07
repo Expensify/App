@@ -246,6 +246,162 @@ memo(ReportActionItem, (prevProps, nextProps) =>
 )
 ```
 
+---
+
+### [DESIGN-1] Favor composition over configuration
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A **new component** is being introduced
+  - The component has **boolean flags** that control rendering behavior (e.g., `shouldShowX`, `shouldUseY`, `canZ`, `isXEnabled`)
+  - The feature could instead be expressed as a **composed child component**
+
+  **DO NOT flag if:**
+
+  - The boolean controls **component state** (not rendering): `isLoading`, `isDisabled`, `isSelected`, `isFocused`, `isVisible`, `isExpanded`
+  - The boolean controls **data/behavior** (not UI structure): `shouldValidate`, `shouldDebounce`, `enableOffline`, `allowMultiple`
+  - The prop is for accessibility (`accessibilityLabel`, `accessible`) or platform-specific behavior (`keyboardShouldPersistTaps`)
+  - The component is a **leaf component** with no children (renders only primitives like Text, Image, or styled Views)
+
+- **Reasoning**: When features are added via configuration props, the component grows vertically, accumulating responsibilities. Each new flag increases coupling, surface area, and regression risk. Composition (expressing features as child components) keeps the parent stable—new features are added as new children, not new props.
+
+**Indicators of violation (use as heuristics, not strict rules):**
+
+- Component has 5+ boolean `should*`/`can*`/`is*Enabled` props **that control what UI elements render** (not state or behavior)
+- Conditional rendering inside component based on many boolean props (grep for `{shouldShow && <...>}` patterns)
+- Adding a new `shouldShowX` prop instead of accepting `<Component.X />` as a child
+- Accompanying "options" objects for the boolean (e.g., `shouldShowHeader` + `headerOptions`)
+
+Good (composition):
+
+```tsx
+// Features expressed as composable children
+<Table data={items} columns={columns}>
+  <Table.SearchBar />
+  <Table.Header />
+  <Table.Body />
+</Table>
+
+// Parent stays stable; add features by adding children
+<SelectionList data={items}>
+  <SelectionList.TextInput />
+  <SelectionList.Body />
+</SelectionList>
+```
+
+Bad (configuration):
+
+```tsx
+// Features controlled by boolean flags
+<SelectionList
+  data={items}
+  shouldShowTextInput
+  shouldShowTooltips
+  shouldScrollToFocusedIndex
+  shouldDebounceScrolling
+  shouldUpdateFocusedIndex
+  canSelectMultiple
+  disableKeyboardShortcuts
+/>
+
+// Adding a new feature requires modifying the component's API
+type SelectionListProps = {
+  shouldShowTextInput?: boolean;      // ❌ Could be <SelectionList.TextInput />
+  shouldShowConfirmButton?: boolean;  // ❌ Could be <SelectionList.ConfirmButton />
+  textInputOptions?: {...};           // ❌ Configuration object for the above
+};
+```
+
+---
+
+### [DESIGN-2] Avoid component duplication
+
+- **Condition**: Flag ONLY when ALL of these are true:
+
+  - A **new component** is being introduced
+  - The component shares **3+ of these characteristics** with an existing component:
+    1. Same wrapper/base component (e.g., both wrap `SelectionList`)
+    2. Same hooks in same order (e.g., both use `useOnyx` → `useMemo` → `useCallback`)
+    3. Same prop transformation logic (e.g., both build `sections` array from data)
+    4. Same event handling patterns (e.g., both have `onSubmit` that navigates back)
+    5. Same state management (e.g., both use `useDebouncedState` for search)
+  - The shared logic is **substantial** (>10 lines of similar code, not just boilerplate)
+
+  **DO NOT flag if:**
+
+  - The component is a platform-specific variant (`.native.tsx` vs `.tsx`)
+  - The differences are documented with clear reasoning for divergence
+  - The component has fundamentally different interaction models (e.g. single-select vs multi-select)
+  - The similarity is superficial (same name pattern but different behavior)
+
+- **Reasoning**: Duplicate or near-duplicate implementations lead to:
+  - Confusion about which variant to use
+  - Bugs fixed in one variant but not others
+  - UI/UX drift from subtle, unintentional differences in props or behavior
+
+**Detection heuristics:**
+
+1. **Name pattern match**: Does the new component name follow `*Picker`, `*Selector`, `*List`, `*Page`, `*Form` pattern? Search for existing components with same suffix.
+2. **Base component match**: What component does it render at root? Search for other components rendering the same base.
+3. **Hook signature match**: List the hooks used. Search for components with identical hook patterns.
+4. **Prop interface match**: Compare prop interface. >50% overlap suggests shared abstraction opportunity.
+
+**Abstraction recommendations:**
+
+When flagging, suggest ONE of these based on what's duplicated:
+- **Shared hook**: When stateful logic is duplicated (useState, useEffect, data transformation)
+- **Base component**: When JSX structure is duplicated but with different data
+- **Composition**: When the wrapper pattern is duplicated, use child component composition instead of creating separate wrappers
+
+Do not suggest creating abstractions for isolated cases or patterns unlikely to be reused. When in doubt, note the similarity but don't require immediate extraction.
+
+Good (shared hook when pattern is reused multiple times):
+
+```tsx
+// Shared hook extracts common picker behavior
+function usePolicyPicker<T>(onyxKey: string, policyID: string) {
+    const [data] = useOnyx(`${onyxKey}${policyID}`);
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    // Shared search, sections, header logic
+    return { searchValue, setSearchValue, sections, headerMessage };
+}
+
+// All pickers use the same hook - bug fixes propagate to all
+function CategoryPicker(props) {
+    const picker = usePolicyPicker(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, props.policyID);
+    return <SelectionList {...picker} />;
+}
+
+function TagPicker(props) {
+    const picker = usePolicyPicker(ONYXKEYS.COLLECTION.POLICY_TAGS, props.policyID);
+    return <SelectionList {...picker} />;
+}
+```
+
+Bad (copied component with subtle, unintentional differences):
+
+```tsx
+// CategoryPicker.tsx (original)
+function CategoryPicker({selectedCategory, policyID, onSubmit}) {
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    // ... builds sections, renders SelectionList
+}
+
+// TagPicker.tsx (copied with "small tweaks" that cause drift)
+function TagPicker({selectedTag, policyID, onSubmit}) {
+    const [searchValue, setSearchValue] = useState('');  // ← No debounce - causes UI flicker bug
+    // ... same pattern, but bug fixes to CategoryPicker won't reach here
+}
+
+// DestinationPicker.tsx (new developer copies TagPicker, propagating the bug)
+function DestinationPicker({selectedDestination, policyID, onSubmit}) {
+    const [searchValue, setSearchValue] = useState('');  // ← Same bug copied again
+    // ...
+}
+```
+
+---
+
 ## Instructions
 
 1. **First, get the list of changed files and their diffs:**
