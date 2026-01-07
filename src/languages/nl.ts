@@ -1258,6 +1258,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `ingediend${memo ? `, met de melding ${memo}` : ''}`,
         automaticallySubmitted: `ingediend via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">indiening uitstellen</a>`,
+        queuedToSubmitViaDEW: 'in wachtrij geplaatst om in te dienen via aangepaste goedkeuringswerkstroom',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `bijhouden ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `${amount} splits`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `splitsen ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
@@ -2288,7 +2289,26 @@ ${amount} voor ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'De fiatteur kon niet worden gewijzigd. Probeer het opnieuw of neem contact op met support.',
-        header: 'Naar dit lid sturen ter goedkeuring:',
+        title: 'Naar dit lid sturen ter goedkeuring:',
+        description: 'Deze persoon zal de uitgaven goedkeuren.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Goedkeurder',
+        header: '(Optioneel) Wilt u een goedkeuringslimiet toevoegen?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Voeg een andere goedkeurder toe wanneer <strong>${approverName}</strong> goedkeurder is en het rapport het onderstaande bedrag overschrijdt:`
+                : 'Voeg een andere goedkeurder toe wanneer het rapport het onderstaande bedrag overschrijdt:',
+        reportAmountLabel: 'Rapportbedrag',
+        additionalApproverLabel: 'Extra goedkeurder',
+        skip: 'Overslaan',
+        next: 'Volgende',
+        removeLimit: 'Limiet verwijderen',
+        enterAmountError: 'Voer een geldig bedrag in',
+        enterApproverError: 'Een goedkeurder is vereist wanneer u een rapportlimiet instelt',
+        enterBothError: 'Voer een rapportbedrag en een extra goedkeurder in',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
+            `Rapporten boven ${approvalLimit} worden doorgestuurd naar ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Geautoriseerde betaler',
@@ -7992,6 +8012,7 @@ Hier is een *testbon* om je te laten zien hoe het werkt:`,
             confirm: 'Afstandstracking negeren',
         },
         zeroDistanceTripModal: {title: 'Kan geen uitgave aanmaken', prompt: 'Je kunt geen uitgave aanmaken met dezelfde begin- en eindlocatie.'},
+        desktop: {title: 'Volg afstand op je telefoon', subtitle: 'Leg kilometers of mijlen automatisch vast met GPS en zet ritten direct om in uitgaven.', button: 'Download de app'},
     },
     desktopAppRetiredPage: {
         title: 'Desktop-app is buiten gebruik gesteld',

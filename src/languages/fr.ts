@@ -1263,6 +1263,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `pour ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `envoyé${memo ? `, indiquant ${memo}` : ''}`,
         automaticallySubmitted: `soumis via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retarder les soumissions</a>`,
+        queuedToSubmitViaDEW: "en file d'attente pour être soumis via le workflow d'approbation personnalisé",
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `suivi de ${formattedAmount}${comment ? `pour ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `diviser ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `Diviser ${formattedAmount}${comment ? `pour ${comment}` : ''}`,
@@ -2301,7 +2302,26 @@ ${amount} pour ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Le valideur n’a pas pu être modifié. Veuillez réessayer ou contacter l’assistance.',
-        header: 'Envoyer à ce membre pour approbation :',
+        title: 'Définir l’approbateur',
+        description: 'Cette personne approuvera les dépenses.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Approbateur',
+        header: "(Optionnel) Voulez-vous ajouter une limite d'approbation ?",
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Ajoutez un autre approbateur lorsque <strong>${approverName}</strong> est approbateur et que le rapport dépasse le montant ci-dessous :`
+                : 'Ajoutez un autre approbateur lorsque le rapport dépasse le montant ci-dessous :',
+        reportAmountLabel: 'Montant du rapport',
+        additionalApproverLabel: 'Approbateur supplémentaire',
+        skip: 'Passer',
+        next: 'Suivant',
+        removeLimit: 'Supprimer la limite',
+        enterAmountError: 'Veuillez entrer un montant valide',
+        enterApproverError: 'Un approbateur est requis lorsque vous définissez une limite de rapport',
+        enterBothError: 'Entrez un montant de rapport et un approbateur supplémentaire',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
+            `Les rapports supérieurs à ${approvalLimit} sont transférés à ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Payeur autorisé',
@@ -8029,6 +8049,11 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             confirm: 'Ignorer le suivi de la distance',
         },
         zeroDistanceTripModal: {title: 'Impossible de créer la dépense', prompt: 'Vous ne pouvez pas créer une dépense avec le même lieu de départ et d’arrivée.'},
+        desktop: {
+            title: 'Suivez la distance sur votre téléphone',
+            subtitle: 'Enregistrez automatiquement les miles ou kilomètres avec le GPS et transformez instantanément vos trajets en dépenses.',
+            button: 'Télécharger l’application',
+        },
     },
     desktopAppRetiredPage: {
         title: 'L’application de bureau a été retirée',
