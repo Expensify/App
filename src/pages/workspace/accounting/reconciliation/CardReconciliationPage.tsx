@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -162,15 +163,17 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                             />
                         </View>
                     )}
-                    {!!paymentBankAccountID && !!continuousReconciliation?.value && (
-                        <MenuItemWithTopDescription
-                            style={styles.mt5}
-                            title={bankAccountTitle}
-                            description={translate('workspace.accounting.reconciliationAccount')}
-                            shouldShowRightIcon
-                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection))}
-                        />
-                    )}
+                    <OfflineWithFeedback pendingAction={continuousReconciliation?.pendingAction}>
+                        {!!paymentBankAccountID && !!continuousReconciliation?.value && (
+                            <MenuItemWithTopDescription
+                                style={styles.mt5}
+                                title={bankAccountTitle}
+                                description={translate('workspace.accounting.reconciliationAccount')}
+                                shouldShowRightIcon
+                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.getRoute(policyID, connection))}
+                            />
+                        )}
+                    </OfflineWithFeedback>
                 </ScrollView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
