@@ -55,7 +55,7 @@ Creating an `.env` file is not necessary. We advise external contributors agains
 - `EXPENSIFY_PARTNER_NAME` - Constant used for the app when authenticating.
 - `EXPENSIFY_PARTNER_PASSWORD` - Another constant used for the app when authenticating. (This is OK to be public)
 - `PUSHER_APP_KEY` - Key used to authenticate with Pusher.com
-- `USE_WEB_PROXY`⚠️- Used in web/desktop development, it starts a server along the local development server to proxy requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors. If you don't want to start the proxy server set this explicitly to `false`
+- `USE_WEB_PROXY`⚠️- Used in web development, it starts a server along the local development server to proxy requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors. If you don't want to start the proxy server set this explicitly to `false`
 
 ### Optional Performance Variables
 - `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper. See [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information

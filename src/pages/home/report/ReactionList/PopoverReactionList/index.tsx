@@ -37,4 +37,6 @@ function PopoverReactionList({ref}: PopoverReactionListProps) {
     );
 }
 
+PopoverReactionList.displayName = 'PopoverReactionList';
+
 export default React.memo(PopoverReactionList);
