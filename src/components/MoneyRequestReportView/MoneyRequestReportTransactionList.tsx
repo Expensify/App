@@ -188,7 +188,7 @@ function MoneyRequestReportTransactionList({
 
     const addExpenseDropdownOptions = useMemo(
         () => getAddExpenseDropdownOptions(expensifyIcons, report?.reportID, policy, undefined, undefined, lastDistanceExpenseType),
-        [report?.reportID, policy, lastDistanceExpenseType, expensifyIcons],
+        [report?.reportID, policy, lastDistanceExpenseType, expensifyIcons.Location],
     );
 
     const hasPendingAction = useMemo(() => {
@@ -276,8 +276,8 @@ function MoneyRequestReportTransactionList({
 
     // Always use default columns for money request report view (don't use user-customized search columns)
     const columnsToShow = useMemo(() => {
-        return getColumnsToShow(currentUserDetails?.accountID, transactions, [], true);
-    }, [transactions, currentUserDetails?.accountID]);
+        return getColumnsToShow(currentUserDetails?.accountID, transactions, [], true, undefined, undefined, isIOUReport(report));
+    }, [transactions, currentUserDetails?.accountID, report]);
 
     const currentGroupBy = getReportLayoutGroupBy(reportLayoutGroupBy);
 
