@@ -68,7 +68,7 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
         // owner is US citizen so we need to gather last four digits of his SSN
         if (nationality === CONST.COUNTRY.US) {
             onNext();
-            // currency is set to GBP and owner is UK citizen, so we skip SSN and Documents step
+            // currency is set to GBP and owner is UK citizen, so we skip SSN and KYBDocuments step
         } else if (countryStepCountryValue === CONST.COUNTRY.GB && nationality === CONST.COUNTRY.GB) {
             onMove(7, false);
             // owner is not US citizen so we skip SSN step

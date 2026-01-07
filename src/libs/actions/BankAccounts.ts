@@ -15,6 +15,7 @@ import type {
     SaveCorpayOnboardingBeneficialOwnerParams,
     SendReminderForCorpaySignerInformationParams,
     ShareBankAccountParams,
+    UploadUserKYBDocsParams,
     ValidateBankAccountWithTransactionsParams,
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
@@ -990,6 +991,10 @@ function clearReimbursementAccountSendReminderForCorpaySignerInformation() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSendingReminderForCorpaySignerInformation: null});
 }
 
+function clearReimbursementAccountUploadKYBDocuments() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isUploadingKYBDocuments: null});
+}
+
 /**
  * Function to display and fetch data for Reimbursement Account step
  * @param stepToOpen - current step to open
@@ -1033,6 +1038,7 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
         subStep,
         localCurrentStep,
         policyID,
+        includeKYBStep: true,
     };
 
     return API.read(READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE, parameters, onyxData);
@@ -1121,6 +1127,44 @@ function verifyIdentityForBankAccount(bankAccountID: number, onfidoData: OnfidoD
     };
 
     API.write(WRITE_COMMANDS.VERIFY_IDENTITY_FOR_BANK_ACCOUNT, parameters, getVBBADataForOnyx());
+}
+
+function uploadUserKYBDocs(parameters: UploadUserKYBDocsParams) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isUploadingKYBDocuments: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isUploadingKYBDocuments: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isUploadingKYBDocuments: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    API.write(WRITE_COMMANDS.UPLOAD_USER_KYB_DOCS, parameters, onyxData);
 }
 
 function openWorkspaceView(policyID: string | undefined) {
@@ -1432,4 +1476,6 @@ export {
     getBankAccountFromID,
     openBankAccountSharePage,
     clearShareBankAccountErrors,
+    uploadUserKYBDocs,
+    clearReimbursementAccountUploadKYBDocuments,
 };

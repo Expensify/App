@@ -67,6 +67,13 @@ const INPUT_IDS = {
         DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
         SECOND_SIGNER_EMAIL: 'secondSignerEmail',
     },
+    KYB_DOCUMENTS: {
+        COMPANY_TAX_ID: 'companyTaxId',
+        NAME_CHANGE_DOCUMENT: 'nameChangeDocument',
+        COMPANY_ADDRESS_VERIFICATION: 'companyAddressVerification',
+        USER_ADDRESS_VERIFICATION: 'userAddressVerification',
+        USER_DOB_VERIFICATION: 'userDOBVerification',
+    },
     AMOUNT1: 'amount1',
     AMOUNT2: 'amount2',
     AMOUNT3: 'amount3',
@@ -216,6 +223,14 @@ type ACHContractStepProps = {
     [INPUT_IDS.COMPLETE_VERIFICATION.ACCEPT_TERMS_AND_CONDITIONS]: boolean;
     [INPUT_IDS.COMPLETE_VERIFICATION.CERTIFY_TRUE_INFORMATION]: boolean;
     [INPUT_IDS.COMPLETE_VERIFICATION.IS_AUTHORIZED_TO_USE_BANK_ACCOUNT]: boolean;
+};
+
+type KYBDocumentsStepProps = {
+    [INPUT_IDS.KYB_DOCUMENTS.COMPANY_TAX_ID]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.NAME_CHANGE_DOCUMENT]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.COMPANY_ADDRESS_VERIFICATION]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.USER_DOB_VERIFICATION]: FileObject[];
+    [INPUT_IDS.KYB_DOCUMENTS.USER_ADDRESS_VERIFICATION]: FileObject[];
 };
 
 type ReimbursementAccountProps = {
@@ -446,6 +461,7 @@ type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
             CompanyStepProps &
             RequestorStepProps &
             ACHContractStepProps &
+            KYBDocumentsStepProps &
             ReimbursementAccountProps &
             NonUSDReimbursementAccountAdditionalProps
     >;

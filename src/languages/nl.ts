@@ -3599,6 +3599,37 @@ ${
         weTake: 'We nemen uw beveiliging serieus. Stel nu 2FA in om een extra beveiligingslaag aan uw account toe te voegen.',
         secure: 'Beveilig je account',
     },
+    documentsStep: {
+        beforeYouGo: 'Voordat je verdergaat, hebben we enkele documenten nodig om bepaalde gegevens te verifiëren',
+        subheader: 'Verificatie',
+        verificationFailed: 'De verificatie is mislukt, daarom hebben we extra documenten nodig om jou en je bedrijf te verifiëren',
+        taxIDVerification: 'Belastingnummerverificatie',
+        taxIDVerificationDescription: dedent(`
+        Upload een van de volgende bestanden:
+        • IRS TIN/EIN-toewijzingsbrief
+        • IRS TIN/EIN-aanvraagbevestiging (bevat meestal "Congratulations! The EIN has been successfully assigned")
+        • IRS-belastingvrijstellingsbrief met bedrijfsnaam en EIN`),
+        nameChangeDocument: 'Document naamswijziging',
+        nameChangeDocumentDescription: 'Als de naam van je bedrijf is gewijzigd sinds de TIN/EIN-aanvraag, hebben we dit document nodig om het opgegeven belastingnummer te verifiëren',
+        companyAddressVerification: 'Verificatie van bedrijfsadres',
+        companyAddressVerificationDescription: dedent(`
+        Upload een van de volgende bestanden:
+        • Recente energierekening met bedrijfsnaam en adres
+        • Bankafschrift met bedrijfsnaam en adres
+        • Huidige huur- of leaseovereenkomst inclusief ondertekeningspagina met bedrijfsnaam en huidig adres
+        • Verzekeringsverklaring met bedrijfsnaam en adres
+        • TIN-toewijzingsdocument met bedrijfsnaam en adres`),
+        userAddressVerification: 'Adresverificatie',
+        userAddressVerificationDescription: dedent(`
+        Upload een van de volgende bestanden:
+        • Kiezersregistratiekaart
+        • Rijbewijs
+        • Bankafschrift
+        • Energierekening`),
+        userDOBVerification: 'Verificatie van geboortedatum',
+        userDOBVerificationDescription: 'Upload een in de VS uitgegeven identiteitsbewijs',
+        finishViaChat: 'Afronden via chat',
+    },
     reimbursementAccountLoadingAnimation: {
         oneMoment: 'Een moment',
         explanationLine: 'We controleren je gegevens. Je kunt binnenkort doorgaan met de volgende stappen.',
