@@ -11585,12 +11585,11 @@ const github_1 = __nccwpck_require__(5438);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 function getTestBuildMessage(appPr, mobileExpensifyPr) {
-    const inputs = ['ANDROID', 'DESKTOP', 'IOS', 'WEB'];
+    const inputs = ['ANDROID', 'IOS', 'WEB'];
     const names = {
         [inputs[0]]: 'Android',
-        [inputs[1]]: 'Desktop',
-        [inputs[2]]: 'iOS',
-        [inputs[3]]: 'Web',
+        [inputs[1]]: 'iOS',
+        [inputs[2]]: 'Web',
     };
     const result = inputs.reduce((acc, platform) => {
         const input = core.getInput(platform, { required: false });
@@ -11619,17 +11618,17 @@ function getTestBuildMessage(appPr, mobileExpensifyPr) {
         };
         return acc;
     }, {});
-    const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS${appPr ? ', Desktop, and Web' : ''}. Happy testing! :test_tube::test_tube:
+    const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS${appPr ? ', and Web' : ''}. Happy testing! :test_tube::test_tube:
 Built from${appPr ? ` App PR Expensify/App#${appPr}` : ''}${mobileExpensifyPr ? ` Mobile-Expensify PR Expensify/Mobile-Expensify#${mobileExpensifyPr}` : ''}.
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
 | ${result.ANDROID.link}  | ${result.IOS.link}  |
 | ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
 
-| Desktop :computer: | Web :spider_web: |
-| ------------- | ------------- |
-| ${result.DESKTOP.link}  | ${result.WEB.link}  |
-| ${result.DESKTOP.qrCode}  | ${result.WEB.qrCode}  |
+| Web :spider_web: |
+| ------------- |
+| ${result.WEB.link}  |
+| ${result.WEB.qrCode}  |
 
 ---
 

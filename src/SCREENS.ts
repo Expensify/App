@@ -147,6 +147,10 @@ const SCREENS = {
             PAYMENT_CURRENCY: 'Settings_Payment_Currency',
         },
 
+        RULES: {
+            ROOT: 'Settings_Rules',
+        },
+
         WALLET: {
             ROOT: 'Settings_Wallet',
             VERIFY_ACCOUNT: 'Settings_Wallet_VerifyAccount',
@@ -600,6 +604,7 @@ const SCREENS = {
         COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: 'Workspace_CompanyCards_Settings_Statement_Close_Date',
         COMPANY_CARD_DETAILS: 'Workspace_CompanyCard_Details',
         COMPANY_CARD_EDIT_CARD_NAME: 'Workspace_CompanyCard_Edit_Card_Name',
+        COMPANY_CARD_EDIT_TRANSACTION_START_DATE: 'Workspace_CompanyCard_Edit_Transaction_Start_Date',
         COMPANY_CARD_EXPORT: 'Workspace_CompanyCard_Export',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
         EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',

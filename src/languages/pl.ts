@@ -502,6 +502,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Pokaż więcej',
         showLess: 'Pokaż mniej',
         merchant: 'Sprzedawca',
+        change: 'Zmień',
         category: 'Kategoria',
         report: 'Raport',
         billable: 'Do zafakturowania',
@@ -1256,6 +1257,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `dla ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `wysłano${memo ? `, mówiąc ${memo}` : ''}`,
         automaticallySubmitted: `wysłane przez <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">opóźnij przesyłanie</a>`,
+        queuedToSubmitViaDEW: 'w kolejce do przesłania przez niestandardowy przepływ zatwierdzania',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `śledzenie ${formattedAmount}${comment ? `dla ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `podziel ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `podziel ${formattedAmount}${comment ? `dla ${comment}` : ''}`,
@@ -1999,8 +2001,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'Ze względów bezpieczeństwa Xero wymaga uwierzytelniania dwuskładnikowego, aby połączyć integrację.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Wymagane uwierzytelnianie dwuskładnikowe',
         twoFactorAuthIsRequiredForAdminsTitle: 'Włącz uwierzytelnianie dwuskładnikowe',
-        twoFactorAuthIsRequiredXero: 'Twoetapowe uwierzytelnianie jest wymagane dla Twojego połączenia księgowego z Xero. Aby nadal korzystać z Expensify, włącz je.',
-        twoFactorAuthIsRequiredCompany: 'Twoja firma wymaga używania uwierzytelniania dwuskładnikowego. Aby dalej korzystać z Expensify, włącz je.',
+        twoFactorAuthIsRequiredXero: 'Twoje połączenie księgowe z Xero wymaga uwierzytelniania dwuskładnikowego.',
+        twoFactorAuthIsRequiredCompany: 'Twoja firma wymaga uwierzytelniania dwuskładnikowego.',
         twoFactorAuthCannotDisable: 'Nie można wyłączyć 2FA',
         twoFactorAuthRequired: 'Dwuskładnikowe uwierzytelnianie (2FA) jest wymagane dla Twojego połączenia z Xero i nie może zostać wyłączone.',
     },
@@ -2362,6 +2364,21 @@ ${amount} dla ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Dodaj metodę płatności, aby wysyłać i odbierać płatności bezpośrednio w aplikacji.',
         defaultPaymentMethod: 'Domyślne',
         bankAccountLastFour: (lastFour: string) => `Konto bankowe • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Zasady wydatków',
+        subtitle: 'Te zasady będą miały zastosowanie do Twoich wydatków. Jeśli wysyłasz je do przestrzeni roboczej, zasady tej przestrzeni roboczej mogą je zastąpić.',
+        emptyRules: {title: 'Nie utworzyłeś żadnych reguł', subtitle: 'Dodaj regułę, aby zautomatyzować raportowanie wydatków.'},
+        changes: {
+            billable: (value: boolean) => `Zaktualizuj wydatek ${value ? 'Fakturowalne' : 'niefakturowalne'}`,
+            category: (value: string) => `Zaktualizuj kategorię na „${value}”`,
+            comment: (value: string) => `Zmień opis na „${value}”`,
+            merchant: (value: string) => `Zaktualizuj sprzedawcę na „${value}”`,
+            reimbursable: (value: boolean) => `Zaktualizuj wydatek ${value ? 'podlegający zwrotowi' : 'niepodlegający zwrotowi'}`,
+            report: (value: string) => `Dodaj raport o nazwie „${value}”`,
+            tag: (value: string) => `Zaktualizuj znacznik na „${value}”`,
+            tax: (value: string) => `Zaktualizuj stawkę podatku na ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {
@@ -3853,9 +3870,10 @@ ${
             viewTransactions: 'Wyświetl transakcje',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Wydatki użytkownika ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Transakcje kartą Expensify będą automatycznie eksportowane do „Konta zobowiązań karty Expensify”, utworzonego za pomocą <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">naszej integracji</a>.</muted-text-label>`,
+            youCantDowngradeInvoicing:
+                'Nie możesz zmienić swojego planu na niższy w ramach subskrypcji rozliczanej fakturą. Aby omówić lub wprowadzić zmiany w swojej subskrypcji, skontaktuj się ze swoim opiekunem klienta lub Concierge, aby uzyskać pomoc.',
         },
         receiptPartners: {
-            connect: 'Połącz teraz',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Połączono z ${organizationName}` : 'Automatyzuj wydatki na podróże i dostawy posiłków w całej swojej organizacji.',
@@ -3883,8 +3901,6 @@ ${
                 invitationFailure: 'Nie udało się zaprosić członka do Uber for Business',
                 autoInvite: 'Zaproś nowych członków przestrzeni roboczej do Uber for Business',
                 autoRemove: 'Dezaktywuj usuniętych członków przestrzeni roboczej w Uber for Business',
-                bannerTitle: 'Expensify + Uber dla Firm',
-                bannerDescription: 'Połącz Uber for Business, aby zautomatyzować wydatki na podróże i dostawę posiłków w całej swojej organizacji.',
                 emptyContent: {
                     title: 'Brak oczekujących zaproszeń',
                     subtitle: 'Hura! Szukaliśmy wszędzie i nie znaleźliśmy żadnych zaległych zaproszeń.',
@@ -5237,7 +5253,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 title: 'Nie utworzyłeś jeszcze żadnych tagów',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Dodaj znacznik, aby śledzić projekty, lokalizacje, działy i nie tylko.',
-                subtitleHTML: `<muted-text><centered-text>Zaimportuj arkusz kalkulacyjny, aby dodać tagi do śledzenia projektów, lokalizacji, działów i nie tylko. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Dowiedz się więcej</a> o formatowaniu plików tagów.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Dodaj tagi, aby śledzić projekty, lokalizacje, działy i więcej. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Dowiedz się więcej</a> o formatowaniu plików z tagami do importu.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>Twoje tagi są obecnie importowane z połączenia księgowego. Przejdź do <a href="${accountingPageURL}">księgowości</a>, aby wprowadzić zmiany.</centered-text></muted-text>`,
             },
@@ -6501,6 +6517,8 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `zmienił formułę nazwy raportu niestandardowego na „${newValue}” (wcześniej „${oldValue}”)`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `zmieniono domyślnego zatwierdzającego na ${newApprover} (wcześniej ${previousApprover})` : `zmieniono domyślnego zatwierdzającego na ${newApprover}`,
         changedSubmitsToApprover: ({
@@ -7939,6 +7957,23 @@ Oto *paragon testowy*, który pokazuje, jak to działa:`,
             invite: 'Zaproś',
             addAdminError: 'Nie można dodać tego członka jako administratora. Spróbuj ponownie.',
         },
+    },
+    gps: {
+        tooltip: 'Śledzenie GPS w toku! Gdy skończysz, zatrzymaj śledzenie poniżej.',
+        disclaimer: 'Użyj GPS, aby utworzyć wydatek z Twojej podróży. Stuknij „Start” poniżej, aby rozpocząć śledzenie.',
+        error: {failedToStart: 'Nie udało się uruchomić śledzenia lokalizacji.', failedToGetPermissions: 'Nie udało się uzyskać wymaganych uprawnień do lokalizacji.'},
+        trackingDistance: 'Śledzenie dystansu…',
+        stopped: 'Zatrzymano',
+        start: 'Start',
+        stop: 'Zatrzymaj',
+        discard: 'Odrzuć',
+        stopGpsTrackingModal: {title: 'Zatrzymaj śledzenie GPS', prompt: 'Czy na pewno? To zakończy Twoją obecną podróż.', cancel: 'Wznów śledzenie', confirm: 'Zatrzymaj śledzenie GPS'},
+        discardDistanceTrackingModal: {
+            title: 'Odrzuć śledzenie dystansu',
+            prompt: 'Czy na pewno? Spowoduje to odrzucenie Twojej obecnej ścieżki i nie będzie można tego cofnąć.',
+            confirm: 'Odrzuć śledzenie dystansu',
+        },
+        zeroDistanceTripModal: {title: 'Nie można utworzyć wydatku', prompt: 'Nie możesz utworzyć wydatku z tym samym miejscem początkowym i końcowym.'},
     },
     desktopAppRetiredPage: {
         title: 'Aplikacja desktopowa została wycofana',

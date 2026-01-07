@@ -502,6 +502,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Afficher plus',
         showLess: 'Afficher moins',
         merchant: 'Commerçant',
+        change: 'Modifier',
         category: 'Catégorie',
         report: 'Rapport',
         billable: 'Facturable',
@@ -1262,6 +1263,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `pour ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `envoyé${memo ? `, indiquant ${memo}` : ''}`,
         automaticallySubmitted: `soumis via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retarder les soumissions</a>`,
+        queuedToSubmitViaDEW: "en file d'attente pour être soumis via le workflow d'approbation personnalisé",
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `suivi de ${formattedAmount}${comment ? `pour ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `diviser ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `Diviser ${formattedAmount}${comment ? `pour ${comment}` : ''}`,
@@ -2014,8 +2016,8 @@ const translations: TranslationDeepObject<typeof en> = {
         twoFactorAuthIsRequiredDescription: 'Pour des raisons de sécurité, Xero nécessite une authentification à deux facteurs pour connecter l’intégration.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Authentification à deux facteurs requise',
         twoFactorAuthIsRequiredForAdminsTitle: 'Veuillez activer l’authentification à deux facteurs',
-        twoFactorAuthIsRequiredXero: 'Votre connexion comptable Xero nécessite l’utilisation de l’authentification à deux facteurs. Pour continuer à utiliser Expensify, veuillez l’activer.',
-        twoFactorAuthIsRequiredCompany: 'Votre entreprise exige l’utilisation de l’authentification à deux facteurs. Pour continuer à utiliser Expensify, veuillez l’activer.',
+        twoFactorAuthIsRequiredXero: 'Votre connexion comptable Xero nécessite une authentification à deux facteurs.',
+        twoFactorAuthIsRequiredCompany: 'Votre entreprise exige l’authentification à deux facteurs.',
         twoFactorAuthCannotDisable: 'Impossible de désactiver la 2FA',
         twoFactorAuthRequired: 'L’authentification à deux facteurs (2FA) est requise pour votre connexion Xero et ne peut pas être désactivée.',
     },
@@ -2379,6 +2381,21 @@ ${amount} pour ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Ajoutez un mode de paiement pour envoyer et recevoir des paiements directement dans l’application.',
         defaultPaymentMethod: 'Par défaut',
         bankAccountLastFour: (lastFour: string) => `Compte bancaire • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Règles de dépenses',
+        subtitle: 'Ces règles s’appliqueront à vos notes de frais. Si vous soumettez à un espace de travail, alors les règles de l’espace de travail peuvent les remplacer.',
+        emptyRules: {title: 'Vous n’avez créé aucune règle', subtitle: 'Ajouter une règle pour automatiser la préparation des notes de frais.'},
+        changes: {
+            billable: (value: boolean) => `Mettre à jour la dépense ${value ? 'facturable' : 'non facturable'}`,
+            category: (value: string) => `Mettre à jour la catégorie en « ${value} »`,
+            comment: (value: string) => `Modifier la description en « ${value} »`,
+            merchant: (value: string) => `Mettre à jour le marchand en « ${value} »`,
+            reimbursable: (value: boolean) => `Mettre à jour la dépense ${value ? 'remboursable' : 'non remboursable'}`,
+            report: (value: string) => `Ajouter un rapport nommé « ${value} »`,
+            tag: (value: string) => `Mettre à jour le tag sur « ${value} »`,
+            tax: (value: string) => `Mettre à jour le taux de taxe à ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {
@@ -3879,9 +3896,10 @@ ${
             viewTransactions: 'Afficher les transactions',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Notes de frais de ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Les transactions de la carte Expensify seront automatiquement exportées vers un « Compte de passif de carte Expensify » créé avec <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">notre intégration</a>.</muted-text-label>`,
+            youCantDowngradeInvoicing:
+                'Vous ne pouvez pas rétrograder votre forfait sur un abonnement facturé. Pour discuter ou apporter des modifications à votre abonnement, contactez votre gestionnaire de compte ou Concierge pour obtenir de l’aide.',
         },
         receiptPartners: {
-            connect: 'Connecter maintenant',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Connecté à ${organizationName}` : 'Automatisez les dépenses de voyage et de livraison de repas dans toute votre organisation.',
@@ -3909,8 +3927,6 @@ ${
                 invitationFailure: 'Échec de l’invitation du membre à Uber for Business',
                 autoInvite: 'Inviter de nouveaux membres de l’espace de travail à Uber for Business',
                 autoRemove: 'Désactiver les membres retirés de l’espace de travail dans Uber for Business',
-                bannerTitle: 'Expensify + Uber for Business',
-                bannerDescription: 'Connectez Uber for Business pour automatiser les notes de frais de déplacement et de livraison de repas dans toute votre organisation.',
                 emptyContent: {
                     title: 'Aucune invitation en attente',
                     subtitle: 'Hourra ! Nous avons cherché partout et n’avons trouvé aucune invitation en attente.',
@@ -5277,7 +5293,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: "Vous n'avez créé aucune étiquette",
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Ajoutez une étiquette pour suivre les projets, les lieux, les services et plus encore.',
-                subtitleHTML: `<muted-text><centered-text>Importez une feuille de calcul pour ajouter des tags afin de suivre les projets, les sites, les services, et plus encore. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">En savoir plus</a> sur le formatage des fichiers de tags.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Ajoutez des tags pour suivre les projets, les sites, les services, et plus encore. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">En savoir plus</a> sur le formatage des fichiers de tags pour l’importation.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>Vos tags sont actuellement importés depuis une connexion comptable. Rendez-vous dans la section <a href="${accountingPageURL}">Comptabilité</a> pour effectuer des modifications.</centered-text></muted-text>`,
             },
@@ -6552,6 +6568,8 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `a modifié la formule du nom du rapport personnalisé en « ${newValue} » (auparavant « ${oldValue} »)`,
         changedDefaultApprover: ({newApprover, previousApprover}: {newApprover: string; previousApprover?: string}) =>
             previousApprover ? `a modifié l'approbateur par défaut pour ${newApprover} (précédemment ${previousApprover})` : `a remplacé l'approbateur par défaut par ${newApprover}`,
         changedSubmitsToApprover: ({
@@ -7991,6 +8009,28 @@ Voici un *reçu test* pour vous montrer comment cela fonctionne :`,
             invite: 'Inviter',
             addAdminError: 'Impossible d’ajouter ce membre en tant qu’administrateur. Veuillez réessayer.',
         },
+    },
+    gps: {
+        tooltip: 'Suivi GPS en cours ! Quand vous avez terminé, arrêtez le suivi ci-dessous.',
+        disclaimer: 'Utilisez le GPS pour créer une dépense à partir de votre trajet. Touchez Démarrer ci-dessous pour commencer le suivi.',
+        error: {failedToStart: 'Impossible de démarrer le suivi de la localisation.', failedToGetPermissions: 'Échec de l’obtention des autorisations de localisation requises.'},
+        trackingDistance: 'Suivi de la distance...',
+        stopped: 'Arrêté',
+        start: 'Commencer',
+        stop: 'Arrêter',
+        discard: 'Ignorer',
+        stopGpsTrackingModal: {
+            title: 'Arrêter le suivi GPS',
+            prompt: 'Êtes-vous sûr(e) ? Cela mettra fin à votre trajet actuel.',
+            cancel: 'Reprendre le suivi',
+            confirm: 'Arrêter le suivi GPS',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Ignorer le suivi de la distance',
+            prompt: 'Êtes-vous sûr(e) ? Cela annulera votre parcours en cours et ne pourra pas être annulé.',
+            confirm: 'Ignorer le suivi de la distance',
+        },
+        zeroDistanceTripModal: {title: 'Impossible de créer la dépense', prompt: 'Vous ne pouvez pas créer une dépense avec le même lieu de départ et d’arrivée.'},
     },
     desktopAppRetiredPage: {
         title: 'L’application de bureau a été retirée',
