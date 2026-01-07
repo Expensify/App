@@ -9,10 +9,6 @@ type ZipCodeExampleFormatParams = {
     zipSampleFormat: string;
 };
 
-type LoggedInAsParams = {
-    email: string;
-};
-
 type SignUpNewFaceCodeParams = {
     login: string;
 };
@@ -821,7 +817,6 @@ export type {
     IssueVirtualCardParams,
     LocalTimeParams,
     LogSizeParams,
-    LoggedInAsParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
     MovedFromPersonalSpaceParams,
