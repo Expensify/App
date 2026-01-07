@@ -2,7 +2,7 @@ import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMon
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
 import {formatDate} from './FormulaDatetime';
@@ -30,6 +30,8 @@ type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
     transaction?: Transaction;
+    submitterPersonalDetails?: PersonalDetails;
+    managerPersonalDetails?: PersonalDetails;
     allTransactions?: Record<string, Transaction>;
 };
 
@@ -197,40 +199,6 @@ function parsePart(definition: string): FormulaPart {
 }
 
 /**
- * Check if a formula requires backend computation (e.g., currency conversion with exchange rates)
- * This is used by OptimisticReportNames to skip optimistic updates when online and backend is needed
- */
-function requiresBackendComputation(parts: FormulaPart[], context?: FormulaContext): boolean {
-    if (!context) {
-        return false;
-    }
-
-    const {report} = context;
-
-    for (const part of parts) {
-        if (part.type === FORMULA_PART_TYPES.REPORT) {
-            const [field, ...additionalPath] = part.fieldPath;
-            // Reconstruct format string by joining additional path elements with ':'
-            // This handles format strings with colons like 'HH:mm:ss'
-            const format = additionalPath.length > 0 ? additionalPath.join(':') : undefined;
-            const fieldName = field?.toLowerCase();
-
-            if (fieldName === 'total' || fieldName === 'reimbursable') {
-                // Use formatAmount to check whether a currency conversion is needed.
-                // A null return means the backend must handle the conversion.
-                // We rely on report.total because zero values can be computed optimistically.
-                const result = formatAmount(report.total, report.currency, format);
-                if (result === null) {
-                    return true;
-                }
-            }
-        }
-    }
-
-    return false;
-}
-
-/**
  * Check if the report field formula value is containing circular references, e.g example:  A -> A,  A->B->A,  A->B->C->A, etc
  */
 function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?: FieldList): boolean {
@@ -293,6 +261,13 @@ function hasCircularReferences(fieldValue: string, fieldName: string, fieldList?
 }
 
 /**
+ * Check if a formula part is a submission info part (report:submit:*)
+ */
+function isSubmissionInfoPart(part: FormulaPart): boolean {
+    return part.type === FORMULA_PART_TYPES.REPORT && part.fieldPath.at(0)?.toLowerCase() === 'submit';
+}
+
+/**
  * Compute the value of a formula given a context
  */
 function compute(formula?: string, context?: FormulaContext): string {
@@ -312,7 +287,11 @@ function compute(formula?: string, context?: FormulaContext): string {
         switch (part.type) {
             case FORMULA_PART_TYPES.REPORT:
                 value = computeReportPart(part, context);
-                value = value === '' ? part.definition : value;
+                // Apply fallback to formula definition for empty values, except for submission info
+                // Submission info explicitly returns empty strings when data is missing (matches backend)
+                if (value === '' && !isSubmissionInfoPart(part)) {
+                    value = part.definition;
+                }
                 break;
             case FORMULA_PART_TYPES.FIELD:
                 value = computeFieldPart(part);
@@ -403,6 +382,9 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
             // Backend will always return at least one report action (of type created) and its date is equal to report's creation date
             // We can make it slightly more efficient in the future by ensuring report.created is always present in backend's responses
             return formatDate(getOldestReportActionDate(report.reportID), format);
+        case 'submit': {
+            return computeSubmitPart(additionalPath, context);
+        }
         case 'autoreporting': {
             const subField = additionalPath.at(0);
             // For multi-part formulas, format is everything after the subfield
@@ -850,6 +832,82 @@ function getNewestTransactionDate(reportID: string, context?: FormulaContext): s
     return newestDate;
 }
 
-export {FORMULA_PART_TYPES, compute, extract, getAutoReportingDates, parse, hasCircularReferences, requiresBackendComputation};
+/**
+ * Compute the value of a report:submit:* formula part
+ * Handles nested paths like submit:from:firstname, submit:to:email, submit:date
+ */
+function computeSubmitPart(path: string[], context: FormulaContext): string {
+    const [direction, ...subPath] = path;
 
-export type {FormulaContext, FormulaPart, FieldList};
+    if (!direction) {
+        return '';
+    }
+
+    switch (direction.toLowerCase()) {
+        case 'from':
+            return computePersonalDetailsField(subPath, context.submitterPersonalDetails, context.policy);
+        case 'to':
+            return computePersonalDetailsField(subPath, context.managerPersonalDetails, context.policy);
+        case 'date': {
+            // TODO: Use report.submitted once backend adds it (issue #568267)
+            // Using report.created as placeholder until then
+            const submittedDate = context.report.created;
+            const format = subPath.length > 0 ? subPath.join(':') : undefined;
+            return formatDate(submittedDate, format);
+        }
+        default:
+            return '';
+    }
+}
+
+/**
+ * Compute personal details information for either submitter (from) or manager (to)
+ */
+function computePersonalDetailsField(path: string[], personalDetails: PersonalDetails | undefined, policy: OnyxEntry<Policy>): string {
+    const [field] = path;
+
+    if (!personalDetails || !field) {
+        return '';
+    }
+
+    switch (field.toLowerCase()) {
+        case 'firstname':
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return personalDetails.firstName || personalDetails.login || '';
+        case 'lastname':
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return personalDetails.lastName || personalDetails.login || '';
+        case 'fullname':
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            return personalDetails.displayName || personalDetails.login || '';
+        case 'email':
+            return personalDetails.login ?? '';
+        // userid/customfield1 returns employeeUserID from policy.employeeList
+        // TODO: Check policy.glCodes once backend adds it (issue #568268)
+        case 'userid':
+        case 'customfield1': {
+            const email = personalDetails.login;
+            if (!email || !policy?.employeeList) {
+                return '';
+            }
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            return policy.employeeList[email]?.employeeUserID ?? '';
+        }
+        // payrollid/customfield2 returns employeePayrollID from policy.employeeList
+        case 'payrollid':
+        case 'customfield2': {
+            const email = personalDetails.login;
+            if (!email || !policy?.employeeList) {
+                return '';
+            }
+            // eslint-disable-next-line rulesdir/no-default-id-values
+            return policy.employeeList[email]?.employeePayrollID ?? '';
+        }
+        default:
+            return '';
+    }
+}
+
+export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences};
+
+export type {FormulaContext, FieldList};

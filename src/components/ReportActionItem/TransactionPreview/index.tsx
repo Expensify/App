@@ -41,6 +41,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
         iouReportID,
         transactionID: transactionIDFromProps,
         onPreviewPressed,
+        shouldHighlight,
         reportPreviewAction,
         contextAction,
     } = props;
@@ -82,8 +83,8 @@ function TransactionPreview(props: TransactionPreviewProps) {
     }, [chatReportID]);
 
     const navigateToReviewFields = useCallback(() => {
-        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policyCategories));
-    }, [route.params?.threadReportID, transaction, duplicates, policyCategories]);
+        Navigation.navigate(getReviewNavigationRoute(Navigation.getActiveRoute(), route.params?.threadReportID, transaction, duplicates, policyCategories, transactionReport));
+    }, [route.params?.threadReportID, transaction, duplicates, policyCategories, transactionReport]);
 
     const transactionPreview = transaction;
 
@@ -110,6 +111,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                 shouldUseHapticsOnLongPress
                 accessibilityLabel={isBillSplit ? translate('iou.split') : translate(showCashOrCardTranslation)}
                 accessibilityHint={convertToDisplayString(requestAmount, requestCurrency)}
+                sentryLabel={CONST.SENTRY_LABEL.TRANSACTION_PREVIEW.CARD}
             >
                 <TransactionPreviewContent
                     /* eslint-disable-next-line react/jsx-props-no-spreading */
@@ -129,6 +131,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
                     walletTermsErrors={walletTerms?.errors}
                     routeName={route.name}
                     isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
+                    shouldHighlight={shouldHighlight}
                 />
             </PressableWithoutFeedback>
         );
@@ -153,11 +156,10 @@ function TransactionPreview(props: TransactionPreviewProps) {
             walletTermsErrors={walletTerms?.errors}
             routeName={route.name}
             reportPreviewAction={reportPreviewAction}
+            shouldHighlight={shouldHighlight}
             isReviewDuplicateTransactionPage={isReviewDuplicateTransactionPage}
         />
     );
 }
-
-TransactionPreview.displayName = 'TransactionPreview';
 
 export default TransactionPreview;

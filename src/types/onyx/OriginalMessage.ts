@@ -235,6 +235,15 @@ type OriginalMessageSubmitted = {
 
     /** Carbon copy list */
     cc?: string;
+
+    /** The workflow the report is submitted on */
+    workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
+};
+
+/** Model of `created` report action */
+type OriginalMessageCreated = {
+    /** The account id of the user the report is submitted to */
+    submittedTo?: number;
 };
 
 /** Model of `closed` report action */
@@ -452,6 +461,12 @@ type OriginalMessagePolicyChangeLog = {
     /** New default reimbursable value */
     newDefaultReimbursable?: string;
 
+    /** Old default report title formula */
+    oldDefaultTitle?: string;
+
+    /** New default report title formula */
+    newDefaultTitle?: string;
+
     /** value -- returned when updating "Auto-approve compliant reports" */
     value?: boolean;
 
@@ -466,6 +481,16 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Custom field type  */
     field?: string;
+
+    /** Array of field changes for consolidated employee updates */
+    fields?: Array<{
+        /** The name of the field being updated */
+        field: string;
+        /** The previous value of the field */
+        oldValue: string;
+        /** The new value of the field */
+        newValue: string;
+    }>;
 
     /** Report field name */
     fieldName?: string;
@@ -812,6 +837,12 @@ type OriginalMessageDismissedViolation = {
     violationName: string;
 };
 
+/** Model of DYNAMIC_EXTERNAL_WORKFLOW_ROUTED report action */
+type OriginalMessageDynamicExternalWorkflowRouted = {
+    /** The approver of the report is submitted to */
+    to: string;
+};
+
 /** Model of `marked reimbursed` report action */
 type OriginalMessageMarkedReimbursed = {
     /** Whether this action was created from NewDot */
@@ -867,6 +898,12 @@ type OriginalMessageForwarded = {
 
     /** Report ID of the expense */
     expenseReportID: string;
+
+    /** The login the approver who is acting on behalf of the vacationer */
+    to?: string;
+
+    /** The workflow the report is approved on */
+    workflow?: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>;
 };
 
 /**
@@ -962,6 +999,17 @@ type OriginalMessageIntegrationSyncFailed = {
 };
 
 /**
+ * Original message for DEW_SUBMIT_FAILED and DEW_APPROVE_FAILED actions
+ */
+type OriginalMessageDEWFailed = {
+    /** The error message */
+    message: string;
+
+    /** Whether the action was automatic */
+    automaticAction?: boolean;
+};
+
+/**
  * Model of CARD_ISSUED, CARD_MISSING_ADDRESS, CARD_ISSUED_VIRTUAL, and CARD_REPLACED_VIRTUAL actions
  */
 type OriginalMessageCard = {
@@ -1046,8 +1094,9 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE]: never;
     [CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST]: OriginalMessageChronosOOOList;
     [CONST.REPORT.ACTIONS.TYPE.CLOSED]: OriginalMessageClosed;
-    [CONST.REPORT.ACTIONS.TYPE.CREATED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.CREATED]: OriginalMessageCreated;
     [CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION]: OriginalMessageDismissedViolation;
+    [CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED]: OriginalMessageDynamicExternalWorkflowRouted;
     [CONST.REPORT.ACTIONS.TYPE.EXPENSIFY_CARD_SYSTEM_MESSAGE]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION]: OriginalMessageExportIntegration;
@@ -1077,7 +1126,6 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED]: OriginalMessageReimbursementDequeued;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED]: OriginalMessageReimbursementQueued;
-    [CONST.REPORT.ACTIONS.TYPE.REJECTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REMOVED_FROM_APPROVAL_CHAIN]: OriginalMessageRemovedFromApprovalChain;
     [CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE]: OriginalMessageDemotedFromWorkspace;
     [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
@@ -1099,13 +1147,11 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.UNSHARE]: never;
     [CONST.REPORT.ACTIONS.TYPE.UPDATE_GROUP_CHAT_MEMBER_ROLE]: never;
     [CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW]: OriginalMessageTripRoomPreview;
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
     [CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_QUICK_BOOKS]: never;
     [CONST.REPORT.ACTIONS.TYPE.DONATION]: never;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_ACCOUNT]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED]: never;
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED]: never;
     [CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS]: OriginalMessageCard;
@@ -1115,6 +1161,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
+    [CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED]: OriginalMessageDEWFailed;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_DESCRIPTION_OPTIONS]: OriginalMessageConciergeDescriptionOptions;
     [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_MAP_MCC_GROUPS]: OriginalMessageConciergeAutoMapMccGroups;

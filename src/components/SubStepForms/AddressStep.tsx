@@ -6,6 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
 import PatriotActLink from '@pages/EnablePayments/PatriotActLink';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
@@ -31,64 +32,65 @@ type AddressInputIDs = {
     country?: string;
 };
 
-type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps & {
-    /** The ID of the form */
-    formID: TFormID;
+type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
+    ForwardedFSClassProps & {
+        /** The ID of the form */
+        formID: TFormID;
 
-    /** The title of the form */
-    formTitle: string;
+        /** The title of the form */
+        formTitle: string;
 
-    /** The disclaimer informing that PO box is not allowed */
-    formPOBoxDisclaimer?: string;
+        /** The disclaimer informing that PO box is not allowed */
+        formPOBoxDisclaimer?: string;
 
-    /** The validation function to call when the form is submitted */
-    customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
+        /** The validation function to call when the form is submitted */
+        customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
-    /** A function to call when the form is submitted */
-    onSubmit: (values: FormOnyxValues<TFormID>) => void;
+        /** A function to call when the form is submitted */
+        onSubmit: (values: FormOnyxValues<TFormID>) => void;
 
-    /** Fields list of the form */
-    stepFields: Array<FormOnyxKeys<TFormID>>;
+        /** Fields list of the form */
+        stepFields: Array<FormOnyxKeys<TFormID>>;
 
-    /** The IDs of the input fields */
-    inputFieldsIDs: AddressInputIDs;
+        /** The IDs of the input fields */
+        inputFieldsIDs: AddressInputIDs;
 
-    /** The default values for the form */
-    defaultValues: AddressValues;
+        /** The default values for the form */
+        defaultValues: AddressValues;
 
-    /** Should show help links */
-    shouldShowHelpLinks?: boolean;
+        /** Should show help links */
+        shouldShowHelpLinks?: boolean;
 
-    /** Indicates if country selector should be displayed */
-    shouldDisplayCountrySelector?: boolean;
+        /** Indicates if country selector should be displayed */
+        shouldDisplayCountrySelector?: boolean;
 
-    /** Indicates if state selector should be displayed */
-    shouldDisplayStateSelector?: boolean;
+        /** Indicates if state selector should be displayed */
+        shouldDisplayStateSelector?: boolean;
 
-    /** Label for the state selector */
-    stateSelectorLabel?: string;
+        /** Label for the state selector */
+        stateSelectorLabel?: string;
 
-    /** The title of the state selector modal */
-    stateSelectorModalHeaderTitle?: string;
+        /** The title of the state selector modal */
+        stateSelectorModalHeaderTitle?: string;
 
-    /** The title of the state selector search input */
-    stateSelectorSearchInputTitle?: string;
+        /** The title of the state selector search input */
+        stateSelectorSearchInputTitle?: string;
 
-    /** Callback to be called when the country is changed */
-    onCountryChange?: (country: unknown) => void;
+        /** Callback to be called when the country is changed */
+        onCountryChange?: (country: unknown) => void;
 
-    /** Translation key of street field */
-    streetTranslationKey?: TranslationPaths;
+        /** Translation key of street field */
+        streetTranslationKey?: TranslationPaths;
 
-    /** Indicates if country can be changed by user */
-    shouldAllowCountryChange?: boolean;
+        /** Indicates if country can be changed by user */
+        shouldAllowCountryChange?: boolean;
 
-    /** Indicates if zip code format should be validated */
-    shouldValidateZipCodeFormat?: boolean;
+        /** Indicates if zip code format should be validated */
+        shouldValidateZipCodeFormat?: boolean;
 
-    /** Whether to show the Patriot Act help link (EnablePayments-only) */
-    shouldShowPatriotActLink?: boolean;
-};
+        /** Whether to show the Patriot Act help link (EnablePayments-only) */
+        shouldShowPatriotActLink?: boolean;
+    };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     formID,
@@ -111,6 +113,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     shouldAllowCountryChange = true,
     shouldValidateZipCodeFormat = true,
     shouldShowPatriotActLink = false,
+    forwardedFSClass,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -178,6 +181,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     onCountryChange={onCountryChange}
                     shouldAllowCountryChange={shouldAllowCountryChange}
                     shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
+                    forwardedFSClass={forwardedFSClass}
                 />
                 {!!shouldShowHelpLinks && (
                     <>
@@ -189,7 +193,5 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
         </FormProvider>
     );
 }
-
-AddressStep.displayName = 'AddressStep';
 
 export default AddressStep;

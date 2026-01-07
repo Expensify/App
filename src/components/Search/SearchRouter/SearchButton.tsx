@@ -1,9 +1,9 @@
 import React, {useRef} from 'react';
 import type {StyleProp, View, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +25,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
     const {translate} = useLocalize();
     const {openSearchRouter} = useSearchRouterContext();
     const pressableRef = useRef<View>(null);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['MagnifyingGlass']);
 
     return (
         <Tooltip text={translate('common.search')}>
@@ -34,6 +35,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
                 shouldUseAutoHitSlop={shouldUseAutoHitSlop}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.SEARCH_BUTTON}
                 // eslint-disable-next-line react-compiler/react-compiler
                 onPress={callFunctionIfActionIsAllowed(() => {
                     pressableRef?.current?.blur();
@@ -49,14 +51,12 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
                 })}
             >
                 <Icon
-                    src={Expensicons.MagnifyingGlass}
+                    src={expensifyIcons.MagnifyingGlass}
                     fill={theme.icon}
                 />
             </PressableWithoutFeedback>
         </Tooltip>
     );
 }
-
-SearchButton.displayName = 'SearchButton';
 
 export default SearchButton;

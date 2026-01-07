@@ -1,10 +1,10 @@
-import React, {useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
 import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -35,6 +35,7 @@ type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {
  * a message.
  */
 function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected, onPressOpenPicker = () => {}, onEmojiPickerClosed = () => {}}: MiniQuickEmojiReactionsProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['AddReaction']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const ref = useRef<View>(null);
@@ -42,12 +43,19 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {canBeMissing: true});
 
+    const selectEmojiWithReaction = useCallback(
+        (emoji: Emoji, skinTone: number) => {
+            onEmojiSelected(emoji, emojiReactions, skinTone);
+        },
+        [onEmojiSelected, emojiReactions],
+    );
+
     const openEmojiPicker = () => {
         onPressOpenPicker();
         showEmojiPicker({
             onModalHide: onEmojiPickerClosed,
-            onEmojiSelected: (_emojiCode, emojiObject) => {
-                onEmojiSelected(emojiObject, emojiReactions);
+            onEmojiSelected: (_emojiCode, emojiObject, skinTone) => {
+                selectEmojiWithReaction(emojiObject, skinTone);
             },
             emojiPopoverAnchor: ref,
             id: reportAction.reportActionID,
@@ -61,7 +69,8 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                     key={emoji.name}
                     isDelayButtonStateComplete={false}
                     tooltipText={`:${getLocalizedEmojiName(emoji.name, preferredLocale)}:`}
-                    onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions))}
+                    onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone))}
+                    sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.QUICK_REACTION}
                 >
                     <Text
                         style={[styles.miniQuickEmojiReactionText, styles.userSelectNone]}
@@ -82,12 +91,13 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
                 })}
                 isDelayButtonStateComplete={false}
                 tooltipText={translate('emojiReactions.addReactionTooltip')}
+                sentryLabel={CONST.SENTRY_LABEL.MINI_CONTEXT_MENU.EMOJI_PICKER_BUTTON}
             >
                 {({hovered, pressed}) => (
                     <Icon
                         width={variables.iconSizeMedium}
                         height={variables.iconSizeMedium}
-                        src={Expensicons.AddReaction}
+                        src={icons.AddReaction}
                         fill={StyleUtils.getIconFillColor(getButtonState(hovered, pressed, false))}
                     />
                 )}
@@ -95,7 +105,5 @@ function MiniQuickEmojiReactions({reportAction, reportActionID, onEmojiSelected,
         </View>
     );
 }
-
-MiniQuickEmojiReactions.displayName = 'MiniQuickEmojiReactions';
 
 export default MiniQuickEmojiReactions;

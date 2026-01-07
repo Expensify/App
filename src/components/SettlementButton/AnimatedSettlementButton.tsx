@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -16,6 +16,7 @@ type AnimatedSettlementButtonProps = SettlementButtonProps & {
     isApprovedAnimationRunning: boolean;
     shouldAddTopMargin?: boolean;
     canIOUBePaid: boolean;
+    sentryLabel?: string;
 };
 
 function AnimatedSettlementButton({
@@ -26,11 +27,12 @@ function AnimatedSettlementButton({
     isDisabled,
     canIOUBePaid,
     wrapperStyle,
+    sentryLabel,
     ...settlementButtonProps
 }: AnimatedSettlementButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThumbsUp', 'Checkmark']);
     const isAnimationRunning = isPaidAnimationRunning || isApprovedAnimationRunning;
     const buttonDuration = isPaidAnimationRunning ? CONST.ANIMATION_PAID_DURATION : CONST.ANIMATION_THUMBS_UP_DURATION;
     const buttonDelay = CONST.ANIMATION_PAID_BUTTON_HIDE_DELAY;
@@ -81,9 +83,9 @@ function AnimatedSettlementButton({
 
     let icon;
     if (isApprovedAnimationRunning) {
-        icon = Expensicons.ThumbsUp;
+        icon = expensifyIcons.ThumbsUp;
     } else if (isPaidAnimationRunning) {
-        icon = Expensicons.Checkmark;
+        icon = expensifyIcons.Checkmark;
     }
 
     useEffect(() => {
@@ -121,12 +123,11 @@ function AnimatedSettlementButton({
                     {...settlementButtonProps}
                     wrapperStyle={wrapperStyle}
                     isDisabled={isAnimationRunning || isDisabled}
+                    sentryLabel={sentryLabel}
                 />
             )}
         </Animated.View>
     );
 }
-
-AnimatedSettlementButton.displayName = 'AnimatedSettlementButton';
 
 export default AnimatedSettlementButton;

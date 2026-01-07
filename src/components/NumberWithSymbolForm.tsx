@@ -3,6 +3,7 @@ import type {ForwardedRef} from 'react';
 import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import {View} from 'react-native';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import usePrevious from '@hooks/usePrevious';
@@ -79,6 +80,9 @@ type NumberWithSymbolFormProps = {
     /** Whether to allow flipping amount */
     allowFlippingAmount?: boolean;
 
+    /** Whether the input is disabled or not */
+    disabled?: boolean;
+
     /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp'>;
@@ -141,8 +145,10 @@ function NumberWithSymbolForm({
     toggleNegative,
     clearNegative,
     ref,
+    disabled,
     ...props
 }: NumberWithSymbolFormProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
     const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat, translate} = useLocalize();
 
@@ -369,6 +375,7 @@ function NumberWithSymbolForm({
                         ref.current = newRef;
                     }
                 }}
+                disabled={disabled}
                 prefixCharacter={symbol}
                 prefixStyle={styles.colorMuted}
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
@@ -400,6 +407,7 @@ function NumberWithSymbolForm({
                 }
                 textInput.current = newRef;
             }}
+            disabled={disabled}
             symbol={symbol}
             hideSymbol={hideSymbol}
             symbolPosition={symbolPosition}
@@ -466,7 +474,7 @@ function NumberWithSymbolForm({
                             <Button
                                 shouldShowRightIcon
                                 small
-                                iconRight={Expensicons.DownArrow}
+                                iconRight={icons.DownArrow}
                                 onPress={onSymbolButtonPress}
                                 style={styles.minWidth18}
                                 isContentCentered
@@ -491,7 +499,7 @@ function NumberWithSymbolForm({
                     <Button
                         shouldShowRightIcon
                         small
-                        iconRight={Expensicons.DownArrow}
+                        iconRight={icons.DownArrow}
                         onPress={onSymbolButtonPress}
                         style={styles.minWidth18}
                         isContentCentered
@@ -530,8 +538,6 @@ function NumberWithSymbolForm({
         </ScrollView>
     );
 }
-
-NumberWithSymbolForm.displayName = 'NumberWithSymbolForm';
 
 export default NumberWithSymbolForm;
 export type {NumberWithSymbolFormProps, NumberWithSymbolFormRef};

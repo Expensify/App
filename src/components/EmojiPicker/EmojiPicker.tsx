@@ -117,7 +117,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
 
         // It's possible that the anchor is inside an active modal (e.g., add emoji reaction in report context menu).
         // So, we need to get the anchor position first before closing the active modal which will also destroy the anchor.
-        KeyboardUtils.dismiss().then(() =>
+        KeyboardUtils.dismiss(true).then(() =>
             calculateAnchorPosition(emojiPopoverAnchor?.current, anchorOriginValue).then((value) => {
                 close(() => {
                     onWillShow?.();
@@ -183,7 +183,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     /**
      * Callback for the emoji picker to add whatever emoji is chosen into the main input
      */
-    const selectEmoji = (emoji: string, emojiObject: Emoji) => {
+    const selectEmoji = (emoji: string, emojiObject: Emoji, preferredSkinTone: number) => {
         // Prevent fast click / multiple emoji selection;
         // The first click will hide the emoji picker by calling the hideEmojiPicker() function
         if (!isEmojiPickerVisible) {
@@ -192,7 +192,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
 
         hideEmojiPicker(false);
         if (typeof onEmojiSelected.current === 'function') {
-            onEmojiSelected.current(emoji, emojiObject);
+            onEmojiSelected.current(emoji, emojiObject, preferredSkinTone);
         }
     };
 
@@ -279,5 +279,4 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     );
 }
 
-EmojiPicker.displayName = 'EmojiPicker';
 export default withViewportOffsetTop(EmojiPicker);

@@ -45,6 +45,7 @@
         "__mocks__",
         ".github/**/*",
         ".storybook/**/*",
+        ".claude/**/*",
         "scripts",
         "modules",
         "**/*.nitro/*.ts",

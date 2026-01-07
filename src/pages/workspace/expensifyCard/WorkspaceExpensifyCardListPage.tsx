@@ -4,6 +4,7 @@ import {FlatList, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import CardFeedIcon from '@components/CardFeedIcon';
 import {DelegateNoAccessContext} from '@components/DelegateNoAccessModalProvider';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -60,11 +61,11 @@ type WorkspaceExpensifyCardListPageProps = {
 };
 
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ExpensifyCardImage'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ExpensifyCardImage']);
 
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
@@ -86,6 +87,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {windowHeight} = useWindowDimensions();
     const headerHeight = useEmptyViewHeaderHeight(shouldUseNarrowLayout, isBankAccountVerified);
     const [footerHeight, setFooterHeight] = useState(0);
+
+    const cardFeedIcon = useMemo(() => <CardFeedIcon selectedFeed={undefined} />, []);
 
     const settlementCurrency = useCurrencyForExpensifyCard({policyID});
 
@@ -217,7 +220,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             shouldEnableMaxHeight
-            testID={WorkspaceExpensifyCardListPage.displayName}
+            testID="WorkspaceExpensifyCardListPage"
         >
             <HeaderWithBackButton
                 icon={illustrations.HandCard}
@@ -233,7 +236,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 <View style={[styles.w100, styles.ph5, styles.pb3, !shouldChangeLayout && [styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]]}>
                     <FeedSelector
                         onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID))}
-                        cardIcon={illustrations.ExpensifyCardImage}
+                        CardFeedIcon={cardFeedIcon}
                         feedName={translate('workspace.common.expensifyCard')}
                         supportingText={getDescriptionForPolicyDomainCard(cardSettings?.domainName ?? '')}
                     />
@@ -278,7 +281,5 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         </ScreenWrapper>
     );
 }
-
-WorkspaceExpensifyCardListPage.displayName = 'WorkspaceExpensifyCardListPage';
 
 export default WorkspaceExpensifyCardListPage;
