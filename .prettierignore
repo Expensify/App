@@ -22,6 +22,9 @@ index.js
 # We need to modify the import here specifically, hence we disable prettier to get rid of the sorted imports
 src/libs/E2E/reactNativeLaunchingTest.ts
 
+# Disable prettier in 3rd-party snippets
+web/snippets/**
+
 # Automatically generated files
 src/libs/SearchParser/searchParser.js
 src/libs/SearchParser/autocompleteParser.js

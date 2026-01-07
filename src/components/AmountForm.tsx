@@ -1,5 +1,6 @@
 import type {ForwardedRef} from 'react';
 import React from 'react';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getCurrencyDecimals, getLocalizedCurrencySymbol} from '@libs/CurrencyUtils';
 import CONST from '@src/CONST';
@@ -67,6 +68,7 @@ function AmountForm({
     autoGrowMarginSide,
     ref,
 }: AmountFormProps) {
+    const {preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const decimals = decimalsProp ?? getCurrencyDecimals(currency);
 
@@ -87,7 +89,7 @@ function AmountForm({
                     ref.current = newRef;
                 }
             }}
-            symbol={getLocalizedCurrencySymbol(currency) ?? ''}
+            symbol={getLocalizedCurrencySymbol(preferredLocale, currency) ?? ''}
             symbolPosition={CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX}
             isSymbolPressable={isCurrencyPressable}
             hideSymbol={hideCurrencySymbol}

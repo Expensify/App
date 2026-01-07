@@ -74,6 +74,7 @@ const translations: TranslationDeepObject<typeof en> = {
         firstName: 'Nombre',
         lastName: 'Apellidos',
         scanning: 'Escaneando',
+        analyzing: 'Analizando...',
         phone: 'Teléfono',
         phoneNumber: 'Número de teléfono',
         phoneNumberPlaceholder: '(xxx) xxx-xxxx',
@@ -142,13 +143,14 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'a',
         genericErrorMessage: 'Ups... algo no ha ido bien y la acción no se ha podido completar. Por favor, inténtalo más tarde.',
         percentage: 'Porcentaje',
+        converted: 'Convertido',
         error: {
             invalidAmount: 'Importe no válido',
             acceptTerms: 'Debes aceptar los Términos de Servicio para continuar',
             phoneNumber: `Por favor, introduce un número de teléfono completo\n(ej. ${CONST.FORMATTED_EXAMPLE_PHONE_NUMBER})`,
             fieldRequired: 'Este campo es obligatorio',
             requestModified: 'Esta solicitud está siendo modificada por otro miembro',
-            characterLimitExceedCounter: ({length, limit}) => `Se superó el límite de caracteres (${length}/${limit})`,
+            characterLimitExceedCounter: (length, limit) => `Se superó el límite de caracteres (${length}/${limit})`,
             dateInvalid: 'Por favor, selecciona una fecha válida',
             invalidDateShouldBeFuture: 'Por favor, elige una fecha igual o posterior a hoy',
             invalidTimeShouldBeFuture: 'Por favor, elige una hora al menos un minuto en el futuro',
@@ -225,6 +227,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Mostrar más',
         showLess: 'Mostrar menos',
         merchant: 'Comerciante',
+        change: 'Cambio',
         category: 'Categoría',
         report: 'Informe',
         billable: 'Facturable',
@@ -902,20 +905,6 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
-        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}) => {
-            const statusText: string[] = [];
-            if (scanningReceipts > 0) {
-                statusText.push(`${scanningReceipts} escaneando`);
-            }
-            if (pendingReceipts > 0) {
-                statusText.push(`${pendingReceipts} pendiente`);
-            }
-            return {
-                one: statusText.length > 0 ? `1 gasto (${statusText.join(', ')})` : `1 gasto`,
-                other: (count: number) => (statusText.length > 0 ? `${count} gastos (${statusText.join(', ')})` : `${count} gastos`),
-            };
-        },
         expenseCount: () => {
             return {
                 one: '1 gasto',
@@ -958,6 +947,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: ({memo}) => `enviado${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
+        queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
         trackedAmount: ({formattedAmount, comment}) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -981,7 +971,7 @@ const translations: TranslationDeepObject<typeof en> = {
         rejectedThisReport: 'rechazó este informe',
         waitingOnBankAccount: ({submitterDisplayName}) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: 'canceló el pago',
-        canceledRequest: ({amount, submitterDisplayName}) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
+        canceledRequest: (amount, submitterDisplayName) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
         paidElsewhere: (payer) => `${payer ? `${payer} ` : ''}marcó como pagado`,
         paidWithExpensify: (payer) => `${payer ? `${payer} ` : ''}pagó con la billetera`,
@@ -2032,6 +2022,24 @@ ${amount} para ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
         defaultPaymentMethod: 'Predeterminado',
         bankAccountLastFour: (lastFour) => `Cuenta bancaria • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Reglas de gastos',
+        subtitle: 'Estas reglas se aplicarán a tus gastos. Si los envías a un espacio de trabajo, las reglas del espacio de trabajo pueden anularlas.',
+        emptyRules: {
+            title: 'Aún no has creado ninguna regla',
+            subtitle: 'Añade una regla para automatizar los informes de gastos.',
+        },
+        changes: {
+            billable: (value: boolean) => `Actualiza el gasto a ${value ? 'facturable' : 'no facturable'}`,
+            category: (value: string) => `Actualiza la categoría a "${value}"`,
+            comment: (value: string) => `Cambia la descripción a "${value}"`,
+            merchant: (value: string) => `Actualiza el comercio a "${value}"`,
+            reimbursable: (value: boolean) => `Actualiza el gasto a ${value ? 'reembolsable' : 'no reembolsable'}`,
+            report: (value: string) => `Añade un informe llamado "${value}"`,
+            tag: (value: string) => `Actualiza la etiqueta a "${value}"`,
+            tax: (value: string) => `Actualiza la tasa de impuesto a ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {
@@ -3530,13 +3538,14 @@ ${amount} para ${merchant} - ${date}`,
                 monthly: 'Mensual',
             },
             planType: 'Tipo de plan',
+            youCantDowngradeInvoicing:
+                'No es posible cambiar a un plan inferior en una suscripción facturada. Para hablar sobre tu suscripción o realizar cambios en ella, ponte en contacto con tu gestor de cuentas o con Concierge para obtener ayuda.',
             defaultCategory: 'Categoría predeterminada',
             viewTransactions: 'Ver transacciones',
             policyExpenseChatName: ({displayName}) => `${displayName}'s gastos`,
             deepDiveExpensifyCard: `<muted-text-label>Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nuestra integración</a>.</muted-text-label>`,
         },
         receiptPartners: {
-            connect: 'Conéctate ahora',
             uber: {
                 subtitle: ({organizationName}) => (organizationName ? `Conectado a ${organizationName}` : 'Automatice los gastos de viajes y entrega de comidas en toda su organización.'),
                 sendInvites: 'Invitar miembros',
@@ -3562,8 +3571,6 @@ ${amount} para ${merchant} - ${date}`,
                 invitationFailure: 'Error al invitar miembro a Uber for Business',
                 autoInvite: 'Invitar a nuevos miembros del espacio de trabajo a Uber para Empresas',
                 autoRemove: 'Desactivar miembros del espacio de trabajo eliminados de Uber para Empresas',
-                bannerTitle: 'Expensify + Uber para empresas',
-                bannerDescription: 'Conecte Uber for Business para automatizar los gastos de viajes y entrega de comidas en toda su organización.',
                 emptyContent: {
                     title: 'No hay invitaciones pendientes',
                     subtitle: '¡Hurra! Buscamos por todas partes y no encontramos ninguna invitación pendiente.',
@@ -4462,6 +4469,7 @@ ${amount} para ${merchant} - ${date}`,
             ukRegulation:
                 'Expensify Limited es un agente de Plaid Financial Ltd., una institución de pago autorizada y regulada por la Financial Conduct Authority conforme al Reglamento de Servicios de Pago de 2017 (Número de Referencia de la Firma: 804718). Plaid te proporciona servicios regulados de información de cuentas a través de Expensify Limited como su agente.',
             assignCardFailedError: 'Error al asignar la tarjeta.',
+            cardAlreadyAssignedError: 'Esta tarjeta ya está asignada a un usuario en otro espacio de trabajo.',
         },
         expensifyCard: {
             issueAndManageCards: 'Emitir y gestionar Tarjetas Expensify',
@@ -5495,11 +5503,11 @@ ${amount} para ${merchant} - ${date}`,
                 `La cuenta propietaria de este espacio de trabajo (${email}) tiene un saldo pendiente de un mes anterior.\n\n¿Desea transferir este monto (${amount}) para hacerse cargo de la facturación de este espacio de trabajo? tu tarjeta de pago se cargará inmediatamente.`,
             subscriptionTitle: 'Asumir la suscripción anual',
             subscriptionButtonText: 'Transferir suscripción',
-            subscriptionText: ({usersCount, finalCount}) =>
+            subscriptionText: (usersCount, finalCount) =>
                 `Al hacerse cargo de este espacio de trabajo se fusionará tu suscripción anual asociada con tu suscripción actual. Esto aumentará el tamaño de tu suscripción en ${usersCount} miembros, lo que hará que tu nuevo tamaño de suscripción sea ${finalCount}. ¿Te gustaria continuar?`,
             duplicateSubscriptionTitle: 'Alerta de suscripción duplicada',
             duplicateSubscriptionButtonText: 'Continuar',
-            duplicateSubscriptionText: ({email, workspaceName}) =>
+            duplicateSubscriptionText: (email, workspaceName) =>
                 `Parece que estás intentando hacerte cargo de la facturación de los espacios de trabajo de ${email}, pero para hacerlo, primero debes ser administrador de todos sus espacios de trabajo.\n\nHaz clic en "Continuar" si solo quieres tomar sobrefacturación para el espacio de trabajo ${workspaceName}.\n\nSi desea hacerse cargo de la facturación de toda tu suscripción, pídales que lo agreguen como administrador a todos sus espacios de trabajo antes de hacerse cargo de la facturación.`,
             hasFailedSettlementsTitle: 'No se puede transferir la propiedad',
             hasFailedSettlementsButtonText: 'Entiendo',
@@ -6035,6 +6043,7 @@ ${amount} para ${merchant} - ${date}`,
             return `actualizar la fecha de envío del informe mensual a "${newValue}" (previamente "${oldValue}")`;
         },
         updateDefaultTitleEnforced: ({value}) => `cambió "Requerir título predeterminado de informe" a ${value ? 'activado' : 'desactivado'}`,
+        changedCustomReportNameFormula: ({newValue, oldValue}) => `cambió la fórmula personalizado del nombre del informe a "${newValue}" (anteriormente "${oldValue}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}) =>
             !oldDescription
                 ? `estableció la descripción de este espacio de trabajo como "${newDescription}"`
@@ -6543,13 +6552,13 @@ ${amount} para ${merchant} - ${date}`,
             type: {
                 changeField: ({oldValue, newValue, fieldName}) => `cambió ${fieldName} a "${newValue}" (previamente "${oldValue}")`,
                 changeFieldEmpty: ({newValue, fieldName}) => `estableció ${fieldName} a ${newValue}`,
-                changeReportPolicy: ({fromPolicyName, toPolicyName}) => {
+                changeReportPolicy: (toPolicyName, fromPolicyName) => {
                     if (!toPolicyName) {
                         return `cambió el espacio de trabajo${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;
                     }
                     return `cambió el espacio de trabajo a ${toPolicyName}${fromPolicyName ? ` (previamente ${fromPolicyName})` : ''}`;
                 },
-                changeType: ({oldType, newType}) => `cambió type de ${oldType} a ${newType}`,
+                changeType: (oldType, newType) => `cambió type de ${oldType} a ${newType}`,
                 exportedToCSV: `exportado a CSV`,
                 exportedToIntegration: {
                     automatic: ({label}) => {
@@ -7556,9 +7565,9 @@ ${amount} para ${merchant} - ${date}`,
             title: 'Pago',
             subtitle: 'Añade una tarjeta para pagar tu suscripción a Expensify.',
             addCardButton: 'Añade tarjeta de pago',
+            cardInfo: (name, expiration, currency) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
             cardNextPayment: (nextPaymentDate) => `Tu próxima fecha de pago es ${nextPaymentDate}.`,
             cardEnding: (cardNumber) => `Tarjeta terminada en ${cardNumber}`,
-            cardInfo: ({name, expiration, currency}) => `Nombre: ${name}, Expiración: ${expiration}, Moneda: ${currency}`,
             changeCard: 'Cambiar tarjeta de pago',
             changeCurrency: 'Cambiar moneda de pago',
             cardNotFound: 'No se ha añadido ninguna tarjeta de pago',
@@ -7673,12 +7682,8 @@ ${amount} para ${merchant} - ${date}`,
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación?',
             renewsOn: ({date}) => `Se renovará el ${date}.`,
             pricingConfiguration: 'El precio depende de la configuración. Para obtener el precio más bajo, elige una suscripción anual y obtén la Tarjeta Expensify.',
-            learnMore: {
-                part1: 'Obtén más información en nuestra ',
-                pricingPage: 'página de precios',
-                part2: ' o chatea con nuestro equipo en tu ',
-                adminsRoom: 'sala #admins.',
-            },
+            learnMore: ({hasAdminsRoom}) =>
+                `<muted-text>Obtén más información en nuestra <a href="${CONST.PRICING}">página de precios</a> o chatea con nuestro equipo en tu ${hasAdminsRoom ? `<a href="adminsRoom">sala #admins.</a>` : '#admins room.'}</muted-text>`,
             estimatedPrice: 'Precio estimado',
             changesBasedOn: 'Esto varía según el uso de tu Tarjeta Expensify y las opciones de suscripción que elijas a continuación.',
         },
@@ -8034,6 +8039,34 @@ ${amount} para ${merchant} - ${date}`,
         members: {
             title: 'Miembros',
             findMember: 'Buscar miembro',
+        },
+    },
+    gps: {
+        tooltip: '¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.',
+        disclaimer: 'Utiliza el GPS para crear un gasto a partir de tu trayecto. Toca Iniciar a continuación para comenzar el seguimiento.',
+        error: {
+            failedToStart: 'No se pudo iniciar el seguimiento de la ubicación.',
+            failedToGetPermissions: 'No se pudieron obtener los permisos de ubicación necesarios.',
+        },
+        trackingDistance: 'Seguimiento de distancia...',
+        stopped: 'Detenido',
+        start: 'Iniciar',
+        stop: 'Detener',
+        discard: 'Descartar',
+        stopGpsTrackingModal: {
+            title: 'Detener seguimiento por GPS',
+            prompt: '¿Estás seguro? Esto finalizará tu trayecto actual.',
+            cancel: 'Reanudar seguimiento',
+            confirm: 'Detener seguimiento por GPS',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Descartar seguimiento de distancia',
+            prompt: '¿Estás seguro? Esto descartará tu trayecto actual y no se puede deshacer.',
+            confirm: 'Descartar seguimiento de distancia',
+        },
+        zeroDistanceTripModal: {
+            title: 'No se puede crear el gasto',
+            prompt: 'No puedes crear un gasto con la misma ubicación de inicio y fin.',
         },
     },
 };
