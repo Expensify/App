@@ -88,6 +88,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     customListHeader,
     customListHeaderHeight = 0,
     listHeaderWrapperStyle,
+    selectAllStyle,
     isRowMultilineSupported = false,
     isAlternateTextMultilineSupported = false,
     alternateTextNumberOfLines = 2,
@@ -144,7 +145,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     shouldHighlightSelectedItem = true,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
-    isPercentageMode,
+    shouldSkipContentHeaderHeightOffset,
     ref,
 }: SelectionListProps<TItem>) {
     const styles = useThemeStyles();
@@ -356,8 +357,8 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
             }
 
             let viewOffset = variables.contentHeaderHeight - viewOffsetToKeepFocusedItemAtTopOfViewableArea;
-            // Remove contentHeaderHeight from viewOffset calculation if isPercentageMode (for scroll offset calculation on native)
-            if (isPercentageMode) {
+            // Skip contentHeaderHeight for native split expense tabs scroll correction
+            if (shouldSkipContentHeaderHeightOffset) {
                 viewOffset = viewOffsetToKeepFocusedItemAtTopOfViewableArea;
             }
             listRef.current.scrollToLocation({sectionIndex, itemIndex, animated, viewOffset});
@@ -631,7 +632,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 onMouseDown={shouldPreventDefaultFocusOnSelectRow ? (e) => e.preventDefault() : undefined}
                             >
-                                <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                                <Text style={[styles.textStrong, styles.ph3, selectAllStyle]}>{translate('workspace.people.selectAll')}</Text>
                             </PressableWithFeedback>
                         )}
                     </View>
