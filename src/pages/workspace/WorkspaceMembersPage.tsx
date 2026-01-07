@@ -53,7 +53,15 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
-import {getMemberAccountIDsForWorkspace, isControlPolicy, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
+import {
+    getConnectionExporters,
+    getMemberAccountIDsForWorkspace,
+    isControlPolicy,
+    isDeletedPolicyEmployee,
+    isExpensifyTeam,
+    isPaidGroupPolicy,
+    isPolicyAdmin as isPolicyAdminUtils,
+} from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
@@ -165,14 +173,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             });
         }
 
-        const exporters = new Set([
-            policy?.connections?.intacct?.config?.export?.exporter,
-            policy?.connections?.quickbooksDesktop?.config?.export?.exporter,
-            policy?.connections?.quickbooksOnline?.config?.export?.exporter,
-            policy?.connections?.xero?.config?.export?.exporter,
-            policy?.connections?.netsuite?.options?.config?.exporter,
-        ]);
-        const userExporter = selectedEmployees.find((selectedEmployee) => exporters.has(selectedEmployee));
+        const exporters = getConnectionExporters(policy);
+        const userExporter = selectedEmployees.find((selectedEmployee) => exporters.includes(selectedEmployee));
 
         if (userExporter) {
             const exporterAccountID = policyMemberEmailsToAccountIDs[userExporter];
