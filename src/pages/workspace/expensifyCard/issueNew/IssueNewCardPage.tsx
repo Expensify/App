@@ -1,4 +1,4 @@
-import {isActingAsDelegateSelector} from '@selectors/Account';
+import {isDelegateAccessRestrictedSelector} from '@selectors/Account';
 import React, {useEffect, useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
