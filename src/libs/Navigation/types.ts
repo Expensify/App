@@ -1734,7 +1734,6 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
         reportActionID?: string;
-        isEditingFromConfirmation?: boolean | string;
     };
     [SCREENS.MONEY_REQUEST.CREATE]: {
         iouType: IOUType;
@@ -1922,7 +1921,6 @@ type MoneyRequestNavigatorParamList = {
         pageIndex?: string;
         backToReport?: string;
         reportActionID?: string;
-        isEditingFromConfirmation?: boolean | string;
     };
     [SCREENS.SET_DEFAULT_WORKSPACE]: {
         navigateTo?: Routes;
