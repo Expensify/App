@@ -32,8 +32,6 @@ import {
     getCardIssuedMessage,
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
-    getCurrencyDefaultTaxUpdateMessage,
-    getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
     getDeletedApprovalRuleMessage,
     getForwardsToUpdateMessage,
