@@ -716,9 +716,7 @@ function toggleTwoFactorAuthRequiredForDomain(domainAccountID: number, domainNam
         },
     ];
 
-    const authToken = getAuthToken();
     const params: ToggleTwoFactorAuthRequiredForDomainParams = {
-        authToken,
         domainAccountID,
         domainName,
         enabled: twoFactorAuthRequired,
