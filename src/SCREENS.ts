@@ -147,6 +147,10 @@ const SCREENS = {
             PAYMENT_CURRENCY: 'Settings_Payment_Currency',
         },
 
+        RULES: {
+            ROOT: 'Settings_Rules',
+        },
+
         WALLET: {
             ROOT: 'Settings_Wallet',
             VERIFY_ACCOUNT: 'Settings_Wallet_VerifyAccount',
@@ -163,6 +167,7 @@ const SCREENS = {
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
             ENABLE_GLOBAL_REIMBURSEMENTS: 'Settings_Wallet_Enable_Global_Reimbursements',
+            SHARE_BANK_ACCOUNT: 'Settings_Wallet_Share_Bank_Account',
         },
 
         EXIT_SURVEY: {
@@ -290,7 +295,6 @@ const SCREENS = {
         STEP_UPGRADE: 'Money_Request_Step_Upgrade',
         STEP_AMOUNT: 'Money_Request_Step_Amount',
         STEP_CATEGORY: 'Money_Request_Step_Category',
-        STEP_CURRENCY: 'Money_Request_Step_Currency',
         STEP_DATE: 'Money_Request_Step_Date',
         STEP_DESCRIPTION: 'Money_Request_Step_Description',
         STEP_DISTANCE: 'Money_Request_Step_Distance',
@@ -321,6 +325,7 @@ const SCREENS = {
         STEP_REPORT: 'Money_Request_Report',
         EDIT_REPORT: 'Money_Request_Edit_Report',
         SPLIT_EXPENSE: 'Money_Request_Split_Expense',
+        SPLIT_EXPENSE_SEARCH: 'Money_Request_Split_Expense_Search',
         SPLIT_EXPENSE_CREATE_DATE_RANGE: 'Money_Request_Split_Expense_Create_Date_Range',
         SPLIT_EXPENSE_EDIT: 'Money_Request_Split_Expense_Edit',
         DISTANCE_CREATE: 'Money_Request_Distance_Create',
@@ -600,6 +605,7 @@ const SCREENS = {
         COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE: 'Workspace_CompanyCards_Settings_Statement_Close_Date',
         COMPANY_CARD_DETAILS: 'Workspace_CompanyCard_Details',
         COMPANY_CARD_EDIT_CARD_NAME: 'Workspace_CompanyCard_Edit_Card_Name',
+        COMPANY_CARD_EDIT_TRANSACTION_START_DATE: 'Workspace_CompanyCard_Edit_Transaction_Start_Date',
         COMPANY_CARD_EXPORT: 'Workspace_CompanyCard_Export',
         EXPENSIFY_CARD: 'Workspace_ExpensifyCard',
         EXPENSIFY_CARD_DETAILS: 'Workspace_ExpensifyCard_Details',
@@ -666,9 +672,6 @@ const SCREENS = {
         WORKFLOWS_APPROVALS_EDIT: 'Workspace_Approvals_Edit',
         WORKFLOWS_APPROVALS_EXPENSES_FROM: 'Workspace_Workflows_Approvals_Expenses_From',
         WORKFLOWS_APPROVALS_APPROVER: 'Workspace_Workflows_Approvals_Approver',
-        WORKFLOWS_APPROVALS_APPROVER_CHANGE: 'Workspace_Workflows_Approvals_Approver_Change',
-        WORKFLOWS_APPROVALS_APPROVAL_LIMIT: 'Workspace_Workflows_Approvals_Approval_Limit',
-        WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER: 'Workspace_Workflows_Approvals_Over_Limit_Approver',
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
         WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
         WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: 'Workspace_Workflows_Connect_Existing_Bank_Account',
@@ -869,6 +872,7 @@ const SCREENS = {
         ADMIN_DETAILS: 'Domain_Admin_Details',
         ADMINS_SETTINGS: 'Admins_Settings',
         ADD_PRIMARY_CONTACT: 'Add_Primary_Contact',
+        ADD_ADMIN: 'Domain_Add_Admin',
     },
 } as const;
 

@@ -31,6 +31,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {search} from '@libs/actions/Search';
 import type {TransactionPreviewData} from '@libs/actions/Search';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getSections} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -62,6 +63,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
     newTransactionID,
     violations,
     onDEWModalOpen,
+    isDEWBetaEnabled,
 }: TransactionGroupListItemProps<TItem>) {
     const groupItem = item as unknown as TransactionGroupListItemType;
     const theme = useTheme();
@@ -72,16 +74,18 @@ function TransactionGroupListItem<TItem extends ListItem>({
     const currentUserDetails = useCurrentUserPersonalDetails();
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
-    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportID}`, {canBeMissing: true});
+    const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`, {canBeMissing: true});
     const [oneTransactionThreadReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionItem?.reportAction?.childReportID}`, {canBeMissing: true});
-    const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${oneTransactionItem?.transactionID}`, {canBeMissing: true});
+    const [oneTransaction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(oneTransactionItem?.transactionID)}`, {canBeMissing: true});
     const parentReportActionSelector = useCallback(
         (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
         [oneTransactionItem?.reportAction?.reportActionID],
     );
-    const [parentReportAction] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionItem?.reportID}`, {selector: parentReportActionSelector, canBeMissing: true}, [
-        oneTransactionItem,
-    ]);
+    const [parentReportAction] = originalUseOnyx(
+        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(oneTransactionItem?.reportID)}`,
+        {selector: parentReportActionSelector, canBeMissing: true},
+        [oneTransactionItem],
+    );
     const transactionPreviewData: TransactionPreviewData = useMemo(
         () => ({hasParentReport: !!parentReport, hasTransaction: !!oneTransaction, hasParentReportAction: !!parentReportAction, hasTransactionThreadReport: !!oneTransactionThreadReport}),
         [parentReport, oneTransaction, parentReportAction, oneTransactionThreadReport],
@@ -288,6 +292,7 @@ function TransactionGroupListItem<TItem extends ListItem>({
                         isIndeterminate={isIndeterminate}
                         isHovered={hovered}
                         onDEWModalOpen={onDEWModalOpen}
+                        isDEWBetaEnabled={isDEWBetaEnabled}
                         onDownArrowClick={onExpandIconPress}
                         isExpanded={isExpanded}
                     />
@@ -308,12 +313,13 @@ function TransactionGroupListItem<TItem extends ListItem>({
             canSelectMultiple,
             isSelectAllChecked,
             isIndeterminate,
-            onExpandIconPress,
+            onDEWModalOpen,
+            isDEWBetaEnabled,
+            groupBy,
             isExpanded,
+            onExpandIconPress,
             isFocused,
             searchType,
-            groupBy,
-            onDEWModalOpen,
             onSelectRow,
             transactionPreviewData,
         ],

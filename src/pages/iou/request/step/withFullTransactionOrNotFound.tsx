@@ -3,6 +3,7 @@ import type {ComponentType} from 'react';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useOnyx from '@hooks/useOnyx';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -39,7 +40,6 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
-    | typeof SCREENS.MONEY_REQUEST.STEP_CURRENCY
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
     | typeof SCREENS.MONEY_REQUEST.STEP_REPORT
     | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO
@@ -58,6 +58,7 @@ type WithFullTransactionOrNotFoundProps<RouteName extends MoneyRequestRouteName>
 
 export default function <TProps extends WithFullTransactionOrNotFoundProps<MoneyRequestRouteName>>(
     WrappedComponent: ComponentType<TProps>,
+    shouldShowLoadingIndicator = false,
 ): React.ComponentType<Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>> {
     // eslint-disable-next-line rulesdir/no-negated-variables
     function WithFullTransactionOrNotFound(props: Omit<TProps, keyof WithFullTransactionOrNotFoundOnyxProps>) {
@@ -82,6 +83,10 @@ export default function <TProps extends WithFullTransactionOrNotFoundProps<Money
         // This is to prevent it from showing when the modal is being dismissed while navigating to a different route (e.g. on requesting money).
         if (!transactionID) {
             return <FullPageNotFoundView shouldShow={isFocused} />;
+        }
+
+        if (isLoadingTransaction && shouldShowLoadingIndicator) {
+            return <FullScreenLoadingIndicator />;
         }
         return (
             <WrappedComponent
