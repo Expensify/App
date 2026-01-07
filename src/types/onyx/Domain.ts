@@ -1,4 +1,4 @@
-import type ONYXKEYS from '@src/ONYXKEYS';
+import type CONST from '@src/CONST';
 import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
 import type * as OnyxCommon from './OnyxCommon';
 import type SecurityGroup from './SecurityGroup';
@@ -44,8 +44,8 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether setting SAML required setting has failed and why */
     samlRequiredError?: OnyxCommon.Errors;
 }> &
-    PrefixedRecord<typeof ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX, number> &
-    PrefixedRecord<typeof ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>;
+    PrefixedRecord<typeof CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, number> &
+    PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, DomainSecurityGroup>;
 
 /** Model of SAML metadata */
 type SamlMetadata = {

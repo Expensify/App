@@ -7903,6 +7903,13 @@ const CONST = {
             HEADER_ACTION_BUTTON: 'Task-HeaderActionButton',
         },
     },
+
+    DOMAIN: {
+        /** Onyx prefix for domain admin account IDs */
+        EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
+        /** Onyx prefix for domain security groups */
+        DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
+    },
 } as const;
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS = [

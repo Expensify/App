@@ -528,7 +528,7 @@ function clearToggleConsolidatedDomainBillingErrors(domainAccountID: number) {
 }
 
 function addAdminToDomain(domainAccountID: number, accountID: number, targetEmail: string, domainName: string) {
-    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
+    const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -536,7 +536,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
             value: {
                 [PERMISSION_KEY]: accountID,
-            } as PrefixedRecord<typeof ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX, number>,
+            } as PrefixedRecord<typeof CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX, number>,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -629,7 +629,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
  * Removes an error after trying to add admin
  */
 function clearAddAdminError(domainAccountID: number, accountID: number) {
-    const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
+    const PERMISSION_KEY = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         [PERMISSION_KEY]: null,

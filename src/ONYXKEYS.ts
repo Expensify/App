@@ -758,12 +758,6 @@ const ONYXKEYS = {
         /** SAML login metadata for a domain */
         SAML_METADATA: 'saml_metadata_',
 
-        /** Stores domain admin account ID */
-        EXPENSIFY_ADMIN_ACCESS_PREFIX: 'expensify_adminPermissions_',
-
-        /** Stores domain security group */
-        DOMAIN_SECURITY_GROUP_PREFIX: 'domain_securityGroup_',
-
         /** Pending actions for a domain */
         DOMAIN_PENDING_ACTIONS: 'domainPendingActions_',
 
@@ -1160,10 +1154,8 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_ADMIN_ACCESS]: boolean;
     [ONYXKEYS.COLLECTION.SAML_METADATA]: OnyxTypes.SamlMetadata;
-    [ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX]: number;
     [ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS]: OnyxTypes.DomainPendingActions;
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
-    [ONYXKEYS.COLLECTION.DOMAIN_SECURITY_GROUP_PREFIX]: OnyxTypes.DomainSecurityGroup;
 };
 
 type OnyxValuesMapping = {
