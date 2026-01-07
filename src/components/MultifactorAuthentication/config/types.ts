@@ -123,11 +123,17 @@ type MultifactorAuthenticationScenario = ValueOf<typeof CONST.MULTIFACTOR_AUTHEN
 
 export type {
     MultifactorAuthenticationPrompt,
+    MultifactorAuthenticationNotification,
+    MultifactorAuthenticationModal,
     MultifactorAuthenticationNotificationRecord,
     MultifactorAuthenticationNotificationMap,
+    MultifactorAuthenticationScenarioResponse,
     MultifactorAuthenticationScenarioParameters,
     MultifactorAuthenticationScenario,
     MultifactorAuthenticationNotificationOptions,
+    AllMultifactorAuthenticationNotificationType,
+    MultifactorAuthenticationScenarioConfig,
+    MultifactorAuthenticationUI,
     MultifactorAuthenticationScenarioConfigRecord,
     MultifactorAuthenticationDefaultUIConfig,
     MultifactorAuthenticationScenarioCustomConfig,

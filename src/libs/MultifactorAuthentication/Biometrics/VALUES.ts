@@ -14,6 +14,9 @@ const REASON = {
         BAD_REQUEST: 'Bad request',
         UNKNOWN_RESPONSE: 'Unrecognized response type',
     },
+    GENERIC: {
+        NO_ACTION_MADE_YET: 'No action has been made yet',
+    },
 } as const;
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -53,6 +56,13 @@ const MULTIFACTOR_AUTHENTICATION_VALUES = {
     ED25519_TYPE: 'biometric',
     KEY_ALIASES: {
         PUBLIC_KEY: '3DS_SCA_KEY_PUBLIC',
+    },
+    NO_SCENARIO_FOR_STATUS_REASON: {
+        REGISTER: 'REGISTER',
+        REVOKE: 'REVOKE',
+        CANCEL: 'CANCEL',
+        UPDATE: 'UPDATE',
+        FULFILL: 'FULFILL',
     },
     FACTORS_REQUIREMENTS: {
         SIGNED_CHALLENGE: {
