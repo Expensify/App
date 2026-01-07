@@ -121,7 +121,7 @@ function ParentNavigationSubtitle({
             }
 
             // If the parent report is already displayed underneath RHP, simply dismiss the modal
-            if (Navigation.getTopmostReportId() === parentReportID) {
+            if (Navigation.getTopmostReportId() === parentReportID && currentFullScreenRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                 Navigation.dismissModal();
                 return;
             }
