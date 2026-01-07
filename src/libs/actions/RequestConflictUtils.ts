@@ -138,7 +138,7 @@ function resolveCommentDeletionConflicts(persistedRequests: OnyxRequest[], repor
 
     if (addCommentFound) {
         // The new message performs some changes in Onyx, so we need to rollback those changes.
-        const rollbackData: OnyxUpdate[] = [
+        const rollbackData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`,

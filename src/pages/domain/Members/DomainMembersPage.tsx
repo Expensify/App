@@ -12,18 +12,17 @@ import BaseDomainMembersPage from '@pages/domain/BaseDomainMembersPage';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type DomainMembersPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.MEMBERS>;
 
 function DomainMembersPage({route}: DomainMembersPageProps) {
     const {domainAccountID} = route.params;
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Members']);
+    const illustrations = useMemoizedLazyIllustrations(['Profile']);
     const icons = useMemoizedLazyExpensifyIcons(['Gear']);
     const styles = useThemeStyles();
 
-    const [memberIDs, memberMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
+    const [memberIDs] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
         canBeMissing: true,
         selector: selectMemberIDs,
     });
@@ -50,13 +49,12 @@ function DomainMembersPage({route}: DomainMembersPageProps) {
     return (
         <BaseDomainMembersPage
             domainAccountID={domainAccountID}
-            isLoading={isLoadingOnyxValue(memberMetadata)}
             accountIDs={memberIDs ?? []}
             headerTitle={translate('domain.members.title')}
             headerContent={headerContent}
             searchPlaceholder={translate('domain.members.findMember')}
             onSelectRow={() => {}}
-            headerIcon={illustrations.Members}
+            headerIcon={illustrations.Profile}
         />
     );
 }

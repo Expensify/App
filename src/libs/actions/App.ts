@@ -181,7 +181,7 @@ function setLocale(locale: Locale, currentPreferredLocale: Locale | undefined) {
     }
 
     // Optimistically change preferred locale
-    const optimisticData: OnyxUpdate[] = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.NVP_PREFERRED_LOCALE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_PREFERRED_LOCALE,
@@ -504,8 +504,8 @@ function createWorkspaceWithPolicyDraftAndNavigateToIt(params: CreateWorkspaceWi
                 currency,
                 file,
                 lastUsedPaymentMethod,
-                introSelectedParam: introSelected,
-                activePolicyIDParam: activePolicyID,
+                introSelected,
+                activePolicyID,
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 allReportsParam: allReports,
@@ -523,8 +523,8 @@ type SavePolicyDraftByNewWorkspaceParams = {
     currency?: string;
     file?: File;
     lastUsedPaymentMethod?: OnyxTypes.LastPaymentMethodType;
-    introSelectedParam: OnyxEntry<OnyxTypes.IntroSelected>;
-    activePolicyIDParam: string | undefined;
+    introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+    activePolicyID?: string;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
     allReportsParam: OnyxCollection<OnyxTypes.Report>;
@@ -541,8 +541,8 @@ function savePolicyDraftByNewWorkspace({
     currency = '',
     file,
     lastUsedPaymentMethod,
-    introSelectedParam,
-    activePolicyIDParam,
+    introSelected,
+    activePolicyID,
     currentUserAccountIDParam,
     currentUserEmailParam,
     allReportsParam,
@@ -556,8 +556,8 @@ function savePolicyDraftByNewWorkspace({
         currency,
         file,
         lastUsedPaymentMethod,
-        introSelectedParam,
-        activePolicyIDParam,
+        introSelected,
+        activePolicyID,
         currentUserAccountIDParam,
         currentUserEmailParam,
         allReportsParam,
