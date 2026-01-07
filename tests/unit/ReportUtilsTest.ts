@@ -59,6 +59,7 @@ import {
     getDisplayNamesWithTooltips,
     getHarvestOriginalReportID,
     getIconsForParticipants,
+    getIndicatedMissingPaymentMethod,
     getIOUReportActionDisplayMessage,
     getMoneyReportPreviewName,
     getMostRecentlyVisitedReport,
@@ -68,7 +69,6 @@ import {
     getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
     getReasonAndReportActionThatRequiresAttention,
-    getReportActionActorAccountID,
     getReportIDFromLink,
     getReportName as getReportNameDeprecated,
     getReportOrDraftReport,
@@ -401,7 +401,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {[reportAction.reportActionID]: reportAction});
 
             const last4Digits = policyWithBank.achAccount?.accountNumber.slice(-4);
-            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', {amount: '', last4Digits});
+            const paidSystemMessage = translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', last4Digits);
 
             expect(getIOUReportActionDisplayMessage(reportAction, undefined, iouReport)).toBe(paidSystemMessage);
         });
@@ -664,7 +664,7 @@ describe('ReportUtils', () => {
 
     describe('getDisplayNamesWithTooltips', () => {
         test('withSingleParticipantReport', () => {
-            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false, localeCompare);
+            const participants = getDisplayNamesWithTooltips(participantsPersonalDetails, false, localeCompare, formatPhoneNumber);
             expect(participants).toHaveLength(5);
 
             expect(participants.at(0)?.displayName).toBe('(833) 240-3627');
@@ -1825,7 +1825,7 @@ describe('ReportUtils', () => {
                         merchant: 'Test Merchant',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
-                    } as Transaction;
+                    };
 
                     const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy};
                     const transactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction};
@@ -3395,6 +3395,13 @@ describe('ReportUtils', () => {
             // Then the thread should be disabled
             // This ensures "Reply in thread" and "Join thread" context menu options won't be shown
             expect(isThreadDisabled).toBeTruthy();
+        });
+
+        it('should disable on a DYNAMIC_EXTERNAL_WORKFLOW_ROUTED action', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+            } as ReportAction;
+            expect(shouldDisableThread(reportAction, false, false)).toBeTruthy();
         });
 
         describe('deleted threads', () => {
@@ -5575,11 +5582,11 @@ describe('ReportUtils', () => {
         afterAll(() => Onyx.clear());
 
         it('should return false for admin of a group policy with reimbursement enabled and report not approved', () => {
-            expect(isPayer({email: currentUserEmail, accountID: currentUserAccountID}, unapprovedReport, false)).toBe(false);
+            expect(isPayer(currentUserAccountID, currentUserEmail, unapprovedReport, false)).toBe(false);
         });
 
         it('should return false for non-admin of a group policy', () => {
-            expect(isPayer({email: currentUserEmail, accountID: currentUserAccountID}, approvedReport, false)).toBe(false);
+            expect(isPayer(currentUserAccountID, currentUserEmail, approvedReport, false)).toBe(false);
         });
 
         it('should return true for a reimburser of a group policy on a closed report', async () => {
@@ -5594,7 +5601,7 @@ describe('ReportUtils', () => {
                 policyID: policyTest.id,
             };
 
-            expect(isPayer({email: currentUserEmail, accountID: currentUserAccountID}, closedReport, false)).toBe(true);
+            expect(isPayer(currentUserAccountID, currentUserEmail, closedReport, false)).toBe(true);
         });
     });
     describe('buildReportNameFromParticipantNames', () => {
@@ -7313,6 +7320,24 @@ describe('ReportUtils', () => {
             expect(result).toBe(false);
         });
 
+        it('should return false for IOU report', async () => {
+            // Given a processing IOU report where the current user is the submitter
+            const iouReport: Report = {
+                ...createExpenseRequestReport(1),
+                reportID: mockReportID,
+                ownerAccountID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, iouReport);
+
+            // When we check if the report is eligible for merge as a submitter
+            const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
+
+            // Then it should return true because submitters can merge processing IOU reports
+            expect(result).toBe(false);
+        });
+
         describe('Admin role', () => {
             it('should return true for open expense report when user is admin', async () => {
                 // Given an open expense report and the user is an admin
@@ -7364,23 +7389,6 @@ describe('ReportUtils', () => {
                 // Then it should return false because approved reports are not eligible for merge
                 expect(result).toBe(false);
             });
-
-            it('should return true for open IOU report when user is admin', async () => {
-                // Given an open IOU report and the user is an admin
-                const iouReport: Report = {
-                    ...createExpenseRequestReport(1),
-                    reportID: mockReportID,
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                };
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, iouReport);
-
-                // When we check if the report is eligible for merge as an admin
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, true);
-
-                // Then it should return true because admins can merge open IOU reports
-                expect(result).toBe(true);
-            });
         });
 
         describe('Submitter role', () => {
@@ -7399,24 +7407,6 @@ describe('ReportUtils', () => {
                 const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
 
                 // Then it should return true because submitters can merge open expense reports
-                expect(result).toBe(true);
-            });
-
-            it('should return true for processing IOU report when user is submitter', async () => {
-                // Given a processing IOU report where the current user is the submitter
-                const iouReport: Report = {
-                    ...createExpenseRequestReport(1),
-                    reportID: mockReportID,
-                    ownerAccountID: currentUserAccountID,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                };
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, iouReport);
-
-                // When we check if the report is eligible for merge as a submitter
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
-
-                // Then it should return true because submitters can merge processing IOU reports
                 expect(result).toBe(true);
             });
 
@@ -7533,25 +7523,6 @@ describe('ReportUtils', () => {
                 const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
 
                 // Then it should return false because managers can only merge processing expense reports, not open ones
-                expect(result).toBe(false);
-            });
-
-            it('should return false for IOU report when user is manager', async () => {
-                // Given an IOU report where the current user is the manager
-                const iouReport: Report = {
-                    ...createExpenseRequestReport(1),
-                    reportID: mockReportID,
-                    ownerAccountID: differentUserAccountID, // Different user as submitter
-                    managerID: managerAccountID,
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                };
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, iouReport);
-
-                // When we check if the report is eligible for merge as a manager
-                const result = isMoneyRequestReportEligibleForMerge(mockReportID, false);
-
-                // Then it should return false because managers can only merge expense reports, not IOU reports
                 expect(result).toBe(false);
             });
 
@@ -8704,192 +8675,6 @@ describe('ReportUtils', () => {
         });
     });
 
-    describe('getReportActionActorAccountID', () => {
-        it('should return report owner account id if action is REPORTPREVIEW and report is a policy expense chat', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(10);
-        });
-
-        it('should return report manager account id if action is REPORTPREVIEW and report is not a policy expense chat', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, undefined),
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: undefined,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(20);
-        });
-
-        it('should return admin account id if action is SUBMITTED taken by an admin on behalf the submitter', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                adminAccountID: 30,
-                actorAccountID: 10,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(30);
-        });
-
-        it('should return report owner account id if action is SUBMITTED taken by the submitter himself', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
-                actorAccountID: 10,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(10);
-        });
-
-        it('should return admin account id if action is SUBMITTED_AND_CLOSED taken by an admin on behalf the submitter', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-                adminAccountID: 30,
-                actorAccountID: 10,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(30);
-        });
-
-        it('should return report owner account id if action is SUBMITTED_AND_CLOSED taken by the submitter himself', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED,
-                actorAccountID: 10,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(10);
-        });
-
-        it('should return original actor account id if action is ADDCOMMENT', () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                actorAccountID: 123,
-            };
-            const iouReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.IOU,
-                ownerAccountID: 10,
-                managerID: 20,
-            };
-            const report: Report = {
-                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                type: CONST.REPORT.TYPE.CHAT,
-            };
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toEqual(123);
-        });
-
-        it('returns CONCIERGE for CREATED action when report is harvest-created', async () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                actorAccountID: 9999,
-            };
-
-            const iouReport: Report = {...createRandomReport(0, undefined)};
-            const report: Report = {
-                ...createRandomReport(1, undefined),
-                reportID: 'harvest-report-1',
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {
-                origin: 'harvest',
-                originalID: 'orig-123',
-            });
-            await waitForBatchedUpdates();
-
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toBe(CONST.ACCOUNT_ID.CONCIERGE);
-        });
-
-        it('returns reportAction.actorAccountID for CREATED action when not harvest-created', async () => {
-            const reportAction: ReportAction = {
-                ...createRandomReportAction(0),
-                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-                actorAccountID: 9999,
-            };
-
-            const iouReport: Report = {...createRandomReport(0, undefined)};
-            const report: Report = {
-                ...createRandomReport(2, undefined),
-                reportID: 'normal-report-2',
-            };
-
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`, {});
-            await waitForBatchedUpdates();
-
-            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report);
-            expect(actorAccountID).toBe(9999);
-        });
-    });
-
     describe('shouldBlockSubmitDueToStrictPolicyRules', () => {
         const reportID = 'report123';
 
@@ -9007,7 +8792,6 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {
                 accountID: 2,
             });
-            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.NEWDOT_REJECT]);
             expect(canRejectReportAction(approver, expenseReport, reportPolicy)).toBe(false);
         });
     });
@@ -10343,6 +10127,22 @@ describe('ReportUtils', () => {
             // Then it should return the message from the report action (not the childReportName)
             expect(result).toBe('payer owes $100');
         });
+        it('should return expense report name when isCopyAction is true', async () => {
+            const report = LHNTestUtils.getFakeReport();
+            report.reportName = 'Expense Report 2025-01-15';
+            const reportAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                childReportName: report.reportName,
+                childMoneyRequestCount: 0,
+            };
+
+            // When we call getReportPreviewMessage with isCopyAction = true
+            const result = getReportPreviewMessage(report, reportAction, false, false, undefined, false, reportAction, true);
+
+            // Then it should return the childReportName instead of "payer owes $0"
+            expect(result).toBe('Expense Report 2025-01-15');
+        });
     });
 
     describe('getAvailableReportFields', () => {
@@ -10471,6 +10271,540 @@ describe('ReportUtils', () => {
                 disabledOptions: [true, true, true],
             } as PolicyReportField;
             expect(shouldHideSingleReportField(reportField)).toBe(true);
+        });
+    });
+    describe('P2P Wallet Activation - GBR and Wallet Indicator', () => {
+        const friendAccountID = 42;
+
+        /**
+         * Tests the complete P2P wallet activation scenario:
+         * - Friend sends P2P payment to user with SILVER wallet
+         * - Backend sets hasOutstandingChildRequest: true (payment pending wallet setup)
+         * - GBR shows in LHN
+         * - "Enable your wallet" button shows (getIndicatedMissingPaymentMethod returns 'wallet')
+         */
+        it('should show GBR and wallet indicator for SILVER tier user receiving P2P payment', async () => {
+            await Onyx.clear();
+
+            const iouReportID = '10000';
+
+            // Chat report - hasOutstandingChildRequest set by backend when P2P payment pending wallet
+            const chatReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                hasOutstandingChildRequest: true,
+                iouReportID,
+            };
+
+            // IOU report - P2P payment from friend to current user
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                reportID: iouReportID,
+                chatReportID: chatReport.reportID,
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: currentUserAccountID,
+                managerID: friendAccountID,
+                currency: CONST.CURRENCY.USD,
+                total: 10000,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: true,
+            };
+
+            // REIMBURSEMENT_QUEUED with EXPENSIFY payment type = P2P wallet payment
+            const reimbursementQueuedAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                originalMessage: {
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                    [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                }),
+            ]);
+            await waitForBatchedUpdates();
+
+            // Verify GBR shows in LHN
+            const reason = reasonForReportToBeInOptionList({
+                report: chatReport,
+                chatReport,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                isReportArchived: false,
+                draftComment: '',
+            });
+            expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+
+            // Verify "Enable your wallet" indicator for SILVER tier
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.SILVER, iouReportID, reimbursementQueuedAction, {});
+            expect(missingPaymentMethod).toBe('wallet');
+
+            await Onyx.clear();
+        });
+
+        /**
+         * Same scenario but user has no wallet tier set (new user)
+         */
+        it('should show GBR and wallet indicator for user with no wallet tier (undefined)', async () => {
+            await Onyx.clear();
+
+            const iouReportID = '10001';
+
+            const chatReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                hasOutstandingChildRequest: true,
+                iouReportID,
+            };
+
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                reportID: iouReportID,
+                chatReportID: chatReport.reportID,
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: currentUserAccountID,
+                managerID: friendAccountID,
+                currency: CONST.CURRENCY.USD,
+                total: 5000,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: true,
+            };
+
+            const reimbursementQueuedAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                originalMessage: {
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                    [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                }),
+            ]);
+            await waitForBatchedUpdates();
+
+            // Verify GBR shows
+            const reason = reasonForReportToBeInOptionList({
+                report: chatReport,
+                chatReport,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                isReportArchived: false,
+                draftComment: '',
+            });
+            expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+
+            // Verify wallet indicator for undefined tier
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(undefined, iouReportID, reimbursementQueuedAction, {});
+            expect(missingPaymentMethod).toBe('wallet');
+
+            await Onyx.clear();
+        });
+
+        /**
+         * When user has GOLD wallet (already enabled):
+         * - Payment goes through, no pending state
+         * - hasOutstandingChildRequest would be false (set by backend)
+         * - No GBR needed, no wallet button needed
+         */
+        it('should NOT show GBR or wallet indicator when user has GOLD tier (wallet already enabled)', async () => {
+            await Onyx.clear();
+
+            const iouReportID = '10002';
+
+            // No outstanding request - GOLD wallet means payment processes normally
+            const chatReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                hasOutstandingChildRequest: false,
+                iouReportID,
+            };
+
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                reportID: iouReportID,
+                chatReportID: chatReport.reportID,
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: currentUserAccountID,
+                managerID: friendAccountID,
+                currency: CONST.CURRENCY.USD,
+                total: 10000,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: false,
+            };
+
+            const reimbursementQueuedAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                originalMessage: {
+                    paymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                    [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                }),
+            ]);
+            await waitForBatchedUpdates();
+
+            // Verify GBR does NOT show (no outstanding request for GOLD user)
+            const reason = reasonForReportToBeInOptionList({
+                report: chatReport,
+                chatReport,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                isReportArchived: false,
+                draftComment: '',
+            });
+            expect(reason).not.toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+
+            // Verify NO wallet indicator for GOLD tier
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.GOLD, iouReportID, reimbursementQueuedAction, {});
+            expect(missingPaymentMethod).toBeUndefined();
+
+            await Onyx.clear();
+        });
+
+        /**
+         * For non-EXPENSIFY payment types (e.g., ELSEWHERE):
+         * - This is not a P2P wallet scenario
+         * - Wallet indicator should not return 'wallet'
+         */
+        it('should NOT show wallet indicator for non-EXPENSIFY payment type', async () => {
+            await Onyx.clear();
+
+            const iouReportID = '10003';
+
+            const chatReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                hasOutstandingChildRequest: true,
+                iouReportID,
+            };
+
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport([currentUserAccountID, friendAccountID]),
+                reportID: iouReportID,
+                chatReportID: chatReport.reportID,
+                type: CONST.REPORT.TYPE.IOU,
+                ownerAccountID: currentUserAccountID,
+                managerID: friendAccountID,
+                currency: CONST.CURRENCY.USD,
+                total: 10000,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                isWaitingOnBankAccount: true,
+            };
+
+            // Non-P2P payment type (ELSEWHERE = external/manual payment)
+            const reimbursementQueuedAction: ReportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+                originalMessage: {
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                },
+            };
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, iouReport),
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
+                    [reimbursementQueuedAction.reportActionID]: reimbursementQueuedAction,
+                }),
+            ]);
+            await waitForBatchedUpdates();
+
+            // GBR may still show (hasOutstandingChildRequest: true) but for different reason
+            const reason = reasonForReportToBeInOptionList({
+                report: chatReport,
+                chatReport,
+                currentReportId: '',
+                isInFocusMode: false,
+                betas: [CONST.BETAS.DEFAULT_ROOMS],
+                doesReportHaveViolations: false,
+                excludeEmptyChats: false,
+                isReportArchived: false,
+                draftComment: '',
+            });
+            expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
+
+            // But wallet indicator should NOT be 'wallet' for non-EXPENSIFY payment
+            // (would be 'bankAccount' or undefined depending on bank account status)
+            const missingPaymentMethod = getIndicatedMissingPaymentMethod(CONST.WALLET.TIER_NAME.SILVER, iouReportID, reimbursementQueuedAction, {});
+            expect(missingPaymentMethod).not.toBe('wallet');
+
+            await Onyx.clear();
+        });
+    });
+
+    describe('getAllReportActionsErrorsAndReportActionThatRequiresAttention for DEW', () => {
+        it('should return error for DEW_SUBMIT_FAILED action on OPEN report', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const dewSubmitFailedAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'DEW submit failed',
+                    },
+                ],
+                originalMessage: {
+                    message: 'This report contains an Airfare expense that is missing the Flight Destination tag.',
+                },
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeDefined();
+            expect(reportAction).toEqual(dewSubmitFailedAction);
+        });
+
+        it('should NOT return error for DEW_SUBMIT_FAILED if there is a more recent SUBMITTED action', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const dewSubmitFailedAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const submittedAction = {
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 13:00:00',
+                shouldShow: true,
+                originalMessage: {},
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+                [submittedAction.reportActionID]: submittedAction,
+            };
+
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
+        });
+
+        it('should return error for DEW_SUBMIT_FAILED if it is more recent than SUBMITTED action', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const submittedAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'submitted',
+                    },
+                ],
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const dewSubmitFailedAction = {
+                ...createRandomReportAction(2),
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 13:00:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'DEW submit failed',
+                    },
+                ],
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const reportActions = {
+                [submittedAction.reportActionID]: submittedAction,
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeDefined();
+            expect(reportAction).toEqual(dewSubmitFailedAction);
+        });
+
+        it('should NOT return error for DEW_SUBMIT_FAILED on non-OPEN report', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+
+            const dewSubmitFailedAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
+        });
+
+        it('should NOT return error for DEW_SUBMIT_FAILED on archived report', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const dewSubmitFailedAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, true);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
+        });
+
+        it('should NOT return DEW error when a more recent SUBMITTED action exists after the failure (multiple submits)', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const firstSubmittedAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 10:00:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'first submit',
+                    },
+                ],
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const dewSubmitFailedAction = {
+                ...createRandomReportAction(2),
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 10:05:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'DEW submit failed',
+                    },
+                ],
+                originalMessage: {
+                    message: 'This report contains an Airfare expense that is missing the Flight Destination tag.',
+                },
+            };
+
+            const secondSubmittedAction = {
+                ...createRandomReportAction(3),
+                reportActionID: '3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 10:10:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'second submit',
+                    },
+                ],
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const reportActions = {
+                [firstSubmittedAction.reportActionID]: firstSubmittedAction,
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+                [secondSubmittedAction.reportActionID]: secondSubmittedAction,
+            };
+
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
+            expect(reportAction).not.toEqual(dewSubmitFailedAction);
         });
     });
 });

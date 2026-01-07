@@ -351,14 +351,14 @@ function MoneyRequestConfirmationListFooter({
             return isUnreported ? translate('common.none') : translate('iou.newReport');
         }
         return name;
-    }, [allPolicies, allReports, isUnreported, selectedReport, translate]);
+    }, [isUnreported, selectedReport, allReports, allPolicies, translate]);
 
     const shouldReportBeEditableFromFAB = isUnreported ? allOutstandingReports.length >= 1 : allOutstandingReports.length > 1;
 
     // When creating an expense in an individual report, the report field becomes read-only
     // since the destination is already determined and there's no need to show a selectable list.
-    const shouldReportBeEditable = (isFromGlobalCreate ? shouldReportBeEditableFromFAB : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
-
+    const shouldReportBeEditable =
+        (isFromGlobalCreate && !isPerDiemRequest ? shouldReportBeEditableFromFAB : availableOutstandingReports.length > 1) && !isMoneyRequestReport(reportID, allReports);
     const taxRates = policy?.taxRates ?? null;
     // In Send Money and Split Bill with Scan flow, we don't allow the Merchant or Date to be edited. For distance requests, don't show the merchant as there's already another "Distance" menu item
     const shouldShowDate = shouldShowSmartScanFields || isDistanceRequest;
@@ -380,7 +380,6 @@ function MoneyRequestConfirmationListFooter({
     const shouldDisplayDistanceRateError = formError === 'iou.error.invalidRate';
     const shouldDisplayTagError = formError === 'violations.tagOutOfPolicy';
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
-    const shouldDisplayAttendeesError = formError === 'violations.missingAttendees';
 
     const showReceiptEmptyState = shouldShowReceiptEmptyState(iouType, action, policy, isPerDiemRequest);
     // The per diem custom unit
@@ -728,7 +727,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key="attendees"
-                    shouldShowRightIcon={!isReadOnly}
+                    shouldShowRightIcon
                     title={iouAttendees?.map((item) => item?.displayName ?? item?.login).join(', ')}
                     description={`${translate('iou.attendees')} ${
                         iouAttendees?.length && iouAttendees.length > 1 && formattedAmountPerAttendee ? `\u00B7 ${formattedAmountPerAttendee} ${translate('common.perPerson')}` : ''
@@ -742,10 +741,8 @@ function MoneyRequestConfirmationListFooter({
 
                         Navigation.navigate(ROUTES.MONEY_REQUEST_ATTENDEE.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                     }}
-                    interactive={!isReadOnly}
+                    interactive
                     shouldRenderAsHTML
-                    brickRoadIndicator={shouldDisplayAttendeesError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    errorText={shouldDisplayAttendeesError ? translate(formError) : ''}
                 />
             ),
             shouldShow: shouldShowAttendees,
@@ -889,10 +886,12 @@ function MoneyRequestConfirmationListFooter({
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                         disabled={!shouldDisplayReceipt}
                         disabledStyle={styles.cursorDefault}
+                        style={styles.h100}
                     >
                         <PDFThumbnail
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                             previewSourceURL={resolvedReceiptImage as string}
+                            style={styles.h100}
                             onLoadError={onPDFLoadError}
                             onPassword={onPDFPassword}
                         />

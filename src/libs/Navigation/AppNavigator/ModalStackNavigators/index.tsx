@@ -1,18 +1,8 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
-import React, {useCallback, useContext} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
-import {
-    animatedReceiptPaneRHPWidth,
-    modalStackOverlaySuperWideRHPPositionLeft,
-    modalStackOverlayWideRHPPositionLeft,
-    secondOverlayProgress,
-    thirdOverlayProgress,
-    WideRHPContext,
-} from '@components/WideRHPContextProvider';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackNavigationOptions} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -41,12 +31,12 @@ import type {
     ReportDetailsNavigatorParamList,
     ReportSettingsNavigatorParamList,
     ReportVerifyAccountNavigatorParamList,
+    RestrictedActionParamList,
     RoomMembersNavigatorParamList,
     ScheduleCallParamList,
     SearchAdvancedFiltersParamList,
     SearchColumnsParamList,
     SearchReportActionsParamList,
-    SearchReportParamList,
     SearchSavedSearchParamList,
     SettingsNavigatorParamList,
     ShareNavigatorParamList,
@@ -74,9 +64,6 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
         animationTypeForReplace: 'push',
     },
-    [SCREENS.SEARCH.REPORT_RHP]: {
-        animation: Animations.NONE,
-    },
     [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
         animation: Animations.NONE,
     },
@@ -100,14 +87,6 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     },
 };
 
-function isSuperWideRHPRouteName(routeName: string) {
-    return routeName === SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT || routeName === SCREENS.RIGHT_MODAL.EXPENSE_REPORT;
-}
-
-function isWideRHPRouteName(routeName: string) {
-    return routeName === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
-}
-
 /**
  * Create a modal stack navigator with an array of sub-screens.
  *
@@ -119,10 +98,6 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
     function ModalStack() {
         const styles = useThemeStyles();
         const screenOptions = useModalStackScreenOptions();
-        const {shouldRenderSecondaryOverlay, shouldRenderTertiaryOverlay, isWideRHPFocused, superWideRHPRouteKeys, isWideRHPClosing} = useContext(WideRHPContext);
-        const route = useRoute();
-
-        const isFocused = useIsFocused();
 
         // We have to use the isSmallScreenWidth instead of shouldUseNarrow layout, because we want to have information about screen width without the context of side modal.
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -139,11 +114,6 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
             [screenOptions],
         );
 
-        const isRHPDisplayedOnWideRHP =
-            !isSmallScreenWidth && !isWideRHPFocused && !isWideRHPClosing && shouldRenderSecondaryOverlay && (isSuperWideRHPRouteName(route.name) || isWideRHPRouteName(route.name));
-
-        const isWideRHPDisplayedOnSuperWideRHP = !isSmallScreenWidth && !isFocused && !!isWideRHPFocused && shouldRenderSecondaryOverlay && isSuperWideRHPRouteName(route.name);
-
         return (
             // This container is necessary to hide card translation during transition. Without it the user would see un-clipped cards.
             <View style={[styles.modalStackNavigatorContainer, styles.modalStackNavigatorContainerWidth(isSmallScreenWidth)]}>
@@ -158,34 +128,6 @@ function createModalStackNavigator<ParamList extends ParamListBase>(screens: Scr
                         />
                     ))}
                 </ModalStackNavigator.Navigator>
-                {/* These overlays are used to cover the space under the narrower RHP screen when more than one RHP width is displayed on the screen */}
-                {/* Their position is calculated as follows: */}
-                {/* The width of the window for which we calculate the overlay positions is the width of the RHP window, for example for Super Wide RHP it will be 1260 px on a wide layout. */}
-                {/* We need to move the overlay left from the left edge of the RHP below to the left edge of the RHP above. */}
-                {/* To calculate this, subtract the width of the widest RHP from the width of the RHP above. */}
-                {/* Two cases were described for the secondary overlay: */}
-                {/* 1. Single RHP is displayed on Wide RHP (Super Wide or Wide) - here we additionally check the length of superWideRHPRouteKeys because Super Wide RHP route can also be displayed in Wide RHP when the number of visible transactions is less than 2.  */}
-                {/* 2. Wide RHP is displayed on Super Wide RHP route. */}
-                {/* Please note that in these cases, the overlay is rendered from the RHP screen displayed below. For example, if we display RHP on Wide RHP, the secondary overlay is rendered from Wide RHP, etc. */}
-                {/* There is also a special case where three different RHP widths are displayed at the same time. In this case, an overlay under RHP should be rendered from Wide RHP. */}
-                {isRHPDisplayedOnWideRHP ? (
-                    <Overlay
-                        progress={secondOverlayProgress}
-                        positionLeftValue={superWideRHPRouteKeys.length > 0 ? modalStackOverlaySuperWideRHPPositionLeft : animatedReceiptPaneRHPWidth}
-                    />
-                ) : null}
-                {isWideRHPDisplayedOnSuperWideRHP ? (
-                    <Overlay
-                        progress={secondOverlayProgress}
-                        positionLeftValue={modalStackOverlayWideRHPPositionLeft}
-                    />
-                ) : null}
-                {!isSmallScreenWidth && shouldRenderTertiaryOverlay && isWideRHPRouteName(route.name) ? (
-                    <Overlay
-                        progress={thirdOverlayProgress}
-                        positionLeftValue={modalStackOverlaySuperWideRHPPositionLeft}
-                    />
-                ) : null}
             </View>
         );
     }
@@ -202,7 +144,6 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTaxAmountPage').default,
     [SCREENS.MONEY_REQUEST.STEP_TAX_RATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepTaxRatePage').default,
     [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepCategory').default,
-    [SCREENS.MONEY_REQUEST.STEP_CURRENCY]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepCurrency').default,
     [SCREENS.MONEY_REQUEST.STEP_DATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDate').default,
     [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDescription').default,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistance').default,
@@ -235,6 +176,8 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepSubrate').default,
     [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepScan/ReceiptView').default,
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpensePage').default,
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpensePage').default,
+    [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpenseCreateDateRagePage').default,
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpenseEditPage').default,
     [SCREENS.MONEY_REQUEST.DISTANCE_CREATE]: () => require<ReactComponentModule>('../../../../pages/iou/request/DistanceRequestStartPage').default,
     [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MAP]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepDistanceMap').default,
@@ -445,12 +388,14 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.SETTINGS.WALLET.CHOOSE_TRANSFER_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ChooseTransferAccountPage').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_PAYMENTS]: () => require<ReactComponentModule>('../../../../pages/EnablePayments/EnablePayments').default,
     [SCREENS.SETTINGS.WALLET.ENABLE_GLOBAL_REIMBURSEMENTS]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/EnableGlobalReimbursements').default,
+    [SCREENS.SETTINGS.WALLET.SHARE_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/ShareBankAccount/ShareBankAccount').default,
     [SCREENS.SETTINGS.ADD_DEBIT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddDebitCardPage').default,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/NewBankAccountVerifyAccountPage').default,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount').default,
     [SCREENS.SETTINGS.ADD_US_BANK_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
     [SCREENS.SETTINGS.ADD_BANK_ACCOUNT_SELECT_COUNTRY_VERIFY_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/settings/Wallet/InternationalDepositAccount/CountrySelectionVerifyAccountPage').default,
+    [SCREENS.SETTINGS.RULES.ROOT]: () => require<ReactComponentModule>('../../../../pages/settings/Rules/ExpenseRulesPage').default,
     [SCREENS.SETTINGS.PROFILE.STATUS]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/StatusPage').default,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/StatusClearAfterPage').default,
     [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_DATE]: () => require<ReactComponentModule>('../../../../pages/settings/Profile/CustomStatus/SetDatePage').default,
@@ -490,7 +435,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsPage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsRolePage').default,
     [SCREENS.WORKSPACE.MEMBER_CUSTOM_FIELD]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberCustomFieldPage').default,
-    [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberNewCardPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: () => require<ReactComponentModule>('@pages/workspace/members/WorkspaceOwnerChangeWrapperPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_SUCCESS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceOwnerChangeSuccessPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_ERROR]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceOwnerChangeErrorPage').default,
@@ -502,7 +446,6 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryFlagAmountsOverPage').default,
     [SCREENS.WORKSPACE.CATEGORY_DESCRIPTION_HINT]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryDescriptionHintPage').default,
     [SCREENS.WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryRequireReceiptsOverPage').default,
-    [SCREENS.WORKSPACE.CATEGORY_REQUIRED_FIELDS]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryRequiredFieldsPage').default,
     [SCREENS.WORKSPACE.CATEGORY_APPROVER]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/CategoryApproverPage').default,
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/CreateDistanceRatePage').default,
     [SCREENS.WORKSPACE.CREATE_DISTANCE_RATE_UPGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/CreateDistanceRatePage').default,
@@ -754,12 +697,21 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.INVOICES_COMPANY_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicingDetailsName').default,
     [SCREENS.WORKSPACE.INVOICES_COMPANY_WEBSITE]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicingDetailsWebsite').default,
     [SCREENS.WORKSPACE.INVOICES_VERIFY_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicesVerifyAccountPage').default,
-    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssignCardFeedPage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_BROKEN_CARD_FEED_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/BrokenCardFeedConnectionPage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/AssigneeStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/CardSelectionStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_TRANSACTION_START_DATE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/TransactionStartDateStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/CardNameStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CONFIRMATION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/ConfirmationStep').default,
+    [SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/assignCard/InviteNewMemberStep').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_SELECT_FEED]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_BANK_CONNECTION]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/BankConnection').default,
     [SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/addNew/AddNewCardPage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardDetailsPage').default,
-    [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardEditCardNamePage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_CARD_NAME]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardEditCardNamePage').default,
+    [SCREENS.WORKSPACE.COMPANY_CARD_EDIT_TRANSACTION_START_DATE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardEditTransactionStartDatePage').default,
     [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/companyCards/WorkspaceCompanyCardAccountSelectCardPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/issueNew/IssueNewCardPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE]: () =>
@@ -846,6 +798,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.DOMAIN.ADMIN_DETAILS]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAdminDetailsPage').default,
     [SCREENS.DOMAIN.ADMINS_SETTINGS]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAdminsSettingsPage').default,
     [SCREENS.DOMAIN.ADD_PRIMARY_CONTACT]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAddPrimaryContactPage').default,
+    [SCREENS.DOMAIN.ADD_ADMIN]: () => require<ReactComponentModule>('../../../../pages/domain/Admins/DomainAddAdminPage').default,
 });
 
 const TwoFactorAuthenticatorStackNavigator = createModalStackNavigator<EnablePaymentsNavigatorParamList>({
@@ -918,11 +871,6 @@ const SearchReportActionsModalStackNavigator = createModalStackNavigator<SearchR
     [SCREENS.SEARCH.TRANSACTIONS_CHANGE_REPORT_SEARCH_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchTransactionsChangeReport').default,
 });
 
-// This navigator is reserved for the screen that can be displayed as Wide RHP, other screens should not be added here.
-const SearchReportModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
-    [SCREENS.SEARCH.REPORT_RHP]: () => require<ReactComponentModule>('../../../../pages/home/ReportScreen').default,
-});
-
 const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<SearchAdvancedFiltersParamList>({
     [SCREENS.SEARCH.ADVANCED_FILTERS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_TYPE_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchAdvancedFiltersPage/SearchFiltersTypePage').default,
@@ -962,7 +910,6 @@ const SearchAdvancedFiltersModalStackNavigator = createModalStackNavigator<Searc
     [SCREENS.SEARCH.ADVANCED_FILTERS_PURCHASE_AMOUNT_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersPurchaseAmountPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_PURCHASE_CURRENCY_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersPurchaseCurrencyPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_WITHDRAWAL_ID_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersWithdrawalIDPage').default,
-    [SCREENS.SEARCH.ADVANCED_FILTERS_ACTION_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersActionPage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_ATTENDEE_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersAttendeePage').default,
     [SCREENS.SEARCH.ADVANCED_FILTERS_REPORT_FIELD_RHP]: () => require<ReactComponentModule>('@pages/Search/SearchAdvancedFiltersPage/SearchFiltersReportFieldPage').default,
 });
@@ -971,7 +918,7 @@ const SearchSavedSearchModalStackNavigator = createModalStackNavigator<SearchSav
     [SCREENS.SEARCH.SAVED_SEARCH_RENAME_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SavedSearchRenamePage').default,
 });
 
-const RestrictedActionModalStackNavigator = createModalStackNavigator<SearchReportParamList>({
+const RestrictedActionModalStackNavigator = createModalStackNavigator<RestrictedActionParamList>({
     [SCREENS.RESTRICTED_ACTION_ROOT]: () => require<ReactComponentModule>('../../../../pages/RestrictedAction/Workspace/WorkspaceRestrictedActionPage').default,
 });
 
@@ -1022,52 +969,51 @@ const WorkspacesDomainModalStackNavigator = createModalStackNavigator<Workspaces
 
 export {
     AddPersonalBankAccountModalStackNavigator,
+    AddUnreportedExpenseModalStackNavigator,
+    CategoriesModalStackNavigator,
+    ConsoleModalStackNavigator,
+    DebugModalStackNavigator,
+    DomainCardModalStackNavigator,
     EditRequestStackNavigator,
     EnablePaymentsStackNavigator,
+    ExpensifyCardModalStackNavigator,
     FlagCommentStackNavigator,
+    MergeTransactionStackNavigator,
+    MissingPersonalDetailsModalStackNavigator,
     MoneyRequestModalStackNavigator,
     NewChatModalStackNavigator,
+    NewReportWorkspaceSelectionModalStackNavigator,
     NewTaskModalStackNavigator,
     NewTeachersUniteNavigator,
     PrivateNotesModalStackNavigator,
     ProfileModalStackNavigator,
     ReferralModalStackNavigator,
-    TravelModalStackNavigator,
-    NewReportWorkspaceSelectionModalStackNavigator,
+    ReportCardActivateStackNavigator,
+    ReportChangeApproverModalStackNavigator,
+    ReportChangeWorkspaceModalStackNavigator,
     ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
-    ReportChangeWorkspaceModalStackNavigator,
-    ReportChangeApproverModalStackNavigator,
     ReportParticipantsModalStackNavigator,
     ReportSettingsModalStackNavigator,
-    RoomMembersModalStackNavigator,
-    SettingsModalStackNavigator,
-    TwoFactorAuthenticatorStackNavigator,
-    SignInModalStackNavigator,
-    CategoriesModalStackNavigator,
-    TagsModalStackNavigator,
-    ExpensifyCardModalStackNavigator,
-    DomainCardModalStackNavigator,
-    SplitDetailsModalStackNavigator,
-    TaskModalStackNavigator,
     ReportVerifyAccountModalStackNavigator,
-    WalletStatementStackNavigator,
-    TransactionDuplicateStackNavigator,
-    SearchReportActionsModalStackNavigator,
-    SearchReportModalStackNavigator,
     RestrictedActionModalStackNavigator,
+    RoomMembersModalStackNavigator,
+    ScheduleCallModalStackNavigator,
     SearchAdvancedFiltersModalStackNavigator,
-    ShareModalStackNavigator,
+    SearchColumnsModalStackNavigator,
+    SearchReportActionsModalStackNavigator,
     SearchSavedSearchModalStackNavigator,
-    MissingPersonalDetailsModalStackNavigator,
-    DebugModalStackNavigator,
+    SettingsModalStackNavigator,
+    ShareModalStackNavigator,
+    SignInModalStackNavigator,
+    SplitDetailsModalStackNavigator,
+    TagsModalStackNavigator,
+    TaskModalStackNavigator,
+    TransactionDuplicateStackNavigator,
+    TravelModalStackNavigator,
+    TwoFactorAuthenticatorStackNavigator,
+    WalletStatementStackNavigator,
     WorkspaceConfirmationModalStackNavigator,
     WorkspaceDuplicateModalStackNavigator,
-    ConsoleModalStackNavigator,
-    AddUnreportedExpenseModalStackNavigator,
-    ScheduleCallModalStackNavigator,
-    MergeTransactionStackNavigator,
-    ReportCardActivateStackNavigator,
     WorkspacesDomainModalStackNavigator,
-    SearchColumnsModalStackNavigator,
 };
