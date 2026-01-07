@@ -42,6 +42,4 @@ function SplitAmountDisplay({splitItem, contentWidth = '100%', shouldRemoveSpaci
     );
 }
 
-SplitAmountDisplay.displayName = 'SplitAmountDisplay';
-
 export default SplitAmountDisplay;

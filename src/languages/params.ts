@@ -332,12 +332,6 @@ type UpdatedPolicyManualApprovalThresholdParams = {oldLimit: string; newLimit: s
 
 type UpdatedPolicyReimbursementEnabledParams = {enabled: boolean};
 
-type UpdatedPolicyCustomTaxNameParams = {oldName: string; newName: string};
-
-type UpdatedPolicyCurrencyDefaultTaxParams = {oldName: string; newName: string};
-
-type UpdatedPolicyForeignCurrencyDefaultTaxParams = {oldName: string; newName: string};
-
 type ExportedToIntegrationParams = {label: string; markedManually?: boolean; inProgress?: boolean; lastModified?: string};
 
 type IntegrationsMessageParams = {
@@ -963,9 +957,6 @@ export type {
     UpdatedPolicyAuditRateParams,
     UpdatedPolicyManualApprovalThresholdParams,
     UpdatedPolicyReimbursementEnabledParams,
-    UpdatedPolicyCustomTaxNameParams,
-    UpdatedPolicyCurrencyDefaultTaxParams,
-    UpdatedPolicyForeignCurrencyDefaultTaxParams,
     UpdatePolicyCustomUnitTaxEnabledParams,
     UpdatePolicyCustomUnitParams,
     UpdatedPolicyApprovalRuleParams,
