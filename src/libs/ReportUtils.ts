@@ -2710,7 +2710,7 @@ function isOneOnOneChat(report: OnyxEntry<Report>): boolean {
 
 function isPayer(
     currentAccountID: number | undefined,
-    currentUserEmailParm: string | undefined,
+    currentUserEmailParam: string | undefined,
     iouReport: OnyxEntry<Report>,
     bankAccountList: OnyxEntry<BankAccountList>,
     reportPolicy?: OnyxInputOrEntry<Policy>,
@@ -2729,12 +2729,12 @@ function isPayer(
             }
 
             // If user is the reimburser, or a policy admin with access to the business bank account via sharees, they can pay.
-            const isReimburser = currentUserEmailParm === policy?.achAccount?.reimburser;
+            const isReimburser = currentUserEmailParam === policy?.achAccount?.reimburser;
 
             // Check if the current user has access to the bank account via sharees
             const bankAccountID = policy?.achAccount?.bankAccountID;
             const bankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : null;
-            const hasAccessToBankAccount = currentUserEmailParm && bankAccount?.accountData?.sharees ? bankAccount.accountData.sharees.includes(currentUserEmailParm) : false;
+            const hasAccessToBankAccount = currentUserEmailParam && bankAccount?.accountData?.sharees ? bankAccount.accountData.sharees.includes(currentUserEmailParam) : false;
 
             return isReimburser || (isAdmin && hasAccessToBankAccount);
         }
