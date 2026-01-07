@@ -31,6 +31,7 @@ type SidebarOrderedReportsContextValue = {
     orderedReportIDs: string[];
     currentReportID: string | undefined;
     policyMemberAccountIDs: number[];
+    clearCache: () => void;
 };
 
 type ReportsToDisplayInLHN = Record<string, OnyxTypes.Report & {hasErrorsOtherThanFailedReceipt?: boolean}>;
@@ -40,6 +41,7 @@ const SidebarOrderedReportsContext = createContext<SidebarOrderedReportsContextV
     orderedReportIDs: [],
     currentReportID: '',
     policyMemberAccountIDs: [],
+    clearCache: () => {},
 });
 
 const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
@@ -80,6 +82,10 @@ function SidebarOrderedReportsContextProvider({
     const currentReportIDValue = useCurrentReportID();
     const derivedCurrentReportID = currentReportIDForTests ?? currentReportIDValue?.currentReportID;
     const prevDerivedCurrentReportID = usePrevious(derivedCurrentReportID);
+
+    // we need to force reportsToDisplayInLHN to re-compute when we clear currentReportsToDisplay, but the way it currently works relies on not having currentReportsToDisplay as a memo dependency, so we just need something we can change to trigger it
+    // I don't like it either, but clearing the cache is only a hack for the debug modal and I will endeavor to make it better as I work to improve the cache correctness of the LHN more broadly
+    const [clearCacheDummyCounter, setClearCacheDummyCounter] = useState(0);
 
     const policyMemberAccountIDs = useMemo(() => getPolicyEmployeeListByIdWithoutCurrentUser(policies, undefined, accountID), [policies, accountID]);
     const prevBetas = usePrevious(betas);
@@ -185,6 +191,7 @@ function SidebarOrderedReportsContextProvider({
                 draftComments: reportsDrafts,
             });
         } else {
+            Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
             reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN(
                 derivedCurrentReportID,
                 chatReports,
@@ -201,7 +208,7 @@ function SidebarOrderedReportsContextProvider({
         return reportsToDisplay;
         // Rule disabled intentionally — triggering a re-render on currentReportsToDisplay would cause an infinite loop
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes, reportsDrafts]);
+    }, [getUpdatedReports, chatReports, derivedCurrentReportID, priorityMode, betas, policies, transactionViolations, reportNameValuePairs, reportAttributes, reportsDrafts, clearCacheDummyCounter]);
 
     const deepComparedReportsToDisplayInLHN = useDeepCompareRef(reportsToDisplayInLHN);
     const deepComparedReportsDrafts = useDeepCompareRef(reportsDrafts);
@@ -232,6 +239,12 @@ function SidebarOrderedReportsContextProvider({
 
     const orderedReports = useMemo(() => getOrderedReports(orderedReportIDs), [getOrderedReports, orderedReportIDs]);
 
+    const clearCache = useCallback(() => {
+        Log.info('[useSidebarOrderedReports] Clearing sidebar cache manually via debug modal');
+        setCurrentReportsToDisplay({});
+        setClearCacheDummyCounter(current => current + 1)
+    }, []);
+
     const contextValue: SidebarOrderedReportsContextValue = useMemo(() => {
         // We need to make sure the current report is in the list of reports, but we do not want
         // to have to re-generate the list every time the currentReportID changes. To do that
@@ -256,6 +269,7 @@ function SidebarOrderedReportsContextProvider({
                 orderedReportIDs: updatedReportIDs,
                 currentReportID: derivedCurrentReportID,
                 policyMemberAccountIDs,
+                clearCache,
             };
         }
 
@@ -264,8 +278,9 @@ function SidebarOrderedReportsContextProvider({
             orderedReportIDs,
             currentReportID: derivedCurrentReportID,
             policyMemberAccountIDs,
+            clearCache,
         };
-    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports]);
+    }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout, getOrderedReports, orderedReports, clearCache]);
 
     const currentDeps = {
         priorityMode,
