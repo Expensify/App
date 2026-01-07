@@ -438,20 +438,6 @@ function MoneyRequestView({
         );
     };
 
-    // Display Expense type in Amount row description
-    amountDescription += ` ${CONST.DOT_SEPARATOR} `;
-    if (isTimeRequest) {
-        amountDescription += translate('iou.time');
-    } else if (isDistanceRequest) {
-        amountDescription += translate('common.distance');
-    } else if (isPerDiemRequest) {
-        amountDescription += translate('common.perDiem');
-    } else if (isManagedCardTransaction) {
-        amountDescription += translate('iou.card');
-    } else {
-        amountDescription += translate('iou.cash');
-    }
-
     if (isManagedCardTransaction) {
         if (transactionPostedDate) {
             dateDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.posted')} ${transactionPostedDate}`;
