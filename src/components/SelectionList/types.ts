@@ -166,6 +166,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to show the text input */
     shouldShowTextInput?: boolean;
 
+    /** Whether to clear the text input when a row is selected */
+    shouldClearInputOnSelect?: boolean;
+
     /** Whether to highlight the selected item */
     shouldHighlightSelectedItem?: boolean;
 

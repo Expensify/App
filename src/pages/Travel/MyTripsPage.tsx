@@ -11,7 +11,7 @@ import ManageTrips from './ManageTrips';
 type MyTripsPageProps = StackScreenProps<TravelNavigatorParamList, typeof SCREENS.TRAVEL.MY_TRIPS>;
 
 function MyTripsPage({route}: MyTripsPageProps) {
-    const {policyID} = route.params;
+    const policyID = route.params?.policyID;
     const {translate} = useLocalize();
 
     return (

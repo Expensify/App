@@ -2,8 +2,8 @@ import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -37,6 +37,7 @@ type WorkspacesListRowProps = {
 };
 
 function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, isVirtual, isHovered}: WorkspacesListRowProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -47,7 +48,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
         <View style={[styles.flexRow, styles.gap3, styles.br3, styles.p4]}>
             <View style={[styles.flexRow, styles.flex4, styles.gap3, styles.alignItemsCenter]}>
                 <Avatar
-                    source={cardholder?.avatar ?? Expensicons.FallbackAvatar}
+                    source={cardholder?.avatar ?? icons.FallbackAvatar}
                     avatarID={cardholder?.accountID}
                     type={CONST.ICON_TYPE_AVATAR}
                     size={CONST.AVATAR_SIZE.DEFAULT}
@@ -119,7 +120,7 @@ function WorkspaceCardListRow({limit, cardholder, lastFourPAN, name, currency, i
             </View>
             <View style={[styles.justifyContentCenter, styles.alignItemsCenter]}>
                 <Icon
-                    src={Expensicons.ArrowRight}
+                    src={icons.ArrowRight}
                     fill={theme.icon}
                     additionalStyles={[styles.alignSelfCenter, !isHovered && styles.opacitySemiTransparent]}
                     medium
