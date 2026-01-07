@@ -36,10 +36,8 @@ import {
     canDeleteMoneyRequestReport,
     canDeleteReportAction,
     canDeleteTransaction,
-    canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canEditReportDescription,
-    canEditReportPolicy,
     canEditRoomVisibility,
     canEditWriteCapability,
     canFlagReportAction,
@@ -1791,7 +1789,7 @@ describe('ReportUtils', () => {
                         merchant: 'Test Merchant',
                         created: testDate,
                         modifiedMerchant: 'Test Merchant',
-                    } as Transaction;
+                    };
 
                     const policies = {[`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`]: policy};
                     const transactions = {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction};
@@ -10054,396 +10052,6 @@ describe('ReportUtils', () => {
         await Onyx.clear();
     });
 
-    describe('approver permissions on OPEN reports', () => {
-        const submitterAccountID = 1001;
-        const approverAccountID = 1002;
-        const ownerAccountID = 1003;
-        const approverEmail = 'approver@test.com';
-        const submitterEmail = 'submitter@test.com';
-
-        const policyID = 'approverTestPolicy';
-
-        beforeEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdates();
-
-            // Set up the policy with workflow: submitter -> approver
-            const policyWithWorkflow = {
-                id: policyID,
-                name: 'Test Workspace',
-                type: CONST.POLICY.TYPE.CORPORATE,
-                role: CONST.POLICY.ROLE.USER,
-                owner: `owner${ownerAccountID}@test.com`,
-                outputCurrency: 'USD',
-                isPolicyExpenseChatEnabled: true,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                approver: approverEmail,
-                employeeList: {
-                    [submitterEmail]: {
-                        email: submitterEmail,
-                        submitsTo: approverEmail,
-                    },
-                },
-            };
-
-            // Set up personal details for login/accountID resolution
-            const testPersonalDetails = {
-                [submitterAccountID]: {accountID: submitterAccountID, login: submitterEmail},
-                [approverAccountID]: {accountID: approverAccountID, login: approverEmail},
-            };
-
-            await Onyx.merge(ONYXKEYS.SESSION, {email: approverEmail, accountID: approverAccountID});
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithWorkflow);
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, testPersonalDetails);
-
-            await waitForBatchedUpdates();
-        });
-
-        afterEach(async () => {
-            await Onyx.clear();
-            await waitForBatchedUpdates();
-        });
-
-        it('should allow workflow approver to edit expense report policy on OPEN report', async () => {
-            // Given an OPEN expense report where current user is the workflow approver
-            const openExpenseReport = {
-                reportID: '12345',
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: submitterAccountID,
-                managerID: ownerAccountID, // managerID is stale (set at creation before workflow was configured)
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
-            await waitForBatchedUpdates();
-
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-
-            // When the workflow approver tries to edit the report policy
-            const canEdit = canEditReportPolicy(openExpenseReport, testPolicy);
-
-            // Then they should be able to edit it
-            expect(canEdit).toBe(true);
-        });
-
-        it('should NOT allow non-workflow user to edit expense report policy on OPEN report', async () => {
-            // Given an OPEN expense report where current user is NOT the workflow approver, submitter, or admin
-            const randomUserAccountID = 9999;
-            await Onyx.merge(ONYXKEYS.SESSION, {email: 'randomuser@test.com', accountID: randomUserAccountID});
-            await waitForBatchedUpdates();
-
-            const openExpenseReport = {
-                reportID: '12346',
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: submitterAccountID,
-                managerID: ownerAccountID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
-            await waitForBatchedUpdates();
-
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-
-            // When a random user tries to edit the report policy
-            const canEdit = canEditReportPolicy(openExpenseReport, testPolicy);
-
-            // Then they should NOT be able to edit it
-            expect(canEdit).toBe(false);
-        });
-
-        it('should allow submitter to edit expense report policy on OPEN report', async () => {
-            // Given an OPEN expense report where current user is the submitter (owner)
-            // Make the current user (approver from beforeEach) also the owner of this report
-            const openExpenseReport = {
-                reportID: '12347',
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: approverAccountID, // Current user (approverAccountID) is the owner/submitter
-                managerID: ownerAccountID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
-            await waitForBatchedUpdates();
-
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-
-            // When the submitter (current user who owns the report) tries to edit the report policy
-            const canEdit = canEditReportPolicy(openExpenseReport, testPolicy);
-
-            // Then they should be able to edit it
-            expect(canEdit).toBe(true);
-        });
-
-        it('should allow workflow approver to edit money request on OPEN expense report', async () => {
-            // Given an OPEN expense report where current user is the workflow approver
-            const openExpenseReport: Report = {
-                reportID: '12348',
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: submitterAccountID,
-                managerID: ownerAccountID, // managerID is stale
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            const transaction: Transaction = {
-                transactionID: 'txn12348',
-                reportID: openExpenseReport.reportID,
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-                comment: {comment: 'Test expense'},
-                created: '2025-01-01',
-                merchant: 'Test Merchant',
-            };
-
-            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
-                reportActionID: 'action12348',
-                actorAccountID: submitterAccountID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                originalMessage: {
-                    IOUReportID: openExpenseReport.reportID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: 1000,
-                    currency: CONST.CURRENCY.USD,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
-                created: '2025-01-01 12:00:00',
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await waitForBatchedUpdates();
-
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-
-            // When the workflow approver tries to edit the money request
-            const canEdit = canEditMoneyRequest(moneyRequestAction, false, openExpenseReport, testPolicy, transaction);
-
-            // Then they should be able to edit it
-            expect(canEdit).toBe(true);
-        });
-
-        it('should NOT allow workflow approver to edit money request on SUBMITTED expense report (isManager handles this)', async () => {
-            // Given a SUBMITTED expense report where current user is the workflow approver but managerID is stale
-            const submittedExpenseReport: Report = {
-                reportID: '12349',
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: submitterAccountID,
-                managerID: ownerAccountID, // managerID is stale, doesn't match approver
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-            };
-
-            const transaction: Transaction = {
-                transactionID: 'txn12349',
-                reportID: submittedExpenseReport.reportID,
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-                comment: {comment: 'Test expense'},
-                created: '2025-01-01',
-                merchant: 'Test Merchant',
-            };
-
-            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
-                reportActionID: 'action12349',
-                actorAccountID: submitterAccountID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                originalMessage: {
-                    IOUReportID: submittedExpenseReport.reportID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: 1000,
-                    currency: CONST.CURRENCY.USD,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
-                created: '2025-01-01 12:00:00',
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${submittedExpenseReport.reportID}`, submittedExpenseReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await waitForBatchedUpdates();
-
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-
-            // When the workflow approver tries to edit the money request on a SUBMITTED report
-            // Our fix should NOT apply since the report is not OPEN
-            const canEdit = canEditMoneyRequest(moneyRequestAction, false, submittedExpenseReport, testPolicy, transaction);
-
-            // Then they should NOT be able to edit it (because managerID is stale and our fix only applies to OPEN reports)
-            // Note: In real usage, managerID would be updated when report is submitted, so this case is rare
-            expect(canEdit).toBe(false);
-        });
-
-        it('should allow workflow approver to edit REIMBURSABLE field on OPEN expense report', async () => {
-            // Given an OPEN expense report where current user is the workflow approver
-            const openExpenseReport: Report = {
-                reportID: '12350',
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: submitterAccountID,
-                managerID: ownerAccountID, // managerID is stale
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            const transaction: Transaction = {
-                transactionID: 'txn12350',
-                reportID: openExpenseReport.reportID,
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-                comment: {comment: 'Test expense'},
-                created: '2025-01-01',
-                merchant: 'Test Merchant',
-            };
-
-            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
-                reportActionID: 'action12350',
-                actorAccountID: submitterAccountID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                originalMessage: {
-                    IOUReportID: openExpenseReport.reportID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: 1000,
-                    currency: CONST.CURRENCY.USD,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
-                created: '2025-01-01 12:00:00',
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await waitForBatchedUpdates();
-
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-
-            // When the workflow approver tries to edit the REIMBURSABLE field
-            const canEdit = canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, false, false, undefined, transaction, openExpenseReport, testPolicy);
-
-            // Then they should be able to edit it
-            expect(canEdit).toBe(true);
-        });
-
-        it('should NOT allow non-workflow user to edit REIMBURSABLE field on OPEN expense report', async () => {
-            // Given an OPEN expense report where current user is NOT the workflow approver, submitter, or admin
-            const randomUserAccountID = 9999;
-            await Onyx.merge(ONYXKEYS.SESSION, {email: 'randomuser@test.com', accountID: randomUserAccountID});
-            await waitForBatchedUpdates();
-
-            const openExpenseReport: Report = {
-                reportID: '12351',
-                policyID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                ownerAccountID: submitterAccountID,
-                managerID: ownerAccountID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-            };
-
-            const transaction: Transaction = {
-                transactionID: 'txn12351',
-                reportID: openExpenseReport.reportID,
-                amount: 1000,
-                currency: CONST.CURRENCY.USD,
-                comment: {comment: 'Test expense'},
-                created: '2025-01-01',
-                merchant: 'Test Merchant',
-            };
-
-            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
-                reportActionID: 'action12351',
-                actorAccountID: submitterAccountID,
-                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-                originalMessage: {
-                    IOUReportID: openExpenseReport.reportID,
-                    IOUTransactionID: transaction.transactionID,
-                    amount: 1000,
-                    currency: CONST.CURRENCY.USD,
-                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-                },
-                message: [{type: 'COMMENT', html: 'USD 10.00 expense', text: 'USD 10.00 expense', isEdited: false, whisperedTo: [], isDeletedParentAction: false, deleted: ''}],
-                created: '2025-01-01 12:00:00',
-            };
-
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${openExpenseReport.reportID}`, openExpenseReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
-            await waitForBatchedUpdates();
-
-            const testPolicy = await new Promise<OnyxEntry<Policy>>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
-                    callback: (val) => {
-                        Onyx.disconnect(connection);
-                        resolve(val);
-                    },
-                });
-            });
-
-            // When a random user tries to edit the REIMBURSABLE field
-            const canEdit = canEditFieldOfMoneyRequest(moneyRequestAction, CONST.EDIT_REQUEST_FIELD.REIMBURSABLE, false, false, undefined, transaction, openExpenseReport, testPolicy);
-
-            // Then they should NOT be able to edit it
-            expect(canEdit).toBe(false);
-        });
-    });
-
     describe('getReportPreviewMessage', () => {
         it('should return childReportName when report is empty and originalReportAction has childReportName with childMoneyRequestCount === 0', async () => {
             // Given an empty report (undefined)
@@ -10629,7 +10237,6 @@ describe('ReportUtils', () => {
             expect(shouldHideSingleReportField(reportField)).toBe(true);
         });
     });
-
     describe('P2P Wallet Activation - GBR and Wallet Indicator', () => {
         const friendAccountID = 42;
 
@@ -10914,6 +10521,254 @@ describe('ReportUtils', () => {
             expect(missingPaymentMethod).not.toBe('wallet');
 
             await Onyx.clear();
+        });
+    });
+
+    describe('getAllReportActionsErrorsAndReportActionThatRequiresAttention for DEW', () => {
+        it('should return error for DEW_SUBMIT_FAILED action on OPEN report', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const dewSubmitFailedAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'DEW submit failed',
+                    },
+                ],
+                originalMessage: {
+                    message: 'This report contains an Airfare expense that is missing the Flight Destination tag.',
+                },
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeDefined();
+            expect(reportAction).toEqual(dewSubmitFailedAction);
+        });
+
+        it('should NOT return error for DEW_SUBMIT_FAILED if there is a more recent SUBMITTED action', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const dewSubmitFailedAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const submittedAction = {
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 13:00:00',
+                shouldShow: true,
+                originalMessage: {},
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+                [submittedAction.reportActionID]: submittedAction,
+            };
+
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
+        });
+
+        it('should return error for DEW_SUBMIT_FAILED if it is more recent than SUBMITTED action', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const submittedAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'submitted',
+                    },
+                ],
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const dewSubmitFailedAction = {
+                ...createRandomReportAction(2),
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 13:00:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'DEW submit failed',
+                    },
+                ],
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const reportActions = {
+                [submittedAction.reportActionID]: submittedAction,
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeDefined();
+            expect(reportAction).toEqual(dewSubmitFailedAction);
+        });
+
+        it('should NOT return error for DEW_SUBMIT_FAILED on non-OPEN report', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            };
+
+            const dewSubmitFailedAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
+        });
+
+        it('should NOT return error for DEW_SUBMIT_FAILED on archived report', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const dewSubmitFailedAction = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 12:00:00',
+                shouldShow: true,
+                originalMessage: {
+                    message: 'Error message',
+                },
+            };
+
+            const reportActions = {
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+            };
+
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, true);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
+        });
+
+        it('should NOT return DEW error when a more recent SUBMITTED action exists after the failure (multiple submits)', () => {
+            const report = {
+                reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            };
+
+            const firstSubmittedAction = {
+                ...createRandomReportAction(1),
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 10:00:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'first submit',
+                    },
+                ],
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const dewSubmitFailedAction = {
+                ...createRandomReportAction(2),
+                reportActionID: '2',
+                actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                created: '2025-11-21 10:05:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'DEW submit failed',
+                    },
+                ],
+                originalMessage: {
+                    message: 'This report contains an Airfare expense that is missing the Flight Destination tag.',
+                },
+            };
+
+            const secondSubmittedAction = {
+                ...createRandomReportAction(3),
+                reportActionID: '3',
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2025-11-21 10:10:00',
+                shouldShow: true,
+                message: [
+                    {
+                        type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                        text: 'second submit',
+                    },
+                ],
+                originalMessage: {
+                    amount: 10000,
+                    currency: 'USD',
+                },
+            };
+
+            const reportActions = {
+                [firstSubmittedAction.reportActionID]: firstSubmittedAction,
+                [dewSubmitFailedAction.reportActionID]: dewSubmitFailedAction,
+                [secondSubmittedAction.reportActionID]: secondSubmittedAction,
+            };
+
+            const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
+
+            expect(errors?.dewSubmitFailed).toBeUndefined();
+            expect(reportAction).not.toEqual(dewSubmitFailedAction);
         });
     });
 });

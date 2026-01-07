@@ -12,7 +12,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Card, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportNameValuePairs} from '@src/types/onyx';
+import type {Card, OnyxInputOrEntry, OriginalMessageIOU, PersonalDetails, Policy, PrivatePersonalDetails, ReportMetadata, ReportNameValuePairs} from '@src/types/onyx';
 import type {JoinWorkspaceResolution, OriginalMessageChangeLog, OriginalMessageExportIntegration, OriginalMessageUnreportedTransaction} from '@src/types/onyx/OriginalMessage';
 import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
@@ -257,6 +257,56 @@ function isUnapprovedAction(reportAction: OnyxInputOrEntry<ReportAction>): repor
 
 function isForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED);
+}
+
+function isDynamicExternalWorkflowSubmitFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED);
+}
+
+function getMostRecentActiveDEWSubmitFailedAction(reportActions: OnyxEntry<ReportActions> | ReportAction[]): ReportAction | undefined {
+    const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
+
+    // Find the most recent DEW_SUBMIT_FAILED action
+    const mostRecentDewSubmitFailedAction = actionsArray
+        .filter((action): action is ReportAction => isDynamicExternalWorkflowSubmitFailedAction(action))
+        .reduce<ReportAction | undefined>((latest, current) => {
+            if (!latest || (current.created && latest.created && current.created > latest.created)) {
+                return current;
+            }
+            return latest;
+        }, undefined);
+
+    if (!mostRecentDewSubmitFailedAction) {
+        return undefined;
+    }
+
+    // Find the most recent SUBMITTED action
+    const mostRecentSubmittedAction = actionsArray
+        .filter((action): action is ReportAction => isSubmittedAction(action))
+        .reduce<ReportAction | undefined>((latest, current) => {
+            if (!latest || (current.created && latest.created && current.created > latest.created)) {
+                return current;
+            }
+            return latest;
+        }, undefined);
+
+    // Return the DEW action if there's no SUBMITTED action, or if DEW_SUBMIT_FAILED is more recent
+    if (!mostRecentSubmittedAction || mostRecentDewSubmitFailedAction.created > mostRecentSubmittedAction.created) {
+        return mostRecentDewSubmitFailedAction;
+    }
+
+    return undefined;
+}
+
+/**
+ * Checks if there's a pending DEW submission in progress.
+ * Uses reportMetadata.pendingExpenseAction which is set during submit and cleared on success/failure.
+ */
+function hasPendingDEWSubmit(reportMetadata: OnyxEntry<ReportMetadata>, isDEWPolicy: boolean): boolean {
+    if (!isDEWPolicy) {
+        return false;
+    }
+    return reportMetadata?.pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.SUBMIT;
 }
 
 function isDynamicExternalWorkflowForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
@@ -3585,6 +3635,9 @@ export {
     isDynamicExternalWorkflowForwardedAction,
     isUnapprovedAction,
     isForwardedAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
+    getMostRecentActiveDEWSubmitFailedAction,
+    hasPendingDEWSubmit,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,

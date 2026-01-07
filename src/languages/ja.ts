@@ -1260,6 +1260,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} 用` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `送信済み${memo ? `、メモ「${memo}」と述べています` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出を遅らせる</a>を通じて送信されました`,
+        queuedToSubmitViaDEW: 'カスタム承認ワークフローを介して送信待ちキューに入れられました',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} 用` : ''} を追跡中`,
         splitAmount: ({amount}: SplitAmountParams) => `${amount} を分割`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `分割 ${formattedAmount}${comment ? `${comment} 用` : ''}`,
@@ -6157,6 +6158,10 @@ ${reportName}
                 title: 'カテゴリルール',
                 approver: '承認者',
                 requireDescription: '説明を必須にする',
+                requireFields: 'フィールドを必須にする',
+                requiredFieldsTitle: '必須項目',
+                requiredFieldsDescription: (categoryName: string) => `これは<strong>${categoryName}</strong>として分類されたすべての経費に適用されます。`,
+                requireAttendees: '参加者の入力を必須にする',
                 descriptionHint: '説明のヒント',
                 descriptionHintDescription: (categoryName: string) => `従業員に「${categoryName}」での支出について追加情報を提供するよう促します。このヒントは経費の説明欄に表示されます。`,
                 descriptionHintLabel: 'ヒント',
@@ -7198,6 +7203,7 @@ ${reportName}
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `${maxAge}日より前の日付`,
         missingCategory: 'カテゴリ未設定',
         missingComment: '選択したカテゴリーには説明が必要です',
+        missingAttendees: 'このカテゴリには複数の参加者が必要です',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `${tagName ?? 'タグ'} が見つかりません`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

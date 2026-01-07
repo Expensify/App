@@ -1258,6 +1258,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `ingediend${memo ? `, met de melding ${memo}` : ''}`,
         automaticallySubmitted: `ingediend via <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">indiening uitstellen</a>`,
+        queuedToSubmitViaDEW: 'in wachtrij geplaatst om in te dienen via aangepaste goedkeuringswerkstroom',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `bijhouden ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `${amount} splits`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `splitsen ${formattedAmount}${comment ? `voor ${comment}` : ''}`,
@@ -6188,6 +6189,10 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
                 title: 'Categorisatieregels',
                 approver: 'Fiatteur',
                 requireDescription: 'Beschrijving vereist',
+                requireFields: 'Velden verplicht stellen',
+                requiredFieldsTitle: 'Verplichte velden',
+                requiredFieldsDescription: (categoryName: string) => `Dit is van toepassing op alle uitgaven die zijn gecategoriseerd als <strong>${categoryName}</strong>.`,
+                requireAttendees: 'Aanwezigen verplicht stellen',
                 descriptionHint: 'Beschrijvingstip',
                 descriptionHintDescription: (categoryName: string) =>
                     `Herinner medewerkers eraan om extra informatie te geven voor uitgaven in de categorie “${categoryName}”. Deze tip verschijnt in het omschrijvingsveld van uitgaven.`,
@@ -7241,6 +7246,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Datum ouder dan ${maxAge} dagen`,
         missingCategory: 'Ontbrekende categorie',
         missingComment: 'Beschrijving vereist voor geselecteerde categorie',
+        missingAttendees: 'Meerdere deelnemers vereist voor deze categorie',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Ontbreekt ${tagName ?? 'label'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {

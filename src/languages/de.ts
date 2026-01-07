@@ -1263,6 +1263,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `für ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `Eingereicht${memo ? `, mit dem Hinweis ${memo}` : ''}`,
         automaticallySubmitted: `eingereicht über <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">verspätete Einreichungen</a>`,
+        queuedToSubmitViaDEW: 'in die Warteschlange gestellt zur Einreichung über benutzerdefinierten Genehmigungsworkflow',
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `Verfolgung von ${formattedAmount}${comment ? `für ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `Split ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `aufteilen ${formattedAmount}${comment ? `für ${comment}` : ''}`,
@@ -6218,6 +6219,10 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
                 title: 'Kategorierichtlinien',
                 approver: 'Genehmiger',
                 requireDescription: 'Beschreibung erforderlich',
+                requireFields: 'Felder verpflichtend machen',
+                requiredFieldsTitle: 'Pflichtfelder',
+                requiredFieldsDescription: (categoryName: string) => `Dies gilt für alle Ausgaben, die als <strong>${categoryName}</strong> kategorisiert sind.`,
+                requireAttendees: 'Teilnehmer erforderlich machen',
                 descriptionHint: 'Hinweis zur Beschreibung',
                 descriptionHintDescription: (categoryName: string) =>
                     `Mitarbeitende daran erinnern, zusätzliche Informationen für Ausgaben der Kategorie „${categoryName}“ anzugeben. Dieser Hinweis erscheint im Beschreibungsfeld von Ausgaben.`,
@@ -7270,6 +7275,7 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
         maxAge: ({maxAge}: ViolationsMaxAgeParams) => `Datum älter als ${maxAge} Tage`,
         missingCategory: 'Fehlende Kategorie',
         missingComment: 'Beschreibung für ausgewählte Kategorie erforderlich',
+        missingAttendees: 'Für diese Kategorie sind mehrere Teilnehmer erforderlich',
         missingTag: ({tagName}: ViolationsMissingTagParams = {}) => `Fehlende ${tagName ?? 'Tag'}`,
         modifiedAmount: ({type, displayPercentVariance}: ViolationsModifiedAmountParams) => {
             switch (type) {
