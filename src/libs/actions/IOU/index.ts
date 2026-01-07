@@ -4721,7 +4721,6 @@ function updateMoneyRequestBillable(
     const transactionChanges: TransactionChanges = {
         billable: value,
     };
-    // const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
         transactionThreadReport,
@@ -4755,7 +4754,6 @@ function updateMoneyRequestReimbursable(
     const transactionChanges: TransactionChanges = {
         reimbursable: value,
     };
-    // const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
         transactionThreadReport,
@@ -4787,8 +4785,6 @@ function updateMoneyRequestMerchant(
     const transactionChanges: TransactionChanges = {
         merchant: value,
     };
-    // const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
-    // const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
@@ -4828,7 +4824,6 @@ function updateMoneyRequestAttendees(
     const transactionChanges: TransactionChanges = {
         attendees,
     };
-    // const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const data = getUpdateMoneyRequestParams({
         transactionID,
         transactionThreadReport,
@@ -4879,7 +4874,6 @@ function updateMoneyRequestTag({
     const transactionChanges: TransactionChanges = {
         tag,
     };
-    // const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
         transactionThreadReport,
@@ -4913,7 +4907,6 @@ function updateMoneyRequestTaxAmount(
     const transactionChanges = {
         taxAmount,
     };
-    // const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportActionID}`] ?? null;
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
         transactionThreadReport,
@@ -4961,7 +4954,6 @@ function updateMoneyRequestTaxRate({
         taxCode,
         taxAmount,
     };
-    // const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportActionID}`] ?? null;
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
         transactionThreadReport,
@@ -5015,8 +5007,6 @@ function updateMoneyRequestDistance({
         routes,
         ...(distance && {distance}),
     };
-    // const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
-    // const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
@@ -5114,7 +5104,6 @@ function updateMoneyRequestCategory({
         category,
     };
 
-    // const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const {params, onyxData} = getUpdateMoneyRequestParams({
         transactionID,
         transactionThreadReport,
@@ -5149,14 +5138,11 @@ function updateMoneyRequestDescription(
     const transactionChanges: TransactionChanges = {
         comment: parsedComment,
     };
-    // const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
-    // const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
     let data: UpdateMoneyRequestData;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReport?.reportID, transactionChanges, policy);
     } else {
-        // const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
         data = getUpdateMoneyRequestParams({
             transactionID,
             transactionThreadReport,
@@ -5208,8 +5194,6 @@ function updateMoneyRequestDistanceRate({
         ...(typeof updatedTaxAmount === 'number' ? {taxAmount: updatedTaxAmount} : {}),
         ...(updatedTaxCode ? {taxCode: updatedTaxCode} : {}),
     };
-    // const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
-    // const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     if (transaction) {
