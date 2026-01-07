@@ -4876,6 +4876,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             assign: 'Assigner',
             assignCardFailedError: 'L’attribution de la carte a échoué.',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            deletedFeed: 'Fil d’actualité supprimé',
         },
         expensifyCard: {
             issueAndManageCards: 'Émettre et gérer vos cartes Expensify',

@@ -4756,6 +4756,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             assign: '分配',
             assignCardFailedError: '卡片分配失败。',
             cardAlreadyAssignedError: 'This card is already assigned to a user in another workspace.',
+            deletedFeed: '已删除的动态',
         },
         expensifyCard: {
             issueAndManageCards: '发放和管理您的 Expensify 卡',
