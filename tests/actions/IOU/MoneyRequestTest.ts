@@ -360,6 +360,8 @@ describe('MoneyRequest', () => {
                     attendees: fakeTransaction?.comment?.attendees,
                 },
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
+                currentUserAccountIDParam: baseParams.currentUserAccountID,
+                currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
             });
 
@@ -409,6 +411,8 @@ describe('MoneyRequest', () => {
                     attendees: fakeTransaction?.comment?.attendees,
                 },
                 isASAPSubmitBetaEnabled: baseParams.isASAPSubmitBetaEnabled,
+                currentUserAccountIDParam: baseParams.currentUserAccountID,
+                currentUserEmailParam: baseParams.currentUserLogin,
                 quickAction: baseParams.quickAction,
             });
         });
