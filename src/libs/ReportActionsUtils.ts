@@ -3064,23 +3064,19 @@ type UpdateACHAccountOriginalMessage = {
     oldMaskedBankAccountNumber?: string;
 };
 
-function getUpdateACHAccountMessage(action: ReportAction): string {
+function getUpdateACHAccountMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {bankAccountName, maskedBankAccountNumber, oldBankAccountName, oldMaskedBankAccountNumber} =
         (getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT>) as UpdateACHAccountOriginalMessage | undefined) ?? {};
 
     if (!!maskedBankAccountNumber && !oldMaskedBankAccountNumber) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.setDefaultBankAccount', {bankAccountName: bankAccountName ?? '', maskedBankAccountNumber});
+        return translate('workspaceActions.setDefaultBankAccount', {bankAccountName: bankAccountName ?? '', maskedBankAccountNumber});
     }
     if (!maskedBankAccountNumber && oldMaskedBankAccountNumber) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.removedDefaultBankAccount', {bankAccountName: oldBankAccountName ?? '', maskedBankAccountNumber: oldMaskedBankAccountNumber});
+        return translate('workspaceActions.removedDefaultBankAccount', {bankAccountName: oldBankAccountName ?? '', maskedBankAccountNumber: oldMaskedBankAccountNumber});
     }
 
-    // Case 3: Changing from one bank account to another
     if (!!maskedBankAccountNumber && !!oldMaskedBankAccountNumber) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('workspaceActions.changedDefaultBankAccount', {
+        return translate('workspaceActions.changedDefaultBankAccount', {
             bankAccountName: bankAccountName ?? '',
             maskedBankAccountNumber,
             oldBankAccountName: oldBankAccountName ?? '',
