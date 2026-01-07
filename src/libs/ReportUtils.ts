@@ -5727,6 +5727,7 @@ function getReportName(
         return getActionableCardFraudAlertResolutionMessage(translateLocal, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS)) {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         return getCompanyAddressUpdateMessage(translateLocal, parentReportAction);
     }
 
