@@ -23,7 +23,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {TransactionWithOptionalSearchFields} from '@components/TransactionItemRow';
 import type PolicyData from '@hooks/usePolicyData/types';
-import {computeReportName, getReportName} from '@libs/ReportNameUtils';
 import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {ThemeColors} from '@styles/theme/types';
 import type {IOUAction, IOUType, OnboardingAccounting} from '@src/CONST';
@@ -67,7 +66,6 @@ import type {OriginalMessageExportedToIntegration} from '@src/types/onyx/OldDotA
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type {ErrorFields, Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {
-    OriginalMessageChangeLog,
     OriginalMessageChangePolicy,
     OriginalMessageExportIntegration,
     OriginalMessageModifiedExpense,
@@ -165,7 +163,6 @@ import {
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
     getDismissedViolationMessageText,
-    getExportIntegrationLastMessageText,
     getIOUActionForTransactionID,
     getIOUReportIDFromReportActionPreview,
     getLastVisibleAction,
@@ -179,14 +176,12 @@ import {
     getReportActionActorAccountID,
     getReportActionHtml,
     getReportActionMessage as getReportActionMessageReportUtils,
-    getReportActionMessageText,
     getReportActionText,
     getSortedReportActions,
     isActionableCardFraudAlert,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
-    isApprovedOrSubmittedReportAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
@@ -196,7 +191,6 @@ import {
     isMoneyRequestAction,
     isMovedAction,
     isPendingRemove,
-    isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isReopenedAction,
     isReportPreviewAction,
@@ -213,6 +207,8 @@ import {
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
+// eslint-disable-next-line import/no-cycle
+import {computeReportName, getReportName} from './ReportNameUtils';
 // This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
 // The functions imported here are pure utility functions that don't create initialization-time dependencies.
 // ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
@@ -5319,17 +5315,6 @@ function getModifiedExpenseOriginalMessage(
 }
 
 /**
- * Check if original message is an object and can be used as a ChangeLog type
- * @param originalMessage
- */
-function isChangeLogObject(originalMessage?: OriginalMessageChangeLog): OriginalMessageChangeLog | undefined {
-    if (originalMessage && typeof originalMessage === 'object') {
-        return originalMessage;
-    }
-    return undefined;
-}
-
-/**
  * Parse html of reportAction into text
  */
 function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, reportID: string | undefined, childReportID?: string): string {
@@ -5374,77 +5359,6 @@ function parseReportActionHtmlToText(reportAction: OnyxEntry<ReportAction>, repo
     parsedReportActionMessageCache[key] = textMessage;
 
     return textMessage;
-}
-
-/**
- * Get the report action message for a report action.
- */
-function getReportActionMessage({
-    reportAction,
-    formatPhoneNumber,
-    reportID,
-    childReportID,
-    reports,
-    personalDetails,
-}: {
-    reportAction: OnyxEntry<ReportAction>;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    reportID?: string;
-    childReportID?: string;
-    reports?: Report[];
-    personalDetails?: Partial<PersonalDetailsList>;
-}) {
-    if (isEmptyObject(reportAction)) {
-        return '';
-    }
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.heldExpense');
-    }
-
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getExportIntegrationLastMessageText(translateLocal, reportAction);
-    }
-
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.unheldExpense');
-    }
-
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTEDTRANSACTION_THREAD) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.reject.reportActions.rejectedExpense');
-    }
-
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED_TRANSACTION_MARKASRESOLVED) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.reject.reportActions.markedAsResolved');
-    }
-
-    if (isApprovedOrSubmittedReportAction(reportAction) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
-        return getReportActionMessageText(reportAction);
-    }
-    if (isReimbursementQueuedAction(reportAction)) {
-        return getReimbursementQueuedActionMessage({
-            reportAction,
-            reportOrID: getReportOrDraftReport(reportID, reports),
-            formatPhoneNumber,
-            shouldUseShortDisplayName: false,
-            reports,
-            personalDetails,
-        });
-    }
-    if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return translateLocal('iou.receiptScanningFailed');
-    }
-
-    if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
-        return getReimbursementDeQueuedOrCanceledActionMessage(reportAction, getReportOrDraftReport(reportID, reports));
-    }
-
-    return parseReportActionHtmlToText(reportAction, reportID, childReportID);
 }
 
 /**

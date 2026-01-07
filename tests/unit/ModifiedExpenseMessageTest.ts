@@ -2,7 +2,7 @@ import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} fro
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as PolicyUtils from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
-import * as ReportUtils from '@libs/ReportUtils';
+import * as ReportNameUtils from '@libs/ReportNameUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
@@ -24,7 +24,7 @@ describe('ModifiedExpenseMessage', () => {
 
     beforeEach(() => {
         // The `getReportName` method is quite complex, and we don't need to test it here
-        jest.spyOn(ReportUtils, 'getReportName').mockImplementation((report) => report?.reportName ?? '');
+        jest.spyOn(ReportNameUtils, 'getReportName').mockImplementation((report) => report?.reportName ?? '');
     });
 
     afterEach(() => {
