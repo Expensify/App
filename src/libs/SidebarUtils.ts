@@ -89,7 +89,7 @@ import {
     isTaskAction,
     isTransactionThread,
 } from './ReportActionsUtils';
-import {getReportName} from './ReportNameUtils';
+import {generateArchivedReportName, getReportName} from './ReportNameUtils';
 import type {OptionData} from './ReportUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
@@ -1107,7 +1107,7 @@ function getWelcomeMessage(
 function getRoomWelcomeMessage(translate: LocalizedTranslate, report: OnyxEntry<Report>, isReportArchived = false, reportDetailsLink = ''): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
     const workspaceName = getPolicyName({report});
-    const reportName = getReportName(report);
+    let reportName = getReportName(report);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
@@ -1116,6 +1116,7 @@ function getRoomWelcomeMessage(translate: LocalizedTranslate, report: OnyxEntry<
     }
 
     if (isReportArchived) {
+        reportName = generateArchivedReportName(reportName).trim();
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfArchivedRoom', reportName, reportDetailsLink);
     } else if (isDomainRoom(report)) {
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryDomainRoom', report?.reportName ?? '');

@@ -11915,7 +11915,9 @@ function getMoneyReportPreviewName(action: ReportAction, iouReport: OnyxEntry<Re
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         return originalMessage && translateLocal('iou.invoiceReportName', originalMessage);
     }
-    return getReportName(iouReport, reportAttributes) || action.childReportName;
+
+    const reportName = reportAttributes ? getReportName(iouReport, reportAttributes) : computeReportName(iouReport);
+    return reportName || action.childReportName;
 }
 
 function selectFilteredReportActions(

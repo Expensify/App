@@ -5892,7 +5892,10 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                ownerAccountID: currentUserAccountID,
+            };
             const result = getMoneyReportPreviewName(action, report);
             // currentUserAccountID: 5 corresponds to "Lagertha Lothbrok"
             expect(result).toBe('Lagertha Lothbrok (you)');
