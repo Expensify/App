@@ -102,7 +102,6 @@ import Building from '@assets/images/simple-illustrations/simple-illustration__b
 import Buildings from '@assets/images/simple-illustrations/simple-illustration__buildings.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
-import PinkCar from '@assets/images/simple-illustrations/simple-illustration__car_pink.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
 import Clock from '@assets/images/simple-illustrations/simple-illustration__clock.svg';
@@ -315,7 +314,6 @@ const Illustrations = {
     Binoculars,
     Buildings,
     Car,
-    PinkCar,
     ChatBubbles,
     CheckmarkCircle,
     CommentBubbles,
