@@ -159,6 +159,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
             <ImportSpreadsheetConfirmModal
                 isVisible={spreadsheet?.shouldFinalModalBeOpened}
                 closeImportPageAndModal={closeImportPageAndModal}
+                shouldHandleNavigationBack={false}
             />
         </ScreenWrapper>
     );
