@@ -6,6 +6,8 @@ import type {SharedValue} from 'react-native-reanimated';
 import Animated, {Easing, useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+//Trigger tests
+
 type AccordionProps = {
     /** Giving information whether the component is open */
     isExpanded: SharedValue<boolean>;
