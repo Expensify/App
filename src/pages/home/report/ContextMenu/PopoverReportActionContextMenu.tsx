@@ -74,7 +74,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
     });
     const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollViewContext);
     const instanceIDRef = useRef('');
-    const {email} = useCurrentUserPersonalDetails();
+    const {email, accountID} = useCurrentUserPersonalDetails();
 
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
 
@@ -368,7 +368,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
         } else if (reportAction) {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             InteractionManager.runAfterInteractions(() => {
-                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '');
+                deleteReportComment(reportIDRef.current, reportAction, ancestorsRef.current, isReportArchived, isOriginalReportArchived, email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID);
             });
         }
 
