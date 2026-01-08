@@ -70,7 +70,7 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
     /**
      * React hooks cannot be called conditionally. Thus we always subscribe to the snapshot data
      * and if shouldUseSnapshot is false then the selector always returns false as the data so we don't cause unnecessary renders
-     * similarly canBeMissing is set to true to avoid falsy warnings.
+     * similarly canBeMissing is set to true to avoid falsy warnings and initWithStoredValues/allowStaleData are set to false/true resp. to avoid the connection overhead.
      */
     const shouldUseSnapshot = isOnSearch && !!currentSearchHash && isSnapshotCompatibleKey;
     const snapshotSelector = useMemo(() => {
@@ -89,6 +89,8 @@ const useOnyx: OriginalUseOnyx = <TKey extends OnyxKey, TReturnValue = OnyxValue
         selector: snapshotSelector,
         allowDynamicKey: true,
         canBeMissing: shouldUseSnapshot ? optionsWithoutSelector.canBeMissing : true,
+        initWithStoredValues: shouldUseSnapshot ? optionsWithoutSelector.initWithStoredValues : false,
+        allowStaleData: shouldUseSnapshot ? optionsWithoutSelector.allowStaleData : true,
     };
     const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchHash}` as OnyxKey;
     const snapshotResult = originalUseOnyx(snapshotKey, snapshotOnyxOptions, dependencies);
