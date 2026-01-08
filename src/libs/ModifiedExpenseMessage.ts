@@ -17,8 +17,13 @@ import Log from './Log';
 import Parser from './Parser';
 import {getCleanedTagName, getPolicy, getSortedTagKeys, isPolicyAdmin} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
+// This cycle import is safe because ReportNameUtils was extracted from ReportUtils to separate report name computation logic.
+// The functions imported here are pure utility functions that don't create initialization-time dependencies.
+// ReportNameUtils imports helper functions from ReportUtils, and ReportUtils imports name generation functions from ReportNameUtils.
 // eslint-disable-next-line import/no-cycle
-import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
+import {buildReportNameFromParticipantNames, getPolicyExpenseChatName} from './ReportNameUtils';
+// eslint-disable-next-line import/no-cycle
+import {getPolicyName, getReportName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
 import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
@@ -64,25 +69,21 @@ function buildMessageFragmentForValue(
     shouldConvertToLowercase = true,
 ) {
     const newValueToDisplay = valueInQuotes ? `"${newValue}"` : newValue;
+    const oldValueToDisplay = valueInQuotes ? `"${oldValue}"` : oldValue;
 
-    // If the valueName is category and the old value was Uncategorized, show it in lowercase without quotes
-    let oldValueToDisplay;
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    if (valueName.includes(translateLocal('common.category').toLowerCase()) && isCategoryMissing(oldValue)) {
-        oldValueToDisplay = oldValue.toLowerCase();
-    } else if (valueInQuotes) {
-        oldValueToDisplay = `"${oldValue}"`;
-    } else {
-        oldValueToDisplay = oldValue;
-    }
+    const isCategoryField = valueName.includes(translateLocal('common.category').toLowerCase());
 
     const displayValueName = shouldConvertToLowercase ? valueName.toLowerCase() : valueName;
     const isOldValuePartialMerchant = valueName === translate('common.merchant') && oldValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+    const isOldCategoryMissing = isCategoryField && isCategoryMissing(oldValue);
+    const isNewCategoryMissing = isCategoryField && isCategoryMissing(newValue);
 
-    // In case of a partial merchant value, we want to avoid user seeing the "(none)" value in the message.
-    if (!oldValue || isOldValuePartialMerchant) {
-        const fragment = translate('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
-        setFragments.push(fragment);
+    if (!oldValue || isOldValuePartialMerchant || isOldCategoryMissing) {
+        if (!(isOldCategoryMissing && isNewCategoryMissing)) {
+            const fragment = translate('iou.setTheRequest', {valueName: displayValueName, newValueToDisplay});
+            setFragments.push(fragment);
+        }
     } else if (!newValue || newValue === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) {
         const fragment = translate('iou.removedTheRequest', {valueName: displayValueName, oldValueToDisplay});
         removalFragments.push(fragment);
@@ -245,7 +246,7 @@ function getForReportAction({
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency;
         const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
-        const oldAmount = oldAmountValue ? convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency) : '';
+        const oldAmount = convertToDisplayString(oldAmountValue, oldCurrency);
 
         const currency = reportActionOriginalMessage?.currency;
         const amount = convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
@@ -396,7 +397,7 @@ function getForReportAction({
 
         const taxAmount = convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
         const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
-        const oldTaxAmount = oldTaxAmountValue > 0 ? convertToDisplayString(oldTaxAmountValue, currency) : '';
+        const oldTaxAmount = convertToDisplayString(oldTaxAmountValue, currency);
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         buildMessageFragmentForValue(translateLocal, taxAmount, oldTaxAmount, translateLocal('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
@@ -535,7 +536,7 @@ function getForReportActionTemp({
     if (hasModifiedAmount) {
         const oldCurrency = reportActionOriginalMessage?.oldCurrency;
         const oldAmountValue = reportActionOriginalMessage?.oldAmount ?? 0;
-        const oldAmount = oldAmountValue ? convertToDisplayString(reportActionOriginalMessage?.oldAmount ?? 0, oldCurrency) : '';
+        const oldAmount = convertToDisplayString(oldAmountValue, oldCurrency);
 
         const currency = reportActionOriginalMessage?.currency;
         const amount = convertToDisplayString(reportActionOriginalMessage?.amount ?? 0, currency);
@@ -658,7 +659,7 @@ function getForReportActionTemp({
 
         const taxAmount = convertToDisplayString(getTaxAmountAbsValue(reportActionOriginalMessage?.taxAmount ?? 0), currency);
         const oldTaxAmountValue = getTaxAmountAbsValue(reportActionOriginalMessage?.oldTaxAmount ?? 0);
-        const oldTaxAmount = oldTaxAmountValue > 0 ? convertToDisplayString(oldTaxAmountValue, currency) : '';
+        const oldTaxAmount = convertToDisplayString(oldTaxAmountValue, currency);
         buildMessageFragmentForValue(translate, taxAmount, oldTaxAmount, translate('iou.taxAmount'), false, setFragments, removalFragments, changeFragments);
     }
 
