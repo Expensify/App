@@ -32,7 +32,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import type {ViolationField} from '@hooks/useViolations';
 import useViolations from '@hooks/useViolations';
-import {filterPersonalCards, getCompanyCardDescription} from '@libs/CardUtils';
+import {filterPersonalCards, getCompanyCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -51,13 +51,12 @@ import {
     isTaxTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    getReportName,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isExpenseReport,
@@ -227,6 +226,8 @@ function MoneyRequestView({
     const allPolicyTags = usePolicyTags();
     const policyTagList = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${targetPolicyID}`];
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {selector: filterPersonalCards, canBeMissing: true});
+    const [companyCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
+    const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(companyCardList ?? CONST.EMPTY_OBJECT, cardList), [companyCardList, cardList]);
 
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${getNonEmptyStringOnyxID(linkedTransactionID)}`, {canBeMissing: true});
     const transactionViolations = useTransactionViolations(transaction?.transactionID);
@@ -293,7 +294,7 @@ function MoneyRequestView({
     const transactionOriginalAmount = transaction && getOriginalAmountForDisplay(transaction, isExpenseReport(moneyRequestReport));
     const formattedOriginalAmount = transactionOriginalAmount && transactionOriginalCurrency && convertToDisplayString(transactionOriginalAmount, transactionOriginalCurrency);
     const isManagedCardTransaction = isCardTransactionTransactionUtils(transaction);
-    const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, cardList);
+    const cardProgramName = getCompanyCardDescription(transaction?.cardName, transaction?.cardID, allCards);
     const shouldShowCard = isManagedCardTransaction && cardProgramName;
 
     const taxRates = policy?.taxRates;
@@ -724,7 +725,7 @@ function MoneyRequestView({
     });
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportNameToDisplay = isFromMergeTransaction ? (updatedTransaction?.reportName ?? translate('common.none')) : (parentReport?.reportName ?? getReportName(parentReport));
+    const reportNameToDisplay = isFromMergeTransaction ? (updatedTransaction?.reportName ?? translate('common.none')) : getReportName(parentReport) || parentReport?.reportName;
     const shouldShowReport = !!parentReportID || (isFromMergeTransaction && !!reportNameToDisplay);
     const reportCopyValue = !canEditReport && reportNameToDisplay !== translate('common.none') ? reportNameToDisplay : undefined;
     const shouldShowCategoryAnalyzing = isCategoryBeingAnalyzed(updatedTransaction ?? transaction);

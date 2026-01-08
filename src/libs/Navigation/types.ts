@@ -2031,6 +2031,12 @@ type ReimbursementAccountEnterSignerInfoNavigatorParamList = {
     };
 };
 
+type ConnectExistingBankAccountNavigatorParamList = {
+    [SCREENS.CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT]: {
+        policyID: string;
+    };
+};
+
 type WalletStatementNavigatorParamList = {
     [SCREENS.WALLET_STATEMENT_ROOT]: {
         /** The statement year and month as one string, i.e. 202110 */
@@ -2409,9 +2415,6 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT]: {
-        policyID: string;
-    };
     [SCREENS.WORKSPACE.INVOICES]: {
         policyID: string;
     };
@@ -2607,8 +2610,6 @@ type PublicScreensParamList = SharedScreensParamList & {
         accountID?: string;
         validateCode?: string;
     };
-    [SCREENS.SIGN_IN_WITH_APPLE_DESKTOP]: undefined;
-    [SCREENS.SIGN_IN_WITH_GOOGLE_DESKTOP]: undefined;
     [SCREENS.SAML_SIGN_IN]: undefined;
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
@@ -2715,7 +2716,6 @@ type AuthScreensParamList = SharedScreensParamList &
         [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: NavigatorScreenParams<TestDriveModalNavigatorParamList>;
         [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
         [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
-        [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
         [SCREENS.CONNECTION_COMPLETE]: undefined;
         [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
         [SCREENS.BANK_CONNECTION_COMPLETE]: undefined;
@@ -2944,6 +2944,7 @@ export type {
     ReportVerifyAccountNavigatorParamList,
     ReimbursementAccountNavigatorParamList,
     ReimbursementAccountEnterSignerInfoNavigatorParamList,
+    ConnectExistingBankAccountNavigatorParamList,
     NewReportWorkspaceSelectionNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,

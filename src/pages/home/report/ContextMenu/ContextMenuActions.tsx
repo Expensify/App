@@ -658,7 +658,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const displayMessage = getReportPreviewMessage(iouReportID, reportAction, undefined, undefined, undefined, undefined, undefined, true);
                     Clipboard.setString(displayMessage);
                 } else if (isTaskActionReportActionsUtils(reportAction)) {
-                    const {text, html} = getTaskReportActionMessage(reportAction);
+                    const {text, html} = getTaskReportActionMessage(translate, reportAction);
                     const displayMessage = html ?? text;
                     setClipboardMessage(displayMessage);
                 } else if (isModifiedExpenseAction(reportAction)) {
@@ -683,7 +683,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         setClipboardMessage(displayMessage);
                     }
                 } else if (isCreatedTaskReportAction(reportAction)) {
-                    const taskPreviewMessage = getTaskCreatedMessage(reportAction, childReport, true);
+                    const taskPreviewMessage = getTaskCreatedMessage(translate, reportAction, childReport, true);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
                     const logMessage = getMemberChangeMessageFragment(translate, reportAction, getReportName).html ?? '';

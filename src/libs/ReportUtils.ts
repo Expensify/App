@@ -791,7 +791,6 @@ type OptionData = {
     isDefaultRoom?: boolean;
     isInvoiceRoom?: boolean;
     isExpenseReport?: boolean;
-    isDM?: boolean;
     isOptimisticPersonalDetail?: boolean;
     selected?: boolean;
     isOptimisticAccount?: boolean;
@@ -5031,7 +5030,7 @@ function getReportPreviewMessage(
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('iou.didSplitAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
+            return translateLocal('iou.didSplitAmount', formattedAmount, getMerchantOrDescription(linkedTransaction));
         }
     }
 
@@ -5047,7 +5046,7 @@ function getReportPreviewMessage(
             if (amount && currency) {
                 const formattedAmount = convertToDisplayString(amount, currency);
                 // eslint-disable-next-line @typescript-eslint/no-deprecated
-                return translateLocal('iou.trackedAmount', {formattedAmount, comment});
+                return translateLocal('iou.trackedAmount', formattedAmount, comment);
             }
 
             return reportActionMessage;
@@ -5067,7 +5066,7 @@ function getReportPreviewMessage(
             const amount = getTransactionAmount(linkedTransaction, !isEmptyObject(report) && isExpenseReport(report), linkedTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) ?? 0;
             const formattedAmount = convertToDisplayString(amount, getCurrency(linkedTransaction)) ?? '';
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            return translateLocal('iou.trackedAmount', {formattedAmount, comment: getMerchantOrDescription(linkedTransaction)});
+            return translateLocal('iou.trackedAmount', formattedAmount, getMerchantOrDescription(linkedTransaction));
         }
     }
 
@@ -5194,7 +5193,7 @@ function getReportPreviewMessage(
                 ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils})
                 : '';
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return `${requestorName ? `${requestorName}: ` : ''}${translateLocal('iou.expenseAmount', {formattedAmount: amountToDisplay, comment})}`;
+        return `${requestorName ? `${requestorName}: ` : ''}${translateLocal('iou.expenseAmount', amountToDisplay, comment)}`;
     }
 
     if (containsNonReimbursable) {
@@ -6001,11 +6000,6 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
 
     const createdDate = report.lastVisibleActionCreated ? new Date(report.lastVisibleActionCreated) : undefined;
 
-    const totalAmount = report.total !== undefined && !Number.isNaN(report.total) ? Math.abs(report.total) : 0;
-    const nonReimbursableTotal =
-        'nonReimbursableTotal' in report && report.nonReimbursableTotal !== undefined && !Number.isNaN(report.nonReimbursableTotal) ? Math.abs(report.nonReimbursableTotal) : 0;
-    const reimbursableAmount = totalAmount - nonReimbursableTotal;
-
     const result = formula
         // We don't translate because the server response is always in English
         .replaceAll(/\{report:type\}/gi, 'Expense Report')
@@ -6013,7 +6007,6 @@ function populateOptimisticReportFormula(formula: string, report: OptimisticExpe
         .replaceAll(/\{report:enddate\}/gi, createdDate ? format(createdDate, CONST.DATE.FNS_FORMAT_STRING) : '')
         .replaceAll(/\{report:id\}/gi, getBase62ReportID(Number(report.reportID)))
         .replaceAll(/\{report:total\}/gi, report.total !== undefined && !Number.isNaN(report.total) ? convertToDisplayString(Math.abs(report.total), report.currency).toString() : '')
-        .replaceAll(/\{report:reimbursable\}/gi, report.total !== undefined && !Number.isNaN(report.total) ? convertToDisplayString(reimbursableAmount, report.currency).toString() : '')
         .replaceAll(/\{report:currency\}/gi, report.currency ?? '')
         .replaceAll(/\{report:policyname\}/gi, policy?.name ?? '')
         .replaceAll(/\{report:workspacename\}/gi, policy?.name ?? '')
@@ -6256,10 +6249,7 @@ function getDeletedTransactionMessage(action: ReportAction) {
     const currency = deletedTransactionOriginalMessage.currency ?? '';
     const formattedAmount = convertToDisplayString(amount, currency) ?? '';
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const message = translateLocal('iou.deletedTransaction', {
-        amount: formattedAmount,
-        merchant: deletedTransactionOriginalMessage.merchant ?? '',
-    });
+    const message = translateLocal('iou.deletedTransaction', formattedAmount, deletedTransactionOriginalMessage.merchant ?? '');
     return message;
 }
 
@@ -6425,7 +6415,7 @@ function getIOUReportActionMessage(
             break;
         case CONST.REPORT.ACTIONS.TYPE.SUBMITTED:
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            iouMessage = translateLocal('iou.expenseAmount', {formattedAmount: amount});
+            iouMessage = translateLocal('iou.expenseAmount', amount);
             break;
         default:
             break;
@@ -9787,10 +9777,7 @@ function getIOUReportActionDisplayMessage(reportAction: OnyxEntry<ReportAction>,
         translationKey = 'iou.expenseAmount';
     }
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    return translateLocal(translationKey, {
-        formattedAmount,
-        comment: getMerchantOrDescription(transaction),
-    });
+    return translateLocal(translationKey, formattedAmount, getMerchantOrDescription(transaction));
 }
 
 /**
