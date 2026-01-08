@@ -62,22 +62,6 @@ const LOCALE_TO_LANGUAGE_STRING = {
     [BETA_LOCALES.ZH_HANS]: '中文 (简体)',
 } as const;
 
-/**
- * English names for languages, used for accessibility labels so screen readers can properly announce them.
- */
-const LOCALE_TO_ENGLISH_NAME = {
-    [FULLY_SUPPORTED_LOCALES.EN]: 'English',
-    [FULLY_SUPPORTED_LOCALES.ES]: 'Spanish',
-    [BETA_LOCALES.DE]: 'German',
-    [BETA_LOCALES.FR]: 'French',
-    [BETA_LOCALES.IT]: 'Italian',
-    [BETA_LOCALES.JA]: 'Japanese',
-    [BETA_LOCALES.NL]: 'Dutch',
-    [BETA_LOCALES.PL]: 'Polish',
-    [BETA_LOCALES.PT_BR]: 'Portuguese (Brazil)',
-    [BETA_LOCALES.ZH_HANS]: 'Chinese (Simplified)',
-} as const;
-
 type FullySupportedLocale = ValueOf<typeof FULLY_SUPPORTED_LOCALES>;
 type Locale = FullySupportedLocale | ValueOf<typeof BETA_LOCALES>;
 type TranslationTargetLocale = ValueOf<typeof TRANSLATION_TARGET_LOCALES>;
@@ -103,7 +87,6 @@ export {
     EXTENDED_LOCALES,
     FULLY_SUPPORTED_LOCALES,
     LOCALES,
-    LOCALE_TO_ENGLISH_NAME,
     LOCALE_TO_LANGUAGE_STRING,
     SORTED_LOCALES,
     TRANSLATION_TARGET_LOCALES,
