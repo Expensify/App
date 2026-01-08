@@ -83,7 +83,7 @@ columns = "columns"i {return "columns"}
 // Value transformation rules
 values
   = perDiem
-  / drafts
+  / draft
   / originalAmount
   / taxRate
   / taxAmount
@@ -105,8 +105,8 @@ values
   / groupWithdrawn
   / groupWithdrawalId
 
-perDiem                 = "per-diem"i                  { return "perDiem"; }
-drafts                  = "draft"i / "drafts"i         { return "drafts"; }
+perDiem = "perDiem"i / "per-diem"i { return "perDiem"; }
+draft = "drafts"i / "draft"i {return "drafts"; }
 originalAmount          = "original-amount"i           { return "originalAmount"; }
 taxAmount               = "tax-amount"i                { return "taxAmount"; }
 policyName              = "policy-name"i               { return "policyName"; }
