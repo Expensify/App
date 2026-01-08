@@ -408,8 +408,9 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
             >
                 <PressableWithFeedback
                     onPress={navigateToChats}
-                    role={CONST.ROLE.BUTTON}
+                    role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.inbox')}
+                    accessibilityState={{selected: selectedTab === NAVIGATION_TABS.HOME}}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
@@ -445,8 +446,9 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 </PressableWithFeedback>
                 <PressableWithFeedback
                     onPress={navigateToSearch}
-                    role={CONST.ROLE.BUTTON}
+                    role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.reports')}
+                    accessibilityState={{selected: selectedTab === NAVIGATION_TABS.SEARCH}}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
@@ -477,8 +479,9 @@ function NavigationTabBar({selectedTab, isTopLevelBar = false, shouldShowFloatin
                 </View>
                 <PressableWithFeedback
                     onPress={showWorkspaces}
-                    role={CONST.ROLE.BUTTON}
+                    role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.workspacesTabTitle')}
+                    accessibilityState={{selected: selectedTab === NAVIGATION_TABS.WORKSPACES}}
                     wrapperStyle={styles.flex1}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.WORKSPACES}
