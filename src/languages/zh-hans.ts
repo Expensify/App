@@ -190,7 +190,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -6269,11 +6268,8 @@ ${reportName}
             }
             return `在距离费率“${customUnitRateName}”中添加了可退税部分“${newValue}”`;
         },
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `将 ${customUnitName} 费率 "${customUnitRateName}" 的索引更改为 "${newValue}" ${oldValue ? `(之前为 "${oldValue}")` : ''}`;
-        },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `${newValue ? '已启用' : '已禁用'} ${customUnitName} 费率 "${customUnitRateName}"`;
+            return `${newValue ? '已启用' : '已禁用'} ${customUnitName} 费率“${customUnitRateName}”`;
         },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `已移除“${customUnitName}”费率“${rateName}”`,
         addedReportField: (fieldType: string, fieldName?: string) => `已添加 ${fieldType} 报告字段 “${fieldName}”`,

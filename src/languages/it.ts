@@ -190,7 +190,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -6418,11 +6417,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             }
             return `ha aggiunto una parte rimborsabile di imposta di "${newValue}" alla tariffa per distanza "${customUnitRateName}"`;
         },
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `ha modificato l’indice della tariffa ${customUnitName} "${customUnitRateName}" a "${newValue}" ${oldValue ? `(precedentemente "${oldValue}")` : ''}`;
-        },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `${newValue ? 'abilitato' : 'disabilitato'} la tariffa ${customUnitName} "${customUnitRateName}"`;
+            return `${newValue ? 'abilitato' : 'Disattivato'} il tasso ${customUnitName} "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `ha rimosso la tariffa "${rateName}" dell’unità personalizzata "${customUnitName}"`,
         addedReportField: (fieldType: string, fieldName?: string) => `aggiunto campo report ${fieldType} "${fieldName}"`,
