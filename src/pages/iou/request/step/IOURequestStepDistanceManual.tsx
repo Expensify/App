@@ -81,6 +81,8 @@ function IOURequestStepDistanceManual({
     const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.DISTANCE_REQUEST_TYPE}`, {canBeMissing: true});
     const isLoadingSelectedTab = isLoadingOnyxValue(selectedTabResult);
     const policy = usePolicy(report?.policyID);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -177,6 +179,8 @@ function IOURequestStepDistanceManual({
                         // Not required for manual distance request
                         transactionBackup: undefined,
                         policy,
+                        policyTagList: policyTags,
+                        policyCategories,
                         currentUserAccountIDParam,
                         currentUserEmailParam,
                         isASAPSubmitBetaEnabled,

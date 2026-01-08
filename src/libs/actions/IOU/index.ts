@@ -4947,9 +4947,9 @@ type UpdateMoneyRequestDistanceParams = {
     waypoints?: WaypointCollection;
     distance?: number;
     routes?: Routes;
-    policy?: OnyxEntry<OnyxTypes.Policy>;
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
     transactionBackup: OnyxEntry<OnyxTypes.Transaction>;
     currentUserAccountIDParam: number;
     currentUserEmailParam: string;
@@ -4963,9 +4963,9 @@ function updateMoneyRequestDistance({
     waypoints,
     distance,
     routes = undefined,
-    policy = {} as OnyxTypes.Policy,
-    policyTagList = {},
-    policyCategories = {},
+    policy,
+    policyTagList,
+    policyCategories,
     transactionBackup,
     currentUserAccountIDParam,
     currentUserEmailParam,

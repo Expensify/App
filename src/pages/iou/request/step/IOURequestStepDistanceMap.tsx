@@ -89,6 +89,8 @@ function IOURequestStepDistanceMap({
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [transactionBackup] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`, {canBeMissing: true});
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`, {canBeMissing: true});
     const personalPolicy = usePersonalPolicy();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const defaultExpensePolicy = useDefaultExpensePolicy();
@@ -539,6 +541,8 @@ function IOURequestStepDistanceMap({
                     waypoints,
                     ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
                     policy,
+                    policyTagList: policyTags,
+                    policyCategories,
                     transactionBackup,
                     currentUserAccountIDParam,
                     currentUserEmailParam,
