@@ -180,6 +180,9 @@ type CommonListItemProps<TItem extends ListItem> = {
 
     /** Accessibility State tells a person using either VoiceOver on iOS or TalkBack on Android the state of the element currently focused on */
     accessibilityState?: AccessibilityState;
+
+    /** Whether to show the right caret icon */
+    shouldShowRightCaret?: boolean;
 } & TRightHandSideComponent<TItem>;
 
 type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
@@ -291,6 +294,8 @@ type SpendCategorySelectorListItemProps<TItem extends ListItem> = ListItemProps<
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & ForwardedFSClassProps;
 
+type TableListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem> & {
     /** Whether product training tooltips can be displayed */
     canShowProductTrainingTooltip?: boolean;
@@ -331,6 +336,7 @@ export type {
     SpendCategorySelectorListItemProps,
     UserListItemProps,
     InviteMemberListItemProps,
+    TableListItemProps,
     WorkspaceListItemType,
     UserSelectionListItemProps,
 };

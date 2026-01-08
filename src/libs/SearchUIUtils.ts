@@ -597,6 +597,32 @@ function getSuggestedSearches(
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
+        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
+            translationPath: 'search.topSpenders',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.User,
+            searchQuery: buildQueryStringFromFilterFormValues(
+                {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                    dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                },
+                {
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                },
+            ),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
     };
 }
 
@@ -618,6 +644,7 @@ function getSuggestedSearchesVisibility(
     let shouldShowUnapprovedCashSuggestion = false;
     let shouldShowUnapprovedCardSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
+    let shouldShowTopSpendersSuggestion = false;
 
     const hasCardFeed = Object.values(cardFeedsByPolicy ?? {}).some((feeds) => feeds.length > 0);
 
@@ -652,6 +679,8 @@ function getSuggestedSearchesVisibility(
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForReconciliationSuggestion = isPaidPolicy && isAdmin && ((isPaymentEnabled && hasVBBA && hasReimburser) || isECardEnabled);
+        const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
+        const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isApprover);
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
@@ -661,6 +690,7 @@ function getSuggestedSearchesVisibility(
         shouldShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
         shouldShowUnapprovedCardSuggestion ||= isEligibleForUnapprovedCardSuggestion;
         shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
+        shouldShowTopSpendersSuggestion ||= isEligibleForTopSpendersSuggestion;
 
         // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
         return (
@@ -671,7 +701,8 @@ function getSuggestedSearchesVisibility(
             shouldShowStatementsSuggestion &&
             shouldShowUnapprovedCashSuggestion &&
             shouldShowUnapprovedCardSuggestion &&
-            shouldShowReconciliationSuggestion
+            shouldShowReconciliationSuggestion &&
+            shouldShowTopSpendersSuggestion
         );
     });
 
@@ -687,6 +718,7 @@ function getSuggestedSearchesVisibility(
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: shouldShowUnapprovedCashSuggestion,
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: shouldShowUnapprovedCardSuggestion,
         [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowReconciliationSuggestion,
+        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: shouldShowTopSpendersSuggestion,
     };
 }
 
@@ -2846,6 +2878,28 @@ function createTypeMenuSections(
             };
 
             typeMenuSections.push(savedSection);
+        }
+    }
+
+    // Insights section
+    {
+        const insightsSection: SearchTypeMenuSection = {
+            translationPath: 'common.insights',
+            menuItems: [],
+        };
+
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]) {
+            insightsSection.menuItems.push({
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS],
+                emptyState: {
+                    title: 'search.searchResults.emptyResults.title',
+                    subtitle: 'search.searchResults.emptyResults.subtitle',
+                },
+            });
+        }
+
+        if (insightsSection.menuItems.length > 0) {
+            typeMenuSections.push(insightsSection);
         }
     }
 
