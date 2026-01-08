@@ -31,11 +31,6 @@ function useWideModalStackScreenOptions() {
                     cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
                         cardStyle: styles.wideRHPExtendedCardInterpolatorStyles,
                     });
-                    // single RHPs displayed above the wide RHP need to be positioned
-                } else if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
-                    cardStyleInterpolator = enhanceCardStyleInterpolator(CardStyleInterpolators.forHorizontalIOS, {
-                        cardStyle: styles.singleRHPExtendedCardInterpolatorStyles,
-                    });
                 }
             }
 
