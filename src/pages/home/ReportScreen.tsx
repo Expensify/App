@@ -24,7 +24,6 @@ import useShowWideRHPVersion from '@components/WideRHPContextProvider/useShowWid
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentReportID from '@hooks/useCurrentReportID';
-import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -191,7 +190,7 @@ function ReportScreen({route, navigation, isInSidePanel = false}: ReportScreenPr
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
 
-    const permissions = useDeepCompareRef(reportOnyx?.permissions);
+    const permissions = useMemo(() => reportOnyx?.permissions ?? [], [reportOnyx?.permissions]);
 
     const isAnonymousUser = useIsAnonymousUser();
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
