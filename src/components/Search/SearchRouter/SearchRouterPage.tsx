@@ -8,6 +8,4 @@ function SearchRouterPage() {
     return Navigation.navigate(ROUTES.HOME);
 }
 
-SearchRouterPage.displayName = 'SearchRouterPage';
-
 export default SearchRouterPage;

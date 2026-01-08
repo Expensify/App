@@ -8,7 +8,7 @@ function SearchRouterPage() {
 
     return (
         <ScreenWrapper
-            testID={SearchRouterPage.displayName}
+            testID="SearchRouterPage"
             shouldEnableMaxHeight
             enableEdgeToEdgeBottomSafeAreaPadding
             includePaddingTop

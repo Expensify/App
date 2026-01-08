@@ -5,6 +5,4 @@ function SearchRouterModal() {
     return null;
 }
 
-SearchRouterModal.displayName = 'SearchRouterModal';
-
 export default SearchRouterModal;
