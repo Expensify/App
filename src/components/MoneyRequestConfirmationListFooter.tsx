@@ -48,12 +48,14 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import WavePatternDark from '@assets/images/waves-pattern-dark.svg';
+import WavePatternLight from '@assets/images/waves-pattern-light.svg';
 import Badge from './Badge';
 import Button from './Button';
 import ConfirmedRoute from './ConfirmedRoute';
 import MentionReportContext from './HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import Icon from './Icon';
-import Image from './Image';
+import ImageSVG from './ImageSVG';
 import RESIZE_MODES from './Image/resizeModes';
 import ImageWithLoading from './ImageWithLoading';
 import MenuItem from './MenuItem';
@@ -286,6 +288,7 @@ function MoneyRequestConfirmationListFooter({
     const {translate, toLocaleDigit, localeCompare} = useLocalize();
     const {isOffline} = useNetwork();
     const theme = useTheme();
+    const receiptPreviewBackground = theme.colorScheme === CONST.COLOR_SCHEME.DARK ? WavePatternDark : WavePatternLight;
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -927,14 +930,8 @@ function MoneyRequestConfirmationListFooter({
 
     const receiptThumbnailContent = useMemo(() => {
         const receiptPreviewSource = resolvedReceiptImage || resolvedThumbnail;
-        const shouldUseBlurredBackground = shouldRestrictHeight && !isThumbnail && Str.isImage(receiptFilename) && !!receiptPreviewSource;
+        const shouldUsePatternBackground = shouldRestrictHeight && !isThumbnail && Str.isImage(receiptFilename);
         const previewImageSource = receiptPreviewSource ? (typeof receiptPreviewSource === 'string' ? {uri: receiptPreviewSource} : receiptPreviewSource) : undefined;
-        const blurredBackgroundSource = resolvedThumbnail || resolvedReceiptImage || receiptPreviewSource;
-        const blurredBackgroundImageSource = blurredBackgroundSource
-            ? typeof blurredBackgroundSource === 'string'
-                ? {uri: blurredBackgroundSource}
-                : blurredBackgroundSource
-            : previewImageSource;
 
         return (
             <View style={[styles.moneyRequestImage, shouldRestrictHeight ? styles.flex1 : styles.expenseViewImageSmall]}>
@@ -982,14 +979,13 @@ function MoneyRequestConfirmationListFooter({
                         disabledStyle={styles.cursorDefault}
                         style={[styles.h100, styles.flex1]}
                     >
-                        {shouldUseBlurredBackground ? (
+                        {shouldUsePatternBackground ? (
                             <View style={[styles.flex1, styles.pRelative]}>
-                                <Image
-                                    source={blurredBackgroundImageSource}
-                                    resizeMode={RESIZE_MODES.cover}
-                                    blurRadius={16}
-                                    style={[StyleSheet.absoluteFillObject, styles.opacitySemiTransparent]}
-                                    isAuthTokenRequired={shouldRequireAuthToken}
+                                <ImageSVG
+                                    src={receiptPreviewBackground}
+                                    style={StyleSheet.absoluteFillObject}
+                                    pointerEvents="none"
+                                    preserveAspectRatio="xMidYMid slice"
                                 />
                                 <ImageWithLoading
                                     source={previewImageSource}
@@ -1024,7 +1020,6 @@ function MoneyRequestConfirmationListFooter({
         styles.flex1,
         styles.expenseViewImageSmall,
         styles.pRelative,
-        styles.opacitySemiTransparent,
         shouldRestrictHeight,
         isLocalFile,
         receiptFilename,
@@ -1043,6 +1038,7 @@ function MoneyRequestConfirmationListFooter({
         action,
         iouType,
         shouldRequireAuthToken,
+        receiptPreviewBackground,
     ]);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
