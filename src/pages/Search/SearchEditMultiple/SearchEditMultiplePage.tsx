@@ -84,15 +84,12 @@ function SearchEditMultiplePage() {
 
     const isTaxTrackingEnabled = !!policy?.tax?.trackingEnabled;
 
-    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-
     useEffect(() => {
-        if (draftTransaction?.currency === currency) {
+        if (draftTransaction?.transactionID) {
             return;
         }
-
-        initBulkEditDraftTransaction(currency);
-    }, [currency, draftTransaction?.currency]);
+        initBulkEditDraftTransaction();
+    }, [draftTransaction?.transactionID]);
 
     useEffect(() => {
         return () => {
@@ -147,6 +144,7 @@ function SearchEditMultiplePage() {
         Navigation.dismissModal();
     };
 
+    const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const displayCurrency = draftTransaction?.currency ?? currency;
 
     const updateBillable = (billable: boolean) => {

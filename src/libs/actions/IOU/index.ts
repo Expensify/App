@@ -14818,10 +14818,9 @@ function updateMultipleMoneyRequests(
 /**
  * Initializes the draft transaction for bulk editing multiple expenses
  */
-function initBulkEditDraftTransaction(currency: string) {
+function initBulkEditDraftTransaction() {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID}`, {
         transactionID: CONST.IOU.OPTIMISTIC_BULK_EDIT_TRANSACTION_ID,
-        currency,
     });
 }
 
