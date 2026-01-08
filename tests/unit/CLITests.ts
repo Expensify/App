@@ -404,4 +404,67 @@ describe('CLI', () => {
         expect(cli.namedArgs.paths).toEqual(['common.save']);
         expect(cli.namedArgs['compare-ref']).toBeUndefined();
     });
+
+    describe('built-in flags', () => {
+        it('sets --yes flag when present', () => {
+            process.argv.push('--yes');
+            const cli = new CLI({
+                flags: {
+                    verbose: {description: 'Enable verbose mode'},
+                },
+            });
+
+            expect(cli.flags.yes).toBe(true);
+            expect(cli.flags.no).toBe(false);
+        });
+
+        it('sets --no flag when present', () => {
+            process.argv.push('--no');
+            const cli = new CLI({
+                flags: {
+                    verbose: {description: 'Enable verbose mode'},
+                },
+            });
+
+            expect(cli.flags.no).toBe(true);
+            expect(cli.flags.yes).toBe(false);
+        });
+
+        it('--yes and --no default to false', () => {
+            const cli = new CLI({
+                flags: {
+                    verbose: {description: 'Enable verbose mode'},
+                },
+            });
+
+            expect(cli.flags.yes).toBe(false);
+            expect(cli.flags.no).toBe(false);
+        });
+    });
+
+    describe('promptUserConfirmation', () => {
+        it('returns true immediately when --yes flag is set', async () => {
+            process.argv.push('--yes');
+            const cli = new CLI({
+                flags: {
+                    verbose: {description: 'Enable verbose mode'},
+                },
+            });
+
+            const result = await cli.promptUserConfirmation('Continue?');
+            expect(result).toBe(true);
+        });
+
+        it('returns false immediately when --no flag is set', async () => {
+            process.argv.push('--no');
+            const cli = new CLI({
+                flags: {
+                    verbose: {description: 'Enable verbose mode'},
+                },
+            });
+
+            const result = await cli.promptUserConfirmation('Continue?');
+            expect(result).toBe(false);
+        });
+    });
 });
