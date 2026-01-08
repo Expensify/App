@@ -46,6 +46,7 @@ function MoneyRequestReportNavigation({reportID, shouldDisplayNarrowVersion}: Mo
             data: currentSearchResults.data,
             currentAccountID: currentUserDetails.accountID,
             currentUserEmail: currentUserDetails.email ?? '',
+            translate,
             formatPhoneNumber,
             groupBy,
             reportActions: exportReportActions,

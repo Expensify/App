@@ -388,7 +388,6 @@ const searchResults: OnyxTypes.SearchResults = {
         [`report_${reportID5}`]: report5,
         [`transactions_${transactionID}`]: {
             amount: -5000,
-            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -399,7 +398,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Expense',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
@@ -418,7 +417,6 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`transactions_${transactionID2}`]: {
             amount: -5000,
-            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -429,7 +427,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'USD',
             hasEReceipt: false,
             merchant: 'Expense',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: 'Expense',
@@ -449,7 +447,6 @@ const searchResults: OnyxTypes.SearchResults = {
         ...allViolations,
         [`transactions_${transactionID3}`]: {
             amount: 1200,
-            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -460,7 +457,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             merchant: '(none)',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -479,7 +476,6 @@ const searchResults: OnyxTypes.SearchResults = {
         },
         [`transactions_${transactionID4}`]: {
             amount: 3200,
-            canDelete: true,
             cardID: undefined,
             cardName: undefined,
             category: '',
@@ -490,7 +486,7 @@ const searchResults: OnyxTypes.SearchResults = {
             currency: 'VND',
             hasEReceipt: false,
             merchant: '(none)',
-            modifiedAmount: 0,
+            modifiedAmount: '',
             modifiedCreated: '',
             modifiedCurrency: '',
             modifiedMerchant: '',
@@ -765,7 +761,6 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction1,
         holdReportAction: undefined,
-        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -778,7 +773,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: 'Expense',
+        formattedMerchant: '',
         formattedTo: '',
         formattedTotal: 5000,
         from: {
@@ -790,14 +785,14 @@ const transactionsListItems = [
         hasEReceipt: false,
         keyForList: '1',
         merchant: 'Expense',
-        modifiedAmount: 0,
+        modifiedAmount: '',
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         reportID: '123456789',
-        shouldShowMerchant: true,
+        shouldShowMerchant: false,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -825,7 +820,6 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction2,
         holdReportAction: undefined,
-        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -838,7 +832,7 @@ const transactionsListItems = [
         currency: 'USD',
         date: '2024-12-21',
         formattedFrom: 'Admin',
-        formattedMerchant: 'Expense',
+        formattedMerchant: '',
         formattedTo: 'Admin',
         formattedTotal: 5000,
         from: {
@@ -850,13 +844,13 @@ const transactionsListItems = [
         hasEReceipt: false,
         keyForList: '2',
         merchant: 'Expense',
-        modifiedAmount: 0,
+        modifiedAmount: '',
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: 'Expense',
         parentTransactionID: '',
         reportID: '11111',
-        shouldShowMerchant: true,
+        shouldShowMerchant: false,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -895,7 +889,6 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction3,
         holdReportAction: undefined,
-        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -908,7 +901,7 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
-        modifiedAmount: 0,
+        modifiedAmount: '',
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
@@ -933,7 +926,7 @@ const transactionsListItems = [
         formattedTotal: 1200,
         formattedMerchant: '',
         date: '2025-03-05',
-        shouldShowMerchant: true,
+        shouldShowMerchant: false,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -960,7 +953,6 @@ const transactionsListItems = [
         policy,
         reportAction: reportAction4,
         holdReportAction: undefined,
-        canDelete: true,
         cardID: undefined,
         cardName: undefined,
         category: '',
@@ -973,7 +965,7 @@ const transactionsListItems = [
         currency: 'VND',
         hasEReceipt: false,
         merchant: '(none)',
-        modifiedAmount: 0,
+        modifiedAmount: '',
         modifiedCreated: '',
         modifiedCurrency: '',
         modifiedMerchant: '',
@@ -998,7 +990,7 @@ const transactionsListItems = [
         formattedTotal: 3200,
         formattedMerchant: '',
         date: '2025-03-05',
-        shouldShowMerchant: true,
+        shouldShowMerchant: false,
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
         shouldShowYearApproved: false,
@@ -1066,7 +1058,6 @@ const transactionReportGroupListItems = [
                 reportAction: reportAction1,
                 holdReportAction: undefined,
                 amount: -5000,
-                canDelete: true,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1076,7 +1067,7 @@ const transactionReportGroupListItems = [
                 date: '2024-12-21',
                 exported: '',
                 formattedFrom: 'Admin',
-                formattedMerchant: 'Expense',
+                formattedMerchant: '',
                 formattedTo: '',
                 formattedTotal: 5000,
                 from: {
@@ -1088,14 +1079,14 @@ const transactionReportGroupListItems = [
                 hasEReceipt: false,
                 keyForList: '1',
                 merchant: 'Expense',
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                 reportID: '123456789',
-                shouldShowMerchant: true,
+                shouldShowMerchant: false,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
@@ -1172,7 +1163,6 @@ const transactionReportGroupListItems = [
                 reportAction: reportAction2,
                 holdReportAction: undefined,
                 amount: -5000,
-                canDelete: true,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1182,7 +1172,7 @@ const transactionReportGroupListItems = [
                 currency: 'USD',
                 date: '2024-12-21',
                 formattedFrom: 'Admin',
-                formattedMerchant: 'Expense',
+                formattedMerchant: '',
                 formattedTo: 'Admin',
                 formattedTotal: 5000,
                 from: {
@@ -1200,13 +1190,13 @@ const transactionReportGroupListItems = [
                 ],
                 keyForList: '2',
                 merchant: 'Expense',
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: 'Expense',
                 parentTransactionID: '',
                 reportID: '11111',
-                shouldShowMerchant: true,
+                shouldShowMerchant: false,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
@@ -1294,7 +1284,6 @@ const transactionReportGroupListItems = [
                 policy,
                 reportAction: reportAction3,
                 holdReportAction: undefined,
-                canDelete: true,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1304,7 +1293,7 @@ const transactionReportGroupListItems = [
                 currency: 'VND',
                 hasEReceipt: false,
                 merchant: '(none)',
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: '',
@@ -1329,7 +1318,7 @@ const transactionReportGroupListItems = [
                 formattedTotal: 1200,
                 formattedMerchant: '',
                 date: '2025-03-05',
-                shouldShowMerchant: true,
+                shouldShowMerchant: false,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
@@ -1356,7 +1345,6 @@ const transactionReportGroupListItems = [
                 policy,
                 reportAction: reportAction4,
                 holdReportAction: undefined,
-                canDelete: true,
                 cardID: undefined,
                 cardName: undefined,
                 category: '',
@@ -1366,7 +1354,7 @@ const transactionReportGroupListItems = [
                 currency: 'VND',
                 hasEReceipt: false,
                 merchant: '(none)',
-                modifiedAmount: 0,
+                modifiedAmount: '',
                 modifiedCreated: '',
                 modifiedCurrency: '',
                 modifiedMerchant: '',
@@ -1391,7 +1379,7 @@ const transactionReportGroupListItems = [
                 formattedTotal: 3200,
                 formattedMerchant: '',
                 date: '2025-03-05',
-                shouldShowMerchant: true,
+                shouldShowMerchant: false,
                 shouldShowYear: true,
                 shouldShowYearSubmitted: true,
                 shouldShowYearApproved: false,
@@ -1822,6 +1810,119 @@ describe('SearchUIUtils', () => {
             const action = SearchUIUtils.getActions(searchResults.data, {}, iouReportKey, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '').at(0);
             expect(action).toEqual(CONST.SEARCH.ACTION_TYPES.PAY);
         });
+
+        test('Should return `Submit` action when report has DEW_SUBMIT_FAILED action and is still OPEN', async () => {
+            const dewReportID = '999';
+            const dewTransactionID = '9999';
+            const dewReportActionID = '99999';
+
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${dewReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: dewReportID,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                },
+                [`transactions_${dewTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    transactionID: dewTransactionID,
+                    reportID: dewReportID,
+                },
+            };
+
+            const dewReportActions = [
+                {
+                    reportActionID: dewReportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    reportID: dewReportID,
+                    created: '2025-01-01 00:00:00',
+                    originalMessage: {
+                        message: 'DEW submit failed',
+                    },
+                },
+            ] as OnyxTypes.ReportAction[];
+
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', dewReportActions).at(0);
+            expect(action).toStrictEqual(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        });
+
+        test('Should NOT return `View` action when report has DEW_SUBMIT_FAILED action but is not OPEN', async () => {
+            const dewReportID = '888';
+            const dewTransactionID = '8888';
+            const dewReportActionID = '88888';
+
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${dewReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: dewReportID,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                },
+                [`transactions_${dewTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    transactionID: dewTransactionID,
+                    reportID: dewReportID,
+                },
+            };
+
+            const dewReportActions = [
+                {
+                    reportActionID: dewReportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
+                    reportID: dewReportID,
+                    created: '2025-01-01 00:00:00',
+                    originalMessage: {
+                        message: 'DEW submit failed',
+                    },
+                },
+            ] as OnyxTypes.ReportAction[];
+
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${dewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', dewReportActions).at(0);
+            expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
+
+        test('Should NOT return `View` action when report has pending SUBMITTED action on non-DEW policy', async () => {
+            const nonDewReportID = '666';
+            const nonDewTransactionID = '6666';
+            const nonDewReportActionID = '66666';
+
+            const localSearchResults = {
+                ...searchResults.data,
+                [`report_${nonDewReportID}`]: {
+                    ...searchResults.data[`report_${reportID}`],
+                    reportID: nonDewReportID,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                },
+                [`transactions_${nonDewTransactionID}`]: {
+                    ...searchResults.data[`transactions_${transactionID}`],
+                    transactionID: nonDewTransactionID,
+                    reportID: nonDewReportID,
+                },
+            };
+
+            const nonDewReportActions = [
+                {
+                    reportActionID: nonDewReportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    reportID: nonDewReportID,
+                    created: '2025-01-01 00:00:00',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    originalMessage: {
+                        amount: 10000,
+                        currency: 'USD',
+                    },
+                },
+            ] as OnyxTypes.ReportAction[];
+
+            const action = SearchUIUtils.getActions(localSearchResults, {}, `transactions_${nonDewTransactionID}`, CONST.SEARCH.SEARCH_KEYS.EXPENSES, '', nonDewReportActions).at(0);
+            expect(action).not.toStrictEqual(CONST.SEARCH.ACTION_TYPES.VIEW);
+        });
     });
 
     describe('Test getListItem', () => {
@@ -1865,6 +1966,7 @@ describe('SearchUIUtils', () => {
                 data: searchResults.data,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             });
             expect(filteredReportActions).toStrictEqual(reportActionListItems);
@@ -1878,6 +1980,7 @@ describe('SearchUIUtils', () => {
                     data: searchResults.data,
                     currentAccountID: 20745,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                 })[0],
             ).toEqual(transactionsListItems);
@@ -1902,6 +2005,7 @@ describe('SearchUIUtils', () => {
                 data: testSearchResults.data,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             })[0] as TransactionListItemType[];
 
@@ -1910,7 +2014,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 54;
+            const expectedPropertyCount = 53;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1933,6 +2037,7 @@ describe('SearchUIUtils', () => {
                 data: testSearchResults.data,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             })[0] as TransactionGroupListItemType[];
 
@@ -1943,7 +2048,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 51;
+            const expectedPropertyCount = 50;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -1954,6 +2059,7 @@ describe('SearchUIUtils', () => {
                     data: searchResults.data,
                     currentAccountID: 2074551,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                 })[0],
             ).toStrictEqual(transactionReportGroupListItems);
@@ -1993,6 +2099,7 @@ describe('SearchUIUtils', () => {
                 data: testDataTransactionFirst,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             })[0];
             const resultReportFirst = SearchUIUtils.getSections({
@@ -2000,6 +2107,7 @@ describe('SearchUIUtils', () => {
                 data: testDataReportFirst,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
             })[0];
 
@@ -2020,6 +2128,7 @@ describe('SearchUIUtils', () => {
                     data: searchResultsGroupByFrom.data,
                     currentAccountID: 2074551,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.FROM,
                 })[0],
@@ -2033,6 +2142,7 @@ describe('SearchUIUtils', () => {
                     data: searchResultsGroupByCard.data,
                     currentAccountID: 2074551,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
                 })[0],
@@ -2046,6 +2156,7 @@ describe('SearchUIUtils', () => {
                     data: searchResultsGroupByWithdrawalID.data,
                     currentAccountID: 2074551,
                     currentUserEmail: '',
+                    translate: translateLocal,
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
                 })[0],
@@ -2068,6 +2179,7 @@ describe('SearchUIUtils', () => {
                 data: staleCacheData,
                 currentAccountID: 2074551,
                 currentUserEmail: '',
+                translate: translateLocal,
                 formatPhoneNumber,
                 groupBy: CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
             }) as [TransactionWithdrawalIDGroupListItemType[], number];
@@ -2548,7 +2660,6 @@ describe('SearchUIUtils', () => {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     transactions_1805965960759424086: {
                         amount: 0,
-                        canDelete: false,
                         category: 'Employee Meals Remote (Fringe Benefit)',
                         comment: {
                             comment: '',
@@ -2671,7 +2782,6 @@ describe('SearchUIUtils', () => {
                 // eslint-disable-next-line @typescript-eslint/naming-convention
                 transactions_1805965960759424086: {
                     amount: 0,
-                    canDelete: false,
                     cardID: undefined,
                     cardName: undefined,
                     category: 'Employee Meals Remote (Fringe Benefit)',

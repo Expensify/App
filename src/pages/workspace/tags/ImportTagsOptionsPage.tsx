@@ -201,7 +201,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                         shouldShowRightIcon
                         onPress={() => {
                             setImportedSpreadsheetIsImportingMultiLevelTags(false);
-                            if (hasVisibleTags) {
+                            if (hasVisibleTags && isMultiLevelTags) {
                                 setIsSwitchSingleToMultipleLevelTagWarningModalVisible(true);
                             } else {
                                 Navigation.navigate(

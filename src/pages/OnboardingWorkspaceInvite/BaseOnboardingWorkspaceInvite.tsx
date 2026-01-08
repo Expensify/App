@@ -68,14 +68,15 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         );
     }, [policy?.employeeList]);
 
-    const {searchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, searchOptions} = useSearchSelector({
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
-        searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
-        includeUserToInvite: true,
-        excludeLogins: excludedUsers,
-        includeRecentReports: false,
-        shouldInitialize: didScreenTransitionEnd,
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, selectedOptionsForDisplay, toggleSelection, areOptionsInitialized, searchOptions} =
+        useSearchSelector({
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+            searchContext: CONST.SEARCH_SELECTOR.SEARCH_CONTEXT_MEMBER_INVITE,
+            includeUserToInvite: true,
+            excludeLogins: excludedUsers,
+            includeRecentReports: false,
+            shouldInitialize: didScreenTransitionEnd,
+        });
 
     const welcomeNoteSubject = useMemo(
         () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
@@ -85,8 +86,8 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     const welcomeNote = useMemo(() => translate('workspace.common.welcomeNote'), [translate]);
 
     useEffect(() => {
-        searchInServer(searchTerm);
-    }, [searchTerm]);
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
 
     const sections: Sections[] = useMemo(() => {
         const sectionsArr: Sections[] = [];
@@ -194,7 +195,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
     }, [completeOnboarding, onboardingPolicyID, policy?.employeeList, selectedOptions, welcomeNote, welcomeNoteSubject, formatPhoneNumber]);
 
     const headerMessage = useMemo(() => {
-        const searchValue = searchTerm.trim().toLowerCase();
+        const searchValue = debouncedSearchTerm.trim().toLowerCase();
         if (!availableOptions.userToInvite && CONST.EXPENSIFY_EMAILS_OBJECT[searchValue]) {
             return translate('messages.errorMessageInvalidEmail');
         }
@@ -206,7 +207,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
         }
         return getHeaderMessage(searchOptions.personalDetails.length + selectedOptions.length !== 0, !!searchOptions.userToInvite, searchValue, countryCode, false);
     }, [
-        searchTerm,
+        debouncedSearchTerm,
         availableOptions.userToInvite,
         excludedUsers,
         countryCode,
@@ -253,6 +254,7 @@ function BaseOnboardingWorkspaceInvite({shouldUseNativeStyles}: BaseOnboardingWo
             <HeaderWithBackButton
                 progressBarPercentage={100}
                 shouldShowBackButton={false}
+                shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb3]}>
                 <Text style={styles.textHeadlineH1}>{translate('onboarding.inviteMembers.title')}</Text>
