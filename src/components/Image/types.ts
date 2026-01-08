@@ -22,6 +22,9 @@ type BaseImageProps = {
     /** Event for when the image is fully loaded and returns the natural dimensions of the image */
     onLoad?: (event: ImageOnLoadEvent) => void;
 
+    /** Blur radius to apply to the image */
+    blurRadius?: number;
+
     /** Styles for the Image */
     style?: StyleProp<ImageStyle>;
 
@@ -69,6 +72,9 @@ type ImageOwnProps = BaseImageProps & {
 
     /** If you want to calculate the image height dynamically instead of using aspectRatio, pass the width in this property */
     imageWidthToCalculateHeight?: number;
+
+    /** Whether the image should use the full height of the container */
+    shouldUseFullHeight?: boolean;
 };
 
 type ImageProps = ImageOwnProps;

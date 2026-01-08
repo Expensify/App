@@ -143,6 +143,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
     renderScrollComponent,
     shouldShowRightCaret,
     shouldHighlightSelectedItem = true,
+    ListFooterComponentStyle,
     shouldDisableHoverStyle = false,
     setShouldDisableHoverStyle = () => {},
     shouldSkipContentHeaderHeightOffset,
@@ -1078,6 +1079,7 @@ function BaseSelectionListWithSections<TItem extends ListItem>({
                                 {listFooterContent}
                             </>
                         }
+                        ListFooterComponentStyle={ListFooterComponentStyle}
                         onEndReached={handleOnEndReached}
                         onEndReachedThreshold={onEndReachedThreshold}
                         scrollEventThrottle={scrollEventThrottle}
