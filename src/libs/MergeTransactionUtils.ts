@@ -211,7 +211,8 @@ function getMergeableDataAndConflictFields(
     searchReports: Array<OnyxEntry<Report>> = [],
 ) {
     const conflictFields: string[] = [];
-    const mergeableData: Record<string, unknown> = {selectedTransactionByField: {}};
+    const mergeableData: Record<string, unknown> = {};
+    const selectedTransactionByField: Record<string, string | undefined> = {};
 
     const targetTransactionDetails = getTransactionDetails(targetTransaction);
     const sourceTransactionDetails = getTransactionDetails(sourceTransaction);
@@ -303,11 +304,15 @@ function getMergeableDataAndConflictFields(
             });
             Object.assign(mergeableData, updatedValues);
             if (!isEmptyMergeValue(updatedValues[field])) {
-                (mergeableData.selectedTransactionByField as Record<string, string | undefined>)[field] = selectedTransaction?.transactionID;
+                selectedTransactionByField[field] = selectedTransaction?.transactionID;
             }
         } else {
             conflictFields.push(field);
         }
+    }
+
+    if (Object.keys(selectedTransactionByField).length > 0) {
+        mergeableData.selectedTransactionByField = selectedTransactionByField;
     }
 
     return {mergeableData, conflictFields};
