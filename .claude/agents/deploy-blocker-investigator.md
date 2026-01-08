@@ -55,14 +55,14 @@ Auth and Web-Expensify are **private repos**. Your comment will be posted to a p
 
 ## What To Do
 
-1. **Investigate** the issue and find the most likely causing PR
+1. **Investigate** the issue and find the most likely causing PR (This is a staging PR, so it is most likely from a current PR also on staging)
 2. **Comment** on the issue with your findings
 3. **Update labels** based on classification:
 
 | Classification | Label Action |
 |----------------|--------------|
-| Backend bug | Remove `DeployBlockerCash` |
-| Frontend bug | Keep label but remove `DeployBlocker` |
+| Backend bug | Remove `DeployBlockerCash` (doesn't block App deploy) |
+| Frontend bug | Remove `DeployBlocker` if present (doesn't block Web deploy) |
 
 ---
 
@@ -78,16 +78,24 @@ Post ONE comment with:
 2. **Related issues** - any other deploy blockers that might be caused by the same PR
 
 3. **Recommendation** - one of:
-   - **REVERT** - create revert PR, add `CP Staging` label
-   - **ROLL FORWARD** - fix is simpler than revert
+   - **REVERT** - usually for most cases we will try to revert especially if there are many linked PRs
+   - **ROLL FORWARD** - fix is simpler than revert / would involve bad merge resolution / 
    - **NEEDS INVESTIGATION** - couldn't determine cause
+   - **DEMOTE** - The bug is so minimal in it's effect that it is not worth blocking the deploy over
 
-For backend bugs, also state you're removing the `DeployBlockerCash` label.
+State which label you're removing (if any) and why.
 
 ---
 
-## Label Commands
+## Commands
 
 ```bash
+# Post your findings as a comment:
+gh issue comment $ISSUE_NUMBER --body "YOUR_COMMENT_HERE"
+
+# Remove label (backend bugs only):
 gh issue edit $ISSUE_NUMBER --remove-label DeployBlockerCash
+
+# Remove label if confirmed to be frontend bug and label exists
+gh issue edit $ISSUE_NUMBER --remove-label DeployBlocker
 ```
