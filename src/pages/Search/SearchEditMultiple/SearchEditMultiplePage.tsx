@@ -221,7 +221,7 @@ function SearchEditMultiplePage() {
                     ))}
                     {areSelectedTransactionsBillable && (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
-                            <Text>{translate('common.billable')}</Text>
+                            <Text style={[styles.textSupporting]}>{translate('common.billable')}</Text>
                             <Switch
                                 isOn={!!draftTransaction?.billable}
                                 onToggle={updateBillable}
@@ -231,11 +231,11 @@ function SearchEditMultiplePage() {
                     )}
                     {areSelectedTransactionsReimbursable && (
                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.pv3]}>
-                            <Text>{translate('iou.reimbursable')}</Text>
+                            <Text style={[styles.textSupporting]}>{translate('common.reimbursable')}</Text>
                             <Switch
                                 isOn={!!draftTransaction?.reimbursable}
                                 onToggle={updateReimbursable}
-                                accessibilityLabel={translate('iou.reimbursable')}
+                                accessibilityLabel={translate('common.reimbursable')}
                             />
                         </View>
                     )}
