@@ -29,6 +29,7 @@ import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CustomCardFeedData} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import getOnyxValue from '../../utils/getOnyxValue';
@@ -2023,6 +2024,16 @@ describe('SearchUIUtils', () => {
         });
 
         it('should return getCardSections result when type is EXPENSE and groupBy is card', () => {
+            const mockCardFeeds = {
+                policy1: {
+                    settings: {
+                        companyCards: {
+                            [CONST.BANK_NAMES.CHASE]: {} as CustomCardFeedData,
+                            [CONST.BANK_NAMES.AMERICAN_EXPRESS]: {} as CustomCardFeedData,
+                        },
+                    },
+                } as OnyxTypes.CardFeeds,
+            };
             expect(
                 SearchUIUtils.getSections({
                     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
@@ -2032,6 +2043,7 @@ describe('SearchUIUtils', () => {
                     translate: translateLocal,
                     formatPhoneNumber,
                     groupBy: CONST.SEARCH.GROUP_BY.CARD,
+                    cardFeeds: mockCardFeeds,
                 })[0],
             ).toStrictEqual(transactionCardGroupListItems);
         });
