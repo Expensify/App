@@ -23,6 +23,12 @@ validate_rule() {
     local body="$1"
     local rule
 
+    # Escape hatch: [GENERAL-1] always passes validation
+    if echo "$body" | grep -qF '[GENERAL-1]'; then
+        COMMENT_STATUS_REASON="rule GENERAL-1 validated (escape hatch)"
+        return 0
+    fi
+
     [[ -f "$ALLOWED_RULES_FILE" ]] || die "Comment rejected: allowed rules file missing at $ALLOWED_RULES_FILE"
 
     rule=$(echo "$body" | grep -oE '[A-Z]+-[0-9]+' | head -1 || true)

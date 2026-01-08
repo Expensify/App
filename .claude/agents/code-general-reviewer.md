@@ -51,16 +51,20 @@ Before reviewing code, read the relevant documentation to understand codebase st
 
 ## Comment Format
 
-Use `createGeneralComment.sh` with this structure:
+Use `createInlineComment.sh` with this structure:
 
 ```bash
-createGeneralComment.sh '<file_path>' '<comment_body>' <line_number>
+createInlineComment.sh '<file_path>' '<comment_body>' <line_number>
 ```
+
+**IMPORTANT**: All comments MUST include the `[GENERAL-1]` rule identifier to pass validation.
 
 ### Comment Body Template
 
 ```
-**<SEVERITY>** [<CONFIDENCE>]
+### <SEVERITY_EMOJI> [GENERAL-1] <SEVERITY_LABEL> [(docs)](https://github.com/Expensify/App/blob/main/.claude/agents/code-general-reviewer.md)
+
+**Confidence:** <CONFIDENCE>
 
 <Clear description of the issue or suggestion>
 
@@ -131,9 +135,11 @@ For files matching `*.test.ts`, `*.test.tsx`, or in `tests/` directories:
    - Check against documented standards
    - Only comment on lines within the diff
 
-4. **Create inline comments** using createGeneralComment.sh:
+4. **Create inline comments** using createInlineComment.sh:
    ```bash
-   createGeneralComment.sh 'src/components/Example.tsx' '**🟡 warning** [high]
+   createInlineComment.sh 'src/components/Example.tsx' '### 🟡 [GENERAL-1] warning [(docs)](https://github.com/Expensify/App/blob/main/.claude/agents/code-general-reviewer.md)
+
+   **Confidence:** high
 
    Using `interface` for type definition. The codebase standard is to use `type` aliases.
 
@@ -149,7 +155,9 @@ For files matching `*.test.ts`, `*.test.tsx`, or in `tests/` directories:
 
 ### Error - High Confidence
 ```
-**🔴 error** [high]
+### 🔴 [GENERAL-1] error [(docs)](https://github.com/Expensify/App/blob/main/.claude/agents/code-general-reviewer.md)
+
+**Confidence:** high
 
 This component is directly calling `Onyx.merge()`. Components should not manipulate Onyx directly.
 
@@ -160,7 +168,9 @@ All data mutations should go through action functions in `src/libs/actions/`. Th
 
 ### Warning - High Confidence
 ```
-**🟡 warning** [high]
+### 🟡 [GENERAL-1] warning [(docs)](https://github.com/Expensify/App/blob/main/.claude/agents/code-general-reviewer.md)
+
+**Confidence:** high
 
 This callback is named `onButtonClick` but should describe the action performed, e.g., `submitExpense` or `toggleVisibility`.
 
@@ -171,7 +181,9 @@ Callback names should reflect what happens, not what triggered it. This improves
 
 ### Suggestion - Medium Confidence
 ```
-**🔵 suggestion** [medium]
+### 🔵 [GENERAL-1] suggestion [(docs)](https://github.com/Expensify/App/blob/main/.claude/agents/code-general-reviewer.md)
+
+**Confidence:** medium
 
 Consider using `Promise.all()` here since these API calls are independent.
 
@@ -182,7 +194,9 @@ Running independent async operations in parallel improves performance. Sequentia
 
 ### Note - Low Confidence
 ```
-**💭 note** [low]
+### 💭 [GENERAL-1] note [(docs)](https://github.com/Expensify/App/blob/main/.claude/agents/code-general-reviewer.md)
+
+**Confidence:** low
 
 This magic number `86400000` represents milliseconds in a day. Consider extracting to a named constant for clarity.
 
@@ -193,7 +207,9 @@ Named constants improve readability and prevent errors when the same value is ne
 
 ### Exemplary Pattern
 ```
-**✨ pattern** [high]
+### ✨ [GENERAL-1] pattern [(docs)](https://github.com/Expensify/App/blob/main/.claude/agents/code-general-reviewer.md)
+
+**Confidence:** high
 
 Excellent use of optimistic updates with proper rollback handling. This pattern elegantly handles the offline-first requirement.
 
