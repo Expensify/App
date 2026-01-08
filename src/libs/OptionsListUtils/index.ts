@@ -42,6 +42,7 @@ import {
     getIOUReportIDFromReportActionPreview,
     getJoinRequestMessage,
     getLastVisibleMessage,
+    getMarkedReimbursedMessage,
     getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
@@ -683,7 +684,7 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = translateLocal('parentReportAction.hiddenMessage');
     } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        lastMessageTextFromReport = translateLocal('iou.paidElsewhere');
+        lastMessageTextFromReport = getMarkedReimbursedMessage(lastReportAction);
     } else if (isReportMessageAttachment({text: report?.lastMessageText ?? '', html: report?.lastMessageHtml, type: ''})) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
         lastMessageTextFromReport = `[${translateLocal('common.attachment')}]`;
@@ -900,7 +901,6 @@ function createOption(
         isSelfDM: report ? reportUtilsIsSelfDM(report) : false,
         isChatRoom: report ? reportUtilsIsChatRoom(report) : false,
         isInvoiceRoom: report ? isInvoiceRoom(report) : false,
-        isDM: report ? isDM(report) : false,
 
         // Status properties - used in SearchOption context
         private_isArchived: undefined, // Set from reportNameValuePairs below
@@ -1853,7 +1853,6 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
         excludeNonAdminWorkspaces,
         isRestrictedToPreferredPolicy,
         preferredPolicyID,
-        shouldAlwaysIncludeDM,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
 
@@ -1949,7 +1948,7 @@ function isValidReport(option: SearchOption<Report>, config: IsValidReportsConfi
     - It doesn't have a login
     - It is not an invoice room that should be shown
     */
-    if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !option.login && (!option.isDM || !shouldAlwaysIncludeDM) && !shouldShowInvoiceRoom) {
+    if (!isCurrentUserOwnedPolicyExpenseChatThatCouldShow && !includeMultipleParticipantReports && !option.login && !shouldShowInvoiceRoom) {
         return false;
     }
 
