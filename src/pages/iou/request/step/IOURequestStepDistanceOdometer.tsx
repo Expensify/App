@@ -41,7 +41,8 @@ import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat as isPolicyE
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {type Route} from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type Transaction from '@src/types/onyx/Transaction';
@@ -286,7 +287,7 @@ function IOURequestStepDistanceOdometer({
     };
 
     const navigateBack = () => {
-        Navigation.goBack(backTo as Route);
+        Navigation.goBack(backTo);
     };
 
     // Navigate to next page following Manual tab pattern
@@ -332,7 +333,7 @@ function IOURequestStepDistanceOdometer({
         }
 
         if (backToReport) {
-            Navigation.goBack(backTo as Route);
+            Navigation.goBack(backTo);
             return;
         }
 
