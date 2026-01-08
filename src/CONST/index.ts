@@ -729,7 +729,6 @@ const CONST = {
         NO_OPTIMISTIC_TRANSACTION_THREADS: 'noOptimisticTransactionThreads',
         UBER_FOR_BUSINESS: 'uberForBusiness',
         CUSTOM_REPORT_NAMES: 'newExpensifyCustomReportNames',
-        ZERO_EXPENSES: 'zeroExpenses',
         NEW_DOT_DEW: 'newDotDEW',
         GPS_MILEAGE: 'gpsMileage',
     },
@@ -2917,6 +2916,7 @@ const CONST = {
             DISTANCE_MAP: 'distance-map',
             DISTANCE_MANUAL: 'distance-manual',
             DISTANCE_GPS: 'distance-gps',
+            DISTANCE_ODOMETER: 'distance-odometer',
         },
         EXPENSE_TYPE: {
             DISTANCE: 'distance',
@@ -2928,7 +2928,9 @@ const CONST = {
             DISTANCE_MAP: 'distance-map',
             DISTANCE_MANUAL: 'distance-manual',
             DISTANCE_GPS: 'distance-gps',
+            DISTANCE_ODOMETER: 'distance-odometer',
         },
+
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
@@ -5509,6 +5511,7 @@ const CONST = {
         DISTANCE_MAP: 'distance-map',
         DISTANCE_MANUAL: 'distance-manual',
         DISTANCE_GPS: 'distance-gps',
+        DISTANCE_ODOMETER: 'distance-odometer',
     },
 
     STATUS_TEXT_MAX_LENGTH: 100,
@@ -7125,6 +7128,7 @@ const CONST = {
             UNAPPROVED_CASH: 'unapprovedCash',
             UNAPPROVED_CARD: 'unapprovedCard',
             RECONCILIATION: 'reconciliation',
+            TOP_SPENDERS: 'topSpenders',
         },
         GROUP_PREFIX: 'group_',
         ANIMATION: {

@@ -81,6 +81,7 @@ import type {
     OptionalParam,
     OurEmailProviderParams,
     OwnerOwesAmountParams,
+    PaidElsewhereParams,
     ParentNavigationSummaryParams,
     PayAndDowngradeDescriptionParams,
     PayerOwesParams,
@@ -653,6 +654,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: 'Łączna kwota podlegająca zwrotowi',
         nonReimbursableTotal: 'Suma niepodlegająca zwrotowi',
         originalAmount: 'Kwota pierwotna',
+        insights: 'Analizy',
     },
     supportalNoAccess: {
         title: 'Nie tak szybko',
@@ -973,15 +975,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: 'Subskrypcja',
         domains: 'Domeny',
     },
-    tabSelector: {
-        chat: 'Czat',
-        room: 'Pokój',
-        distance: 'Dystans',
-        manual: 'Ręczny',
-        scan: 'Skanuj',
-        map: 'Mapa',
-        gps: 'GPS',
-    },
+    tabSelector: {chat: 'Czat', room: 'Pokój', distance: 'Dystans', manual: 'Ręczny', scan: 'Skanuj', map: 'Mapa', gps: 'GPS', odometer: 'Licznik przebiegu'},
     spreadsheet: {
         upload: 'Prześlij arkusz kalkulacyjny',
         import: 'Importuj arkusz kalkulacyjny',
@@ -1252,7 +1246,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `anulował/anulowała płatność ${amount}, ponieważ ${submitterDisplayName} nie włączył/włączyła swojego portfela Expensify w ciągu 30 dni`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} dodał konto bankowe. Płatność w wysokości ${amount} została wykonana.`,
-        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}oznaczono jako opłacone`,
+        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}oznaczono jako opłacone${comment ? `, mówiąc "${comment}"` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''} zapłacono portfelem`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}zapłacono za pomocą Expensify poprzez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">zasady miejsca pracy</a>`,
@@ -1306,6 +1300,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Stawka nie jest prawidłowa dla tego przestrzeni roboczej. Wybierz dostępną stawkę z tej przestrzeni roboczej.',
             endDateBeforeStartDate: 'Data zakończenia nie może być wcześniejsza niż data rozpoczęcia',
             endDateSameAsStartDate: 'Data zakończenia nie może być taka sama jak data rozpoczęcia',
+            negativeDistanceNotAllowed: 'Odczyt końcowy musi być większy niż odczyt początkowy',
+            invalidReadings: 'Wprowadź zarówno odczyt początkowy, jak i końcowy',
         },
         dismissReceiptError: 'Odrzuć błąd',
         dismissReceiptErrorConfirmation: 'Uwaga! Odrzucenie tego błędu spowoduje całkowite usunięcie przesłanego paragonu. Czy na pewno chcesz kontynuować?',
@@ -1819,6 +1815,8 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Rejestruj żądania Sentry w konsoli',
             sentryHighlightedSpanOps: 'Nazwy wyróżnionych spanów',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            leftHandNavCache: 'Pamięć podręczna lewego panelu nawigacyjnego',
+            clearleftHandNavCache: 'Wyczyść',
         },
         debugConsole: {
             saveLog: 'Zapisz log',
@@ -3828,9 +3826,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} – Ostatnia synchronizacja ${formattedDate}`,
             authenticationError: (connectionName: string) => `Nie można połączyć z ${connectionName} z powodu błędu uwierzytelniania.`,
             learnMore: 'Dowiedz się więcej',
-            memberAlternateText: 'Członkowie mogą przesyłać i zatwierdzać raporty.',
-            adminAlternateText: 'Administratorzy mają pełen dostęp do edycji wszystkich raportów i ustawień przestrzeni roboczej.',
-            auditorAlternateText: 'Audytorzy mogą przeglądać i komentować raporty.',
+            memberAlternateText: 'Zatwierdzaj i przesyłaj raporty.',
+            adminAlternateText: 'Zarządzaj raportami i ustawieniami przestrzeni roboczej.',
+            auditorAlternateText: 'Przeglądaj raporty i komentuj je.',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
@@ -6790,6 +6788,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
             selectAllMatchingItems: 'Zaznacz wszystkie pasujące elementy',
             allMatchingItemsSelected: 'Wybrano wszystkie pasujące elementy',
         },
+        topSpenders: 'Najwięksi wydający',
     },
     genericErrorPage: {
         title: 'Ups, coś poszło nie tak!',
@@ -7085,6 +7084,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
         error: {
             selectSuggestedAddress: 'Wybierz sugerowany adres lub użyj bieżącej lokalizacji',
         },
+        odometer: {startReading: 'Rozpocznij czytanie', endReading: 'Zakończ czytanie', saveForLater: 'Zapisz na później', totalDistance: 'Całkowity dystans'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Świadectwo zgubione lub uszkodzone',

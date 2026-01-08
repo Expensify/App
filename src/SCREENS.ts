@@ -337,6 +337,7 @@ const SCREENS = {
         STEP_DISTANCE_MAP: 'Money_Request_Step_Distance_Map',
         STEP_DISTANCE_MANUAL: 'Money_Request_Step_Distance_Manual',
         STEP_DISTANCE_GPS: 'Money_Request_Step_Distance_GPS',
+        STEP_DISTANCE_ODOMETER: 'Money_Request_Step_Distance_Odometer',
         RECEIPT_PREVIEW: 'Money_Request_Receipt_preview',
     },
 
@@ -681,7 +682,6 @@ const SCREENS = {
         WORKFLOWS_APPROVALS_OVER_LIMIT_APPROVER: 'Workspace_Workflows_Approvals_Over_Limit_Approver',
         WORKFLOWS_AUTO_REPORTING_FREQUENCY: 'Workspace_Workflows_Auto_Reporting_Frequency',
         WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Monthly_Offset',
-        WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: 'Workspace_Workflows_Connect_Existing_Bank_Account',
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',
@@ -807,6 +807,7 @@ const SCREENS = {
     ADD_PERSONAL_BANK_ACCOUNT_ROOT: 'AddPersonalBankAccount_Root',
     REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root',
     REIMBURSEMENT_ACCOUNT_VERIFY_ACCOUNT: 'Reimbursement_Account_Verify_Account',
+    CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT_ROOT: 'Connect_Existing_Business_Bank_Account_Root',
     WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
     SIGN_IN_ROOT: 'SignIn_Root',
     DETAILS_ROOT: 'Details_Root',

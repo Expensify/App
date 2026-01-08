@@ -81,6 +81,7 @@ import type {
     OptionalParam,
     OurEmailProviderParams,
     OwnerOwesAmountParams,
+    PaidElsewhereParams,
     ParentNavigationSummaryParams,
     PayAndDowngradeDescriptionParams,
     PayerOwesParams,
@@ -653,6 +654,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: 'Totaal te vergoeden',
         nonReimbursableTotal: 'Niet-vergoedbaar totaal',
         originalAmount: 'Oorspronkelijk bedrag',
+        insights: 'Inzichten',
     },
     supportalNoAccess: {
         title: 'Niet zo snel',
@@ -973,15 +975,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: 'Abonnement',
         domains: 'Domeinen',
     },
-    tabSelector: {
-        chat: 'Chat',
-        room: 'Kamer',
-        distance: 'Afstand',
-        manual: 'Handmatig',
-        scan: 'Scannen',
-        map: 'Kaart',
-        gps: 'GPS',
-    },
+    tabSelector: {chat: 'Chat', room: 'Kamer', distance: 'Afstand', manual: 'Handmatig', scan: 'Scannen', map: 'Kaart', gps: 'GPS', odometer: 'Kilometerstand'},
     spreadsheet: {
         upload: 'Een spreadsheet uploaden',
         import: 'Spreadsheet importeren',
@@ -1253,7 +1247,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `heeft de betaling van ${amount} geannuleerd, omdat ${submitterDisplayName} hun Expensify Wallet niet binnen 30 dagen heeft ingeschakeld`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} heeft een bankrekening toegevoegd. De betaling van ${amount} is gedaan.`,
-        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}gemarkeerd als betaald`,
+        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}gemarkeerd als betaald${comment ? `, met de opmerking "${comment}"` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''}betaald met wallet`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}betaald met Expensify via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">werkruimte­regels</a>`,
@@ -1308,6 +1302,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Tarief is niet geldig voor deze workspace. Selecteer een beschikbaar tarief uit de workspace.',
             endDateBeforeStartDate: 'De einddatum kan niet vóór de startdatum liggen',
             endDateSameAsStartDate: 'De einddatum mag niet hetzelfde zijn als de startdatum',
+            negativeDistanceNotAllowed: 'Eindstand moet groter zijn dan beginstand',
+            invalidReadings: 'Voer zowel de begin- als eindstanden in',
         },
         dismissReceiptError: 'Foutmelding sluiten',
         dismissReceiptErrorConfirmation: 'Let op! Als je deze foutmelding negeert, wordt je geüploade bon volledig verwijderd. Weet je het zeker?',
@@ -1822,6 +1818,8 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Sentry-verzoeken naar console loggen',
             sentryHighlightedSpanOps: 'Geresalteerde spannamen',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            leftHandNavCache: 'Cache van linkernavigatie',
+            clearleftHandNavCache: 'Wissen',
         },
         debugConsole: {
             saveLog: 'Log opslaan',
@@ -3834,9 +3832,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Laatst gesynchroniseerd ${formattedDate}`,
             authenticationError: (connectionName: string) => `Kan geen verbinding maken met ${connectionName} vanwege een authenticatiefout.`,
             learnMore: 'Meer informatie',
-            memberAlternateText: 'Leden kunnen rapporten indienen en goedkeuren.',
-            adminAlternateText: 'Beheerders hebben volledige bewerkingsrechten voor alle rapporten en werkruimte-instellingen.',
-            auditorAlternateText: 'Auditors kunnen rapporten bekijken en erop reageren.',
+            memberAlternateText: 'Rapporten indienen en goedkeuren.',
+            adminAlternateText: 'Beheer rapporten en werkruimte-instellingen.',
+            auditorAlternateText: 'Bekijk en becommentarieer rapporten.',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
@@ -6803,6 +6801,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
             selectAllMatchingItems: 'Selecteer alle overeenkomende items',
             allMatchingItemsSelected: 'Alle overeenkomende items geselecteerd',
         },
+        topSpenders: 'Grootste uitgaven',
     },
     genericErrorPage: {
         title: 'O jee, er is iets misgegaan!',
@@ -7098,6 +7097,7 @@ Vraag verplichte uitgavedetails zoals bonnetjes en beschrijvingen, stel limieten
         error: {
             selectSuggestedAddress: 'Selecteer een voorgesteld adres of gebruik huidige locatie',
         },
+        odometer: {startReading: 'Begin met lezen', endReading: 'Lezen beëindigen', saveForLater: 'Voor later bewaren', totalDistance: 'Totale afstand'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Rapportkaart kwijt of beschadigd',

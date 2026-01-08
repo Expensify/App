@@ -197,6 +197,10 @@ const ROUTES = {
             return `bank-account/enter-signer-info?policyID=${policyID}&bankAccountID=${bankAccountID}&isCompleted=${isCompleted}` as const;
         },
     },
+    BANK_ACCOUNT_CONNECT_EXISTING_BUSINESS_BANK_ACCOUNT: {
+        route: 'bank-account/connect-existing-business-bank-account',
+        getRoute: (policyID: string) => `bank-account/connect-existing-business-bank-account?policyID=${policyID}` as const,
+    },
     PUBLIC_CONSOLE_DEBUG: {
         route: 'troubleshoot/console',
 
@@ -1181,6 +1185,17 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance-manual/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
+    MONEY_REQUEST_STEP_DISTANCE_ODOMETER: {
+        route: ':action/:iouType/distance-odometer/:transactionID/:reportID',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_ODOMETER route');
+            }
+
+            // eslint-disable-next-line no-restricted-syntax -- Legacy route generation
+            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance-odometer/${transactionID}/${reportID}`, backTo);
+        },
+    },
     MONEY_REQUEST_STEP_DISTANCE_RATE: {
         route: ':action/:iouType/distanceRate/:transactionID/:reportID/:reportActionID?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
@@ -1299,6 +1314,11 @@ const ROUTES = {
         route: 'distance-gps',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backToReport?: string) =>
             `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-gps` as const,
+    },
+    DISTANCE_REQUEST_CREATE_TAB_ODOMETER: {
+        route: 'distance-odometer',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
+            `${action as string}/${iouType as string}/start/${transactionID}/${reportID}/distance-new${backToReport ? `/${backToReport}` : ''}/distance-odometer` as const,
     },
     IOU_SEND_ADD_BANK_ACCOUNT: 'pay/new/add-bank-account',
     IOU_SEND_ADD_DEBIT_CARD: 'pay/new/add-debit-card',
@@ -1739,10 +1759,6 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/workflows` as const;
         },
-    },
-    WORKSPACE_WORKFLOWS_CONNECT_EXISTING_BANK_ACCOUNT: {
-        route: 'workspaces/:policyID/workflows/connect-account',
-        getRoute: (policyID: string) => `workspaces/${policyID}/workflows/connect-account` as const,
     },
     WORKSPACE_WORKFLOWS_APPROVALS_NEW: {
         route: 'workspaces/:policyID/workflows/approvals/new',

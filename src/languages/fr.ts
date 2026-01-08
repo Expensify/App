@@ -81,6 +81,7 @@ import type {
     OptionalParam,
     OurEmailProviderParams,
     OwnerOwesAmountParams,
+    PaidElsewhereParams,
     ParentNavigationSummaryParams,
     PayAndDowngradeDescriptionParams,
     PayerOwesParams,
@@ -654,6 +655,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: 'Total remboursable',
         nonReimbursableTotal: 'Total non remboursable',
         originalAmount: 'Montant d’origine',
+        insights: 'Analyses',
     },
     supportalNoAccess: {
         title: 'Pas si vite',
@@ -976,15 +978,7 @@ const translations: TranslationDeepObject<typeof en> = {
         subscription: 'Abonnement',
         domains: 'Domaines',
     },
-    tabSelector: {
-        chat: 'Discussion',
-        room: 'Salle',
-        distance: 'Distance',
-        manual: 'Manuel',
-        scan: 'Scanner',
-        map: 'Carte',
-        gps: 'GPS',
-    },
+    tabSelector: {chat: 'Discussion', room: 'Salle', distance: 'Distance', manual: 'Manuel', scan: 'Scanner', map: 'Carte', gps: 'GPS', odometer: 'Compteur kilométrique'},
     spreadsheet: {
         upload: 'Téléverser une feuille de calcul',
         import: 'Importer une feuille de calcul',
@@ -1257,7 +1251,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n’a pas activé son Expensify Wallet dans les 30 jours`,
         settledAfterAddedBankAccount: ({submitterDisplayName, amount}: SettledAfterAddedBankAccountParams) =>
             `${submitterDisplayName} a ajouté un compte bancaire. Le paiement de ${amount} a été effectué.`,
-        paidElsewhere: (payer?: string) => `${payer ? `${payer} ` : ''}marqué comme payé`,
+        paidElsewhere: ({payer, comment}: PaidElsewhereParams = {}) => `${payer ? `${payer} ` : ''}marqué comme payé${comment ? `, en disant "${comment}"` : ''}`,
         paidWithExpensify: (payer?: string) => `${payer ? `${payer} ` : ''} a payé avec le portefeuille`,
         automaticallyPaidWithExpensify: (payer?: string) =>
             `${payer ? `${payer} ` : ''}payé avec Expensify via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l’espace de travail</a>`,
@@ -1314,6 +1308,8 @@ const translations: TranslationDeepObject<typeof en> = {
             invalidRate: 'Taux non valide pour cet espace de travail. Veuillez sélectionner un taux disponible dans l’espace de travail.',
             endDateBeforeStartDate: 'La date de fin ne peut pas être antérieure à la date de début',
             endDateSameAsStartDate: 'La date de fin ne peut pas être identique à la date de début',
+            invalidReadings: 'Veuillez saisir les relevés de début et de fin',
+            negativeDistanceNotAllowed: 'La lecture de fin doit être supérieure à la lecture de début',
         },
         dismissReceiptError: 'Ignorer l’erreur',
         dismissReceiptErrorConfirmation: 'Attention ! Ignorer cette erreur supprimera entièrement votre reçu téléchargé. Êtes-vous sûr ?',
@@ -1829,6 +1825,8 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Enregistrer les requêtes Sentry dans la console',
             sentryHighlightedSpanOps: 'Noms de spans mis en valeur',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            leftHandNavCache: 'Cache de navigation gauche',
+            clearleftHandNavCache: 'Effacer',
         },
         debugConsole: {
             saveLog: 'Enregistrer le journal',
@@ -3855,9 +3853,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Dernière synchronisation le ${formattedDate}`,
             authenticationError: (connectionName: string) => `Impossible de se connecter à ${connectionName} en raison d’une erreur d’authentification.`,
             learnMore: 'En savoir plus',
-            memberAlternateText: 'Les membres peuvent soumettre et approuver des rapports.',
-            adminAlternateText: 'Les administrateurs ont un accès complet en modification à tous les rapports et paramètres de l’espace de travail.',
-            auditorAlternateText: 'Les auditeurs peuvent consulter et commenter les rapports.',
+            memberAlternateText: 'Soumettre et approuver des rapports.',
+            adminAlternateText: 'Gérez les rapports et les paramètres de l’espace de travail.',
+            auditorAlternateText: 'Afficher et commenter les rapports.',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
@@ -6841,6 +6839,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
             selectAllMatchingItems: 'Sélectionner tous les éléments correspondants',
             allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
         },
+        topSpenders: 'Plus gros dépensiers',
     },
     genericErrorPage: {
         title: 'Oh oh, quelque chose s’est mal passé !',
@@ -7136,6 +7135,7 @@ Exigez des informations de dépense comme les reçus et les descriptions, défin
         error: {
             selectSuggestedAddress: 'Veuillez sélectionner une adresse suggérée ou utiliser la position actuelle',
         },
+        odometer: {startReading: 'Commencer la lecture', endReading: 'Fin de lecture', saveForLater: 'Enregistrer pour plus tard', totalDistance: 'Distance totale'},
     },
     reportCardLostOrDamaged: {
         screenTitle: 'Bulletin perdu ou endommagé',

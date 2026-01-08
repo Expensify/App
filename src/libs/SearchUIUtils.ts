@@ -598,6 +598,32 @@ function getSuggestedSearches(
                 return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
             },
         },
+        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: {
+            key: CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS,
+            translationPath: 'search.topSpenders',
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            icon: Expensicons.User,
+            searchQuery: buildQueryStringFromFilterFormValues(
+                {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    groupBy: CONST.SEARCH.GROUP_BY.FROM,
+                    dateOn: CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
+                },
+                {
+                    sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                    sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                },
+            ),
+            get searchQueryJSON() {
+                return buildSearchQueryJSON(this.searchQuery);
+            },
+            get hash() {
+                return this.searchQueryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+            get similarSearchHash() {
+                return this.searchQueryJSON?.similarSearchHash ?? CONST.DEFAULT_NUMBER_ID;
+            },
+        },
     };
 }
 
@@ -619,6 +645,7 @@ function getSuggestedSearchesVisibility(
     let shouldShowUnapprovedCashSuggestion = false;
     let shouldShowUnapprovedCardSuggestion = false;
     let shouldShowReconciliationSuggestion = false;
+    let shouldShowTopSpendersSuggestion = false;
 
     const hasCardFeed = Object.values(cardFeedsByPolicy ?? {}).some((feeds) => feeds.length > 0);
 
@@ -653,6 +680,8 @@ function getSuggestedSearchesVisibility(
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && isPaymentEnabled;
         const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && isAdmin && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForReconciliationSuggestion = isPaidPolicy && isAdmin && ((isPaymentEnabled && hasVBBA && hasReimburser) || isECardEnabled);
+        const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
+        const isEligibleForTopSpendersSuggestion = isPaidPolicy && (isAdmin || isAuditor || isApprover);
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
@@ -662,6 +691,7 @@ function getSuggestedSearchesVisibility(
         shouldShowUnapprovedCashSuggestion ||= isEligibleForUnapprovedCashSuggestion;
         shouldShowUnapprovedCardSuggestion ||= isEligibleForUnapprovedCardSuggestion;
         shouldShowReconciliationSuggestion ||= isEligibleForReconciliationSuggestion;
+        shouldShowTopSpendersSuggestion ||= isEligibleForTopSpendersSuggestion;
 
         // We don't need to check the rest of the policies if we already determined that all suggestions should be displayed
         return (
@@ -672,7 +702,8 @@ function getSuggestedSearchesVisibility(
             shouldShowStatementsSuggestion &&
             shouldShowUnapprovedCashSuggestion &&
             shouldShowUnapprovedCardSuggestion &&
-            shouldShowReconciliationSuggestion
+            shouldShowReconciliationSuggestion &&
+            shouldShowTopSpendersSuggestion
         );
     });
 
@@ -688,6 +719,7 @@ function getSuggestedSearchesVisibility(
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CASH]: shouldShowUnapprovedCashSuggestion,
         [CONST.SEARCH.SEARCH_KEYS.UNAPPROVED_CARD]: shouldShowUnapprovedCardSuggestion,
         [CONST.SEARCH.SEARCH_KEYS.RECONCILIATION]: shouldShowReconciliationSuggestion,
+        [CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]: shouldShowTopSpendersSuggestion,
     };
 }
 
@@ -720,7 +752,7 @@ function getTransactionItemCommonFormattedProperties(
     const formattedTotal = getTransactionAmount(transactionItem, isExpenseReport);
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem, policy);
-    const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT ? '' : merchant;
+    const formattedMerchant = merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ? '' : merchant;
     const submitted = report?.submitted;
     const approved = report?.approved;
 
@@ -786,7 +818,7 @@ function getShouldShowMerchant(data: OnyxTypes.SearchResults['data']): boolean {
         if (isTransactionEntry(key)) {
             const item = data[key];
             const merchant = item.modifiedMerchant ? item.modifiedMerchant : (item.merchant ?? '');
-            return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT;
+            return merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
         }
         return false;
     });
@@ -856,7 +888,7 @@ function isAmountTooLong(amount: number, maxLength = 8): boolean {
 
 function isTransactionAmountTooLong(transactionItem: TransactionListItemType | OnyxTypes.Transaction) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const amount = Math.abs(Number(transactionItem.modifiedAmount) || transactionItem.amount);
+    const amount = Math.abs(transactionItem.modifiedAmount || transactionItem.amount);
     return isAmountTooLong(amount);
 }
 
@@ -2850,6 +2882,28 @@ function createTypeMenuSections(
         }
     }
 
+    // Insights section
+    {
+        const insightsSection: SearchTypeMenuSection = {
+            translationPath: 'common.insights',
+            menuItems: [],
+        };
+
+        if (suggestedSearchesVisibility[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS]) {
+            insightsSection.menuItems.push({
+                ...suggestedSearches[CONST.SEARCH.SEARCH_KEYS.TOP_SPENDERS],
+                emptyState: {
+                    title: 'search.searchResults.emptyResults.title',
+                    subtitle: 'search.searchResults.emptyResults.subtitle',
+                },
+            });
+        }
+
+        if (insightsSection.menuItems.length > 0) {
+            typeMenuSections.push(insightsSection);
+        }
+    }
+
     // Explore section
     {
         const exploreSection: SearchTypeMenuSection = {
@@ -3208,7 +3262,7 @@ function getColumnsToShow(
     const {moneyRequestReportActionsByTransactionID} = Array.isArray(data) ? {} : createReportActionsLookupMaps(data);
     const updateColumns = (transaction: OnyxTypes.Transaction) => {
         const merchant = transaction.modifiedMerchant ? transaction.modifiedMerchant : (transaction.merchant ?? '');
-        if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && merchant !== CONST.TRANSACTION.DEFAULT_MERCHANT) || isScanning(transaction)) {
+        if ((merchant !== '' && merchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT) || isScanning(transaction)) {
             columns[CONST.SEARCH.TABLE_COLUMNS.MERCHANT] = true;
         }
 
