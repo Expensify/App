@@ -2957,8 +2957,8 @@ function getAutoPayApprovedReportsEnabledMessage(translate: LocalizedTranslate, 
     return translate('workspaceActions.updatedAutoPayApprovedReports', {enabled: !!enabled});
 }
 
-function getAutoPayApprovedReportsLimitMessage(translate: LocalizedTranslate, action: ReportAction): string {
-    const {oldLimit, newLimit, currency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_LIMIT>) ?? {};
+function getAutoReimbursementMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const {oldLimit, newLimit, currency} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT>) ?? {};
 
     const oldLimitValue = oldLimit ?? 0;
     const newLimitValue = newLimit ?? 0;
@@ -3701,7 +3701,7 @@ export {
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getAutoPayApprovedReportsEnabledMessage,
-    getAutoPayApprovedReportsLimitMessage,
+    getAutoReimbursementMessage,
     getDefaultApproverUpdateMessage,
     getSubmitsToUpdateMessage,
     getForwardsToUpdateMessage,

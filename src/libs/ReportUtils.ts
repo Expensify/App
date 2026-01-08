@@ -176,7 +176,7 @@ import {
     getActionableJoinRequestPendingReportAction,
     getAllReportActions,
     getAutoPayApprovedReportsEnabledMessage,
-    getAutoPayApprovedReportsLimitMessage,
+    getAutoReimbursementMessage,
     getCardIssuedMessage,
     getChangedApproverActionMessage,
     getDefaultApproverUpdateMessage,
@@ -5716,11 +5716,7 @@ function getReportName(
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getAutoPayApprovedReportsLimitMessage(translateLocal, parentReportAction);
-    }
-    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_LIMIT)) {
-        // eslint-disable-next-line @typescript-eslint/no-deprecated
-        return getAutoPayApprovedReportsLimitMessage(translateLocal, parentReportAction);
+        return getAutoReimbursementMessage(translateLocal, parentReportAction);
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER)) {
         // eslint-disable-next-line @typescript-eslint/no-deprecated
