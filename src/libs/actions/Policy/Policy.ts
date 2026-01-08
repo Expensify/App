@@ -846,7 +846,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         });
     }
 
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -860,7 +860,7 @@ function setWorkspaceApprovalMode(policyID: string, approver: string, approvalMo
         optimisticData.push(...nextStepOptimisticData);
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
