@@ -5,14 +5,14 @@ keywords: [New Expensify, book flight, flight search, travel booking, out of pol
 ---
 
 <div id="new-expensify" markdown="1">
+# Book a flight in New Expensify
+Book flights easily with Expensify Travel. This guide walks you through finding flights, booking them, and accessing your travel details in New Expensify.
 
-Book flights easily through Expensify’s built-in travel booking tool. This guide walks you through finding flights, booking them, and accessing your travel details in New Expensify.
-
-# Where to find Travel
+## Where to find Expensify Travel
 
 Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
 
-If you don’t see the **Book travel** option, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
+If you don’t see **Book travel**, ask a Workspace Admin to [enable Expensify Travel](https://help.expensify.com/articles/travel/company-setup/Enable-Travel-on-a-Workspace) on the workspace. 
 
 # How to book a flight
 
@@ -35,7 +35,7 @@ If you don’t see the **Book travel** option, ask a Workspace Admin to [enable 
 7. Select an existing trip or create a new one to assign the booking.
 8. Confirm your payment method and click **Book Flight**.
 
-# What happens next
+## What happens after booking with Expensify Travel 
 
 - Your company’s travel policy may require approval before final confirmation.
 - You’ll receive a confirmation email after booking.
@@ -65,7 +65,7 @@ Yes! The receipt is SmartScanned and added to an expense report once the flight 
 Yes — but it depends on your fare and the airline’s policy. If changes are made through support, a $25 booking change fee applies.
 To modify or cancel a booking:
 1. Tap the green ➕ **Create** button at the bottom of your screen, then choose **Book travel**.
-2. In the windown that opens, click the Trips tab.
+2. In the window that opens, click the **Trips** tab.
 3. Find your trip and click **Modify or Cancel**
 
 ## Where can I view my trip itinerary?
