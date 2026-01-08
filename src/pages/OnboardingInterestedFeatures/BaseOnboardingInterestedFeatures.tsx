@@ -83,9 +83,9 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 enabledByDefault: true,
             },
             {
-                id: CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
-                title: translate('workspace.moreFeatures.invoices.title'),
-                icon: illustrations.InvoiceBlue,
+                id: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
+                title: translate('workspace.moreFeatures.travel.title'),
+                icon: illustrations.Luggage,
             },
             {
                 id: CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED,
@@ -115,9 +115,9 @@ function BaseOnboardingInterestedFeatures({shouldUseNativeStyles}: BaseOnboardin
                 requiresUpdate: true,
             },
             {
-                id: CONST.POLICY.MORE_FEATURES.IS_TRAVEL_ENABLED,
-                title: translate('workspace.moreFeatures.travel.title'),
-                icon: illustrations.Luggage,
+                id: CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED,
+                title: translate('workspace.moreFeatures.invoices.title'),
+                icon: illustrations.InvoiceBlue,
             },
         ];
     }, [
