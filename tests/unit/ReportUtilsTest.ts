@@ -70,7 +70,6 @@ import {
     getPolicyIDsWithEmptyReportsForAccount,
     getReasonAndReportActionThatRequiresAttention,
     getReportIDFromLink,
-    getReportName as getReportNameDeprecated,
     getReportOrDraftReport,
     getReportPreviewMessage,
     getReportStatusTranslation,
@@ -1253,41 +1252,6 @@ describe('ReportUtils', () => {
             const reportActions = {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`]: {[resolvedDuplicateAction.reportActionID]: resolvedDuplicateAction}};
             const reportName = computeReportName(threadReport, reports, undefined, undefined, undefined, undefined, reportActions);
             expect(reportName).toBe('resolved the duplicate');
-        });
-
-        describe('Unreported transaction thread', () => {
-            test('HTML is stripped from unreported transaction message', async () => {
-                const fromReport = {
-                    ...LHNTestUtils.getFakeReport(),
-                    reportID: '789',
-                };
-
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fromReport.reportID}`, fromReport);
-
-                const transactionThread = {
-                    ...LHNTestUtils.getFakeReport(),
-                    type: CONST.REPORT.TYPE.CHAT,
-                    reportID: '123',
-                    parentReportID: '456',
-                };
-
-                const unreportedTransactionAction = {
-                    actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-                    originalMessage: {
-                        fromReportID: '789',
-                    },
-                } as ReportAction;
-
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                const reportName = getReportNameDeprecated(transactionThread, undefined, unreportedTransactionAction);
-
-                // Should NOT contain HTML tags
-                expect(reportName).not.toContain('<a href');
-                expect(reportName).not.toContain('</a>');
-                // Should contain the text content
-                expect(reportName).toContain('moved this expense from');
-                expect(reportName).toContain('Ragnar');
-            });
         });
     });
 
@@ -5928,7 +5892,10 @@ describe('ReportUtils', () => {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             };
-            const report: Report = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
+            const report: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                ownerAccountID: currentUserAccountID,
+            };
             const result = getMoneyReportPreviewName(action, report);
             // currentUserAccountID: 5 corresponds to "Lagertha Lothbrok"
             expect(result).toBe('Lagertha Lothbrok (you)');

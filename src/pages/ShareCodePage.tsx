@@ -23,6 +23,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
@@ -30,7 +31,6 @@ import {
     getParentNavigationSubtitle,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
-    getReportName,
     isExpenseReport,
     isMoneyRequestReport,
 } from '@libs/ReportUtils';
@@ -99,7 +99,6 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
         return currentUserPersonalDetails.login;
     }, [report, currentUserPersonalDetails.login, isReport, isReportArchived, isParentReportArchived, formatPhoneNumber]);
 
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
     const title = isReport ? getReportName(report) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
