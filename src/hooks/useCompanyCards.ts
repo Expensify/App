@@ -1,7 +1,7 @@
 import type {OnyxCollection, OnyxEntry, ResultMetadata} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {getCompanyCardFeed, getCompanyFeeds, getPlaidInstitutionId, getSelectedFeed} from '@libs/CardUtils';
-import type CONST from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CardList} from '@src/types/onyx';
 import type {AssignableCardsList, WorkspaceCardsList} from '@src/types/onyx/Card';
@@ -43,7 +43,11 @@ type UseCompanyCardsResult = Partial<{
 };
 
 function useCompanyCards({policyID, feedName: feedNameProp}: UseCompanyCardsProps): UseCompanyCardsResult {
-    const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
+    // If an empty string is passed, we need to use an invalid key to avoid fetching the whole collection.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const policyIDKey = policyID || CONST.DEFAULT_MISSING_ID;
+
+    const [lastSelectedFeed, lastSelectedFeedMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyIDKey}`, {canBeMissing: true});
     const [allCardFeeds, allCardFeedsMetadata] = useCardFeeds(policyID);
 
     const feedName = feedNameProp ?? getSelectedFeed(lastSelectedFeed, allCardFeeds);
