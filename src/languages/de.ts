@@ -72,7 +72,6 @@ import type {
     LearnMoreRouteParams,
     LeftWorkspaceParams,
     LocalTimeParams,
-    LoggedInAsParams,
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
@@ -764,14 +763,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify wird gestartet',
         expired: 'Ihre Sitzung ist abgelaufen.',
         signIn: 'Bitte melden Sie sich erneut an.',
-        redirectedToDesktopApp: 'Wir haben Sie zur Desktop-App weitergeleitet.',
-        youCanAlso: 'Sie können auch',
-        openLinkInBrowser: 'Öffne diesen Link in deinem Browser',
-        loggedInAs: ({email}: LoggedInAsParams) => `Sie sind als ${email} angemeldet. Klicken Sie im Dialogfeld auf „Link öffnen“, um sich mit diesem Konto bei der Desktop-App anzumelden.`,
-        doNotSeePrompt: 'Du kannst den Prompt nicht sehen?',
-        tryAgain: 'Erneut versuchen',
-        or: ', oder',
-        continueInWeb: 'Weiter zur Web-App',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -846,12 +837,6 @@ const translations: TranslationDeepObject<typeof en> = {
             header: 'Reisen und Ausgaben – mit der Geschwindigkeit eines Chats',
             body: 'Willkommen bei der nächsten Generation von Expensify, in der Ihre Reisen und Ausgaben dank kontextbezogenem Chat in Echtzeit schneller abgewickelt werden.',
         },
-    },
-    thirdPartySignIn: {
-        alreadySignedIn: (email: string) => `Du bist bereits als ${email} angemeldet.`,
-        goBackMessage: ({provider}: GoBackMessageParams) => `Möchtest du dich nicht mit ${provider} anmelden?`,
-        continueWithMyCurrentSession: 'Mit meiner aktuellen Sitzung fortfahren',
-        redirectToDesktopMessage: 'Wir leiten dich zur Desktop-App weiter, sobald du dich angemeldet hast.',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Mit Single Sign-On weiter anmelden:',
@@ -1572,29 +1557,38 @@ const translations: TranslationDeepObject<typeof en> = {
     nextStep: {
         message: {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warte darauf, dass <strong>du</strong> Ausgaben hinzufügst.`;
+                        return `Warten auf <strong>dich</strong>, um Ausgaben hinzuzufügen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten auf <strong>${actor}</strong>, um Ausgaben hinzuzufügen.`;
+                        return `Warten, bis <strong>${actor}</strong> Ausgaben hinzufügt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Warten darauf, dass ein Admin Ausgaben hinzufügt.`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Warte darauf, dass <strong>du</strong> Spesen einreichst.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Warten darauf, dass <strong>${actor}</strong> Ausgaben einreicht.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Warten auf einen Admin, der Ausgaben einreicht.`;
                 }
             },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Keine weiteren Maßnahmen erforderlich!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten darauf, dass <strong>Sie</strong> ein Bankkonto hinzufügen.`;
+                        return `Warten auf <strong>dich</strong>, um ein Bankkonto hinzuzufügen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `Warten darauf, dass <strong>${actor}</strong> ein Bankkonto hinzufügt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf einen Admin, um ein Bankkonto hinzuzufügen.`;
+                        return `Warten auf einen Admin, der ein Bankkonto hinzufügt.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: ({actor, actorType, eta, etaType}: NextStepParams) => {
@@ -1602,19 +1596,17 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `am ${eta}` : ` ${eta}`;
                 }
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warten darauf, dass <strong>deine</strong> Spesen automatisch eingereicht werden${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten darauf, dass die Spesen von <strong>${actor}</strong> automatisch eingereicht werden${formattedETA}.`;
+                        return `Warten darauf, dass die Ausgaben von <strong>${actor}</strong> automatisch eingereicht werden${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten darauf, dass die Ausgaben eines Admins automatisch eingereicht werden${formattedETA}.`;
+                        return `Warten darauf, dass die Spesen eines Admins automatisch eingereicht werden${formattedETA}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1626,51 +1618,47 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten auf <strong>deine</strong> Genehmigung von Ausgaben.`;
+                        return `Warte darauf, dass <strong>du</strong> Ausgaben genehmigst.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten auf die Genehmigung der Ausgaben durch <strong>${actor}</strong>.`;
+                        return `Warten auf <strong>${actor}</strong>, um Spesen zu genehmigen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf die Genehmigung von Ausgaben durch einen Admin.`;
+                        return `Warten auf die Genehmigung von Spesen durch einen Admin.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `Warte darauf, dass <strong>du</strong> diesen Bericht exportierst.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten darauf, dass <strong>${actor}</strong> diesen Bericht exportiert.`;
+                        return `Warten, bis <strong>${actor}</strong> diesen Bericht exportiert.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `Warten auf einen Admin, um diesen Bericht zu exportieren.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten darauf, dass <strong>du</strong> Spesen bezahlst.`;
+                        return `Warte darauf, dass <strong>du</strong> Spesen bezahlst.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten, bis <strong>${actor}</strong> die Spesen bezahlt.`;
+                        return `Warten auf <strong>${actor}</strong>, um Spesen zu bezahlen.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf einen Admin, um Auslagen zu bezahlen.`;
+                        return `Warten auf einen Admin, der Spesen bezahlt.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Warten darauf, dass <strong>du</strong> die Einrichtung eines Geschäftskontos abschließt.`;
+                        return `Warte darauf, dass <strong>du</strong> die Einrichtung eines Geschäftskontos abschließt.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Warten darauf, dass <strong>${actor}</strong> die Einrichtung eines Geschäftskontos abschließt.`;
+                        return `Warten, bis <strong>${actor}</strong> die Einrichtung eines Geschäftskontos abgeschlossen hat.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Warten auf einen Admin, der die Einrichtung eines Geschäftskontos abschließt.`;
+                        return `Warten auf einen Admin, der das Geschäftskonto fertig einrichtet.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
@@ -1680,6 +1668,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `Warten auf Abschluss der Zahlung${formattedETA}.`;
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
+                `Ups! Sie scheinen diesen Bericht bei <strong>sich selbst</strong> einzureichen. Das Genehmigen eigener Berichte ist in Ihrem Workspace <strong>verboten</strong>. Bitte reichen Sie diesen Bericht bei jemand anderem ein oder kontaktieren Sie Ihren Admin, um die Person zu ändern, an die Sie Berichte einreichen.`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'in Kürze',
@@ -1794,7 +1785,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updateRequired: 'Update erforderlich',
         pleaseInstall: 'Bitte auf die neueste Version von New Expensify aktualisieren',
         pleaseInstallExpensifyClassic: 'Bitte installiere die neueste Version von Expensify',
-        toGetLatestChanges: 'Für Mobilgeräte oder Desktop laden Sie die neueste Version herunter und installieren Sie sie. Für das Web aktualisieren Sie Ihren Browser.',
+        toGetLatestChanges: 'Für Mobilgeräte laden Sie die neueste Version herunter und installieren Sie sie. Für das Web aktualisieren Sie Ihren Browser.',
         newAppNotAvailable: 'Die neue Expensify-App ist nicht mehr verfügbar.',
     },
     initialSettingsPage: {
@@ -1814,9 +1805,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             ios: {
                 label: 'iOS',
-            },
-            desktop: {
-                label: 'macOS',
             },
         },
         troubleshoot: {
@@ -2299,7 +2287,25 @@ ${amount} für ${merchant} – ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'Der Genehmiger konnte nicht geändert werden. Bitte versuche es erneut oder kontaktiere den Support.',
-        header: 'Zur Genehmigung an dieses Mitglied senden:',
+        title: 'Zur Genehmigung an dieses Mitglied senden:',
+        description: 'Diese Person wird die Ausgaben genehmigen.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Genehmiger',
+        header: '(Optional) Möchten Sie ein Genehmigungslimit hinzufügen?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Fügen Sie einen weiteren Genehmiger hinzu, wenn <strong>${approverName}</strong> Genehmiger ist und der Bericht den folgenden Betrag überschreitet:`
+                : 'Fügen Sie einen weiteren Genehmiger hinzu, wenn der Bericht den folgenden Betrag überschreitet:',
+        reportAmountLabel: 'Berichtsbetrag',
+        additionalApproverLabel: 'Zusätzlicher Genehmiger',
+        skip: 'Überspringen',
+        next: 'Weiter',
+        removeLimit: 'Limit entfernen',
+        enterAmountError: 'Bitte geben Sie einen gültigen Betrag ein',
+        enterApproverError: 'Ein Genehmiger ist erforderlich, wenn Sie ein Berichtslimit festlegen',
+        enterBothError: 'Geben Sie einen Berichtsbetrag und einen zusätzlichen Genehmiger ein',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Berichte über ${approvalLimit} werden an ${approverName} weitergeleitet`,
     },
     workflowsPayerPage: {
         title: 'Autorisierter Zahler',
@@ -4859,7 +4865,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             customCloseDate: 'Benutzerdefiniertes Abschlussdatum',
             letsDoubleCheck: 'Lass uns noch einmal überprüfen, ob alles richtig aussieht.',
             confirmationDescription: 'Wir beginnen sofort mit dem Import der Transaktionen.',
-            cardholder: 'Karteninhaber',
             card: 'Karte',
             cardName: 'Kartenname',
             brokenConnectionError:
@@ -6870,74 +6875,6 @@ Fordere Spesendetails wie Belege und Beschreibungen an, lege Limits und Standard
             message: 'Expensify kann Anhänge ohne Speicherzugriff nicht speichern. Tippe auf „Einstellungen“, um die Berechtigungen zu aktualisieren.',
         },
     },
-    desktopApplicationMenu: {
-        mainMenu: 'Neues Expensify',
-        about: 'Über New Expensify',
-        update: 'Neue Expensify-Version aktualisieren',
-        checkForUpdates: 'Auf Updates prüfen',
-        toggleDevTools: 'Entwicklertools umschalten',
-        viewShortcuts: 'Tastenkürzel anzeigen',
-        services: 'Dienste',
-        hide: 'Neues Expensify ausblenden',
-        hideOthers: 'Andere ausblenden',
-        showAll: 'Alle anzeigen',
-        quit: 'New Expensify beenden',
-        fileMenu: 'Datei',
-        closeWindow: 'Fenster schließen',
-        editMenu: 'Bearbeiten',
-        undo: 'Rückgängig',
-        redo: 'Wiederholen',
-        cut: 'Ausschneiden',
-        copy: 'Kopieren',
-        paste: 'Einfügen',
-        pasteAndMatchStyle: 'Einsetzen und Stil anpassen',
-        pasteAsPlainText: 'Als unformatierten Text einfügen',
-        delete: 'Löschen',
-        selectAll: 'Alle auswählen',
-        speechSubmenu: 'Sprache',
-        startSpeaking: 'Sprechen starten',
-        stopSpeaking: 'Sprachausgabe stoppen',
-        viewMenu: 'Anzeigen',
-        reload: 'Neu laden',
-        forceReload: 'Neu laden erzwingen',
-        resetZoom: 'Tatsächliche Größe',
-        zoomIn: 'Vergrößern',
-        zoomOut: 'Verkleinern',
-        togglefullscreen: 'Vollbild umschalten',
-        historyMenu: 'Verlauf',
-        back: 'Zurück',
-        forward: 'Weiterleiten',
-        windowMenu: 'Fenster',
-        minimize: 'Minimieren',
-        zoom: 'Zoom',
-        front: 'Alle nach vorne bringen',
-        helpMenu: 'Hilfe',
-        learnMore: 'Mehr erfahren',
-        documentation: 'Dokumentation',
-        communityDiscussions: 'Community-Diskussionen',
-        searchIssues: 'Probleme suchen',
-    },
-    historyMenu: {
-        forward: 'Weiterleiten',
-        back: 'Zurück',
-    },
-    checkForUpdatesModal: {
-        available: {
-            title: 'Aktualisierung verfügbar',
-            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) =>
-                `Die neue Version wird in Kürze verfügbar sein.${!isSilentUpdating ? 'Wir benachrichtigen dich, sobald wir bereit sind, das Update durchzuführen.' : ''}`,
-            soundsGood: 'Klingt gut',
-        },
-        notAvailable: {
-            title: 'Aktualisierung nicht verfügbar',
-            message: 'Derzeit ist kein Update verfügbar. Bitte versuchen Sie es später noch einmal!',
-            okay: 'OK',
-        },
-        error: {
-            title: 'Update-Überprüfung fehlgeschlagen',
-            message: 'Wir konnten nicht nach einem Update suchen. Bitte versuche es in Kürze erneut.',
-        },
-    },
     settlement: {
         status: {
             pending: 'Ausstehend',
@@ -8025,11 +7962,11 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             confirm: 'Entfernungsverfolgung verwerfen',
         },
         zeroDistanceTripModal: {title: 'Ausgabe kann nicht erstellt werden', prompt: 'Sie können keine Ausgabe mit demselben Start- und Zielort erstellen.'},
-    },
-    desktopAppRetiredPage: {
-        title: 'Desktop-App wurde eingestellt',
-        body: 'Die neue Expensify Desktop-App für Mac wurde eingestellt. Bitte verwenden Sie künftig die Web-App, um auf Ihr Konto zuzugreifen.',
-        goToWeb: 'Zur Web-App gehen',
+        desktop: {
+            title: 'Entfernung auf deinem Handy verfolgen',
+            subtitle: 'Protokolliere Meilen oder Kilometer automatisch mit GPS und verwandle Fahrten sofort in Ausgaben.',
+            button: 'App herunterladen',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

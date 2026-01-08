@@ -111,6 +111,7 @@ function ReportActionItemMessageEdit({
     ref,
 }: ReportActionItemMessageEditProps) {
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE, {canBeMissing: true});
+    const {email} = useCurrentUserPersonalDetails();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -154,7 +155,6 @@ function ReportActionItemMessageEdit({
     const originalParentReportID = getOriginalReportID(originalReportID, action);
     const isOriginalParentReportArchived = useReportIsArchived(originalParentReportID);
     const ancestors = useAncestors(originalReport);
-    const {email} = useCurrentUserPersonalDetails();
 
     useEffect(() => {
         draftMessageVideoAttributeCache.clear();

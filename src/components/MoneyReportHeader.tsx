@@ -537,6 +537,7 @@ function MoneyReportHeader({
                     paymentMethodType: type,
                     chatReport,
                     invoiceReport: moneyRequestReport,
+                    invoiceReportCurrentNextStepDeprecated: nextStep,
                     introSelected,
                     currentUserAccountIDParam: accountID,
                     currentUserEmailParam: email ?? '',
@@ -548,7 +549,7 @@ function MoneyReportHeader({
                 });
             } else {
                 startAnimation();
-                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, undefined, true, activePolicy, policy);
+                payMoneyRequest(type, chatReport, moneyRequestReport, introSelected, nextStep, undefined, true, activePolicy, policy);
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
                         searchKey: currentSearchKey,
@@ -569,17 +570,18 @@ function MoneyReportHeader({
             showDelegateNoAccessModal,
             startAnimation,
             moneyRequestReport,
+            nextStep,
             introSelected,
+            accountID,
+            email,
             existingB2BInvoiceReport,
-            shouldCalculateTotals,
             activePolicy,
             policy,
             currentSearchQueryJSON,
-            currentSearchKey,
             isOffline,
+            currentSearchKey,
+            shouldCalculateTotals,
             currentSearchResults?.search?.isLoading,
-            accountID,
-            email,
         ],
     );
 
@@ -1739,6 +1741,7 @@ function MoneyReportHeader({
                     paymentType={paymentType}
                     chatReport={chatReport}
                     moneyRequestReport={moneyRequestReport}
+                    hasNonHeldExpenses={!hasOnlyHeldExpenses}
                     startAnimation={() => {
                         if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
                             startApprovedAnimation();
