@@ -86,4 +86,6 @@ function ListHeader<TItem extends ListItem>({
     );
 }
 
+ListHeader.displayName = 'ListHeader';
+
 export default React.memo(ListHeader);

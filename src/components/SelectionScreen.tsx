@@ -192,7 +192,7 @@ function SelectionScreen<T = string>({
                         <ErrorMessageRow
                             errors={errors}
                             errorRowStyles={errorRowStyles}
-                            onClose={onClose}
+                            onDismiss={onClose}
                         />
                     </SelectionList>
                 </OfflineWithFeedback>

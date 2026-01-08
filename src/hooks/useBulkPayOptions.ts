@@ -35,6 +35,7 @@ type UseBulkPayOptionProps = {
     isCurrencySupportedWallet?: boolean;
     currency: string | undefined;
     formattedAmount: string;
+    onlyShowPayElsewhere: boolean;
 };
 
 type UseBulkPayOptionReturnType = {
@@ -52,6 +53,7 @@ function useBulkPayOptions({
     isCurrencySupportedWallet,
     currency,
     formattedAmount,
+    onlyShowPayElsewhere,
 }: UseBulkPayOptionProps): UseBulkPayOptionReturnType {
     const icons = useMemoizedLazyExpensifyIcons(['Building', 'User', 'Bank', 'Cash', 'Wallet']);
     const {translate} = useLocalize();
@@ -133,6 +135,10 @@ function useBulkPayOptions({
 
         if (!selectedReportID || !selectedPolicyID) {
             return undefined;
+        }
+
+        if (onlyShowPayElsewhere) {
+            return [paymentMethods[CONST.IOU.PAYMENT_TYPE.ELSEWHERE]];
         }
 
         if (shouldShowBusinessBankAccountOptions) {
@@ -237,6 +243,7 @@ function useBulkPayOptions({
         chatReport,
         getPaymentSubitems,
         formattedAmount,
+        onlyShowPayElsewhere,
     ]);
 
     return {

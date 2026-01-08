@@ -1,5 +1,7 @@
 import Emojis, {importEmojiLocale} from '@assets/emojis';
 import type {Emoji} from '@assets/emojis/types';
+// eslint-disable-next-line no-restricted-syntax
+import * as Browser from '@libs/Browser';
 import {buildEmojisTrie} from '@libs/EmojiTrie';
 // eslint-disable-next-line no-restricted-syntax
 import * as EmojiUtils from '@libs/EmojiUtils';
@@ -278,6 +280,167 @@ describe('EmojiTest', () => {
                 {text: ' test ', isEmoji: false},
                 {text: '🙂', isEmoji: true},
             ]);
+        });
+    });
+
+    describe('insertZWNJBetweenDigitAndEmoji', () => {
+        // ZWNJ character for comparison
+        const ZWNJ = '\u200C';
+
+        // Mock isSafari to return true for these tests since the function only applies on Safari
+        beforeEach(() => {
+            jest.spyOn(Browser, 'isSafari').mockReturnValue(true);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('should insert ZWNJ between a single digit and emoji', () => {
+            // Given a digit immediately followed by an emoji
+            const input = '1😄';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then ZWNJ should be inserted between the digit and emoji
+            expect(result).toBe(`1${ZWNJ}😄`);
+        });
+
+        it('should insert ZWNJ between multiple digits and emoji', () => {
+            // Given multiple digits immediately followed by an emoji
+            const input = '234😄';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then ZWNJ should be inserted only between the last digit and emoji
+            expect(result).toBe(`234${ZWNJ}😄`);
+        });
+
+        it('should handle multiple digit-emoji pairs in the same string', () => {
+            // Given a string with multiple digit-emoji pairs
+            const input = '1😄 2🚀 3👍';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then ZWNJ should be inserted for each pair
+            expect(result).toBe(`1${ZWNJ}😄 2${ZWNJ}🚀 3${ZWNJ}👍`);
+        });
+
+        it('should not modify text with space between digit and emoji', () => {
+            // Given a digit followed by a space and then an emoji
+            const input = '1 😄';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then the text should remain unchanged
+            expect(result).toBe('1 😄');
+        });
+
+        it('should not modify text with only digits', () => {
+            // Given text with only digits
+            const input = '12345';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then the text should remain unchanged
+            expect(result).toBe('12345');
+        });
+
+        it('should not modify text with only emojis', () => {
+            // Given text with only emojis
+            const input = '😄🚀👍';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then the text should remain unchanged
+            expect(result).toBe('😄🚀👍');
+        });
+
+        it('should not modify emoji followed by digit', () => {
+            // Given an emoji followed by a digit
+            const input = '😄1';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then the text should remain unchanged
+            expect(result).toBe('😄1');
+        });
+
+        it('should handle empty string', () => {
+            // Given an empty string
+            const input = '';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then the result should be an empty string
+            expect(result).toBe('');
+        });
+
+        it('should handle text without digits or emojis', () => {
+            // Given regular text without digits or emojis
+            const input = 'Hello World';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then the text should remain unchanged
+            expect(result).toBe('Hello World');
+        });
+
+        it('should handle mixed content with digit-emoji pairs', () => {
+            // Given mixed content with text, digits, and emojis
+            const input = 'Hello 5😄 World';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then ZWNJ should be inserted only between digit and emoji
+            expect(result).toBe(`Hello 5${ZWNJ}😄 World`);
+        });
+
+        it('should handle all digit types (0-9)', () => {
+            // Given all digit types followed by emojis
+            const inputs = ['0😄', '1😄', '2😄', '3😄', '4😄', '5😄', '6😄', '7😄', '8😄', '9😄'];
+            // When we process each with insertZWNJBetweenDigitAndEmoji
+            // Then ZWNJ should be inserted for each
+            for (const input of inputs) {
+                const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+                expect(result).toBe(`${input[0]}${ZWNJ}${input.slice(1)}`);
+            }
+        });
+
+        it('should handle various emoji types from different Unicode ranges', () => {
+            // Given digits followed by emojis from different Unicode ranges
+            // Miscellaneous Symbols (U+2600-U+27BF)
+            expect(EmojiUtils.insertZWNJBetweenDigitAndEmoji('1☀')).toBe(`1${ZWNJ}☀`);
+            // Miscellaneous Symbols and Pictographs (U+1F300-U+1F5FF)
+            expect(EmojiUtils.insertZWNJBetweenDigitAndEmoji('1🌟')).toBe(`1${ZWNJ}🌟`);
+            // Emoticons (U+1F600-U+1F64F)
+            expect(EmojiUtils.insertZWNJBetweenDigitAndEmoji('1😀')).toBe(`1${ZWNJ}😀`);
+            // Transport and Map Symbols (U+1F680-U+1F6FF)
+            expect(EmojiUtils.insertZWNJBetweenDigitAndEmoji('1🚀')).toBe(`1${ZWNJ}🚀`);
+        });
+
+        it('should handle consecutive digit-emoji pairs without spaces', () => {
+            // Given consecutive digit-emoji pairs
+            const input = '1😄2🚀3👍';
+            // When we process it with insertZWNJBetweenDigitAndEmoji
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then ZWNJ should be inserted for each pair
+            expect(result).toBe(`1${ZWNJ}😄2${ZWNJ}🚀3${ZWNJ}👍`);
+        });
+
+        it('should simulate the Safari keycap bug scenario - typing "234:smile:"', () => {
+            // Given the scenario where a user types "234" then adds :smile: emoji
+            // After emoji shortcode conversion, we get "234😄"
+            const afterEmojiConversion = '234😄';
+            // When we apply the ZWNJ fix
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(afterEmojiConversion);
+            // Then ZWNJ should be inserted to prevent Safari's keycap sequence detection
+            expect(result).toBe(`234${ZWNJ}😄`);
+            // Verify the ZWNJ is actually in the string
+            expect(result.includes(ZWNJ)).toBe(true);
+            // Verify the result is different from input (ZWNJ was added)
+            expect(result.length).toBe(afterEmojiConversion.length + 1);
+        });
+
+        it('should return input unchanged on non-Safari browsers', () => {
+            // Given we're not on Safari
+            jest.spyOn(Browser, 'isSafari').mockReturnValue(false);
+            // When we process a digit + emoji string
+            const input = '234😄';
+            const result = EmojiUtils.insertZWNJBetweenDigitAndEmoji(input);
+            // Then the text should remain unchanged (no ZWNJ inserted)
+            expect(result).toBe('234😄');
+            expect(result.includes(ZWNJ)).toBe(false);
         });
     });
 });

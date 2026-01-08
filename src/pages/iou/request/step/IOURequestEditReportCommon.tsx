@@ -248,6 +248,10 @@ function IOURequestEditReportCommon({
     );
 
     const handleSelectReport = (item: TransactionGroupListItem) => {
+        if (item.value === selectedReportID) {
+            navigateBack();
+            return;
+        }
         if (!validatePerDiemMove(item.policyID)) {
             return;
         }
@@ -341,6 +345,7 @@ function IOURequestEditReportCommon({
             <ConfirmModal
                 isVisible={perDiemWarningModalVisible}
                 onConfirm={hidePerDiemWarningModal}
+                onCancel={hidePerDiemWarningModal}
                 title={translate('iou.moveExpenses', {count: transactionIDs?.length ?? 1})}
                 prompt={translate('iou.moveExpensesError')}
                 confirmText={translate('common.buttonConfirm')}
