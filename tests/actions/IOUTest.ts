@@ -89,7 +89,7 @@ import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, PersonalDetailsList, Policy, PolicyTagLists, RecentlyUsedTags, Report, ReportNameValuePairs, SearchResults} from '@src/types/onyx';
-import type {Accountant, Attendee} from '@src/types/onyx/IOU';
+import type {Accountant, Attendee, SplitExpense} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -11763,6 +11763,288 @@ describe('actions/IOU', () => {
 
             const result = getReportOriginalCreationTimestamp(report);
             expect(result).toBe(reportCreatedTimestamp);
+        });
+    });
+
+    describe('Report Totals Calculation for Split Expenses', () => {
+        function calculateReportTotalsForSplitExpenses(
+            expenseReport: Report | undefined,
+            splitExpenses: SplitExpense[],
+            allReportsList: Record<string, Report> | undefined,
+            changesInReportTotal: number,
+        ): Map<string, number> {
+            const reportTotals = new Map<string, number>();
+            const expenseReportID = expenseReport?.reportID;
+
+            if (expenseReportID) {
+                const expenseReportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`;
+                const expenseReportTotal = allReportsList?.[expenseReportKey]?.total ?? expenseReport?.total ?? 0;
+                reportTotals.set(expenseReportID, expenseReportTotal - changesInReportTotal);
+            }
+
+            for (const expense of splitExpenses) {
+                const splitExpenseReportID = expense.reportID;
+                if (!splitExpenseReportID || reportTotals.has(splitExpenseReportID)) {
+                    continue;
+                }
+
+                const splitExpenseReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitExpenseReportID}`];
+                reportTotals.set(splitExpenseReportID, splitExpenseReport?.total ?? 0);
+            }
+
+            return reportTotals;
+        }
+
+        it('should calculate expense report total minus changes when expense report ID exists', () => {
+            const expenseReport: Report = {
+                reportID: 'report1',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [];
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {
+                    reportID: 'report1',
+                    total: 10000,
+                } as Report,
+            };
+            const changesInReportTotal = 2000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(1);
+            expect(result.get('report1')).toBe(8000); // 10000 - 2000
+        });
+
+        it('should use expense report total directly when not in allReportsList', () => {
+            const expenseReport: Report = {
+                reportID: 'report1',
+                total: 15000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [];
+            const allReportsList = {}; // Empty, so should fall back to expenseReport.total
+            const changesInReportTotal = 3000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(1);
+            expect(result.get('report1')).toBe(12000); // 15000 - 3000
+        });
+
+        it('should use allReportsList total when it differs from expense report total', () => {
+            const expenseReport: Report = {
+                reportID: 'report1',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [];
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}report1`]: {
+                    reportID: 'report1',
+                    total: 12000, // Different from expenseReport.total
+                } as Report,
+            };
+            const changesInReportTotal = 2000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(1);
+            expect(result.get('report1')).toBe(10000); // 12000 - 2000 (uses allReportsList value)
+        });
+
+        it('should add split expenses from different reports to the map', () => {
+            const expenseReport: Report = {
+                reportID: 'mainReport',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [
+                {
+                    reportID: 'splitReport1',
+                    amount: 2000,
+                } as SplitExpense,
+                {
+                    reportID: 'splitReport2',
+                    amount: 3000,
+                } as SplitExpense,
+            ];
+
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
+                    reportID: 'mainReport',
+                    total: 10000,
+                } as Report,
+                [`${ONYXKEYS.COLLECTION.REPORT}splitReport1`]: {
+                    reportID: 'splitReport1',
+                    total: 5000,
+                } as Report,
+                [`${ONYXKEYS.COLLECTION.REPORT}splitReport2`]: {
+                    reportID: 'splitReport2',
+                    total: 7000,
+                } as Report,
+            };
+            const changesInReportTotal = 1000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(3);
+            expect(result.get('mainReport')).toBe(9000); // 10000 - 1000
+            expect(result.get('splitReport1')).toBe(5000);
+            expect(result.get('splitReport2')).toBe(7000);
+        });
+
+        it('should skip split expenses without reportID', () => {
+            const expenseReport: Report = {
+                reportID: 'mainReport',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [
+                {
+                    reportID: undefined,
+                    amount: 2000,
+                } as SplitExpense,
+                {
+                    reportID: 'splitReport1',
+                    amount: 3000,
+                } as SplitExpense,
+            ];
+
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
+                    reportID: 'mainReport',
+                    total: 10000,
+                } as Report,
+                [`${ONYXKEYS.COLLECTION.REPORT}splitReport1`]: {
+                    reportID: 'splitReport1',
+                    total: 5000,
+                } as Report,
+            };
+            const changesInReportTotal = 1000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(2); // Only mainReport and splitReport1
+            expect(result.get('mainReport')).toBe(9000);
+            expect(result.get('splitReport1')).toBe(5000);
+        });
+
+        it('should skip split expenses that are already in reportTotals', () => {
+            const expenseReport: Report = {
+                reportID: 'mainReport',
+                total: 10000,
+            } as Report;
+
+            // Two split expenses with the same reportID
+            const splitExpenses: SplitExpense[] = [
+                {
+                    reportID: 'splitReport1',
+                    amount: 2000,
+                } as SplitExpense,
+                {
+                    reportID: 'splitReport1', // Duplicate reportID
+                    amount: 3000,
+                } as SplitExpense,
+                {
+                    reportID: 'splitReport2',
+                    amount: 1500,
+                } as SplitExpense,
+            ];
+
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
+                    reportID: 'mainReport',
+                    total: 10000,
+                } as Report,
+                [`${ONYXKEYS.COLLECTION.REPORT}splitReport1`]: {
+                    reportID: 'splitReport1',
+                    total: 5000,
+                } as Report,
+                [`${ONYXKEYS.COLLECTION.REPORT}splitReport2`]: {
+                    reportID: 'splitReport2',
+                    total: 3000,
+                } as Report,
+            };
+            const changesInReportTotal = 1000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(3);
+            expect(result.get('mainReport')).toBe(9000);
+            expect(result.get('splitReport1')).toBe(5000); // Should only be added once
+            expect(result.get('splitReport2')).toBe(3000);
+        });
+
+        it('should default split expense report total to 0 when not found in allReportsList', () => {
+            const expenseReport: Report = {
+                reportID: 'mainReport',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [
+                {
+                    reportID: 'splitReport1',
+                    amount: 2000,
+                } as SplitExpense,
+            ];
+
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
+                    reportID: 'mainReport',
+                    total: 10000,
+                } as Report,
+                // splitReport1 is NOT in allReportsList
+            };
+            const changesInReportTotal = 1000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(2);
+            expect(result.get('mainReport')).toBe(9000);
+            expect(result.get('splitReport1')).toBe(0); // Defaults to 0
+        });
+
+        it('should handle empty split expenses array', () => {
+            const expenseReport: Report = {
+                reportID: 'mainReport',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [];
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
+                    reportID: 'mainReport',
+                    total: 10000,
+                } as Report,
+            };
+            const changesInReportTotal = 2000;
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(1);
+            expect(result.get('mainReport')).toBe(8000);
+        });
+
+        it('should handle negative changesInReportTotal', () => {
+            const expenseReport: Report = {
+                reportID: 'mainReport',
+                total: 10000,
+            } as Report;
+
+            const splitExpenses: SplitExpense[] = [];
+            const allReportsList = {
+                [`${ONYXKEYS.COLLECTION.REPORT}mainReport`]: {
+                    reportID: 'mainReport',
+                    total: 10000,
+                } as Report,
+            };
+            const changesInReportTotal = -2000; // Negative change
+
+            const result = calculateReportTotalsForSplitExpenses(expenseReport, splitExpenses, allReportsList, changesInReportTotal);
+
+            expect(result.size).toBe(1);
+            expect(result.get('mainReport')).toBe(12000); // 10000 - (-2000) = 12000
         });
     });
 });
