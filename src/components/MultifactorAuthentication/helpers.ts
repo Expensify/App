@@ -1,9 +1,106 @@
 import {PrivateKeyStore, PublicKeyStore} from '@libs/MultifactorAuthentication/Biometrics/KeyStore';
 import {SECURE_STORE_VALUES} from '@libs/MultifactorAuthentication/Biometrics/SecureStore';
-import type {MultifactorAuthenticationPartialStatus, MultifactorAuthenticationStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
+import type {MultifactorAuthenticationFactor, MultifactorAuthenticationPartialStatus, MultifactorAuthenticationStatus} from '@libs/MultifactorAuthentication/Biometrics/types';
+import {requestBiometricChallenge} from '@userActions/MultifactorAuthentication';
 import CONST from '@src/CONST';
 import type {AllMultifactorAuthenticationNotificationType, MultifactorAuthenticationScenario} from './config/types';
-import type {AuthTypeName, NoScenarioForStatusReason, NotificationPaths} from './types';
+import type {AuthTypeName, BiometricsStatus, NoScenarioForStatusReason, NotificationPaths} from './types';
+
+const failedStep = {
+    wasRecentStepSuccessful: false,
+    isRequestFulfilled: true,
+    requiredFactorForNextStep: undefined,
+};
+
+const createAuthorizeErrorStatus = (errorStatus: MultifactorAuthenticationPartialStatus<boolean, true>) => (prevStatus: MultifactorAuthenticationStatus<boolean>) => ({
+    ...prevStatus,
+    ...errorStatus,
+    step: {
+        ...failedStep,
+    },
+});
+
+function doesDeviceSupportBiometrics() {
+    const {biometrics, credentials} = PublicKeyStore.supportedAuthentication;
+    return biometrics || credentials;
+}
+
+async function isBiometryConfigured(accountID: number) {
+    const {value: localPublicKey} = await PublicKeyStore.get(accountID);
+    const {publicKeys: authPublicKeys = []} = await requestBiometricChallenge();
+
+    const isAnyDeviceRegistered = !!authPublicKeys.length;
+    const isBiometryRegisteredLocally = !!localPublicKey;
+    const isLocalPublicKeyInAuth = isBiometryRegisteredLocally && authPublicKeys.includes(localPublicKey);
+
+    return {
+        isAnyDeviceRegistered,
+        isBiometryRegisteredLocally,
+        isLocalPublicKeyInAuth,
+    };
+}
+
+const createBaseStep = (wasSuccessful: boolean, isRequestFulfilled: boolean, requiredFactor?: MultifactorAuthenticationFactor) => ({
+    wasRecentStepSuccessful: wasSuccessful,
+    isRequestFulfilled,
+    requiredFactorForNextStep: requiredFactor,
+});
+
+function createUnsupportedDeviceStatus(prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> {
+    return {
+        ...prevStatus,
+        value: {
+            isAnyDeviceRegistered: prevStatus.value.isAnyDeviceRegistered,
+            isLocalPublicKeyInAuth: false,
+            isBiometryRegisteredLocally: false,
+        },
+        step: createBaseStep(false, true),
+    };
+}
+
+function createValidateCodeMissingStatus(prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> {
+    return {
+        ...prevStatus,
+        step: createBaseStep(false, false, CONST.MULTIFACTOR_AUTHENTICATION.FACTORS.VALIDATE_CODE),
+        reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.BACKEND.VALIDATE_CODE_MISSING,
+    };
+}
+
+function createKeyErrorStatus({reason, type}: MultifactorAuthenticationPartialStatus<boolean, true>) {
+    return (prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> => ({
+        ...prevStatus,
+        reason,
+        type,
+        step: createBaseStep(false, true),
+    });
+}
+
+function createRegistrationResultStatus(partialStatus: Partial<MultifactorAuthenticationPartialStatus<BiometricsStatus>>) {
+    return (prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> => ({
+        ...prevStatus,
+        ...partialStatus,
+        step: createBaseStep(!!partialStatus.step?.wasRecentStepSuccessful, true),
+    });
+}
+
+function createCancelStatus(wasRecentStepSuccessful?: boolean) {
+    return (prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> => ({
+        ...prevStatus,
+        step: {
+            isRequestFulfilled: true,
+            wasRecentStepSuccessful,
+            requiredFactorForNextStep: undefined,
+        },
+    });
+}
+
+function createRefreshStatusStatus(setupStatus: BiometricsStatus, overwriteStatus?: Partial<MultifactorAuthenticationStatus<BiometricsStatus>>) {
+    return (prevStatus: MultifactorAuthenticationStatus<BiometricsStatus>): MultifactorAuthenticationStatus<BiometricsStatus> => ({
+        ...prevStatus,
+        ...overwriteStatus,
+        value: setupStatus,
+    });
+}
 
 const getAuthTypeName = <T>({type}: MultifactorAuthenticationPartialStatus<T>): AuthTypeName | undefined =>
     Object.values(SECURE_STORE_VALUES.AUTH_TYPE).find(({CODE}) => CODE === type)?.NAME;
@@ -55,7 +152,14 @@ async function resetKeys(accountID: number) {
 }
 
 const Status = {
+    createUnsupportedDeviceStatus,
+    createValidateCodeMissingStatus,
+    createKeyErrorStatus,
+    createRegistrationResultStatus,
+    createCancelStatus,
+    createBaseStep,
+    createRefreshStatusStatus,
     createEmptyStatus,
 } as const;
 
-export {getAuthTypeName, getNotificationPaths, isValidScenario, shouldClearScenario, resetKeys, Status};
+export {getAuthTypeName, doesDeviceSupportBiometrics, isBiometryConfigured, isValidScenario, shouldClearScenario, getNotificationPaths, createAuthorizeErrorStatus, resetKeys, Status};
