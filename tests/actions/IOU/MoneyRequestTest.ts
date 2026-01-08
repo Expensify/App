@@ -519,7 +519,7 @@ describe('MoneyRequest', () => {
             expect(IOU.requestMoney).not.toHaveBeenCalled();
         });
 
-        it(`should assing participants from report and navigate to confirmation page when not from global create menu`, async () => {
+        it(`should assign participants from report and navigate to confirmation page when not from global create menu`, async () => {
             handleMoneyRequestStepScanParticipants({
                 ...baseParams,
                 iouType: CONST.IOU.TYPE.TRACK,
