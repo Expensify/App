@@ -119,6 +119,4 @@ function InteractiveStepWrapper({
     );
 }
 
-InteractiveStepWrapper.displayName = 'InteractiveStepWrapper';
-
 export default InteractiveStepWrapper;

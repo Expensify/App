@@ -28,6 +28,4 @@ function AttachmentCommentFragment({addExtraMargin, html, source, styleAsDeleted
     );
 }
 
-AttachmentCommentFragment.displayName = 'AttachmentCommentFragment';
-
 export default AttachmentCommentFragment;

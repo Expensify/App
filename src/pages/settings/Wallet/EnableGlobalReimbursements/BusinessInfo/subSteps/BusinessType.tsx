@@ -67,6 +67,4 @@ function BusinessType({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-BusinessType.displayName = 'BusinessType';
-
 export default BusinessType;

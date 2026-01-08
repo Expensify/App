@@ -8,7 +8,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useIsBlockedToAddFeed from '@hooks/useIsBlockedToAddFeed';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {navigateToConciergeChat} from '@libs/actions/Report';
@@ -39,7 +38,6 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [addNewCardFeed, addNewCardFeedMetadata] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
     const {currentStep} = addNewCardFeed ?? {};
-    const {isBetaEnabled} = usePermissions();
     const {isBlockedToAddNewFeeds, isAllFeedsResultLoading} = useIsBlockedToAddFeed(policyID);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const {translate} = useLocalize();
@@ -49,13 +47,17 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     const isAddCardFeedLoading = isLoadingOnyxValue(addNewCardFeedMetadata);
 
     useEffect(() => {
-        if (!policyID || !isBlockedToAddNewFeeds) {
+        // Only redirect if blocked AND user is trying to start a new flow (currentStep is SELECT_BANK or undefined/initial state)
+        // Don't redirect if user is already in the middle of adding a feed (other steps)
+        // Don't redirect if user just successfully added a feed (isNewFeedConnected would be true in BankConnection)
+        const isInitialStep = !currentStep || currentStep === CONST.COMPANY_CARDS.STEP.SELECT_BANK;
+        if (!policyID || !isBlockedToAddNewFeeds || !isInitialStep) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias, ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
             forceReplace: true,
         });
-    }, [isBlockedToAddNewFeeds, policyID]);
+    }, [isBlockedToAddNewFeeds, policyID, currentStep]);
 
     useEffect(() => {
         return () => {
@@ -80,7 +82,7 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     if (isActingAsDelegate) {
         return (
             <ScreenWrapper
-                testID={AddNewCardPage.displayName}
+                testID="AddNewCardPage"
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
             >
@@ -119,13 +121,18 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
             CurrentStep = <PlaidConnectionStep onExit={() => setIsModalVisible(true)} />;
             break;
         case CONST.COMPANY_CARDS.STEP.SELECT_STATEMENT_CLOSE_DATE:
-            CurrentStep = <StatementCloseDateStep policyID={policyID} />;
+            CurrentStep = (
+                <StatementCloseDateStep
+                    policyID={policyID}
+                    workspaceAccountID={workspaceAccountID}
+                />
+            );
             break;
         case CONST.COMPANY_CARDS.STEP.SELECT_DIRECT_STATEMENT_CLOSE_DATE:
             CurrentStep = <DirectStatementCloseDateStep policyID={policyID} />;
             break;
         default:
-            CurrentStep = isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) ? <SelectCountryStep policyID={policyID} /> : <SelectBankStep />;
+            CurrentStep = <SelectCountryStep policyID={policyID} />;
             break;
     }
 
@@ -149,5 +156,4 @@ function AddNewCardPage({policy}: WithPolicyAndFullscreenLoadingProps) {
     );
 }
 
-AddNewCardPage.displayName = 'AddNewCardPage';
 export default withPolicyAndFullscreenLoading(AddNewCardPage);

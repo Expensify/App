@@ -130,6 +130,4 @@ function WorkspaceOwnerPaymentCardForm({policy}: WorkspaceOwnerPaymentCardFormPr
     );
 }
 
-WorkspaceOwnerPaymentCardForm.displayName = 'WorkspaceOwnerPaymentCardForm';
-
 export default WorkspaceOwnerPaymentCardForm;

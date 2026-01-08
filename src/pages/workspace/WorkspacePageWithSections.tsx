@@ -202,7 +202,7 @@ function WorkspacePageWithSections({
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
-            testID={testID ?? WorkspacePageWithSections.displayName}
+            testID={testID ?? 'WorkspacePageWithSections'}
             shouldShowOfflineIndicator={!shouldShow}
             shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen && !shouldShow}
         >
@@ -248,7 +248,5 @@ function WorkspacePageWithSections({
         </ScreenWrapper>
     );
 }
-
-WorkspacePageWithSections.displayName = 'WorkspacePageWithSections';
 
 export default withPolicyAndFullscreenLoading(WorkspacePageWithSections);

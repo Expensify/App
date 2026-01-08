@@ -76,6 +76,4 @@ function DisplayNamesTooltipItem({
     );
 }
 
-DisplayNamesTooltipItem.displayName = 'DisplayNamesTooltipItem';
-
 export default DisplayNamesTooltipItem;

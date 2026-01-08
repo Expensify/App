@@ -56,6 +56,4 @@ function WorkspaceOverviewAddressPage({policy, route}: WorkspaceOverviewAddressP
     );
 }
 
-WorkspaceOverviewAddressPage.displayName = 'WorkspaceOverviewAddressPage';
-
 export default withPolicy(WorkspaceOverviewAddressPage);

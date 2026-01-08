@@ -86,7 +86,5 @@ function ComposerWithSuggestionsE2e({ref, ...props}: ComposerWithSuggestionsProp
     );
 }
 
-ComposerWithSuggestionsE2e.displayName = 'ComposerWithSuggestionsE2e';
-
 export default ComposerWithSuggestionsE2e;
 export {getRerenderCount, resetRerenderCount};

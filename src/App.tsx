@@ -98,6 +98,7 @@ function App() {
                                     components={[
                                         OnyxListItemProvider,
                                         CurrentUserPersonalDetailsProvider,
+                                        LocaleContextProvider,
                                         ThemeProvider,
                                         ThemeStylesProvider,
                                         ThemeIllustrationsProvider,
@@ -105,7 +106,6 @@ function App() {
                                         HTMLEngineProvider,
                                         PortalProvider,
                                         SafeArea,
-                                        LocaleContextProvider,
                                         PopoverContextProvider,
                                         CurrentReportIDContextProvider,
                                         ScrollOffsetContextProvider,
@@ -150,8 +150,6 @@ function App() {
         </StrictModeWrapper>
     );
 }
-
-App.displayName = 'App';
 
 const WrappedApp = Sentry.wrap(App);
 WrappedApp.displayName = 'App';

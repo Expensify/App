@@ -21,7 +21,7 @@ function AutoSubmitModal() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const illustrations = useMemoizedLazyIllustrations(['PaperAirplane', 'Pencil', 'ReceiptsStackedOnPin'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['PaperAirplane', 'Pencil', 'ReceiptsStackedOnPin']);
     const menuSections = useMemo(
         () => [
             {
@@ -67,6 +67,7 @@ function AutoSubmitModal() {
             onConfirm={onClose}
             titleStyles={[styles.mb1]}
             contentInnerContainerStyles={[styles.mb5]}
+            shouldUseScrollView
         >
             {menuSections.map((section) => (
                 <View
@@ -90,4 +91,3 @@ function AutoSubmitModal() {
 }
 
 export default AutoSubmitModal;
-AutoSubmitModal.displayName = 'AutoSubmitModal';

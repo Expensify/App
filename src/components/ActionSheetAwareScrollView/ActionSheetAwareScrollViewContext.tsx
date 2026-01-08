@@ -116,6 +116,5 @@ function ActionSheetAwareScrollViewProvider(props: PropsWithChildren) {
 
     return <ActionSheetAwareScrollViewContext.Provider value={value}>{props.children}</ActionSheetAwareScrollViewContext.Provider>;
 }
-ActionSheetAwareScrollViewProvider.displayName = 'ActionSheetAwareScrollViewProvider';
 
 export {ActionSheetAwareScrollViewContext, ActionSheetAwareScrollViewProvider, Actions, States};

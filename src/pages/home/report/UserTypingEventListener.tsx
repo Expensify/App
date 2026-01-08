@@ -81,6 +81,4 @@ function UserTypingEventListener({report}: UserTypingEventListenerProps) {
     return null;
 }
 
-UserTypingEventListener.displayName = 'UserTypingEventListener';
-
 export default UserTypingEventListener;

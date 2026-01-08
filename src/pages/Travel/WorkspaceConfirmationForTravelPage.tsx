@@ -33,8 +33,8 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
             engagementChoice: undefined,
             currency: params.currency,
             file: params.avatarFile as File,
-            introSelectedParam: introSelected,
-            activePolicyIDParam: activePolicyID,
+            introSelected,
+            activePolicyID,
             currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             currentUserEmailParam: currentUserPersonalDetails.email ?? '',
         });
@@ -44,7 +44,7 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
-            testID={WorkspaceConfirmationForTravelPage.displayName}
+            testID="WorkspaceConfirmationForTravelPage"
         >
             <WorkspaceConfirmationForm
                 onBackButtonPress={goBack}
@@ -53,7 +53,5 @@ function WorkspaceConfirmationForTravelPage({route}: WorkspaceConfirmationForTra
         </ScreenWrapper>
     );
 }
-
-WorkspaceConfirmationForTravelPage.displayName = 'WorkspaceConfirmationForTravelPage';
 
 export default WorkspaceConfirmationForTravelPage;

@@ -129,7 +129,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
 
     return (
         <ScreenWrapper
-            testID={SelectCountryStep.displayName}
+            testID="SelectCountryStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -165,7 +165,5 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         </ScreenWrapper>
     );
 }
-
-SelectCountryStep.displayName = 'SelectCountryStep';
 
 export default SelectCountryStep;

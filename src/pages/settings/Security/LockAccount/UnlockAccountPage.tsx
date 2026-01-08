@@ -13,11 +13,11 @@ import ROUTES from '@src/ROUTES';
 function UnlockAccountPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['EmptyStateSpyPigeon'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['EmptyStateSpyPigeon']);
 
     return (
         <ScreenWrapper
-            testID={UnlockAccountPage.displayName}
+            testID="UnlockAccountPage"
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton
@@ -43,5 +43,4 @@ function UnlockAccountPage() {
     );
 }
 
-UnlockAccountPage.displayName = 'UnlockAccountPage';
 export default UnlockAccountPage;

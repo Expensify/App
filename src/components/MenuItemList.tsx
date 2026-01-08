@@ -115,7 +115,5 @@ function MenuItemList({menuItems = [], shouldUseSingleExecution = false, wrapper
     );
 }
 
-MenuItemList.displayName = 'MenuItemList';
-
 export type {MenuItemWithLink};
 export default MenuItemList;

@@ -28,7 +28,7 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
     const currentSubsidiaryID = netsuiteConfig?.subsidiaryID ?? CONST.DEFAULT_NUMBER_ID.toString();
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
 
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const subsidiaryListSections =
         subsidiaryList.map((subsidiary: NetSuiteSubsidiary) => ({
@@ -85,7 +85,7 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={NetSuiteSubsidiarySelector.displayName}
+            displayName="NetSuiteSubsidiarySelector"
             sections={subsidiaryListSections.length > 0 ? [{data: subsidiaryListSections}] : []}
             listItem={RadioListItem}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
@@ -102,7 +102,5 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-NetSuiteSubsidiarySelector.displayName = 'NetSuiteSubsidiarySelector';
 
 export default withPolicyConnections(NetSuiteSubsidiarySelector);

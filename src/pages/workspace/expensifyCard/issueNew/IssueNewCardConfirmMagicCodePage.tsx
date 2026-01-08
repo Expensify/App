@@ -55,7 +55,7 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
 
     const handleClose = useCallback(() => {
         resetValidateActionCodeSent();
-        Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, backTo));
+        Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.getRoute(policyID, backTo));
     }, [policyID, backTo]);
 
     return (
@@ -72,7 +72,5 @@ function IssueNewCardConfirmMagicCodePage({route}: IssueNewCardConfirmMagicCodeP
         />
     );
 }
-
-IssueNewCardConfirmMagicCodePage.displayName = 'ExpensifyCardVerifyAccountPage';
 
 export default IssueNewCardConfirmMagicCodePage;

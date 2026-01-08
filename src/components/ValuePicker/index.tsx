@@ -79,6 +79,4 @@ function ValuePicker({
     );
 }
 
-ValuePicker.displayName = 'ValuePicker';
-
 export default ValuePicker;

@@ -26,7 +26,7 @@ type SelectorType = ListItem & {
 function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
     const {bankAccounts, creditCards} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -81,7 +81,7 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksAccountSelectPage.displayName}
+            displayName="QuickbooksAccountSelectPage"
             sections={qboOnlineSelectorOptions.length ? [{data: qboOnlineSelectorOptions}] : []}
             listItem={RadioListItem}
             headerContent={listHeaderComponent}
@@ -99,7 +99,5 @@ function QuickbooksAccountSelectPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-QuickbooksAccountSelectPage.displayName = 'QuickbooksAccountSelectPage';
 
 export default withPolicyConnections(QuickbooksAccountSelectPage);

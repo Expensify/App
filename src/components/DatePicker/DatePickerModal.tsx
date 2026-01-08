@@ -76,6 +76,7 @@ function DatePickerModal({
             shouldMeasureAnchorPositionFromTop={shouldPositionFromTop}
             shouldSkipRemeasurement
             forwardedFSClass={forwardedFSClass}
+            shouldDisplayBelowModals
         >
             <CalendarPicker
                 minDate={minDate}
@@ -86,7 +87,5 @@ function DatePickerModal({
         </PopoverWithMeasuredContent>
     );
 }
-
-DatePickerModal.displayName = 'DatePickerModal';
 
 export default DatePickerModal;

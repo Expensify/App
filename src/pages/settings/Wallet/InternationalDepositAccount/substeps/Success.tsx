@@ -23,6 +23,4 @@ function Confirmation({onNext}: CustomSubStepProps) {
     );
 }
 
-Confirmation.displayName = 'Confirmation';
-
 export default Confirmation;

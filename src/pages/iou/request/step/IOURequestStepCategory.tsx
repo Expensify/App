@@ -8,7 +8,6 @@ import CategoryPicker from '@components/CategoryPicker';
 import FixedFooter from '@components/FixedFooter';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionListWithSections/types';
-import Text from '@components/Text';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -52,7 +51,7 @@ function IOURequestStepCategory({
 }: IOURequestStepCategoryProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
 
     const isUnreportedExpense = isExpenseUnreported(transaction);
     const {policyForMovingExpenses, policyForMovingExpensesID} = usePolicyForMovingExpenses();
@@ -169,7 +168,7 @@ function IOURequestStepCategory({
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowOfflineIndicator={policyCategories !== undefined}
-            testID={IOURequestStepCategory.displayName}
+            testID="IOURequestStepCategory"
             shouldEnableKeyboardAvoidingView={false}
         >
             {isLoading && (
@@ -220,20 +219,15 @@ function IOURequestStepCategory({
                 </View>
             )}
             {!shouldShowEmptyState && !isLoading && !shouldShowOfflineView && (
-                <>
-                    <Text style={[styles.ph5, styles.pv3]}>{translate('iou.categorySelection')}</Text>
-                    <CategoryPicker
-                        selectedCategory={categoryForDisplay}
-                        policyID={policyID ?? report?.policyID}
-                        onSubmit={updateCategory}
-                    />
-                </>
+                <CategoryPicker
+                    selectedCategory={categoryForDisplay}
+                    policyID={policyID ?? report?.policyID}
+                    onSubmit={updateCategory}
+                />
             )}
         </StepScreenWrapper>
     );
 }
-
-IOURequestStepCategory.displayName = 'IOURequestStepCategory';
 
 /* eslint-disable rulesdir/no-negated-variables */
 const IOURequestStepCategoryWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCategory);
