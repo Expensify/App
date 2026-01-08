@@ -125,8 +125,6 @@ function IOURequestStepDistanceOdometer({
 
     const shouldSkipConfirmation: boolean = !skipConfirmation || !report?.reportID ? false : !(isArchivedReport(reportNameValuePairs) || isPolicyExpenseChatUtils(report));
 
-    const confirmationRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, backToReport);
-
     // Reset component state when transaction has no odometer data (happens when switching tabs)
     // In Phase 1, we don't persist data from transaction since users can't save and exit
     useEffect(() => {
@@ -288,38 +286,8 @@ function IOURequestStepDistanceOdometer({
         }
     };
 
-    // Prevents useBeforeRemove from redirecting during Navigation.goBack() after Save
-    const allowNavigationRef = useRef(false);
-    const allowNavigation = () => {
-        allowNavigationRef.current = true;
-    };
-
-    useEffect(() => {
-        allowNavigationRef.current = false;
-    }, [isFocused, backToReport]);
-
-    useBeforeRemove((event) => {
-        if (!backToReport || !isFocused || allowNavigationRef.current) {
-            return;
-        }
-        event.preventDefault();
-        allowNavigationRef.current = true;
-        if (confirmationRoute) {
-            Navigation.goBack(confirmationRoute);
-            return;
-        }
-        Navigation.goBack();
-    }, !!backToReport && isFocused);
-
     const navigateBack = () => {
-        if (backToReport) {
-            allowNavigation();
-        }
-        if (confirmationRoute) {
-            Navigation.goBack(confirmationRoute);
-            return;
-        }
-        Navigation.goBack();
+        Navigation.goBack(backTo);
     };
 
     // Navigate to next page following Manual tab pattern
@@ -365,7 +333,7 @@ function IOURequestStepDistanceOdometer({
         }
 
         if (backToReport) {
-            Navigation.goBack(confirmationRoute);
+            Navigation.goBack(backTo);
             return;
         }
 
