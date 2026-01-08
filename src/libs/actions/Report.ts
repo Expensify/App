@@ -180,6 +180,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type {
+    BankAccountList,
     IntroSelected,
     InvitedEmailsToAccountIDs,
     NewGroupChatDraft,
@@ -314,6 +315,14 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
+    },
+});
+
+let allBankAccountList: OnyxEntry<BankAccountList> = {};
+Onyx.connect({
+    key: ONYXKEYS.BANK_ACCOUNT_LIST,
+    callback: (value) => {
+        allBankAccountList = value;
     },
 });
 
@@ -4943,6 +4952,7 @@ function deleteAppReport(
     currentUserEmailParam: string,
     reportTransactions: Record<string, Transaction>,
     transactionsViolations: Record<string, TransactionViolations>,
+    bankAccountList: OnyxEntry<BankAccountList>,
 ) {
     if (!reportID) {
         Log.warn('[Report] deleteReport called with no reportID');
@@ -5281,7 +5291,7 @@ function deleteAppReport(
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`,
-            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID, currentUserEmailParam)},
+            value: {hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, report?.reportID, currentUserEmailParam, bankAccountList)},
         });
     }
 

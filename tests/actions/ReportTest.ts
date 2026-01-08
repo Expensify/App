@@ -2070,7 +2070,7 @@ describe('actions/Report', () => {
             });
 
             // When deleting the expense report
-            Report.deleteAppReport(reportID, '', {}, {});
+            Report.deleteAppReport(reportID, '', {}, {}, {});
             await waitForBatchedUpdates();
 
             // Then only the IOU action with type of CREATE and TRACK is moved to the self DM
@@ -2172,6 +2172,7 @@ describe('actions/Report', () => {
                 {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
                 },
+                {},
                 {},
             );
             await waitForBatchedUpdates();
