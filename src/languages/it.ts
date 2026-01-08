@@ -72,7 +72,6 @@ import type {
     LearnMoreRouteParams,
     LeftWorkspaceParams,
     LocalTimeParams,
-    LoggedInAsParams,
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
@@ -191,7 +190,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -502,6 +500,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Mostra altro',
         showLess: 'Mostra meno',
         merchant: 'Esercente',
+        change: 'Modifica',
         category: 'Categoria',
         report: 'Report',
         billable: 'Fatturabile',
@@ -764,14 +763,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Avvio di Expensify',
         expired: 'La tua sessione è scaduta.',
         signIn: 'Accedi di nuovo.',
-        redirectedToDesktopApp: "Ti abbiamo reindirizzato all'app desktop.",
-        youCanAlso: 'Puoi anche',
-        openLinkInBrowser: 'apri questo link nel tuo browser',
-        loggedInAs: ({email}: LoggedInAsParams) => `Sei connesso come ${email}. Fai clic su "Apri link" nel prompt per accedere all'app desktop con questo account.`,
-        doNotSeePrompt: 'Non riesci a vedere il prompt?',
-        tryAgain: 'Riprova',
-        or: ', oppure',
-        continueInWeb: "continua all'app web",
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -845,12 +836,6 @@ const translations: TranslationDeepObject<typeof en> = {
             header: 'Viaggi e spese, alla velocità della chat',
             body: 'Benvenuto nella nuova generazione di Expensify, dove i tuoi viaggi e le tue spese si muovono più velocemente grazie a una chat contestuale in tempo reale.',
         },
-    },
-    thirdPartySignIn: {
-        alreadySignedIn: (email: string) => `Hai già effettuato l’accesso come ${email}.`,
-        goBackMessage: ({provider}: GoBackMessageParams) => `Non vuoi accedere con ${provider}?`,
-        continueWithMyCurrentSession: 'Continua con la mia sessione attuale',
-        redirectToDesktopMessage: "Ti reindirizzeremo all'app desktop una volta completato l'accesso.",
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Continua ad accedere con single sign-on:',
@@ -1257,6 +1242,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `per ${comment}` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `inviato${memo ? `, dicendo ${memo}` : ''}`,
         automaticallySubmitted: `inviato tramite <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">invio ritardato</a>`,
+        queuedToSubmitViaDEW: "in coda per l'invio tramite flusso di approvazione personalizzato",
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `monitoraggio ${formattedAmount}${comment ? `per ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividi ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividi ${formattedAmount}${comment ? `per ${comment}` : ''}`,
@@ -1565,7 +1551,6 @@ const translations: TranslationDeepObject<typeof en> = {
     nextStep: {
         message: {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1576,10 +1561,20 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `In attesa che un amministratore aggiunga le spese.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `In attesa che <strong>tu</strong> invii le spese.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `In attesa che <strong>${actor}</strong> invii le note spese.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `In attesa che un amministratore invii le note spese.`;
+                }
+            },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `Nessuna ulteriore azione richiesta!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1595,11 +1590,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `il ${eta}` : ` ${eta}`;
                 }
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>le tue</strong> spese vengano inviate automaticamente${formattedETA}.`;
+                        return `In attesa che le <strong>tue</strong> spese vengano inviate automaticamente${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `In attesa che le spese di <strong>${actor}</strong> vengano inviate automaticamente${formattedETA}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1607,7 +1601,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1619,7 +1612,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
@@ -1631,23 +1623,21 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> esporti questo resoconto.`;
+                        return `In attesa che <strong>tu</strong> esporti questo report.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> esporti questo report.`;
+                        return `In attesa che <strong>${actor}</strong> esporti questo rapporto.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `In attesa che un amministratore esporti questo report.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> paghi le spese.`;
+                        return `In attesa che <strong>tu</strong> rimborsi le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `In attesa che <strong>${actor}</strong> rimborsi le spese.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1655,13 +1645,12 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `In attesa che <strong>tu</strong> finisca di configurare un conto bancario aziendale.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> completi la configurazione di un conto bancario business.`;
+                        return `In attesa che <strong>${actor}</strong> completi la configurazione di un conto bancario aziendale.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `In attesa che un amministratore completi la configurazione di un conto bancario aziendale.`;
                 }
@@ -1673,6 +1662,9 @@ const translations: TranslationDeepObject<typeof en> = {
                 }
                 return `In attesa che il pagamento venga completato${formattedETA}.`;
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
+                `Ops! Sembra che tu stia inviando la richiesta a <strong>te stesso</strong>. L'approvazione dei tuoi stessi report è <strong>vietata</strong> dal tuo spazio di lavoro. Invia questo report a un'altra persona oppure contatta il tuo amministratore per modificare il destinatario a cui invii i report.`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'a breve',
@@ -1786,7 +1778,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updateRequired: 'Aggiornamento richiesto',
         pleaseInstall: 'Aggiorna alla versione più recente di New Expensify',
         pleaseInstallExpensifyClassic: 'Installa l’ultima versione di Expensify',
-        toGetLatestChanges: 'Per dispositivi mobili o desktop, scarica e installa la versione più recente. Per il web, aggiorna il browser.',
+        toGetLatestChanges: 'Per dispositivi mobili, scarica e installa la versione più recente. Per il web, aggiorna il browser.',
         newAppNotAvailable: 'La nuova app Expensify non è più disponibile.',
     },
     initialSettingsPage: {
@@ -1806,9 +1798,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             ios: {
                 label: 'iOS',
-            },
-            desktop: {
-                label: 'macOS',
             },
         },
         troubleshoot: {
@@ -2289,7 +2278,26 @@ ${amount} per ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: "Non è stato possibile modificare l'approvatore. Riprova o contatta l'assistenza.",
-        header: 'Invia a questo membro per approvazione:',
+        title: 'Invia a questo membro per approvazione:',
+        description: 'Questa persona approverà le spese.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Approvatore',
+        header: '(Opzionale) Vuoi aggiungere un limite di approvazione?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Aggiungi un altro approvatore quando <strong>${approverName}</strong> è approvatore e il report supera l'importo seguente:`
+                : "Aggiungi un altro approvatore quando il report supera l'importo seguente:",
+        reportAmountLabel: 'Importo del report',
+        additionalApproverLabel: 'Approvatore aggiuntivo',
+        skip: 'Salta',
+        next: 'Avanti',
+        removeLimit: 'Rimuovi limite',
+        enterAmountError: 'Inserisci un importo valido',
+        enterApproverError: 'Un approvatore è richiesto quando imposti un limite di report',
+        enterBothError: 'Inserisci un importo del report e un approvatore aggiuntivo',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) =>
+            `I report superiori a ${approvalLimit} vengono inoltrati a ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Pagatore autorizzato',
@@ -2369,6 +2377,21 @@ ${amount} per ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Aggiungi un metodo di pagamento per inviare e ricevere pagamenti direttamente nell’app.',
         defaultPaymentMethod: 'Predefinito',
         bankAccountLastFour: (lastFour: string) => `Conto bancario • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Regole spesa',
+        subtitle: 'Queste regole si applicheranno alle tue spese. Se le invii a uno spazio di lavoro, le regole dello spazio di lavoro potrebbero sostituirle.',
+        emptyRules: {title: 'Non hai creato alcuna regola', subtitle: 'Aggiungi una regola per automatizzare la rendicontazione delle spese.'},
+        changes: {
+            billable: (value: boolean) => `Aggiorna spesa ${value ? 'fatturabile' : 'non fatturabile'}`,
+            category: (value: string) => `Aggiorna categoria in "${value}"`,
+            comment: (value: string) => `Modifica la descrizione in "${value}"`,
+            merchant: (value: string) => `Aggiorna esercente in "${value}"`,
+            reimbursable: (value: boolean) => `Aggiorna la spesa ${value ? 'rimborsabile' : 'non rimborsabile'}`,
+            report: (value: string) => `Aggiungi un report chiamato "${value}"`,
+            tag: (value: string) => `Aggiorna etichetta in "${value}"`,
+            tax: (value: string) => `Aggiorna l’aliquota fiscale a ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {
@@ -3858,9 +3881,10 @@ ${
             viewTransactions: 'Visualizza transazioni',
             policyExpenseChatName: ({displayName}: PolicyExpenseChatNameParams) => `Spese di ${displayName}`,
             deepDiveExpensifyCard: `<muted-text-label>Le transazioni Expensify Card verranno esportate automaticamente in un "Conto passività Expensify Card" creato con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">la nostra integrazione</a>.</muted-text-label>`,
+            youCantDowngradeInvoicing:
+                'Non puoi effettuare il downgrade del tuo piano su un abbonamento fatturato. Per discutere o apportare modifiche al tuo abbonamento, contatta il tuo account manager o Concierge per assistenza.',
         },
         receiptPartners: {
-            connect: 'Connetti ora',
             uber: {
                 subtitle: ({organizationName}: ReceiptPartnersUberSubtitleParams) =>
                     organizationName ? `Connesso a ${organizationName}` : 'Automatizza le spese di viaggio e di consegna dei pasti in tutta la tua organizzazione.',
@@ -3888,8 +3912,6 @@ ${
                 invitationFailure: 'Impossibile invitare il membro a Uber for Business',
                 autoInvite: 'Invita nuovi membri dello spazio di lavoro a Uber for Business',
                 autoRemove: 'Disattiva i membri rimossi dallo spazio di lavoro da Uber for Business',
-                bannerTitle: 'Expensify + Uber for Business',
-                bannerDescription: 'Collega Uber for Business per automatizzare le spese di viaggio e di consegna dei pasti in tutta la tua organizzazione.',
                 emptyContent: {
                     title: 'Nessun invito in sospeso',
                     subtitle: 'Evviva! Abbiamo cercato ovunque e non abbiamo trovato alcun invito in sospeso.',
@@ -4827,7 +4849,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             customCloseDate: 'Data di chiusura personalizzata',
             letsDoubleCheck: 'Controlliamo ancora una volta che tutto sia corretto.',
             confirmationDescription: 'Inizieremo subito a importare le transazioni.',
-            cardholder: 'Titolare della carta',
             card: 'Carta',
             cardName: 'Nome carta',
             brokenConnectionError: '<rbr>La connessione al feed della carta è interrotta. Per favore <a href="#">accedi alla tua banca</a> così possiamo ristabilire la connessione.</rbr>',
@@ -5254,7 +5275,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 title: 'Non hai creato alcun tag',
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'Aggiungi un tag per tenere traccia di progetti, sedi, reparti e altro.',
-                subtitleHTML: `<muted-text><centered-text>Importa un foglio di calcolo per aggiungere tag per tenere traccia di progetti, sedi, reparti e altro ancora. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Scopri di più</a> sulla formattazione dei file dei tag.</centered-text></muted-text>`,
+                subtitleHTML: `<muted-text><centered-text>Aggiungi tag per monitorare progetti, sedi, reparti e altro. <a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">Scopri di più</a> sulla formattazione dei file di tag per l’importazione.</centered-text></muted-text>`,
                 subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
                     `<muted-text><centered-text>I tuoi tag vengono attualmente importati da una connessione contabile. Vai su <a href="${accountingPageURL}">contabilità</a> per apportare eventuali modifiche.</centered-text></muted-text>`,
             },
@@ -6412,11 +6433,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
             }
             return `ha aggiunto una parte rimborsabile di imposta di "${newValue}" alla tariffa per distanza "${customUnitRateName}"`;
         },
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `ha modificato l’indice della tariffa ${customUnitName} "${customUnitRateName}" a "${newValue}" ${oldValue ? `(precedentemente "${oldValue}")` : ''}`;
-        },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `${newValue ? 'abilitato' : 'disabilitato'} la tariffa ${customUnitName} "${customUnitRateName}"`;
+            return `${newValue ? 'abilitato' : 'Disattivato'} il tasso ${customUnitName} "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `ha rimosso la tariffa "${rateName}" dell’unità personalizzata "${customUnitName}"`,
         addedReportField: (fieldType: string, fieldName?: string) => `aggiunto campo report ${fieldType} "${fieldName}"`,
@@ -6594,6 +6612,8 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
                 }
             }
         },
+        changedCustomReportNameFormula: ({newValue, oldValue}: UpdatedPolicyFieldWithNewAndOldValueParams) =>
+            `ha modificato la formula del nome del report personalizzato in "${newValue}" (precedentemente "${oldValue}")`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro non trovato.',
@@ -6850,74 +6870,6 @@ Richiedi dettagli di spesa come ricevute e descrizioni, imposta limiti e valori 
         permissionError: {
             title: 'Accesso allo spazio di archiviazione',
             message: 'Expensify non può salvare gli allegati senza accesso all’archiviazione. Tocca Impostazioni per aggiornare le autorizzazioni.',
-        },
-    },
-    desktopApplicationMenu: {
-        mainMenu: 'Nuovo Expensify',
-        about: 'Informazioni su New Expensify',
-        update: 'Aggiorna Nuovo Expensify',
-        checkForUpdates: 'Verifica aggiornamenti',
-        toggleDevTools: 'Attiva/Disattiva Strumenti per sviluppatori',
-        viewShortcuts: 'Visualizza le scorciatoie da tastiera',
-        services: 'Servizi',
-        hide: 'Nascondi New Expensify',
-        hideOthers: 'Nascondi altri',
-        showAll: 'Mostra tutto',
-        quit: 'Esci da New Expensify',
-        fileMenu: 'File',
-        closeWindow: 'Chiudi finestra',
-        editMenu: 'Modifica',
-        undo: 'Annulla',
-        redo: 'Ripristina',
-        cut: 'Taglia',
-        copy: 'Copia',
-        paste: 'Incolla',
-        pasteAndMatchStyle: 'Incolla e adatta stile',
-        pasteAsPlainText: 'Incolla come testo semplice',
-        delete: 'Elimina',
-        selectAll: 'Seleziona tutto',
-        speechSubmenu: 'Voce',
-        startSpeaking: 'Inizia a parlare',
-        stopSpeaking: 'Interrompi parlato',
-        viewMenu: 'Visualizza',
-        reload: 'Ricarica',
-        forceReload: 'Forza ricaricamento',
-        resetZoom: 'Dimensione reale',
-        zoomIn: 'Ingrandisci',
-        zoomOut: 'Riduci ingrandimento',
-        togglefullscreen: 'Attiva/disattiva schermo intero',
-        historyMenu: 'Cronologia',
-        back: 'Indietro',
-        forward: 'Inoltra',
-        windowMenu: 'Finestra',
-        minimize: 'Minimizza',
-        zoom: 'Zoom',
-        front: 'Porta tutto in primo piano',
-        helpMenu: 'Aiuto',
-        learnMore: 'Scopri di più',
-        documentation: 'Documentazione',
-        communityDiscussions: 'Discussioni della community',
-        searchIssues: 'Cerca problemi',
-    },
-    historyMenu: {
-        forward: 'Inoltra',
-        back: 'Indietro',
-    },
-    checkForUpdatesModal: {
-        available: {
-            title: 'Aggiornamento disponibile',
-            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) =>
-                `La nuova versione sarà disponibile a breve.${!isSilentUpdating ? 'Ti avviseremo quando saremo pronti per aggiornare.' : ''}`,
-            soundsGood: 'Va bene',
-        },
-        notAvailable: {
-            title: 'Aggiornamento non disponibile',
-            message: 'Al momento non è disponibile alcun aggiornamento. Per favore riprova più tardi!',
-            okay: 'OK',
-        },
-        error: {
-            title: 'Verifica aggiornamenti non riuscita',
-            message: 'Non è stato possibile verificare la presenza di aggiornamenti. Riprova tra qualche minuto.',
         },
     },
     settlement: {
@@ -7985,10 +7937,32 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             addAdminError: 'Impossibile aggiungere questo membro come amministratore. Riprova.',
         },
     },
-    desktopAppRetiredPage: {
-        title: "L'app desktop è stata dismessa",
-        body: 'La nuova app desktop Expensify per Mac è stata ritirata. D’ora in avanti, usa l’app web per accedere al tuo account.',
-        goToWeb: 'Vai al sito web',
+    gps: {
+        tooltip: 'Monitoraggio GPS in corso! Quando hai finito, interrompi il monitoraggio qui sotto.',
+        disclaimer: 'Usa il GPS per creare una spesa dal tuo viaggio. Tocca Avvia qui sotto per iniziare il tracciamento.',
+        error: {failedToStart: 'Impossibile avviare il tracciamento della posizione.', failedToGetPermissions: 'Impossibile ottenere le autorizzazioni di localizzazione richieste.'},
+        trackingDistance: 'Tracciamento distanza...',
+        stopped: 'Interrotto',
+        start: 'Avvia',
+        stop: 'Interrompi',
+        discard: 'Scarta',
+        stopGpsTrackingModal: {
+            title: 'Interrompi il tracciamento GPS',
+            prompt: 'Sei sicuro? Questo terminerà il tuo percorso attuale.',
+            cancel: 'Riprendi il tracciamento',
+            confirm: 'Interrompi il tracciamento GPS',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Scarta monitoraggio distanza',
+            prompt: 'Sei sicuro? Questo annullerà il tuo percorso attuale e non potrà essere annullato.',
+            confirm: 'Scarta monitoraggio distanza',
+        },
+        zeroDistanceTripModal: {title: 'Impossibile creare la spesa', prompt: 'Non puoi creare una spesa con la stessa località di partenza e di arrivo.'},
+        desktop: {
+            title: 'Tieni traccia della distanza sul tuo telefono',
+            subtitle: 'Registra automaticamente miglia o chilometri con il GPS e trasforma i viaggi in spese all’istante.',
+            button: 'Scarica l’app',
+        },
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,

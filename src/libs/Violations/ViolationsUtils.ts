@@ -12,7 +12,7 @@ import Parser from '@libs/Parser';
 import {getDistanceRateCustomUnitRate, getPerDiemRateCustomUnitRate, getSortedTagKeys, isDefaultTagName, isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {isCurrentUserSubmitter} from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
-import {isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
+import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
@@ -296,7 +296,7 @@ const ViolationsUtils = {
 
             // Add 'categoryOutOfPolicy' violation if category is not in policy
             if (!hasCategoryOutOfPolicyViolation && !isCategoryMissing(categoryKey) && !isCategoryInPolicy) {
-                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: CONST.VIOLATION_TYPES.VIOLATION});
+                newTransactionViolations.push({name: 'categoryOutOfPolicy', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
 
             // Remove 'categoryOutOfPolicy' violation if category is in policy
@@ -353,11 +353,12 @@ const ViolationsUtils = {
         const hasTaxOutOfPolicyViolation = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.TAX_OUT_OF_POLICY);
         const isDistanceRequest = TransactionUtils.isDistanceRequest(updatedTransaction);
         const isPerDiemRequest = TransactionUtils.isPerDiemRequest(updatedTransaction);
-        const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest);
+        const isTimeRequest = TransactionUtils.isTimeRequest(updatedTransaction);
+        const isPolicyTrackTaxEnabled = isTaxTrackingEnabled(true, policy, isDistanceRequest, isPerDiemRequest, isTimeRequest);
         const isTaxInPolicy = Object.keys(policy.taxRates?.taxes ?? {}).some((key) => key === updatedTransaction.taxCode);
 
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
+        const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
         const canCalculateAmountViolations = policy.outputCurrency === currency;
@@ -520,7 +521,7 @@ const ViolationsUtils = {
         }
 
         if (isPolicyTrackTaxEnabled && !hasTaxOutOfPolicyViolation && !isTaxInPolicy) {
-            newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION});
+            newTransactionViolations.push({name: CONST.VIOLATIONS.TAX_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
         }
 
         if (isPolicyTrackTaxEnabled && hasTaxOutOfPolicyViolation && isTaxInPolicy) {

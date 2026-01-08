@@ -504,18 +504,6 @@ function getIneligibleInvitees(employeeList?: PolicyEmployeeList): string[] {
     return memberEmailsToExclude;
 }
 
-/**
- * Get excluded users as a Record for use in search selector
- */
-function getExcludedUsers(employeeList?: PolicyEmployeeList): Record<string, boolean> {
-    const ineligibleInvitees = getIneligibleInvitees(employeeList);
-    const result: Record<string, boolean> = {};
-    for (const login of ineligibleInvitees) {
-        result[login] = true;
-    }
-    return result;
-}
-
 function getSortedTagKeys(policyTagList: OnyxEntry<PolicyTagLists>): Array<keyof PolicyTagLists> {
     if (isEmptyObject(policyTagList)) {
         return [];
@@ -678,8 +666,8 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
     return policy?.type === CONST.POLICY.TYPE.TEAM;
 }
 
-function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false): boolean {
-    if (isPerDiemRequest) {
+function isTaxTrackingEnabled(isPolicyExpenseChat: boolean, policy: OnyxEntry<Policy>, isDistanceRequest: boolean, isPerDiemRequest = false, isTimeRequest = false): boolean {
+    if (isPerDiemRequest || isTimeRequest) {
         return false;
     }
     const distanceUnit = getDistanceRateCustomUnit(policy);
@@ -1413,12 +1401,6 @@ function navigateToExpensifyCardPage(policyID: string) {
     });
 }
 
-function navigateToReceiptPartnersPage(policyID: string) {
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        Navigation.navigate(ROUTES.WORKSPACE_RECEIPT_PARTNERS.getRoute(policyID));
-    });
-}
-
 function getConnectedIntegration(policy: Policy | undefined, accountingIntegrations?: ConnectionName[]) {
     return (accountingIntegrations ?? Object.values(CONST.POLICY.CONNECTIONS.NAME)).find((integration) => !!policy?.connections?.[integration]);
 }
@@ -1699,7 +1681,6 @@ export {
     getValidConnectedIntegration,
     getCountOfEnabledTagsOfList,
     getIneligibleInvitees,
-    getExcludedUsers,
     getMemberAccountIDsForWorkspace,
     getNumericValue,
     isMultiLevelTags,
@@ -1764,7 +1745,6 @@ export {
     getXeroBankAccounts,
     findSelectedVendorWithDefaultSelect,
     findSelectedBankAccountWithDefaultSelect,
-    navigateToReceiptPartnersPage,
     findSelectedInvoiceItemWithDefaultSelect,
     findSelectedTaxAccountWithDefaultSelect,
     findSelectedSageVendorWithDefaultSelect,

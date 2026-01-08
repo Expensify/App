@@ -67,7 +67,7 @@ function findPlatformVariants(resolvedPath: string): PlatformVariant[] {
     const variants: PlatformVariant[] = [];
 
     // Platform suffixes to check
-    const platforms = ['native', 'ios', 'android', 'web', 'desktop'];
+    const platforms = ['native', 'ios', 'android', 'web'];
 
     const ext = path.extname(basename);
     const nameWithoutExt = path.basename(basename, ext);

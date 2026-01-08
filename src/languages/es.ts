@@ -227,6 +227,7 @@ const translations: TranslationDeepObject<typeof en> = {
         showMore: 'Mostrar más',
         showLess: 'Mostrar menos',
         merchant: 'Comerciante',
+        change: 'Cambio',
         category: 'Categoría',
         report: 'Informe',
         billable: 'Facturable',
@@ -472,14 +473,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Cargando Expensify',
         expired: 'Tu sesión ha expirado.',
         signIn: 'Por favor, inicia sesión de nuevo.',
-        redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
-        youCanAlso: 'También puedes',
-        openLinkInBrowser: 'abrir este enlace en tu navegador',
-        loggedInAs: ({email}) => `Has iniciado sesión como ${email}. Haz clic en "Abrir enlace" en el aviso para iniciar sesión en la aplicación de escritorio con esta cuenta.`,
-        doNotSeePrompt: '¿No ves el aviso?',
-        tryAgain: 'Inténtalo de nuevo',
-        or: ', o',
-        continueInWeb: 'continuar en la web',
     },
     validateCodeModal: {
         successfulSignInTitle: 'Abracadabra,\n¡sesión iniciada!',
@@ -538,12 +531,6 @@ const translations: TranslationDeepObject<typeof en> = {
             header: 'Viajes y gastos, a la velocidad del chat',
             body: 'Bienvenido a la próxima generación de Expensify, donde tus viajes y gastos avanzan más rápido con la ayuda de un chat contextual en tiempo real.',
         },
-    },
-    thirdPartySignIn: {
-        alreadySignedIn: (email) => `Ya has iniciado sesión con ${email}.`,
-        goBackMessage: ({provider}) => `No quieres iniciar sesión con ${provider}?`,
-        continueWithMyCurrentSession: 'Continuar con mi sesión actual',
-        redirectToDesktopMessage: 'Lo redirigiremos a la aplicación de escritorio una vez que termine de iniciar sesión.',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'Continua iniciando sesión con el inicio de sesión único:',
@@ -946,6 +933,7 @@ const translations: TranslationDeepObject<typeof en> = {
         expenseAmount: ({formattedAmount, comment}) => `${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         submitted: ({memo}) => `enviado${memo ? `, dijo ${memo}` : ''}`,
         automaticallySubmitted: `envió mediante <a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">retrasar envíos</a>`,
+        queuedToSubmitViaDEW: 'en cola para enviar a través del flujo de aprobación personalizado',
         trackedAmount: ({formattedAmount, comment}) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -1254,6 +1242,17 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador añada gastos.`;
                 }
             },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `Esperando a que <strong>tú</strong> envíes los gastos.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `Esperando a que <strong>${actor}</strong> envíe los gastos.`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `Esperando a que un administrador envíe los gastos.`;
+                }
+            },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_) => `¡No se requiere ninguna acción adicional!`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}) => {
@@ -1346,6 +1345,9 @@ const translations: TranslationDeepObject<typeof en> = {
 
                 return `Esperando a que se complete el pago${formattedETA}.`;
             },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_) =>
+                `¡Ups! Parece que estás enviando el informe a <strong>ti mismo</strong>. Aprobar tus propios informes está <strong>prohibido</strong> por tu espacio de trabajo. Por favor, envía este informe a otra persona o contacta a tu administrador para cambiar la persona a la que lo envías.`,
         },
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'en breve',
@@ -1458,7 +1460,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updateRequired: 'Actualización requerida',
         pleaseInstall: 'Por favor, actualiza a la última versión de New Expensify',
         pleaseInstallExpensifyClassic: 'Por favor, instala la última versión de Expensify',
-        toGetLatestChanges: 'Para móvil o escritorio, descarga e instala la última versión. Para la web, actualiza tu navegador.',
+        toGetLatestChanges: 'Para móvil, descarga e instala la última versión. Para la web, actualiza tu navegador.',
         newAppNotAvailable: 'La App New Expensify ya no está disponible.',
     },
     initialSettingsPage: {
@@ -1478,9 +1480,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             ios: {
                 label: 'iOS',
-            },
-            desktop: {
-                label: 'macOS',
             },
         },
         troubleshoot: {
@@ -1941,7 +1940,25 @@ ${amount} para ${merchant} - ${date}`,
     },
     workflowsApproverPage: {
         genericErrorMessage: 'El aprobador no pudo ser cambiado. Por favor, inténtelo de nuevo o contacte al soporte.',
-        header: 'Enviar a este miembro para su aprobación:',
+        title: 'Establecer aprobador',
+        description: 'Esta persona aprobará los gastos.',
+    },
+    workflowsApprovalLimitPage: {
+        title: 'Aprobador',
+        header: '(Opcional) ¿Quieres añadir un límite de aprobación?',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `Añadir otro aprobador cuando <strong>${approverName}</strong> es aprobador y el informe supera el importe indicado:`
+                : 'Añadir otro aprobador cuando el informe supera el importe indicado:',
+        reportAmountLabel: 'Importe del informe',
+        additionalApproverLabel: 'Aprobador adicional',
+        skip: 'Omitir',
+        next: 'Siguiente',
+        removeLimit: 'Eliminar límite',
+        enterAmountError: 'Por favor, introduce un importe válido',
+        enterApproverError: 'Se requiere un aprobador cuando estableces un límite de informe',
+        enterBothError: 'Introduce un importe del informe y un aprobador adicional',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `Los informes superiores a ${approvalLimit} se envían a ${approverName}`,
     },
     workflowsPayerPage: {
         title: 'Pagador autorizado',
@@ -2020,6 +2037,24 @@ ${amount} para ${merchant} - ${date}`,
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
         defaultPaymentMethod: 'Predeterminado',
         bankAccountLastFour: (lastFour) => `Cuenta bancaria • ${lastFour}`,
+    },
+    expenseRulesPage: {
+        title: 'Reglas de gastos',
+        subtitle: 'Estas reglas se aplicarán a tus gastos. Si los envías a un espacio de trabajo, las reglas del espacio de trabajo pueden anularlas.',
+        emptyRules: {
+            title: 'Aún no has creado ninguna regla',
+            subtitle: 'Añade una regla para automatizar los informes de gastos.',
+        },
+        changes: {
+            billable: (value: boolean) => `Actualiza el gasto a ${value ? 'facturable' : 'no facturable'}`,
+            category: (value: string) => `Actualiza la categoría a "${value}"`,
+            comment: (value: string) => `Cambia la descripción a "${value}"`,
+            merchant: (value: string) => `Actualiza el comercio a "${value}"`,
+            reimbursable: (value: boolean) => `Actualiza el gasto a ${value ? 'reembolsable' : 'no reembolsable'}`,
+            report: (value: string) => `Añade un informe llamado "${value}"`,
+            tag: (value: string) => `Actualiza la etiqueta a "${value}"`,
+            tax: (value: string) => `Actualiza la tasa de impuesto a ${value}`,
+        },
     },
     preferencesPage: {
         appSection: {
@@ -3518,13 +3553,14 @@ ${amount} para ${merchant} - ${date}`,
                 monthly: 'Mensual',
             },
             planType: 'Tipo de plan',
+            youCantDowngradeInvoicing:
+                'No es posible cambiar a un plan inferior en una suscripción facturada. Para hablar sobre tu suscripción o realizar cambios en ella, ponte en contacto con tu gestor de cuentas o con Concierge para obtener ayuda.',
             defaultCategory: 'Categoría predeterminada',
             viewTransactions: 'Ver transacciones',
             policyExpenseChatName: ({displayName}) => `${displayName}'s gastos`,
             deepDiveExpensifyCard: `<muted-text-label>Las transacciones de la Tarjeta Expensify se exportan automáticamente a una "Cuenta de Responsabilidad de la Tarjeta Expensify" creada con <a href="${CONST.DEEP_DIVE_EXPENSIFY_CARD}">nuestra integración</a>.</muted-text-label>`,
         },
         receiptPartners: {
-            connect: 'Conéctate ahora',
             uber: {
                 subtitle: ({organizationName}) => (organizationName ? `Conectado a ${organizationName}` : 'Automatice los gastos de viajes y entrega de comidas en toda su organización.'),
                 sendInvites: 'Invitar miembros',
@@ -3550,8 +3586,6 @@ ${amount} para ${merchant} - ${date}`,
                 invitationFailure: 'Error al invitar miembro a Uber for Business',
                 autoInvite: 'Invitar a nuevos miembros del espacio de trabajo a Uber para Empresas',
                 autoRemove: 'Desactivar miembros del espacio de trabajo eliminados de Uber para Empresas',
-                bannerTitle: 'Expensify + Uber para empresas',
-                bannerDescription: 'Conecte Uber for Business para automatizar los gastos de viajes y entrega de comidas en toda su organización.',
                 emptyContent: {
                     title: 'No hay invitaciones pendientes',
                     subtitle: '¡Hurra! Buscamos por todas partes y no encontramos ninguna invitación pendiente.',
@@ -4439,7 +4473,6 @@ ${amount} para ${merchant} - ${date}`,
             customCloseDate: 'Fecha de cierre personalizada',
             letsDoubleCheck: 'Verifiquemos que todo esté bien.',
             confirmationDescription: 'Comenzaremos a importar transacciones inmediatamente.',
-            cardholder: 'Titular de la tarjeta',
             card: 'Tarjeta',
             cardName: 'Nombre de la tarjeta',
             brokenConnectionError:
@@ -6003,11 +6036,8 @@ ${amount} para ${merchant} - ${date}`,
             }
             return `añadió una parte recuperable de impuestos de "${newValue}" a la tasa por distancia "${customUnitRateName}`;
         },
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}) => {
-            return `cambió el índice de la tarifa de ${customUnitName} "${customUnitRateName}" a "${newValue}" ${oldValue ? `(previamente "${oldValue}")` : ''}`;
-        },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}) => {
-            return `${newValue ? 'habilitó' : 'deshabilitó'} la tarifa de ${customUnitName} "${customUnitRateName}"`;
+            return `${newValue ? 'habilitó' : 'deshabilitó'} la tasa de ${customUnitName} "${customUnitRateName}"`;
         },
         deleteCustomUnitRate: (customUnitName, rateName) => `eliminó la tasa "${rateName}" de "${customUnitName}"`,
         addedReportField: (fieldType, fieldName) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
@@ -6040,6 +6070,7 @@ ${amount} para ${merchant} - ${date}`,
             return `actualizar la fecha de envío del informe mensual a "${newValue}" (previamente "${oldValue}")`;
         },
         updateDefaultTitleEnforced: ({value}) => `cambió "Requerir título predeterminado de informe" a ${value ? 'activado' : 'desactivado'}`,
+        changedCustomReportNameFormula: ({newValue, oldValue}) => `cambió la fórmula personalizado del nombre del informe a "${newValue}" (anteriormente "${oldValue}")`,
         updateWorkspaceDescription: ({newDescription, oldDescription}) =>
             !oldDescription
                 ? `estableció la descripción de este espacio de trabajo como "${newDescription}"`
@@ -6417,11 +6448,6 @@ ${amount} para ${merchant} - ${date}`,
         },
         refresh: 'Actualizar',
     },
-    desktopAppRetiredPage: {
-        title: 'La aplicación de escritorio ha sido retirada',
-        body: 'La nueva aplicación de escritorio Expensify para Mac ha sido retirada. En adelante, utiliza la aplicación web para acceder a tu cuenta.',
-        goToWeb: 'Ir a la web',
-    },
     fileDownload: {
         success: {
             title: '¡Descargado!',
@@ -6436,73 +6462,6 @@ ${amount} para ${merchant} - ${date}`,
         permissionError: {
             title: 'Permiso para acceder al almacenamiento',
             message: 'Expensify no puede guardar los archivos adjuntos sin permiso para acceder al almacenamiento. Haz click en configuración para actualizar los permisos.',
-        },
-    },
-    desktopApplicationMenu: {
-        mainMenu: 'New Expensify',
-        about: 'Sobre New Expensify',
-        update: 'Actualizar New Expensify',
-        checkForUpdates: 'Buscar actualizaciones',
-        toggleDevTools: 'Ver herramientas de desarrollo',
-        viewShortcuts: 'Ver atajos de teclado',
-        services: 'Servicios',
-        hide: 'Ocultar New Expensify',
-        hideOthers: 'Ocultar otros',
-        showAll: 'Mostrar todos',
-        quit: 'Salir de New Expensify',
-        fileMenu: 'Archivo',
-        closeWindow: 'Cerrar ventana',
-        editMenu: 'Editar',
-        undo: 'Deshacer',
-        redo: 'Rehacer',
-        cut: 'Cortar',
-        copy: 'Copiar',
-        paste: 'Pegar',
-        pasteAndMatchStyle: 'Pegar adaptando el estilo',
-        pasteAsPlainText: 'Pegar como texto sin formato',
-        delete: 'Eliminar',
-        selectAll: 'Seleccionar todo',
-        speechSubmenu: 'Voz',
-        startSpeaking: 'Empezar a hablar',
-        stopSpeaking: 'Dejar de Hablar',
-        viewMenu: 'Ver',
-        reload: 'Cargar de nuevo',
-        forceReload: 'Forzar recarga',
-        resetZoom: 'Tamaño real',
-        zoomIn: 'Acercar',
-        zoomOut: 'Alejar',
-        togglefullscreen: 'Alternar pantalla completa',
-        historyMenu: 'Historial',
-        back: 'Atrás',
-        forward: 'Adelante',
-        windowMenu: 'Ventana',
-        minimize: 'Minimizar',
-        zoom: 'Zoom',
-        front: 'Traer todo al frente',
-        helpMenu: 'Ayuda',
-        learnMore: 'Más información',
-        documentation: 'Documentación',
-        communityDiscussions: 'Debates de la comunidad',
-        searchIssues: 'Buscar problemas',
-    },
-    historyMenu: {
-        forward: 'Adelante',
-        back: 'Atrás',
-    },
-    checkForUpdatesModal: {
-        available: {
-            title: 'Actualización disponible',
-            message: ({isSilentUpdating}) => `La nueva versión estará disponible dentro de poco.${isSilentUpdating ? ' Te notificaremos cuando esté lista.' : ''}`,
-            soundsGood: 'Suena bien',
-        },
-        notAvailable: {
-            title: 'Actualización no disponible',
-            message: '¡No existe ninguna actualización disponible! Inténtalo de nuevo más tarde.',
-            okay: 'Vale',
-        },
-        error: {
-            title: 'Comprobación fallida',
-            message: 'No hemos podido comprobar si existe una actualización. ¡Inténtalo de nuevo más tarde!.',
         },
     },
     settlement: {
@@ -8032,6 +7991,39 @@ ${amount} para ${merchant} - ${date}`,
             addAdmin: 'Añadir administrador',
             invite: 'Invitar',
             addAdminError: 'No se pudo añadir a este miembro como administrador. Por favor, inténtalo de nuevo.',
+        },
+    },
+    gps: {
+        tooltip: '¡Seguimiento por GPS en curso! Cuando termines, detén el seguimiento a continuación.',
+        disclaimer: 'Utiliza el GPS para crear un gasto a partir de tu trayecto. Toca Iniciar a continuación para comenzar el seguimiento.',
+        error: {
+            failedToStart: 'No se pudo iniciar el seguimiento de la ubicación.',
+            failedToGetPermissions: 'No se pudieron obtener los permisos de ubicación necesarios.',
+        },
+        trackingDistance: 'Seguimiento de distancia...',
+        stopped: 'Detenido',
+        start: 'Iniciar',
+        stop: 'Detener',
+        discard: 'Descartar',
+        stopGpsTrackingModal: {
+            title: 'Detener seguimiento por GPS',
+            prompt: '¿Estás seguro? Esto finalizará tu trayecto actual.',
+            cancel: 'Reanudar seguimiento',
+            confirm: 'Detener seguimiento por GPS',
+        },
+        discardDistanceTrackingModal: {
+            title: 'Descartar seguimiento de distancia',
+            prompt: '¿Estás seguro? Esto descartará tu trayecto actual y no se puede deshacer.',
+            confirm: 'Descartar seguimiento de distancia',
+        },
+        zeroDistanceTripModal: {
+            title: 'No se puede crear el gasto',
+            prompt: 'No puedes crear un gasto con la misma ubicación de inicio y fin.',
+        },
+        desktop: {
+            title: 'Registra la distancia en tu teléfono',
+            subtitle: 'Registra millas o kilómetros automáticamente con GPS y convierte los viajes en gastos al instante.',
+            button: 'Descarga la app',
         },
     },
 };
