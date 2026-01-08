@@ -21,46 +21,12 @@ import type en from './en';
 import type {
     ChangeFieldParams,
     ConnectionNameParams,
-    CustomersOrJobsLabelParams,
     DelegateRoleParams,
     DeleteActionParams,
     DeleteConfirmationParams,
-    DeleteTransactionParams,
-    DemotedFromWorkspaceParams,
-    DidSplitAmountMessageParams,
-    EarlyDiscountSubtitleParams,
-    EarlyDiscountTitleParams,
     EditActionParams,
-    EditDestinationSubtitleParams,
-    ElectronicFundsParams,
-    EmployeeInviteMessageParams,
-    EmptyCategoriesSubtitleWithAccountingParams,
-    EmptyTagsSubtitleWithAccountingParams,
-    EnableContinuousReconciliationParams,
-    EnterMagicCodeParams,
-    ErrorODIntegrationParams,
     ExportAgainModalDescriptionParams,
-    ExportedToIntegrationParams,
     ExportIntegrationSelectedParams,
-    FeatureNameParams,
-    FileLimitParams,
-    FileTypeParams,
-    FiltersAmountBetweenParams,
-    FlightLayoverParams,
-    FlightParams,
-    FocusModeUpdateParams,
-    FormattedMaxLengthParams,
-    GoBackMessageParams,
-    HarvestCreatedExpenseReportParams,
-    ImportedTagsMessageParams,
-    ImportedTypesParams,
-    ImportFieldParams,
-    ImportMembersSuccessfulDescriptionParams,
-    ImportPerDiemRatesSuccessfulDescriptionParams,
-    ImportTagsSuccessfulDescriptionParams,
-    IncorrectZipFormatParams,
-    IndividualExpenseRulesSubtitleParams,
-    InstantSummaryParams,
     IntacctMappingTitleParams,
     IntegrationExportParams,
     IntegrationSyncFailedParams,
@@ -72,7 +38,6 @@ import type {
     LearnMoreRouteParams,
     LeftWorkspaceParams,
     LocalTimeParams,
-    LoggedInAsParams,
     LogSizeParams,
     ManagerApprovedAmountParams,
     ManagerApprovedParams,
@@ -124,7 +89,6 @@ import type {
     ReportFieldParams,
     ReportPolicyNameParams,
     RequestAmountParams,
-    RequestedAmountMessageParams,
     RequiredFieldParams,
     ResolutionConstraintsParams,
     ReviewParams,
@@ -149,9 +113,6 @@ import type {
     SplitDateRangeParams,
     SplitExpenseEditTitleParams,
     SplitExpenseSubtitleParams,
-    SpreadCategoriesParams,
-    SpreadFieldNameParams,
-    SpreadSheetColumnParams,
     StatementTitleParams,
     StepCounterParams,
     StripePaidParams,
@@ -191,7 +152,6 @@ import type {
     UpdatedPolicyCategoryParams,
     UpdatedPolicyCurrencyParams,
     UpdatedPolicyCustomUnitRateEnabledParams,
-    UpdatedPolicyCustomUnitRateIndexParams,
     UpdatedPolicyCustomUnitRateParams,
     UpdatedPolicyCustomUnitTaxClaimablePercentageParams,
     UpdatedPolicyCustomUnitTaxRateExternalIDParams,
@@ -671,6 +631,7 @@ const translations: TranslationDeepObject<typeof en> = {
         reimbursableTotal: '経費精算対象の合計',
         nonReimbursableTotal: '非払い戻し合計',
         originalAmount: '元の金額',
+        insights: 'インサイト',
     },
     supportalNoAccess: {
         title: 'ちょっと待ってください',
@@ -723,12 +684,12 @@ const translations: TranslationDeepObject<typeof en> = {
         protectedPDFNotSupported: 'パスワードで保護されたPDFはサポートされていません',
         attachmentImageResized: 'この画像はプレビュー用にサイズが変更されています。フル解像度で表示するにはダウンロードしてください。',
         attachmentImageTooLarge: 'この画像はアップロード前にプレビューするには大きすぎます。',
-        tooManyFiles: ({fileLimit}: FileLimitParams) => `一度にアップロードできるファイルは${fileLimit}件までです。`,
+        tooManyFiles: (fileLimit: number) => `一度にアップロードできるファイルは${fileLimit}件までです。`,
         sizeExceededWithValue: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルが ${maxUploadSizeInMB} MB を超えています。もう一度お試しください。`,
         someFilesCantBeUploaded: '一部のファイルはアップロードできません',
         sizeLimitExceeded: ({maxUploadSizeInMB}: SizeExceededParams) => `ファイルは${maxUploadSizeInMB}MB未満である必要があります。これより大きいファイルはアップロードされません。`,
         maxFileLimitExceeded: '一度にアップロードできる領収書は最大30枚です。それを超えた分はアップロードされません。',
-        unsupportedFileType: ({fileType}: FileTypeParams) => `${fileType} ファイルはサポートされていません。サポートされているファイル形式のみアップロードされます。`,
+        unsupportedFileType: (fileType: string) => `${fileType} ファイルはサポートされていません。サポートされているファイル形式のみアップロードされます。`,
         learnMoreAboutSupportedFiles: 'サポートされている形式の詳細はこちらをご覧ください。',
         passwordProtected: 'パスワード保護されたPDFはサポートされていません。サポートされているファイルのみがアップロードされます。',
     },
@@ -753,8 +714,8 @@ const translations: TranslationDeepObject<typeof en> = {
     composer: {
         noExtensionFoundForMimeType: 'この MIME タイプに対応する拡張子が見つかりません',
         problemGettingImageYouPasted: '貼り付けた画像の取得中に問題が発生しました',
-        commentExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `コメントの最大文字数は${formattedMaxLength}文字です。`,
-        taskTitleExceededMaxLength: ({formattedMaxLength}: FormattedMaxLengthParams) => `タスクタイトルの最大長は${formattedMaxLength}文字です。`,
+        commentExceededMaxLength: (formattedMaxLength: string) => `コメントの最大文字数は${formattedMaxLength}文字です。`,
+        taskTitleExceededMaxLength: (formattedMaxLength: string) => `タスクタイトルの最大長は${formattedMaxLength}文字です。`,
     },
     baseUpdateAppModal: {
         updateApp: 'アプリを更新',
@@ -764,15 +725,6 @@ const translations: TranslationDeepObject<typeof en> = {
         launching: 'Expensify を起動中',
         expired: 'セッションの有効期限が切れました。',
         signIn: 'もう一度サインインしてください。',
-        redirectedToDesktopApp: 'デスクトップアプリにリダイレクトしました。',
-        youCanAlso: '〜することもできます',
-        openLinkInBrowser: 'ブラウザーでこのリンクを開く',
-        loggedInAs: ({email}: LoggedInAsParams) =>
-            `${email} でログインしています。このアカウントでデスクトップアプリにログインするには、プロンプトで「リンクを開く」をクリックしてください。`,
-        doNotSeePrompt: 'プロンプトが表示されませんか？',
-        tryAgain: '再試行',
-        or: '、または',
-        continueInWeb: 'Webアプリに進む',
     },
     validateCodeModal: {
         successfulSignInTitle: dedent(`
@@ -845,12 +797,6 @@ const translations: TranslationDeepObject<typeof en> = {
             header: 'チャットのスピードで進む出張と経費管理',
             body: '次世代のExpensifyへようこそ。コンテキストに応じたリアルタイムチャットの力で、出張や経費精算がこれまで以上にスピーディーに進みます。',
         },
-    },
-    thirdPartySignIn: {
-        alreadySignedIn: (email: string) => `すでに ${email} としてサインインしています。`,
-        goBackMessage: ({provider}: GoBackMessageParams) => `${provider}でサインインしたくありませんか？`,
-        continueWithMyCurrentSession: '現在のセッションを続行',
-        redirectToDesktopMessage: 'サインインが完了すると、デスクトップアプリにリダイレクトします。',
     },
     samlSignIn: {
         welcomeSAMLEnabled: 'シングルサインオンでログインを続行:',
@@ -948,7 +894,7 @@ const translations: TranslationDeepObject<typeof en> = {
     adminOnlyCanPost: 'このルームでメッセージを送信できるのは管理者のみです。',
     reportAction: {
         asCopilot: 'のコパイロットとして',
-        harvestCreatedExpenseReport: ({reportUrl, reportName}: HarvestCreatedExpenseReportParams) =>
+        harvestCreatedExpenseReport: (reportUrl: string, reportName: string) =>
             `選択した頻度では提出できなかった <a href="${reportUrl}">${reportName}</a> のすべての経費をまとめるためにこのレポートを作成しました`,
     },
     mentionSuggestions: {
@@ -1023,14 +969,13 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseSpreadsheet: '<muted-link>インポートするスプレッドシートファイルを選択してください。対応形式：.csv、.txt、.xls、.xlsx。</muted-link>',
         chooseSpreadsheetMultiLevelTag: `<muted-link>インポートするスプレッドシートファイルを選択してください。サポートされているファイル形式の詳細は、<a href="${CONST.IMPORT_SPREADSHEET.MULTI_LEVEL_TAGS_ARTICLE_LINK}">こちら</a>をご覧ください。</muted-link>`,
         fileContainsHeader: 'ファイルには列ヘッダーが含まれています',
-        column: ({name}: SpreadSheetColumnParams) => `列 ${name}`,
-        fieldNotMapped: ({fieldName}: SpreadFieldNameParams) => `おっと！必須フィールド（「${fieldName}」）がマッピングされていません。確認して、もう一度お試しください。`,
-        singleFieldMultipleColumns: ({fieldName}: SpreadFieldNameParams) =>
-            `おっと！1 つのフィールド（「${fieldName}」）が複数の列に割り当てられています。内容を確認して、もう一度お試しください。`,
-        emptyMappedField: ({fieldName}: SpreadFieldNameParams) => `おっと！フィールド（「${fieldName}」）に 1 つ以上の空の値が含まれています。確認して、もう一度お試しください。`,
+        column: (name: string) => `列 ${name}`,
+        fieldNotMapped: (fieldName: string) => `おっと！必須フィールド（「${fieldName}」）がマッピングされていません。確認して、もう一度お試しください。`,
+        singleFieldMultipleColumns: (fieldName: string) => `おっと！1 つのフィールド（「${fieldName}」）が複数の列に割り当てられています。内容を確認して、もう一度お試しください。`,
+        emptyMappedField: (fieldName: string) => `おっと！フィールド（「${fieldName}」）に 1 つ以上の空の値が含まれています。確認して、もう一度お試しください。`,
         importSuccessfulTitle: 'インポートに成功しました',
-        importCategoriesSuccessfulDescription: ({categories}: SpreadCategoriesParams) => (categories > 1 ? `${categories}件のカテゴリーが追加されました。` : 'カテゴリを1件追加しました。'),
-        importMembersSuccessfulDescription: ({added, updated}: ImportMembersSuccessfulDescriptionParams) => {
+        importCategoriesSuccessfulDescription: (categories: number) => (categories > 1 ? `${categories}件のカテゴリーが追加されました。` : 'カテゴリを1件追加しました。'),
+        importMembersSuccessfulDescription: (added: number, updated: number) => {
             if (!added && !updated) {
                 return 'メンバーは追加または更新されていません。';
             }
@@ -1042,10 +987,9 @@ const translations: TranslationDeepObject<typeof en> = {
             }
             return added > 1 ? `${added} 名のメンバーが追加されました。` : '1名のメンバーが追加されました。';
         },
-        importTagsSuccessfulDescription: ({tags}: ImportTagsSuccessfulDescriptionParams) => (tags > 1 ? `${tags} 個のタグを追加しました。` : 'タグが 1 件追加されました。'),
+        importTagsSuccessfulDescription: (tags: number) => (tags > 1 ? `${tags} 個のタグを追加しました。` : 'タグが 1 件追加されました。'),
         importMultiLevelTagsSuccessfulDescription: 'マルチレベルタグが追加されました。',
-        importPerDiemRatesSuccessfulDescription: ({rates}: ImportPerDiemRatesSuccessfulDescriptionParams) =>
-            rates > 1 ? `${rates}件の日当レートが追加されました。` : '1件の日当レートが追加されました。',
+        importPerDiemRatesSuccessfulDescription: (rates: number) => (rates > 1 ? `${rates}件の日当レートが追加されました。` : '1件の日当レートが追加されました。'),
         importFailedTitle: 'インポートに失敗しました',
         importFailedDescription: 'すべての項目が正しく入力されていることを確認して、もう一度お試しください。問題が解決しない場合は、Concierge までお問い合わせください。',
         importDescription: '下のインポートされた各列の横にあるドロップダウンをクリックして、スプレッドシートからマッピングするフィールドを選択してください。',
@@ -1162,7 +1106,7 @@ const translations: TranslationDeepObject<typeof en> = {
         posted: '投稿済み',
         deleteReceipt: '領収書を削除',
         findExpense: '経費を検索',
-        deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `経費を削除しました（${merchant} への ${amount}）`,
+        deletedTransaction: (amount: string, merchant: string) => `経費を削除しました（${merchant} への ${amount}）`,
         movedFromReport: ({reportName}: MovedFromReportParams) => `経費を移動しました${reportName ? `${reportName} から` : ''}`,
         movedTransactionTo: ({reportUrl, reportName}: MovedTransactionParams) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a> へ` : ''}`,
         movedTransactionFrom: ({reportUrl, reportName}: MovedTransactionParams) => `この経費を移動しました${reportName ? `<a href="${reportUrl}">${reportName}</a> から` : ''}`,
@@ -1257,13 +1201,13 @@ const translations: TranslationDeepObject<typeof en> = {
         finished: '完了',
         flip: '反転',
         sendInvoice: ({amount}: RequestAmountParams) => `${amount} の請求書を送信`,
-        expenseAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} 用` : ''}`,
+        expenseAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `${comment} 用` : ''}`,
         submitted: ({memo}: SubmittedWithMemoParams) => `送信済み${memo ? `、メモ「${memo}」と述べています` : ''}`,
         automaticallySubmitted: `<a href="${CONST.SELECT_WORKFLOWS_HELP_URL}">提出を遅らせる</a>を通じて送信されました`,
         queuedToSubmitViaDEW: 'カスタム承認ワークフローを介して送信待ちキューに入れられました',
-        trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `${formattedAmount}${comment ? `${comment} 用` : ''} を追跡中`,
+        trackedAmount: (formattedAmount: string, comment?: string) => `${formattedAmount}${comment ? `${comment} 用` : ''} を追跡中`,
         splitAmount: ({amount}: SplitAmountParams) => `${amount} を分割`,
-        didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `分割 ${formattedAmount}${comment ? `${comment} 用` : ''}`,
+        didSplitAmount: (formattedAmount: string, comment: string) => `分割 ${formattedAmount}${comment ? `${comment} 用` : ''}`,
         yourSplit: ({amount}: UserSplitParams) => `あなたの分担額 ${amount}`,
         payerOwesAmount: (amount: number | string, payer: string, comment?: string) => `${payer} の未払い金額は ${amount}${comment ? `${comment} 用` : ''}`,
         payerOwes: ({payer}: PayerOwesParams) => `${payer} の負担額:`,
@@ -1567,25 +1511,34 @@ const translations: TranslationDeepObject<typeof en> = {
     nextStep: {
         message: {
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `<strong>あなた</strong>が経費を追加するのを待機中。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> が経費を追加するのを待機中です。`;
+                        return `<strong>${actor}</strong> が経費を追加するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
                         return `管理者が経費を追加するのを待機しています。`;
+                }
+            },
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT]: ({actor, actorType}: NextStepParams) => {
+                // eslint-disable-next-line default-case
+                switch (actorType) {
+                    case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
+                        return `経費の提出を<strong>あなた</strong>が行うのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong> が経費を提出するのを待っています。`;
+                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者が経費を提出するのを待機中。`;
                 }
             },
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             [CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION]: (_: NextStepParams) => `これ以上の対応は不要です！`,
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `<strong>あなた</strong>が銀行口座を追加するのを待機中です。`;
+                        return `<strong>あなた</strong>が銀行口座を追加するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `<strong>${actor}</strong>が銀行口座を追加するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
@@ -1597,85 +1550,84 @@ const translations: TranslationDeepObject<typeof en> = {
                 if (eta) {
                     formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta} に` : ` ${eta}`;
                 }
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `<strong>あなた</strong>の経費が自動送信されるのを待機中${formattedETA}。`;
+                        return `<strong>あなたの</strong>経費が自動的に提出されるのを待機中${formattedETA}。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> の経費が自動的に提出されるのを待っています${formattedETA}。`;
+                        return `<strong>${actor}</strong> さんの経費が ${formattedETA} に自動送信されるまで待機中。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者の経費が自動送信されるのを待っています${formattedETA}。`;
+                        return `管理者の経費が自動送信されるのを待機中${formattedETA}`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_FIX_ISSUES]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
                         return `問題を修正するのを<strong>あなた</strong>が行うのを待機中です。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> が問題を修正するのを待っています。`;
+                        return `<strong>${actor}</strong> が問題を修正するのを待機中。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が問題を修正するのを待機しています。`;
+                        return `管理者が問題を修正するのを待機中です。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `<strong>あなた</strong>が経費を承認するのを待っています。`;
+                        return `<strong>あなた</strong>の経費承認待ち。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong>の経費承認待ち。`;
+                        return `<strong>${actor}</strong> が経費を承認するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が経費を承認するのを待機中。`;
+                        return `管理者が経費を承認するのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `このレポートをエクスポートするのを<strong>あなた</strong>が行うのを待っています。`;
+                        return `このレポートをエクスポートするのを<strong>あなた</strong>が待機しています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> がこのレポートをエクスポートするのを待っています。`;
+                        return `このレポートのエクスポートを<strong>${actor}</strong>が行うのを待機中です。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `このレポートをエクスポートする管理者を待機中です。`;
+                        return `管理者がこのレポートをエクスポートするのを待機中。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `経費の支払いを<strong>あなた</strong>が行うのを待っています。`;
+                        return `<strong>あなた</strong>の経費支払い待ち`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
                         return `<strong>${actor}</strong> が経費を支払うのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が経費を支払うのを待っています。`;
+                        return `管理者が経費を支払うのを待機中。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_POLICY_BANK_ACCOUNT]: ({actor, actorType}: NextStepParams) => {
-                // Disabling the default-case lint rule here is actually safer as this forces us to make the switch cases exhaustive
                 // eslint-disable-next-line default-case
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `<strong>あなた</strong>がビジネス銀行口座の設定を完了するのを待機しています。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> がビジネス銀行口座の設定を完了するのを待機中です。`;
-                    case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者がビジネス銀行口座の設定を完了するのを待っています。`;
+                        return `ビジネス用銀行口座の設定完了を<strong>あなた</strong>が行うのを待っています。`;
+                    case CONST /* eslint-disable max-len */.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
+                        return `<strong>${actor}</strong> がビジネス銀行口座の設定を完了するのを待っています。`;
+                    case // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
+                    CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
+                        return `管理者がビジネス銀行口座の設定を完了するのを待機しています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_PAYMENT]: ({eta, etaType}: NextStepParams) => {
                 let formattedETA = '';
                 if (eta) {
-                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta} までに` : ` ${eta}`;
+                    formattedETA = etaType === CONST.NEXT_STEP.ETA_TYPE.DATE_TIME ? `${eta} まで` : ` ${eta}`;
                 }
-                return `支払いの完了を待機しています${formattedETA}。`;
+                return `支払いの完了を待機中${formattedETA}。`;
             },
-        },
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            [CONST.NEXT_STEP.MESSAGE_KEY.SUBMITTING_TO_SELF]: (_: NextStepParams) =>
+                `おっと！<strong>ご自身</strong>に提出しようとしているようです。自分のレポートを承認することは、ワークスペースで<strong>禁止</strong>されています。このレポートは別のメンバーに提出するか、管理者に連絡して提出先の担当者を変更してください。`,
+            // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
+        }, // @context Status label meaning an item has already been sent or submitted (e.g., a form or report). Not the action “to submit.”
         eta: {
             [CONST.NEXT_STEP.ETA_KEY.SHORTLY]: 'まもなく',
             [CONST.NEXT_STEP.ETA_KEY.TODAY]: '今日の後ほど',
@@ -1731,7 +1683,7 @@ const translations: TranslationDeepObject<typeof en> = {
             `Expensify にログインしたり、領収書を送信したりする方法をさらに追加しましょう。<br/><br/><a href="mailto:${email}">${email}</a> に領収書を転送するメールアドレスを追加するか、電話番号を追加して領収書を 47777 にテキスト送信してください（米国の電話番号のみ）。`,
         pleaseVerify: 'この連絡方法を確認してください。',
         getInTouch: '今後のご連絡はこの方法で行います。',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
+        enterMagicCode: (contactMethod: string) => `${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届きます。`,
         setAsDefault: 'デフォルトに設定',
         yourDefaultContactMethod: 'これは現在の既定の連絡方法です。削除する前に、別の連絡方法を選択して「既定として設定」をクリックする必要があります。',
         removeContactMethod: '連絡方法を削除',
@@ -1787,7 +1739,7 @@ const translations: TranslationDeepObject<typeof en> = {
         updateRequired: '更新が必要です',
         pleaseInstall: '最新バージョンの New Expensify にアップデートしてください',
         pleaseInstallExpensifyClassic: '最新バージョンの Expensify をインストールしてください',
-        toGetLatestChanges: 'モバイルまたはデスクトップの場合は、最新バージョンをダウンロードしてインストールしてください。Web の場合は、ブラウザを更新（再読み込み）してください。',
+        toGetLatestChanges: 'モバイルまの場合は、最新バージョンをダウンロードしてインストールしてください。Web の場合は、ブラウザを更新（再読み込み）してください。',
         newAppNotAvailable: 'The New Expensify アプリは、もう利用できません。',
     },
     initialSettingsPage: {
@@ -1807,9 +1759,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             ios: {
                 label: 'iOS',
-            },
-            desktop: {
-                label: 'macOS',
             },
         },
         troubleshoot: {
@@ -1852,6 +1801,8 @@ const translations: TranslationDeepObject<typeof en> = {
             sentryDebugDescription: 'Sentryリクエストをコンソールに記録',
             sentryHighlightedSpanOps: 'ハイライト表示するspan名',
             sentryHighlightedSpanOpsPlaceholder: 'ui.interaction.click, navigation, ui.load',
+            leftHandNavCache: '左側ナビキャッシュ',
+            clearleftHandNavCache: 'クリア',
         },
         debugConsole: {
             saveLog: 'ログを保存',
@@ -2179,7 +2130,7 @@ const translations: TranslationDeepObject<typeof en> = {
         cardAddedToWallet: ({platform}: {platform: 'Google' | 'Apple'}) => `${platform}ウォレットに追加しました`,
         cardDetailsLoadingFailure: 'カードの詳細を読み込む際にエラーが発生しました。インターネット接続を確認して、もう一度お試しください。',
         validateCardTitle: 'あなた本人であることを確認しましょう',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `カード情報を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
+        enterMagicCode: (contactMethod: string) => `カード情報を表示するには、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
         missingPrivateDetails: ({missingDetailsLink}: {missingDetailsLink: string}) => `<a href="${missingDetailsLink}">個人情報を追加</a>してから、もう一度お試しください。`,
         unexpectedError: 'Expensifyカードの詳細を取得中にエラーが発生しました。もう一度お試しください。',
         cardFraudAlert: {
@@ -2283,7 +2234,25 @@ ${merchant} への ${amount}（${date}）`,
     },
     workflowsApproverPage: {
         genericErrorMessage: '承認者を変更できませんでした。もう一度お試しいただくか、サポートにお問い合わせください。',
-        header: 'このメンバーに承認用として送信:',
+        title: 'このメンバーに承認用として送信:',
+        description: 'この人が経費を承認します。',
+    },
+    workflowsApprovalLimitPage: {
+        title: '承認者',
+        header: '（オプション）承認限度額を追加しますか？',
+        description: ({approverName}: {approverName: string}) =>
+            approverName
+                ? `<strong>${approverName}</strong>が承認者で、レポートが以下の金額を超える場合に別の承認者を追加します：`
+                : 'レポートが以下の金額を超える場合に別の承認者を追加します：',
+        reportAmountLabel: 'レポート金額',
+        additionalApproverLabel: '追加の承認者',
+        skip: 'スキップ',
+        next: '次へ',
+        removeLimit: '制限を削除',
+        enterAmountError: '有効な金額を入力してください',
+        enterApproverError: 'レポート制限を設定する場合は承認者が必要です',
+        enterBothError: 'レポート金額と追加の承認者を入力してください',
+        forwardLimitDescription: ({approvalLimit, approverName}: {approvalLimit: string; approverName: string}) => `${approvalLimit}を超えるレポートは${approverName}に転送されます`,
     },
     workflowsPayerPage: {
         title: '認可された支払担当者',
@@ -2337,7 +2306,7 @@ ${merchant} への ${amount}（${date}）`,
     transferAmountPage: {
         transfer: ({amount}: TransferParams) => `振替${amount ? ` ${amount}` : ''}`,
         instant: '即時（デビットカード）',
-        instantSummary: ({rate, minAmount}: InstantSummaryParams) => `${rate}% の手数料（最低 ${minAmount}）`,
+        instantSummary: (rate: string, minAmount: string) => `${rate}% の手数料（最低 ${minAmount}）`,
         ach: '1～3 営業日（銀行口座）',
         achSummary: '手数料なし',
         whichAccount: 'どのアカウントですか？',
@@ -2872,7 +2841,7 @@ ${
             dateShouldBeBefore: (dateString: string) => `日付は${dateString}より前でなければなりません`,
             dateShouldBeAfter: (dateString: string) => `日付は${dateString}より後である必要があります`,
             hasInvalidCharacter: '名前にはラテン文字のみ使用できます',
-            incorrectZipFormat: ({zipFormat}: IncorrectZipFormatParams = {}) => `郵便番号の形式が正しくありません${zipFormat ? `許容される形式：${zipFormat}` : ''}`,
+            incorrectZipFormat: (zipFormat?: string) => `郵便番号の形式が正しくありません${zipFormat ? `許容される形式：${zipFormat}` : ''}`,
             invalidPhoneNumber: `電話番号が有効であることを確認してください（例：${CONST.EXAMPLE_PHONE_NUMBER}）`,
         },
     },
@@ -2955,7 +2924,7 @@ ${
     },
     focusModeUpdateModal: {
         title: '#focus モードへようこそ！',
-        prompt: ({priorityModePageUrl}: FocusModeUpdateParams) =>
+        prompt: (priorityModePageUrl: string) =>
             `未読のチャットや、対応が必要なチャットだけを表示して、常に状況を把握しましょう。心配はいりません。これはいつでも<a href="${priorityModePageUrl}">設定</a>で変更できます。`,
     },
     notFound: {
@@ -3208,7 +3177,7 @@ ${
             sendingFundsTitle: '別のアカウント保有者への送金',
             sendingFundsDetails: '残高、銀行口座、またはデビットカードを使って他のアカウント保有者に送金しても、手数料はかかりません。',
             electronicFundsStandardDetails: '標準オプションを利用してExpensifyウォレットから銀行口座へ資金を振り込む場合、手数料はかかりません。通常、この振込は1～3営業日以内に完了します。',
-            electronicFundsInstantDetails: ({percentage, amount}: ElectronicFundsParams) =>
+            electronicFundsInstantDetails: (percentage: string, amount: string) =>
                 '即時振込オプションを使用して、Expensifyウォレットからリンク済みデビットカードへ資金を振り替える場合、手数料が発生します。通常、この振込は数分以内に完了します。' +
                 `手数料は送金額の${percentage}%（最低手数料${amount}）です。`,
             fdicInsuranceBancorp: ({amount}: TermsParams) =>
@@ -3622,7 +3591,7 @@ ${
         flight: 'フライト',
         flightDetails: {
             passenger: '乗客',
-            layover: ({layover}: FlightLayoverParams) => `<muted-text-label>このフライトの前に<strong>${layover} の乗り継ぎ時間</strong>があります</muted-text-label>`,
+            layover: (layover: string) => `<muted-text-label>このフライトの前に<strong>${layover} の乗り継ぎ時間</strong>があります</muted-text-label>`,
             takeOff: '離陸',
             landing: 'ランディング',
             seat: '席',
@@ -3712,17 +3681,18 @@ ${
             conciergeMessage: ({domain}: {domain: string}) => `ドメイン ${domain} の出張機能の有効化に失敗しました。このドメインの出張機能を確認して有効にしてください。`,
         },
         updates: {
-            bookingTicketed: ({airlineCode, origin, destination, startDate, confirmationID = ''}: FlightParams) =>
+            bookingTicketed: (airlineCode: string, origin: string, destination: string, startDate: string, confirmationID = '') =>
                 `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）が予約されました。確認コード：${confirmationID}`,
-            ticketVoided: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            ticketVoided: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）のチケットは無効になりました。`,
-            ticketRefunded: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            ticketRefunded: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）の航空券は、払い戻しまたは変更されています。`,
-            flightCancelled: ({airlineCode, origin, destination, startDate}: FlightParams) =>
+            flightCancelled: (airlineCode: string, origin: string, destination: string, startDate: string) =>
                 `${startDate}} のフライト ${airlineCode}（${origin} → ${destination}）は、航空会社によりキャンセルされました。`,
             flightScheduleChangePending: (airlineCode: string) => `航空会社が便名 ${airlineCode} のスケジュール変更を提案しており、現在確認待ちです。`,
             flightScheduleChangeClosed: (airlineCode: string, startDate?: string) => `スケジュール変更が確認されました：フライト ${airlineCode} の出発時刻は ${startDate} になりました。`,
-            flightUpdated: ({airlineCode, origin, destination, startDate}: FlightParams) => `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）が更新されました。`,
+            flightUpdated: (airlineCode: string, origin: string, destination: string, startDate: string) =>
+                `${startDate} のフライト ${airlineCode}（${origin} → ${destination}）が更新されました。`,
             flightCabinChanged: (airlineCode: string, cabinClass?: string) => `ご搭乗クラスは、${airlineCode} 便で ${cabinClass} に更新されました。`,
             flightSeatConfirmed: (airlineCode: string) => `${airlineCode}便の座席指定が確定しました。`,
             flightSeatChanged: (airlineCode: string) => `ご搭乗便 ${airlineCode} の座席指定が変更されました。`,
@@ -3836,9 +3806,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - 最終同期日 ${formattedDate}`,
             authenticationError: (connectionName: string) => `認証エラーのため、${connectionName} に接続できません。`,
             learnMore: '詳細はこちら',
-            memberAlternateText: 'メンバーはレポートを提出および承認できます。',
-            adminAlternateText: '管理者は、すべてのレポートとワークスペース設定を完全に編集できます。',
-            auditorAlternateText: '監査担当者はレポートを閲覧し、コメントすることができます。',
+            memberAlternateText: 'レポートを提出して承認する。',
+            adminAlternateText: 'レポートとワークスペース設定を管理します。',
+            auditorAlternateText: 'レポートを表示してコメントする。',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
@@ -3921,8 +3891,8 @@ ${
             importPerDiemRates: '日当レートをインポート',
             editPerDiemRate: '日当レートを編集',
             editPerDiemRates: '日当レートを編集',
-            editDestinationSubtitle: ({destination}: EditDestinationSubtitleParams) => `この宛先を更新すると、すべての${destination}の日当サブレートに適用されます。`,
-            editCurrencySubtitle: ({destination}: EditDestinationSubtitleParams) => `この通貨を更新すると、すべての${destination}の日当サブレートが変更されます。`,
+            editDestinationSubtitle: (destination: string) => `この宛先を更新すると、すべての${destination}の日当サブレートに適用されます。`,
+            editCurrencySubtitle: (destination: string) => `この通貨を更新すると、すべての${destination}の日当サブレートが変更されます。`,
         },
         qbd: {
             exportOutOfPocketExpensesDescription: '自己負担経費を QuickBooks Desktop にどのようにエクスポートするかを設定します。',
@@ -4519,12 +4489,12 @@ ${
                     importJobs: 'プロジェクトをインポート',
                     customers: '顧客',
                     jobs: 'プロジェクト',
-                    label: ({importFields, importType}: CustomersOrJobsLabelParams) => `${importFields.join('と')}, ${importType}`,
+                    label: (importFields: string[], importType: string) => `${importFields.join('と')}, ${importType}`,
                 },
                 importTaxDescription: 'NetSuite から税グループをインポートします。',
                 importCustomFields: {
                     chooseOptionBelow: '以下からオプションを選択してください：',
-                    label: ({importedTypes}: ImportedTypesParams) => `${importedTypes.join('と')} としてインポートされました`,
+                    label: (importedTypes: string[]) => `${importedTypes.join('と')} としてインポートされました`,
                     requiredFieldError: ({fieldName}: RequiredFieldParams) => `${fieldName}を入力してください`,
                     customSegments: {
                         title: 'カスタムセグメント／レコード',
@@ -4639,18 +4609,18 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: {
                         label: 'NetSuite 従業員のデフォルト',
                         description: 'Expensify にインポートされず、エクスポート時に適用されます',
-                        footerContent: ({importField}: ImportFieldParams) =>
+                        footerContent: (importField: string) =>
                             `NetSuite で ${importField} を使用する場合、Expense Report または Journal Entry へエクスポートする際に、従業員レコードに設定されているデフォルトを適用します。`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG]: {
                         label: 'タグ',
                         description: '明細行レベル',
-                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} は、従業員のレポート上の各経費ごとに個別に選択できるようになります。`,
+                        footerContent: (importField: string) => `${startCase(importField)} は、従業員のレポート上の各経費ごとに個別に選択できるようになります。`,
                     },
                     [CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD]: {
                         label: 'レポート項目',
                         description: 'レポートレベル',
-                        footerContent: ({importField}: ImportFieldParams) => `${startCase(importField)} の選択は、従業員のレポート上のすべての経費に適用されます。`,
+                        footerContent: (importField: string) => `${startCase(importField)} の選択は、従業員のレポート上のすべての経費に適用されます。`,
                     },
                 },
             },
@@ -4727,7 +4697,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 commercialFeedPlaidDetails: `銀行での設定が必要ですが、設定手順はご案内します。通常は大企業に限られます。`,
                 directFeedDetails: '最も簡単な方法です。マスター認証情報を使用して、すぐに接続します。この方法が最も一般的です。',
                 enableFeed: {
-                    title: ({provider}: GoBackMessageParams) => `${provider} フィードを有効にする`,
+                    title: (provider: string) => `${provider} フィードを有効にする`,
                     heading: 'お使いのカード発行会社と直接連携しており、取引データを迅速かつ正確に Expensify に取り込むことができます。\n\n開始するには、次の手順に従ってください。',
                     visa: '私たちはVisaとグローバル連携していますが、対象となるかどうかは銀行やカードプログラムによって異なります。\n\nご利用を開始するには、次のステップに従ってください。',
                     mastercard:
@@ -4817,7 +4787,6 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             customCloseDate: 'カスタム締め日',
             letsDoubleCheck: 'すべてが正しく見えるか、もう一度確認しましょう。',
             confirmationDescription: '取引のインポートを直ちに開始します。',
-            cardholder: 'カード保有者',
             card: 'カード',
             cardName: 'カード名',
             brokenConnectionError: '<rbr>カードフィード接続が切断されています。再度接続を確立するために、<a href="#">銀行にログイン</a>してください。</rbr>',
@@ -4929,7 +4898,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             emptyCategories: {
                 title: 'まだカテゴリを作成していません',
                 subtitle: '支出を整理するためにカテゴリを追加してください。',
-                subtitleWithAccounting: ({accountingPageURL}: EmptyCategoriesSubtitleWithAccountingParams) =>
+                subtitleWithAccounting: (accountingPageURL: string) =>
                     `<muted-text><centered-text>現在、カテゴリーは会計接続からインポートされています。変更を加えるには、<a href="${accountingPageURL}">会計</a>に移動してください。</centered-text></muted-text>`,
             },
             updateFailureMessage: 'カテゴリーの更新中にエラーが発生しました。もう一度お試しください',
@@ -5238,7 +5207,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 //  We need to remove the subtitle and use the below one when we remove the canUseMultiLevelTags beta
                 subtitle: 'タグを追加して、プロジェクト、勤務地、部門などを追跡しましょう。',
                 subtitleHTML: `<muted-text><centered-text>タグを追加して、プロジェクト、所在地、部署などを追跡しましょう。インポート用のタグファイルの書式設定については、<a href="${CONST.IMPORT_TAGS_EXPENSIFY_URL}">詳しくはこちら</a>をご覧ください。</centered-text></muted-text>`,
-                subtitleWithAccounting: ({accountingPageURL}: EmptyTagsSubtitleWithAccountingParams) =>
+                subtitleWithAccounting: (accountingPageURL: string) =>
                     `<muted-text><centered-text>現在、タグは会計連携からインポートされています。変更を行うには、<a href="${accountingPageURL}">会計</a>に移動してください。</centered-text></muted-text>`,
             },
             deleteTag: 'タグを削除',
@@ -5284,7 +5253,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                 prompt3: 'バックアップをダウンロード',
                 prompt4: '最初。',
             },
-            importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
+            importedTagsMessage: (columnCounts: number) =>
                 `スプレッドシート内に *${columnCounts} 列* 見つかりました。タグ名が含まれている列の横で *Name* を選択してください。タグのステータスを設定する列の横で *Enabled* を選択することもできます。`,
             cannotDeleteOrDisableAllTags: {
                 title: 'すべてのタグを削除または無効にすることはできません',
@@ -5498,7 +5467,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
                     }
                 }
             },
-            errorODIntegration: ({oldDotPolicyConnectionsURL}: ErrorODIntegrationParams) =>
+            errorODIntegration: (oldDotPolicyConnectionsURL: string) =>
                 `Expensify Classic で設定された接続にエラーがあります。[この問題を解決するには Expensify Classic に移動してください。](${oldDotPolicyConnectionsURL})`,
             goToODToSettings: '設定を管理するには、Expensify Classic に移動してください。',
             setup: '接続',
@@ -5704,7 +5673,7 @@ _より詳しい手順については、[ヘルプサイトをご覧ください
             reconciliationAccount: '照合勘定',
             continuousReconciliation: '継続的な照合',
             saveHoursOnReconciliation: '各会計期間ごとの照合作業にかかる時間を大幅に削減できます。Expensify が、あなたに代わって Expensify Card の明細と精算を継続的に照合します。',
-            enableContinuousReconciliation: ({accountingAdvancedSettingsLink, connectionName}: EnableContinuousReconciliationParams) =>
+            enableContinuousReconciliation: (accountingAdvancedSettingsLink: string, connectionName: string) =>
                 `<muted-text-label>継続的な照合を有効にするには、${connectionName} の<a href="${accountingAdvancedSettingsLink}">自動同期</a>を有効にしてください。</muted-text-label>`,
             chooseReconciliationAccount: {
                 chooseBankAccount: 'Expensify Card の支払いを照合する銀行口座を選択してください。',
@@ -6087,7 +6056,7 @@ ${reportName}
         rules: {
             individualExpenseRules: {
                 title: '経費',
-                subtitle: ({categoriesPageLink, tagsPageLink}: IndividualExpenseRulesSubtitleParams) =>
+                subtitle: (categoriesPageLink: string, tagsPageLink: string) =>
                     `<muted-text>個々の経費に対して支出コントロールとデフォルトを設定します。<a href="${categoriesPageLink}">カテゴリ</a>や<a href="${tagsPageLink}">タグ</a>のルールを作成することもできます。</muted-text>`,
                 receiptRequiredAmount: '領収書が必要な金額',
                 receiptRequiredAmountDescription: 'カテゴリルールで上書きされない限り、支出がこの金額を超えた場合に領収書を必須にする。',
@@ -6150,8 +6119,8 @@ ${reportName}
                 autoPayApprovedReportsLockedSubtitle: '「その他の機能」に移動してワークフローを有効にし、その後「支払い」を追加してこの機能を有効化してください。',
                 autoPayReportsUnderTitle: '以下のレポートを自動支払い',
                 autoPayReportsUnderDescription: 'この金額以下の、要件を完全に満たした経費精算書は自動的に支払われます。',
-                unlockFeatureEnableWorkflowsSubtitle: ({featureName}: FeatureNameParams) => `${featureName} を追加して、この機能を有効にしてください。`,
-                enableFeatureSubtitle: ({featureName, moreFeaturesLink}: FeatureNameParams) =>
+                unlockFeatureEnableWorkflowsSubtitle: (featureName: string) => `${featureName} を追加して、この機能を有効にしてください。`,
+                enableFeatureSubtitle: (featureName: string, moreFeaturesLink?: string) =>
                     `[その他の機能](${moreFeaturesLink})に移動し、${featureName} を有効にしてこの機能をアンロックしてください。`,
             },
             categoryRules: {
@@ -6366,11 +6335,8 @@ ${reportName}
             }
             return `距離レート「${customUnitRateName}」に税還付可能分「${newValue}」を追加しました`;
         },
-        updatedCustomUnitRateIndex: ({customUnitName, customUnitRateName, oldValue, newValue}: UpdatedPolicyCustomUnitRateIndexParams) => {
-            return `${customUnitName} のレート "${customUnitRateName}" のインデックスを "${newValue}" に変更しました ${oldValue ? `(以前は "${oldValue}")` : ''}`;
-        },
         updatedCustomUnitRateEnabled: ({customUnitName, customUnitRateName, newValue}: UpdatedPolicyCustomUnitRateEnabledParams) => {
-            return `${newValue ? '有効化' : '無効化'} ${customUnitName} のレート "${customUnitRateName}"`;
+            return `${newValue ? '有効' : '無効'} ${customUnitName}レート「${customUnitRateName}」`;
         },
         deleteCustomUnitRate: (customUnitName: string, rateName: string) => `「${customUnitName}」のレート「${rateName}」を削除しました`,
         addedReportField: (fieldType: string, fieldName?: string) => `${fieldType} レポートフィールド「${fieldName}」を追加しました`,
@@ -6419,7 +6385,7 @@ ${reportName}
                 other: `${joinedNames} の承認ワークフローと経費チャットからあなたを削除しました。以前に提出されたレポートは、引き続き受信トレイで承認可能な状態で残ります。`,
             };
         },
-        demotedFromWorkspace: ({policyName, oldRole}: DemotedFromWorkspaceParams) =>
+        demotedFromWorkspace: (policyName: string, oldRole: string) =>
             `${policyName} 内でのあなたのロールが、${oldRole} からユーザーに更新されました。あなた自身のものを除き、すべての精算者の経費チャットから削除されています。`,
         updatedWorkspaceCurrencyAction: ({oldCurrency, newCurrency}: UpdatedPolicyCurrencyParams) => `デフォルト通貨を${newCurrency}（以前は${oldCurrency}）に更新しました`,
         updatedWorkspaceFrequencyAction: ({oldFrequency, newFrequency}: UpdatedPolicyFrequencyParams) => `自動レポート頻度を「${newFrequency}」（以前は「${oldFrequency}」）に更新しました`,
@@ -6707,7 +6673,7 @@ ${reportName}
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''} 未満`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''}より大きい`,
-                between: ({greaterThan, lessThan}: FiltersAmountBetweenParams) => `${greaterThan} から ${lessThan} まで`,
+                between: (greaterThan: string, lessThan: string) => `${greaterThan} から ${lessThan} まで`,
                 equalTo: ({amount}: OptionalParam<RequestAmountParams> = {}) => `${amount ?? ''} と等しい`,
             },
             card: {
@@ -6773,6 +6739,7 @@ ${reportName}
             selectAllMatchingItems: '一致する項目をすべて選択',
             allMatchingItemsSelected: '一致する項目をすべて選択済み',
         },
+        topSpenders: 'トップ支出者',
     },
     genericErrorPage: {
         title: 'おっと、問題が発生しました！',
@@ -6797,74 +6764,6 @@ ${reportName}
         permissionError: {
             title: 'ストレージへのアクセス',
             message: 'Expensify は、ストレージへのアクセス権限がないと添付ファイルを保存できません。権限を更新するには「設定」をタップしてください。',
-        },
-    },
-    desktopApplicationMenu: {
-        mainMenu: '新しい Expensify',
-        about: '新Expensifyについて',
-        update: '新しい Expensify を更新',
-        checkForUpdates: 'アップデートを確認',
-        toggleDevTools: '開発者ツールを切り替え',
-        viewShortcuts: 'キーボードショートカットを表示',
-        services: 'サービス',
-        hide: '新しい Expensify を非表示',
-        hideOthers: 'ほかを隠す',
-        showAll: 'すべて表示',
-        quit: 'New Expensify を終了',
-        fileMenu: 'ファイル',
-        closeWindow: 'ウィンドウを閉じる',
-        editMenu: '編集',
-        undo: '元に戻す',
-        redo: 'やり直し',
-        cut: '切り取り',
-        copy: 'コピー',
-        paste: '貼り付け',
-        pasteAndMatchStyle: 'ペーストしてスタイルを合わせる',
-        pasteAsPlainText: 'プレーンテキストとして貼り付け',
-        delete: '削除',
-        selectAll: 'すべて選択',
-        speechSubmenu: '音声',
-        startSpeaking: '話し始める',
-        stopSpeaking: '発話を停止',
-        viewMenu: '表示',
-        reload: '再読み込み',
-        forceReload: '強制再読み込み',
-        resetZoom: '実際のサイズ',
-        zoomIn: 'ズームイン',
-        zoomOut: 'ズームアウト',
-        togglefullscreen: 'フルスクリーンを切り替え',
-        historyMenu: '履歴',
-        back: '戻る',
-        forward: '転送',
-        windowMenu: 'ウィンドウ',
-        minimize: '最小化',
-        zoom: 'Zoom',
-        front: 'すべてを前面に表示',
-        helpMenu: 'ヘルプ',
-        learnMore: '詳細はこちら',
-        documentation: 'ドキュメント',
-        communityDiscussions: 'コミュニティディスカッション',
-        searchIssues: '検索の問題',
-    },
-    historyMenu: {
-        forward: '転送',
-        back: '戻る',
-    },
-    checkForUpdatesModal: {
-        available: {
-            title: 'アップデートがあります',
-            message: ({isSilentUpdating}: {isSilentUpdating: boolean}) =>
-                `新しいバージョンはまもなく利用可能になります。${!isSilentUpdating ? '準備ができしだい、更新の準備が整ったことをお知らせします。' : ''}`,
-            soundsGood: 'いいですね',
-        },
-        notAvailable: {
-            title: 'アップデートを利用できません',
-            message: '現在利用可能なアップデートはありません。後でもう一度ご確認ください。',
-            okay: 'OK',
-        },
-        error: {
-            title: 'アップデートの確認に失敗しました',
-            message: 'アップデートを確認できませんでした。しばらくしてからもう一度お試しください。',
         },
     },
     settlement: {
@@ -6918,7 +6817,7 @@ ${reportName}
                 changeType: (oldType: string, newType: string) => `${oldType} から ${newType} に変更しました`,
                 exportedToCSV: `CSV にエクスポート済み`,
                 exportedToIntegration: {
-                    automatic: ({label}: ExportedToIntegrationParams) => {
+                    automatic: (label: string) => {
                         const labelTranslations: Record<string, string> = {
                             [CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT]: translations.export.expenseLevelExport,
                             [CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]: translations.export.reportLevelExport,
@@ -6926,13 +6825,13 @@ ${reportName}
                         const translatedLabel = labelTranslations[label] || label;
                         return `${translatedLabel} にエクスポートしました`;
                     },
-                    automaticActionOne: ({label}: ExportedToIntegrationParams) => `${label} にエクスポート済み（経由）`,
+                    automaticActionOne: (label: string) => `${label} にエクスポート済み（経由）`,
                     automaticActionTwo: '会計設定',
-                    manual: ({label}: ExportedToIntegrationParams) => `このレポートを、${label} へ手動エクスポート済みとしてマークしました。`,
+                    manual: (label: string) => `このレポートを、${label} へ手動エクスポート済みとしてマークしました。`,
                     automaticActionThree: 'のレコードを正常に作成しました',
                     reimburseableLink: '立替経費',
                     nonReimbursableLink: '会社カード経費',
-                    pending: ({label}: ExportedToIntegrationParams) => `このレポートの${label}へのエクスポートを開始しました…`,
+                    pending: (label: string) => `このレポートの${label}へのエクスポートを開始しました…`,
                 },
                 integrationsMessage: ({errorMessage, label, linkText, linkURL}: IntegrationSyncFailedParams) =>
                     `このレポートを${label}にエクスポートできませんでした（"${errorMessage}${linkText ? `<a href="${linkURL}">${linkText}</a>` : ''}"）`,
@@ -7445,10 +7344,9 @@ ${reportName}
             },
             earlyDiscount: {
                 claimOffer: 'オファーを獲得',
-                subscriptionPageTitle: ({discountType}: EarlyDiscountTitleParams) =>
-                    `<strong>初年度が${discountType}%オフ！</strong> 支払いカードを追加して、年額サブスクリプションを開始しましょう。`,
-                onboardingChatTitle: ({discountType}: EarlyDiscountTitleParams) => `期間限定オファー：初年度が${discountType}%オフ！`,
-                subtitle: ({days, hours, minutes, seconds}: EarlyDiscountSubtitleParams) => `${days > 0 ? `${days}日 :` : ''}${hours}時間 : ${minutes}分 : ${seconds}秒以内に申請`,
+                subscriptionPageTitle: (discountType: number) => `<strong>初年度が${discountType}%オフ！</strong> 支払いカードを追加して、年額サブスクリプションを開始しましょう。`,
+                onboardingChatTitle: (discountType: number) => `期間限定オファー：初年度が${discountType}%オフ！`,
+                subtitle: (days: number, hours: number, minutes: number, seconds: number) => `${days > 0 ? `${days}日 :` : ''}${hours}時間 : ${minutes}分 : ${seconds}秒以内に申請`,
             },
         },
         cardSection: {
@@ -7649,8 +7547,8 @@ ${reportName}
         removeCopilotConfirmation: 'このコパイロットを削除してもよろしいですか？',
         changeAccessLevel: 'アクセス権限レベルを変更',
         makeSureItIsYou: 'あなた本人であることを確認しましょう',
-        enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `コパイロットを追加するために、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
-        enterMagicCodeUpdate: ({contactMethod}: EnterMagicCodeParams) => `${contactMethod} に送信されたマジックコードを入力して、あなたのコパイロットを更新してください。`,
+        enterMagicCode: (contactMethod: string) => `コパイロットを追加するために、${contactMethod} に送信されたマジックコードを入力してください。1～2分以内に届くはずです。`,
+        enterMagicCodeUpdate: (contactMethod: string) => `${contactMethod} に送信されたマジックコードを入力して、あなたのコパイロットを更新してください。`,
         notAllowed: 'ちょっと待ってください…',
         noAccessMessage: dedent(`
             このページには、コパイロットとしてアクセスできません。申し訳ありません。
@@ -7817,7 +7715,7 @@ ${reportName}
             readyForTheRealThing: '本番の準備はできましたか？',
             getStarted: 'はじめる',
         },
-        employeeInviteMessage: ({name}: EmployeeInviteMessageParams) => `# ${name} があなたを Expensify のお試しに招待しました
+        employeeInviteMessage: (name: string) => `# ${name} があなたを Expensify のお試しに招待しました
 やあ！経費処理を最速で行える Expensify を、*3 か月無料* でお試しできるようにしておいたよ。
 
 Expensify の使い方をお見せするための*テストレシート*がこちらです。`,
@@ -7936,11 +7834,7 @@ Expensify の使い方をお見せするための*テストレシート*がこ�
         stopGpsTrackingModal: {title: 'GPS追跡を停止', prompt: '本当に終了しますか？現在のジャーニーが終了します。', cancel: '追跡を再開', confirm: 'GPS追跡を停止'},
         discardDistanceTrackingModal: {title: '距離の追跡を破棄', prompt: '本当に実行しますか？現在の行程が破棄され、元に戻すことはできません。', confirm: '距離の追跡を破棄'},
         zeroDistanceTripModal: {title: '経費を作成できません', prompt: '開始地点と終了地点が同じ経路では経費を作成できません。'},
-    },
-    desktopAppRetiredPage: {
-        title: 'デスクトップアプリは廃止されました',
-        body: 'New Expensify の Mac デスクトップアプリは廃止されました。今後は、アカウントへアクセスする際に Web アプリをご利用ください。',
-        goToWeb: 'Web を開く',
+        desktop: {title: 'スマートフォンで距離を記録する', subtitle: 'GPS で自動的にマイルまたはキロメートルを記録し、移動をすぐに経費に変換します。', button: 'アプリをダウンロード'},
     },
 };
 // IMPORTANT: This line is manually replaced in generate translation files by scripts/generateTranslations.ts,
