@@ -1093,8 +1093,6 @@ function initMoneyRequest({
         }
     }
 
-    const defaultMerchant = newIouRequestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.TRANSACTION.DEFAULT_MERCHANT : CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
-
     const newTransaction = {
         amount: 0,
         comment,
@@ -1105,7 +1103,7 @@ function initMoneyRequest({
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
-        merchant: defaultMerchant,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
     };
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
@@ -1532,7 +1530,7 @@ function buildOnyxDataForTestDriveIOU(testDriveIOUParams: BuildOnyxDataForTestDr
         reportActionID: testDriveIOUParams.iouOptimisticParams.action.reportActionID,
     });
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const text = Localize.translateLocal('testDrive.employeeInviteMessage', {name: personalDetailsList?.[userAccountID]?.firstName ?? ''});
+    const text = Localize.translateLocal('testDrive.employeeInviteMessage', personalDetailsList?.[userAccountID]?.firstName ?? '');
     const textComment = buildOptimisticAddCommentReportAction(text, undefined, userAccountID, undefined, undefined, undefined, testDriveIOUParams.testDriveCommentReportActionID);
     textComment.reportAction.created = DateUtils.subtractMillisecondsFromDateTime(testDriveIOUParams.iouOptimisticParams.createdAction.created, 1);
 
@@ -6429,7 +6427,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 waypoints: sanitizedWaypoints,
                 customUnitRateID,
                 description: parsedComment,
-                isDistance: isMapDistanceRequest(transaction) || isManualDistanceRequestTransactionUtils(transaction),
             };
             if (actionableWhisperReportActionIDParam) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
@@ -7753,7 +7750,7 @@ function completeSplitBill(
     ];
 
     const splitParticipants: Split[] = updatedTransaction?.comment?.splits ?? [];
-    const amount = Number(updatedTransaction?.modifiedAmount);
+    const amount = updatedTransaction?.modifiedAmount;
     const currency = updatedTransaction?.modifiedCurrency;
 
     // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
@@ -14140,8 +14137,9 @@ function updateSplitTransactions({
     }
 
     if (!isReverseSplitOperation) {
+        // Use SET to update originalTransaction more quickly in Onyx as compared to MERGE to prevent UI inconsistency
         optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
+            onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`,
             value: {
                 ...originalTransaction,
@@ -14201,7 +14199,7 @@ function updateSplitTransactions({
             failureData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${firstIOU?.childReportID}`,
-                value: transactionThread ?? null,
+                value: transactionThread,
             });
         }
 

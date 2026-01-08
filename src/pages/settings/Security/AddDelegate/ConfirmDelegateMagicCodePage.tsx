@@ -53,7 +53,7 @@ function ConfirmDelegateMagicCodePage({route}: ConfirmDelegateMagicCodePageProps
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
             handleSubmitForm={(validateCode) => addDelegate({email: login, role, validateCode, delegatedAccess: account?.delegatedAccess})}
-            descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? session?.email ?? ''})}
+            descriptionPrimary={translate('delegate.enterMagicCode', account?.primaryLogin ?? session?.email ?? '')}
         />
     );
 }
