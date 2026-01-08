@@ -289,7 +289,7 @@ function getTransactionPreviewTextAndTranslationPaths({
             const dewErrorMessage = originalMessage?.message;
             RBRMessage = dewErrorMessage ? {text: dewErrorMessage} : {translationPath: 'iou.error.other'};
         }
-        
+
         const dewApproveFailedAction = getMostRecentActiveDEWApproveFailedAction(reportActions);
         if (dewApproveFailedAction && isDynamicExternalWorkflowApproveFailedAction(dewApproveFailedAction)) {
             const originalMessage = getOriginalMessage(dewApproveFailedAction);
