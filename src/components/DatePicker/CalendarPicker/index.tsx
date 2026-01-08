@@ -268,7 +268,7 @@ function CalendarPicker({
                                 onDayPressed(day);
                             };
                             const key = `${index}_day-${day}`;
-                            const dateAccessibilityLabel = day ? format(currentDate, 'EEEE, MMMM d') : '';
+                            const dateAccessibilityLabel = day ? format(currentDate, 'EEEE, MMMM d, yyyy') : '';
                             return (
                                 <PressableWithoutFeedback
                                     key={key}
