@@ -924,7 +924,10 @@ function MoneyRequestConfirmationList({
                 return;
             }
 
-            const isMissingAttendeesViolation = getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
+            // Since invoices are not expense reports that need attendee tracking, this validation should not apply to invoices
+            const isMissingAttendeesViolation =
+                iouType !== CONST.IOU.TYPE.INVOICE &&
+                getIsMissingAttendeesViolation(policyCategories, iouCategory, iouAttendees, currentUserPersonalDetails, policy?.isAttendeeTrackingEnabled);
             if (isMissingAttendeesViolation) {
                 setFormError('violations.missingAttendees');
                 return;
