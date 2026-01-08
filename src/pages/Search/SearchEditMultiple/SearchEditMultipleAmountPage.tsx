@@ -1,7 +1,10 @@
-import React, {useEffect, useState} from 'react';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchContext} from '@components/Search/SearchContext';
+import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputFocused';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {updateBulkEditDraftTransaction} from '@libs/actions/IOU';
@@ -22,6 +25,9 @@ function SearchEditMultipleAmountPage() {
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
 
+    const textInput = useRef<BaseTextInputRef | null>(null);
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     const policyID = getSearchBulkEditPolicyID(selectedTransactions, activePolicyID);
     const policy = policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`] : undefined;
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -29,6 +35,21 @@ function SearchEditMultipleAmountPage() {
     const initialCurrency = draftTransaction?.currency ?? policyCurrency;
     const [selectedCurrency, setSelectedCurrency] = useState(initialCurrency);
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
+
+    useFocusEffect(
+        useCallback(() => {
+            if (isCurrencyPickerVisible) {
+                return;
+            }
+            focusTimeoutRef.current = setTimeout(() => textInput.current?.focus(), CONST.ANIMATED_TRANSITION + 100);
+            return () => {
+                if (!focusTimeoutRef.current) {
+                    return;
+                }
+                clearTimeout(focusTimeoutRef.current);
+            };
+        }, [isCurrencyPickerVisible]),
+    );
 
     const amount = draftTransaction?.amount ?? 0;
 
@@ -42,12 +63,23 @@ function SearchEditMultipleAmountPage() {
         Navigation.goBack();
     };
 
+    const showCurrencyPicker = () => {
+        if (isTextInputFocused(textInput)) {
+            textInput.current?.blur();
+        }
+        setIsCurrencyPickerVisible(true);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
             shouldEnableMaxHeight
             testID={SearchEditMultipleAmountPage.displayName}
         >
+            <HeaderWithBackButton
+                title={translate('iou.amount')}
+                onBackButtonPress={Navigation.goBack}
+            />
             <IOURequestStepCurrencyModal
                 isPickerVisible={isCurrencyPickerVisible}
                 hidePickerModal={() => setIsCurrencyPickerVisible(false)}
@@ -55,15 +87,14 @@ function SearchEditMultipleAmountPage() {
                 value={selectedCurrency}
                 onInputChange={(value) => setSelectedCurrency(value)}
             />
-            <HeaderWithBackButton
-                title={translate('iou.amount')}
-                onBackButtonPress={Navigation.goBack}
-            />
             <MoneyRequestAmountForm
                 amount={Math.abs(amount)}
                 currency={selectedCurrency}
                 isEditing
-                onCurrencyButtonPress={() => setIsCurrencyPickerVisible(true)}
+                ref={(e: BaseTextInputRef | null) => {
+                    textInput.current = e;
+                }}
+                onCurrencyButtonPress={showCurrencyPicker}
                 onSubmitButtonPress={saveAmount}
             />
         </ScreenWrapper>
