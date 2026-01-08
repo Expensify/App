@@ -83,8 +83,8 @@ State which label you're removing (if any) and why.
 gh issue comment "$ISSUE_URL" --body "YOUR_COMMENT_HERE"
 
 # Remove label (backend bugs only):
-gh issue edit "$ISSUE_URL" --remove-label DeployBlockerCash
+removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlockerCash
 
 # Remove label if confirmed to be frontend bug and label exists
-gh issue edit "$ISSUE_URL" --remove-label DeployBlocker
+removeDeployBlockerLabel.sh "$ISSUE_URL" DeployBlocker
 ```
