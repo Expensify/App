@@ -31,7 +31,7 @@ type ColumnItem = {
     isSelected: boolean;
     isDisabled: boolean;
     isDragDisabled: boolean;
-    leftElement: JSX.Element;
+    leftElement: React.JSX.Element;
 };
 
 function SearchColumnsPage() {
