@@ -1,13 +1,12 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import * as Sentry from '@sentry/react-native';
 import {Audio} from 'expo-av';
-import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import ConfirmModal from './components/ConfirmModal';
-import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import GrowlNotification from './components/GrowlNotification';
 import {InitialURLContext} from './components/InitialURLContextProvider';
@@ -33,7 +32,6 @@ import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
-import getPlatform from './libs/getPlatform';
 import Growl, {growlRef} from './libs/Growl';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
@@ -121,7 +119,6 @@ function Expensify() {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [stashedCredentials = CONST.EMPTY_OBJECT] = useOnyx(ONYXKEYS.STASHED_CREDENTIALS, {canBeMissing: true});
     const [stashedSession] = useOnyx(ONYXKEYS.STASHED_SESSION, {canBeMissing: true});
-    const isDesktop = getPlatform() === CONST.PLATFORM.DESKTOP;
 
     useDebugShortcut();
     usePriorityMode();
@@ -164,7 +161,6 @@ function Expensify() {
     }, []);
 
     const isAuthenticated = useIsAuthenticated();
-    const autoAuthState = useMemo(() => session?.autoAuthState ?? '', [session?.autoAuthState]);
 
     const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
@@ -357,20 +353,12 @@ function Expensify() {
         return null;
     }
 
-    if (isDesktop) {
-        throw new Error(CONST.ERROR.DESKTOP_APP_RETIRED);
-    }
-
     if (updateRequired) {
         throw new Error(CONST.ERROR.UPDATE_REQUIRED);
     }
 
     return (
-        <DeeplinkWrapper
-            isAuthenticated={isAuthenticated}
-            autoAuthState={autoAuthState}
-            initialUrl={initialUrl ?? ''}
-        >
+        <>
             {shouldInit && (
                 <>
                     <GrowlNotification ref={growlRef} />
@@ -404,7 +392,7 @@ function Expensify() {
                 />
             )}
             {shouldHideSplash && <SplashScreenHider onHide={onSplashHide} />}
-        </DeeplinkWrapper>
+        </>
     );
 }
 
