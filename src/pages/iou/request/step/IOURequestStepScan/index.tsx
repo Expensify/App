@@ -375,7 +375,6 @@ function IOURequestStepScan({
             personalPolicy?.autoReporting,
             isASAPSubmitBetaEnabled,
             transactionViolations,
-            policyRecentlyUsedCurrencies,
             introSelected,
             activePolicyID,
         ],
