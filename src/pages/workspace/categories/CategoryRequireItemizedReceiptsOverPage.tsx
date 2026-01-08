@@ -45,22 +45,24 @@ function CategoryRequireItemizedReceiptsOverPage({
     const isPolicyItemizedReceiptDisabled = policy?.maxExpenseAmountNoItemizedReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoItemizedReceipt === undefined;
 
     const requireItemizedReceiptsOverListData = [
-        {
-            value: null,
-            text: isPolicyItemizedReceiptDisabled
-                ? translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`)
-                : translate(
-                      `workspace.rules.categoryRules.requireItemizedReceiptsOverList.default`,
-                      convertToDisplayString(policy.maxExpenseAmountNoItemizedReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD),
-                  ),
-            keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT,
-            isSelected: !isAlwaysSelected && !isNeverSelected,
-        },
+        ...(!isPolicyItemizedReceiptDisabled
+            ? [
+                  {
+                      value: null,
+                      text: translate(
+                          `workspace.rules.categoryRules.requireItemizedReceiptsOverList.default`,
+                          convertToDisplayString(policy.maxExpenseAmountNoItemizedReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD),
+                      ),
+                      keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.DEFAULT,
+                      isSelected: !isAlwaysSelected && !isNeverSelected,
+                  },
+              ]
+            : []),
         {
             value: CONST.DISABLED_MAX_EXPENSE_VALUE,
             text: translate(`workspace.rules.categoryRules.requireItemizedReceiptsOverList.never`),
             keyForList: CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.NEVER,
-            isSelected: isNeverSelected,
+            isSelected: isPolicyItemizedReceiptDisabled ? !isAlwaysSelected : isNeverSelected,
         },
         {
             value: 0,
@@ -70,7 +72,10 @@ function CategoryRequireItemizedReceiptsOverPage({
         },
     ];
 
-    const initiallyFocusedOptionKey = getInitiallyFocusedOptionKey(isAlwaysSelected, isNeverSelected);
+    const initiallyFocusedOptionKey =
+        isPolicyItemizedReceiptDisabled && !isAlwaysSelected && !isNeverSelected
+            ? CONST.POLICY.REQUIRE_RECEIPTS_OVER_OPTIONS.NEVER
+            : getInitiallyFocusedOptionKey(isAlwaysSelected, isNeverSelected);
 
     return (
         <AccessOrNotFoundWrapper
