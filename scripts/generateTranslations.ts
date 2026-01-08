@@ -1223,8 +1223,24 @@ async function main(): Promise<void> {
 
     // Check if we're running in full translation mode (no dry-run, no compare-ref, no paths)
     const isFullTranslationMode = !cli.flags['dry-run'] && !cli.namedArgs['compare-ref'] && (!cli.namedArgs.paths || cli.namedArgs.paths.size === 0);
-
     if (isFullTranslationMode) {
+        /*
+         * Warning people of the cost to run a full translation. Here is the napkin math used.
+         *
+         * ASSUMPTIONS:
+         * - Rule of thumb: ~4 characters per token for English-ish text.
+         * - Estimated average input tokens per request: ~775 (~25 for the string, plus ~750 for the base prompt)
+         *     - Note: Depending on the result of https://expensify.slack.com/archives/C05LX9D6E07/p1765868797108589 we could potentially reduce this so the base prompt is sent once per locale per script run and then cached with prompt caching, rather than with every string to translate.
+         * - Estimated average output tokens per request: ~25
+         * - 8 requests/string (for 8 locales),
+         * - ~6000 strings to translate in `en.ts` as of now.
+         *
+         * ESTIMATED COST:
+         * - GPT 5.1 costs $1.25/MM input tokens and $10/MM output tokens.
+         * - ((775 inputTokens / 1,000,000) * $1.25/inputToken) + ((25 outputTokens / 1,000,000) * $10/outputToken) = $0.00121875/request
+         * - $0.00121875/request * 8 requests/string (for each locale) = $0.00975/string
+         * - $0.00975/string * 6000 strings in en.ts = $58.50 estimated
+         */
         console.warn(
             `${COLORS.YELLOW}${dedent(`
                 ⚠️  Warning: you are running this script without the \`--dry-run\`, \`--compare-ref\`, or \`--paths\` param.
