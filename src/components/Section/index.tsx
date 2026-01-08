@@ -76,6 +76,9 @@ type SectionProps = Partial<ChildrenProps> & {
     /** Styles to apply to illustration component */
     illustrationStyle?: StyleProp<ViewStyle>;
 
+    /** Accessibility label for the illustration */
+    illustrationAccessibilityLabel?: string;
+
     /** Padding for content on large screens */
     contentPaddingOnLargeScreens?: {padding: number};
 
@@ -118,6 +121,7 @@ function Section({
     illustrationBackgroundColor,
     illustrationContainerStyle,
     illustrationStyle,
+    illustrationAccessibilityLabel,
     contentPaddingOnLargeScreens,
     overlayContent,
     iconWidth,
@@ -154,6 +158,9 @@ function Section({
                         StyleUtils.getBackgroundColorStyle(illustrationBackgroundColor ?? lottieIllustration?.backgroundColor ?? theme.appBG),
                         illustrationContainerStyle,
                     ]}
+                    accessible={!!illustrationAccessibilityLabel}
+                    accessibilityLabel={illustrationAccessibilityLabel}
+                    accessibilityRole={illustrationAccessibilityLabel ? 'image' : undefined}
                 >
                     <View style={[styles.cardSectionIllustration, illustrationStyle]}>
                         {isLottie ? (

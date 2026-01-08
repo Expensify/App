@@ -4802,6 +4802,7 @@ const translations = {
             earnedCashbackDescription: 'Cash back balance is based on settled monthly Expensify Card spend across your workspace.',
             issueNewCard: 'Issue new card',
             finishSetup: 'Finish setup',
+            cardIllustration: 'Expensify Visa Commercial Card',
             chooseBankAccount: 'Choose bank account',
             chooseExistingBank: 'Choose an existing business bank account to pay your Expensify Card balance, or add a new bank account',
             accountEndingIn: 'Account ending in',

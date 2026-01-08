@@ -126,6 +126,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                     }}
                     illustrationBackgroundColor={theme.fallbackIconColor}
                     illustration={illustrations.ExpensifyCardIllustration}
+                    illustrationAccessibilityLabel={translate('workspace.expensifyCard.cardIllustration')}
                     illustrationStyle={styles.expensifyCardIllustrationContainer}
                     titleStyles={styles.textHeadlineH1}
                 />
