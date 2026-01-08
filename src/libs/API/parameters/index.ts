@@ -454,3 +454,4 @@ export type {default as UpdateSamlRequiredParams} from './UpdateSamlRequiredPara
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
 export type {default as ToggleConsolidatedDomainBillingParams} from './ToggleConsolidatedDomainBillingParams';
+export type {default as RemoveDomainAdminParams} from './RemoveDomainAdminParams';

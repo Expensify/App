@@ -1,9 +1,8 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {AddAdminToDomainParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
+import type {AddAdminToDomainParams, RemoveDomainAdminParams, SetTechnicalContactEmailParams, ToggleConsolidatedDomainBillingParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {applyUpdatesWithDelay} from '@libs/DomainUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getAuthToken} from '@libs/Network/NetworkStore';
 import CONST from '@src/CONST';
@@ -628,7 +627,7 @@ function addAdminToDomain(domainAccountID: number, accountID: number, targetEmai
 /**
  * Removes an error after trying to add admin
  */
-function clearAddAdminError(domainAccountID: number, accountID: number) {
+function clearAdminError(domainAccountID: number, accountID: number) {
     const PERMISSION_KEY = `${ONYXKEYS.COLLECTION.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {
@@ -698,117 +697,23 @@ function revokeDomainAdminAccess(domainAccountID: number, accountID: number) {
                 },
             },
         },
-        // TODO update after BE is ready: DEV stuff only below this line
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
             value: {
                 adminErrors: {
-                    [accountID]: {errors: {[Date.now()]: 'Unable to remove this user as an Admin. Please try again.'}},
+                    [accountID]: {errors: getMicroSecondOnyxErrorWithTranslationKey('domain.admins.error.removeAdmin')},
                 },
             },
         },
     ];
 
-    // applyUpdatesWithDelay(optimisticData, successData);
-    applyUpdatesWithDelay(optimisticData, failureData);
-}
+    const parameters: RemoveDomainAdminParams = {
+        domainAccountID,
+        targetAccountID: accountID,
+    };
 
-/**
- *  Removes an error after trying to remove admin
- */
-function clearRemoveAdminError(domainAccountID: number, accountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
-        adminErrors: {
-            [accountID]: null,
-        },
-    });
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        admin: {
-            [accountID]: {
-                pendingAction: null,
-            },
-        },
-    });
-}
-
-/**
- *  Removes the domain
- */
-function resetDomain(domainAccountID: number) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-            value: {
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: null,
-        },
-    ];
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-            value: {
-                pendingAction: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-            value: {
-                removeDomainError: null,
-            },
-        },
-    ];
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-            value: {
-                pendingAction: null,
-            },
-        },
-
-        // TODO update after BE is ready: DEV stuff only below this line
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-            value: {
-                removeDomainError: {[Date.now()]: 'Unable to remove this Domain. Please try again.'},
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            value: {
-                accountID: 666,
-                email: '+@test.com',
-                expensify_adminPermissions_564986: 792,
-                validated: true,
-            },
-        },
-    ];
-
-    // applyUpdatesWithDelay(optimisticData, successData);
-    applyUpdatesWithDelay(optimisticData, failureData);
-}
-
-/**
- *  Removes an error after trying to remove the domain
- */
-function clearResetDomainErrors(domainAccountID: number, accountID: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
-        removeDomainError: null,
-    });
-    Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
-        pendingAction: null,
-    });
+    API.write(WRITE_COMMANDS.REMOVE_DOMAIN_ADMIN, parameters, {optimisticData, successData, failureData});
 }
 
 export {
@@ -830,7 +735,7 @@ export {
     toggleConsolidatedDomainBilling,
     clearToggleConsolidatedDomainBillingErrors,
     addAdminToDomain,
-    clearAddAdminError,
+    clearAdminError,
     revokeDomainAdminAccess,
     clearRemoveAdminError,
     resetDomain,
