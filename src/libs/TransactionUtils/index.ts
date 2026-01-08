@@ -2628,6 +2628,7 @@ export {
     getOriginalAmountForDisplay,
     getOriginalCurrencyForDisplay,
     shouldShowExpenseBreakdown,
+    isTimeRequest,
 };
 
 export type {TransactionChanges};
