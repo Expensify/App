@@ -16,6 +16,4 @@ function ImageView({attachmentID, isAuthTokenRequired = false, url, style, zoomR
     );
 }
 
-ImageView.displayName = 'ImageView';
-
 export default ImageView;

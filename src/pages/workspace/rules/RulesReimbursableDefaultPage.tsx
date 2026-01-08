@@ -45,7 +45,7 @@ function RulesReimbursableDefaultPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={RulesReimbursableDefaultPage.displayName}
+                testID="RulesReimbursableDefaultPage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.rules.individualExpenseRules.cashExpenseDefault')}
@@ -70,7 +70,5 @@ function RulesReimbursableDefaultPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-RulesReimbursableDefaultPage.displayName = 'RulesReimbursableDefaultPage';
 
 export default RulesReimbursableDefaultPage;

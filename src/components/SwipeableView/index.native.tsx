@@ -27,6 +27,4 @@ function SwipeableView({children, onSwipeDown}: SwipeableViewProps) {
     return <View {...panResponder.panHandlers}>{children}</View>;
 }
 
-SwipeableView.displayName = 'SwipeableView';
-
 export default SwipeableView;

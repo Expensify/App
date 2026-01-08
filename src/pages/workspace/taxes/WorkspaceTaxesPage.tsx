@@ -82,8 +82,8 @@ function WorkspaceTaxesPage({
 
     const enabledRatesCount = selectedTaxesIDs.filter((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled).length;
     const disabledRatesCount = selectedTaxesIDs.length - enabledRatesCount;
-    const icons = useMemoizedLazyExpensifyIcons(['Gear'] as const);
-    const illustrations = useMemoizedLazyIllustrations(['Coins'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Gear']);
+    const illustrations = useMemoizedLazyIllustrations(['Coins']);
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
@@ -393,7 +393,7 @@ function WorkspaceTaxesPage({
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
-                testID={WorkspaceTaxesPage.displayName}
+                testID="WorkspaceTaxesPage"
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
@@ -458,7 +458,5 @@ function WorkspaceTaxesPage({
         </AccessOrNotFoundWrapper>
     );
 }
-
-WorkspaceTaxesPage.displayName = 'WorkspaceTaxesPage';
 
 export default withPolicyAndFullscreenLoading(WorkspaceTaxesPage);

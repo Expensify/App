@@ -40,7 +40,6 @@ function useShowWideRHPVersion(condition: boolean) {
     useEffect(() => {
         // Check if we should show wide RHP based on condition OR if reportID is in optimistic set
         const shouldShow = condition || (reportID && isReportIDMarkedAsExpense(reportID));
-
         if (!shouldShow) {
             return;
         }

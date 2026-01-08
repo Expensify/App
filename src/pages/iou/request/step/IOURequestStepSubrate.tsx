@@ -176,7 +176,7 @@ function IOURequestStepSubrate({
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={IOURequestStepSubrate.displayName}
+            testID="IOURequestStepSubrate"
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
@@ -254,7 +254,5 @@ function IOURequestStepSubrate({
         </ScreenWrapper>
     );
 }
-
-IOURequestStepSubrate.displayName = 'IOURequestStepSubrate';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepSubrate));

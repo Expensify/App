@@ -27,7 +27,21 @@
 }}
 
 // per-parser initializer (code executed before every parse)
-{
+{  
+  const GROUP_BY_DEFAULT_SORT = {
+    from: "from",
+    card: "card",
+    "withdrawal-id": "withdrawn",
+  };
+
+  const GROUP_BY_DEFAULT_SORT_ORDER = {
+    from: "asc",
+    card: "asc",
+    "withdrawal-id": "desc",
+  };
+
+  const DEFAULT_SORT_BY_VALUES = new Set([...Object.values(GROUP_BY_DEFAULT_SORT), "date"]);
+
   const defaultValues = {
     type: "expense",
     status: "",
@@ -35,11 +49,24 @@
     sortOrder: "desc",
   };
   let rawFilterList = [];
+  let userProvidedSortBy = false;
 
   // List fields where you cannot prefix it with "-" to negate it
   const nonNegatableKeys = new Set([
-    "type", "keyword", "groupCurrency", "groupBy"
+    "type", "keyword", "groupCurrency", "groupBy", "columns"
   ]);
+
+  function isDefaultSortValue(sortBy) {
+    return DEFAULT_SORT_BY_VALUES.has(sortBy);
+  }
+
+  function getDefaultSortByForGroupBy(groupBy) {
+    return GROUP_BY_DEFAULT_SORT[groupBy];
+  }
+
+  function getDefaultSortOrderForGroupBy(groupBy) {
+    return GROUP_BY_DEFAULT_SORT_ORDER[groupBy];
+  }
 
   function applyDefaults(filters) {
     return {
@@ -54,6 +81,29 @@
       defaultValues[field] = "";
       return;
     }
+
+    // Track if user explicitly provided a custom (non-default) sortBy
+    if (field === "sortBy" && !isDefaultSortValue(value)) {
+      userProvidedSortBy = true;
+    }
+
+    // Auto-update sortBy and sortOrder when groupBy changes
+    // Only reset sortOrder if sortBy actually changes (to avoid resetting on every parse)
+    if (field === "groupBy" && value) {
+      if (!userProvidedSortBy) {
+        const defaultSortBy = getDefaultSortByForGroupBy(value);
+        // Check if sortBy is actually changing
+        if (defaultSortBy && defaultValues.sortBy !== defaultSortBy) {
+          defaultValues.sortBy = defaultSortBy;
+          // When sortBy changes, reset the sortOrder flag and apply new default
+          const defaultSortOrder = getDefaultSortOrderForGroupBy(value);
+          if (defaultSortOrder) {
+            defaultValues.sortOrder = defaultSortOrder;
+          }
+        }
+      }
+    }
+
     defaultValues[field] = value;
   }
 
@@ -210,7 +260,7 @@ filterKey
       return k;
     }
     
-defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy)
+defaultKey "default key" = @(type / status / sortBy / sortOrder / policyID / groupBy / columns)
 
 identifier
   = (","+)? parts:(values / quotedString / alphanumeric)|1.., ","+| empty:(","+)? {

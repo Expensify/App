@@ -126,6 +126,4 @@ function AttachmentCarousel({
     );
 }
 
-AttachmentCarousel.displayName = 'AttachmentCarousel';
-
 export default AttachmentCarousel;

@@ -33,7 +33,7 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
     const {translate} = useLocalize();
 
     const [expanded, setExpanded] = useState(false);
-    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
 
     return (
         <View style={[styles.qbdSetupLinkBox, styles.border, styles.gap4, styles.justifyContentCenter, styles.alignItemsCenter, style]}>
@@ -71,5 +71,4 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
     );
 }
 
-CopyableTextField.displayName = 'CopyableTextField';
 export default CopyableTextField;

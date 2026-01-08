@@ -3,7 +3,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type UseTroubleshootSectionIllustration from './types';
 
 const useTroubleshootSectionIllustration: UseTroubleshootSectionIllustration = () => {
-    const illustrations = useMemoizedLazyIllustrations(['WorkspaceScene'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['WorkspaceScene']);
     const styles = useThemeStyles();
 
     return {

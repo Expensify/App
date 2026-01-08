@@ -12,7 +12,6 @@ import Text from '@components/Text';
 import {useCompanyCardBankIcons} from '@hooks/useCompanyCardIcons';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isPlaidSupportedCountry} from '@libs/CardUtils';
 import variables from '@styles/variables';
@@ -25,11 +24,10 @@ type AvailableCompanyCardTypes = {
     translate: LocaleContextProps['translate'];
     typeSelected?: CardFeedProvider;
     styles: StyleProp<ViewStyle>;
-    canUsePlaidCompanyCards?: boolean;
     companyCardBankIcons: ReturnType<typeof useCompanyCardBankIcons>;
 };
 
-function getAvailableCompanyCardTypes({translate, typeSelected, styles, canUsePlaidCompanyCards, companyCardBankIcons}: AvailableCompanyCardTypes) {
+function getAvailableCompanyCardTypes({translate, typeSelected, styles, companyCardBankIcons}: AvailableCompanyCardTypes) {
     const defaultCards = [
         {
             value: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD,
@@ -61,10 +59,6 @@ function getAvailableCompanyCardTypes({translate, typeSelected, styles, canUsePl
         },
     ];
 
-    if (!canUsePlaidCompanyCards) {
-        return defaultCards;
-    }
-
     return [
         {
             value: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX,
@@ -91,12 +85,10 @@ function CardTypeStep() {
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: true});
     const [typeSelected, setTypeSelected] = useState<CardFeedProvider>();
     const [isError, setIsError] = useState(false);
-    const {isBetaEnabled} = usePermissions();
     const data = getAvailableCompanyCardTypes({
         translate,
         typeSelected,
         styles: styles.mr3,
-        canUsePlaidCompanyCards: isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS),
         companyCardBankIcons,
     });
     const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
@@ -128,7 +120,7 @@ function CardTypeStep() {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_BANK});
             return;
         }
-        if (isBetaEnabled(CONST.BETAS.PLAID_COMPANY_CARDS) && !doesCountrySupportPlaid) {
+        if (!doesCountrySupportPlaid) {
             setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
             return;
         }
@@ -146,7 +138,7 @@ function CardTypeStep() {
 
     return (
         <ScreenWrapper
-            testID={CardTypeStep.displayName}
+            testID="CardTypeStep"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -182,7 +174,5 @@ function CardTypeStep() {
         </ScreenWrapper>
     );
 }
-
-CardTypeStep.displayName = 'CardTypeStep';
 
 export default CardTypeStep;

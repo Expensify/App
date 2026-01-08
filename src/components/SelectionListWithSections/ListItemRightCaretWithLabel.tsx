@@ -1,8 +1,8 @@
 import React from 'react';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,6 +13,7 @@ type ListItemRightCaretWithLabelProps = {
 };
 
 function ListItemRightCaretWithLabel({labelText, shouldShowCaret = false}: ListItemRightCaretWithLabelProps) {
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -23,7 +24,7 @@ function ListItemRightCaretWithLabel({labelText, shouldShowCaret = false}: ListI
             {shouldShowCaret && (
                 <View style={[styles.pl2]}>
                     <Icon
-                        src={Expensicons.ArrowRight}
+                        src={icons.ArrowRight}
                         fill={theme.icon}
                     />
                 </View>
@@ -31,7 +32,5 @@ function ListItemRightCaretWithLabel({labelText, shouldShowCaret = false}: ListI
         </View>
     );
 }
-
-ListItemRightCaretWithLabel.displayName = 'ListItemRightCaretWithLabel';
 
 export default ListItemRightCaretWithLabel;

@@ -90,6 +90,4 @@ function MultiSelectListItem<TItem extends ListItem>({
     );
 }
 
-MultiSelectListItem.displayName = 'MultiSelectListItem';
-
 export default MultiSelectListItem;

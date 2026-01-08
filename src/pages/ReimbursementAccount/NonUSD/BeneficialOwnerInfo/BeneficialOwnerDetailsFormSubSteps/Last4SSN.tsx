@@ -61,6 +61,4 @@ function Last4SSN({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBei
     );
 }
 
-Last4SSN.displayName = 'Last4SSN';
-
 export default Last4SSN;

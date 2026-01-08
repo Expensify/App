@@ -31,5 +31,4 @@ function AvatarSkeleton({size = CONST.AVATAR_SIZE.SMALL}: {size?: ValueOf<typeof
     );
 }
 
-AvatarSkeleton.displayName = 'AvatarSkeleton';
 export default AvatarSkeleton;

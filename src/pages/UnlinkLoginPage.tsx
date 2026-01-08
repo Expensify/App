@@ -36,6 +36,4 @@ function UnlinkLoginPage({route}: UnlinkLoginPageProps) {
     return <FullScreenLoadingIndicator />;
 }
 
-UnlinkLoginPage.displayName = 'UnlinkLoginPage';
-
 export default UnlinkLoginPage;

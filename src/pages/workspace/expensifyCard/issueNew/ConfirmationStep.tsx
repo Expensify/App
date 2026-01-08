@@ -18,6 +18,7 @@ import {getUserNameByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
@@ -30,9 +31,12 @@ type ConfirmationStepProps = {
 
     /** Start from step index */
     startStepIndex: number;
+
+    /** Back to route to pass to confirm magic code page */
+    backTo?: Route;
 };
 
-function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationStepProps) {
+function ConfirmationStep({policyID, stepNames, startStepIndex, backTo}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -64,7 +68,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
 
     return (
         <InteractiveStepWrapper
-            wrapperID={ConfirmationStep.displayName}
+            wrapperID="ConfirmationStep"
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
             headerTitle={translate('workspace.card.issueCard')}
@@ -124,7 +128,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                             if (!policyID) {
                                 return;
                             }
-                            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID)));
+                            Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_CONFIRM_MAGIC_CODE.getRoute(policyID, backTo));
                         }}
                         buttonText={translate('workspace.card.issueCard')}
                     />
@@ -133,7 +137,5 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
         </InteractiveStepWrapper>
     );
 }
-
-ConfirmationStep.displayName = 'ConfirmationStep';
 
 export default ConfirmationStep;

@@ -42,6 +42,4 @@ function TextWithEmojiFragment({message = '', style, alignCustomEmoji = false}: 
     );
 }
 
-TextWithEmojiFragment.displayName = 'TextWithEmojiFragment';
-
 export default TextWithEmojiFragment;

@@ -66,7 +66,7 @@ function UploadFile({
     totalFilesSizeLimit = 0,
     fileLimit = 0,
 }: UploadFileProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Paperclip'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Paperclip']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -163,7 +163,5 @@ function UploadFile({
         </View>
     );
 }
-
-UploadFile.displayName = 'UploadFile';
 
 export default UploadFile;

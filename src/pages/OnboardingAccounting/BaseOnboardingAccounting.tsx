@@ -243,6 +243,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
                 shouldShowBackButton={!isVsb}
                 progressBarPercentage={80}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_EMPLOYEES.getRoute())}
+                shouldDisplayHelpButton={false}
             />
             <View style={[onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
                 <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.accounting.title')}</Text>
@@ -270,7 +271,5 @@ function BaseOnboardingAccounting({shouldUseNativeStyles, route}: BaseOnboarding
         </ScreenWrapper>
     );
 }
-
-BaseOnboardingAccounting.displayName = 'BaseOnboardingAccounting';
 
 export default BaseOnboardingAccounting;

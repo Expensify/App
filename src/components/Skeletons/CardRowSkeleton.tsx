@@ -86,6 +86,4 @@ function CardRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacityEn
     );
 }
 
-CardRowSkeleton.displayName = 'CardRowSkeleton';
-
 export default CardRowSkeleton;

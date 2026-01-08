@@ -60,6 +60,4 @@ function HybridAppHandler() {
     return null;
 }
 
-HybridAppHandler.displayName = 'HybridAppHandler';
-
 export default HybridAppHandler;

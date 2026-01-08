@@ -76,6 +76,4 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
     );
 }
 
-TaxIdBusiness.displayName = 'TaxIdBusiness';
-
 export default TaxIdBusiness;

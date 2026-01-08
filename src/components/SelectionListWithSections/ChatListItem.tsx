@@ -97,6 +97,4 @@ function ChatListItem<TItem extends ListItem>({
     );
 }
 
-ChatListItem.displayName = 'ChatListItem';
-
 export default ChatListItem;

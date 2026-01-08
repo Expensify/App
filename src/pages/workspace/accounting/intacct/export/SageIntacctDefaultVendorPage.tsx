@@ -33,7 +33,7 @@ function SageIntacctDefaultVendorPage() {
     const {config} = policy?.connections?.intacct ?? {};
     const {export: exportConfig} = policy?.connections?.intacct?.config ?? {};
     const backTo = route.params.backTo;
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const isReimbursable = route.params.reimbursable === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE;
     const goBack = useCallback(() => {
@@ -65,7 +65,7 @@ function SageIntacctDefaultVendorPage() {
     const listHeaderComponent = useMemo(
         () => (
             <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.defaultVendorDescription', {isReimbursable})}</Text>
+                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.defaultVendorDescription', isReimbursable)}</Text>
             </View>
         ),
         [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
@@ -99,7 +99,7 @@ function SageIntacctDefaultVendorPage() {
         <SelectionScreen
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctDefaultVendorPage.displayName}
+            displayName="SageIntacctDefaultVendorPage"
             sections={vendorSelectorOptions.length ? [{data: vendorSelectorOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateDefaultVendor}
@@ -117,7 +117,5 @@ function SageIntacctDefaultVendorPage() {
         />
     );
 }
-
-SageIntacctDefaultVendorPage.displayName = 'SageIntacctDefaultVendorPage';
 
 export default SageIntacctDefaultVendorPage;

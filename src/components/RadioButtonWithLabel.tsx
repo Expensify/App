@@ -97,8 +97,6 @@ function RadioButtonWithLabel({
     );
 }
 
-RadioButtonWithLabel.displayName = 'RadioButtonWithLabel';
-
 export default RadioButtonWithLabel;
 
 export type {RadioButtonWithLabelProps};
