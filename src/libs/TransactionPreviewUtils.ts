@@ -10,8 +10,8 @@ import {abandonReviewDuplicateTransactions, setReviewDuplicatesKey} from './acti
 import {isCategoryMissing} from './CategoryUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
-import {getPolicy} from './PolicyUtils';
-import {getOriginalMessage, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
+import {getPolicy, hasDynamicExternalWorkflow} from './PolicyUtils';
+import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicExternalWorkflowSubmitFailedAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
 import {
     hasActionWithErrorsForTransaction,
     hasReceiptError,
@@ -33,7 +33,6 @@ import {
     hasPendingRTERViolation,
     hasViolation,
     hasWarningTypeViolation,
-    isAmountMissing,
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
@@ -43,6 +42,7 @@ import {
     isPending,
     isPerDiemRequest,
     isScanning,
+    isTimeRequest,
     isUnreportedAndHasInvalidDistanceRateTransaction,
 } from './TransactionUtils';
 
@@ -258,12 +258,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (hasFieldErrors && RBRMessage === undefined) {
         const merchantMissing = isMerchantMissing(transaction);
-        const amountMissing = isAmountMissing(transaction);
-        if (amountMissing && merchantMissing) {
-            RBRMessage = {translationPath: 'violations.reviewRequired'};
-        } else if (amountMissing) {
-            RBRMessage = {translationPath: 'iou.missingAmount'};
-        } else if (merchantMissing) {
+        if (merchantMissing) {
             RBRMessage = {translationPath: 'iou.missingMerchant'};
         }
     }
@@ -271,6 +266,15 @@ function getTransactionPreviewTextAndTranslationPaths({
     if (RBRMessage === undefined && hasActionWithErrors && !!reportActions) {
         const actionsWithErrors = getUniqueActionErrorsForTransaction(reportActions, transaction);
         RBRMessage = actionsWithErrors.length > 1 ? {translationPath: 'violations.reviewRequired'} : {text: actionsWithErrors.at(0)};
+    }
+
+    if (RBRMessage === undefined && hasDynamicExternalWorkflow(policy)) {
+        const dewFailedAction = getMostRecentActiveDEWSubmitFailedAction(reportActions);
+        if (dewFailedAction && isDynamicExternalWorkflowSubmitFailedAction(dewFailedAction)) {
+            const originalMessage = getOriginalMessage(dewFailedAction);
+            const dewErrorMessage = originalMessage?.message;
+            RBRMessage = dewErrorMessage ? {text: dewErrorMessage} : {translationPath: 'iou.error.other'};
+        }
     }
 
     let previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
@@ -283,6 +287,8 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     } else if (isPerDiemRequest(transaction)) {
         previewHeaderText = [{translationPath: 'common.perDiem'}];
+    } else if (isTimeRequest(transaction)) {
+        previewHeaderText = [{translationPath: 'iou.time'}];
     } else if (isTransactionScanning) {
         previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
@@ -356,6 +362,7 @@ function createTransactionPreviewConditionals({
     areThereDuplicates,
     currentUserEmail,
     currentUserAccountID,
+    reportActions,
 }: {
     iouReport: OnyxInputValue<OnyxTypes.Report> | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
@@ -367,6 +374,7 @@ function createTransactionPreviewConditionals({
     areThereDuplicates: boolean;
     currentUserEmail: string;
     currentUserAccountID: number;
+    reportActions?: OnyxTypes.ReportActions;
 }) {
     const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactionDetails;
 
@@ -409,7 +417,8 @@ function createTransactionPreviewConditionals({
             ));
     const hasErrorOrOnHold = hasFieldErrors || (!isFullySettled && !isFullyApproved && isTransactionOnHold);
     const hasReportViolationsOrActionErrors = (isReportOwner(iouReport) && hasReportViolations(iouReport?.reportID)) || hasActionWithErrorsForTransaction(iouReport?.reportID, transaction);
-    const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction);
+    const isDEWSubmitFailed = hasDynamicExternalWorkflow(policy) && !!getMostRecentActiveDEWSubmitFailedAction(reportActions);
+    const shouldShowRBR = hasAnyViolations || hasErrorOrOnHold || hasReportViolationsOrActionErrors || hasReceiptError(transaction) || isDEWSubmitFailed;
 
     // When there are no settled transactions in duplicates, show the "Keep this one" button
     const shouldShowKeepButton = areThereDuplicates;

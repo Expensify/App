@@ -8,7 +8,6 @@ import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
-import HeaderGap from '@components/HeaderGap';
 import {InitialURLContext} from '@components/InitialURLContextProvider';
 import withNavigationFallback from '@components/withNavigationFallback';
 import useEnvironment from '@hooks/useEnvironment';
@@ -64,9 +63,6 @@ type ScreenWrapperProps = Omit<ScreenWrapperContainerProps, 'children'> &
         /** Additional styles to add */
         style?: StyleProp<ViewStyle>;
 
-        /** Additional styles for header gap */
-        headerGapStyles?: StyleProp<ViewStyle>;
-
         /** Whether to disable the safe area padding for (nested) offline indicators */
         disableOfflineIndicatorSafeAreaPadding?: boolean;
 
@@ -82,7 +78,6 @@ function ScreenWrapper({
     children,
     style,
     bottomContent,
-    headerGapStyles,
     offlineIndicatorStyle,
     disableOfflineIndicatorSafeAreaPadding,
     shouldShowOfflineIndicator: shouldShowSmallScreenOfflineIndicator,
@@ -275,7 +270,6 @@ function ScreenWrapper({
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...restContainerProps}
             >
-                <HeaderGap styles={headerGapStyles} />
                 {isDevelopment && <CustomDevMenu />}
                 <ScreenWrapperStatusContext.Provider value={statusContextValue}>
                     <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
