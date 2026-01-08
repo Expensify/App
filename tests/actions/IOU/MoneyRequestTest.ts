@@ -2,6 +2,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {MoneyRequestStepScanParticipantsFlowParams} from '@libs/actions/IOU/MoneyRequest';
 import {createTransaction, handleMoneyRequestStepDistanceNavigation, handleMoneyRequestStepScanParticipants} from '@libs/actions/IOU/MoneyRequest';
+import getCurrentPosition from '@libs/getCurrentPosition';
+import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 import CONST from '@src/CONST';
@@ -34,12 +36,16 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
 }));
 
+jest.mock('@libs/getCurrentPosition');
+
 describe('MoneyRequest', () => {
     const currentUserAccountID = 111;
     const currentUserLogin = 'test@example.com';
     const TEST_USER_ACCOUNT_ID = 123;
     const TEST_USER_EMAIL = 'test@test.com';
     const SELF_DM_REPORT_ID = '2';
+    const TEST_LATITUDE = 37.7749;
+    const TEST_LONGITUDE = -122.4194;
 
     beforeAll(() => {
         Onyx.init({
@@ -397,6 +403,77 @@ describe('MoneyRequest', () => {
             expect(IOU.trackExpense).not.toHaveBeenCalled();
         });
 
+        it('should trackExpense with GPS coordinates when location permission is granted', async () => {
+            const mockGetCurrentPosition = getCurrentPosition as jest.MockedFunction<typeof getCurrentPosition>;
+            mockGetCurrentPosition.mockImplementation((successCallback) => {
+                successCallback({
+                    coords: {
+                        latitude: TEST_LATITUDE,
+                        longitude: TEST_LONGITUDE,
+                        altitude: null,
+                        accuracy: null,
+                        altitudeAccuracy: null,
+                        heading: null,
+                        speed: null,
+                    },
+                    timestamp: 1000,
+                });
+                return Promise.resolve();
+            });
+
+            handleMoneyRequestStepScanParticipants({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                shouldSkipConfirmation: true,
+                initialTransaction: {
+                    ...baseParams.initialTransaction,
+                    isFromGlobalCreate: false,
+                },
+                locationPermissionGranted: true,
+            });
+
+            expect(IOU.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        gpsPoint: {
+                            lat: TEST_LATITUDE,
+                            long: TEST_LONGITUDE,
+                        },
+                    }),
+                }),
+            );
+        });
+
+        it('should track expense without GPS coordinates when location permission is denied', async () => {
+            const mockGetCurrentPosition = getCurrentPosition as jest.MockedFunction<typeof getCurrentPosition>;
+            mockGetCurrentPosition.mockImplementation((successCallback, errorCallback) => {
+                errorCallback({
+                    code: GeolocationErrorCode.PERMISSION_DENIED,
+                    message: 'Permission Denied',
+                });
+                return Promise.resolve();
+            });
+
+            handleMoneyRequestStepScanParticipants({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                shouldSkipConfirmation: true,
+                initialTransaction: {
+                    ...baseParams.initialTransaction,
+                    isFromGlobalCreate: false,
+                },
+                locationPermissionGranted: true,
+            });
+
+            expect(IOU.trackExpense).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    transactionParams: expect.objectContaining({
+                        gpsPoint: undefined,
+                    }),
+                }),
+            );
+        });
+
         it('should trackExpense for TRACK iouType when not from global create menu and skipping confirmation', async () => {
             handleMoneyRequestStepScanParticipants({
                 ...baseParams,
@@ -440,6 +517,36 @@ describe('MoneyRequest', () => {
             });
             // Should not call request money inside createTransaction function
             expect(IOU.requestMoney).not.toHaveBeenCalled();
+        });
+
+        it(`should assing participants from report and navigate to confirmation page when not from global create menu`, async () => {
+            handleMoneyRequestStepScanParticipants({
+                ...baseParams,
+                iouType: CONST.IOU.TYPE.TRACK,
+                initialTransaction: {
+                    ...baseParams.initialTransaction,
+                    isFromGlobalCreate: false,
+                },
+            });
+
+            await waitForBatchedUpdates();
+
+            const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${fakeReceiptFile.transactionID}`);
+            expect(updatedTransaction).toMatchObject({
+                participants: [
+                    {
+                        accountID: 0,
+                        isPolicyExpenseChat: true,
+                        reportID: fakeReport.reportID,
+                        selected: true,
+                    },
+                ],
+                participantsAutoAssigned: true,
+            });
+
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, baseParams.initialTransaction.transactionID, baseParams.reportID),
+            );
         });
 
         it("should set initial transaction's participants if it is different from policyExpenseChat participants", async () => {
