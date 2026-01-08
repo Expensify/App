@@ -3809,9 +3809,9 @@ ${
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} – Ostatnia synchronizacja ${formattedDate}`,
             authenticationError: (connectionName: string) => `Nie można połączyć z ${connectionName} z powodu błędu uwierzytelniania.`,
             learnMore: 'Dowiedz się więcej',
-            memberAlternateText: 'Członkowie mogą przesyłać i zatwierdzać raporty.',
-            adminAlternateText: 'Administratorzy mają pełen dostęp do edycji wszystkich raportów i ustawień przestrzeni roboczej.',
-            auditorAlternateText: 'Audytorzy mogą przeglądać i komentować raporty.',
+            memberAlternateText: 'Zatwierdzaj i przesyłaj raporty.',
+            adminAlternateText: 'Zarządzaj raportami i ustawieniami przestrzeni roboczej.',
+            auditorAlternateText: 'Przeglądaj raporty i komentuj je.',
             roleName: ({role}: OptionalParam<RoleNamesParams> = {}) => {
                 switch (role) {
                     case CONST.POLICY.ROLE.ADMIN:
