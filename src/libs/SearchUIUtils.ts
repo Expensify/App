@@ -350,7 +350,7 @@ type ArchivedReportsIDSet = ReadonlySet<string>;
 type GetSectionsParams = {
     type: SearchDataTypes;
     data: OnyxTypes.SearchResults['data'];
-    policies: OnyxCollection<OnyxTypes.Policy>;
+    policies?: OnyxCollection<OnyxTypes.Policy>;
     currentAccountID: number | undefined;
     currentUserEmail: string;
     translate: LocalizedTranslate;
