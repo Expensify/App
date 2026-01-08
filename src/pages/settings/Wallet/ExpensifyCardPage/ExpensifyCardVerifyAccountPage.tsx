@@ -87,6 +87,4 @@ function ExpensifyCardVerifyAccountPage({route}: ExpensifyCardVerifyAccountPageP
     );
 }
 
-ExpensifyCardVerifyAccountPage.displayName = 'ExpensifyCardVerifyAccountPage';
-
 export default ExpensifyCardVerifyAccountPage;

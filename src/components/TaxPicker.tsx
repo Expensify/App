@@ -12,6 +12,7 @@ import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+// eslint-disable-next-line no-restricted-imports
 import SelectionList from './SelectionListWithSections';
 import RadioListItem from './SelectionListWithSections/RadioListItem';
 
@@ -123,7 +124,5 @@ function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, act
         />
     );
 }
-
-TaxPicker.displayName = 'TaxPicker';
 
 export default TaxPicker;

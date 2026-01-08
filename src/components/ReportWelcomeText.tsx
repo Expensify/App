@@ -129,6 +129,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         report,
         policy,
         participantPersonalDetailListExcludeCurrentUser,
+        translate,
         localeCompare,
         isReportArchived,
         reportDetailsLink,
@@ -163,7 +164,5 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         </>
     );
 }
-
-ReportWelcomeText.displayName = 'ReportWelcomeText';
 
 export default ReportWelcomeText;

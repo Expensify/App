@@ -135,6 +135,4 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ref, ...props}: 
     );
 }
 
-Lottie.displayName = 'Lottie';
-
 export default Lottie;

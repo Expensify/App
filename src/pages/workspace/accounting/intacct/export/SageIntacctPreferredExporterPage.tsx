@@ -100,7 +100,7 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={SageIntacctPreferredExporterPage.displayName}
+            displayName="SageIntacctPreferredExporterPage"
             sections={[{data}]}
             listItem={RadioListItem}
             headerContent={headerContent}
@@ -116,7 +116,5 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
         />
     );
 }
-
-SageIntacctPreferredExporterPage.displayName = 'SageIntacctPreferredExporterPage';
 
 export default withPolicyConnections(SageIntacctPreferredExporterPage);

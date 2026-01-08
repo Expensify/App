@@ -196,7 +196,7 @@ function IOURequestStepWaypoint({
             includeSafeAreaPaddingBottom
             onEntryTransitionEnd={() => textInput.current?.focus()}
             shouldEnableMaxHeight
-            testID={IOURequestStepWaypoint.displayName}
+            testID="IOURequestStepWaypoint"
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
@@ -279,7 +279,5 @@ function IOURequestStepWaypoint({
         </ScreenWrapper>
     );
 }
-
-IOURequestStepWaypoint.displayName = 'IOURequestStepWaypoint';
 
 export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepWaypoint), true);

@@ -26,7 +26,7 @@ import type SCREENS from '@src/SCREENS';
 function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const policyID = policy?.id;
     const {config} = policy?.connections?.xero ?? {};
@@ -83,7 +83,7 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={XeroBankAccountSelectPage.displayName}
+            displayName="XeroBankAccountSelectPage"
             sections={xeroSelectorOptions.length ? [{data: xeroSelectorOptions}] : []}
             listItem={RadioListItem}
             onSelectRow={updateBankAccount}
@@ -100,7 +100,5 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-XeroBankAccountSelectPage.displayName = 'XeroBankAccountSelectPage';
 
 export default withPolicyConnections(XeroBankAccountSelectPage);

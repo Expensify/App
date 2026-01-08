@@ -39,7 +39,7 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['TreasureChest'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['TreasureChest']);
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
@@ -150,7 +150,5 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
         />
     );
 }
-
-EarlyDiscountBanner.displayName = 'EarlyDiscountBanner';
 
 export default EarlyDiscountBanner;

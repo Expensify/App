@@ -23,7 +23,7 @@ type CardListItem = ListItem & {
 function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Telescope'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {vendors} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const nonReimbursableBillDefaultVendor = qbdConfig?.export?.nonReimbursableBillDefaultVendor;
@@ -71,7 +71,7 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={QuickbooksDesktopNonReimbursableDefaultVendorSelectPage.displayName}
+            displayName="QuickbooksDesktopNonReimbursableDefaultVendorSelectPage"
             title="workspace.accounting.defaultVendor"
             sections={sections}
             listItem={RadioListItem}
@@ -88,7 +88,5 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
         />
     );
 }
-
-QuickbooksDesktopNonReimbursableDefaultVendorSelectPage.displayName = 'QuickbooksDesktopNonReimbursableDefaultVendorSelectPage';
 
 export default withPolicyConnections(QuickbooksDesktopNonReimbursableDefaultVendorSelectPage);

@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {OptionData} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
-import type {Beta, PersonalDetails, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
+import type {Beta, Login, PersonalDetails, Report, ReportActions, TransactionViolation} from '@src/types/onyx';
 import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 
 /**
@@ -68,6 +68,7 @@ type SearchOptionData = Pick<
     | 'isChatRoom'
     | 'isInvoiceRoom'
     | 'isDefaultRoom'
+    | 'isDM'
 
     // Status properties
     | 'private_isArchived'
@@ -155,6 +156,7 @@ type GetValidReportsConfig = {
     isRestrictedToPreferredPolicy?: boolean;
     preferredPolicyID?: string;
     shouldUnreadBeBold?: boolean;
+    shouldAlwaysIncludeDM?: boolean;
 } & GetValidOptionsSharedConfig;
 
 type IsValidReportsConfig = Pick<
@@ -176,6 +178,7 @@ type IsValidReportsConfig = Pick<
     | 'excludeNonAdminWorkspaces'
     | 'isRestrictedToPreferredPolicy'
     | 'preferredPolicyID'
+    | 'shouldAlwaysIncludeDM'
 >;
 
 type GetOptionsConfig = {
@@ -204,6 +207,7 @@ type GetUserToInviteConfig = {
     shouldAcceptName?: boolean;
     optionsToExclude?: GetOptionsConfig['selectedOptions'];
     countryCode?: number;
+    loginList: OnyxEntry<Login>;
 } & Pick<GetOptionsConfig, 'selectedOptions' | 'showChatPreviewLine'>;
 
 type MemberForList = {

@@ -27,6 +27,7 @@ import {
     isIOUReport,
     isMoneyRequestReport,
     isMoneyRequestReportPendingDeletion,
+    isSettled,
     isWorkspaceEligibleForReportChange,
 } from '@libs/ReportUtils';
 import CONST from '@src/CONST';
@@ -132,7 +133,14 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         selectedPolicyIDs: report.policyID ? [report.policyID] : undefined,
         searchTerm: debouncedSearchTerm,
         localeCompare,
-        additionalFilter: (newPolicy) => isWorkspaceEligibleForReportChange(submitterEmail, newPolicy),
+        additionalFilter: (newPolicy) => {
+            const isReportSettled = isSettled(report);
+            const isEligible = isWorkspaceEligibleForReportChange(submitterEmail, newPolicy, report);
+            if (isReportSettled) {
+                return isEligible && isPolicyAdmin(newPolicy, session?.email);
+            }
+            return isEligible;
+        },
     });
 
     const textInputOptions = useMemo(
@@ -151,7 +159,7 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
 
     return (
         <ScreenWrapper
-            testID={ReportChangeWorkspacePage.displayName}
+            testID="ReportChangeWorkspacePage"
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
         >
@@ -182,7 +190,5 @@ function ReportChangeWorkspacePage({report, route}: ReportChangeWorkspacePagePro
         </ScreenWrapper>
     );
 }
-
-ReportChangeWorkspacePage.displayName = 'ReportChangeWorkspacePage';
 
 export default withReportOrNotFound()(ReportChangeWorkspacePage);

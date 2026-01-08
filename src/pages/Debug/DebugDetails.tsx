@@ -261,6 +261,4 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
     );
 }
 
-DebugDetails.displayName = 'DebugDetails';
-
 export default DebugDetails;

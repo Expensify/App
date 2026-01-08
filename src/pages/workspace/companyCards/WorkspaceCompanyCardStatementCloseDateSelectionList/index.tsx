@@ -110,7 +110,7 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
 
     return (
         <ScreenWrapper
-            testID={WorkspaceCompanyCardStatementCloseDateSelectionList.displayName}
+            testID="WorkspaceCompanyCardStatementCloseDateSelectionList"
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
@@ -183,7 +183,5 @@ function WorkspaceCompanyCardStatementCloseDateSelectionList({
         </ScreenWrapper>
     );
 }
-
-WorkspaceCompanyCardStatementCloseDateSelectionList.displayName = 'WorkspaceCompanyCardStatementCloseDateSelectionList';
 
 export default WorkspaceCompanyCardStatementCloseDateSelectionList;

@@ -12,6 +12,4 @@ function LoginForm({ref, ...props}: LoginFormProps) {
     );
 }
 
-LoginForm.displayName = 'LoginForm';
-
 export default LoginForm;

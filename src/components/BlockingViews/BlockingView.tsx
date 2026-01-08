@@ -180,6 +180,5 @@ function BlockingView({
     );
 }
 
-BlockingView.displayName = 'BlockingView';
-
+export type {BlockingViewProps};
 export default BlockingView;

@@ -123,6 +123,4 @@ function TestToolMenu() {
     );
 }
 
-TestToolMenu.displayName = 'TestToolMenu';
-
 export default TestToolMenu;

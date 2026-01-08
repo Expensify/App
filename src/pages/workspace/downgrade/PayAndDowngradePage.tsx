@@ -91,11 +91,7 @@ function PayAndDowngradePage() {
                                 })}
                             />
                         </View>
-                        <Text style={[styles.mb5]}>
-                            {translate('workspace.payAndDowngrade.description2', {
-                                date: billingDetails?.billingMonth ?? '',
-                            })}
-                        </Text>
+                        <Text style={[styles.mb5]}>{translate('workspace.payAndDowngrade.description2', billingDetails?.billingMonth ?? '')}</Text>
 
                         <View style={[styles.borderedContentCard, styles.ph5, styles.pv2, styles.mb5]}>
                             {items.map((item) => (

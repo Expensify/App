@@ -167,7 +167,7 @@ function SearchPageNarrow({
     if (!queryJSON) {
         return (
             <ScreenWrapper
-                testID={SearchPageNarrow.displayName}
+                testID="SearchPageNarrow"
                 style={styles.pv0}
                 offlineIndicatorStyle={styles.mtAuto}
                 shouldShowOfflineIndicator={!!searchResults}
@@ -187,11 +187,10 @@ function SearchPageNarrow({
 
     return (
         <ScreenWrapper
-            testID={SearchPageNarrow.displayName}
+            testID="SearchPageNarrow"
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
             bottomContent={!searchRouterListVisible && <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
-            headerGapStyles={styles.searchHeaderGap}
             shouldShowOfflineIndicator={!!searchResults}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>
@@ -290,7 +289,5 @@ function SearchPageNarrow({
         </ScreenWrapper>
     );
 }
-
-SearchPageNarrow.displayName = 'SearchPageNarrow';
 
 export default SearchPageNarrow;

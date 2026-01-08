@@ -39,7 +39,7 @@ function getAcceptableFileTypesFromAList(fileTypes: Array<ValueOf<typeof CONST.A
 /**
  * This component renders a function as a child and
  * returns a "show attachment picker" method that takes
- * a callback. This is the web/mWeb/desktop version since
+ * a callback. This is the web/mWeb version since
  * on a Browser we must append a hidden input to the DOM
  * and listen to onChange event.
  */
@@ -123,6 +123,5 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
         </>
     );
 }
-AttachmentPicker.displayName = 'AttachmentPicker';
 
 export default AttachmentPicker;

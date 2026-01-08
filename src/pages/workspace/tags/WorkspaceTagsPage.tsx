@@ -32,6 +32,7 @@ import usePolicyData from '@hooks/usePolicyData';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useSearchResults from '@hooks/useSearchResults';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
@@ -57,11 +58,13 @@ import {
     getTagLists,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
     hasDependentTags as hasDependentTagsPolicyUtils,
+    isControlPolicy,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import variables from '@styles/variables';
 import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -80,6 +83,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate, localeCompare} = useLocalize();
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
@@ -97,7 +101,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark'] as const);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
 
     const [policyTagLists, isMultiLevelTags, hasDependentTags] = useMemo(
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)],
@@ -105,11 +109,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     );
 
     const canSelectMultiple = !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
+    const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
-    const illustrations = useMemoizedLazyIllustrations(['Tag'] as const);
+    const illustrations = useMemoizedLazyIllustrations(['Tag']);
 
     const tagsList = useMemo(() => {
         if (isMultiLevelTags) {
@@ -213,6 +218,9 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         },
         [policyData],
     );
+    const glCodeContainerStyle = useMemo(() => [styles.flex1], [styles.flex1]);
+    const glCodeTextStyle = useMemo(() => [styles.alignSelfStart], [styles.alignSelfStart]);
+    const switchContainerStyle = useMemo(() => [StyleUtils.getMinimumWidth(variables.w72)], [StyleUtils]);
 
     const tagList = useMemo<TagListItem[]>(() => {
         if (isMultiLevelTags) {
@@ -264,7 +272,33 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             errors: tag.errors ?? undefined,
             enabled: tag.enabled,
             isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            rightElement: (
+            rightElement: isControlPolicyWithWideLayout ? (
+                <>
+                    <View style={glCodeContainerStyle}>
+                        <Text
+                            numberOfLines={1}
+                            style={glCodeTextStyle}
+                        >
+                            {tag['GL Code']}
+                        </Text>
+                    </View>
+                    <View style={switchContainerStyle}>
+                        <Switch
+                            isOn={tag.enabled}
+                            disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                            accessibilityLabel={translate('workspace.tags.enableTag')}
+                            onToggle={(newValue: boolean) => {
+                                if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])) {
+                                    setIsCannotDeleteOrDisableLastTagModalVisible(true);
+                                    return;
+                                }
+                                updateWorkspaceTagEnabled(newValue, tag.name);
+                            }}
+                            showLockIcon={isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), [tag])}
+                        />
+                    </View>
+                </>
+            ) : (
                 <Switch
                     isOn={tag.enabled}
                     disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
@@ -280,7 +314,20 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             ),
         }));
-    }, [isMultiLevelTags, policyTagLists, hasDependentTags, translate, policy, policyTags, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
+    }, [
+        isMultiLevelTags,
+        policyTagLists,
+        hasDependentTags,
+        translate,
+        policy,
+        policyTags,
+        updateWorkspaceRequiresTag,
+        updateWorkspaceTagEnabled,
+        isControlPolicyWithWideLayout,
+        glCodeContainerStyle,
+        glCodeTextStyle,
+        switchContainerStyle,
+    ]);
 
     const filterTag = useCallback((tag: TagListItem, searchInput: string) => {
         const results = tokenizedSearch([tag], searchInput, (option) => [option.text ?? '', option.value ?? '']);
@@ -331,6 +378,23 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     rightHeaderText={translate('common.count')}
                     shouldShowRightCaret
                 />
+            );
+        }
+
+        // Show GL Code column only on wide screens for control policies
+        if (isControlPolicyWithWideLayout && !isMultiLevelTags) {
+            return (
+                <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween, styles.pl3]}>
+                    <View style={[styles.flex1, StyleUtils.getPaddingRight(variables.w52 + variables.w12)]}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.name')}</Text>
+                    </View>
+                    <View style={[styles.flex1, styles.pr16]}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('workspace.tags.glCode')}</Text>
+                    </View>
+                    <View style={[StyleUtils.getMinimumWidth(variables.w72), styles.mr5]}>
+                        <Text style={[styles.textMicroSupporting, styles.alignSelfStart]}>{translate('common.enabled')}</Text>
+                    </View>
+                </View>
             );
         }
 
@@ -430,11 +494,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                     setIsDownloadFailureModalVisible(true);
                                 },
                                 hasDependentTags,
+                                translate,
                             );
                         } else {
-                            downloadTagsCSV(policyID, () => {
-                                setIsDownloadFailureModalVisible(true);
-                            });
+                            downloadTagsCSV(
+                                policyID,
+                                () => {
+                                    setIsDownloadFailureModalVisible(true);
+                                },
+                                translate,
+                            );
                         }
                     });
                 },
@@ -597,7 +666,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 options={options}
                 style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
                 isDisabled={!selectedTags.length}
-                testID={`${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`}
+                testID="WorkspaceTagsPage-header-dropdown-menu-button"
             />
         );
     };
@@ -620,11 +689,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         {hasDependentTags && (
                             <View style={[styles.renderHTML]}>
                                 <RenderHTML
-                                    html={translate('workspace.tags.dependentMultiLevelTagsSubtitle', {
-                                        importSpreadsheetLink: isQuickSettingsFlow
+                                    html={translate(
+                                        'workspace.tags.dependentMultiLevelTagsSubtitle',
+                                        isQuickSettingsFlow
                                             ? `${environmentURL}/${ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))}`
                                             : `${environmentURL}/${ROUTES.WORKSPACE_TAGS_IMPORT_OPTIONS.getRoute(policyID)}`,
-                                    })}
+                                    )}
                                 />
                             </View>
                         )}
@@ -665,7 +735,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 <ScreenWrapper
                     enableEdgeToEdgeBottomSafeAreaPadding
                     style={[styles.defaultModalContainer]}
-                    testID={WorkspaceTagsPage.displayName}
+                    testID="WorkspaceTagsPage"
                     shouldShowOfflineIndicatorInWideScreen
                     offlineIndicatorStyle={styles.mtAuto}
                 >
@@ -807,7 +877,5 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         </>
     );
 }
-
-WorkspaceTagsPage.displayName = 'WorkspaceTagsPage';
 
 export default WorkspaceTagsPage;

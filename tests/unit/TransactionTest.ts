@@ -1,15 +1,17 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useOnyx from '@hooks/useOnyx';
-import {changeTransactionsReport, saveWaypoint} from '@libs/actions/Transaction';
+import {changeTransactionsReport, markAsCash, saveWaypoint} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
+import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
@@ -18,6 +20,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -83,7 +86,10 @@ describe('Transaction', () => {
         });
     });
 
+    let mockFetch: TestHelper.MockFetch;
     beforeEach(() => {
+        global.fetch = TestHelper.getGlobalFetchMock();
+        mockFetch = global.fetch as TestHelper.MockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -305,6 +311,64 @@ describe('Transaction', () => {
             mockAPIWrite.mockRestore();
         });
 
+        it('updates the source submitted report next step without reopening when it becomes empty', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const buildOptimisticNextStepSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep');
+
+            const transaction = generateTransaction({
+                reportID: FAKE_OLD_REPORT_ID,
+                amount: -100,
+                currency: CONST.CURRENCY.USD,
+            });
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: FAKE_OLD_REPORT_ID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const submittedReport: Report = {
+                ...createExpenseReport(6),
+                reportID: FAKE_OLD_REPORT_ID,
+                ownerAccountID: CURRENT_USER_ID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                currency: CONST.CURRENCY.USD,
+                total: -100,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`, submittedReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', report);
+            await waitForBatchedUpdates();
+
+            try {
+                const buildOptimisticNextStepCalls = buildOptimisticNextStepSpy.mock.calls as Array<[Parameters<typeof buildOptimisticNextStep>[0]]>;
+                const sourceNextStepCall = buildOptimisticNextStepCalls.find(([params]) => params.report?.reportID === FAKE_OLD_REPORT_ID);
+
+                expect(sourceNextStepCall).toBeDefined();
+                expect(sourceNextStepCall?.[0].predictedNextStatus).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
+
+                const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+                const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string}>})?.optimisticData;
+                const sourceNextStepUpdate = optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_OLD_REPORT_ID}`);
+
+                expect(sourceNextStepUpdate).toBeDefined();
+            } finally {
+                buildOptimisticNextStepSpy.mockRestore();
+                mockAPIWrite.mockRestore();
+            }
+        });
+
         it('correctly handles ASAP submit beta enabled when moving transactions', async () => {
             const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
 
@@ -479,6 +543,112 @@ describe('Transaction', () => {
 
             expect(report?.total).toBe(expenseReport.total);
             expect(report?.nonReimbursableTotal).toBe(expenseReport.nonReimbursableTotal);
+        });
+
+        it('should update target report total using convertedAmount when moving within same workspace currency', async () => {
+            const oldExpenseReport = {
+                ...createRandomReport(1, undefined),
+                total: -3673,
+                nonReimbursableTotal: 0,
+                currency: 'AED',
+            };
+            const transaction = {
+                ...generateTransaction({reportID: oldExpenseReport.reportID}),
+                currency: 'USD',
+                amount: -1000,
+                convertedAmount: -3673,
+                reimbursable: true,
+            };
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: oldExpenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const newExpenseReport = {
+                ...createRandomReport(2, undefined),
+                total: 0,
+                nonReimbursableTotal: 0,
+                currency: 'AED',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`, oldExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReport.reportID}`, newExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', newExpenseReport);
+            await waitForBatchedUpdates();
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${newExpenseReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(report?.total).toBe(transaction.convertedAmount);
+        });
+
+        it('should not update target report total when switching to workspace with different currency', async () => {
+            const oldExpenseReport = {
+                ...createRandomReport(1, undefined),
+                total: -1503,
+                nonReimbursableTotal: 0,
+                currency: 'AUD',
+            };
+            const transaction = {
+                ...generateTransaction({reportID: oldExpenseReport.reportID}),
+                currency: 'USD',
+                amount: -1000,
+                convertedAmount: -1503,
+                reimbursable: true,
+            };
+            const oldIOUAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = {
+                reportActionID: rand64(),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: CURRENT_USER_ID,
+                created: DateUtils.getDBTime(),
+                originalMessage: {
+                    IOUReportID: oldExpenseReport.reportID,
+                    IOUTransactionID: transaction.transactionID,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const newExpenseReport = {
+                ...createRandomReport(2, undefined),
+                total: 0,
+                nonReimbursableTotal: 0,
+                currency: 'AED',
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${oldExpenseReport.reportID}`, oldExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${newExpenseReport.reportID}`, newExpenseReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldExpenseReport.reportID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            changeTransactionsReport([transaction.transactionID], false, CURRENT_USER_ID, 'test@example.com', newExpenseReport);
+            await waitForBatchedUpdates();
+            const report = await new Promise<OnyxEntry<Report>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.REPORT}${newExpenseReport.reportID}`,
+                    callback: (value) => {
+                        Onyx.disconnect(connection);
+                        resolve(value);
+                    },
+                });
+            });
+
+            expect(report?.total).toBe(0);
         });
 
         it('should update the old report total when the currency is the same', async () => {
@@ -737,6 +907,146 @@ describe('Transaction', () => {
             expect(transaction?.errorFields?.route ?? null).toBeNull();
             expect(transaction?.routes?.route0?.distance ?? null).toBeNull();
             expect(transaction?.routes?.route0?.geometry?.coordinates ?? null).toBeNull();
+        });
+    });
+
+    describe('markAsCash', () => {
+        it('should optimistically remove RTER violation and add dismissed violation report action', async () => {
+            // Given a transaction with an RTER violation
+            const transactionID = 'transaction123';
+            const transactionThreadReportID = 'threadReport456';
+            const mockViolations: TransactionViolation[] = [
+                {name: CONST.VIOLATIONS.RTER, type: 'warning'},
+                {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'},
+            ];
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {});
+
+            // When markAsCash is called
+            markAsCash(transactionID, transactionThreadReportID, mockViolations);
+            await waitForBatchedUpdates();
+
+            // Then the RTER violation should be removed optimistically
+            const optimisticViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+
+            expect(optimisticViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
+
+            // And a dismissed violation report action should be added
+            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+
+            const reportActionValues = Object.values(reportActions ?? {});
+            expect(reportActionValues.length).toBe(1);
+            expect(reportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
+
+            // After API call succeeds, the optimistic updates should persist
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            const finalViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+            expect(finalViolations).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
+
+            const finalReportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+            const finalReportActionValues = Object.values(finalReportActions ?? {});
+            expect(finalReportActionValues.length).toBe(1);
+            expect(finalReportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
+        });
+
+        it('should restore RTER violation and remove report action when API fails', async () => {
+            // Given a transaction with an RTER violation
+            const transactionID = 'transaction123';
+            const transactionThreadReportID = 'threadReport456';
+            const mockViolations: TransactionViolation[] = [{name: CONST.VIOLATIONS.RTER, type: 'warning'}];
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {});
+
+            mockFetch.fail();
+
+            // When markAsCash is called and API fails
+            markAsCash(transactionID, transactionThreadReportID, mockViolations);
+            await waitForBatchedUpdates();
+
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then the RTER violation should be restored to original state
+            const failureViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+
+            expect(failureViolations).toEqual(mockViolations);
+
+            // And the dismissed violation report action should be removed
+            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+
+            expect(Object.keys(reportActions ?? {}).length).toBe(0);
+        });
+
+        it('should handle empty transaction violations array', async () => {
+            // Given a transaction with no violations
+            const transactionID = 'transaction123';
+            const transactionThreadReportID = 'threadReport456';
+            const mockViolations: TransactionViolation[] = [];
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {});
+
+            // When markAsCash is called with empty violations array
+            markAsCash(transactionID, transactionThreadReportID, mockViolations);
+            await waitForBatchedUpdates();
+
+            // Then the violations should remain empty after filtering out RTER
+            const optimisticViolations = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
+
+            expect(optimisticViolations).toEqual([]);
+
+            await mockFetch.resume();
+        });
+
+        it('should work with data from useOnyx hook', async () => {
+            // Given a transaction with an RTER violation loaded via useOnyx
+            const transactionID = 'transaction123';
+            const transactionThreadReportID = 'threadReport456';
+            const mockViolations: TransactionViolation[] = [
+                {name: CONST.VIOLATIONS.RTER, type: 'warning'},
+                {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'},
+            ];
+
+            mockFetch.pause();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, mockViolations);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {});
+
+            const {result} = renderHook(() => useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`));
+
+            await waitFor(() => {
+                expect(result.current[0]).toBeDefined();
+            });
+
+            // When markAsCash is called with data from useOnyx hook
+            await act(async () => {
+                markAsCash(transactionID, transactionThreadReportID, result.current[0] ?? []);
+                await waitForBatchedUpdates();
+            });
+
+            // Then the RTER violation should be removed optimistically
+            await waitFor(() => {
+                expect(result.current[0]).toEqual([{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: 'violation'}]);
+            });
+
+            // And a dismissed violation report action should be added
+            const reportActions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+
+            const reportActionValues = Object.values(reportActions ?? {});
+            expect(reportActionValues.length).toBe(1);
+            expect(reportActionValues.at(0)?.actionName).toBe(CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION);
+
+            await mockFetch.resume();
         });
     });
 });

@@ -43,6 +43,4 @@ function ConciergeLinkRenderer({tnode, style}: ConciergeLinkRendererProps) {
     );
 }
 
-ConciergeLinkRenderer.displayName = 'ConciergeLinkRenderer';
-
 export default ConciergeLinkRenderer;

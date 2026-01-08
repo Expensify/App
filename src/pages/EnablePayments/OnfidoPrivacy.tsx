@@ -82,6 +82,4 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
     );
 }
 
-OnfidoPrivacy.displayName = 'OnfidoPrivacy';
-
 export default OnfidoPrivacy;

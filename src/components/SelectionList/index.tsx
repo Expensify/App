@@ -97,6 +97,4 @@ function SelectionList<TItem extends ListItem>({ref, ...props}: SelectionListPro
     );
 }
 
-SelectionList.displayName = 'SelectionList';
-
 export default SelectionList;

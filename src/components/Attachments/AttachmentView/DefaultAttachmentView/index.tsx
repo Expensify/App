@@ -34,7 +34,7 @@ type DefaultAttachmentViewProps = {
 };
 
 function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = false, shouldShowDownloadIcon, containerStyles, icon, isUploading, isDeleted}: DefaultAttachmentViewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Paperclip'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Paperclip']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -72,7 +72,5 @@ function DefaultAttachmentView({fileName = '', shouldShowLoadingSpinnerIcon = fa
         </View>
     );
 }
-
-DefaultAttachmentView.displayName = 'DefaultAttachmentView';
 
 export default DefaultAttachmentView;

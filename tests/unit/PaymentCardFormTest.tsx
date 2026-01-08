@@ -25,10 +25,6 @@ jest.mock('@components/RenderHTML', () => {
     };
 });
 
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
-
 jest.mock('@libs/ReportUtils', () => ({
     getReportIDFromLink: jest.fn(() => ''),
     parseReportRouteParams: jest.fn(() => ({reportID: ''})),

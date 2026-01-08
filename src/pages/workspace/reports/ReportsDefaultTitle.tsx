@@ -55,10 +55,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
             if (!defaultTitle) {
                 errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.fieldRequired');
             } else if (defaultTitle.length > CONST.REPORT_TITLE_FORMULA_LIMIT) {
-                errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.characterLimitExceedCounter', {
-                    length: defaultTitle.length,
-                    limit: CONST.REPORT_TITLE_FORMULA_LIMIT,
-                });
+                errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.characterLimitExceedCounter', defaultTitle.length, CONST.REPORT_TITLE_FORMULA_LIMIT);
             }
             return errors;
         },
@@ -90,7 +87,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
-                testID={ReportsDefaultTitlePage.displayName}
+                testID="ReportsDefaultTitlePage"
             >
                 <HeaderWithBackButton
                     title={translate('workspace.reports.customNameTitle')}
@@ -145,7 +142,5 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
         </AccessOrNotFoundWrapper>
     );
 }
-
-ReportsDefaultTitlePage.displayName = 'ReportsDefaultTitlePage';
 
 export default ReportsDefaultTitlePage;

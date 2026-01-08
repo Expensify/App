@@ -247,6 +247,4 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
     );
 }
 
-BaseHTMLEngineProvider.displayName = 'BaseHTMLEngineProvider';
-
 export default BaseHTMLEngineProvider;

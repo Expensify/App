@@ -286,10 +286,6 @@ function AddressSearch({
                 setIsFetchingCurrentLocation(false);
                 setLocationErrorCode(errorData?.code ?? null);
             },
-            {
-                maximumAge: 0, // No cache, always get fresh location info
-                timeout: 30000,
-            },
         );
     };
 
@@ -489,8 +485,6 @@ function AddressSearch({
         </>
     );
 }
-
-AddressSearch.displayName = 'AddressSearchWithRef';
 
 export default AddressSearch;
 

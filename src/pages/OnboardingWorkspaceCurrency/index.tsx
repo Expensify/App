@@ -15,6 +15,4 @@ function OnboardingWorkspaceCurrency({...rest}: OnboardingWorkspaceCurrencyProps
     );
 }
 
-OnboardingWorkspaceCurrency.displayName = 'OnboardingWorkspaceCurrency';
-
 export default OnboardingWorkspaceCurrency;

@@ -2,13 +2,12 @@ import React, {useCallback} from 'react';
 import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-// eslint-disable-next-line no-restricted-imports
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -35,15 +34,14 @@ import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound
 type RoomMemberDetailsPagePageProps = WithReportOrNotFoundProps & PlatformStackScreenProps<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.DETAILS>;
 
 function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers'] as const);
+    const icons = useMemoizedLazyExpensifyIcons(['RemoveMembers', 'Info']);
     const styles = useThemeStyles();
     const {formatPhoneNumber, translate} = useLocalize();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const policy = usePolicy(report?.policyID);
-
-    const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = React.useState(false);
+    const {showConfirmModal} = useConfirmModal();
 
     const accountID = Number(route.params.accountID);
     const backTo = ROUTES.ROOM_MEMBERS.getRoute(report?.reportID, route.params.backTo);
@@ -55,11 +53,22 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     const isSelectedMemberCurrentUser = accountID === currentUserPersonalDetails?.accountID;
     const isSelectedMemberOwner = accountID === report.ownerAccountID;
     const shouldDisableRemoveUser = (isPolicyExpenseChat(report) && isUserPolicyAdmin(policy, details.login)) || isSelectedMemberCurrentUser || isSelectedMemberOwner;
-    const removeUser = useCallback(() => {
-        setIsRemoveMemberConfirmModalVisible(false);
-        removeFromRoom(report?.reportID, [accountID]);
-        Navigation.goBack(backTo);
-    }, [backTo, report?.reportID, accountID]);
+
+    const showRemoveUserModal = useCallback(() => {
+        showConfirmModal({
+            danger: true,
+            title: translate('workspace.people.removeRoomMemberButtonTitle'),
+            prompt: translate('workspace.people.removeMemberPrompt', {memberName: displayName}),
+            confirmText: translate('common.remove'),
+            cancelText: translate('common.cancel'),
+        }).then(({action}) => {
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            removeFromRoom(report?.reportID, [accountID]);
+            Navigation.goBack(backTo);
+        });
+    }, [showConfirmModal, translate, displayName, report?.reportID, accountID, backTo]);
 
     const navigateToProfile = useCallback(() => {
         Navigation.navigate(ROUTES.PROFILE.getRoute(accountID, Navigation.getActiveRoute()));
@@ -70,7 +79,7 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
     }
 
     return (
-        <ScreenWrapper testID={RoomMemberDetailsPage.displayName}>
+        <ScreenWrapper testID="RoomMemberDetailsPage">
             <HeaderWithBackButton
                 title={displayName}
                 onBackButtonPress={() => Navigation.goBack(backTo)}
@@ -94,31 +103,19 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
                             {displayName}
                         </Text>
                     )}
-                    <>
-                        <Button
-                            text={translate('workspace.people.removeRoomMemberButtonTitle')}
-                            onPress={() => setIsRemoveMemberConfirmModalVisible(true)}
-                            isDisabled={shouldDisableRemoveUser}
-                            icon={icons.RemoveMembers}
-                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                            style={styles.mv5}
-                        />
-                        <ConfirmModal
-                            danger
-                            title={translate('workspace.people.removeRoomMemberButtonTitle')}
-                            isVisible={isRemoveMemberConfirmModalVisible}
-                            onConfirm={removeUser}
-                            onCancel={() => setIsRemoveMemberConfirmModalVisible(false)}
-                            prompt={translate('workspace.people.removeMemberPrompt', {memberName: displayName})}
-                            confirmText={translate('common.remove')}
-                            cancelText={translate('common.cancel')}
-                        />
-                    </>
+                    <Button
+                        text={translate('workspace.people.removeRoomMemberButtonTitle')}
+                        onPress={showRemoveUserModal}
+                        isDisabled={shouldDisableRemoveUser}
+                        icon={icons.RemoveMembers}
+                        iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
+                        style={styles.mv5}
+                    />
                 </View>
                 <View style={styles.w100}>
                     <MenuItem
                         title={translate('common.profile')}
-                        icon={Expensicons.Info}
+                        icon={icons.Info}
                         onPress={navigateToProfile}
                         shouldShowRightIcon
                     />
@@ -127,7 +124,5 @@ function RoomMemberDetailsPage({report, route}: RoomMemberDetailsPagePageProps) 
         </ScreenWrapper>
     );
 }
-
-RoomMemberDetailsPage.displayName = 'RoomMemberDetailsPage';
 
 export default withReportOrNotFound()(RoomMemberDetailsPage);

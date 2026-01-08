@@ -5,7 +5,7 @@ import type FilePickerProps from './types';
 /**
  * This component renders a function as a child and
  * returns a "show file picker" method that takes
- * a callback. This is the web/mWeb/desktop version since
+ * a callback. This is the web/mWeb version since
  * on a Browser we must append a hidden input to the DOM
  * and listen to onChange event.
  */
@@ -76,6 +76,5 @@ function FilePicker({children, acceptableFileTypes = ''}: FilePickerProps): Reac
         </>
     );
 }
-FilePicker.displayName = 'FilePicker';
 
 export default FilePicker;

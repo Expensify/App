@@ -35,6 +35,4 @@ function QuickBooksDesktopSetupFlowSyncPage({route}: QuickBooksDesktopSetupFlowS
     return null;
 }
 
-QuickBooksDesktopSetupFlowSyncPage.displayName = 'QuickBooksDesktopSetupFlowSyncPage';
-
 export default QuickBooksDesktopSetupFlowSyncPage;

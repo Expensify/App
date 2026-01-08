@@ -59,6 +59,7 @@ const violationNameToField: Record<ViolationName, (violation: TransactionViolati
     taxRequired: () => 'tax',
     hold: () => 'none',
     receiptGeneratedWithAI: () => 'receipt',
+    companyCardRequired: () => 'none',
 };
 
 type ViolationsMap = Map<ViolationField, TransactionViolation[]>;

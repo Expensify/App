@@ -100,7 +100,7 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, poli
 
                 return navigationRef.dispatch({
                     type: CONST.NAVIGATION.ACTION_TYPE.OPEN_DOMAIN_SPLIT,
-                    payload: {accountID: domain.accountID, screenName: domainScreenName},
+                    payload: {domainAccountID: domain.accountID, screenName: domainScreenName},
                 });
             }
         }

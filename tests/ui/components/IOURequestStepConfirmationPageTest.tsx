@@ -24,9 +24,6 @@ jest.mock('@rnmapbox/maps', () => {
         setAccessToken: jest.fn(),
     };
 });
-jest.mock('@react-native-community/geolocation', () => ({
-    setRNConfiguration: jest.fn(),
-}));
 jest.mock('@libs/actions/IOU', () => {
     const actualNav = jest.requireActual<typeof IOU>('@libs/actions/IOU');
     return {
@@ -341,7 +338,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
                 </HTMLProviderWrapper>
             </OnyxListItemProvider>,
         );
-        fireEvent.press(await screen.findByText(translateLocal('iou.createExpenses', {expensesNumber: 2})));
+        fireEvent.press(await screen.findByText(translateLocal('iou.createExpenses', 2)));
         expect(IOU.startSplitBill).toHaveBeenCalledTimes(2);
     });
 

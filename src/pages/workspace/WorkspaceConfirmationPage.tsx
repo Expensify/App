@@ -50,7 +50,7 @@ function WorkspaceConfirmationPage() {
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnableMaxHeight
-            testID={WorkspaceConfirmationPage.displayName}
+            testID="WorkspaceConfirmationPage"
         >
             <WorkspaceConfirmationForm
                 policyOwnerEmail={policyOwnerEmail}
@@ -59,7 +59,5 @@ function WorkspaceConfirmationPage() {
         </ScreenWrapper>
     );
 }
-
-WorkspaceConfirmationPage.displayName = 'WorkspaceConfirmationPage';
 
 export default WorkspaceConfirmationPage;

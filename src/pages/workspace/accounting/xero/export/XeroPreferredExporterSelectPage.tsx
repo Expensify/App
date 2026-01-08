@@ -99,7 +99,7 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName={XeroPreferredExporterSelectPage.displayName}
+            displayName="XeroPreferredExporterSelectPage"
             sections={[{data}]}
             listItem={RadioListItem}
             headerContent={headerContent}
@@ -115,7 +115,5 @@ function XeroPreferredExporterSelectPage({policy}: WithPolicyConnectionsProps) {
         />
     );
 }
-
-XeroPreferredExporterSelectPage.displayName = 'XeroPreferredExporterSelectPage';
 
 export default withPolicyConnections(XeroPreferredExporterSelectPage);
