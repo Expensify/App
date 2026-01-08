@@ -67,6 +67,12 @@ describe('PureReportActionItem', () => {
                     login: actorEmail,
                 },
             });
+            // Set up personal policy for usePersonalPolicy hook
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}personal_policy_id`, {
+                id: 'personal_policy_id',
+                type: CONST.POLICY.TYPE.PERSONAL,
+                name: 'Personal',
+            });
         });
         await waitForBatchedUpdatesWithAct();
     });
