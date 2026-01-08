@@ -31,7 +31,14 @@ import {
     isMoneyRequestAction,
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
-import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {
+    buildOptimisticCreatedReportAction,
+    buildOptimisticIOUReportAction,
+    canUserPerformWriteAction,
+    isInvoiceReport,
+    isMoneyRequestReport,
+    isOneTransactionReport,
+} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -270,8 +277,10 @@ function ReportActionsView({
 
         didLayout.current = true;
 
-        markOpenReportEnd(reportID);
-    }, [reportID]);
+        const isOneTransactionThread = isOneTransactionReport(report);
+
+        markOpenReportEnd(reportID, isReportTransactionThread, isOneTransactionThread);
+    }, [isReportTransactionThread, report, reportID]);
 
     // Check if the first report action in the list is the one we're currently linked to
     const isTheFirstReportActionIsLinked = newestReportAction?.reportActionID === reportActionID;

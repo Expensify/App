@@ -78,6 +78,7 @@ function SearchMoneyRequestReportEmptyState({report, policy}: {report: OnyxTypes
 
     useEffect(() => {
         cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${report.reportID}`);
+        cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD}_${report.reportID}`);
     }, [report.reportID]);
 
     return (

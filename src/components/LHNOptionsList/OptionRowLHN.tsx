@@ -182,6 +182,11 @@ function OptionRowLHN({
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
         });
 
+        startSpan(`${CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD}_${reportID}`, {
+            name: 'OptionRowLHN',
+            op: CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD,
+        });
+
         event?.preventDefault();
         // Enable Composer to focus on clicking the same chat after opening the context menu.
         ReportActionComposeFocusManager.focus();

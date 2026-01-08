@@ -167,7 +167,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     // We need to cancel telemetry span when user leaves the screen before full report data is loaded
     useEffect(() => {
-        return () => cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+        return () => {
+            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${reportID}`);
+            cancelSpan(`${CONST.TELEMETRY.SPAN_OPEN_TRANSACTION_THREAD}_${reportID}`);
+        };
     }, [reportID]);
 
     if (!!(isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) || shouldWaitForTransactions) {
