@@ -209,6 +209,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Text to display for the item */
         title?: string;
 
+        /** Accessibility label for the menu item */
+        accessibilityLabel?: string;
+
         /** Component to display as the title */
         titleComponent?: ReactElement;
 
@@ -461,6 +464,7 @@ function MenuItem({
     focused = false,
     disabled = false,
     title,
+    accessibilityLabel,
     titleComponent,
     titleContainerStyle,
     subtitle,
@@ -724,7 +728,7 @@ function MenuItem({
                                 disabled={disabled || isExecuting}
                                 ref={mergeRefs(ref, popoverAnchor)}
                                 role={CONST.ROLE.MENUITEM}
-                                accessibilityLabel={title ? title.toString() : ''}
+                                accessibilityLabel={accessibilityLabel ?? (title ? title.toString() : '')}
                                 accessible
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
