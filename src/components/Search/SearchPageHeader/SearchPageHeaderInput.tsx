@@ -83,11 +83,19 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const listRef = useRef<SelectionListHandle>(null);
     const textInputRef = useRef<AnimatedTextInputRef>(null);
     const hasMountedRef = useRef(false);
+    const hideAutocompleteTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isFocused = useIsFocused();
     const {registerSearchPageInput} = useSearchRouterContext();
 
     useEffect(() => {
         hasMountedRef.current = true;
+        
+        // Cleanup timeout on unmount
+        return () => {
+            if (hideAutocompleteTimeoutRef.current) {
+                clearTimeout(hideAutocompleteTimeoutRef.current);
+            }
+        };
     }, []);
 
     // useEffect for blurring TextInput when we cancel SearchRouter interaction on narrow layout
@@ -413,7 +421,23 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         );
     }
 
-    const hideAutocompleteList = () => setIsAutocompleteListVisible(false);
+    const hideAutocompleteList = useCallback(() => {
+        // Clear any existing timeout
+        if (hideAutocompleteTimeoutRef.current) {
+            clearTimeout(hideAutocompleteTimeoutRef.current);
+        }
+        
+        // Add a small delay to prevent hiding the list when navigating with arrow keys
+        // This allows the focus to settle and prevents the list from closing during keyboard navigation
+        hideAutocompleteTimeoutRef.current = setTimeout(() => {
+            // Only hide if the input is truly blurred (not just temporarily unfocused during navigation)
+            if (!textInputRef.current?.isFocused() && !listRef.current?.getFocusedOption()) {
+                setIsAutocompleteListVisible(false);
+            }
+            hideAutocompleteTimeoutRef.current = null;
+        }, 0);
+    }, []);
+    
     const showAutocompleteList = () => {
         listRef.current?.updateAndScrollToFocusedIndex(0);
         setIsAutocompleteListVisible(true);
