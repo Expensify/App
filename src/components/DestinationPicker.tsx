@@ -71,6 +71,7 @@ function DestinationPicker({selectedDestination, policyID, onSubmit}: Destinatio
 
     return (
         <SelectionList
+            key={selectedDestination}
             sections={sections}
             headerMessage={headerMessage}
             textInputValue={searchValue}
