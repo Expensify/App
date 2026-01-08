@@ -348,7 +348,23 @@ function buildOptimisticNextStepForDynamicExternalWorkflowError(iconFill?: strin
     return optimisticNextStep;
 }
 
-function buildOptimisticNextStepForDEWOfflineSubmission() {
+function buildOptimisticNextStepForDynamicExternalWorkflowApproveError(iconFill?: string) {
+    const optimisticNextStep: ReportNextStepDeprecated = {
+        type: 'alert',
+        icon: CONST.NEXT_STEP.ICONS.DOT_INDICATOR,
+        iconFill,
+        message: [
+            {
+                text: "This report can't be approved. Please review the comments to resolve.",
+                type: 'alert-text',
+            },
+        ],
+    };
+
+    return optimisticNextStep;
+}
+
+function buildOptimisticNextStepForDEWOffline() {
     const optimisticNextStep: ReportNextStepDeprecated = {
         type: 'neutral',
         icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
@@ -734,7 +750,8 @@ export {
     buildOptimisticNextStepForPreventSelfApprovalsEnabled,
     buildOptimisticNextStepForStrictPolicyRuleViolations,
     buildOptimisticNextStepForDynamicExternalWorkflowError,
-    buildOptimisticNextStepForDEWOfflineSubmission,
+    buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
+    buildOptimisticNextStepForDEWOffline,
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     buildNextStepNew,
 };

@@ -305,6 +305,52 @@ function hasPendingDEWSubmit(reportMetadata: OnyxEntry<ReportMetadata>, isDEWPol
     return reportMetadata?.pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.SUBMIT;
 }
 
+function isDynamicExternalWorkflowApproveFailedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DEW_APPROVE_FAILED);
+}
+
+function getMostRecentActiveDEWApproveFailedAction(reportActions: OnyxEntry<ReportActions> | ReportAction[]): ReportAction | undefined {
+    const actionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
+
+    // Find the most recent DEW_APPROVE_FAILED action
+    const mostRecentDewApproveFailedAction = actionsArray
+        .filter((action): action is ReportAction => isDynamicExternalWorkflowApproveFailedAction(action))
+        .reduce<ReportAction | undefined>((latest, current) => {
+            if (!latest || (current.created && latest.created && current.created > latest.created)) {
+                return current;
+            }
+            return latest;
+        }, undefined);
+
+    if (!mostRecentDewApproveFailedAction) {
+        return undefined;
+    }
+
+    // Find the most recent APPROVED or FORWARDED action (successful approval supersedes the DEW failure)
+    const mostRecentApprovalAction = actionsArray
+        .filter((action): action is ReportAction => isApprovedAction(action) || isForwardedAction(action))
+        .reduce<ReportAction | undefined>((latest, current) => {
+            if (!latest || (current.created && latest.created && current.created > latest.created)) {
+                return current;
+            }
+            return latest;
+        }, undefined);
+
+    // Return the DEW action if there's no approval action, or if DEW_APPROVE_FAILED is more recent
+    if (!mostRecentApprovalAction || mostRecentDewApproveFailedAction.created > mostRecentApprovalAction.created) {
+        return mostRecentDewApproveFailedAction;
+    }
+
+    return undefined;
+}
+
+function hasPendingDEWApprove(reportMetadata: OnyxEntry<ReportMetadata>, isDEWPolicy: boolean): boolean {
+    if (!isDEWPolicy) {
+        return false;
+    }
+    return reportMetadata?.pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.APPROVE;
+}
+
 function isDynamicExternalWorkflowForwardedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.FORWARDED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.FORWARDED) && getOriginalMessage(reportAction)?.workflow === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL;
 }
@@ -3627,6 +3673,9 @@ export {
     isDynamicExternalWorkflowSubmitFailedAction,
     getMostRecentActiveDEWSubmitFailedAction,
     hasPendingDEWSubmit,
+    isDynamicExternalWorkflowApproveFailedAction,
+    getMostRecentActiveDEWApproveFailedAction,
+    hasPendingDEWApprove,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,

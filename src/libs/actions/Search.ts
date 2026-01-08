@@ -123,11 +123,11 @@ function handleActionButtonPress({
                 onDelegateAccessRestricted?.();
                 return;
             }
-            if (hasDynamicExternalWorkflow(snapshotPolicy)) {
+            if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
                 onDEWModalOpen?.();
                 return;
             }
-            approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], currentSearchKey);
+            approveMoneyRequestOnSearch(hash, item.reportID ? [item.reportID] : [], snapshotPolicy, currentSearchKey);
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
             if (hasDynamicExternalWorkflow(snapshotPolicy) && !isDEWBetaEnabled) {
@@ -529,12 +529,22 @@ function submitMoneyRequestOnSearch(hash: number, reportList: Report[], policy: 
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], currentSearchKey?: SearchKey) {
+function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], policy?: Policy, currentSearchKey?: SearchKey) {
+    const isDEWPolicy = hasDynamicExternalWorkflow(policy);
+
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: true}])),
+            value: Object.fromEntries(
+                reportIDList.map((reportID) => [
+                    `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    {
+                        isActionLoading: true,
+                        ...(isDEWPolicy ? {pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE} : {}),
+                    },
+                ]),
+            ),
         },
     ];
 
@@ -542,7 +552,15 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: false}])),
+            value: Object.fromEntries(
+                reportIDList.map((reportID) => [
+                    `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    {
+                        isActionLoading: false,
+                        ...(isDEWPolicy ? {pendingExpenseAction: null} : {}),
+                    },
+                ]),
+            ),
         },
     ];
 
@@ -562,7 +580,15 @@ function approveMoneyRequestOnSearch(hash: number, reportIDList: string[], curre
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.REPORT_METADATA,
-            value: Object.fromEntries(reportIDList.map((reportID) => [`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {isActionLoading: false}])),
+            value: Object.fromEntries(
+                reportIDList.map((reportID) => [
+                    `${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`,
+                    {
+                        isActionLoading: false,
+                        ...(isDEWPolicy ? {pendingExpenseAction: null} : {}),
+                    },
+                ]),
+            ),
         },
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
